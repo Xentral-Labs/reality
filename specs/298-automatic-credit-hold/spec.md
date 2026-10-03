@@ -89,7 +89,7 @@ As a credit manager, I see which overdue items and which offsets are behind a ho
 ### Edge Cases
 
 - Tenant isolation: nothing crosses companies.
-- An order in another currency than the customer's own is not converted: it is neither counted nor held, and the reason of any later hold names it as not counted.
+- An order in another currency than the customer's own is not converted: it is not counted, and the reason of any later hold names it as not counted. Since [spec 341](../341-credit-limit-currency/spec.md) such an order is held for a person instead of passing unchecked.
 - A cancelled order, or the cancelled part of one, no longer counts.
 - Replaying an order intake does not place a second hold.
 - A promise revised upwards past the limit is held like a new order.

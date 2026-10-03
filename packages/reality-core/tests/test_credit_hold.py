@@ -111,12 +111,57 @@ def test_a_held_promise_is_not_ready_to_ship(session, business):
     assert "commitment_hold" in readiness.blocker_codes
 
 
-@pytest.mark.parametrize(("limit", "currency"), [("0", "EUR"), ("100", "USD")])
-def test_no_limit_or_another_currency_holds_nothing(session, business, limit, currency):
-    party = _customer(session, business, limit=limit)
+@pytest.mark.parametrize("currency", ["EUR", "USD"])
+def test_no_limit_holds_nothing_in_any_currency(session, business, currency):
+    party = _customer(session, business, limit="0")
     _, commitments = _order(session, business, party, "SO-C-NONE", "400.00", currency)
 
     assert _holds(session, business, commitments) == []
+
+
+def test_an_order_in_another_currency_waits_for_a_person(session, business):
+    """Spec 341: a limit in EUR cannot count a USD order without converting."""
+    party = _customer(session, business, limit="1000")
+    # Positive control: an order in the limit's currency within it is not held.
+    _, within = _order(session, business, party, "SO-C-EUR", "200.00")
+    assert _holds(session, business, within) == []
+
+    _, other = _order(session, business, party, "SO-C-USD", "50.00", "USD")
+
+    (hold,) = _holds(session, business, other)
+    assert (hold.reason_code, hold.created_by) == ("credit_check", "credit_limit")
+    assert hold.note.startswith("Credit limit 1000.00 EUR is stated in EUR")
+    assert "this order is in USD" in hold.note
+    assert "a person decides (exposure in EUR 200.00)" in hold.note
+    event = session.scalars(
+        select(BusinessEvent).where(
+            BusinessEvent.tenant_id == business.tenant.id,
+            BusinessEvent.event_type == "commitment.held",
+            BusinessEvent.subject_id == other[0].id,
+        )
+    ).one()
+    facts = json.loads(event.payload)["credit"]
+    assert facts["order_currency"] == "USD"
+    assert [row["number"] for row in facts["not_counted"]] == ["SO-C-USD"]
+    # The limit itself is judged in EUR only: this order does not put it over.
+    assert facts["over_limit"] is False
+
+
+def test_an_owner_releases_a_currency_hold_and_a_raise_asks_again(session, business):
+    tenant = business.tenant.id
+    party = _customer(session, business, limit="1000")
+    order, commitments = _order(session, business, party, "SO-C-USD-R", "50.00", "USD")
+    owner = _person(session, business, "owner")
+
+    proposal = _prepare_release(session, business, order, "Agreed in USD by phone")
+    assert _confirm(session, business, proposal, owner).status == "executed"
+    assert _holds(session, business, commitments) == []
+
+    # Raising the order adds credit nobody has judged yet, so it waits again.
+    core.revise_commitment(
+        session, tenant, commitments[0].id, quantity="8", note="More"
+    )
+    assert len(_holds(session, business, commitments)) == 1
 
 
 def test_the_reviewed_order_tool_holds_too(session, business):
@@ -283,7 +328,7 @@ def test_an_assigned_line_of_a_credit_held_order_is_held(session, business):
         session, tenant, payload, business.company.id, party.id, business.location.id
     )
     _, _, lines, commitments = core.process_import_job(session, tenant, job.id)
-    assert len(_holds(session, business, commitments)) == 1
+    (order_hold,) = _holds(session, business, commitments)
     unknown = next(line for line in lines if line.item_id is None)
 
     assign_line_item(session, tenant, document_line_id=unknown.id, item_id=helmet.id)
@@ -294,7 +339,9 @@ def test_an_assigned_line_of_a_credit_held_order_is_held(session, business):
             core.Commitment.document_line_id == unknown.id,
         )
     ).one()
-    assert len(_holds(session, business, [assigned])) == 1
+    (assigned_hold,) = _holds(session, business, [assigned])
+    # The line waits for the same decision, with the same reason (spec 341).
+    assert assigned_hold.note == order_hold.note
 
 
 # --- Release (FR-004) ----------------------------------------------------------------

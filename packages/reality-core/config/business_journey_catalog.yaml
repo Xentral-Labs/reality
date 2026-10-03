@@ -1152,6 +1152,7 @@ entries:
   limitations:
   - A limit lowered later does not hold orders already recorded; the credit-limit finding reports them.
   - An invoice recorded without links to its order lines counts next to the order until the order is closed.
+  - Amounts in another currency than the customer's limit are named, not counted, because Reality does not convert; an order in such a currency is held for a person with that reason instead of passing unchecked.
   keywords:
   - credit hold
   - order held for credit
@@ -1176,6 +1177,8 @@ entries:
     note: 'With 700 overdue against a limit of 1,000, an order of 200 is not held and one of 400 is; a member cannot release it, an owner does with a reason recorded in the event and the decision trail, and the order becomes ready to ship.'
   - reference: packages/reality-core/tests/test_credit_hold.py
     note: Every entry path, replay, other holds, the owner-only release and its refusals (spec 298).
+  - reference: packages/reality-core/tests/test_credit_hold.py::test_an_order_in_another_currency_waits_for_a_person
+    note: A USD order against a EUR limit is held with the reason that Reality does not convert, while an EUR order within the limit is not; an owner releases it and a later raise asks again (spec 341).
 - id: C08
   section: Payment and release
   title: Limit exceeded by overdue items, not by order value

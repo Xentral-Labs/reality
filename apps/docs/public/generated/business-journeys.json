@@ -1193,7 +1193,8 @@
       "summary": "Reality evaluates: Who released it, and why? A new order, or a promise revised upwards, that would take the customer past the credit limit is held at entry, whatever path records it, with a hold that names the limit, the open, overdue and ordered amounts; only a company owner releases it, with a stated reason recorded with the person.",
       "limitations": [
         "A limit lowered later does not hold orders already recorded; the credit-limit finding reports them.",
-        "An invoice recorded without links to its order lines counts next to the order until the order is closed."
+        "An invoice recorded without links to its order lines counts next to the order until the order is closed.",
+        "Amounts in another currency than the customer's limit are named, not counted, because Reality does not convert; an order in such a currency is held for a person with that reason instead of passing unchecked."
       ],
       "keywords": [
         "credit hold",

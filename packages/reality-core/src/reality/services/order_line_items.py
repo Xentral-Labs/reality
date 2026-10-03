@@ -237,9 +237,10 @@ def _hold_like_its_order(session, tenant_id, order_id, commitment) -> None:
     decision nobody has taken yet.
     """
     from reality.services.credit_exposure import (
+        _json_exposure,
+        _place_holds,
         active_credit_holds,
         credit_exposure,
-        place_credit_holds,
     )
 
     siblings = list(
@@ -251,11 +252,15 @@ def _hold_like_its_order(session, tenant_id, order_id, commitment) -> None:
             )
         )
     )
-    if not active_credit_holds(session, tenant_id, siblings):
+    held = active_credit_holds(session, tenant_id, siblings)
+    if not held:
         return
     session.flush()
     exposure = credit_exposure(session, tenant_id, commitment.to_party_id)
-    place_credit_holds(session, tenant_id, [commitment], exposure, core.ZERO)
+    # The line waits for the same decision, so it carries the same reason (spec 341).
+    _place_holds(
+        session, tenant_id, [commitment], held[0].note, _json_exposure(exposure)
+    )
 
 
 def assign_line_item(

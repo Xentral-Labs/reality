@@ -2349,3 +2349,13 @@ Tables `misdelivery` (a wrong-item movement's link to the line it was meant for)
 No code change. The Business Journey Guide states L11 (tax determination) and Q02 (period close) as out of scope, and Q04 is proven.
 
 - `packages/reality-core/tests/scenarios/test_catalog_time.py::test_open_orders_and_purchases_carry_over_the_year_end`: an order and a purchase keep what is open across the year end, and January's delivery fulfils both with December's still counted (Q04).
+
+## Credit limit and orders in another currency — Spec 341
+
+No schema change. An order in another currency than the customer's credit limit is held for a person instead of passing unchecked.
+
+- `packages/reality-core/tests/test_credit_hold.py`:
+  - A USD order against a EUR limit is held with the reason that Reality does not convert; an EUR order within the limit is not.
+  - No limit holds nothing in either currency.
+  - An owner releases the currency hold with a reason, and raising the order asks again.
+  - A line assigned later to a held order carries the order's hold reason.
