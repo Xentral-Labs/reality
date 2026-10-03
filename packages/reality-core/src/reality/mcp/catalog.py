@@ -4460,7 +4460,7 @@ MCP_TOOL_CATALOG += (
         "Read one source, proposal or execution and its original evidence, attachment download links and reported outcome. Provider acceptance is not recipient delivery.",
         "read",
         "Email",
-        EmailHistory.model_json_schema(),
+        {**EmailHistory.model_json_schema(), "required": []},
         _read("email_history"),
     ),
     MCPToolDefinition(

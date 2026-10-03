@@ -39,7 +39,17 @@ def test_all_mapped_agent_tools_exist_and_chat_uses_same_schema_registry():
     schemas = {schema["function"]["name"] for schema in model_tool_schemas()}
 
     assert mapped <= MCP_TOOL_NAMES
-    assert mapped <= schemas | {"proposal_approve_and_execute"}
+    all_schemas = {
+        schema["function"]["name"]
+        for schema in model_tool_schemas(access=("read", "propose", "confirm"))
+    }
+    assert mapped <= all_schemas
+    assert schemas == {
+        tool.name for tool in MCP_TOOL_CATALOG if tool.access in {"read", "propose"}
+    }
+    assert schemas.isdisjoint(
+        tool.name for tool in MCP_TOOL_CATALOG if tool.access == "confirm"
+    )
 
 
 def test_every_public_schema_is_strict():
