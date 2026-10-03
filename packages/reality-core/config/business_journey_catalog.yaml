@@ -4325,22 +4325,33 @@ entries:
   section: E-commerce and marketplaces
   title: Guest order, later with an account (duplicate party)
   question: Parties merged, history kept?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Parties merged, history kept?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Parties merged, history kept? Yes. A person merges the guest business partner into the customer's account through a review with a reason. The guest's orders, invoices and payments keep naming the guest and read under the account: its detail, balance and credit exposure include them. The guest becomes inactive, and a shop order that still names the guest lands on the account."
   limitations:
-  - Duplicate business partners cannot be merged while keeping both histories.
-  keywords: []
+  - A merge is not undone.
+  - Unused credit of the guest settles only the guest's own invoices.
+  keywords:
+  - guest checkout
+  - merge customer account
+  - Gastbestellung
+  - Kundenkonto zusammenführen
   question_examples:
   - Guest order, later with an account (duplicate party)
   - Parties merged, history kept?
-  tools: []
+  - A shop customer ordered as a guest and later opened an account; can both be one customer?
+  - Ein Shopkunde hat als Gast bestellt und später ein Konto angelegt; werden beide ein Kunde?
+  tools:
+  - party_merge_propose
+  - party_merges
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [O02]
   internal_evidence:
-  - reference: services/ (no party merge or duplicate-of service)
-    note: Duplicate parties cannot be merged with history kept.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_party_merges.py::test_a_guest_order_later_with_an_account
+    note: "A guest shop order and invoice merge into the account: the account's detail and balance include them, the guest order still names the guest, and the next shop order naming the guest lands on the account."
+  - reference: packages/reality-core/tests/test_party_merges.py
+    note: Merge, refusals, balances, credit exposure, file import and isolation (spec 339).
 - id: L11
   section: E-commerce and marketplaces
   title: 'OSS: EU consumer, destination-country VAT'
@@ -4875,22 +4886,33 @@ entries:
   section: Master data and identity
   title: Two parties merged as duplicates
   question: History of both kept?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: History of both kept?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: History of both kept? Yes. A reviewed merge states that one business partner is a duplicate of another, with a reason. Nothing stated is rewritten: each record keeps naming the partner it states, and the survivor's detail, balance and credit exposure include the duplicate's. The duplicate's detail names its survivor. Merged partners are never merged again, so there are no chains."
   limitations:
-  - Business partners cannot be merged as duplicates.
-  keywords: []
+  - A merge is not undone.
+  - The company's own business partner and a partner with an open delivery hold are not merged.
+  keywords:
+  - duplicate business partner
+  - merge duplicates
+  - Dublette
+  - Geschäftspartner zusammenführen
   question_examples:
   - Two parties merged as duplicates
   - History of both kept?
-  tools: []
+  - We created the same customer twice; can we merge them and keep both histories?
+  - Wir haben denselben Kunden doppelt angelegt; können wir sie zusammenführen und beide Historien behalten?
+  tools:
+  - party_merge_propose
+  - party_merges
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [L10]
   internal_evidence:
-  - reference: — (no merge service in services/)
-    note: There is no party merge or duplicate-resolution operation.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_party_merges.py::test_two_partners_merged_as_duplicates
+    note: "Two halves of one customer are each within the credit limit; merged, the exposure of 1300 exceeds the limit of 1000, the balance sums both, and a further merge into the duplicate is refused."
+  - reference: packages/reality-core/tests/test_party_merges.py
+    note: Merge, refusals, balances, credit exposure, file import and isolation (spec 339).
 - id: O03
   section: Master data and identity
   title: Customer moves; old orders keep the old address

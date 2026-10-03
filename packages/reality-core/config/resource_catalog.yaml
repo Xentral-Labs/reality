@@ -44,8 +44,8 @@ resources:
         Ein Datensatz je Unternehmen oder Person, mit der du Geschäfte machst. Rollen wie Kunde
         oder Lieferant stehen am Geschäftspartner, es gibt keine zwei Adressbücher. Liefersperren
         und Preisgruppen hängen hier.
-    synonyms: [customer, supplier, debtor, creditor, Kunde, Lieferant, Debitor, Kreditor, Adresse]
-    tables: [party, party_role, party_group, party_group_member, party_hold, customer_item_number, supplier_item_terms]
+    synonyms: [customer, supplier, debtor, creditor, duplicate, merge, Kunde, Lieferant, Debitor, Kreditor, Adresse, Dublette, Zusammenführen]
+    tables: [party, party_role, party_group, party_group_member, party_hold, customer_item_number, supplier_item_terms, party_merge]
     match: "party|member_add|customer_item|supplier_item_terms"
     views: [parties]
     projections: []
@@ -593,6 +593,8 @@ labels:
       supplier_item_terms: Lieferantenkonditionen anzeigen
       purchase_match: Bestellabgleich anzeigen
       define_kit: Stückliste festlegen
+      merge_party: Geschäftspartner zusammenführen
+      party_merges: Zusammengeführte Geschäftspartner anzeigen
       assemble_kit: Sets montieren
       kits: Stücklisten anzeigen
       kit_split: Set-Aufteilung anzeigen

@@ -149,6 +149,7 @@ await page.route("**/api/**", async (route) => {
         },
       ],
     });
+  if (path.endsWith("/party-merges")) return reply({ rows: [] });
   if (path.includes("/master-data/"))
     return reply({
       id: "master1",

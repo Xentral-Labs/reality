@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:74aacafdbb239d0cd80464c2040b9915bc09290f14f481f5457bc7edc8a23ef9",
+  "knowledge_version": "advisor-v1:sha256:e0dd004afaa818dcd88d363c43a40bccd0394da345e46892b9dac0925f12cfb7",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -630,7 +630,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D10",
-      "fingerprint": "195707b7d6cbaf32abfabf86a29a92c18fc7c572922c380971e5ab01b403ba02"
+      "fingerprint": "1ac77a5039e3bfceb3f89aae3e34ee119238731493e2e4eb81fd0f8afb3705ca"
     },
     {
       "id": "source_journey_d11",
@@ -639,7 +639,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D11",
-      "fingerprint": "e2097325fa1824275b57d40733cc6cb36d4ca80b94c3338abb910e1edb3efe8d"
+      "fingerprint": "2f2839049072a07d25fb91817b821a5c1758dee957a50d052b2d03ae4159a543"
     },
     {
       "id": "source_journey_d12",
@@ -1071,7 +1071,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G15",
-      "fingerprint": "a990ec3e192b9a1f687f5b11761590f2a7ec82dee74a0992f4b6a49260927ad5"
+      "fingerprint": "20bf604268dd3e239b069c44b4af6e8306cd39bf9bccb2e9a623e44ad37be3fa"
     },
     {
       "id": "source_journey_g16",
@@ -1611,7 +1611,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L10",
-      "fingerprint": "e232b39c0de1c6b5141d2010f2667728df3552d73e2abd38c342266189533c48"
+      "fingerprint": "2d3e55c4434573dc63bd478bf6150801bd792b02d07632f1439f398d9fd33049"
     },
     {
       "id": "source_journey_l11",
@@ -1827,7 +1827,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#O02",
-      "fingerprint": "559388d142ff0cdbcdcbd67d0845b283543cc9f234eb7c58370307849bc4be70"
+      "fingerprint": "0d0626f711ea9fabb78a1f3894065d6f7b9455ee6df17635293c96b79c705341"
     },
     {
       "id": "source_journey_o03",
@@ -2007,7 +2007,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R03",
-      "fingerprint": "d0db52f443d638b504a4de0e27a20f160eace718b81da9fbc76121fe91b10652"
+      "fingerprint": "7e383d1690e14642e4b7c19a4eea9850f8ed1458608da3763cc3149b07a0007e"
     },
     {
       "id": "source_journey_r04",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "61f19d77457b77c837e89ffb883295631a3937ae6b7b0d48a7ccc28d26801ca3"
+      "fingerprint": "2850a9136b294a2996e58c1e4d7c17b75bc2268604b9c02c1fa43b1b8b7a2d93"
     },
     {
       "id": "source_document_product_evaluation",
@@ -3332,40 +3332,34 @@
       "source_id": "source_journey_d10",
       "subject": "Picking, shipment, split and merge",
       "title": "Drop shipping: supplier ships directly",
-      "search_text": "D10 Picking, shipment, split and merge Drop shipping: supplier ships directly Customer served without own stock movement? drop shipping drop shipment dropship Streckengeschäft Direktlieferung Drop shipping: supplier ships directly Customer served without own stock movement? The supplier ships straight to our customer; how do we record it? Der Lieferant liefert direkt an unseren Kunden; wie erfassen wir das Streckengeschäft?",
-      "claim_text": "Reality evaluates: Customer served without own stock movement? Yes. A purchase order that ships to the customer is assigned to the order line; when the supplier states that it shipped, one reviewed drop shipment keeps the purchase and the customer order at once, with a shipment carrying the supplier's carrier and tracking number, and the company's stock does not change.",
-      "support": "proven",
+      "search_text": "D10 Picking, shipment, split and merge Drop shipping: supplier ships directly Customer served without own stock movement? Drop shipping: supplier ships directly Customer served without own stock movement?",
+      "claim_text": "Reality evaluates: Customer served without own stock movement?",
+      "support": "unavailable",
       "limitations": [
-        "The supplier's dispatch is recorded through the reviewed action; supplier portals and dispatch advices are not interpreted.",
-        "The contribution read does not cost a drop-shipped line from its purchase price.",
-        "Until the supplier's dispatch is recorded, the warehouse queue lists the line as not reserved."
+        "There is no drop-shipping path: an order line is fulfilled only by a movement out of own stock."
       ],
       "references": [
-        "D10",
-        "drop_shipment_record_propose",
-        "drop_shipments"
+        "D10"
       ],
       "language": "en",
-      "fingerprint": "e91631db720792c4fd714ae2f2470c68b291808cde51936a07f5b57175717c90"
+      "fingerprint": "89a8a70afd94b6e2ae397035ccbec37b69aa77535c661b611cbe3eadf8fe7ccf"
     },
     {
       "id": "evidence_journey_d11",
       "source_id": "source_journey_d11",
       "subject": "Picking, shipment, split and merge",
       "title": "Partial drop shipping: part own stock, part supplier",
-      "search_text": "D11 Picking, shipment, split and merge Partial drop shipping: part own stock, part supplier Both paths fulfil one commitment? partial drop shipping Teilstreckengeschäft Partial drop shipping: part own stock, part supplier Both paths fulfil one commitment?",
-      "claim_text": "Reality evaluates: Both paths fulfil one commitment? Yes. The part in stock is reserved and shipped as usual, the rest is drop-shipped by the supplier against its assigned purchase, and the one customer order is delivered in full by both.",
-      "support": "proven",
+      "search_text": "D11 Picking, shipment, split and merge Partial drop shipping: part own stock, part supplier Both paths fulfil one commitment? Partial drop shipping: part own stock, part supplier Both paths fulfil one commitment?",
+      "claim_text": "Reality evaluates: Both paths fulfil one commitment?",
+      "support": "unavailable",
       "limitations": [
-        "Which part the supplier ships is stated by the assignment of the drop-ship purchase."
+        "There is no drop-shipping path to combine with delivery from own stock; see D10."
       ],
       "references": [
-        "D11",
-        "drop_shipment_record_propose",
-        "drop_shipments"
+        "D11"
       ],
       "language": "en",
-      "fingerprint": "282558e582c28e0e46202cbe422560d784dfdbe2d8b96176cd9863d75117ea80"
+      "fingerprint": "f8aae09caff79e23f657cac94fbde06f2a97708b92c5afb84f0898eb5919fb77"
     },
     {
       "id": "evidence_journey_d12",
@@ -4181,19 +4175,17 @@
       "source_id": "source_journey_g15",
       "subject": "Purchasing: demand and purchase order",
       "title": "Drop-ship purchase order for a customer order",
-      "search_text": "G15 Purchasing: demand and purchase order Drop-ship purchase order for a customer order Linked to the sales commitment? drop-ship purchase order Streckenbestellung Drop-ship purchase order for a customer order Linked to the sales commitment?",
-      "claim_text": "Reality evaluates: Linked to the sales commitment? Yes. The purchase order states the customer as where the goods go and is assigned to the customer's order line; the drop-shipping read names the purchase serving the line, the customer order is no longer reported at risk, and the purchase is not counted as stock coming to the warehouse.",
-      "support": "proven",
+      "search_text": "G15 Purchasing: demand and purchase order Drop-ship purchase order for a customer order Linked to the sales commitment? Drop-ship purchase order for a customer order Linked to the sales commitment?",
+      "claim_text": "Reality evaluates: Linked to the sales commitment?",
+      "support": "unavailable",
       "limitations": [
-        "The purchase order and its assignment are recorded with the existing reviewed tools, not created from the sales order in one step."
+        "There is no drop-ship purchase order and no link from a supplier delivery to the customer order it serves."
       ],
       "references": [
-        "G15",
-        "supply_assign_propose",
-        "drop_shipments"
+        "G15"
       ],
       "language": "en",
-      "fingerprint": "be1141aaa2785a6ffcf740486ae1b5ef92a8c67c775063bf7c41a3192e6baacf"
+      "fingerprint": "e2d4dd28be9d262ab9962fee37da76296ee6afb2b07fd1f4051b9b4de8db4c79"
     },
     {
       "id": "evidence_journey_g16",
@@ -5218,17 +5210,20 @@
       "source_id": "source_journey_l10",
       "subject": "E-commerce and marketplaces",
       "title": "Guest order, later with an account (duplicate party)",
-      "search_text": "L10 E-commerce and marketplaces Guest order, later with an account (duplicate party) Parties merged, history kept? Guest order, later with an account (duplicate party) Parties merged, history kept?",
-      "claim_text": "Reality evaluates: Parties merged, history kept?",
-      "support": "unavailable",
+      "search_text": "L10 E-commerce and marketplaces Guest order, later with an account (duplicate party) Parties merged, history kept? guest checkout merge customer account Gastbestellung Kundenkonto zusammenführen Guest order, later with an account (duplicate party) Parties merged, history kept? A shop customer ordered as a guest and later opened an account; can both be one customer? Ein Shopkunde hat als Gast bestellt und später ein Konto angelegt; werden beide ein Kunde?",
+      "claim_text": "Reality evaluates: Parties merged, history kept? Yes. A person merges the guest business partner into the customer's account through a review with a reason. The guest's orders, invoices and payments keep naming the guest and read under the account: its detail, balance and credit exposure include them. The guest becomes inactive, and a shop order that still names the guest lands on the account.",
+      "support": "proven",
       "limitations": [
-        "Duplicate business partners cannot be merged while keeping both histories."
+        "A merge is not undone.",
+        "Unused credit of the guest settles only the guest's own invoices."
       ],
       "references": [
-        "L10"
+        "L10",
+        "party_merge_propose",
+        "party_merges"
       ],
       "language": "en",
-      "fingerprint": "85b609345f5c511da401a644540bca49f8d61c18d3fd07395814bc1b5d847d0e"
+      "fingerprint": "0ed07dd6114033985a85345a4e48dc22a0fc29818932840a19401c6bf8b3c825"
     },
     {
       "id": "evidence_journey_l11",
@@ -5642,17 +5637,20 @@
       "source_id": "source_journey_o02",
       "subject": "Master data and identity",
       "title": "Two parties merged as duplicates",
-      "search_text": "O02 Master data and identity Two parties merged as duplicates History of both kept? Two parties merged as duplicates History of both kept?",
-      "claim_text": "Reality evaluates: History of both kept?",
-      "support": "unavailable",
+      "search_text": "O02 Master data and identity Two parties merged as duplicates History of both kept? duplicate business partner merge duplicates Dublette Geschäftspartner zusammenführen Two parties merged as duplicates History of both kept? We created the same customer twice; can we merge them and keep both histories? Wir haben denselben Kunden doppelt angelegt; können wir sie zusammenführen und beide Historien behalten?",
+      "claim_text": "Reality evaluates: History of both kept? Yes. A reviewed merge states that one business partner is a duplicate of another, with a reason. Nothing stated is rewritten: each record keeps naming the partner it states, and the survivor's detail, balance and credit exposure include the duplicate's. The duplicate's detail names its survivor. Merged partners are never merged again, so there are no chains.",
+      "support": "proven",
       "limitations": [
-        "Business partners cannot be merged as duplicates."
+        "A merge is not undone.",
+        "The company's own business partner and a partner with an open delivery hold are not merged."
       ],
       "references": [
-        "O02"
+        "O02",
+        "party_merge_propose",
+        "party_merges"
       ],
       "language": "en",
-      "fingerprint": "dfa0a8ad2ffcc523163e0e67aee90c0e321a3db7451e7be4e2a192ab537fce07"
+      "fingerprint": "b6c197024d90153f0ed4217aab98dca45eb7a4a9db00a1ed88671035dddd8ca6"
     },
     {
       "id": "evidence_journey_o03",
@@ -5990,19 +5988,17 @@
       "source_id": "source_journey_r03",
       "subject": "Combined stress stories",
       "title": "Drop shipment with wrong item; customer returns it to us instead of the supplier",
-      "search_text": "R03 Combined stress stories Drop shipment with wrong item; customer returns it to us instead of the supplier Ownership and credits on both sides. drop shipment return Drop shipment with wrong item; customer returns it to us instead of the supplier Ownership and credits on both sides.",
-      "claim_text": "Reality evaluates: Ownership and credits on both sides. A drop-shipped order returned to the company comes into its stock as an ordinary return and is reported until the customer is credited; sent on to the supplier against the drop-ship purchase, it is reported until the supplier credits it, and both sides net out. The wrong item itself cannot be named.",
-      "support": "limited",
+      "search_text": "R03 Combined stress stories Drop shipment with wrong item; customer returns it to us instead of the supplier Ownership and credits on both sides. Drop shipment with wrong item; customer returns it to us instead of the supplier Ownership and credits on both sides.",
+      "claim_text": "Reality evaluates: Ownership and credits on both sides.",
+      "support": "unavailable",
       "limitations": [
-        "The drop shipment records the ordered item; naming the different item the supplier actually sent is a separate gap (D05)."
+        "There is no drop-shipping model, so ownership and credits on both sides cannot be shown."
       ],
       "references": [
-        "R03",
-        "drop_shipment_record_propose",
-        "drop_shipments"
+        "R03"
       ],
       "language": "en",
-      "fingerprint": "542fe6ed637c6310ac65ddfa40791f800b1bfdbec6dc1b8ecbca6b1b61adb6d1"
+      "fingerprint": "5edd1bf3302f6c0f6a2a5d01808ade8394a2f000b4d2274d55b56f1d5474779e"
     },
     {
       "id": "evidence_journey_r04",
@@ -7436,6 +7432,36 @@
       "fingerprint": "3c47f3aa58f1060572900fd12a10f334fe3928e9b23e83919b4adda137481bb3"
     },
     {
+      "id": "evidence_command_merge_party",
+      "source_id": "source_executable_commands",
+      "subject": "Merge a duplicate business partner",
+      "title": "Merge a duplicate business partner",
+      "search_text": "merge_party Merge a duplicate business partner States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive. mutation",
+      "claim_text": "merge_party is a governed mutation command for States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "merge_party"
+      ],
+      "language": "en",
+      "fingerprint": "e7e5298003e5407eaa372f592804ed1844ee58ca29b68a0d20c3a2633b306c09"
+    },
+    {
+      "id": "evidence_command_party_merges",
+      "source_id": "source_executable_commands",
+      "subject": "Read business partner merges",
+      "title": "Read business partner merges",
+      "search_text": "party_merges Read business partner merges Lists the business partner merges, or those one partner took part in, with the reason and when. query",
+      "claim_text": "party_merges is a governed query command for Lists the business partner merges, or those one partner took part in, with the reason and when..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "party_merges"
+      ],
+      "language": "en",
+      "fingerprint": "ba94908989120d61ba90da724693470eeefdd2aedfdeca2a4d6e8a88842925ce"
+    },
+    {
       "id": "evidence_command_purchase_match",
       "source_id": "source_executable_commands",
       "subject": "Read the three-way match of a purchase order",
@@ -8709,21 +8735,6 @@
       ],
       "language": "en",
       "fingerprint": "a8d4c40b3403c859361d5a81344d7a6fdd5b205768f3fc344a0d160ac113f3dc"
-    },
-    {
-      "id": "evidence_command_record_drop_shipment",
-      "source_id": "source_executable_commands",
-      "subject": "Record a drop shipment",
-      "title": "Record a drop shipment",
-      "search_text": "record_drop_shipment Record a drop shipment Records that a supplier shipped an assigned purchase straight to the customer; keeps the purchase and the customer promise with one receipt and one shipment that pass none of the company's locations, so stock is untouched. mutation",
-      "claim_text": "record_drop_shipment is a governed mutation command for Records that a supplier shipped an assigned purchase straight to the customer; keeps the purchase and the customer promise with one receipt and one shipment that pass none of the company's locations, so stock is untouched..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "record_drop_shipment"
-      ],
-      "language": "en",
-      "fingerprint": "b57a7606168b0cf794cc4caf5bbc8121b4b7c1c132af6ac4260ebac4df7d1fbd"
     },
     {
       "id": "evidence_command_assign_line_item",

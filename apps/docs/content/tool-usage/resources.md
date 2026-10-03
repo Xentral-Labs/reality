@@ -9,7 +9,7 @@ the technical key stands beside each one.
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
-| [Business partner](#resource-party)                              | 1     | 12      | 2                   |
+| [Business partner](#resource-party)                              | 1     | 13      | 2                   |
 | [Item](#resource-item)                                           | 5     | 13      | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
@@ -60,7 +60,8 @@ _Customers, suppliers and your own company_
 One record per company or person you trade with. Roles such as customer or supplier are stated on
 the partner, not by keeping two address books. Delivery holds and pricing groups attach here.
 
-**Also called:** customer, supplier, debtor, creditor, Kunde, Lieferant, Debitor, Kreditor, Adresse
+**Also called:** customer, supplier, debtor, creditor, duplicate, merge, Kunde, Lieferant, Debitor,
+Kreditor, Adresse, Dublette, Zusammenführen
 
 **Lists**
 
@@ -81,6 +82,7 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
   (`set_supplier_item_terms`)
 - [Withdraw supplier item terms](./commands#command-remove_supplier_item_terms)
   (`remove_supplier_item_terms`)
+- [Merge a duplicate business partner](./commands#command-merge_party) (`merge_party`)
 - [State a customer item number](./commands#command-set_customer_item_number)
   (`set_customer_item_number`)
 - [Withdraw a customer item number](./commands#command-remove_customer_item_number)
@@ -90,6 +92,7 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 **Look up**
 
 - [Read supplier item terms](./commands#command-supplier_item_terms) (`supplier_item_terms`)
+- [Read business partner merges](./commands#command-party_merges) (`party_merges`)
 - [Read customer item numbers](./commands#command-customer_item_numbers) (`customer_item_numbers`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 
@@ -101,11 +104,12 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 **Appears in processes:** [Master data and sources](./processes#process-master_data)
 
 **Underneath:** Tables: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
-`customer_item_number`, `supplier_item_terms` · Events:
+`customer_item_number`, `supplier_item_terms`, `party_merge` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
+[`party.merged`](./events#event-party-merged),
 [`supplier_item_terms.set`](./events#event-supplier_item_terms-set),
 [`supplier_item_terms.removed`](./events#event-supplier_item_terms-removed),
 [`customer_item_number.set`](./events#event-customer_item_number-set),

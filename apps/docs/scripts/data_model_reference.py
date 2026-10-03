@@ -75,6 +75,8 @@ kit_item_id|The stocked item that is the kit.|Der Lagerartikel, der das Set ist.
 component_item_id|The item one kit consumes when it is assembled.|Der Artikel, den ein Set bei der Montage verbraucht.
 share|The component's share of the kit's price, as stated; the bundle split divides a kit line by it.|Der Anteil der Komponente am Setpreis, wie angegeben; danach wird eine Set-Position aufgeteilt.
 position|The component's place in the stated list.|Die Stelle der Komponente in der angegebenen Liste.
+duplicate_party_id|The business partner stated to be a duplicate and merged.|Der Geschäftspartner, der als Dublette angegeben und zusammengeführt wurde.
+surviving_party_id|The business partner the duplicate was merged into; it answers for both histories.|Der Geschäftspartner, in den die Dublette zusammengeführt wurde; er steht für beide Historien.
 rule|How the customer or order is delivered: partial allowed, ship complete or no backorders.|Wie der Kunde oder Auftrag beliefert wird: Teillieferung erlaubt, Komplettlieferung oder keine Rückstände.
 updated_at|UTC timestamp of the last change.|UTC-Zeitpunkt der letzten Änderung.
 amount|Amount recorded for this entry, in its currency.|Für diesen Eintrag erfasster Betrag in seiner Währung.

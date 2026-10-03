@@ -62,6 +62,7 @@ from reality.db.core import (
     PartyGroupMember,
     PartyGroupPriceList,
     PartyHold,
+    PartyMerge,
     PartyPriceList,
     PartyRole,
     PaymentTerm,
@@ -12999,6 +13000,19 @@ def document_detail(
     }
 
 
+def _surviving_party_id(session: OrmSession, tenant_id: str, party_id: str) -> str:
+    """The partner that answers for this one: its survivor, or itself (spec 339)."""
+    return (
+        session.scalar(
+            select(PartyMerge.surviving_party_id).where(
+                PartyMerge.tenant_id == tenant_id,
+                PartyMerge.duplicate_party_id == party_id,
+            )
+        )
+        or party_id
+    )
+
+
 def party_detail(session: OrmSession, tenant_id: str, party_id: str) -> dict[str, Any]:
     party = _tenant_record(session, Party, tenant_id, party_id)
     payment_term = (
@@ -13007,8 +13021,60 @@ def party_detail(session: OrmSession, tenant_id: str, party_id: str) -> dict[str
         else None
     )
     party.payment_term_code = payment_term.code if payment_term else ""
+    # Spec 339: a survivor answers with every partner merged into it; each
+    # record keeps naming the partner it states.
+    merges = list(
+        session.scalars(
+            select(PartyMerge).where(
+                PartyMerge.tenant_id == tenant_id,
+                (PartyMerge.surviving_party_id == party.id)
+                | (PartyMerge.duplicate_party_id == party.id),
+            )
+        )
+    )
+    merged = [m for m in merges if m.surviving_party_id == party.id]
+    merged_into = next(
+        (m for m in merges if m.duplicate_party_id == party.id), None
+    )
+    members = [party.id, *(m.duplicate_party_id for m in merged)]
+    names = (
+        dict(
+            session.execute(
+                select(Party.id, Party.name).where(
+                    Party.tenant_id == tenant_id,
+                    Party.id.in_(
+                        [m.duplicate_party_id for m in merged]
+                        + ([merged_into.surviving_party_id] if merged_into else [])
+                    ),
+                )
+            ).all()
+        )
+        if merges
+        else {}
+    )
     return {
         "party": party,
+        "merged_parties": [
+            {
+                "party_id": m.duplicate_party_id,
+                "name": names.get(m.duplicate_party_id),
+                "reason": m.reason,
+                "merged_at": m.created_at,
+                "merge_id": m.id,
+            }
+            for m in merged
+        ],
+        "merged_into": (
+            {
+                "party_id": merged_into.surviving_party_id,
+                "name": names.get(merged_into.surviving_party_id),
+                "reason": merged_into.reason,
+                "merged_at": merged_into.created_at,
+                "merge_id": merged_into.id,
+            }
+            if merged_into
+            else None
+        ),
         "roles": list(
             session.scalars(
                 select(PartyRole).where(
@@ -13029,7 +13095,7 @@ def party_detail(session: OrmSession, tenant_id: str, party_id: str) -> dict[str
         "documents": list(
             session.scalars(
                 select(Document).where(
-                    Document.tenant_id == tenant_id, Document.party_id == party.id
+                    Document.tenant_id == tenant_id, Document.party_id.in_(members)
                 )
             )
         ),
@@ -13037,8 +13103,8 @@ def party_detail(session: OrmSession, tenant_id: str, party_id: str) -> dict[str
             session.scalars(
                 select(Commitment).where(
                     Commitment.tenant_id == tenant_id,
-                    (Commitment.from_party_id == party.id)
-                    | (Commitment.to_party_id == party.id),
+                    (Commitment.from_party_id.in_(members))
+                    | (Commitment.to_party_id.in_(members)),
                 )
             )
         ),
@@ -13046,7 +13112,7 @@ def party_detail(session: OrmSession, tenant_id: str, party_id: str) -> dict[str
             session.scalars(
                 select(LedgerEntry).where(
                     LedgerEntry.tenant_id == tenant_id,
-                    LedgerEntry.party_id == party.id,
+                    LedgerEntry.party_id.in_(members),
                 )
             )
         ),
@@ -13764,6 +13830,8 @@ def _shopify_interpretation(
     location_id = context["location_id"]
     _tenant_record(session, Party, tenant_id, company_party_id)
     _tenant_record(session, Party, tenant_id, customer_party_id)
+    # Spec 339: an order for a merged partner lands on its survivor.
+    customer_party_id = _surviving_party_id(session, tenant_id, customer_party_id)
     _tenant_record(session, Location, tenant_id, location_id)
     payload = json.loads(source.payload)
     # Spec 296: an unknown SKU no longer stops the order. Its line is kept

@@ -2317,3 +2317,16 @@ No new table. A purchase order whose stated ship-to party is a customer is a dro
   - An agent proposes through the strict schema; the person's confirmation is verified.
   - Another company sees nothing.
 - `packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py`: stories G15, D10, D11 and R03 (partial: the wrong item cannot be named).
+
+## Merging duplicate business partners — Spec 339
+
+Table `party_merge`: one row per duplicate names its survivor, the reason and the statement. Nothing stated is rewritten; the partner detail, the balances and the credit exposure add the merged partners at read time, and shop and file intake naming a duplicate resolve to its survivor.
+
+- `packages/reality-core/tests/test_party_merges.py`:
+  - A merge keeps both histories under the survivor: the detail, the balance and the event; the duplicate is inactive and its invoice still names it.
+  - The credit exposure counts the merged partner.
+  - Every refusal changes nothing, with a positive control; no chains either way; another company sees nothing.
+  - Merged reads cost the same however much the duplicate holds; a file row naming the duplicate lands on the survivor.
+- `packages/reality-core/tests/test_party_merge_adapters.py`: strict MCP schemas, an agent proposal confirmed by a person, the web API and inspector, another company cannot read or merge, the CLI asks before merging.
+- `packages/reality-core/tests/scenarios/test_catalog_party_merges.py`: stories L10 and O02.
+- `packages/reality-core/tests/test_party_merge_migration.py`: the rollback is refused while a merge is stated.

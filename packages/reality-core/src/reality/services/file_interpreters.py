@@ -265,9 +265,19 @@ def _party(session: Session, tenant_id: str, row: dict[str, Any]) -> Party:
     else:
         raise InvalidOperation("A party_accounting_code or party_name is required.")
     matches = list(session.scalars(query))
-    if len(matches) != 1:
+    # Spec 339: a row naming a merged partner lands on its survivor, and a
+    # duplicate and its survivor matched together are one partner.
+    from reality.services.party_merges import survivors_of
+
+    survivors = survivors_of(session, tenant_id, {party.id for party in matches})
+    resolved = {survivors.get(party.id, party.id) for party in matches}
+    if len(resolved) != 1:
         raise InvalidOperation("Party reference must resolve uniquely.")
-    return matches[0]
+    (party_id,) = resolved
+    return next(
+        (party for party in matches if party.id == party_id),
+        None,
+    ) or session.get(Party, (tenant_id, party_id))
 
 
 def _single_company(session: Session, tenant_id: str) -> Party:

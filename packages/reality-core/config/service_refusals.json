@@ -2542,6 +2542,50 @@
     },
     "drop_ship_purchase_not_to_customer": {
       "message": "The purchase order does not ship to this customer. A drop-ship purchase order names the customer as where the goods go."
+    },
+    "party_merge_parties_required": {
+      "message": "Name the duplicate business partner and the one it is merged into."
+    },
+    "party_merge_party_not_found": {
+      "message": "Business partner not found."
+    },
+    "party_merge_reason_required": {
+      "message": "Say why the two business partners are one."
+    },
+    "party_merge_reason_too_long": {
+      "message": "The reason is at most 500 characters."
+    },
+    "party_merge_same_party": {
+      "message": "A business partner cannot be merged into itself."
+    },
+    "party_merge_already_merged": {
+      "message": "{party} is already merged into {survivor}; use that business partner instead.",
+      "values": {
+        "party": "text",
+        "survivor": "text"
+      }
+    },
+    "party_merge_survivor_inactive": {
+      "message": "{party} is inactive; merge into an active business partner.",
+      "values": {
+        "party": "text"
+      }
+    },
+    "party_merge_company_party": {
+      "message": "The company's own business partner is never merged."
+    },
+    "party_merge_roles_missing": {
+      "message": "{party} lacks the role {roles} the duplicate has; give it that role first.",
+      "values": {
+        "party": "text",
+        "roles": "text"
+      }
+    },
+    "party_merge_hold_open": {
+      "message": "{party} has an open delivery hold; release it before merging.",
+      "values": {
+        "party": "text"
+      }
     }
   },
   "terms": [

@@ -9,7 +9,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
-| [Geschäftspartner](#resource-party)                            | 1      | 12       | 2         |
+| [Geschäftspartner](#resource-party)                            | 1      | 13       | 2         |
 | [Artikel](#resource-item)                                      | 5      | 13       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
@@ -61,7 +61,8 @@ Ein Datensatz je Unternehmen oder Person, mit der du Geschäfte machst. Rollen w
 Lieferant stehen am Geschäftspartner, es gibt keine zwei Adressbücher. Liefersperren und
 Preisgruppen hängen hier.
 
-**Auch genannt:** customer, supplier, debtor, creditor, Kunde, Lieferant, Debitor, Kreditor, Adresse
+**Auch genannt:** customer, supplier, debtor, creditor, duplicate, merge, Kunde, Lieferant, Debitor,
+Kreditor, Adresse, Dublette, Zusammenführen
 
 **Listen**
 
@@ -83,6 +84,7 @@ Preisgruppen hängen hier.
   (`set_supplier_item_terms`)
 - [Lieferantenkonditionen entfernen](./commands#command-remove_supplier_item_terms)
   (`remove_supplier_item_terms`)
+- [Geschäftspartner zusammenführen](./commands#command-merge_party) (`merge_party`)
 - [Kundenartikelnummer festlegen](./commands#command-set_customer_item_number)
   (`set_customer_item_number`)
 - [Kundenartikelnummer entfernen](./commands#command-remove_customer_item_number)
@@ -92,6 +94,7 @@ Preisgruppen hängen hier.
 **Nachschlagen**
 
 - [Lieferantenkonditionen anzeigen](./commands#command-supplier_item_terms) (`supplier_item_terms`)
+- [Zusammengeführte Geschäftspartner anzeigen](./commands#command-party_merges) (`party_merges`)
 - [Kundenartikelnummern anzeigen](./commands#command-customer_item_numbers)
   (`customer_item_numbers`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
@@ -106,11 +109,12 @@ Preisgruppen hängen hier.
 **Kommt vor in:** [Stammdaten und Quellen](./processes#process-master_data)
 
 **Darunter:** Tabellen: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
-`customer_item_number`, `supplier_item_terms` · Events:
+`customer_item_number`, `supplier_item_terms`, `party_merge` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
+[`party.merged`](./events#event-party-merged),
 [`supplier_item_terms.set`](./events#event-supplier_item_terms-set),
 [`supplier_item_terms.removed`](./events#event-supplier_item_terms-removed),
 [`customer_item_number.set`](./events#event-customer_item_number-set),

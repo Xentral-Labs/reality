@@ -39,6 +39,7 @@ from reality.services import month_end_billing as month_end_billing_service_modu
 from reality.services import notifications as notification_service_module
 from reality.services import order_line_items as order_line_item_service_module
 from reality.services import outbound_deliveries as outbound_delivery_service_module
+from reality.services import party_merges as party_merge_service_module
 from reality.services import payment_authorizations as authorization_service_module
 from reality.services import payment_intake as payment_intake_service_module
 from reality.services import payment_returns as payment_return_service_module
@@ -1128,6 +1129,7 @@ def _service(name: str) -> Any:
         supplier_terms_service_module,
         purchase_match_service_module,
         kit_service_module,
+        party_merge_service_module,
         company_currency_service_module,
         delivery_failure_service_module,
         drop_shipping_service_module,
@@ -1346,6 +1348,7 @@ def _literal_business_events() -> set[str]:
         supplier_terms_service_module,
         purchase_match_service_module,
         kit_service_module,
+        party_merge_service_module,
         company_currency_service_module,
         delivery_failure_service_module,
         drop_shipping_service_module,

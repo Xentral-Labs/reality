@@ -475,6 +475,8 @@ families:
       - tool:kit_assemble
       - tool:kits
       - tool:kit_split
+      - tool:party_merge
+      - tool:party_merges
       - tool:company_currency_set
       - tool:company_currency
       - tool:customer_item_number_remove

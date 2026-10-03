@@ -234,11 +234,15 @@
         "supplier",
         "debtor",
         "creditor",
+        "duplicate",
+        "merge",
         "Kunde",
         "Lieferant",
         "Debitor",
         "Kreditor",
-        "Adresse"
+        "Adresse",
+        "Dublette",
+        "Zusammenführen"
       ],
       "tables": [
         "party",
@@ -247,7 +251,8 @@
         "party_group_member",
         "party_hold",
         "customer_item_number",
-        "supplier_item_terms"
+        "supplier_item_terms",
+        "party_merge"
       ],
       "lists": ["view:parties"],
       "actions": [
@@ -260,12 +265,14 @@
         "command:hold_party_delivery",
         "command:set_supplier_item_terms",
         "command:remove_supplier_item_terms",
+        "command:merge_party",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:record_handover"
       ],
       "reads": [
         "command:supplier_item_terms",
+        "command:party_merges",
         "command:customer_item_numbers",
         "command:credit_exposure"
       ],
@@ -277,6 +284,7 @@
         "event:party.updated",
         "event:party.delivery_hold_placed",
         "event:party.delivery_hold_released",
+        "event:party.merged",
         "event:supplier_item_terms.set",
         "event:supplier_item_terms.removed",
         "event:customer_item_number.set",
@@ -11905,6 +11913,94 @@
       "links": ["command:assemble_kit"],
       "label_de": "Assemble kits",
       "resources": ["item"]
+    },
+    {
+      "id": "tool:party_merges",
+      "kind": "tool",
+      "key": "party_merges",
+      "label": "Business partner merges",
+      "area": "cross_functional",
+      "summary": "Read the business partner merges of the company, or those one partner took part in (party_id): the duplicate, the survivor it was merged into, the reason and when. A survivor's detail, balances and credit exposure include the history of every partner merged into it.",
+      "access": "read",
+      "group": "Master data",
+      "synopsis": "party_merges [party_id]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show which business partners were merged as duplicates and into which survivor.",
+        "use_when": [
+          "Someone asks whether two business partners are the same",
+          "where a guest customer's history went",
+          "or why a partner is inactive."
+        ],
+        "do_not_use_when": [
+          "Someone asks for a partner's balance or orders; read the partner's detail or balances",
+          "which already include merged partners."
+        ],
+        "limitations": ["A merge is not undone; the duplicate's records keep naming it."],
+        "empty_result": "No business partner was merged.",
+        "freshness": "Read at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP party_merges",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "party_merges",
+      "projections": [],
+      "links": ["command:party_merges"],
+      "label_de": "Business partner merges",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:party_merge_propose",
+      "kind": "tool",
+      "key": "party_merge_propose",
+      "label": "Merge duplicate business partner",
+      "area": "cross_functional",
+      "summary": "Prepare merging a duplicate business partner (duplicate_party_id) into the one that survives (surviving_party_id), with a reason, for confirmation. Nothing stated is rewritten: the duplicate's documents, promises and ledger entries keep naming it and read under the survivor; the duplicate becomes inactive, and new shop orders and imports naming it land on the survivor. The survivor must be active and hold every role of the duplicate; merged partners are never merged again; the company's own partner and a partner with an open delivery hold are refused. A person confirms.",
+      "access": "propose",
+      "group": "Master data",
+      "synopsis": "party_merge_propose duplicate_party_id surviving_party_id reason",
+      "parameters": [
+        {
+          "name": "duplicate_party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the business partner that is a duplicate and is merged (spec 339).",
+          "depth": 0
+        },
+        {
+          "name": "surviving_party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the business partner the duplicate is merged into; it answers for both histories (spec 339).",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "merge_party",
+      "projections": [],
+      "links": ["command:merge_party"],
+      "label_de": "Merge duplicate business partner",
+      "resources": ["party"]
     },
     {
       "id": "tool:movement_explanation",
@@ -23999,6 +24095,72 @@
       "resources": ["item"]
     },
     {
+      "id": "command:merge_party",
+      "kind": "command",
+      "key": "merge_party",
+      "label": "Merge a duplicate business partner",
+      "area": "cross_functional",
+      "summary": "States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "party",
+        "party_role",
+        "party_hold",
+        "party_merge",
+        "document",
+        "commitment",
+        "ledger_entry"
+      ],
+      "writes": ["party_merge", "party", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_party_merge", "validate_party_merge"],
+      "tools": ["party_merge_propose"],
+      "synopses": ["party_merge_propose duplicate_party_id surviving_party_id reason"],
+      "events": ["party.merged"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:party_merge_propose", "event:party.merged"],
+      "label_de": "Geschäftspartner zusammenführen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:party_merges",
+      "kind": "command",
+      "key": "party_merges",
+      "label": "Read business partner merges",
+      "area": "cross_functional",
+      "summary": "Lists the business partner merges, or those one partner took part in, with the reason and when.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party_merge", "party"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["party_merges"],
+      "synopses": ["party_merges [party_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show which business partners were merged as duplicates and into which survivor.",
+        "use_when": [
+          "Someone asks whether two business partners are the same",
+          "where a guest customer's history went",
+          "or why a partner is inactive."
+        ],
+        "do_not_use_when": [
+          "Someone asks for a partner's balance or orders; read the partner's detail or balances",
+          "which already include merged partners."
+        ],
+        "limitations": ["A merge is not undone; the duplicate's records keep naming it."],
+        "empty_result": "No business partner was merged.",
+        "freshness": "Read at request time."
+      },
+      "links": ["tool:party_merges"],
+      "label_de": "Zusammengeführte Geschäftspartner anzeigen",
+      "resources": ["party"]
+    },
+    {
       "id": "command:purchase_match",
       "kind": "command",
       "key": "purchase_match",
@@ -28234,6 +28396,7 @@
         "stock_block.scrapped",
         "company_currency.set",
         "kit.defined",
+        "party.merged",
         "kit.assembled",
         "supplier_item_terms.set",
         "supplier_item_terms.removed",
@@ -28442,6 +28605,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "party.merged",
         "kit.assembled",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
@@ -28694,6 +28858,7 @@
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "party.updated",
+        "party.merged",
         "payment_term.updated",
         "document.recorded",
         "document.corrected",
@@ -28845,6 +29010,7 @@
         "stock_block.scrapped",
         "company_currency.set",
         "kit.defined",
+        "party.merged",
         "kit.assembled",
         "supplier_item_terms.set",
         "supplier_item_terms.removed",
@@ -30964,6 +31130,20 @@
       "links": ["command:define_kit"],
       "label_de": "kit.defined",
       "resources": ["item"]
+    },
+    {
+      "id": "event:party.merged",
+      "kind": "event",
+      "key": "party.merged",
+      "label": "party.merged",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "merge_party",
+      "subject": "party",
+      "invalidates": ["Open financial items", "Operational Exceptions", "Timeline", "Tenant usage"],
+      "links": ["command:merge_party"],
+      "label_de": "party.merged",
+      "resources": ["party"]
     },
     {
       "id": "event:kit.assembled",
@@ -77976,6 +78156,7 @@
         "command:remove_supplier_item_terms",
         "command:define_kit",
         "command:assemble_kit",
+        "command:merge_party",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:plan_outbound_delivery",
@@ -80231,7 +80412,12 @@
           "references": []
         }
       ],
-      "actions": ["command:create_party", "command:update_party", "command:set_master_data_active"]
+      "actions": [
+        "command:create_party",
+        "command:update_party",
+        "command:set_master_data_active",
+        "command:merge_party"
+      ]
     },
     {
       "key": "party_role",

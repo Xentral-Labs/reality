@@ -745,6 +745,16 @@ tables:
       position: {description: The component's place in the stated list.}
       created_at: {}
       source_record_id: {description: "The kit's definition: the statement that named its components."}
+  party_merge:
+    description: One business partner stated to be a duplicate of another (spec 339); the duplicate's records keep naming it and read under the survivor.
+    columns:
+      id: {}
+      tenant_id: {}
+      duplicate_party_id: {description: The business partner stated to be a duplicate and merged.}
+      surviving_party_id: {description: The business partner the duplicate was merged into; it answers for both histories.}
+      reason: {description: Why the two business partners are one, as stated.}
+      created_at: {}
+      source_record_id: {description: "The merge statement: who was merged into whom and why."}
   item_reorder_point:
     description: The stock level at which the company reorders an item at a location, and how much it then orders (spec 302).
     columns:

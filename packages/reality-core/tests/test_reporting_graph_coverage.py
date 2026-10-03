@@ -99,7 +99,7 @@ DEFERRED = {
         set(),
     ),
     "operational_edge_workflows": (
-        "Dunning evidence, the dunning schedule, reorder points, kit components, delivery rules, customer item numbers, supplier item terms, the company currency, stock counts, collection handovers, payment returns, failed deliveries, explicit supply allocations and customer exchanges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
+        "Dunning evidence, the dunning schedule, reorder points, kit components, delivery rules, customer item numbers, supplier item terms, the company currency, stock counts, collection handovers, payment returns, failed deliveries, explicit supply allocations, customer exchanges and business partner merges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
         {
             "collection_handover",
             "collection_handover_invoice",
@@ -126,6 +126,7 @@ DEFERRED = {
             "payment_authorization",
             "payment_capture",
             "supply_assignment",
+            "party_merge",
         },
         set(),
     ),

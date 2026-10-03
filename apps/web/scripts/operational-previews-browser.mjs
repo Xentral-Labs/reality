@@ -338,6 +338,7 @@ await page.route("**/api/**", async (route) => {
         : {}),
     });
   }
+  if (path.endsWith("/party-merges")) return reply({ rows: [] });
   if (path.endsWith("/delivery-rules"))
     return reply({
       subject: "document",

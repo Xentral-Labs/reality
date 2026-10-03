@@ -3279,6 +3279,53 @@ export const kits = {
       { method: "POST", body: JSON.stringify({ confirmed: true }) },
     ),
 };
+export type PartyMergeRow = {
+  id: string;
+  duplicate_party_id: string;
+  duplicate: string | null;
+  surviving_party_id: string;
+  survivor: string | null;
+  reason: string;
+  merged_at: string;
+  source_record_id: string;
+};
+export type PartyMergeSide = {
+  id: string;
+  name: string;
+  accounting_code: string;
+  default_currency: string;
+  roles: string[];
+  documents: number;
+  commitments: number;
+  ledger_entries: number;
+};
+export type PartyMergeReview = {
+  duplicate: PartyMergeSide;
+  survivor: PartyMergeSide;
+  reason: string;
+  effect: string;
+};
+export const partyMerges = {
+  list: (tenant: string, party = "") =>
+    request<{ rows: PartyMergeRow[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/party-merges?${new URLSearchParams(
+        party ? { party_id: party } : {},
+      )}`,
+    ),
+  prepare: (
+    tenant: string,
+    body: { duplicate_party_id: string; surviving_party_id: string; reason: string },
+  ) =>
+    request<{ id: string; status: string; preview: { party_merge: PartyMergeReview } }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/parties/merge-proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
 export type PurchaseMatchLine = {
   document_line_id: string;
   item: string;
