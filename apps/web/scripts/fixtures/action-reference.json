@@ -624,6 +624,37 @@
       "effect": "Lists suppliers' minimum order quantities and order multiples, of one supplier or one item."
     },
     {
+      "name": "Define a kit",
+      "service": "define_kit",
+      "related_services": ["review_kit", "validate_kit_definition"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price."
+    },
+    {
+      "name": "Assemble kits",
+      "service": "assemble_kit",
+      "related_services": ["review_kit", "validate_kit_assembly"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Consumes every component and produces whole kits at one location under one assembly statement, all or nothing; a component short of free stock refuses the whole assembly."
+    },
+    {
+      "name": "Read kits",
+      "service": "kits",
+      "related_services": ["kit_availability"],
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists the kits with their components and, per location, the free kits on hand, the whole kits the free components build and the component that limits them."
+    },
+    {
+      "name": "Read a kit line's split",
+      "service": "kit_split",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line."
+    },
+    {
       "name": "Read the three-way match of a purchase order",
       "service": "purchase_match",
       "mode": "query",
