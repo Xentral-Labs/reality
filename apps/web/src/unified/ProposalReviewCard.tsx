@@ -12,6 +12,7 @@ import {
   ProposalApprovalRequirement,
   TechnicalDetails,
 } from "./DecisionReview";
+import { IntakeBatchReview } from "./IntakeBatchReview";
 import { proposalBusinessLabel } from "./proposalPresentation";
 
 export function ProposalReviewCard({
@@ -35,7 +36,7 @@ export function ProposalReviewCard({
     dialog.current?.showModal();
     return () => previous?.focus();
   }, []);
-  if (!review.data)
+  if (!review.data || review.data.id !== proposalId)
     return (
       <dialog
         ref={dialog}
@@ -124,7 +125,17 @@ export function ProposalReviewCard({
         busy={working}
         titleId="proposal-review-title"
       />
-      {data.purpose && <p className="mt-2 text-sm text-fg-default">{t(data.purpose)}</p>}
+      {data.purpose && (
+        <p className="mt-2 text-sm text-fg-default">
+          {t(
+            data.tool === "intake_batch_apply"
+              ? "Review the selected sources and their expected effects before confirming."
+              : data.tool === "intake_apply"
+                ? "Review the original source and its expected effects before confirming."
+                : data.purpose,
+          )}
+        </p>
+      )}
       <p className="mt-2 text-sm text-fg-muted">
         {t(data.actor_type === "agent" ? "Proposed by an agent" : "Prepared for review")} ·{" "}
         {formatDateTime(data.created_at)}
@@ -142,46 +153,57 @@ export function ProposalReviewCard({
           />
         </p>
       )}
-      <ProposalApprovalRequirement nextStep={data.next_step} />
+      {data.status === "proposed" && <ProposalApprovalRequirement nextStep={data.next_step} />}
       {data.message && (
         <p role="alert" className="mt-4 rounded-xl bg-surface-muted p-4">
           {t(data.message)}
         </p>
       )}
-      <section className="mt-5">
-        <h3 className="font-semibold">{t(privateChange ? "Proposed change" : "Stated input")}</h3>
-        <div className="mt-2 rounded-xl bg-surface-muted p-4">
-          {privateChange ? (
-            readablePrivate ? (
-              <BusinessFieldList
-                record={data.private_review?.details || {}}
-                omit={["proposal_id", "status", "kind"]}
-              />
+      {data.tool !== "intake_batch_apply" && (
+        <section className="mt-5">
+          <h3 className="font-semibold">{t(privateChange ? "Proposed change" : "Stated input")}</h3>
+          <div className="mt-2 rounded-xl bg-surface-muted p-4">
+            {privateChange ? (
+              readablePrivate ? (
+                <BusinessFieldList
+                  record={data.private_review?.details || {}}
+                  omit={["proposal_id", "status", "kind"]}
+                />
+              ) : (
+                <p className="text-sm text-fg-muted">
+                  {t(
+                    data.private_review?.message ||
+                      "This change is private. Only its original author can view its contents.",
+                  )}
+                </p>
+              )
             ) : (
-              <p className="text-sm text-fg-muted">
-                {t(
-                  data.private_review?.message ||
-                    "This change is private. Only its original author can view its contents.",
-                )}
-              </p>
-            )
-          ) : (
-            <BusinessFieldList record={data.input} />
-          )}
-        </div>
-      </section>
-      {data.status !== "proposed" && (
-        <p className="mt-4 text-sm text-fg-muted">
-          {t("Reconcile with")} <code>{data.next_step.reconciliation_read}</code>
-          {data.next_step.verification_reads.length > 0 && (
-            <>
-              {" "}
-              · {t("Verify with")} <code>{data.next_step.verification_reads.join(", ")}</code>
-            </>
-          )}
-        </p>
+              <BusinessFieldList record={data.input} />
+            )}
+          </div>
+        </section>
       )}
-      {(!privateChange || readablePrivate) && (
+      {data.tool === "intake_batch_apply" && (
+        <IntakeBatchReview
+          tenant={tenant}
+          id={proposalId}
+          decisionStatus={data.status}
+          prepared={prepared}
+        />
+      )}
+      {data.status !== "proposed" &&
+        !["intake_apply", "intake_batch_apply"].includes(data.tool) && (
+          <p className="mt-4 text-sm text-fg-muted">
+            {t("Reconcile with")} <code>{data.next_step.reconciliation_read}</code>
+            {data.next_step.verification_reads.length > 0 && (
+              <>
+                {" "}
+                · {t("Verify with")} <code>{data.next_step.verification_reads.join(", ")}</code>
+              </>
+            )}
+          </p>
+        )}
+      {data.tool !== "intake_batch_apply" && (!privateChange || readablePrivate) && (
         <section className="mt-5">
           <h3 className="font-semibold">
             {t(data.status === "proposed" ? "Prepared preview" : "Stored receipt")}

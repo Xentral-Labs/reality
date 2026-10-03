@@ -473,7 +473,15 @@ test("Decisions explains how proposals enter the queue beside its action filter"
   assert.match(decisions, /aria-labelledby="decision-help-title"/);
   assert.match(decisions, /className="br-exception-catalog"/);
   assert.doesNotMatch(decisions, /Oldest first/);
-  assert.match(decisions, /A connected agent proposes a change but cannot carry it out/);
+  assert.match(
+    decisions,
+    /An agent may accept reviewed intake only within a separate owner mandate/,
+  );
+  assert.match(decisions, /explicit limits and expiry/);
+  assert.match(
+    decisions,
+    /Other proposed changes remain subject to their existing confirmation rules/,
+  );
   assert.match(decisions, /A pending decision has changed nothing yet/);
   assert.match(decisions, /commitments_list or fulfillment_blockers/);
   assert.match(decisions, /business_records_discover/);

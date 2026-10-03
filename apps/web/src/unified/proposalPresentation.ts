@@ -1,4 +1,8 @@
 const proposalBusinessLabels: Record<string, string> = {
+  intake_apply: "Review source meaning",
+  intake_batch_apply: "Review selected sources",
+  intake_mandate_grant: "Grant review mandate",
+  intake_mandate_revoke: "Revoke review mandate",
   reserve: "Reserve stock",
   reservation_release: "Release reservation",
   commitment_hold: "Hold commitment",

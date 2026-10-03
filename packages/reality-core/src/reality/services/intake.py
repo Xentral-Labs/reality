@@ -1577,3 +1577,24 @@ def reject_prepared_intake(
     else:
         session.flush()
     return proposal
+
+
+def review_intake_original_source(session, tenant_id, proposal_id):
+    """
+    BUSINESS PURPOSE:
+    Expose the complete retained original source for an exact human intake review.
+
+    BUSINESS RULE intake.original_source_review:
+    Resolve only the tenant-owned prepared source or original parent without refreshing meaning or accepting effects.
+    """
+    # reality-rule: intake.original_source_review
+    review = review_intake(session, tenant_id, proposal_id)
+    plan = PreparedIntake.model_validate(review["plan"])
+    original_id = plan.mapping.get("parent_source_id") or plan.source_record_id
+    original = core._tenant_record_read(session, SourceRecord, tenant_id, original_id)
+    return {
+        "source_record_id": original.id,
+        "payload": original.payload,
+        "payload_hash": original.payload_hash,
+        "source_artifact_id": original.source_artifact_id,
+    }

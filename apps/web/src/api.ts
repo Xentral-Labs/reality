@@ -5033,3 +5033,61 @@ export const journeyProposalApi = {
       body: JSON.stringify({ confirmed: true }),
     }),
 };
+
+export type IntakeBatchEntry = { proposal_id: string; digest: string };
+export type IntakeBatchReview = {
+  batch_id: string;
+  status: string;
+  digest: string;
+  manifest_revision: number;
+  total: number;
+  entries: Array<
+    IntakeBatchEntry & {
+      status: string;
+      source_record_id: string;
+      profile: string;
+      row_count: number;
+      issues: string[];
+      effect_operations: string[];
+    }
+  >;
+  has_more: boolean;
+};
+export type IntakeBatchStatus = {
+  batch_id: string;
+  status: string;
+  total: number;
+  settled: number;
+  stopped: boolean;
+  counts: Record<string, number>;
+  results: Array<{
+    proposal_id: string;
+    disposition: string;
+    reason_code?: string;
+    receipt?: Record<string, unknown>;
+  }>;
+  has_more: boolean;
+};
+export const intakeBatches = {
+  renew: (tenant: string, id: string, jobId: string, requestId: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/intake-units/${encodeURIComponent(id)}/renew`,
+      { method: "POST", body: JSON.stringify({ job_id: jobId, request_id: requestId }) },
+    ),
+  prepare: (tenant: string, entries: IntakeBatchEntry[], requestId: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/intake-batches/prepare`,
+      { method: "POST", body: JSON.stringify({ entries, request_id: requestId }) },
+    ),
+  review: (tenant: string, id: string, cursor = 0) =>
+    request<IntakeBatchReview>(
+      `/api/tenants/${encodeURIComponent(tenant)}/intake-batches/${encodeURIComponent(id)}/review?cursor=${cursor}&limit=100`,
+    ),
+  status: (tenant: string, id: string, cursor = 0) =>
+    request<IntakeBatchStatus>(
+      `/api/tenants/${encodeURIComponent(tenant)}/intake-batches/${encodeURIComponent(id)}/status?cursor=${cursor}&limit=100`,
+    ),
+  stop: (tenant: string, id: string) => itemImports.stop(tenant, id),
+  original: (tenant: string, id: string) =>
+    `/api/tenants/${encodeURIComponent(tenant)}/intake-units/${encodeURIComponent(id)}/original`,
+};

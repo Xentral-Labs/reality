@@ -169,3 +169,13 @@ review and cached transport principal cannot substitute for that permission.
 Removing it after submission makes remaining children review-required without
 accepted effects. Each retained child verdict binds the fixed ordered manifest,
 current mandate revision, original source coverage and exact prepared digest.
+### Bulk transport details
+
+FR-011 includes explicit pending-source selection in Decisions, capped at 500
+retained proposal identities/digests and cleared on company change. Preparing a
+batch never approves it or selects future arrivals. Review and results are paged
+at at most 100 units; each child exposes its exact meaning and complete original
+source download/artifact link. Current progress, no-effect refusals and receipts
+remain visible, and stop affects further units only. Trusted local CLI exposes the
+same prepare/review/confirm/status/stop services; confirmation and stop require an
+explicit current member identity, and confirmation includes the exact digest.

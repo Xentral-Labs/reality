@@ -50,6 +50,7 @@ from reality.db.core import (
     uid,
 )
 from reality.domain.calendar import day_text
+from reality.domain.intake import ManifestEntry
 from reality.domain.refusals import payload as refusal_payload
 from reality.mcp.auth import (
     active_mcp_access_tokens,
@@ -9490,3 +9491,106 @@ def resolve_company_search(
         raise HTTPException(
             503, "Search is temporarily unavailable. Please retry."
         ) from error
+
+
+class IntakeBatchPrepare(BaseModel):
+    model_config = {"extra": "forbid"}
+    entries: list[ManifestEntry] = Field(min_length=1, max_length=500)
+    request_id: str = Field(min_length=1, max_length=128)
+
+
+@router.post("/intake-batches/prepare")
+def post_intake_batch_prepare(
+    tenant_id: str, body: IntakeBatchPrepare, session: DatabaseSession
+):
+    from reality.services.intake_batches import prepare_batch
+
+    try:
+        batch = prepare_batch(
+            session,
+            tenant_id,
+            [entry.model_dump(mode="json") for entry in body.entries],
+            request_id=body.request_id,
+        )
+        return {"id": batch.id, "status": batch.status}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/intake-batches/{batch_id}/review")
+def get_intake_batch_review(
+    tenant_id: str,
+    batch_id: str,
+    session: DatabaseSession,
+    cursor: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+):
+    from reality.services.intake_batches import review_batch
+
+    try:
+        return review_batch(session, tenant_id, batch_id, cursor=cursor, limit=limit)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/intake-batches/{batch_id}/status")
+def get_intake_batch_status(
+    tenant_id: str,
+    batch_id: str,
+    session: DatabaseSession,
+    cursor: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+):
+    from reality.services.intake_batches import batch_status
+
+    try:
+        return batch_status(session, tenant_id, batch_id, cursor=cursor, limit=limit)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/intake-units/{proposal_id}/original")
+def get_intake_original_source(
+    tenant_id: str, proposal_id: str, session: DatabaseSession
+):
+    from fastapi.responses import Response
+
+    from reality.services.intake import review_intake_original_source
+
+    try:
+        source = review_intake_original_source(session, tenant_id, proposal_id)
+        return Response(
+            source["payload"].encode("utf-8"),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": 'attachment; filename="original-source.json"',
+                "X-Source-Digest": source["payload_hash"],
+            },
+        )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+class IntakeReviewRenew(BaseModel):
+    model_config = {"extra": "forbid"}
+    job_id: str = Field(min_length=1, max_length=128)
+    request_id: str = Field(min_length=1, max_length=128)
+
+
+@router.post("/intake-units/{proposal_id}/renew")
+def post_intake_review_renew(
+    tenant_id: str, proposal_id: str, body: IntakeReviewRenew, session: DatabaseSession
+):
+    from reality.services.intake import renew_prepared_intake
+
+    try:
+        proposal = renew_prepared_intake(
+            session,
+            tenant_id,
+            body.job_id,
+            previous_proposal_id=proposal_id,
+            request_id=body.request_id,
+        )
+        return {"id": proposal.id, "status": proposal.status}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error

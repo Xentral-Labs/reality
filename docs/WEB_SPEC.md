@@ -3556,3 +3556,15 @@ Storyline retain their own behavior. This supersedes narrower desktop docking ru
 ## Live business logic inspection
 
 See [the live business logic contract](features/business-logic-blueprints.md) for spec 343: request-time running-source provenance, shared rule graphs, raw synthetic test evidence, read-only case comparison, and public/private boundaries. No stored explanation, business schema or scheduled job is introduced.
+
+
+### Exact source selection in Decisions (spec 355)
+
+Pending prepared source units can be explicitly selected, at most 500 at once.
+Selection binds retained identities/digests and excludes future arrivals; company
+or pending/history changes clear it. Preparing the selection is distinct from
+confirmation. The shared batch review pages at most 100 child meanings/results,
+links complete original source/file bytes, reports actual applied/replayed/refused/
+stopped dispositions and receipts, and can stop further units. A refused child
+may explicitly prepare a fresh review, which needs a new decision. Generic
+register selection/export rules remain separate from this decision workflow.

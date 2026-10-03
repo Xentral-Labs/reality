@@ -2546,3 +2546,10 @@ Automatic file-adapter cutover remains open until spec 356.
 - `packages/reality-core/tests/test_intake_agent_bulk.py`: complete fixed-manifest evidence; actual parent/child token attribution; uncertain or incomplete evidence never queues acceptance; current token revocation and tool restrictions; global quotas across separately authorized batches; tamper refusal; transaction-bound child scope; exact request replay; database-only processing and complete provisional chunk rollback after late infrastructure failure.
 - `submit_agent_batch_review` retains bounded external verdicts before the shared queue is used. No model/provider assessment or original-artifact download occurs in the worker.
 - Actual competing-transaction quota/crash measurements, bulk Web/CLI controls and all-path source cutover remain pending.
+
+
+## Bulk intake transports and source review — Spec 355
+
+- `packages/reality-core/tests/test_bulk_intake_transports.py`: explicit fixed API/CLI selection, request replay, missing/falsified confirmation, current local principal, bounded pages, foreign-company/source-download refusal, complete original payload bytes, stop and truthful mixed dispositions/receipts; fresh review without effects or rewriting the old plan.
+- `packages/reality-core/tests/browser/unified_bulk_intake.py`: real browser/API/worker stack; visible source selection, separate confirmation, lost prepare/approval response recovery, complete original source download, durable independent receipts and localized narrow/desktop results.
+- `review_intake_original_source` is a tenant-scoped retained-source read, not an interpreter or a mutation authority. The browser proof is registered in the real-stack CI matrix.

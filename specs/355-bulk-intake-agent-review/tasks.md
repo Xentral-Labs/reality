@@ -68,3 +68,5 @@ by all required checks and honest unresolved-outcome reporting.
 
 - [ ] T020 Add failure-first owner-scope, genuine-token, complete original-byte coverage, finite quota, expiry/revocation and migration proofs in `test_intake_agent_review.py`; implement the current mandate and structured evidence services (FR-006–FR-010/FR-007a).
 - [ ] T021 Prove retained delegated batches with exact complete evidence, current token/source authority, shared quotas, replay, private-scope refusal and late chunk rollback in `test_intake_agent_bulk.py`; expose `submit_agent_batch_review` through a mutating MCP confirmation tool and the canonical shared queue (FR-006–FR-010).
+
+- [ ] T022 Prove bounded explicit Web/API/CLI source selection, exact confirmation, complete source download, truthful child progress/receipts, stop and renewed review in `test_bulk_intake_transports.py` and the real-stack `tests/browser/unified_bulk_intake.py`; expose shared services in Decisions and trusted local CLI (FR-011).
