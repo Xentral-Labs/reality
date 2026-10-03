@@ -182,7 +182,7 @@ await page.route("**/api/**", async (route) => {
   return reply({ detail: "Fixture unavailable" }, 404);
 });
 try {
-  await mkdir("/private/tmp/reality-118-browser", { recursive: true });
+  await mkdir("/tmp/reality-118-browser", { recursive: true });
   await page.goto(`${base}/app/warehouse?tenant=company&warehouse_view=movements`);
   // A correctable movement offers its correction in the row preview.
   await page.locator("tbody").getByRole("button", { name: "Preview" }).first().click();
@@ -205,6 +205,7 @@ try {
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   assert.equal(prepared.arguments.replacement.source_record_id, "source");
   assert.equal(prepared.arguments.replacement.quantity, "6");
+  await page.waitForURL(/proposal=correction-2/);
   for (const lang of ["en", "de", "nl", "es"])
     for (const theme of ["light", "dark"])
       for (const width of [390, 1440]) {
@@ -218,7 +219,7 @@ try {
         );
         assert.ok(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1));
         await page.screenshot({
-          path: `/private/tmp/reality-118-browser/review-${lang}-${theme}-${width}.png`,
+          path: `/tmp/reality-118-browser/review-${lang}-${theme}-${width}.png`,
           fullPage: true,
         });
       }

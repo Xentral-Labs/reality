@@ -120,3 +120,11 @@ Observed checks for this slice:
 
 This slice does not claim completed universal writer cutover or comparative volume
 qualification. Those requirements remain tracked by specs 355 and 356.
+
+The controls slice completed the full PostgreSQL backend suite: 6,151 passed,
+10 skipped in 1,049.85 seconds. CI additionally exposed two delivery browser
+fixtures that returned an incomplete review identity or reloaded before the new
+proposal URL was visible. The fixtures now return the canonical review ID and
+wait for the replacement proposal. Both actual browser scripts pass, including
+sixteen localized responsive review combinations each. The product's protection
+against displaying a previous proposal's data remains enforced.
