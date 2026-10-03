@@ -134,6 +134,23 @@ export function ShipmentsRegister({
                       <span data-localization="original">{row.delivery_failure.reason}</span>
                     </p>
                   )}
+                  {!!row.address && Object.keys(row.address).length > 0 && (
+                    <p className="text-sm" data-shipment-address>
+                      {t("Delivered to")}{" "}
+                      <span data-localization="original">
+                        {["name", "street", "postal_code", "city", "country"]
+                          .map((key) => row.address?.[key])
+                          .filter(Boolean)
+                          .join(", ")}
+                      </span>
+                    </p>
+                  )}
+                  {row.slot && (
+                    <p className="text-sm" data-shipment-slot>
+                      {t("Booked slot")} {formatDateTime(row.slot.from)} –{" "}
+                      {formatDateTime(row.slot.until)}
+                    </p>
+                  )}
                   {row.moved_at && (
                     <p className="text-sm" data-shipment-timing>
                       {t("Goods moved at")} {formatDateTime(row.moved_at)}

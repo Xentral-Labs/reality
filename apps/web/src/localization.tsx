@@ -25222,6 +25222,20 @@ Object.assign(dictionaries.de, {
     "Am Bereitstellplatz liegt kommissionierte Ware; lagern Sie sie zurück, bevor Sie ihn ändern.",
   "These fields cannot be revised: {fields}.":
     "Diese Felder können nicht geändert werden: {fields}.",
+  "Booked slot": "Gebuchtes Zeitfenster",
+  "Delivered to": "Geliefert an",
+  Pick: "Kommissionieren",
+  "Pick into": "Kommissionieren nach",
+  Picked: "Kommissioniert",
+  Picking: "In Kommissionierung",
+  Planned: "Geplant",
+  "Planned before dispatch, with recipient, address and booked slot. Picking moves the goods and their reservation into the packing zone; nothing moves before you confirm. Plan or change a delivery through Chat.":
+    "Vor dem Versand geplant, mit Empfänger, Adresse und gebuchtem Zeitfenster. Das Kommissionieren bewegt die Ware und ihre Reservierung an den Bereitstellplatz; nichts bewegt sich, bevor Sie bestätigen. Lieferungen planen oder ändern Sie über den Chat.",
+  "Planned deliveries": "Geplante Lieferungen",
+  "Put back": "Zurücklagern",
+  Ship: "Versenden",
+  "slot passed": "Zeitfenster verpasst",
+  "To put back": "Zurückzulagern",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25807,6 +25821,20 @@ Object.assign(dictionaries.nl, {
     "Op de klaarzetlocatie staan verzamelde goederen; leg ze terug voordat u haar wijzigt.",
   "These fields cannot be revised: {fields}.":
     "Deze velden kunnen niet worden gewijzigd: {fields}.",
+  "Booked slot": "Geboekt tijdvak",
+  "Delivered to": "Geleverd aan",
+  Pick: "Verzamelen",
+  "Pick into": "Verzamelen naar",
+  Picked: "Verzameld",
+  Picking: "Wordt verzameld",
+  Planned: "Gepland",
+  "Planned before dispatch, with recipient, address and booked slot. Picking moves the goods and their reservation into the packing zone; nothing moves before you confirm. Plan or change a delivery through Chat.":
+    "Vóór verzending gepland, met ontvanger, adres en geboekt tijdvak. Verzamelen verplaatst de goederen en hun reservering naar de klaarzetlocatie; niets beweegt voordat u bevestigt. Plan of wijzig een levering via de chat.",
+  "Planned deliveries": "Geplande leveringen",
+  "Put back": "Terugleggen",
+  Ship: "Verzenden",
+  "slot passed": "tijdvak verstreken",
+  "To put back": "Terug te leggen",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26392,6 +26420,20 @@ Object.assign(dictionaries.es, {
   "Picked goods are in the staging location; put them back before changing it.":
     "Hay mercancía preparada en la zona de preparación; devuélvala antes de cambiarla.",
   "These fields cannot be revised: {fields}.": "Estos campos no pueden modificarse: {fields}.",
+  "Booked slot": "Franja reservada",
+  "Delivered to": "Entregado a",
+  Pick: "Preparar",
+  "Pick into": "Preparar en",
+  Picked: "Preparado",
+  Picking: "En preparación",
+  Planned: "Planificado",
+  "Planned before dispatch, with recipient, address and booked slot. Picking moves the goods and their reservation into the packing zone; nothing moves before you confirm. Plan or change a delivery through Chat.":
+    "Planificada antes del envío, con destinatario, dirección y franja reservada. Preparar mueve la mercancía y su reserva a la zona de preparación; nada se mueve antes de que confirme. Planifique o cambie una entrega a través del chat.",
+  "Planned deliveries": "Entregas planificadas",
+  "Put back": "Devolver al almacén",
+  Ship: "Enviar",
+  "slot passed": "franja vencida",
+  "To put back": "Por devolver",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

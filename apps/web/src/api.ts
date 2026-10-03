@@ -2658,6 +2658,10 @@ export type ShipmentRow = {
   /** Spec 312: how the goods went, who collected a pickup, and when Reality learnt of it. */
   delivery_mode?: "carrier" | "pickup" | null;
   collected_by?: string | null;
+  /** Spec 334: the planned delivery, address and slot it went with, as stated then. */
+  outbound_delivery_id?: string | null;
+  address?: Record<string, string>;
+  slot?: { from: string; until: string } | null;
   moved_at?: string | null;
   recorded_at?: string | null;
   confirmation_lag_seconds?: number | null;
@@ -3047,6 +3051,78 @@ export type StockCountProposal = {
       }>;
     };
   };
+};
+export type OutboundDeliveryLine = {
+  line_id: string;
+  commitment_id: string;
+  item_id: string;
+  item: string | null;
+  unit: string | null;
+  document_number: string | null;
+  promise_status: string;
+  planned: string;
+  picked: string;
+  to_put_back: string;
+  shipped: string;
+  movements?: Array<{
+    kind: "pick" | "put_back";
+    movement_id: string;
+    quantity: string;
+    from_location_id: string | null;
+    to_location_id: string | null;
+  }>;
+};
+export type OutboundDeliveryView = {
+  id: string;
+  customer: string | null;
+  recipient: string | null;
+  recipient_party_id: string | null;
+  address: Record<string, string>;
+  slot: { from: string; until: string } | null;
+  slot_passed: boolean;
+  note: string;
+  staging_location_id: string | null;
+  staging_location: string | null;
+  shipment_id: string | null;
+  state: "planned" | "picking" | "picked" | "shipped";
+  lines: OutboundDeliveryLine[];
+  statements?: Array<{ source_record_id: string; version: number; received_at: string }>;
+  dispatch?: Record<string, unknown> | null;
+};
+export type OutboundDeliveryProposal = {
+  id: string;
+  status: string;
+  preview: Record<string, unknown>;
+};
+/** Spec 334: planned outbound deliveries, picking and put-back. */
+export const outboundDeliveries = {
+  list: (tenant: string) =>
+    request<{ rows: OutboundDeliveryView[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/outbound-deliveries?open_only=true`,
+    ),
+  detail: (tenant: string, id: string) =>
+    request<OutboundDeliveryView>(
+      `/api/tenants/${encodeURIComponent(tenant)}/outbound-deliveries/${encodeURIComponent(id)}`,
+    ),
+  pick: (tenant: string, id: string, lines: Array<{ commitment_id: string; quantity: string }>) =>
+    request<OutboundDeliveryProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/outbound-deliveries/${encodeURIComponent(id)}/picks`,
+      { method: "POST", body: JSON.stringify({ lines }) },
+    ),
+  putBack: (
+    tenant: string,
+    id: string,
+    lines: Array<{ commitment_id: string; quantity: string; to_location_id: string }>,
+  ) =>
+    request<OutboundDeliveryProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/outbound-deliveries/${encodeURIComponent(id)}/put-backs`,
+      { method: "POST", body: JSON.stringify({ lines }) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
 };
 export const stockCounts = {
   list: (tenant: string, location = "") =>
