@@ -33,6 +33,10 @@ Abweichungen dieses Bereichs: `shipped_not_billed`, `sales_invoice_unposted`, `o
 erklären), `unmatched_financial_event`, `credit_limit_exceeded`, `credit_note_unposted`,
 `credit_note_unsettled`.
 
+Ein `overdue_receivable` nennt im Trace, wer auf welcher Rechnung schuldet: `document_number`,
+`customer_reference`, `party_id` und `party_name`, neben `document_id`. Wer was auf welcher Rechnung
+schuldet, steht damit im Eintrag selbst; `finance_settlement_context` liefert die Ausgleichsdetails.
+
 Die Beispiele nutzen Maple Retail als Kunden und kleine runde Zahlen, damit die Schritte sichtbar
 bleiben.
 

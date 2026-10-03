@@ -880,7 +880,12 @@ def test_overdue_receivable_entry_shape(session, business):
     assert row.trace["document_id"] == invoice.id
     assert row.trace["ledger_entry_id"] == control.id
     assert row.trace["source_record_id"] is None
-    # Opaque identities only; no business field is restated from the invoice.
+    # Spec 352: who owes and which invoice ride beside the ids; amounts and
+    # dates stay in the causal values and are not restated in the trace.
+    assert row.trace["document_number"] == "RE-9001"
+    assert row.trace["customer_reference"] is None
+    assert row.trace["party_id"] == business.customer.id
+    assert row.trace["party_name"] == "Müller GmbH"
     assert not {"number", "party", "gross_amount", "document_date"} & set(row.trace)
     payload = row.to_dict()
     assert {
@@ -1287,6 +1292,47 @@ def test_overdue_payable(session, business):
     assert row.causal_values["days_overdue"] == 31
     assert row.causal_values["outstanding_amount"] == Decimal(600)
     assert row.trace["document_id"] == invoice.id
+    assert row.trace["document_number"] == "ER-9001"
+    assert row.trace["customer_reference"] is None
+    assert row.trace["party_id"] == business.supplier.id
+    assert row.trace["party_name"] == "Bike Parts GmbH"
+
+
+def test_overdue_items_name_the_customer_reference(session, business):
+    """Spec 352: the reference the counterparty quotes, when the invoice holds one."""
+    tenant_id = business.tenant.id
+    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    receivable = create_document(
+        session,
+        tenant_id,
+        "sales_invoice",
+        "RE-REF",
+        business.customer.id,
+        "1000.00",
+        document_date="2026-07-01",
+        payment_term_code="NET30",
+        customer_reference="PO-4711",
+    )
+    post_sales_invoice(session, tenant_id, receivable.id)
+    payable = create_document(
+        session,
+        tenant_id,
+        "supplier_invoice",
+        "ER-REF",
+        business.supplier.id,
+        "600.00",
+        document_date="2026-07-01",
+        payment_term_code="NET30",
+        customer_reference="KD-0815",
+    )
+    post_supplier_invoice(session, tenant_id, payable.id)
+
+    rows = by_class(session, tenant_id)
+
+    assert rows["overdue_receivable"].trace["customer_reference"] == "PO-4711"
+    assert rows["overdue_receivable"].trace["document_number"] == "RE-REF"
+    assert rows["overdue_payable"].trace["customer_reference"] == "KD-0815"
+    assert rows["overdue_payable"].trace["party_name"] == "Bike Parts GmbH"
 
 
 def test_payable_and_receivable_share_one_rule(session, business):

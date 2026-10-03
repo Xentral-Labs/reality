@@ -33,6 +33,9 @@ Abweichungen dieses Bereichs: `overdue_incoming_supplier_commitment`, `billed_no
 `purchase_discount_available`, `supplier_credit_unposted`, `supplier_credit_unclaimed`,
 `supplier_return_not_credited`, `supplier_credit_not_returned`, `stock_expired`.
 
+Ein `overdue_payable` nennt im Trace Lieferant und Rechnung: `document_number`,
+`customer_reference`, `party_id` und `party_name`, neben `document_id`.
+
 Die Beispiele nutzen Alpine Components als Lieferanten, den Artikel Cedar Desk Lamp (`ITEM-004`) und
 kleine Mengen.
 
