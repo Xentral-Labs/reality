@@ -1635,8 +1635,8 @@ and when.
 A supplier has not confirmed an open purchase line three days after the order was placed. A
 confirmation is the supplier restating the promise — its date, quantity or price, or the date as
 ordered — and goods arriving answer it too. The entry names the order, when it was placed and since
-when a confirmation was expected, so the buyer can ask before the delivery date has passed. It
-changes nothing by itself.
+when a confirmation was expected, so the buyer can ask before the delivery date has passed. Once
+that date has passed the line is reported as overdue instead. It changes nothing by itself.
 
 - **Verantwortlich:** Purchasing
 - **Aufgelöst durch:** The supplier's confirmation recorded as a revision of the line, goods

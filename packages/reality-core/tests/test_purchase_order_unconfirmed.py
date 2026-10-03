@@ -95,3 +95,21 @@ def test_another_company_sees_nothing(session, business):
 
     assert old.id in _unconfirmed(session, business.tenant.id)
     assert _unconfirmed(session, other.id) == {}
+
+
+def test_an_overdue_line_is_left_to_the_overdue_finding(session, business):
+    tenant = business.tenant.id
+    late = _purchase(session, business, "PO-346-LATE", placed_days_ago=10)
+    late.due_at = core.now() - timedelta(days=1)
+    session.flush()
+
+    rows = operational_exceptions(session, tenant)
+    assert late.id not in {
+        row.record_id for row in rows if row.class_id == "purchase_order_unconfirmed"
+    }
+    # Positive control: it is reported, as overdue.
+    assert late.id in {
+        row.record_id
+        for row in rows
+        if row.class_id == "overdue_incoming_supplier_commitment"
+    }
