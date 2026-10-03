@@ -1224,6 +1224,47 @@ def get_company_currency(tenant_id: str, session: DatabaseSession):
         raise api_error(error) from error
 
 
+class CompanyTimeZoneProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    time_zone: str = Field(min_length=1, max_length=64)
+
+
+@router.get("/company-time-zone")
+def get_company_time_zone(tenant_id: str, session: DatabaseSession):
+    """Spec 349: the time zone the company's business days are counted in."""
+    from reality.services.company_time_zone import company_time_zone_state
+
+    try:
+        get_tenant(session, tenant_id)
+        return company_time_zone_state(session, tenant_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/company-time-zone/proposals")
+def post_company_time_zone_proposal(
+    tenant_id: str, body: CompanyTimeZoneProposal, session: DatabaseSession
+):
+    """Spec 349: prepare stating the company time zone; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "company_time_zone_set",
+            body.model_dump(),
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.post("/finance/company-currency/proposals")
 def post_company_currency_proposal(
     tenant_id: str, body: CompanyCurrencyProposal, session: DatabaseSession

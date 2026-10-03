@@ -5632,19 +5632,31 @@
       "section": "Time and period",
       "title": "Time zones: order at 23:30 in New York",
       "question": "Stored in UTC, dated correctly?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Stored in UTC, dated correctly?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Stored in UTC, dated correctly? Instants are stored in UTC, and the company states the time zone its business days are counted in: an order at 23:30 New York time is dated that day, while a stated day never moves.",
       "limitations": [
-        "Timestamps with an offset are stored in UTC.",
-        "There is no company time zone, and the day a late-evening local order falls on is not yet proven."
+        "A company counts in UTC until it states its time zone; days already stored on documents stay as they were stated when the zone changes.",
+        "Analysis reports and cost or contribution dates still group by the UTC day."
       ],
-      "keywords": [],
+      "keywords": [
+        "time zone",
+        "business day",
+        "late evening order",
+        "Zeitzone",
+        "Geschäftstag",
+        "Bestellung spät abends"
+      ],
       "question_examples": [
         "Time zones: order at 23:30 in New York",
-        "Stored in UTC, dated correctly?"
+        "Stored in UTC, dated correctly?",
+        "On which day does an order placed late in the evening count?",
+        "In welcher Zeitzone zählt Reality den Geschäftstag?"
       ],
-      "tools": [],
+      "tools": [
+        "company_time_zone_set_propose",
+        "company_time_zone"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

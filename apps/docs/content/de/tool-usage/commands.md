@@ -88,6 +88,7 @@ angegeben.
 | [`supplier_item_numbers`](#command-supplier_item_numbers)                         | Read supplier item numbers                   | Bereichsübergreifend    | `supplier_item_numbers`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`supplier_item_terms`](#command-supplier_item_terms)                             | Read supplier item terms                     | Bereichsübergreifend    | `supplier_item_terms`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`company_currency_state`](#command-company_currency_state)                       | Read the company currency                    | Bereichsübergreifend    | `company_currency`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
+| [`company_time_zone_state`](#command-company_time_zone_state)                     | Read the company time zone                   | Bereichsübergreifend    | `company_time_zone`                                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`month_end_billing`](#command-month_end_billing)                                 | Read the month-end billing lists             | Bereichsübergreifend    | `month_end_billing`                                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`purchase_match`](#command-purchase_match)                                       | Read the three-way match of a purchase order | Bereichsübergreifend    | `purchase_match`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`record_authorization`](#command-record_authorization)                           | Record a payment authorization               | Bereichsübergreifend    | `finance_payment_authorization_record_propose`                                                                                                                                               | Web · MCP · Chat · CLI                  |
@@ -102,6 +103,7 @@ angegeben.
 | [`set_supplier_item_number`](#command-set_supplier_item_number)                   | State a supplier item number                 | Bereichsübergreifend    | `supplier_item_number_set_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`set_supplier_item_terms`](#command-set_supplier_item_terms)                     | State supplier item terms                    | Bereichsübergreifend    | `supplier_item_terms_set_propose`                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`set_company_currency`](#command-set_company_currency)                           | State the company currency                   | Bereichsübergreifend    | `company_currency_set_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
+| [`set_company_time_zone`](#command-set_company_time_zone)                         | State the company time zone                  | Bereichsübergreifend    | `company_time_zone_set_propose`                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
 | [`remove_customer_item_number`](#command-remove_customer_item_number)             | Withdraw a customer item number              | Bereichsübergreifend    | `customer_item_number_remove_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`remove_supplier_item_number`](#command-remove_supplier_item_number)             | Withdraw a supplier item number              | Bereichsübergreifend    | `supplier_item_number_remove_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`remove_supplier_item_terms`](#command-remove_supplier_item_terms)               | Withdraw supplier item terms                 | Bereichsübergreifend    | `supplier_item_terms_remove_propose`                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
@@ -10326,6 +10328,60 @@ Keine Parameter.
 
 **Siehe auch:** Command [`company_currency_state`](./commands#command-company_currency_state)
 
+### `company_time_zone_state` — Read the company time zone {#command-company_time_zone_state}
+
+Answers the time zone the company's business days are counted in, UTC until stated, and whether it
+was stated.
+
+**Aufruf**
+
+```text
+company_time_zone
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `company_time_zone` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`company_time_zone`](./commands#tool-company_time_zone)
+
+#### `company_time_zone` — Company time zone {#tool-company_time_zone}
+
+Read the time zone the company's business days are counted in, and whether it was stated.
+
+**Aufruf**
+
+```text
+company_time_zone
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage        | Art                        | Standard |
+| ----------------------- | -------------------------- | -------- |
+| `MCP company_time_zone` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Show the time zone the company's business days are counted in.
+
+**Verwenden, wenn**
+
+- Someone asks on which day a late-evening order or posting counts
+- or why a due date passed a day early or late.
+
+**Nicht verwenden, wenn**
+
+- The question is when something happened; instants are read in UTC from the record itself.
+
+**Parameter**
+
+Keine Parameter.
+
+**Siehe auch:** Command [`company_time_zone_state`](./commands#command-company_time_zone_state)
+
 ### `month_end_billing` — Read the month-end billing lists {#command-month_end_billing}
 
 Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one
@@ -11150,6 +11206,49 @@ company_currency_set_propose currency
 | `currency` | `string` | ja      | ISO 4217 currency code for monetary values. | —        |
 
 **Siehe auch:** Command [`set_company_currency`](./commands#command-set_company_currency)
+
+### `set_company_time_zone` — State the company time zone {#command-set_company_time_zone}
+
+States the time zone the company's business days are counted in, as a new version of the company's
+time-zone statement; days stored on documents stay as stated.
+
+**Aufruf**
+
+```text
+company_time_zone_set_propose time_zone
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `company_time_zone` · Schreibt: `company_time_zone`, `source_record`,
+`business_event` · Erzeugt: `company_time_zone.set`
+
+**Siehe auch:** Agent Tool
+[`company_time_zone_set_propose`](./commands#tool-company_time_zone_set_propose), Event
+[`company_time_zone.set`](./events#event-company_time_zone-set), Command
+[`company_time_zone_state`](./commands#command-company_time_zone_state)
+
+#### `company_time_zone_set_propose` — State the company time zone {#tool-company_time_zone_set_propose}
+
+Prepare stating the time zone the company's business days are counted in (an IANA name such as
+Europe/Berlin; UTC until stated). Instants stay in UTC; due dates, overdue days, documents dated by
+a posting and day filters use the company's local day. A person confirms.
+
+**Aufruf**
+
+```text
+company_time_zone_set_propose time_zone
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name        | Typ      | Pflicht | Beschreibung                                                                                                      | Standard |
+| ----------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------- | -------- |
+| `time_zone` | `string` | ja      | The company time zone as an IANA name, such as Europe/Berlin, or UTC (spec 349); business days are counted in it. | —        |
+
+**Siehe auch:** Command [`set_company_time_zone`](./commands#command-set_company_time_zone)
 
 ### `remove_customer_item_number` — Withdraw a customer item number {#command-remove_customer_item_number}
 

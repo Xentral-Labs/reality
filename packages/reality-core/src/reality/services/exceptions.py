@@ -1927,6 +1927,13 @@ def _party_hold_unreleased_exceptions(
     )
 
 
+def _business_day(session: Session, tenant_id: str, value: Any) -> date:
+    """The company's business day for a day or an instant (spec 349)."""
+    from reality.services.company_time_zone import company_day
+
+    return company_day(session, tenant_id, value)
+
+
 def _stock_expired_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -1990,7 +1997,7 @@ def _stock_expired_exceptions(
             )
             or 0
         )
-        expired_days = (as_of.date() - lot.expires_at).days
+        expired_days = (_business_day(session, tenant_id, as_of) - lot.expires_at).days
         result.append(
             OperationalException(
                 _identity("stock_expired", lot.id),
@@ -2104,7 +2111,11 @@ def _aging_register(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[dict[str, Any]]:
     """`aging_register`, computed from the one open items read this evaluation makes."""
-    from reality.services.core import _payment_terms_by_id, with_invoice_aging
+    from reality.services.core import (
+        _company_day,
+        _payment_terms_by_id,
+        with_invoice_aging,
+    )
 
     return _cached(
         session,
@@ -2113,7 +2124,7 @@ def _aging_register(
         lambda: with_invoice_aging(
             _open_items(session, tenant_id),
             _payment_terms_by_id(session, tenant_id),
-            as_of,
+            _company_day(session, tenant_id, as_of),
         ),
     )
 
@@ -4565,7 +4576,7 @@ def _open_item_exceptions(
             or row["status"] not in {"open", "partial"}
             or outstanding <= ZERO
             or due_date is None
-            or due_date >= as_of.date()
+            or due_date >= _business_day(session, tenant_id, as_of)
         ):
             continue
         days_overdue = row["days_overdue"]
@@ -4670,7 +4681,9 @@ def _discount_explains_remainder(
     settled_at = _settlement_instants(session, tenant_id, row["control"])
     if not settled_at:
         return False
-    if any(instant.date() > deadline for instant in settled_at):
+    if any(
+        _business_day(session, tenant_id, instant) > deadline for instant in settled_at
+    ):
         return False
     remainder = Decimal(row["open"])
     gross = Decimal(row["document"].gross_amount)
@@ -4709,10 +4722,10 @@ def _purchase_discount_available_exceptions(
             or outstanding <= ZERO
             or deadline is None
             or term is None
-            or deadline < as_of.date()
+            or deadline < _business_day(session, tenant_id, as_of)
         ):
             continue
-        remaining = (deadline - as_of.date()).days
+        remaining = (deadline - _business_day(session, tenant_id, as_of)).days
         # Normalised only for display: a rate stated as 2 must not read as
         # 2.000 because a numeric column gave it trailing zeros.
         rate = Decimal(term.discount_percent)
@@ -5492,28 +5505,36 @@ def next_clock_moment(
             due_at - DUE_SOON_MARGIN
             for due_at in session.scalars(select(model.due_at).where(*conditions))
         )
+    # Spec 349: a day-based verdict flips at the company's local midnight.
+    from reality.services.company_time_zone import company_zone
+
+    zone = company_zone(session, tenant_id)
+    today = _business_day(session, tenant_id, instant)
+    last_day = _business_day(session, tenant_id, latest)
+
+    def next_midnight(day: date) -> datetime:
+        return datetime.combine(day + timedelta(days=1), time.min, tzinfo=zone)
+
     for expires_at in session.scalars(
         select(Lot.expires_at).where(
             Lot.tenant_id == tenant_id,
             Lot.expires_at.is_not(None),
-            Lot.expires_at > instant.date(),
-            Lot.expires_at <= latest.date(),
+            # A lot that expires today turns expired at tonight's midnight.
+            Lot.expires_at >= today,
+            Lot.expires_at <= last_day,
         )
     ):
-        candidates.append(
-            datetime.combine(expires_at, time.min, tzinfo=UTC) + timedelta(days=1)
-        )
+        candidates.append(next_midnight(expires_at))
     with _exception_input_scope(session, tenant_id):
         for row in _aging_register(session, tenant_id, instant):
             due_date = row["due_date"]
             if (
                 due_date is not None
                 and row["status"] in {"open", "partial"}
-                and instant.date() < due_date <= latest.date()
+                # An item due today turns overdue at tonight's midnight.
+                and today <= due_date <= last_day
             ):
-                candidates.append(
-                    datetime.combine(due_date, time.min, tzinfo=UTC) + timedelta(days=1)
-                )
+                candidates.append(next_midnight(due_date))
     return min(candidates)
 
 

@@ -50,7 +50,7 @@ J03, I11), because the same capability closes it.
 | M09 | Annual rebate at year end | deliberately outside Reality |
 | J09 | Consignment from the supplier | rare |
 | P06 | Two systems contradict each other | rare, general mechanism |
-| Q05 | Company time zone | rare |
+| Q05 | Company time zone | implemented; supported (spec 349) |
 | D18 | Duplicate shipment reports from outside | needs a shipment source first |
 
 ## Working through it

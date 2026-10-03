@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:54af672b1213571bb070cfbf2a2fe54f2891530a3838c068a058729b7ea5b05a",
+  "knowledge_version": "advisor-v1:sha256:4068a088b5b306c747643bef81278edf5c579b9ff4ac46fcfcb96af3af0fa308",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -324,7 +324,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B12",
-      "fingerprint": "f09b59ab1b1d667378959db2dd46705a7f4744c99e26f45cb0103d029a3403c5"
+      "fingerprint": "18969da8fe45ade774b35dba006935eeac1d17a0087d9645cdb5576ecbec37bd"
     },
     {
       "id": "source_journey_b13",
@@ -1026,7 +1026,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G10",
-      "fingerprint": "fd64c52e7d5dabfdc1cdd07c3f3193e149955bda908063b4b10856a907d36c81"
+      "fingerprint": "ba1fed11a26b9e358a87d4ba397d3052862c6f2a7edd3a81bfb1e48791cfaffb"
     },
     {
       "id": "source_journey_g11",
@@ -1692,7 +1692,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#M07",
-      "fingerprint": "0e67b772204c09d298d563f8f5560a408bf322209d4c899ed67efbf251074cbd"
+      "fingerprint": "9794c551f804cc0efb234c4c75edd305e4bac21a618c438b126e4971677acf5e"
     },
     {
       "id": "source_journey_m08",
@@ -1863,7 +1863,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#O06",
-      "fingerprint": "04c06f434d7084f62c6a4037c5920b307c9b427ae49cf15339f632d925fb03b3"
+      "fingerprint": "5e9d037b7c48d6e52943fafedee4d099583fe7eeca2584eb2cdb08745d8d3949"
     },
     {
       "id": "source_journey_p01",
@@ -1980,7 +1980,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#Q05",
-      "fingerprint": "e0b7d2b02cdc90496e8686a99f2bac056d97ad580a2b6d8b622efc5abc5f9f19"
+      "fingerprint": "a0717c05de2976ab6c16572d3cd33f3ae391db877a9e93a36f2082a7623107a7"
     },
     {
       "id": "source_journey_r01",
@@ -1989,7 +1989,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R01",
-      "fingerprint": "cb220feee65dd66e88537b8fe0be7a4012575dd94e8044dfe4d90a490c3191ed"
+      "fingerprint": "9cb9d0903037812fd8d24e15fb33183f72ee74f480f1ca8951a2317227d9dd35"
     },
     {
       "id": "source_journey_r02",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "cbb338bee381d7182b65850f106e8a1389e06dc3d0d5a1962c2d3b4d3f026fff"
+      "fingerprint": "fb7039062a8ed39117790b9812e47fc54c00a54bad811f884b929a5f22ea1942"
     },
     {
       "id": "source_document_product_evaluation",
@@ -2079,7 +2079,25 @@
       "visibility": "public",
       "authority": "technical_contract",
       "public_url": "https://docs.runreality.ai/integrations/connector-contract",
-      "fingerprint": "18e7ecaa2fa8af7f2b232acdb42df9e347010ed5d65707c0aa252dd14adf2c6e"
+      "fingerprint": "fce9d7f07d2b0ad0817762f89323beb90793d095e007b5799a959621e81e0480"
+    },
+    {
+      "id": "source_document_installation",
+      "kind": "public_contract",
+      "title": "Installation",
+      "visibility": "public",
+      "authority": "technical_contract",
+      "public_url": "https://docs.runreality.ai/operations/installation",
+      "fingerprint": "f69d688a9e153599885efec57cb2b838f6d086ea14840eca39138d6d9f5ec5a0"
+    },
+    {
+      "id": "source_document_deployment",
+      "kind": "public_contract",
+      "title": "Deployment",
+      "visibility": "public",
+      "authority": "technical_contract",
+      "public_url": "https://docs.runreality.ai/operations/deployment",
+      "fingerprint": "196c7c9c7d7874576a7634f07961f6e2e64ba088d6b6dbddf5412ab2927125e1"
     },
     {
       "id": "source_document_tool_usage",
@@ -2720,18 +2738,17 @@
       "source_id": "source_journey_b12",
       "subject": "Availability, reservation and backorder",
       "title": "Reservation lapses because prepayment did not arrive",
-      "search_text": "B12 Availability, reservation and backorder Reservation lapses because prepayment did not arrive Is the reservation released after the deadline? reservation waiting for prepayment unpaid prepayment reservation Reservierung Vorkasse Vorkasse nicht bezahlt Reservierung Reservation lapses because prepayment did not arrive Is the reservation released after the deadline? Which reserved orders are still waiting for their prepayment? Welche Reservierungen warten noch auf Vorkasse?",
-      "claim_text": "Reality evaluates: Is the reservation released after the deadline? Stock reserved for a prepayment order whose prepayment is still unpaid after a week is reported as Reservation waiting for prepayment, with the order, the reserved quantity and the unpaid amount; a person releases the reservation or chases the payment, and nothing is released by itself.",
-      "support": "proven",
+      "search_text": "B12 Availability, reservation and backorder Reservation lapses because prepayment did not arrive Is the reservation released after the deadline? Reservation lapses because prepayment did not arrive Is the reservation released after the deadline?",
+      "claim_text": "Reality evaluates: Is the reservation released after the deadline?",
+      "support": "unavailable",
       "limitations": [
-        "The reservation never lapses automatically; the deadline is a fixed week, not a company setting."
+        "Missing prepayment blocks the shipment, but a reservation has no expiry date and is never released automatically."
       ],
       "references": [
-        "B12",
-        "reservation_release_propose"
+        "B12"
       ],
       "language": "en",
-      "fingerprint": "e0c02439b9d5b30650e12c33bba2bf83695a7ae282b4cb5ab1ca3a47259e50a6"
+      "fingerprint": "64bf09a62c798c797ded3d09c83bba51c25425a1e97c0d700eb977c3f6a03fc6"
     },
     {
       "id": "evidence_journey_b13",
@@ -4079,20 +4096,18 @@
       "source_id": "source_journey_g10",
       "subject": "Purchasing: demand and purchase order",
       "title": "Supplier never confirms",
-      "search_text": "G10 Purchasing: demand and purchase order Supplier never confirms Unconfirmed purchase flagged? unconfirmed purchase order order confirmation missing supplier did not confirm Auftragsbestätigung fehlt Bestellung nicht bestätigt Supplier never confirms Unconfirmed purchase flagged? Which purchase orders has the supplier not confirmed? Welche Bestellungen hat der Lieferant nicht bestätigt?",
-      "claim_text": "Reality evaluates: Unconfirmed purchase flagged? A purchase line the supplier has not confirmed three days after the order was placed is reported as Purchase order not confirmed, long before its delivery date; a confirmation recorded as a revision of the line, goods arriving or a cancellation clears it.",
-      "support": "proven",
+      "search_text": "G10 Purchasing: demand and purchase order Supplier never confirms Unconfirmed purchase flagged? Supplier never confirms Unconfirmed purchase flagged?",
+      "claim_text": "Reality evaluates: Unconfirmed purchase flagged?",
+      "support": "unavailable",
       "limitations": [
-        "The three days are fixed for every company and supplier; a supplier's own response time is not stated.",
-        "A confirmation exactly as ordered is recorded by restating the line's date.",
-        "Once the delivery date has passed, the line is reported as overdue instead."
+        "Reality does not expect a supplier confirmation, so an unconfirmed purchase order is not flagged.",
+        "It is flagged only as overdue once its delivery date has passed."
       ],
       "references": [
-        "G10",
-        "commitment_revise_propose"
+        "G10"
       ],
       "language": "en",
-      "fingerprint": "ac4987174fdb70ddfc83ad2336f9cd5bb8cec67b5c8706fccae3c555b3a8ba7b"
+      "fingerprint": "caaef693efdb4ecd00691d6f2226dbbe40ab48cd5ee7d5954d1cd80697f6aef8"
     },
     {
       "id": "evidence_journey_g11",
@@ -5396,16 +5411,16 @@
       "subject": "B2B specifics",
       "title": "Customer-prescribed delivery note or pallet label",
       "search_text": "M07 B2B specifics Customer-prescribed delivery note or pallet label Out of core scope? Customer-prescribed delivery note or pallet label Out of core scope?",
-      "claim_text": "Reality evaluates: Out of core scope? Yes. Reality decides and explains what ships; the system that executes the shipment (the ERP, a shipping tool or the 3PL) produces delivery notes, pallet labels and customer-prescribed layouts.",
+      "claim_text": "Reality evaluates: Out of core scope?",
       "support": "unavailable",
       "limitations": [
-        "Reality produces no delivery notes, pallet labels or customer-specific document layouts; the shipment's stated packages, tracking numbers and recipients are available for the executing system."
+        "Reality produces no delivery notes or pallet labels, and this is not yet declared out of scope."
       ],
       "references": [
         "M07"
       ],
       "language": "en",
-      "fingerprint": "0e4c8f84fc69ef1489b812dfb922c926a227db68fe8339f3ae9ce0f91fc29a26"
+      "fingerprint": "424d8d14f8e35eafbd2d5ace03009872de1a7f8b7ad393d6ff6188cdd5db2033"
     },
     {
       "id": "evidence_journey_m08",
@@ -5732,21 +5747,17 @@
       "source_id": "source_journey_o06",
       "subject": "Master data and identity",
       "title": "Supplier item number ≠ own number, several suppliers",
-      "search_text": "O06 Master data and identity Supplier item number ≠ own number, several suppliers Supplier item mapping? supplier item number supplier article number Lieferantenartikelnummer Bestellnummer des Lieferanten Supplier item number ≠ own number, several suppliers Supplier item mapping? Our suppliers use their own article numbers; how do they become our items? Unsere Lieferanten haben eigene Artikelnummern; wie werden daraus unsere Artikel?",
-      "claim_text": "Reality evaluates: Supplier item mapping? Per supplier, a reviewed statement says which of our items the supplier's own number names, with the supplier's name for it; every supplier has its own numbers for the same item. Purchase orders and supplier invoices entered by hand or by chat resolve lines by that number, keep it on the line as stated, and the purchase order, the invoice and the three-way match show it.",
-      "support": "proven",
+      "search_text": "O06 Master data and identity Supplier item number ≠ own number, several suppliers Supplier item mapping? Supplier item number ≠ own number, several suppliers Supplier item mapping?",
+      "claim_text": "Reality evaluates: Supplier item mapping?",
+      "support": "unavailable",
       "limitations": [
-        "Numbers are matched ignoring case and spaces; there is no fuzzy matching.",
-        "An unknown supplier number is refused at entry; documents from a supplier's own system (EDI, order confirmations by file) are not interpreted yet."
+        "Supplier item numbers and a mapping per supplier are not recorded."
       ],
       "references": [
-        "O06",
-        "supplier_item_number_set_propose",
-        "supplier_item_numbers",
-        "order_create_propose"
+        "O06"
       ],
       "language": "en",
-      "fingerprint": "d1c94aa28acf96595c69003b69b7a73102eb1e5836c187b292b9c0310933d7de"
+      "fingerprint": "a35feb0f8f550a35c9228c775bb900d03670b4bb3cebee45bffaa6d5d1ae7de4"
     },
     {
       "id": "evidence_journey_p01",
@@ -5951,37 +5962,38 @@
       "source_id": "source_journey_q05",
       "subject": "Time and period",
       "title": "Time zones: order at 23:30 in New York",
-      "search_text": "Q05 Time and period Time zones: order at 23:30 in New York Stored in UTC, dated correctly? Time zones: order at 23:30 in New York Stored in UTC, dated correctly?",
-      "claim_text": "Reality evaluates: Stored in UTC, dated correctly?",
-      "support": "limited",
+      "search_text": "Q05 Time and period Time zones: order at 23:30 in New York Stored in UTC, dated correctly? time zone business day late evening order Zeitzone Geschäftstag Bestellung spät abends Time zones: order at 23:30 in New York Stored in UTC, dated correctly? On which day does an order placed late in the evening count? In welcher Zeitzone zählt Reality den Geschäftstag?",
+      "claim_text": "Reality evaluates: Stored in UTC, dated correctly? Instants are stored in UTC, and the company states the time zone its business days are counted in: an order at 23:30 New York time is dated that day, while a stated day never moves.",
+      "support": "proven",
       "limitations": [
-        "Timestamps with an offset are stored in UTC.",
-        "There is no company time zone, and the day a late-evening local order falls on is not yet proven."
+        "A company counts in UTC until it states its time zone; days already stored on documents stay as they were stated when the zone changes.",
+        "Analysis reports and cost or contribution dates still group by the UTC day."
       ],
       "references": [
-        "Q05"
+        "Q05",
+        "company_time_zone_set_propose",
+        "company_time_zone"
       ],
       "language": "en",
-      "fingerprint": "194389ab4670dc3174369b8f02ee8ebc3d18c9c97d43e4af62b18f0388441fa0"
+      "fingerprint": "4fd179f25c70d224fc85b7a28d604f611b0c227bba87373e226e8a105e42d125"
     },
     {
       "id": "evidence_journey_r01",
       "source_id": "source_journey_r01",
       "subject": "Combined stress stories",
       "title": "Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged",
-      "search_text": "R01 Combined stress stories Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end. prepayment release ship before paid Vorkasse freigeben Teilzahlung Vorkasse Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end. Can an owner ship a partly prepaid order anyway? Kann ein Inhaber einen teilweise bezahlten Vorkasse-Auftrag trotzdem liefern?",
-      "claim_text": "Reality evaluates: Every quantity and every euro reconciles at the end. An 80 % prepaid order is refused until a company owner releases it with a reason; it ships in two parts while the supplier delivers 5 of 6 on two dates, one unit is cancelled and two come back damaged and are scrapped, and a credit for three settles the open 20 and refunds the 10 paid too much.",
-      "support": "proven",
+      "search_text": "R01 Combined stress stories Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end. Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end.",
+      "claim_text": "Reality evaluates: Every quantity and every euro reconciles at the end.",
+      "support": "limited",
       "limitations": [
-        "The release covers the order's stated amount and lets the order ship before it is paid; the unpaid rest stays an ordinary open receivable until it is paid or credited.",
-        "Raising a line's quantity does not raise the prepayment the order requires, because the gate measures the order's stated gross amount."
+        "A prepayment order stays unshippable until paid in full, and no reviewed release overrides that, so the story cannot ship the 80 % prepaid order.",
+        "Revision, cancellation, partial receipt and damaged returns each work on their own."
       ],
       "references": [
-        "R01",
-        "prepayment_release_propose"
+        "R01"
       ],
       "language": "en",
-      "fingerprint": "dd7aaf123ac021902811925bd80f4be506668e1922dff6eed4cf53bc731fa787"
+      "fingerprint": "c5fc9e58c24e918e6f401ba7d51d876f2759cbef16fdac5621230b8146f61bd9"
     },
     {
       "id": "evidence_journey_r02",
@@ -7246,21 +7258,6 @@
       "fingerprint": "8c20c745c5e5b466b5777a8b0b6dece01577bb7d99504407b93874de54bffe52"
     },
     {
-      "id": "evidence_command_release_prepayment",
-      "source_id": "source_executable_commands",
-      "subject": "Release a prepayment",
-      "title": "Release a prepayment",
-      "search_text": "release_prepayment Release a prepayment Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner; the unpaid rest stays an open receivable and a raised order asks again. mutation",
-      "claim_text": "release_prepayment is a governed mutation command for Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner; the unpaid rest stays an open receivable and a raised order asks again..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "release_prepayment"
-      ],
-      "language": "en",
-      "fingerprint": "99bfb349212b7090ec6b8d3f4f69fc72ba26822164f80765f8ebb51c1b846847"
-    },
-    {
       "id": "evidence_command_block_stock",
       "source_id": "source_executable_commands",
       "subject": "Block stock",
@@ -7364,6 +7361,36 @@
       ],
       "language": "en",
       "fingerprint": "bb852c49a2072099a2c647a685eef2b424fbbb0cceadc08391295e03c93909c2"
+    },
+    {
+      "id": "evidence_command_set_company_time_zone",
+      "source_id": "source_executable_commands",
+      "subject": "State the company time zone",
+      "title": "State the company time zone",
+      "search_text": "set_company_time_zone State the company time zone States the time zone the company's business days are counted in, as a new version of the company's time-zone statement; days stored on documents stay as stated. mutation",
+      "claim_text": "set_company_time_zone is a governed mutation command for States the time zone the company's business days are counted in, as a new version of the company's time-zone statement; days stored on documents stay as stated..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "set_company_time_zone"
+      ],
+      "language": "en",
+      "fingerprint": "f3d4d745f74a6200d3c3c75e18228162d51d9ffce9ec674e5dcaa12c913d0823"
+    },
+    {
+      "id": "evidence_command_company_time_zone_state",
+      "source_id": "source_executable_commands",
+      "subject": "Read the company time zone",
+      "title": "Read the company time zone",
+      "search_text": "company_time_zone_state Read the company time zone Answers the time zone the company's business days are counted in, UTC until stated, and whether it was stated. query",
+      "claim_text": "company_time_zone_state is a governed query command for Answers the time zone the company's business days are counted in, UTC until stated, and whether it was stated..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "company_time_zone_state"
+      ],
+      "language": "en",
+      "fingerprint": "550d5e8971ec163361ce3afd0952d282e0a871d98642234351f55f5c457c3bb3"
     },
     {
       "id": "evidence_command_set_supplier_item_terms",
@@ -7574,51 +7601,6 @@
       ],
       "language": "en",
       "fingerprint": "d808b232c6df226a461e811528b9025aae4665e78eab272f410cc1bc5ddf862d"
-    },
-    {
-      "id": "evidence_command_set_supplier_item_number",
-      "source_id": "source_executable_commands",
-      "subject": "State a supplier item number",
-      "title": "State a supplier item number",
-      "search_text": "set_supplier_item_number State a supplier item number States which of our items a supplier's own article number names, with the supplier's name for it, as a new version of that number's statement stream. mutation",
-      "claim_text": "set_supplier_item_number is a governed mutation command for States which of our items a supplier's own article number names, with the supplier's name for it, as a new version of that number's statement stream..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "set_supplier_item_number"
-      ],
-      "language": "en",
-      "fingerprint": "e22e10a807f7f246d01263f0ffb99ca89dcbbced81c734a86a3897747b40bae5"
-    },
-    {
-      "id": "evidence_command_remove_supplier_item_number",
-      "source_id": "source_executable_commands",
-      "subject": "Withdraw a supplier item number",
-      "title": "Withdraw a supplier item number",
-      "search_text": "remove_supplier_item_number Withdraw a supplier item number Withdraws a supplier's article number; lines that stated it keep it as stated. mutation",
-      "claim_text": "remove_supplier_item_number is a governed mutation command for Withdraws a supplier's article number; lines that stated it keep it as stated..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "remove_supplier_item_number"
-      ],
-      "language": "en",
-      "fingerprint": "5f5746b622fa09700a0cf758719ae1dd6b21fc3bc16eb88d937ba1142edd6b42"
-    },
-    {
-      "id": "evidence_command_supplier_item_numbers",
-      "source_id": "source_executable_commands",
-      "subject": "Read supplier item numbers",
-      "title": "Read supplier item numbers",
-      "search_text": "supplier_item_numbers Read supplier item numbers Lists a supplier's own article numbers, or the numbers suppliers use for one item. query",
-      "claim_text": "supplier_item_numbers is a governed query command for Lists a supplier's own article numbers, or the numbers suppliers use for one item..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "supplier_item_numbers"
-      ],
-      "language": "en",
-      "fingerprint": "d101ebc1f7e340f395663e6ab37ed1fd9bbe35232bcb277df45079a2313e3f77"
     },
     {
       "id": "evidence_command_plan_outbound_delivery",
@@ -8961,6 +8943,32 @@
       "references": [],
       "language": "en",
       "fingerprint": "384a3bf153bfd805dafebb17c5bd646e02b1519026e4b88ae2febefacc5fe3c5"
+    },
+    {
+      "id": "evidence_document_installation_1",
+      "source_id": "source_document_installation",
+      "subject": "installation",
+      "title": "Installation (1)",
+      "search_text": "installation deployment hosting Docker One-line setup The fastest way to run Reality. One command creates a reality/ directory with your configuration, starts the published images and prints the address and your first sign-in. Prerequisites - Linux or macOS with Docker and the Compose v2 plugin ( docker compose , not docker-compose ). On Windows use WSL 2. - curl . - 2 vCPU and 4 GB RAM are enough for a team; the App, PostgreSQL, the MCP endpoint and the background workers share the host. - For a public installation: a hostname whose DNS points at the host, plus a second record for mcp.<hostname . Ports 80 and 443 must be free. Install The script checks Docker, refuses to overwrite an existing installation, writes reality/.env with generated secrets, starts the stack, waits for the health check and prints: - the App address ( http://localhost:8080 without a domain), - the MCP address (loopback only without a domain), - the first owner's email and password, shown exactly once. Pass the owner up front and, for a public installation, the domain: With --domain , Caddy terminates HTTPS on ports 80 and 443 for https://reality.example.com and https://mcp.reality.example.com/ , obtains and renews the certificates itself, and the App uses secure cookies. Flags Flag Meaning --------------------- ------------------------------------------------------------------------------------------------- --email <address First owner (platform admin). Default owner@reality.local . See below for adding an owner later. --domain <host Public hostname. Enables HTTPS and serves MCP on mcp.<host . --port <n Host port for the App without a domain. Default 8080 . --bind <address Host address for that port. Default 0.0.0.0 . --mcp-port <n Loopback port for MCP without a domain. Default 8001 . --version <release Release to install, for example 0.1.0 , edge (main) or sha-a204c14 . --dir <path Installation directory. Default ./reality . --dry-run Write the files, skip the Docker and port checks. --help Usage text. Commands The installer leaves a copy of itself as reality/reality.sh : upgrade repins REALITY VERSION in .env , pulls the images and runs the migration before the App, scheduler, worker and MCP start. If the migration fails, the new services do not start and the previous images stay on the host. On a server without a domain Without --domain the App binds 0.0.0.0:8080 and is reachable as http://<server-ip :8080 inside your network. Sign-in works there, but the links Reality puts into emails use APP URL , which is http://localhost:8080 in this mode, and cookies travel unencrypted. For anything beyond a laptop or a trusted LAN, use --domain . Remove Reality Take a backup first if you may want the data back. What to keep reality/.env holds REALITY MASTER KEY , the key that encrypts stored credentials. Losing it makes those credentials unreadable; it cannot be regenerated. Every backup archive contains .env , so protect the archives like the key itself. The database lives in the postgres data volume, uploaded source binaries in the artifacts volume. After the install: optional settings The installer asks for nothing else. Everything below is optional, lives in reality/.env , and takes effect after ./reality/reality.sh start (which recreates the containers with the new values). Setting Variables Without it ------------------- -------------------------------------------------------------------------------------------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------- Transactional email REALITY EMAIL PROVIDER ( resend or smtp ), REALITY EMAIL FROM , RESEND API KEY or the REALITY SMTP values Invitations and sign-up mails are logged, not sent; colleagues cannot join by invitation. Internal Copilot ANTHROPIC API KEY , optionally ANTHROPIC WORKSPACE ID The product works fully; the chat assistant is unavailable. Automatic admission REALITY AUTO APPROVE LIMIT Unset/blank: immediate access after email verification. 0 : manual review. Positive: cumulative capacity. Another owner REALITY PLATFORM ADMIN EMAIL and REALITY PLATFORM ADMIN PASSWORD The installed owner stays; a new email with a new password creates a second platform admin on the next start. Existing accounts keep their password. Object storage :compose.s3.yml appended to COMPOSE FILE , MINIO ROOT USER , MINIO ROOT PASSWORD Source binaries stay in the artifacts volume, which is fine for one host. The Environment reference lists every variable. First steps Sign in with the printed credentials, create a company and use the guided demo for connected Source, Evidence, operational and financial records. Then trace your first result. Invitations to colleagues stay pending until you configure an email provider in .env (see the Environment reference). To connect an agent, use the MCP address with a token from the App: see Connect an MCP client. Storylines and Sandbox availability Storylines, the Playground and Sandbox creation are regular product capabilities. No environment switch is needed to enable them. Existing account access, ownership, confirmation and capacity limits still apply. Old Playground enablement settings have no effect after upgrading; they can be removed from deployment configuration. Demo Data sources retain their explicit start, pause and stop controls.",
+      "claim_text": "One-line setup The fastest way to run Reality. One command creates a reality/ directory with your configuration, starts the published images and prints the address and your first sign-in. Prerequisites - Linux or macOS with Docker and the Compose v2 plugin ( docker compose , not docker-compose ). On Windows use WSL 2. - curl . - 2 vCPU and 4 GB RAM are enough for a team; the App, PostgreSQL, the MCP endpoint and the background workers share the host. - For a public installation: a hostname whose DNS points at the host, plus a second record for mcp.<hostname . Ports 80 and 443 must be free. Install The script checks Docker, refuses to overwrite an existing installation, writes reality/.env with generated secrets, starts the stack, waits for the health check and prints: - the App address ( http://localhost:8080 without a domain), - the MCP address (loopback only without a domain), - the first owner's email and password, shown exactly once. Pass the owner up front and, for a public installation, the domain: With --domain , Caddy terminates HTTPS on ports 80 and 443 for https://reality.example.com and https://mcp.reality.example.com/ , obtains and renews the certificates itself, and the App uses secure cookies. Flags Flag Meaning --------------------- ------------------------------------------------------------------------------------------------- --email <address First owner (platform admin). Default owner@reality.local . See below for adding an owner later. --domain <host Public hostname. Enables HTTPS and serves MCP on mcp.<host . --port <n Host port for the App without a domain. Default 8080 . --bind <address Host address for that port. Default 0.0.0.0 . --mcp-port <n Loopback port for MCP without a domain. Default 8001 . --version <release Release to install, for example 0.1.0 , edge (main) or sha-a204c14 . --dir <path Installation directory. Default ./reality . --dry-run Write the files, skip the Docker and port checks. --help Usage text. Commands The installer leaves a copy of itself as reality/reality.sh : upgrade repins REALITY VERSION in .env , pulls the images and runs the migration before the App, scheduler, worker and MCP start. If the migration fails, the new services do not start and the previous images stay on the host. On a server without a domain Without --domain the App binds 0.0.0.0:8080 and is reachable as http://<server-ip :8080 inside your network. Sign-in works there, but the links Reality puts into emails use APP URL , which is http://localhost:8080 in this mode, and cookies travel unencrypted. For anything beyond a laptop or a trusted LAN, use --domain . Remove Reality Take a backup first if you may want the data back. What to keep reality/.env holds REALITY MASTER KEY , the key that encrypts stored credentials. Losing it makes those credentials unreadable; it cannot be regenerated. Every backup archive contains .env , so protect the archives like the key itself. The database lives in the postgres data volume, uploaded source binaries in the artifacts volume. After the install: optional settings The installer asks for nothing else. Everything below is optional, lives in reality/.env , and takes effect after ./reality/reality.sh start (which recreates the containers with the new values). Setting Variables Without it ------------------- -------------------------------------------------------------------------------------------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------- Transactional email REALITY EMAIL PROVIDER ( resend or smtp ), REALITY EMAIL FROM , RESEND API KEY or the REALITY SMTP values Invitations and sign-up mails are logged, not sent; colleagues cannot join by invitation. Internal Copilot ANTHROPIC API KEY , optionally ANTHROPIC WORKSPACE ID The product works fully; the chat assistant is unavailable. Automatic admission REALITY AUTO APPROVE LIMIT Unset/blank: immediate access after email verification. 0 : manual review. Positive: cumulative capacity. Another owner REALITY PLATFORM ADMIN EMAIL and REALITY PLATFORM ADMIN PASSWORD The installed owner stays; a new email with a new password creates a second platform admin on the next start. Existing accounts keep their password. Object storage :compose.s3.yml appended to COMPOSE FILE , MINIO ROOT USER , MINIO ROOT PASSWORD Source binaries stay in the artifacts volume, which is fine for one host. The Environment reference lists every variable. First steps Sign in with the printed credentials, create a company and use the guided demo for connected Source, Evidence, operational and financial records. Then trace your first result. Invitations to colleagues stay pending until you configure an email provider in .env (see the Environment reference). To connect an agent, use the MCP address with a token from the App: see Connect an MCP client. Storylines and Sandbox availability Storylines, the Playground and Sandbox creation are regular product capabilities. No environment switch is needed to enable them. Existing account access, ownership, confirmation and capacity limits still apply. Old Playground enablement settings have no effect after upgrading; they can be removed from deployment configuration. Demo Data sources retain their explicit start, pause and stop controls.",
+      "support": "explanatory",
+      "limitations": [],
+      "references": [],
+      "language": "en",
+      "fingerprint": "125be8604755076c96df90f477acac3fe33b43c2456415cdfbccbe33a88cb337"
+    },
+    {
+      "id": "evidence_document_deployment_1",
+      "source_id": "source_document_deployment",
+      "subject": "deployment",
+      "title": "Deployment (1)",
+      "search_text": "deployment upgrade backup operations Operate Reality with Docker Release sequence Build immutable App images, start PostgreSQL, run alembic upgrade head , then start the App and accept traffic only after its health check passes. The migration step must complete before the API and background workers use the new release. PostgreSQL backup and recovery Back up PostgreSQL on a defined schedule and retain backups outside the running Docker host. Test restoration in an isolated environment. A recovery is successful only after migrations apply and a representative business result remains traceable from Reality through Evidence to SourceRecord. Installations created by the one-line setup do this with two commands: The archive holds a pg dump of the database, the artifacts volume with uploaded source binaries, and .env with REALITY MASTER KEY . Without the key a restored database cannot read its encrypted credentials, so the archive is as sensitive as the key. Health and logs Use the App API's /healthz endpoint and Docker service state. Centralise application and database logs, exclude secrets and sensitive source payloads, and alert on failed migrations, unhealthy App instances, failed intake and repeated interpretation errors. Upgrade and rollback Before an upgrade, record the running image and database migration revision and create a verified backup. Apply migrations before App traffic. An application-image rollback does not reverse a committed database migration or business event; every release therefore needs an explicit migration and rollback assessment. The running version and commit are shown by GET /api/v1/system/status and in the platform administration overview. A manual Compose installation upgrades by changing REALITY VERSION in .env , then docker compose pull && docker compose up -d . Security checklist - Terminate HTTPS in front of the App. - Keep database, authentication, email and provider credentials in Docker secrets or an equivalent protected environment. - Use secure session cookies and exact allowed origins. - Do not expose PostgreSQL publicly. - Verify tenant isolation, backup restoration, migration state, health and logs. Reality may later provide managed infrastructure. This page documents only the Docker-operated App and PostgreSQL contract and does not prescribe a cloud provider.",
+      "claim_text": "Operate Reality with Docker Release sequence Build immutable App images, start PostgreSQL, run alembic upgrade head , then start the App and accept traffic only after its health check passes. The migration step must complete before the API and background workers use the new release. PostgreSQL backup and recovery Back up PostgreSQL on a defined schedule and retain backups outside the running Docker host. Test restoration in an isolated environment. A recovery is successful only after migrations apply and a representative business result remains traceable from Reality through Evidence to SourceRecord. Installations created by the one-line setup do this with two commands: The archive holds a pg dump of the database, the artifacts volume with uploaded source binaries, and .env with REALITY MASTER KEY . Without the key a restored database cannot read its encrypted credentials, so the archive is as sensitive as the key. Health and logs Use the App API's /healthz endpoint and Docker service state. Centralise application and database logs, exclude secrets and sensitive source payloads, and alert on failed migrations, unhealthy App instances, failed intake and repeated interpretation errors. Upgrade and rollback Before an upgrade, record the running image and database migration revision and create a verified backup. Apply migrations before App traffic. An application-image rollback does not reverse a committed database migration or business event; every release therefore needs an explicit migration and rollback assessment. The running version and commit are shown by GET /api/v1/system/status and in the platform administration overview. A manual Compose installation upgrades by changing REALITY VERSION in .env , then docker compose pull && docker compose up -d . Security checklist - Terminate HTTPS in front of the App. - Keep database, authentication, email and provider credentials in Docker secrets or an equivalent protected environment. - Use secure session cookies and exact allowed origins. - Do not expose PostgreSQL publicly. - Verify tenant isolation, backup restoration, migration state, health and logs. Reality may later provide managed infrastructure. This page documents only the Docker-operated App and PostgreSQL contract and does not prescribe a cloud provider.",
+      "support": "explanatory",
+      "limitations": [],
+      "references": [],
+      "language": "en",
+      "fingerprint": "e45d85869da4f9f83b7b5f74b80dd85c2a41a6ee0b8075a9999996f40d8f434f"
     },
     {
       "id": "evidence_document_tool_usage_1",

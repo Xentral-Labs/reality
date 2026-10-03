@@ -5430,23 +5430,35 @@ entries:
   section: Time and period
   title: 'Time zones: order at 23:30 in New York'
   question: Stored in UTC, dated correctly?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Stored in UTC, dated correctly?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Stored in UTC, dated correctly? Instants are stored in UTC, and the company states the time zone its business days are counted in: an order at 23:30 New York time is dated that day, while a stated day never moves.'
   limitations:
-  - Timestamps with an offset are stored in UTC.
-  - There is no company time zone, and the day a late-evening local order falls on is not yet proven.
-  keywords: []
+  - A company counts in UTC until it states its time zone; days already stored on documents stay as they were stated when the zone changes.
+  - Analysis reports and cost or contribution dates still group by the UTC day.
+  keywords:
+  - time zone
+  - business day
+  - late evening order
+  - Zeitzone
+  - Geschäftstag
+  - Bestellung spät abends
   question_examples:
   - 'Time zones: order at 23:30 in New York'
   - Stored in UTC, dated correctly?
-  tools: []
+  - On which day does an order placed late in the evening count?
+  - In welcher Zeitzone zählt Reality den Geschäftstag?
+  tools:
+  - company_time_zone_set_propose
+  - company_time_zone
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_operational_fields.py::test_document_and_commitment_operational_fields
-    note: Offset timestamps are proven to normalize to UTC; there is no company time zone, and no test pins the day a late-evening local order falls on (`domain/calendar.as_day` takes the text's local day).
+  - reference: packages/reality-core/tests/scenarios/test_catalog_time.py::test_an_order_at_half_past_eleven_in_new_york_is_dated_that_day
+    note: A shop order at 23:30 on 31 October New York time is stored as 03:30 UTC on 1 November and dated 31 October once the company states America/New_York; without a stated zone it is dated 1 November (spec 349).
+  - reference: packages/reality-core/tests/test_company_time_zone.py
+    note: Stated days never move; daylight saving moves the local midnight; overdue days, payment dates, register day filters and the next verdict change follow the company's zone; another company keeps its own.
 - id: R01
   section: Combined stress stories
   title: Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged

@@ -258,7 +258,7 @@ def accept_adjustment(
             preview["party_id"],
             amount,
             currency=preview["currency"],
-            document_date=core.now().date().isoformat(),
+            document_date=core._company_day(session, tenant_id, core.now()).isoformat(),
             source_record_id=source.id,
             action_id=action_id,
             _commit=False,

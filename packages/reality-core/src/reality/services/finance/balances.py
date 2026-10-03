@@ -132,7 +132,7 @@ def party_balance_rows(
         entry["open_count"] += 1
         due_date = row.get("due_date")
         if due_date is not None:
-            if due_date < moment.date():
+            if due_date < core._company_day(session, tenant_id, moment):
                 entry["overdue"] += outstanding
             if entry["oldest_due_date"] is None or due_date < entry["oldest_due_date"]:
                 entry["oldest_due_date"] = due_date
@@ -216,7 +216,11 @@ def party_balances(
             )
         if key == "oldest_due":
             due = entry["oldest_due_date"]
-            return (due is None, due or moment.date(), entry["party_id"])
+            return (
+                due is None,
+                due or core._company_day(session, tenant_id, moment),
+                entry["party_id"],
+            )
         return (entry[key], entry["party_id"])
 
     items.sort(key=order, reverse=sort_direction == "desc")

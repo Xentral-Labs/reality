@@ -2445,3 +2445,15 @@ Table `supplier_item_number`: a supplier's own article number, with the supplier
 - `packages/reality-core/tests/test_supplier_item_adapters.py`: strict MCP schemas, an agent proposes and a person confirms, a stale review is refused, Web set/read/remove, tenant isolation, the CLI asks first, and an agent orders by the supplier's number.
 - `packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_name_one_item_by_their_own_numbers`: story O06.
 - `packages/reality-core/tests/test_supplier_item_number_migration.py`: the table comes and goes, and stated numbers block a rollback.
+
+## Company time zone — Spec 349
+
+Table `company_time_zone`: the IANA zone a company states; business days derived from instants are local days, stored days never move.
+
+- `packages/reality-core/tests/test_company_time_zone.py`:
+  - A stated day never moves and an instant takes the local day; daylight saving moves the local midnight.
+  - UTC until stated, versioned; unknown zones and a stale review are refused; an agent proposes and a person confirms.
+  - A shop order, a payment date, an overdue day, a register day filter and the next verdict change follow the zone; another company keeps its own.
+- `packages/reality-core/tests/test_company_time_zone_migration.py`: the table comes and goes, and a stated zone blocks a rollback.
+- `packages/reality-core/tests/scenarios/test_catalog_time.py::test_an_order_at_half_past_eleven_in_new_york_is_dated_that_day` (Q05).
+- `packages/reality-core/tests/test_reporting_graph_coverage.py`: `company_time_zone` is a deferred operational workflow record.
