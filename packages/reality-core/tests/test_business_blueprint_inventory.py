@@ -13,7 +13,7 @@ def test_all_public_entry_kinds_are_inventoried_without_hiding_missing_sources()
         if page["next_cursor"] is None:
             break
         cursor = page["next_cursor"]
-    assert kinds == {"command", "tool", "action", "view", "projection"}
+    assert kinds == {"command", "tool", "action", "view", "projection", "exception"}
 
 
 def test_tool_and_command_share_real_exposure_rules():
@@ -60,3 +60,16 @@ def test_wrong_kind_recovery_is_generic_for_future_catalog_entries(monkeypatch):
     assert result["entries"] == []
     assert result["alternative_entries"][0]["key"] == "future_unknown"
     assert result["alternative_entries"][0]["kind"] == "tool"
+
+
+def test_registered_exception_source_discloses_shared_evaluator():
+    from reality.services.business_blueprints import explain
+
+    result = explain(
+        "exception", "overdue_outgoing_customer_commitment", interpret=False
+    )
+    assert result.sources
+    assert result.status == "partial"
+    assert any(
+        "shared exception evaluator" in limitation for limitation in result.limitations
+    )

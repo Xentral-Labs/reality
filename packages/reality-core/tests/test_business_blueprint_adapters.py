@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from reality.web.app import app
@@ -139,3 +140,26 @@ def test_chat_answer_footer_uses_actual_sources_and_discovered_test_count():
     assert "actual.py:12" in answer
     assert "erfolgreichen" in answer
     assert _with_blueprint_evidence("Plain", [], "en") == "Plain"
+
+
+@pytest.mark.parametrize(
+    "kind,key",
+    [
+        ("view", "items"),
+        ("projection", "inventory"),
+        ("exception", "overdue_outgoing_customer_commitment"),
+    ],
+)
+def test_public_source_only_read_never_calls_interpreter(monkeypatch, kind, key):
+    from reality.services import business_blueprint_presentation as presentation
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("Source viewing must not invoke the model")
+
+    monkeypatch.setattr(presentation, "deployment_provider", forbidden)
+    response = TestClient(app).get(
+        f"/api/business-logic/entries/{kind}/{key}", params={"interpret": "false"}
+    )
+    assert response.status_code == 200
+    assert response.json()["sources"]
+    assert response.json()["business"] is None

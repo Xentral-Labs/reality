@@ -239,3 +239,9 @@ Business-first detail correction (FR-031) supersedes the separate initial card f
 ## Isolated PR verification
 
 Prepared on current origin/main in an isolated checkout. Excluded concurrent storage migrations and company-settings work. Renumbered the feature to 343 because current main already owns 337 for drop shipping. Preserved main's updated cross-currency credit behavior when resolving source-comment overlap. Fresh isolated checks: 107 backend feature/catalog/parity tests passed (79.43s); 462 frontend contract tests passed; all four localization audits passed (2701 keys each); 123 Docs tests passed; Docs and frontend production builds passed; Ruff and spec policy passed. The earlier full-database run in this document applies to the original workspace baseline, not this rebased branch. T047 remains open; the PR is a draft for human review, without merge or deployment.
+
+## Direct source entry and exception coverage (FR-032)
+
+Docs exposes a separate source-only action alongside the business explanation. Loaded source opens locally; refreshing uses `interpret=false`. The browser regression verifies both behaviors. Views, projections and registered exceptions are covered by public API tests that fail if the deployment interpreter is accessed. Exception evidence explicitly describes its shared evaluator scope. No business evaluator or test case is executed during inspection.
+
+Verification: 62 business-blueprint backend tests passed; 123 Docs tests passed; Docs production build, browser regression, Ruff, spec policy and affected-file formatting passed. Existing PR checks were green before this follow-up; CI must rerun for the new commit. Human semantic acceptance remains open (T047).
