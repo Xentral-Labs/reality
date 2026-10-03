@@ -1,6 +1,27 @@
 {
   "commands": [
     {
+      "name": "Authorize external email dispatch",
+      "service": "email_dispatch_authorize",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Authorize the exact approved email snapshot without sending it."
+    },
+    {
+      "name": "Read email history",
+      "service": "email_history",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Read original messages and files, decisions and reported external execution."
+    },
+    {
+      "name": "Read email workflow",
+      "service": "email_workflow",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Discover email transfer limits and the canonical evidence, decision and execution contract."
+    },
+    {
       "name": "Ask the Business Journey Guide",
       "service": "business_journey_guide",
       "mode": "read",
