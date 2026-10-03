@@ -6575,7 +6575,7 @@ external_stock [item_id] [location_id] [differing_only]
 **Effect:** Reads: `external_stock_statement`, `item`, `location`, `party`, `movement`,
 `movement_correction`, `source_record` · Writes: —
 
-**See also:** agent tool [`external_stock`](./commands#tool-external_stock)
+**See also:** Agent Tool [`external_stock`](./commands#tool-external_stock)
 
 #### `external_stock` — External stock {#tool-external_stock}
 
@@ -6619,7 +6619,7 @@ there at the stated time.
 | `location_id`    | `string`  | no       | Opaque identity of the operational or physical location.                                                                  | —       |
 | `differing_only` | `boolean` | no       | Read only the external stock statements whose stated quantity differs from Reality's stock at the stated time (spec 344). | —       |
 
-**See also:** command [`external_stock`](./commands#command-external_stock)
+**See also:** Command [`external_stock`](./commands#command-external_stock)
 
 ### `inventory_cost` — Read reviewed inventory acquisition costs {#command-inventory_cost}
 
@@ -7190,7 +7190,7 @@ external_stock_state_propose [reporter_party_id] [note] lines
 **Effect:** Reads: `item`, `location`, `party`, `movement`, `movement_correction` · Writes:
 `external_stock_statement`, `source_record`, `business_event` · Emits: `external_stock.stated`
 
-**See also:** agent tool
+**See also:** Agent Tool
 [`external_stock_state_propose`](./commands#tool-external_stock_state_propose), event
 [`external_stock.stated`](./events#event-external_stock-stated)
 
@@ -7223,7 +7223,7 @@ external_stock_state_propose [reporter_party_id] [note] lines
 | `lines[].quantity`    | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                     | —       |
 | `lines[].stated_at`   | `string` | no       | When the counterparty stated the new date, defaulting to now.                                               | —       |
 
-**See also:** command [`record_external_stock`](./commands#command-record_external_stock)
+**See also:** Command [`record_external_stock`](./commands#command-record_external_stock)
 
 ### `state_lot_expiry` — State lot expiry {#command-state_lot_expiry}
 
