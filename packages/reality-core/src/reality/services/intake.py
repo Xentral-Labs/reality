@@ -5,6 +5,7 @@ import os
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
+from inspect import Parameter, signature
 from typing import Any
 
 from sqlalchemy import Numeric, event, inspect, select
@@ -173,11 +174,34 @@ _call_intent: ContextVar[tuple[str, str] | None] = ContextVar(
 )
 
 
+# Omitted optional parameters still have exact canonical invocation values.
+# Capture the definitions before an adapter/callback can wrap them.
+_INTENT_DEFAULTS = {
+    name: {
+        key: parameter.default
+        for key, parameter in signature(getattr(core, name)).parameters.items()
+        if parameter.default is not Parameter.empty
+    }
+    for name in (
+        "create_manual_document_with_lines",
+        "create_commitment",
+        "record_customer_payment",
+        "allocate_settlement",
+        "create_document",
+        "announce_customer_return",
+        "revise_commitment",
+        "cancel_commitment",
+    )
+}
+
+
 def _invoke(
     operation: str, handler: Any, session: Session, tenant_id: str, **arguments
 ):
     """Freeze invocation intent before entering a canonical writer or callback."""
-    token = _call_intent.set((operation, canonical_json(arguments)))
+    token = _call_intent.set(
+        (operation, canonical_json({**_INTENT_DEFAULTS[operation], **arguments}))
+    )
     try:
         return handler(session, tenant_id, **arguments)
     finally:

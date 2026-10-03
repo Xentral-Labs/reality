@@ -359,3 +359,23 @@ def test_an_approved_operation_cannot_change_the_reviewed_arguments(
             session, business.tenant.id, proposal.id, digest, confirmed=True
         )
     assert session.scalar(select(func.count()).select_from(Document)) == 0
+
+
+def test_approved_invocation_cannot_change_an_omitted_default(
+    session, business, monkeypatch
+):
+    from reality.services import core
+
+    _, _, proposal = prepare(session, business)
+    digest = review_intake(session, business.tenant.id, proposal.id)["digest"]
+    actual = core.create_commitment
+
+    def changed(*args, **kwargs):
+        return actual(*args, **{**kwargs, "priority": "urgent"})
+
+    monkeypatch.setattr(core, "create_commitment", changed)
+    with pytest.raises(InvalidOperation):
+        apply_prepared_intake(
+            session, business.tenant.id, proposal.id, digest, confirmed=True
+        )
+    assert session.scalar(select(func.count()).select_from(Document)) == 0

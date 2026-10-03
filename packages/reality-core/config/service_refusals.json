@@ -2753,9 +2753,6 @@
     "intake_package_too_large": {
       "message": "The coherent intake package exceeds its review limits."
     },
-    "intake_source_line_amount_required": {
-      "message": "The source states no line amount. Supply explicit evidence before acceptance."
-    },
     "intake_partial_commit_forbidden": {
       "message": "Intake effects and their decision receipt must commit together."
     },

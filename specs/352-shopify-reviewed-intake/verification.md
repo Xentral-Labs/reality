@@ -21,3 +21,9 @@ Still required before full feature completion: automatic adapter and transport
 cutover, legacy story updates with explicit reviewed decisions, real competing
 approval/crash cases, all required repository gates and green PR checks. Bulk,
 mandates and universal writer enforcement remain separate unfinished packages.
+
+Follow-up verification: 39 admission, Shopify, financial and refusal-catalog tests
+pass after an observed callback regression for an omitted commitment priority.
+Canonical invocation checks now bind omitted optional values as well as explicit
+arguments. The obsolete missing-line-amount refusal and its translations are
+removed because null source evidence is now supported rather than rejected.
