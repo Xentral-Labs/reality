@@ -2404,3 +2404,12 @@ Table `external_stock_statement` (migration 0133): stock someone outside states 
 - `packages/reality-core/tests/test_external_stock_migration.py`: the table comes and goes, and recorded rows block a rollback.
 - `packages/reality-core/tests/scenarios/test_catalog_external_stock.py`: story J07.
 - `packages/reality-core/tests/test_reporting_graph_coverage.py`: the table is a deferred operational workflow record.
+
+## Reservations waiting for an unpaid prepayment — Spec 348
+
+Exception class `reservation_awaiting_prepayment`, derived at read time: an open customer promise of a prepayment order whose active reservation is older than a week while the prepayment is unpaid.
+
+- `packages/reality-core/tests/test_prepayment_reservations.py`:
+  - Reported after a week with the reserved quantity and unpaid amount; not inside the week, not for an ordinary or unreserved order; nothing is released.
+  - Payment, release of the reservation or cancellation clear it; a part payment names the rest; another company sees nothing.
+- `packages/reality-core/tests/scenarios/test_catalog_prepayment_reservations.py`: story B12.

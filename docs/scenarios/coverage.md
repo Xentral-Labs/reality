@@ -2,18 +2,18 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07; spec 348 (2026-10-03) proved B12. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 182 covered, 10 partial, 0 missing, 30 gap, 6 out.
+228 scenarios: 183 covered, 10 partial, 0 missing, 29 gap, 6 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 20 |  |  | 4 |  |
-| B Availability and reservation | 12 |  |  | 6 |  |
+| B Availability and reservation | 13 |  |  | 5 |  |
 | C Payment and release | 17 |  |  | 1 |  |
 | D Shipment, split and merge | 15 | 1 |  | 3 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
@@ -168,7 +168,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | B09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_names_the_backorders_left_uncovered | A receipt of 4 against 3 + 3 + 3 shows 3/0, 1/2 and 0/3 arrived and still to come; serving reserves 3 and 1 and the other two stay at risk (spec 305). |
 | B10 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once | Ship complete stated for the customer: the reserved bikes wait with the blocker named, a partial shipment is refused, Order waiting for completeness names the missing lamps, and the whole order ships together (spec 306). |
 | B11 | gap | services/fulfillment_readiness.py (blocker set) | No per-order or per-customer limit on partial deliveries or parcel count exists. |
-| B12 | gap | db/core.py `Reservation` (no deadline column); tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside | Prepayment only blocks shipment; a reservation has no lapse date and is never released automatically. |
+| B12 | covered | packages/reality-core/tests/scenarios/test_catalog_prepayment_reservations.py::test_a_reservation_waiting_for_an_unpaid_prepayment_is_put_to_a_person | Stock reserved for an unpaid prepayment order is reported after a week as Reservation waiting for prepayment, with the unpaid amount; a person releases it or chases the payment, nothing lapses by itself (spec 348). |
 | B13 | covered | tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_references_are_opaque | A stocktake loss raises `reservation_exceeds_stock` naming the reservations; it is judged per item across locations and blames no single promise. |
 | B14 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_item_oversold_in_the_shop_and_on_a_marketplace_names_both | An item sold in the shop and on a marketplace beyond stock and supply is reported with both channels; a purchase order covers it (spec 300). |
 | B15 | gap | docs/features/inventory.md (Available = physical − reserved) | Availability is one number per item and location; there is no safety stock and no per-channel or per-party availability. |

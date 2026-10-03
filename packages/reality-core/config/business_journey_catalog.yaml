@@ -872,22 +872,31 @@ entries:
   section: Availability, reservation and backorder
   title: Reservation lapses because prepayment did not arrive
   question: Is the reservation released after the deadline?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Is the reservation released after the deadline?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the reservation released after the deadline? Stock reserved for a prepayment order whose prepayment is still unpaid after a week is reported as Reservation waiting for prepayment, with the order, the reserved quantity and the unpaid amount; a person releases the reservation or chases the payment, and nothing is released by itself.'
   limitations:
-  - Missing prepayment blocks the shipment, but a reservation has no expiry date and is never released automatically.
-  keywords: []
+  - The reservation never lapses automatically; the deadline is a fixed week, not a company setting.
+  keywords:
+  - reservation waiting for prepayment
+  - unpaid prepayment reservation
+  - Reservierung Vorkasse
+  - Vorkasse nicht bezahlt Reservierung
   question_examples:
   - Reservation lapses because prepayment did not arrive
   - Is the reservation released after the deadline?
-  tools: []
+  - Which reserved orders are still waiting for their prepayment?
+  - Welche Reservierungen warten noch auf Vorkasse?
+  tools:
+  - reservation_release_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: db/core.py `Reservation` (no deadline column); tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside
-    note: Prepayment only blocks shipment; a reservation has no lapse date and is never released automatically.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_prepayment_reservations.py::test_a_reservation_waiting_for_an_unpaid_prepayment_is_put_to_a_person
+    note: Two prepayment orders reserve six each; the paid one is ready and not reported, the unpaid one is reported after a week with 150 unpaid, nothing is released by itself, and releasing the reservation clears it (spec 348).
+  - reference: packages/reality-core/tests/test_prepayment_reservations.py
+    note: Not inside the week, not for an ordinary or unreserved order; a part payment names the rest; payment, release or cancellation clear it; another company sees nothing.
 - id: B13
   section: Availability, reservation and backorder
   title: Count difference leaves a reservation uncovered

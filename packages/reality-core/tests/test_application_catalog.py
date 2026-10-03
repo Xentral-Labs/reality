@@ -76,6 +76,7 @@ def test_split_catalog_is_complete_and_composed():
         "received_beyond_order",
         "misdelivery_outstanding",
         "external_stock_differs",
+        "reservation_awaiting_prepayment",
     ]
     assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
         OPERATIONAL_PROJECTIONS

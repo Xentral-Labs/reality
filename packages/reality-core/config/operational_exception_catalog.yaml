@@ -1307,3 +1307,19 @@ classes:
       - tests/test_external_stock.py::test_a_statement_that_differs_is_reported_and_moves_nothing
       - tests/test_external_stock.py::test_a_count_at_the_stated_time_clears_it
       - tests/test_external_stock.py::test_a_newer_statement_that_matches_clears_it
+  - id: reservation_awaiting_prepayment
+    label: Reservation waiting for prepayment
+    description: >-
+      Stock has been reserved for an order with prepayment terms for longer than a week while its
+      prepayment is still unpaid, so the stock is withheld from every other order. Nothing is
+      released by itself. The entry names the order, the reserved quantity, how long it has waited
+      and the unpaid amount, so a person chases the payment or releases the reservation.
+    owner: Accounts receivable
+    clears_through: Payment of the open prepayment, releasing the reservation so the stock serves other orders, or cancelling the order.
+    severity: normal
+    derivation: reservation_awaiting_prepayment
+    record_type: commitment
+    authority: 348/FR-001
+    evidence:
+      - tests/test_prepayment_reservations.py::test_stock_reserved_for_an_unpaid_prepayment_is_reported_after_a_week
+      - tests/test_prepayment_reservations.py::test_payment_release_or_cancellation_clears_it
