@@ -273,3 +273,77 @@ test("source excerpt focuses verified rule lines and never marks unrelated helpe
   assert.equal(sourceExcerpt(evidence, []).focusAvailable, false);
   assert.equal(sourceExcerpt(evidence, [{ start: 999, end: 1000 }]).focusAvailable, false);
 });
+
+test("source tab opens main function without a selector and keeps helper code collapsed", async () => {
+  const data = {
+    release: { version: "current", commit: "abc" },
+    purpose: "Change a commitment",
+    status: "partial",
+    nodes: [],
+    edges: [],
+    inputs: [],
+    prerequisites: [],
+    limitations: [],
+    test_gaps: [],
+    scenarios: [],
+    sources: [
+      {
+        id: "main",
+        function: "revise_commitment",
+        path: "core.py",
+        start_line: 10,
+        code: "main_code()",
+      },
+      {
+        id: "helper",
+        function: "positive",
+        path: "core.py",
+        start_line: 20,
+        code: "helper_code()",
+      },
+    ],
+  };
+  for (const locale of ["en", "de"]) {
+    const html = await renderToString(
+      createSSRApp(await component(data, locale), {
+        kind: "command",
+        entryKey: "revise_commitment",
+      }),
+    );
+    assert.ok(!html.includes("<select"));
+    assert.match(html, /<pre data-direct-source>/u);
+    assert.match(html, /direct-line-number[^>]*[^]*?>10<\/span>/u);
+    assert.ok(html.includes("main_code()"));
+    assert.match(html, /<details class="called-functions" data-called-functions>/u);
+    assert.ok(
+      html.includes(locale === "de" ? "Weitere Quelltext-Funktionen" : "Related source functions"),
+    );
+    assert.ok(html.includes("helper_code()"));
+    assert.ok(!html.includes("Refresh code"));
+    const projectionData = {
+      ...data,
+      sources: [
+        { ...data.sources[0], role: "reader" },
+        { ...data.sources[1], role: "builder", called_by: [data.sources[0].function] },
+      ],
+    };
+    const projectionHtml = await renderToString(
+      createSSRApp(await component(projectionData, locale), {
+        kind: "projection",
+        entryKey: "fulfillment_queue",
+      }),
+    );
+    assert.ok(
+      projectionHtml.indexOf("helper_code()") < projectionHtml.indexOf("main_code()"),
+      "Actual registered builder opens before the shared stored reader",
+    );
+    assert.ok(
+      projectionHtml.includes(locale === "de" ? "Aufbau bei Änderungen" : "Build after changes"),
+    );
+    assert.ok(projectionHtml.includes("Zur Startfunktion") === false);
+    assert.ok(
+      projectionHtml.includes("source-next") === false,
+      "Reverse callers must not invent calls from the selected builder",
+    );
+  }
+});

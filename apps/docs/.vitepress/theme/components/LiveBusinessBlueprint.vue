@@ -5,6 +5,7 @@ import {
   diagram,
   sourceRanges,
   type BusinessBlueprint,
+  type LogicSource,
 } from "../../../../shared/businessBlueprint";
 import SourceEvidence from "./SourceEvidence.vue";
 const props = defineProps<{ kind: string; entryKey: string }>();
@@ -17,12 +18,35 @@ const flowId = useId();
 const activeTab = ref("rules");
 const selectedTest = ref("");
 const tabs = ["code", "rules", "tests", "technical"];
-const selectedCode = ref("");
+const codeSelection = ref("");
 const codeSource = computed(
   () =>
-    data.value?.sources.find((source) => source.id === selectedCode.value) ||
+    data.value?.sources.find((source) => source.id === codeSelection.value) ||
+    data.value?.sources.find((source) => source.role === "builder") ||
     data.value?.sources[0],
 );
+const relatedSources = computed(
+  () => data.value?.sources.filter((source) => source.id !== codeSource.value?.id) || [],
+);
+const directHelpers = computed(
+  () =>
+    data.value?.sources.filter((source) =>
+      source.called_by?.includes(codeSource.value?.function || ""),
+    ) || [],
+);
+const sourceLines = (source: LogicSource) =>
+  source.code
+    .replace(/\n$/u, "")
+    .split("\n")
+    .map((text, index) => ({ number: source.start_line + index, text }));
+function sourceRole(source: LogicSource) {
+  if (source.role === "builder") return wording("Build after changes", "Aufbau bei Änderungen");
+  if (source.role === "reader")
+    return wording("Read stored results", "Gespeicherte Ergebnisse lesen");
+  if (source.role === "shared")
+    return wording("Shared full derivation", "Gemeinsame vollständige Berechnung");
+  return wording("Source function", "Quelltext-Funktion");
+}
 function showCode() {
   if (data.value) activeTab.value = "code";
   else read(true, false);
@@ -91,29 +115,45 @@ async function read(brief = true, interpret = true) {
   data.value = null;
   loading.value = true;
   error.value = "";
+  let failure = wording(
+    "Cannot reach the configured system. Check that it is running and retry.",
+    "Das konfigurierte System ist nicht erreichbar. Prüfe, ob es läuft, und versuche es erneut.",
+  );
   try {
     if (!target.value) throw new Error("No configured target");
     const response = await fetch(
       `${target.value}/api/business-logic/entries/${encodeURIComponent(props.kind)}/${encodeURIComponent(props.entryKey)}?language=${de.value ? "de" : "en"}&brief=${brief}&interpret=${interpret}`,
       { cache: "no-store", credentials: "omit" },
     );
-    if (!response.ok) throw new Error("Unavailable");
+    if (!response.ok) {
+      failure =
+        response.status === 429
+          ? wording(
+              "The live source service is busy. Wait briefly and retry.",
+              "Die Live-Quelltextabfrage ist ausgelastet. Warte kurz und versuche es erneut.",
+            )
+          : wording(
+              `Source could not be loaded (HTTP ${response.status}). Retry or inspect the service.`,
+              `Der Quelltext konnte nicht geladen werden (HTTP ${response.status}). Erneut versuchen oder den Dienst prüfen.`,
+            );
+      throw new Error("Unavailable");
+    }
+    failure = wording(
+      "The system returned an unreadable source response. Retry or inspect the service.",
+      "Das System hat eine nicht lesbare Quelltextantwort geliefert. Erneut versuchen oder den Dienst prüfen.",
+    );
     const result = (await response.json()) as BusinessBlueprint;
     if (request !== sequence) return;
     data.value = result;
     activeTab.value = interpret ? "rules" : "code";
-    selectedCode.value = result.sources[0]?.id || "";
+    codeSelection.value = "";
     selectedTest.value = result.scenarios.some((test) => test.id === previousTest)
       ? previousTest
       : result.scenarios[0]?.id || "";
     selected.value =
       result.nodes.find((n) => n.durable)?.function || result.nodes[0]?.function || "";
   } catch {
-    if (request === sequence)
-      error.value = wording(
-        "Live evidence is unavailable. Retry to read the configured system.",
-        "Live-Nachweise sind nicht verfügbar. Erneut versuchen, um das konfigurierte System zu lesen.",
-      );
+    if (request === sequence) error.value = failure;
   } finally {
     if (request === sequence) loading.value = false;
   }
@@ -235,23 +275,54 @@ async function read(brief = true, interpret = true) {
             )
           }}
         </p>
-        <button type="button" :disabled="loading" @click="read(true, false)">
-          {{ wording("Refresh code", "Code aktualisieren") }}
-        </button>
-        <label v-if="data.sources.length"
-          >{{ wording("Function", "Funktion")
-          }}<select v-model="selectedCode">
-            <option v-for="source in data.sources" :key="source.id" :value="source.id">
-              {{ source.function }}
-            </option>
-          </select></label
-        >
+        <p v-if="data.sources.some((source) => source.role === 'reader')" class="source-scope">
+          {{
+            wording(
+              "This projection reads stored results. The change builder below can use the shared full derivation as a fallback; shared functions contain branches for other projections too.",
+              "Diese Projection liest gespeicherte Ergebnisse. Der Aufbau bei Änderungen kann auf die gemeinsame vollständige Berechnung zurückgreifen. Gemeinsame Funktionen enthalten auch Zweige anderer Projections.",
+            )
+          }}
+        </p>
         <template v-if="codeSource"
-          ><p class="source-provenance">
+          ><button v-if="codeSelection" type="button" @click="codeSelection = ''">
+            {{ wording("Back to entry function", "Zur Startfunktion") }}
+          </button>
+          <h3>{{ sourceRole(codeSource) }}</h3>
+          <p>
+            <code>{{ codeSource.function }}</code>
+          </p>
+          <p class="source-provenance">
             {{ codeSource.path }} · {{ wording("from line", "ab Zeile") }}
             {{ codeSource.start_line }}
           </p>
-          <pre data-direct-source><code>{{ codeSource.code }}</code></pre>
+          <pre
+            data-direct-source
+          ><code><span v-for="line in sourceLines(codeSource)" :key="line.number" class="direct-source-line"><span class="direct-line-number" aria-hidden="true">{{ line.number }}</span><span>{{ line.text || ' ' }}</span></span></code></pre>
+          <div v-if="directHelpers.length" class="source-next">
+            <p>{{ wording("Continue into the called code", "Weiter im aufgerufenen Code") }}</p>
+            <button
+              v-for="helper in directHelpers"
+              :key="helper.id"
+              type="button"
+              @click="codeSelection = helper.id"
+            >
+              {{ helper.function.split(".").at(-1) }} →
+            </button>
+          </div>
+          <details v-if="relatedSources.length" class="called-functions" data-called-functions>
+            <summary>
+              {{ wording("Related source functions", "Weitere Quelltext-Funktionen") }}
+            </summary>
+            <details v-for="source in relatedSources" :key="source.id">
+              <summary>
+                {{ sourceRole(source) }} · <code>{{ source.function }}</code>
+              </summary>
+              <p class="source-provenance">
+                {{ source.path }} · {{ wording("from line", "ab Zeile") }} {{ source.start_line }}
+              </p>
+              <pre><code><span v-for="line in sourceLines(source)" :key="line.number" class="direct-source-line"><span class="direct-line-number" aria-hidden="true">{{ line.number }}</span><span>{{ line.text || ' ' }}</span></span></code></pre>
+            </details>
+          </details>
         </template>
         <p v-else>
           {{
@@ -700,9 +771,46 @@ async function read(brief = true, interpret = true) {
 .code-panel {
   margin-top: 20px;
 }
-.code-panel select {
+.source-next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.source-next p {
   width: 100%;
+  margin-bottom: 0;
+}
+.direct-source-line {
+  display: flex;
+  gap: 16px;
+  min-height: 1.6em;
+}
+.direct-source-line > span:last-child {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  flex: 1;
+}
+.direct-line-number {
+  min-width: 4ch;
+  text-align: right;
+  color: var(--vp-c-text-3);
+  user-select: none;
+  flex-shrink: 0;
+}
+.source-scope {
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+}
+.called-functions {
+  margin-top: 16px;
+}
+.called-functions details {
   margin: 12px 0;
+}
+.called-functions summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
 }
 .code-panel pre {
   white-space: pre;

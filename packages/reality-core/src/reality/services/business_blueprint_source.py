@@ -32,7 +32,7 @@ def approved_callable(function: Any) -> bool:
     module = getattr(function, "__module__", "")
     return (
         inspect.isfunction(function)
-        and (module.startswith(("reality.services.", "reality.domain.", "reality.tools.", "reality.web.read_models")) or module == "reality.mcp.catalog" and (function.__name__ == "_approve_proposal" or function.__qualname__ in {"_read.<locals>.handler", "_propose.<locals>.handler"}))
+        and (module.startswith(("reality.services.", "reality.domain.", "reality.tools.", "reality.web.read_models")) or module == "reality.mcp.catalog" and (function.__name__ in {"_approve_proposal", "_reject_proposal"} or function.__qualname__ in {"_read.<locals>.handler", "_propose.<locals>.handler"}))
         and module.rsplit(".", 1)[-1] not in DENIED_MODULES
         and "business_blueprint" not in module
     )
