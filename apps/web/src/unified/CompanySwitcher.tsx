@@ -145,7 +145,7 @@ export function CompanySwitcher({
         <div className="mt-1.5 border-t border-border-default pt-1.5">
           {(
             [
-              ["Manage companies", "company", Settings],
+              ["All companies", "company", Settings],
               ["New company", "new", Plus],
             ] as const
           ).map(([label, view, Icon]) => {

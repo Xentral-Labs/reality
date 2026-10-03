@@ -159,10 +159,22 @@ try {
   assert.equal(
     await page.getByRole("link", { name: "Companies", exact: true }).count(),
     0,
-    "Company management belongs to the company switcher, not the navigation",
+    "The cross-company overview belongs to the company switcher",
   );
+  await page
+    .getByRole("navigation", { name: "Company", exact: true })
+    .getByRole("link", { name: "Settings", exact: true })
+    .click();
+  await page.waitForURL(/settings_view=current/);
+  assert.equal(new URL(page.url()).searchParams.get("tenant"), "t1");
+  await page.locator('[data-company-card="t1"]').waitFor();
+  assert.equal(await page.locator('[data-company-card="t2"]').count(), 0);
+  await page
+    .locator('[data-company-card="t1"]')
+    .getByText("First company", { exact: true })
+    .waitFor();
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
-  await page.locator('[data-company-management="company"]').click();
+  await page.getByRole("link", { name: "All companies", exact: true }).click();
   await page.waitForURL(/settings_view=company/);
   assert.equal(new URL(page.url()).searchParams.get("settings_view"), "company");
   assert.equal(await page.getByRole("navigation", { name: "Settings sections" }).count(), 0);

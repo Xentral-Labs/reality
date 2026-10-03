@@ -55,3 +55,20 @@ Rollback restores both navigation entries and the local creation state.
 ## Complexity Tracking
 
 None. No backend, domain, persistence or tool registry work.
+
+## Approved navigation refinement (2026-10-03)
+
+All Constitution rows remain PASS: adapter-only navigation with no writes or schema.
+Add a bounded settings_view=current destination, preserving company as the overview.
+Shell adds Settings with the existing tenant URL, active state, tooltip and drawer
+callback. CompanySwitcher calls the overview All companies. SettingsPage supplies
+currentOnly to CompanySettings, which filters displayed cards while preserving the
+full companies input for the existing danger-zone service boundary. Keep the original
+company name in its existing card, with no separate line beneath the Settings heading. Existing owner checks remain authoritative.
+Update page introduction, localized labels and the existing retirement browser label.
+Tests precede implementation. Verify contracts, locale audit, production build,
+formatting and spec-check; record unavailable browser evidence explicitly.
+Rollback removes current and restores the menu label; no data migration is involved.
+
+Archived company/sandbox lists remain in All companies only, through showArchived in
+CompanyDangerZone.tsx; the current-company archive action and its guards remain.

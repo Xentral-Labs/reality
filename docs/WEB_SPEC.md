@@ -3144,9 +3144,12 @@ Spec 223 company context supersedes both the Companies entry in the Company navi
 group and spec 146 FR-029's Demo Data navigation entry. Company management
 (`/app/settings?settings_view=company`) is reached from the company switcher beside the
 wordmark, which lists every company, marks each one's live simulation state, and ends with
-Manage companies and New company. `settings_view=new` opens the creation form directly, so
+All companies and New company. `settings_view=current` is reached through Settings
+under Company and displays only the selected company, with its original name in
+the existing card and no duplicate name line above it; the
+existing company view remains the cross-company overview. `settings_view=new` opens the creation form directly, so
 the switcher entry, reload and history all land on the same form. The Company navigation
-group keeps Integrations and Storyline only. The simulation keeps its own route
+group keeps Settings, Integrations and Storyline, in that order. The simulation keeps its own route
 `/app/demo-data?tenant=…`, now reached from the header live indicator and from a Demo data
 simulation card at the top of Integrations → My integrations, shown for demo and practice
 companies and for any company with a Demo Data connection state; the card reports

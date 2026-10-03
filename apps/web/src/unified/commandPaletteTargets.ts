@@ -157,7 +157,7 @@ const pages: Page[] = [
     key: "company",
     label: "Company settings",
     access: "owner",
-    destination: { route: "settings", settingsView: "company" },
+    destination: { route: "settings", settingsView: "current" },
   },
   { key: "demo", label: "Demo data", access: "demo", destination: { route: "demo-data" } },
 ];

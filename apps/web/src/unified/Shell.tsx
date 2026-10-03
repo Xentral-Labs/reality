@@ -29,6 +29,7 @@ import {
 } from "react";
 import {
   BookOpen,
+  Settings,
   FileText,
   Waypoints,
   Zap,
@@ -608,6 +609,50 @@ export function Shell({
                     <p className="mb-1.5 px-3 text-[10px] uppercase tracking-wider text-fg-muted">
                       {t("Company")}
                     </p>
+                    <a
+                      data-navigation-item
+                      aria-label={t("Settings")}
+                      data-sidebar-tooltip={t("Settings")}
+                      className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "settings" && ["current", "access", "agents", "ai"].includes(selection.settingsView) ? activeNavigation : "hover:bg-surface-muted"}`}
+                      href={selectionUrl({
+                        ...selection,
+                        route: "settings",
+                        settingsView: "current",
+                        entry: "",
+                        proposal: "",
+                        q: "",
+                        page: 1,
+                      })}
+                      aria-current={
+                        selection.route === "settings" &&
+                        ["current", "access", "agents", "ai"].includes(selection.settingsView)
+                          ? "page"
+                          : undefined
+                      }
+                      onClick={(event) => {
+                        if (
+                          event.button ||
+                          event.metaKey ||
+                          event.ctrlKey ||
+                          event.shiftKey ||
+                          event.altKey
+                        )
+                          return;
+                        event.preventDefault();
+                        navigate({
+                          route: "settings",
+                          settingsView: "current",
+                          entry: "",
+                          proposal: "",
+                          q: "",
+                          page: 1,
+                        });
+                        setOpen(false);
+                      }}
+                    >
+                      <Settings size={17} />
+                      <span data-navigation-label>{t("Settings")}</span>
+                    </a>
                     <a
                       data-navigation-item
                       aria-label={t("Integrations")}

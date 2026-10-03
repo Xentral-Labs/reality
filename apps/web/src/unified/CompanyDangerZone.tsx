@@ -26,7 +26,9 @@ export function CompanyDangerZone({
   company,
   companies,
   openCompany,
+  showArchived = true,
 }: {
+  showArchived?: boolean;
   company: Tenant;
   companies: Tenant[];
   openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean }) => void;
@@ -133,99 +135,103 @@ export function CompanyDangerZone({
             {t(sandbox ? "Archive sandbox" : "Archive company")}
           </button>
         </div>
-        <ArchivedList
-          marker="archived"
-          title="Archived companies"
-          read={companyRead}
-          loading="Loading archived companies"
-          failure="Archived companies could not be loaded."
-          empty="No archived companies."
-          retry={load}
-        >
-          {archived.map((row) => (
-            <li
-              key={row.id}
-              data-archived-company={row.id}
-              className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-border-default bg-surface-sunken px-4 py-3"
+        {showArchived && (
+          <>
+            <ArchivedList
+              marker="archived"
+              title="Archived companies"
+              read={companyRead}
+              loading="Loading archived companies"
+              failure="Archived companies could not be loaded."
+              empty="No archived companies."
+              retry={load}
             >
-              <div className="min-w-0 space-y-1">
-                <p className="break-words font-medium" data-localization="original">
-                  {row.name}
-                </p>
-                <p className="text-sm text-fg-muted">
-                  {t("Archived on")} {formatDate(row.archived_at)}
-                </p>
-                <Counts row={row} />
-                {row.role !== "owner" && (
-                  <p className="text-sm text-fg-muted">
-                    {t("Only company owners can restore or delete this company.")}
-                  </p>
-                )}
-                <RowError id={row.id} error={rowError} />
-              </div>
-              {row.role === "owner" && (
-                <div className="flex shrink-0 flex-wrap gap-2">
+              {archived.map((row) => (
+                <li
+                  key={row.id}
+                  data-archived-company={row.id}
+                  className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-border-default bg-surface-sunken px-4 py-3"
+                >
+                  <div className="min-w-0 space-y-1">
+                    <p className="break-words font-medium" data-localization="original">
+                      {row.name}
+                    </p>
+                    <p className="text-sm text-fg-muted">
+                      {t("Archived on")} {formatDate(row.archived_at)}
+                    </p>
+                    <Counts row={row} />
+                    {row.role !== "owner" && (
+                      <p className="text-sm text-fg-muted">
+                        {t("Only company owners can restore or delete this company.")}
+                      </p>
+                    )}
+                    <RowError id={row.id} error={rowError} />
+                  </div>
+                  {row.role === "owner" && (
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="br-btn"
+                        disabled={busy === row.id}
+                        onClick={() => void restore(row.id, () => api.restoreCompany(row.id))}
+                      >
+                        {t("Restore")}
+                      </button>
+                      <button
+                        type="button"
+                        className="br-btn br-btn-critical"
+                        disabled={busy === row.id}
+                        onClick={() => setDialog({ kind: "delete", row })}
+                      >
+                        {t("Delete permanently")}
+                      </button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ArchivedList>
+            <ArchivedList
+              marker="archived-sandboxes"
+              title="Archived sandboxes"
+              read={sandboxRead}
+              loading="Loading archived sandboxes"
+              failure="Archived sandboxes could not be loaded."
+              empty="No archived sandboxes."
+              retry={load}
+            >
+              {archivedRuns.map((run) => (
+                <li
+                  key={run.id}
+                  data-archived-sandbox={run.id}
+                  className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-border-default bg-surface-sunken px-4 py-3"
+                >
+                  <div className="min-w-0 space-y-1">
+                    <p className="break-words font-medium" data-localization="original">
+                      {run.company_name}
+                    </p>
+                    <p className="text-sm text-fg-muted">
+                      {t(run.sandbox_kind === "practice" ? "Practice company" : "Sandbox")}
+                      {" · "}
+                      {t("Archived on")} {formatDate(run.archived_at)}
+                    </p>
+                    <p className="text-sm text-fg-muted">
+                      {t("Deleting sandbox data is not available yet.")}
+                    </p>
+                    <RowError id={run.id} error={rowError} />
+                  </div>
                   <button
                     type="button"
-                    className="br-btn"
-                    disabled={busy === row.id}
-                    onClick={() => void restore(row.id, () => api.restoreCompany(row.id))}
+                    className="br-btn shrink-0"
+                    disabled={busy === run.id}
+                    onClick={() => void restore(run.id, () => api.restoreSandbox(run.id))}
                   >
                     {t("Restore")}
                   </button>
-                  <button
-                    type="button"
-                    className="br-btn br-btn-critical"
-                    disabled={busy === row.id}
-                    onClick={() => setDialog({ kind: "delete", row })}
-                  >
-                    {t("Delete permanently")}
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ArchivedList>
-        <ArchivedList
-          marker="archived-sandboxes"
-          title="Archived sandboxes"
-          read={sandboxRead}
-          loading="Loading archived sandboxes"
-          failure="Archived sandboxes could not be loaded."
-          empty="No archived sandboxes."
-          retry={load}
-        >
-          {archivedRuns.map((run) => (
-            <li
-              key={run.id}
-              data-archived-sandbox={run.id}
-              className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-border-default bg-surface-sunken px-4 py-3"
-            >
-              <div className="min-w-0 space-y-1">
-                <p className="break-words font-medium" data-localization="original">
-                  {run.company_name}
-                </p>
-                <p className="text-sm text-fg-muted">
-                  {t(run.sandbox_kind === "practice" ? "Practice company" : "Sandbox")}
-                  {" · "}
-                  {t("Archived on")} {formatDate(run.archived_at)}
-                </p>
-                <p className="text-sm text-fg-muted">
-                  {t("Deleting sandbox data is not available yet.")}
-                </p>
-                <RowError id={run.id} error={rowError} />
-              </div>
-              <button
-                type="button"
-                className="br-btn shrink-0"
-                disabled={busy === run.id}
-                onClick={() => void restore(run.id, () => api.restoreSandbox(run.id))}
-              >
-                {t("Restore")}
-              </button>
-            </li>
-          ))}
-        </ArchivedList>
+                </li>
+              ))}
+            </ArchivedList>
+          </>
+        )}
       </div>
       {dialog?.kind === "archive" && (
         <ArchiveDialog
