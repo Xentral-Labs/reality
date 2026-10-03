@@ -452,6 +452,9 @@ def settle_chunk(session, tenant_id, batch_id, *, continuation_id, _commit=False
                             "replayed" if previous == "executed" else "applied"
                         )
             except core.RealityError as error:
+                from reality.services.intake import _retain_apply_failure
+
+                _retain_apply_failure(session, tenant_id, entry.proposal_id, error)
                 disposition = "review_required"
                 progress["results"].append(
                     {

@@ -68,7 +68,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`payouts`](#command-payouts)                                                     | List payouts                                 | Cross-functional           | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
 | [`merge_party`](#command-merge_party)                                             | Merge a duplicate business partner           | Cross-functional           | `party_merge_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`prepare_batch`](#command-prepare_batch)                                         | Prepare selected intake batch                | Cross-functional           | `intake_batch_prepare_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
-| [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Cross-functional           | `intake_prepare_propose`                                                                                                                                                                     | CLI · Web · API · MCP · Chat            |
+| [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Cross-functional           | `intake_prepare_propose`, `intake_reprepare_propose`                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Cross-functional           | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Cross-functional           | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
@@ -9256,6 +9256,7 @@ records.
 
 ```text
 intake_prepare_propose job_id
+intake_reprepare_propose job_id previous_proposal_id request_id
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat
@@ -9263,7 +9264,8 @@ intake_prepare_propose job_id
 **Effect:** Reads: `source_record`, `source_stream`, `import_job`, `party`, `item`, `location` ·
 Writes: `action`, `import_job`, `interpretation_outcome`
 
-**See also:** Agent Tool [`intake_prepare_propose`](./commands#tool-intake_prepare_propose)
+**See also:** Agent Tool [`intake_prepare_propose`](./commands#tool-intake_prepare_propose), Agent
+Tool [`intake_reprepare_propose`](./commands#tool-intake_reprepare_propose)
 
 #### `intake_prepare_propose` — Prepare source interpretation {#tool-intake_prepare_propose}
 
@@ -9283,6 +9285,30 @@ intake_prepare_propose job_id
 | Name     | Type     | Required | Description                                          | Default |
 | -------- | -------- | -------- | ---------------------------------------------------- | ------- |
 | `job_id` | `string` | yes      | Opaque identity of the queued source-processing job. | —       |
+
+**See also:** Command [`prepare_intake`](./commands#command-prepare_intake)
+
+#### `intake_reprepare_propose` — Prepare renewed source review {#tool-intake_reprepare_propose}
+
+Explicitly prepare fresh meaning for a retained pending source review. Name the prior proposal and a
+stable renewal request ID; review and confirm the new proposal separately. Completed receipts are
+never reinterpreted.
+
+**Synopsis**
+
+```text
+intake_reprepare_propose job_id previous_proposal_id request_id
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                   | Type     | Required | Description                                                 | Default |
+| ---------------------- | -------- | -------- | ----------------------------------------------------------- | ------- |
+| `job_id`               | `string` | yes      | Opaque source import job identity.                          | —       |
+| `previous_proposal_id` | `string` | yes      | Exact prior pending or rejected proposal identity.          | —       |
+| `request_id`           | `string` | yes      | Stable renewal request identity reused after response loss. | —       |
 
 **See also:** Command [`prepare_intake`](./commands#command-prepare_intake)
 

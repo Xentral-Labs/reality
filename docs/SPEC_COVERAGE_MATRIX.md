@@ -2528,3 +2528,7 @@ Bank-file and legacy/demo adapter cutover remains open.
 - `packages/reality-core/tests/test_unstated_document_totals_migration.py`: populated amount preservation, safe downgrade and refusal to replace unknown amounts.
 
 Automatic file-adapter cutover remains open until spec 356.
+
+## Explicit source-review recovery — Spec 351 FR-006a
+
+- `packages/reality-core/tests/test_intake_review_recovery.py`: phase-local no-effect preparation/application failures, propagated infrastructure failure, immutable renewed plans, stale old approval, exact request replay after completion and foreign-company refusal.

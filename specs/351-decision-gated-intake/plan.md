@@ -152,3 +152,15 @@ implementation completion, not masked with broad retries.
 
 Immutable outcome allocation follows data-model.md. Preparation/approval replay
 must neither mutate earlier outcomes nor collide on their unique attempt number.
+
+## Explicit review recovery
+
+Prepare uses a business savepoint. Known domain/Pydantic failures roll back provisional
+proposal preparation, retain a safe phase-labelled outcome against the existing raw
+source/job, and propagate the refusal. Unknown infrastructure failures propagate.
+Renewal names the current prior proposal and a bounded request ID. Technical renewal
+identity/history is retained on the job; only stable interpretation configuration
+is included in the new plan. Completed receipts refuse new renewal. Replaying a
+known renewal request returns its retained proposal even after completion.
+Old plans remain unchanged and old pending reviews read as stale. Shared tools/MCP
+expose renewal as preparation, not approval, under existing proposal permissions.

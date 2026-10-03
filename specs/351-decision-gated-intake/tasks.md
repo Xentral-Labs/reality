@@ -61,3 +61,5 @@ Deliver one independently tested story at a time. The first foundation/Shopify s
 proves the mechanism, not all-path coverage. Do not deploy a migrated adapter while
 old write-capable workers can still bypass its boundary. Completion remains gated
 by all required checks and honest unresolved-outcome reporting.
+
+- [ ] T017 Add failure-first prepare-phase and immutable/idempotent renewed-review tests in `test_intake_review_recovery.py`; implement shared service and MCP proposal routing (FR-006a).

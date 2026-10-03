@@ -6047,8 +6047,10 @@ def create_change_proposal(
             raise InvalidOperation(code="intake_review_invalid")
         return prepare_batch(session, tenant_id, **arguments)
     if tool_name == "intake_apply":
-        from reality.services.intake import prepare_intake
+        from reality.services.intake import prepare_intake, renew_prepared_intake
 
+        if set(arguments) == {"job_id", "previous_proposal_id", "request_id"}:
+            return renew_prepared_intake(session, tenant_id, **arguments)
         if set(arguments) != {"job_id"}:
             raise InvalidOperation(code="intake_review_invalid")
         return prepare_intake(session, tenant_id, arguments["job_id"])

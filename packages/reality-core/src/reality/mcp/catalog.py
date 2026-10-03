@@ -757,6 +757,31 @@ MCP_TOOL_CATALOG = (
         _propose("intake_apply"),
     ),
     MCPToolDefinition(
+        "intake_reprepare_propose",
+        "Prepare renewed source review",
+        "Explicitly prepare fresh meaning for a retained pending source review. Name the prior proposal and a stable renewal request ID; review and confirm the new proposal separately. Completed receipts are never reinterpreted.",
+        "propose",
+        "Sources",
+        _object_schema(
+            {
+                "job_id": {
+                    **STRING,
+                    "description": "Opaque source import job identity.",
+                },
+                "previous_proposal_id": {
+                    **STRING,
+                    "description": "Exact prior pending or rejected proposal identity.",
+                },
+                "request_id": {
+                    **STRING,
+                    "description": "Stable renewal request identity reused after response loss.",
+                },
+            },
+            required=("job_id", "previous_proposal_id", "request_id"),
+        ),
+        _propose("intake_apply"),
+    ),
+    MCPToolDefinition(
         "intake_review",
         "Review source interpretation",
         "Read the retained interpretation, exact digest and decision status without changing source meaning.",
