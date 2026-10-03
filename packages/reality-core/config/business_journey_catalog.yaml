@@ -1693,42 +1693,57 @@ entries:
   section: Picking, shipment, split and merge
   title: 'Drop shipping: supplier ships directly'
   question: Customer served without own stock movement?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Customer served without own stock movement?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Customer served without own stock movement? Yes. A purchase order that ships to the customer is assigned to the order line; when the supplier states that it shipped, one reviewed drop shipment keeps the purchase and the customer order at once, with a shipment carrying the supplier's carrier and tracking number, and the company's stock does not change."
   limitations:
-  - 'There is no drop-shipping path: an order line is fulfilled only by a movement out of own stock.'
-  keywords: []
+  - The supplier's dispatch is recorded through the reviewed action; supplier portals and dispatch advices are not interpreted.
+  - The contribution read does not cost a drop-shipped line from its purchase price.
+  - Until the supplier's dispatch is recorded, the warehouse queue lists the line as not reserved.
+  keywords:
+  - drop shipping
+  - drop shipment
+  - dropship
+  - Streckengeschäft
+  - Direktlieferung
   question_examples:
   - 'Drop shipping: supplier ships directly'
   - Customer served without own stock movement?
-  tools: []
+  - The supplier ships straight to our customer; how do we record it?
+  - Der Lieferant liefert direkt an unseren Kunden; wie erfassen wir das Streckengeschäft?
+  tools:
+  - drop_shipment_record_propose
+  - drop_shipments
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [D11, G15]
   internal_evidence:
-  - reference: packages/reality-core/src/reality/services/core.py (fulfilment derives only from own stock `shipment` Movements)
-    note: 'No drop-ship path: a commitment cannot be fulfilled without a movement out of own stock.'
+  - reference: packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_the_supplier_ships_straight_to_the_customer
+    note: "4 drop-shipped with tracking DS-D10: purchase and customer order delivered, stock unchanged at 0, shipped and not billed until both invoices arrive, then nothing open."
 - id: D11
   section: Picking, shipment, split and merge
   title: 'Partial drop shipping: part own stock, part supplier'
   question: Both paths fulfil one commitment?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Both paths fulfil one commitment?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Both paths fulfil one commitment? Yes. The part in stock is reserved and shipped as usual, the rest is drop-shipped by the supplier against its assigned purchase, and the one customer order is delivered in full by both."
   limitations:
-  - There is no drop-shipping path to combine with delivery from own stock; see D10.
-  keywords: []
+  - Which part the supplier ships is stated by the assignment of the drop-ship purchase.
+  keywords:
+  - partial drop shipping
+  - Teilstreckengeschäft
   question_examples:
   - 'Partial drop shipping: part own stock, part supplier'
   - Both paths fulfil one commitment?
-  tools: []
+  tools:
+  - drop_shipment_record_propose
+  - drop_shipments
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [D10]
   internal_evidence:
-  - reference: same as D10
-    note: 'Same as D10: no supplier-direct fulfilment path to combine with own stock.'
+  - reference: packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_one_order_is_served_partly_from_stock_and_partly_by_the_supplier
+    note: "An order of 10: 6 reserved and shipped from stock, 4 drop-shipped by the supplier; delivered in full, stock 0, and the reserved part is never reported as a shortage."
 - id: D12
   section: Picking, shipment, split and merge
   title: 3PL confirms shipments late
@@ -2872,22 +2887,26 @@ entries:
   section: 'Purchasing: demand and purchase order'
   title: Drop-ship purchase order for a customer order
   question: Linked to the sales commitment?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Linked to the sales commitment?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Linked to the sales commitment? Yes. The purchase order states the customer as where the goods go and is assigned to the customer's order line; the drop-shipping read names the purchase serving the line, the customer order is no longer reported at risk, and the purchase is not counted as stock coming to the warehouse."
   limitations:
-  - There is no drop-ship purchase order and no link from a supplier delivery to the customer order it serves.
-  keywords: []
+  - The purchase order and its assignment are recorded with the existing reviewed tools, not created from the sales order in one step.
+  keywords:
+  - drop-ship purchase order
+  - Streckenbestellung
   question_examples:
   - Drop-ship purchase order for a customer order
   - Linked to the sales commitment?
-  tools: []
+  tools:
+  - supply_assign_propose
+  - drop_shipments
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [D10]
   internal_evidence:
-  - reference: specs/242-inventory-cost-contribution/spec.md (drop shipping only listed as edge case)
-    note: No drop-ship commitment type or supplier-to-customer link.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_a_drop_ship_purchase_order_is_linked_to_the_customer_order
+    note: "An order of 3 at risk until a purchase shipping to the customer is assigned to it; then linked, not at risk, and nothing incoming to the warehouse."
 - id: G16
   section: 'Purchasing: demand and purchase order'
   title: Import by sea (8 weeks), one container, many purchases
@@ -5340,22 +5359,25 @@ entries:
   section: Combined stress stories
   title: Drop shipment with wrong item; customer returns it to us instead of the supplier
   question: Ownership and credits on both sides.
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Ownership and credits on both sides.'
+  status: partial
+  evidence_level: executable
+  summary: "Reality evaluates: Ownership and credits on both sides. A drop-shipped order returned to the company comes into its stock as an ordinary return and is reported until the customer is credited; sent on to the supplier against the drop-ship purchase, it is reported until the supplier credits it, and both sides net out. The wrong item itself cannot be named."
   limitations:
-  - There is no drop-shipping model, so ownership and credits on both sides cannot be shown.
-  keywords: []
+  - The drop shipment records the ordered item; naming the different item the supplier actually sent is a separate gap (D05).
+  keywords:
+  - drop shipment return
   question_examples:
   - Drop shipment with wrong item; customer returns it to us instead of the supplier
   - Ownership and credits on both sides.
-  tools: []
+  tools:
+  - drop_shipment_record_propose
+  - drop_shipments
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [D10, D05]
   internal_evidence:
-  - reference: specs/242-inventory-cost-contribution/spec.md (drop shipping listed only as an edge case)
-    note: There is no drop-shipment model (supplier ships to the customer, no own stock).
+  - reference: packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_a_drop_shipped_return_comes_to_us_and_both_sides_are_credited
+    note: "2 drop-shipped and invoiced both ways: returned to our warehouse (stock 2, returned and not credited), credited, sent on to the supplier (stock 0, supplier return not credited), credited by the supplier; receivables and payables net to 0."
 - id: R04
   section: Combined stress stories
   title: Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees

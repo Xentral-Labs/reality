@@ -27,6 +27,7 @@ from reality.services import delivery_failures as delivery_failure_service_modul
 from reality.services import delivery_rules as delivery_rule_service_module
 from reality.services import demo_data as demo_data_service_module
 from reality.services import down_payments as down_payment_service_module
+from reality.services import drop_shipping as drop_shipping_service_module
 from reality.services import dunning as dunning_service_module
 from reality.services import dunning_runs as dunning_run_service_module
 from reality.services import file_interpreters as interpreter_service_module
@@ -1129,6 +1130,7 @@ def _service(name: str) -> Any:
         kit_service_module,
         company_currency_service_module,
         delivery_failure_service_module,
+        drop_shipping_service_module,
         payout_service_module,
         authorization_service_module,
     ):
@@ -1346,6 +1348,7 @@ def _literal_business_events() -> set[str]:
         kit_service_module,
         company_currency_service_module,
         delivery_failure_service_module,
+        drop_shipping_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

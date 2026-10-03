@@ -2781,6 +2781,84 @@ def delivery_failure_confirm(
     con.print_json(data=result, default=str)
 
 
+@app.command("drop-shipments")
+def drop_shipments_command(commitment_id: str, tenant_id: str | None = None) -> None:
+    """Read a promise's drop shipping: the purchase assigned and what shipped."""
+    from reality.services.drop_shipping import drop_shipments
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            result = drop_shipments(session, tenant.id, commitment_id=commitment_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("drop-shipment-propose")
+def drop_shipment_propose(
+    arguments: str,
+    request_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare recording that a supplier shipped straight to the customer."""
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = prepare_delivery_action(
+                session,
+                tenant.id,
+                "drop_shipment_record",
+                values,
+                request_id=request_id,
+                actor_id="cli",
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("drop-shipment-confirm")
+def drop_shipment_confirm(
+    proposal_id: str,
+    review_token: str,
+    yes: bool = typer.Option(False, "--yes", help="Confirm the reviewed drop shipment."),
+    tenant_id: str | None = None,
+) -> None:
+    """Explicitly confirm one reviewed drop shipment."""
+    from reality.services.delivery_actions import delivery_proposal_detail
+    from reality.tools.application import approve_and_execute_proposal
+
+    if not yes:
+        typer.confirm("Execute this exact reviewed drop shipment?", abort=True)
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            approve_and_execute_proposal(
+                session,
+                tenant.id,
+                proposal_id,
+                review_token=review_token,
+                confirmed=True,
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
 @app.command("order-line-item-assign-propose")
 def order_line_item_assign_propose(
     arguments: str,

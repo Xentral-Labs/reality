@@ -636,7 +636,11 @@
         "Tracking",
         "Unzustellbar",
         "Annahmeverweigerung",
-        "Paketverlust"
+        "Paketverlust",
+        "drop shipping",
+        "drop shipment",
+        "Streckengeschäft",
+        "Direktlieferung"
       ],
       "tables": [
         "movement",
@@ -662,7 +666,8 @@
         "command:record_packaged_execution",
         "command:record_shipment_event",
         "command:supersede_shipment_event",
-        "command:record_delivery_failure"
+        "command:record_delivery_failure",
+        "command:record_drop_shipment"
       ],
       "reads": [
         "command:purchase_match",
@@ -675,6 +680,7 @@
         "tool:shipments_list",
         "tool:shipment_explain",
         "tool:movement_explanation",
+        "tool:drop_shipments",
         "tool:delivery_failure_summary"
       ],
       "events": [
@@ -687,6 +693,7 @@
         "event:outbound_delivery.revised",
         "event:outbound_delivery.picked",
         "event:outbound_delivery.put_back",
+        "event:drop_shipment.recorded",
         "event:shipment.delivery_failed",
         "event:movement.recorded",
         "event:movement.corrected"
@@ -1421,9 +1428,14 @@
             "command:record_packaged_execution",
             "command:record_shipment_notice",
             "command:record_shipment_event",
-            "command:record_delivery_failure"
+            "command:record_delivery_failure",
+            "command:record_drop_shipment"
           ],
-          "tools": ["tool:shipment_explain", "tool:delivery_failure_summary"],
+          "tools": [
+            "tool:shipment_explain",
+            "tool:delivery_failure_summary",
+            "tool:drop_shipments"
+          ],
           "lists": ["view:warehouse_queue", "view:movements"],
           "exceptions": ["exception:overdue_outgoing_customer_commitment"]
         },
@@ -8503,6 +8515,68 @@
       "resources": ["delivery"]
     },
     {
+      "id": "tool:drop_shipment_record_propose",
+      "kind": "tool",
+      "key": "drop_shipment_record_propose",
+      "label": "Record a drop shipment",
+      "area": "warehouse",
+      "summary": "Prepare this business mutation without changing state. Record a drop shipment. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "drop_shipment_record_propose supplier_commitment_id [customer_commitment_id] quantity [occurred_at] [carrier] [tracking_number]",
+      "parameters": [
+        {
+          "name": "supplier_commitment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the incoming supplier commitment whose quantity is being assigned.",
+          "depth": 0
+        },
+        {
+          "name": "customer_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "occurred_at",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant at which the physical or business event occurred.",
+          "depth": 0
+        },
+        {
+          "name": "carrier",
+          "type": "string",
+          "required": false,
+          "description": "Carrier name stated for a physical package; it is descriptive and not an internal identity.",
+          "depth": 0
+        },
+        {
+          "name": "tracking_number",
+          "type": "string",
+          "required": false,
+          "description": "Carrier-assigned package reference used for operational lookup; it is not internal identity.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_drop_shipment",
+      "projections": [],
+      "links": ["command:record_drop_shipment"],
+      "label_de": "Record a drop shipment",
+      "resources": ["delivery"]
+    },
+    {
       "id": "tool:order_line_item_assign_propose",
       "kind": "tool",
       "key": "order_line_item_assign_propose",
@@ -11933,6 +12007,53 @@
       "links": [],
       "label_de": "Customer exchange",
       "resources": ["return"]
+    },
+    {
+      "id": "tool:drop_shipments",
+      "kind": "tool",
+      "key": "drop_shipments",
+      "label": "Drop shipping",
+      "area": "warehouse",
+      "summary": "Read a promise's drop shipping: the purchase assigned to it and what the supplier shipped straight to the customer.",
+      "access": "read",
+      "group": "Shipping",
+      "synopsis": "drop_shipments commitment_id",
+      "parameters": [
+        {
+          "name": "commitment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read a promise's drop shipping, the purchase assigned to it and what the supplier shipped straight to the customer, with carrier and tracking number.",
+        "use_when": [
+          "A customer asks where goods from a drop-ship order are",
+          "or purchasing needs to see what a supplier already shipped to a customer."
+        ],
+        "do_not_use_when": [
+          "The goods ship from the company's own stock; that is an ordinary shipment."
+        ],
+        "limitations": [
+          "Only purchases assigned to the customer promise are shown; what the supplier stated is recorded as stated."
+        ],
+        "empty_result": "No purchase is assigned to the promise and nothing was drop-shipped.",
+        "freshness": "Derived from the assignments and the drop-shipment movements at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP drop_shipments",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Drop shipping",
+      "resources": ["delivery"]
     },
     {
       "id": "tool:delivery_failure_summary",
@@ -26851,6 +26972,45 @@
       "resources": ["delivery"]
     },
     {
+      "id": "command:record_drop_shipment",
+      "kind": "command",
+      "key": "record_drop_shipment",
+      "label": "Record a drop shipment",
+      "area": "warehouse",
+      "summary": "Records that a supplier shipped an assigned purchase straight to the customer; keeps the purchase and the customer promise with one receipt and one shipment that pass none of the company's locations, so stock is untouched.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "commitment",
+        "supply_assignment",
+        "document",
+        "party_role",
+        "movement",
+        "movement_correction",
+        "shipment_package"
+      ],
+      "writes": [
+        "shipment",
+        "shipment_package",
+        "shipment_event",
+        "movement",
+        "source_record",
+        "business_event"
+      ],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["drop_shipment_record_propose"],
+      "synopses": [
+        "drop_shipment_record_propose supplier_commitment_id [customer_commitment_id] quantity [occurred_at] [carrier] [tracking_number]"
+      ],
+      "events": ["drop_shipment.recorded"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:drop_shipment_record_propose", "event:drop_shipment.recorded"],
+      "label_de": "Streckengeschäft erfassen",
+      "resources": ["delivery"]
+    },
+    {
       "id": "command:assign_line_item",
       "kind": "command",
       "key": "assign_line_item",
@@ -27804,6 +27964,7 @@
         "commitment.revised",
         "promises.closed",
         "document_line.item_assigned",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
@@ -27891,6 +28052,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
@@ -27971,6 +28133,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
@@ -28105,6 +28268,7 @@
         "return.announced",
         "return.announcement_withdrawn",
         "document_line.item_assigned",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
@@ -28191,6 +28355,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "reservation.created",
         "reservation.released",
@@ -28302,6 +28467,7 @@
         "return.announced",
         "return.announcement_withdrawn",
         "document_line.item_assigned",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
@@ -28415,6 +28581,7 @@
         "commitment.revised",
         "promises.closed",
         "document_line.item_assigned",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
@@ -28701,6 +28868,7 @@
         "return.announced",
         "return.announcement_withdrawn",
         "document_line.item_assigned",
+        "drop_shipment.recorded",
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
@@ -31386,6 +31554,29 @@
       "links": ["command:assign_line_item"],
       "label_de": "document_line.item_assigned",
       "resources": ["order", "source"]
+    },
+    {
+      "id": "event:drop_shipment.recorded",
+      "kind": "event",
+      "key": "drop_shipment.recorded",
+      "label": "drop_shipment.recorded",
+      "area": "warehouse",
+      "summary": "",
+      "producer": "record_drop_shipment",
+      "subject": "shipment",
+      "invalidates": [
+        "Inventory",
+        "Operational Exceptions",
+        "Commitment register",
+        "Timeline",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Item supply and demand",
+        "Tenant usage"
+      ],
+      "links": ["command:record_drop_shipment"],
+      "label_de": "drop_shipment.recorded",
+      "resources": ["delivery"]
     },
     {
       "id": "event:shipment.delivery_failed",
@@ -77816,6 +78007,7 @@
         "command:assign_supply",
         "command:record_customer_exchange",
         "command:record_delivery_failure",
+        "command:record_drop_shipment",
         "command:record_return_disposition"
       ]
     },
@@ -79399,6 +79591,7 @@
         "command:record_stock_count",
         "command:record_packaged_execution",
         "command:record_delivery_failure",
+        "command:record_drop_shipment",
         "command:record_return_disposition"
       ]
     },
@@ -82154,7 +82347,11 @@
           "references": []
         }
       ],
-      "actions": ["command:record_shipment_notice", "command:record_packaged_execution"]
+      "actions": [
+        "command:record_shipment_notice",
+        "command:record_packaged_execution",
+        "command:record_drop_shipment"
+      ]
     },
     {
       "key": "shipment_package",
@@ -82281,7 +82478,11 @@
           "references": []
         }
       ],
-      "actions": ["command:record_shipment_notice", "command:record_packaged_execution"]
+      "actions": [
+        "command:record_shipment_notice",
+        "command:record_packaged_execution",
+        "command:record_drop_shipment"
+      ]
     },
     {
       "key": "shipment_event",
@@ -82473,7 +82674,8 @@
       "actions": [
         "command:record_shipment_notice",
         "command:record_packaged_execution",
-        "command:record_shipment_event"
+        "command:record_shipment_event",
+        "command:record_drop_shipment"
       ]
     },
     {

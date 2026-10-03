@@ -62,6 +62,12 @@ from reality.services.down_payment_actions import (
     billing_document_detail,
     review_billing_document,
 )
+from reality.services.drop_ship_actions import (
+    DROP_SHIP_TOOLS,
+    assert_no_unresolved_drop_shipment,
+    drop_shipment_proposal_detail,
+    review_drop_shipment,
+)
 from reality.services.financial_reversal_actions import (
     _assert_financial_overlap,
     _reversal_detail,
@@ -155,6 +161,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
             *DELIVERY_FAILURE_TOOLS,
+            *DROP_SHIP_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
             *CREDIT_HOLD_TOOLS,
             *BILLING_DOCUMENT_TOOLS,
@@ -256,6 +263,8 @@ def review_delivery(
         return review_customer_exchange(session, tenant_id, arguments)
     if tool in DELIVERY_FAILURE_TOOLS:
         return review_delivery_failure(session, tenant_id, arguments)
+    if tool in DROP_SHIP_TOOLS:
+        return review_drop_shipment(session, tenant_id, arguments)
     if tool in ORDER_LINE_ITEM_TOOLS:
         return review_item_assignment(session, tenant_id, arguments)
     if tool in CREDIT_HOLD_TOOLS:
@@ -722,6 +731,8 @@ def _delivery_proposal_detail(
         return customer_exchange_proposal_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in DELIVERY_FAILURE_TOOLS:
         return delivery_failure_proposal_detail(session, tenant_id, proposal)
+    if proposal.type.removeprefix("tool:") in DROP_SHIP_TOOLS:
+        return drop_shipment_proposal_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in ORDER_LINE_ITEM_TOOLS:
         return item_assignment_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in CREDIT_HOLD_TOOLS:
@@ -971,6 +982,10 @@ def assert_no_unresolved_action(
         return assert_no_unresolved_delivery_failure(
             session, tenant_id, arguments, exclude
         )
+    if tool in DROP_SHIP_TOOLS:
+        return assert_no_unresolved_drop_shipment(
+            session, tenant_id, arguments, exclude
+        )
     if tool in ORDER_LINE_ITEM_TOOLS:
         return assert_no_unresolved_item_assignment(
             session, tenant_id, arguments, exclude
@@ -1112,6 +1127,7 @@ def reconcile_delivery(
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
             *DELIVERY_FAILURE_TOOLS,
+            *DROP_SHIP_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
             *CREDIT_HOLD_TOOLS,
             *BILLING_DOCUMENT_TOOLS,

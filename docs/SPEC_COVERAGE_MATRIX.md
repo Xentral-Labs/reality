@@ -2305,3 +2305,15 @@ Tables `outbound_delivery`, `outbound_delivery_line` and `outbound_delivery_pick
   - A dispatch through the delivery keeps the address and slot and refuses a shipment that differs; a dispatch without a delivery is unchanged; another company sees nothing.
 - `packages/reality-core/tests/test_outbound_delivery_adapters.py`: strict MCP schemas, an agent plans, picks and dispatches, the Web prepares, confirms and reads, another company cannot plan or read, the CLI asks before planning.
 - `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py`: stories A08, A11, A21, A24, D04, D13 and M05.
+## Drop shipping — Spec 337
+
+No new table. A purchase order whose stated ship-to party is a customer is a drop-ship order; its promise is linked to the customer's line by the existing supply assignment. The reviewed `drop_shipment_record` keeps both promises with a receipt and a shipment that name no location, under one statement and a tracked customer shipment. Incoming stock, the reorder point and at-risk leave drop-ship supply out.
+
+- `packages/reality-core/tests/test_drop_shipping.py`:
+  - The supplier ships straight to the customer: both promises delivered, stock unchanged, the tracking number on the shipment.
+  - Only what is assigned and open; quantity and time refusals; nothing on hand and nothing reported.
+  - Only a purchase order shipping to the customer; a purchase serving several lines names one.
+  - Drop-ship supply is not incoming stock, with an ordinary purchase as the control.
+  - An agent proposes through the strict schema; the person's confirmation is verified.
+  - Another company sees nothing.
+- `packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py`: stories G15, D10, D11 and R03 (partial: the wrong item cannot be named).

@@ -71,3 +71,11 @@ With ranks 1 to 19 implemented (311 deferred by the owner), the next packages cl
 | 22 | 3 | [335 Undeliverable, Refused and Lost Parcels](../../specs/335-delivery-failures/spec.md) | D07, D08, D09 (implemented; supported) |
 | 23 | 3 | [336 Marketplace and Payment-Provider Payouts](../../specs/336-marketplace-payouts/spec.md) | L03, R04, C09, C10, C13 (implemented; supported) |
 
+
+## Round 3: chosen by the owner, 2026-10-03
+
+The owner chose drop shipping, receipt deviations and duplicate business partners from the remaining gaps.
+
+| Rank | Tier | Specification | Journeys |
+|---|---|---|---|
+| 24 | 3 | [337 Drop Shipping](../../specs/337-drop-shipping/spec.md) | D10, D11, G15 (implemented; supported), R03 (partial) |

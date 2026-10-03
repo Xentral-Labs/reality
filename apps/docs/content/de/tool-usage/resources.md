@@ -14,7 +14,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 16       | 15        |
-| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 11       | 2         |
+| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 12       | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 11       | 5         |
@@ -402,7 +402,8 @@ Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
 
 **Auch genannt:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
 delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
-Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
+Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust,
+drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 
 **Listen**
 
@@ -427,6 +428,7 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
   (`supersede_shipment_event`)
 - [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure)
   (`record_delivery_failure`)
+- [Streckengeschäft erfassen](./commands#command-record_drop_shipment) (`record_drop_shipment`)
 
 **Nachschlagen**
 
@@ -457,12 +459,14 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
 [`outbound_delivery.revised`](./events#event-outbound_delivery-revised),
 [`outbound_delivery.picked`](./events#event-outbound_delivery-picked),
 [`outbound_delivery.put_back`](./events#event-outbound_delivery-put_back),
+[`drop_shipment.recorded`](./events#event-drop_shipment-recorded),
 [`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agenten-Tools ohne Geschäftsaktion:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
 [`movement_explanation`](./commands#tool-movement_explanation),
+[`drop_shipments`](./commands#tool-drop_shipments),
 [`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
 
 ## Charge, Seriennummer und Palette {#resource-lot}

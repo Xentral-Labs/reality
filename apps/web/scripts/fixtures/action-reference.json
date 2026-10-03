@@ -1271,6 +1271,13 @@
       "effect": "Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim."
     },
     {
+      "name": "Record a drop shipment",
+      "service": "record_drop_shipment",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records that a supplier shipped an assigned purchase straight to the customer; keeps the purchase and the customer promise with one receipt and one shipment that pass none of the company's locations, so stock is untouched."
+    },
+    {
       "name": "Assign an item to an order line",
       "service": "assign_line_item",
       "related_services": ["preview_item_assignment"],

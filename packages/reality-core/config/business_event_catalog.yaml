@@ -77,6 +77,7 @@ events:
   - {type: return.announced, producer: announce_customer_return, subject: return_announcement, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
   - {type: return.announcement_withdrawn, producer: withdraw_return_announcement, subject: return_announcement, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
   - {type: document_line.item_assigned, producer: assign_line_item, subject: document_line, invalidates: [Document register, Commitment register, Operational Exceptions, Fulfillment queue, Timeline, Tenant usage]}
+  - {type: drop_shipment.recorded, producer: record_drop_shipment, subject: shipment, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
   - {type: shipment.delivery_failed, producer: record_delivery_failure, subject: delivery_failure, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Open financial items, Tenant usage]}
   - {type: exchange.recorded, producer: record_customer_exchange, subject: customer_exchange, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
   - {type: commitment.held, producer: hold_commitment, subject: commitment, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}

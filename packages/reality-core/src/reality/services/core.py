@@ -5239,9 +5239,19 @@ def _append_movement(
     unit: str | None = None,
     _correcting: Movement | None = None,
     _movement_id: str | None = None,
+    _drop_ship: bool = False,
 ) -> Movement | dict[str, Any]:
     if _correcting is not None and not validate_only:
         raise InvalidOperation(code="movement_projected_state_not_preview")
+    if _drop_ship and (
+        movement_type not in {"receipt", "shipment"}
+        or from_location_id
+        or to_location_id
+        or not commitment_id
+    ):
+        # Spec 337: goods a supplier ships straight to the customer pass none of
+        # the company's locations. Only the drop shipment writes this shape.
+        raise InvalidOperation(code="movement_drop_ship_shape_invalid")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     qty = positive(quantity)
@@ -5338,6 +5348,8 @@ def _append_movement(
         if not reason or not reason.strip():
             raise InvalidOperation(code="movement_adjustment_reason_required")
         needs_from, needs_to = bool(from_location_id), bool(to_location_id)
+    elif _drop_ship:
+        needs_from, needs_to = False, False
     elif movement_type in requirements:
         needs_from, needs_to = requirements[movement_type]
     else:
@@ -5348,8 +5360,12 @@ def _append_movement(
             values={"movement_type": movement_type},
         )
     if (
-        movement_type in {"shipment", "transfer", "supplier_return", "assembly_input"}
-        or (movement_type == "adjustment" and from_location_id)
+        not _drop_ship
+        and (
+            movement_type
+            in {"shipment", "transfer", "supplier_return", "assembly_input"}
+            or (movement_type == "adjustment" and from_location_id)
+        )
     ) and (
         stock_at(session, tenant_id, item_id, from_location_id)
         - _excluded_stock_effect(_correcting, item_id, from_location_id)

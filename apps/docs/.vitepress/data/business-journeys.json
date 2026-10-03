@@ -1762,42 +1762,66 @@
       "section": "Picking, shipment, split and merge",
       "title": "Drop shipping: supplier ships directly",
       "question": "Customer served without own stock movement?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Customer served without own stock movement?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Customer served without own stock movement? Yes. A purchase order that ships to the customer is assigned to the order line; when the supplier states that it shipped, one reviewed drop shipment keeps the purchase and the customer order at once, with a shipment carrying the supplier's carrier and tracking number, and the company's stock does not change.",
       "limitations": [
-        "There is no drop-shipping path: an order line is fulfilled only by a movement out of own stock."
+        "The supplier's dispatch is recorded through the reviewed action; supplier portals and dispatch advices are not interpreted.",
+        "The contribution read does not cost a drop-shipped line from its purchase price.",
+        "Until the supplier's dispatch is recorded, the warehouse queue lists the line as not reserved."
       ],
-      "keywords": [],
+      "keywords": [
+        "drop shipping",
+        "drop shipment",
+        "dropship",
+        "Streckengeschäft",
+        "Direktlieferung"
+      ],
       "question_examples": [
         "Drop shipping: supplier ships directly",
-        "Customer served without own stock movement?"
+        "Customer served without own stock movement?",
+        "The supplier ships straight to our customer; how do we record it?",
+        "Der Lieferant liefert direkt an unseren Kunden; wie erfassen wir das Streckengeschäft?"
       ],
-      "tools": [],
+      "tools": [
+        "drop_shipment_record_propose",
+        "drop_shipments"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "D11",
+        "G15"
+      ]
     },
     {
       "id": "D11",
       "section": "Picking, shipment, split and merge",
       "title": "Partial drop shipping: part own stock, part supplier",
       "question": "Both paths fulfil one commitment?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Both paths fulfil one commitment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Both paths fulfil one commitment? Yes. The part in stock is reserved and shipped as usual, the rest is drop-shipped by the supplier against its assigned purchase, and the one customer order is delivered in full by both.",
       "limitations": [
-        "There is no drop-shipping path to combine with delivery from own stock; see D10."
+        "Which part the supplier ships is stated by the assignment of the drop-ship purchase."
       ],
-      "keywords": [],
+      "keywords": [
+        "partial drop shipping",
+        "Teilstreckengeschäft"
+      ],
       "question_examples": [
         "Partial drop shipping: part own stock, part supplier",
         "Both paths fulfil one commitment?"
       ],
-      "tools": [],
+      "tools": [
+        "drop_shipment_record_propose",
+        "drop_shipments"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "D10"
+      ]
     },
     {
       "id": "D12",
@@ -2973,21 +2997,29 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Drop-ship purchase order for a customer order",
       "question": "Linked to the sales commitment?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Linked to the sales commitment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Linked to the sales commitment? Yes. The purchase order states the customer as where the goods go and is assigned to the customer's order line; the drop-shipping read names the purchase serving the line, the customer order is no longer reported at risk, and the purchase is not counted as stock coming to the warehouse.",
       "limitations": [
-        "There is no drop-ship purchase order and no link from a supplier delivery to the customer order it serves."
+        "The purchase order and its assignment are recorded with the existing reviewed tools, not created from the sales order in one step."
       ],
-      "keywords": [],
+      "keywords": [
+        "drop-ship purchase order",
+        "Streckenbestellung"
+      ],
       "question_examples": [
         "Drop-ship purchase order for a customer order",
         "Linked to the sales commitment?"
       ],
-      "tools": [],
+      "tools": [
+        "supply_assign_propose",
+        "drop_shipments"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "D10"
+      ]
     },
     {
       "id": "G16",
@@ -5520,21 +5552,29 @@
       "section": "Combined stress stories",
       "title": "Drop shipment with wrong item; customer returns it to us instead of the supplier",
       "question": "Ownership and credits on both sides.",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Ownership and credits on both sides.",
+      "status": "partial",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Ownership and credits on both sides. A drop-shipped order returned to the company comes into its stock as an ordinary return and is reported until the customer is credited; sent on to the supplier against the drop-ship purchase, it is reported until the supplier credits it, and both sides net out. The wrong item itself cannot be named.",
       "limitations": [
-        "There is no drop-shipping model, so ownership and credits on both sides cannot be shown."
+        "The drop shipment records the ordered item; naming the different item the supplier actually sent is a separate gap (D05)."
       ],
-      "keywords": [],
+      "keywords": [
+        "drop shipment return"
+      ],
       "question_examples": [
         "Drop shipment with wrong item; customer returns it to us instead of the supplier",
         "Ownership and credits on both sides."
       ],
-      "tools": [],
+      "tools": [
+        "drop_shipment_record_propose",
+        "drop_shipments"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "D10",
+        "D05"
+      ]
     },
     {
       "id": "R04",

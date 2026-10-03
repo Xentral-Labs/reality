@@ -444,6 +444,7 @@ families:
       - tool:return_disposition_summary
       - tool:customer_exchange_record
       - tool:shipment_delivery_failure
+      - tool:drop_shipment_record
       - tool:order_line_item_assign
       - tool:credit_hold_release
       - tool:credit_exposure
@@ -485,6 +486,7 @@ families:
       - tool:available_to_promise
       - tool:customer_exchange
       - tool:delivery_failure_summary
+      - tool:drop_shipments
       - tool:movement_explanation
       - tool:exceptions
       - tool:finance_balances

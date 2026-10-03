@@ -11,6 +11,10 @@ records; no mutable stock balance is authoritative.
 - Receipt/return require a destination; shipment requires a source; transfer both.
 - A receipt may fulfill a supplier commitment; a shipment may fulfill a customer
   commitment.
+- A drop shipment (spec 337) is the one exception to the location rule: the supplier ships
+  straight to the customer, so its receipt and its shipment name no location and change no
+  stock. Only the reviewed drop shipment writes them, always as one pair under the supplier's
+  statement, each keeping its promise.
 - Any movement may name the `return` it settles, and only a return: the goods must be the
   same item, must leave the location they came back to, and the settlements of one return may
   never total more than came back. A movement naming none settles none, which is a statement

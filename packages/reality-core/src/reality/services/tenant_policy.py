@@ -1012,6 +1012,7 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "record_return_disposition",
         "record_customer_exchange",
         "record_delivery_failure",
+        "record_drop_shipment",
         "create_lot",
         "create_serial_unit",
         "create_handling_unit",

@@ -89,8 +89,10 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 - [Sendungsereignis erfassen](./commands#command-record_shipment_event) (`record_shipment_event`)
 - [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure)
   (`record_delivery_failure`)
+- [Streckengeschäft erfassen](./commands#command-record_drop_shipment) (`record_drop_shipment`)
 - [Explain a physical shipment](./commands#tool-shipment_explain) (`shipment_explain`)
 - [Failed delivery](./commands#tool-delivery_failure_summary) (`delivery_failure_summary`)
+- [Drop shipping](./commands#tool-drop_shipments) (`drop_shipments`)
 
 **Danach prüfen:** [Lagerarbeitsvorrat](./views#view-warehouse_queue) (`warehouse_queue`),
 [Lagerbewegungen](./views#view-movements) (`movements`)

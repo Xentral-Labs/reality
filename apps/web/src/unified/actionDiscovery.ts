@@ -22,6 +22,7 @@ export const formKeys = [
   "return_disposition",
   "customer_exchange_record",
   "shipment_delivery_failure",
+  "drop_shipment_record",
   "order_create",
   "sales_invoice_record",
   "sales_credit_record",
