@@ -135,11 +135,18 @@ try {
   await page.locator(".register-filter-row .erp-table-tools").waitFor();
   const toolbarGeometry = await page.evaluate(() => ({
     search: document.querySelector(".register-toolbar").getBoundingClientRect().bottom,
-    filters: document.querySelector(".register-filter-row").getBoundingClientRect().top,
-    tools: document.querySelector(".register-filter-row .erp-table-tools") !== null,
+    filters: document
+      .querySelector(".register-toolbar-block > .register-filter-row")
+      .getBoundingClientRect().top,
+    tools: document.querySelector(".register-toolbar .erp-table-tools") !== null,
+    searchTop: document.querySelector(".register-search").getBoundingClientRect().top,
+    toolsBottom: document
+      .querySelector(".register-toolbar .erp-table-tools")
+      .getBoundingClientRect().bottom,
   }));
   assert.ok(toolbarGeometry.search <= toolbarGeometry.filters);
   assert.equal(toolbarGeometry.tools, true);
+  assert.ok(toolbarGeometry.searchTop < toolbarGeometry.toolsBottom);
 
   const rows = page.locator(".erp-table tbody tr");
   assert.equal(await rows.count(), 30);

@@ -96,6 +96,6 @@ T046 precedes T047; T048 follows. FR-020 is covered by all three tasks.
 
 ## Responsive register toolbar
 
-- [x] T021 Update register-footer-browser.mjs and unified-app-contract.test.mjs with FR-021 geometry/structure regression coverage before implementation.
+- [x] T021 Update register-footer-browser.mjs, unified-tables-browser.mjs and unified-app-contract.test.mjs with FR-021 geometry/structure regression coverage before implementation.
 - [x] T022 Implement FR-021 in RegisterWorkbench.tsx and tailwind.css, preserving portal, filter and submission behavior.
 - [x] T023 Verify browser geometry, contracts, formatting, build and spec policy; record review evidence and update docs/WEB_SPEC.md (FR-021).

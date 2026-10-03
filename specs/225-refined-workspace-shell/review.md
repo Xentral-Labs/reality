@@ -161,3 +161,12 @@ Screenshots: /private/tmp/content-heading-screens/finance-{0,1,2}-{1440,1168,390
 Full frontend contracts pass (461/461); final production TypeScript/Vite build,
 changed-file formatting, spec policy and whitespace checks pass. T023 local
 verification is complete; PR CI is checked separately before release. No catalogs, schema, dependencies or backend behavior changed.
+
+CI review found an old unified-tables-browser.mjs assertion reading the former
+filter-row layout box. Updated it to inspect the actual secondary business-filter
+row and assert that table tools are in the primary search toolbar. The original
+density, selection, column preferences and export interactions remain in the test.
+
+The updated shared-table browser passes, including density/visibility/resize
+persistence, server sorting/page size, row/keyboard details, sticky scrolling and
+24 localized viewport screenshots. No production-code change was needed.
