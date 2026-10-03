@@ -4,7 +4,7 @@
 
 ## Phase 1: Setup
 
-- [x] T001 Migration `0130_receipt_deviations`, models `Misdelivery`, `CommitmentSubstitute` and `ShipmentAdviceLine`, data model, isolation catalog and FK indexes.
+- [x] T001 Migration `0132_receipt_deviations`, models `Misdelivery`, `CommitmentSubstitute` and `ShipmentAdviceLine`, data model, isolation catalog and FK indexes.
 
 ## Phase 2: Over-delivery (FR-001, FR-002)
 

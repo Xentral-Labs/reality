@@ -1,14 +1,14 @@
 """Receipt and shipment deviations: wrong items, substitutes, advised quantities (spec 338).
 
-Revision ID: 0130_receipt_deviations
-Revises: 0128_outbound_deliveries
+Revision ID: 0132_receipt_deviations
+Revises: 0131_party_merges
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0130_receipt_deviations"
-down_revision = "0128_outbound_deliveries"
+revision = "0132_receipt_deviations"
+down_revision = "0131_party_merges"
 branch_labels = None
 depends_on = None
 

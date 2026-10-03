@@ -16,14 +16,14 @@ def test_the_tables_come_and_go_and_recorded_rows_block_a_rollback(
 ):
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
-    command.upgrade(config, "0130_receipt_deviations")
+    command.upgrade(config, "0132_receipt_deviations")
     engine = create_engine(postgres_database)
     try:
         assert TABLES <= set(inspect(engine).get_table_names())
         # Positive control: empty tables roll back and come again.
-        command.downgrade(config, "0128_outbound_deliveries")
+        command.downgrade(config, "0131_party_merges")
         assert not TABLES & set(inspect(engine).get_table_names())
-        command.upgrade(config, "0130_receipt_deviations")
+        command.upgrade(config, "0132_receipt_deviations")
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration GmbH")
@@ -61,7 +61,7 @@ def test_the_tables_come_and_go_and_recorded_rows_block_a_rollback(
             )
 
         with pytest.raises(RuntimeError, match="shipment_advice_line"):
-            command.downgrade(config, "0128_outbound_deliveries")
+            command.downgrade(config, "0131_party_merges")
         assert TABLES <= set(inspect(engine).get_table_names())
     finally:
         engine.dispose()
