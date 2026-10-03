@@ -2386,3 +2386,17 @@ No schema change. A payout statement is reviewed and settled as one batch: locks
   - Settling grows by at most 18 statements per further line and reviewing by at most 2 (measured 15 and under 1; 82 and 10 before).
   - The same statement shape settled line by line and as a batch books the same documents, ledger entries, allocations, returns, events, line sources and finance revision rise.
 - `packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_line`: the R04 budget is 20 statements per line.
+
+## External stock statements — Spec 344
+
+Table `external_stock_statement` (migration 0133): stock someone outside states per item, location and time, kept as stated. It never moves stock. Exception class `external_stock_differs` compares the latest statement per item and location with Reality's stock at the stated time.
+
+- `packages/reality-core/tests/test_external_stock.py`:
+  - A differing statement is reported with both quantities and moves nothing; a matching one is the control.
+  - Reality is read at the stated time, not now; a movement dated before the statement counts, one after it does not.
+  - A stock count at the stated time clears it; a newer matching statement clears it.
+  - Refusals, the reviewed tool, another company sees nothing, and the comparison reads every statement in bounded queries.
+- `packages/reality-core/tests/test_external_stock_adapters.py`: strict MCP schema, an agent states and a person confirms, web and CLI, and a 3PL CSV file with reporter and time that moves nothing.
+- `packages/reality-core/tests/test_external_stock_migration.py`: the table comes and goes, and recorded rows block a rollback.
+- `packages/reality-core/tests/scenarios/test_catalog_external_stock.py`: story J07.
+- `packages/reality-core/tests/test_reporting_graph_coverage.py`: the table is a deferred operational workflow record.

@@ -466,6 +466,7 @@ families:
       - tool:outbound_deliveries
       - tool:outbound_delivery_detail
       - tool:stock_count
+      - tool:external_stock_state
       - tool:customer_item_number_set
       - tool:supplier_item_terms_set
       - tool:supplier_item_terms_remove
@@ -483,6 +484,7 @@ families:
       - tool:customer_item_number_remove
       - tool:customer_item_numbers
       - tool:stock_counts
+      - tool:external_stock
       - tool:stock_count_detail
       - tool:delivery_rules
       - tool:backorders_serve

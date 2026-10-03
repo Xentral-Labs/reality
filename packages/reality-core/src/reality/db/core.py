@@ -965,6 +965,59 @@ class StockCountLine(Base):
     movement_id: Mapped[str | None] = mapped_column(default=None)
 
 
+class ExternalStockStatement(Base):
+    """Stock someone outside states for an item at a location, as stated (spec 344).
+
+    A 3PL's report or a shop's stock level. It never moves stock: the latest
+    statement per item and location is compared, when read, with what Reality's
+    movements hold there at the stated time, and a difference is a finding.
+    """
+
+    __tablename__ = "external_stock_statement"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(["tenant_id", "item_id"], ["item.tenant_id", "item.id"]),
+        ForeignKeyConstraint(
+            ["tenant_id", "location_id"], ["location.tenant_id", "location.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "reporter_party_id"], ["party.tenant_id", "party.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        CheckConstraint("quantity >= 0", name="ck_external_stock_statement_quantity"),
+        Index(
+            "ix_external_stock_statement_item_location",
+            "tenant_id",
+            "item_id",
+            "location_id",
+            "stated_at",
+        ),
+        Index("ix_external_stock_statement_location_id", "tenant_id", "location_id"),
+        Index(
+            "ix_external_stock_statement_reporter_party_id",
+            "tenant_id",
+            "reporter_party_id",
+        ),
+        Index(
+            "ix_external_stock_statement_source_record_id",
+            "tenant_id",
+            "source_record_id",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    item_id: Mapped[str] = mapped_column()
+    location_id: Mapped[str] = mapped_column()
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    stated_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    reporter_party_id: Mapped[str | None] = mapped_column(default=None)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class CustomerItemNumber(Base):
     """A customer's own number, and name, for one of our items (spec 308).
 

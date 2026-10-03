@@ -63,6 +63,7 @@ was sie auflöst und welche Agent Tools sie auflisten und erklären.
 | [`payment_authorization_expired`](#exception-payment_authorization_expired)               | Payment authorization expired            | Finanzen                | `high`   | Accounts receivable                                                                         |
 | [`received_beyond_order`](#exception-received_beyond_order)                               | Received beyond the order                | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
 | [`misdelivery_outstanding`](#exception-misdelivery_outstanding)                           | Wrong item delivered                     | Aufträge & Erfüllung    | `normal` | Warehouse                                                                                   |
+| [`external_stock_differs`](#exception-external_stock_differs)                             | External stock differs                   | Lager & Logistik        | `normal` | Warehouse                                                                                   |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1605,3 +1606,25 @@ line, the ordered item and the wrong items still out, until they have gone back.
 [`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
+
+## `external_stock_differs` — External stock differs {#exception-external_stock_differs}
+
+Someone outside, such as a 3PL or a shop, states stock for an item at a location that differs from
+what Reality's movements held there at the stated time. The statement is kept as stated and nothing
+is adjusted. The entry names the item, the location, both quantities, the difference, who stated it
+and when.
+
+- **Verantwortlich:** Warehouse
+- **Aufgelöst durch:** A stock count dated at the stated time that takes the difference over, the
+  missing movement being recorded, or a newer statement that matches.
+- **Schwere:** `normal`
+- **Datensatztyp:** `external_stock_statement`
+- **Spezifikation:** `344/FR-003`
+- **Nachweis:**
+  `tests/test_external_stock.py::test_a_statement_that_differs_is_reported_and_moves_nothing`,
+  `tests/test_external_stock.py::test_a_count_at_the_stated_time_clears_it`,
+  `tests/test_external_stock.py::test_a_newer_statement_that_matches_clears_it`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain)

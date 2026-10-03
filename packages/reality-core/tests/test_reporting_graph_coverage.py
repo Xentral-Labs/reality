@@ -99,7 +99,7 @@ DEFERRED = {
         set(),
     ),
     "operational_edge_workflows": (
-        "Dunning evidence, the dunning schedule, reorder points, kit components, delivery rules, customer item numbers, supplier item terms, the company currency, stock counts, collection handovers, payment returns, failed deliveries, wrong-item links, accepted substitutes, advised quantities, explicit supply allocations, customer exchanges and business partner merges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
+        "Dunning evidence, the dunning schedule, reorder points, kit components, delivery rules, customer item numbers, supplier item terms, the company currency, stock counts, external stock statements, collection handovers, payment returns, failed deliveries, wrong-item links, accepted substitutes, advised quantities, explicit supply allocations, customer exchanges and business partner merges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
         {
             "collection_handover",
             "collection_handover_invoice",
@@ -128,6 +128,7 @@ DEFERRED = {
             "misdelivery",
             "commitment_substitute",
             "shipment_advice_line",
+            "external_stock_statement",
             "supply_assignment",
             "party_merge",
         },

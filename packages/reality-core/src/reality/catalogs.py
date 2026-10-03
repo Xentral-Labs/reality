@@ -30,6 +30,7 @@ from reality.services import down_payments as down_payment_service_module
 from reality.services import drop_shipping as drop_shipping_service_module
 from reality.services import dunning as dunning_service_module
 from reality.services import dunning_runs as dunning_run_service_module
+from reality.services import external_stock as external_stock_service_module
 from reality.services import file_interpreters as interpreter_service_module
 from reality.services import invoice_actions as invoice_action_service_module
 from reality.services import invoice_billing as invoice_billing_service_module
@@ -157,6 +158,7 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "payment_authorization_expired",
     "received_beyond_order",
     "misdelivery_outstanding",
+    "external_stock_differs",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays
@@ -1139,6 +1141,7 @@ def _service(name: str) -> Any:
         payout_service_module,
         authorization_service_module,
         receipt_deviation_service_module,
+        external_stock_service_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1357,6 +1360,7 @@ def _literal_business_events() -> set[str]:
         delivery_failure_service_module,
         drop_shipping_service_module,
         receipt_deviation_service_module,
+        external_stock_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

@@ -3879,22 +3879,35 @@ entries:
   section: Warehouse and stock
   title: 3PL stock differs from own records
   question: Reconciliation difference visible?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Reconciliation difference visible?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Reconciliation difference visible? A 3PL''s stock report or a shop''s stock level is recorded as stated, through a file or a reviewed statement, without moving stock; the latest statement per item and location is compared with what Reality''s movements held there at the stated time, and External stock differs names both quantities and the difference until a stock count at that time, the missing movement or a matching statement resolves it.'
   limitations:
-  - Stock reported by a 3PL is not recorded, so it cannot be compared with Reality's own stock.
-  keywords: []
+  - Only the latest statement per item and location is compared, for all lots together.
+  - Nothing is taken over by itself; the stock snapshot import, by contrast, takes a file's stock over as adjustments.
+  keywords:
+  - 3PL stock report
+  - external stock
+  - stock reconciliation
+  - Fremdbestand
+  - Bestandsabgleich 3PL
+  - Lagerdienstleister Bestand
   question_examples:
   - 3PL stock differs from own records
   - Reconciliation difference visible?
-  tools: []
+  - Does the 3PL's stock report match our stock?
+  - Stimmt der Bestand unseres Lagerdienstleisters mit unserem überein?
+  tools:
+  - external_stock_state_propose
+  - external_stock
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: —
-    note: No external or 3PL stock observation exists to compare with movement-derived stock.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_external_stock.py::test_a_3pl_stock_report_that_differs_is_visible_until_resolved
+    note: A matching Monday report gives nothing; Tuesday's 95 against 100 is reported with the difference while stock stays 100; a reviewed count at Tuesday's time takes it over and clears it; Wednesday's 93 is reported again under the newer statement (spec 344).
+  - reference: packages/reality-core/tests/test_external_stock_adapters.py::test_a_file_states_external_stock_and_moves_nothing
+    note: A 3PL's CSV report is stated with its reporter and time and compared without moving stock.
 - id: J08
   section: Warehouse and stock
   title: Consignment stock at the customer (still ours)

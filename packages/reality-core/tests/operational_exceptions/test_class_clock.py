@@ -56,6 +56,7 @@ WITHOUT_A_SCENARIO = {
     "payment_authorization_expired",
     "received_beyond_order",
     "misdelivery_outstanding",
+    "external_stock_differs",
     "missing_acquisition_cost",
     "unassigned_cost_component",
     "stale_cost_review",

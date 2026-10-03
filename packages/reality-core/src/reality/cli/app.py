@@ -101,6 +101,9 @@ customer_item_app = typer.Typer(
     help="Customer item numbers: a customer's own article numbers (spec 308)."
 )
 stock_count_app = typer.Typer(help="Stock counts: count a location and post the differences (spec 307).")
+external_stock_app = typer.Typer(
+    help="External stock: what a 3PL or shop states, compared, never taken over (spec 344)."
+)
 outbound_delivery_app = typer.Typer(
     help="Planned outbound deliveries: plan, pick into staging, put back (spec 334)."
 )
@@ -134,6 +137,7 @@ app.add_typer(stock_app, name="stock-block")
 app.add_typer(backorder_app, name="backorders")
 app.add_typer(delivery_rule_app, name="delivery-rule")
 app.add_typer(stock_count_app, name="stock-count")
+app.add_typer(external_stock_app, name="external-stock")
 app.add_typer(outbound_delivery_app, name="outbound-delivery")
 app.add_typer(customer_item_app, name="customer-item")
 supplier_terms_app = typer.Typer(
@@ -1435,6 +1439,79 @@ def stock_count_show_command(stock_count_id: str, tenant: str | None = None):
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print_json(data=answer, default=str)
+
+_EXTERNAL_LINE = typer.Option(
+    None,
+    "--line",
+    help="ITEM_ID@LOCATION_ID=QUANTITY[@STATED_AT]; repeat per stated line",
+)
+
+
+@external_stock_app.command("state")
+def external_stock_state_command(
+    line: list[str] | None = _EXTERNAL_LINE,
+    reporter_party_id: str = "",
+    note: str = "",
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm stock someone outside states; nothing moves."""
+    lines = []
+    for entry in line or []:
+        try:
+            subject, stated = entry.split("=", 1)
+            item_id, location_id = subject.split("@", 1)
+        except ValueError as error:
+            raise typer.BadParameter(
+                "--line takes ITEM_ID@LOCATION_ID=QUANTITY[@STATED_AT]"
+            ) from error
+        quantity, _, stated_at = stated.partition("@")
+        lines.append(
+            {
+                "item_id": item_id,
+                "location_id": location_id,
+                "quantity": quantity,
+                **({"stated_at": stated_at} if stated_at else {}),
+            }
+        )
+    _stock_block_change(
+        "external_stock_state",
+        {
+            "lines": lines,
+            "reporter_party_id": reporter_party_id or None,
+            "note": note,
+        },
+        tenant,
+        yes,
+        preview_key="external_stock",
+    )
+    con.print("✓ External stock stated")
+
+
+@external_stock_app.command("list")
+def external_stock_list_command(
+    item_id: str = "",
+    location_id: str = "",
+    differing_only: bool = False,
+    tenant: str | None = None,
+):
+    """The latest statement per item and location, with Reality's stock then."""
+    from reality.services.external_stock import external_stock
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            rows = external_stock(
+                s,
+                selected.id,
+                item_id=item_id or None,
+                location_id=location_id or None,
+                differing_only=differing_only,
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=rows, default=str)
+
 
 _DELIVERY_LINE = typer.Option(
     None, "--line", help="COMMITMENT_ID=QUANTITY; repeat per promise"

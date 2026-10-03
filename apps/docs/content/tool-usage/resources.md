@@ -10,7 +10,7 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 13      | 2                   |
-| [Item](#resource-item)                                           | 5     | 13      | 6                   |
+| [Item](#resource-item)                                           | 5     | 14      | 7                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 17      | 16                  |
@@ -152,6 +152,7 @@ Verfügbarkeit, Set, Stückliste
 - [Define a kit](./commands#command-define_kit) (`define_kit`)
 - [Assemble kits](./commands#command-assemble_kit) (`assemble_kit`)
 - [Record a stock count](./commands#command-record_stock_count) (`record_stock_count`)
+- [State external stock](./commands#command-record_external_stock) (`record_external_stock`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Assign incoming supply to customer demand](./commands#command-assign_supply) (`assign_supply`)
@@ -164,6 +165,7 @@ Verfügbarkeit, Set, Stückliste
 - [Read a kit line's split](./commands#command-kit_split) (`kit_split`)
 - [Read the three-way match of a purchase order](./commands#command-purchase_match)
   (`purchase_match`)
+- [Read external stock](./commands#command-external_stock) (`external_stock`)
 - [Read stock counts](./commands#command-stock_counts) (`stock_counts`)
 - [Read a stock count](./commands#command-stock_count_detail) (`stock_count_detail`)
 - [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
@@ -180,19 +182,22 @@ Verfügbarkeit, Set, Stückliste
 - [Reorder point reached](./exceptions#exception-reorder_point_reached) (`reorder_point_reached`)
 - [Stock in another warehouse](./exceptions#exception-stock_in_another_location)
   (`stock_in_another_location`)
+- [External stock differs](./exceptions#exception-external_stock_differs) (`external_stock_differs`)
 
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
 
 **Underneath:** Tables: `item`, `supply_assignment`, `item_reorder_point`, `stock_block`,
-`stock_block_resolution`, `stock_count`, `stock_count_line`, `kit_component` · Events:
-[`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
+`stock_block_resolution`, `stock_count`, `stock_count_line`, `kit_component`,
+`external_stock_statement` · Events: [`item.created`](./events#event-item-created),
+[`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
 [`stock_block.created`](./events#event-stock_block-created),
 [`stock_block.released`](./events#event-stock_block-released),
 [`stock_block.scrapped`](./events#event-stock_block-scrapped),
 [`kit.defined`](./events#event-kit-defined), [`kit.assembled`](./events#event-kit-assembled),
+[`external_stock.stated`](./events#event-external_stock-stated),
 [`stock_count.posted`](./events#event-stock_count-posted),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent Tools
 without a command: [`inventory_read`](./commands#tool-inventory_read),

@@ -757,6 +757,21 @@
       "effect": "Records what was counted at a location and posts each difference against the book at its counting time as an adjustment; a loss comes off free stock first, then the location's blocks."
     },
     {
+      "name": "State external stock",
+      "service": "record_external_stock",
+      "related_services": ["review_external_stock"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records stock someone outside states per item and location, such as a 3PL's report, as stated; nothing moves, and a difference from Reality's stock at that time is reported."
+    },
+    {
+      "name": "Read external stock",
+      "service": "external_stock",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists the latest external stock statement per item and location with what Reality's movements held there at the stated time and the difference."
+    },
+    {
       "name": "Read stock counts",
       "service": "stock_counts",
       "mode": "query",

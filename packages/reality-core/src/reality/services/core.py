@@ -270,6 +270,7 @@ FILE_INTERPRETER_TARGETS = {
     "location",
     "sales_order",
     "inventory_snapshot",
+    "external_stock",
     "bank_statement",
 }
 

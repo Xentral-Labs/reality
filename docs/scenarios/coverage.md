@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 181 covered, 10 partial, 0 missing, 32 gap, 5 out.
+228 scenarios: 182 covered, 10 partial, 0 missing, 31 gap, 5 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -21,7 +21,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | G Purchase demand and order | 14 |  |  | 3 |  |
 | H Receipt and supplier deviations | 19 |  |  |  |  |
 | I Supplier invoice and payment | 12 |  |  |  |  |
-| J Warehouse and stock | 6 | 1 |  | 4 |  |
+| J Warehouse and stock | 7 | 1 |  | 3 |  |
 | K Kits and variants | 5 | 1 |  |  |  |
 | L E-commerce and marketplaces | 9 |  |  | 2 | 1 |
 | M B2B specifics | 4 | 2 |  | 6 |  |
@@ -91,7 +91,7 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
     is allocated only to an invoice in its currency, so a prepayment in another currency does not
     release the order; a contribution needs the invoice in the order's currency.
 14. **Other single gaps:** loans and samples with a return obligation (M12), repair round trip
-    (F10), returnable packaging (D19), subscriptions (L08), customs data (L12, D14), negative stock (J06 is refused by design), 3PL stock reconciliation (J07),
+    (F10), returnable packaging (D19), subscriptions (L08), customs data (L12, D14), negative stock (J06 is refused by design),
     re-labelling pairs (J11), unconfirmed purchase orders (G10),
     quote documents (A14), variant swap on an
     open order (A10), customer delivery documents (M07).
@@ -331,7 +331,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | J04 | covered | tests/test_inventory_and_fulfillment.py::test_transfer_return_and_reasoned_adjustment_reconcile_by_location, ::test_adjustment_requires_reason | A write-off adjustment requires a reason and reconciles by location; the reason is free text, not a code. |
 | J05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_expired_lot_is_blocked_from_its_finding_and_scrapped | An expired lot is named with its location, blocked from the finding (which then clears) and scrapped (spec 304). |
 | J06 | gap | services/core.py ("Movement exceeds physical stock."); tests/test_inventory_and_fulfillment.py::test_cannot_ship_more_than_stock | Outbound movements above physical stock are refused, so negative stock cannot occur or be explained. |
-| J07 | gap | — | No external or 3PL stock observation exists to compare with movement-derived stock. |
+| J07 | covered | packages/reality-core/tests/scenarios/test_catalog_external_stock.py::test_a_3pl_stock_report_that_differs_is_visible_until_resolved | A 3PL's report is stated without moving stock and compared with Reality's stock at the stated time; External stock differs names both quantities until a count at that time, the missing movement or a matching report resolves it (spec 344). |
 | J08 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_consignment_stock_at_a_customer_site_stays_counted_as_ours | Stock at a consignment location stays in the company total and is available only there. Ownership and valuation are not asserted (a location has no party link). |
 | J09 | partial | tests/test_inventory_costing_services.py::test_inventory_two_owner_receipt_excludes_consigned_stock | Valuation leaves out the supplier-owned part of a receipt; physical stock and availability do not distinguish owner. |
 | J10 | covered | tests/test_inventory_costing_services.py::test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis | Late inbound freight re-derives acquisition value (420 → 440) after a fresh review and keeps the old basis. |

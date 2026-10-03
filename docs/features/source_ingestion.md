@@ -101,7 +101,8 @@ profiles create typed operational records:
 | `party` | `name` | `party_type`/`type`, `roles`, `accounting_code`, `payment_term_code`, `default_currency`, `credit_limit`, `tax_identifier` | payment term by code |
 | `location` | `name` | `location_type`, `allows_stock` | none |
 | `sales_order` | `order_id` or `order_number`, `sku`, `quantity`, `location`, and `party_accounting_code` or `party_name` | `line_id`, `name`, `unit_price`/`price`, `currency`, `ordered_at`, `requested_delivery_at`, `customer_reference` | company party, customer party, item by SKU, location by exact name |
-| `inventory_snapshot` | `sku`, `location`, `quantity` | none | item by SKU, location by exact name |
+| `inventory_snapshot` | `sku`, `location`, `quantity` | none | item by SKU, location by exact name; **takes the file's stock over**: each difference is posted as an adjustment (for opening stock) |
+| `external_stock` | `sku`, `location`, `quantity` | `stated_at`/`as_of`/`reported_at`/`snapshot_at`, `party_accounting_code` or `party_name` for who reported it | item by SKU, location by exact name; **compares only**: each row is an external stock statement, nothing moves, and a difference becomes `external_stock_differs` (spec 344); a row without a time is stated as of the file's arrival |
 | `bank_statement` | `amount`, and `party_accounting_code` or `party_name` | `direction`, `currency`, `effective_at`, `payment_number`/`external_id` | party by accounting code or exact name |
 
 Stable aliases are intentionally small: `article_number`/`item_number` for
