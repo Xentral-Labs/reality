@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:ff4d08c355a59b0da29f3420d0f3267d921525ec28884337ca397c729ac06bce",
+  "knowledge_version": "advisor-v1:sha256:9f86b7c28149e28adfa5f7b6401cde8a74e88a9ba49537babdfe366aef9d2546",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1692,7 +1692,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#M07",
-      "fingerprint": "9794c551f804cc0efb234c4c75edd305e4bac21a618c438b126e4971677acf5e"
+      "fingerprint": "0e67b772204c09d298d563f8f5560a408bf322209d4c899ed67efbf251074cbd"
     },
     {
       "id": "source_journey_m08",
@@ -5412,16 +5412,16 @@
       "subject": "B2B specifics",
       "title": "Customer-prescribed delivery note or pallet label",
       "search_text": "M07 B2B specifics Customer-prescribed delivery note or pallet label Out of core scope? Customer-prescribed delivery note or pallet label Out of core scope?",
-      "claim_text": "Reality evaluates: Out of core scope?",
+      "claim_text": "Reality evaluates: Out of core scope? Yes. Reality decides and explains what ships; the system that executes the shipment (the ERP, a shipping tool or the 3PL) produces delivery notes, pallet labels and customer-prescribed layouts.",
       "support": "unavailable",
       "limitations": [
-        "Reality produces no delivery notes or pallet labels, and this is not yet declared out of scope."
+        "Reality produces no delivery notes, pallet labels or customer-specific document layouts; the shipment's stated packages, tracking numbers and recipients are available for the executing system."
       ],
       "references": [
         "M07"
       ],
       "language": "en",
-      "fingerprint": "424d8d14f8e35eafbd2d5ace03009872de1a7f8b7ad393d6ff6188cdd5db2033"
+      "fingerprint": "0e4c8f84fc69ef1489b812dfb922c926a227db68fe8339f3ae9ce0f91fc29a26"
     },
     {
       "id": "evidence_journey_m08",
