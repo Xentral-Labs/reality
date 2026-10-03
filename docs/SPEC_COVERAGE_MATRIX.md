@@ -2444,3 +2444,4 @@ Table `supplier_item_number`: a supplier's own article number, with the supplier
 - `packages/reality-core/tests/test_supplier_item_orders.py`: purchase and supplier-invoice lines resolve and keep the number; two suppliers name one item; unknown and conflicting numbers are refused; a sales line never reads it; previews and the purchase match show it; a changed mapping and a correction leave past lines as stated.
 - `packages/reality-core/tests/test_supplier_item_adapters.py`: strict MCP schemas, an agent proposes and a person confirms, a stale review is refused, Web set/read/remove, tenant isolation, the CLI asks first, and an agent orders by the supplier's number.
 - `packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_name_one_item_by_their_own_numbers`: story O06.
+- `packages/reality-core/tests/test_supplier_item_number_migration.py`: the table comes and goes, and stated numbers block a rollback.
