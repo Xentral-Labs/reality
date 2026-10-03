@@ -158,5 +158,6 @@ and independent scrolling. At 1168px search shrinks when docked chat opens while
 remaining beside table controls. Business filters retain their secondary row and an
 empty row is hidden. Existing density/column portals and service calls are unchanged.
 Screenshots: /private/tmp/content-heading-screens/finance-{0,1,2}-{1440,1168,390}.png.
-Full frontend contracts and final production build are being checked before T023
-completion. No catalogs, schema, dependencies or backend behavior changed.
+Full frontend contracts pass (461/461); final production TypeScript/Vite build,
+changed-file formatting, spec policy and whitespace checks pass. T023 local
+verification is complete; PR CI is checked separately before release. No catalogs, schema, dependencies or backend behavior changed.
