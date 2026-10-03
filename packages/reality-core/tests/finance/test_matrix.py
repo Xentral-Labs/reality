@@ -39,7 +39,7 @@ def test_matrix_matches_actual_invoice_credit_payment_refund(session, business, 
         row["transaction"]: row
         for row in accounts.transaction_matrix(session, tenant)["operations"]
     }
-    assert len(rows) == 19
+    assert len(rows) == 20
     for kind, entries in actual.items():
         assert {(e.debit_credit, e.account, e.account_id) for e in entries} == {
             (leg["side"], leg["role"], leg["account"]["id"])
