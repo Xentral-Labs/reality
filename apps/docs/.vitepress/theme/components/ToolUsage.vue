@@ -1405,382 +1405,396 @@ const explorerIntro = computed(() => {
                   :key="selected.id"
                   :kind="selected.kind"
                   :entry-key="selected.key"
-                />
-                <header class="man-header">
-                  <span class="man-section">
-                    {{ t["one_" + selected.kind] }} · {{ areaLabel(selected.area) }}
-                  </span>
-                  <div class="man-actions">
-                    <a :href="manualUrl(selected)">{{ t.manualPage }}</a>
-                    <button type="button" @click="copyLink">
-                      {{ copied ? t.copied : t.permalink }}
-                    </button>
-                  </div>
-                </header>
-
-                <p v-if="selected.resources?.length" class="man-resources">
-                  {{ t.resourceOf }}:
-                  <button
-                    v-for="key in selected.resources"
-                    :key="key"
-                    type="button"
-                    class="linkish"
-                    @click="openResource(key)"
-                  >
-                    {{ loc(resourceByKey.get(key)?.label) }}
-                  </button>
-                </p>
-
-                <h3 class="man-title">{{ t.name }}</h3>
-                <p>
-                  <code>{{ selected.key }}</code>
-                </p>
-
-                <template v-if="selected.synopses?.length || selected.synopsis">
-                  <h3 class="man-title">{{ t.synopsis }}</h3>
-                  <pre
-                    class="man-synopsis"
-                  ><code>{{ (selected.synopses?.length ? selected.synopses : [selected.synopsis]).join("\n") }}</code></pre>
-                </template>
-
-                <section
-                  v-if="selected.read_modes?.length"
-                  class="read-execution"
-                  data-read-execution
                 >
-                  <h3 class="man-title">
-                    {{
-                      locale === "de" ? "So wird diese Abfrage ausgeführt" : "How this query runs"
-                    }}
-                  </h3>
-                  <div v-for="read in selected.read_modes" :key="read.query">
-                    <p>
-                      <code>{{ read.query }}</code>
-                    </p>
-                    <p>
-                      <strong>{{ canonical(model!.read_mode_definitions[read.mode].label) }}</strong
-                      ><template v-if="read.default">
-                        · {{ locale === "de" ? "Standard" : "Default" }}</template
-                      >
-                    </p>
-                    <p>{{ loc(model!.read_mode_definitions[read.mode].description) }}</p>
-                  </div>
-                  <p>
-                    <a :href="`${locale === 'de' ? '/de' : ''}/tool-usage/views#read-execution`">{{
-                      locale === "de"
-                        ? "Aktualisierung, Datenstand und Abfragevarianten"
-                        : "Refresh, freshness and query variants"
-                    }}</a>
-                  </p>
-                </section>
-
-                <dl class="man-facts">
-                  <template v-if="selected.adapters?.length">
-                    <dt>{{ t.reach }}</dt>
-                    <dd>{{ selected.adapters.join(" · ") }}</dd>
-                  </template>
-                  <template v-if="selected.mode">
-                    <dt>{{ t.mode }}</dt>
-                    <dd>
-                      <code>{{ selected.mode }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.access">
-                    <dt>{{ t.access }}</dt>
-                    <dd>
-                      <code>{{ selected.access }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.confirmation">
-                    <dt>{{ t.confirmation }}</dt>
-                    <dd>
-                      <code>{{ selected.confirmation }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.route">
-                    <dt>{{ t.route }}</dt>
-                    <dd>
-                      <code>{{ selected.route }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.view_kind">
-                    <dt>{{ t.kind }}</dt>
-                    <dd>
-                      <code>{{ selected.view_kind }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.target_route">
-                    <dt>{{ t.targetRoute }}</dt>
-                    <dd>
-                      <code>{{ selected.target_route }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.prerequisites?.length">
-                    <dt>{{ t.prerequisites }}</dt>
-                    <dd>
-                      <code v-for="p in selected.prerequisites" :key="p">{{ p }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.consumers?.length">
-                    <dt>{{ t.consumers }}</dt>
-                    <dd>{{ selected.consumers.join(", ") }}</dd>
-                  </template>
-                  <template v-if="selected.outputs?.length">
-                    <dt>{{ t.outputs }}</dt>
-                    <dd>
-                      <code v-for="o in selected.outputs" :key="o">{{ o }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.owner">
-                    <dt>{{ t.owner }}</dt>
-                    <dd>{{ selected.owner }}</dd>
-                  </template>
-                  <template v-if="selected.clears_through">
-                    <dt>{{ t.clearsThrough }}</dt>
-                    <dd>{{ selected.clears_through }}</dd>
-                  </template>
-                  <template v-if="selected.severity">
-                    <dt>{{ t.severity }}</dt>
-                    <dd>
-                      <code>{{ selected.severity }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.record_type">
-                    <dt>{{ t.recordType }}</dt>
-                    <dd>
-                      <code>{{ selected.record_type }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.authority">
-                    <dt>{{ t.authority }}</dt>
-                    <dd>
-                      <code>{{ selected.authority }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.producer">
-                    <dt>{{ t.producer }}</dt>
-                    <dd>
-                      <code>{{ selected.producer }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.subject">
-                    <dt>{{ t.subject }}</dt>
-                    <dd>
-                      <code>{{ selected.subject }}</code>
-                    </dd>
-                  </template>
-                  <template v-if="selected.invalidates?.length">
-                    <dt>{{ t.invalidates }}</dt>
-                    <dd>
-                      <code v-for="i in selected.invalidates" :key="i">{{ i }}</code>
-                    </dd>
-                  </template>
-                </dl>
-
-                <template v-if="selected.guidance?.use_when?.length">
-                  <h3 class="man-title">{{ t.useWhen }}</h3>
-                  <ul>
-                    <li v-for="x in selected.guidance.use_when" :key="x">{{ x }}</li>
-                  </ul>
-                </template>
-                <template v-if="selected.guidance?.do_not_use_when?.length">
-                  <h3 class="man-title">{{ t.doNotUseWhen }}</h3>
-                  <ul>
-                    <li v-for="x in selected.guidance.do_not_use_when" :key="x">{{ x }}</li>
-                  </ul>
-                </template>
-                <template v-if="selected.guidance?.preconditions?.length">
-                  <h3 class="man-title">{{ t.preconditions }}</h3>
-                  <ul>
-                    <li v-for="x in selected.guidance.preconditions" :key="x">{{ x }}</li>
-                  </ul>
-                </template>
-                <template v-if="selected.guidance?.refusals?.length">
-                  <h3 class="man-title">{{ t.refusals }}</h3>
-                  <ul>
-                    <li v-for="r in selected.guidance.refusals" :key="r.code">
-                      <code>{{ r.code }}</code> — {{ r.description }}
-                    </li>
-                  </ul>
-                </template>
-
-                <template v-if="selected.kind === 'command' || selected.kind === 'tool'">
-                  <h3 class="man-title">{{ t.parameters }}</h3>
-                  <template v-if="selected.kind === 'tool'">
-                    <p v-if="!selected.parameters?.length">{{ t.noParameters }}</p>
-                    <ul v-else class="man-params">
-                      <li
-                        v-for="p in selected.parameters"
-                        :key="p.name"
-                        :class="{ nested: p.depth }"
-                        :style="{ paddingLeft: (p.depth || 0) * 16 + 'px' }"
-                      >
-                        <div class="param-head">
-                          <code>{{ p.name }}</code>
-                          <span class="param-type">{{ p.type }}</span>
-                          <span :class="['param-required', { yes: p.required }]">
-                            {{ p.required ? t.required : t.optional }}
-                          </span>
-                        </div>
-                        <p v-if="p.description">{{ p.description }}</p>
-                        <p v-if="p.enum" class="param-extra">
-                          {{ t.oneOf }} <code v-for="v in p.enum" :key="v">{{ v }}</code>
-                        </p>
-                        <p v-if="'default' in p && p.default !== ''" class="param-extra">
-                          {{ t.default }} <code>{{ formatDefault(p.default) }}</code>
-                        </p>
-                      </li>
-                    </ul>
-                  </template>
-                  <template v-else>
-                    <p v-if="!selected.tools?.length">{{ t.noParameters }}</p>
-                    <div
-                      v-for="tool in entriesOf('tool', selected.tools)"
-                      :key="tool.id"
-                      class="man-tool"
-                    >
-                      <p v-if="(selected.tools?.length || 0) > 1" class="man-tool-name">
-                        <button type="button" class="linkish" @click="select(tool.id)">
-                          <code>{{ tool.key }}</code>
+                  <template #reference>
+                    <header class="man-header">
+                      <span class="man-section">
+                        {{ t["one_" + selected.kind] }} · {{ areaLabel(selected.area) }}
+                      </span>
+                      <div class="man-actions">
+                        <a :href="manualUrl(selected)">{{ t.manualPage }}</a>
+                        <button type="button" @click="copyLink">
+                          {{ copied ? t.copied : t.permalink }}
                         </button>
-                      </p>
-                      <p v-if="!tool.parameters?.length">{{ t.noParameters }}</p>
-                      <ul v-else class="man-params">
-                        <li
-                          v-for="p in tool.parameters"
-                          :key="p.name"
-                          :class="{ nested: p.depth }"
-                          :style="{ paddingLeft: (p.depth || 0) * 16 + 'px' }"
-                        >
-                          <div class="param-head">
-                            <code>{{ p.name }}</code>
-                            <span class="param-type">{{ p.type }}</span>
-                            <span :class="['param-required', { yes: p.required }]">
-                              {{ p.required ? t.required : t.optional }}
-                            </span>
-                          </div>
-                          <p v-if="p.description">{{ p.description }}</p>
-                          <p v-if="p.enum" class="param-extra">
-                            {{ t.oneOf }} <code v-for="v in p.enum" :key="v">{{ v }}</code>
-                          </p>
-                          <p v-if="'default' in p && p.default !== ''" class="param-extra">
-                            {{ t.default }} <code>{{ formatDefault(p.default) }}</code>
-                          </p>
-                        </li>
-                      </ul>
-                    </div>
-                  </template>
-                </template>
+                      </div>
+                    </header>
 
-                <template
-                  v-if="
-                    selected.reads?.length || selected.writes?.length || selected.events?.length
-                  "
-                >
-                  <h3 class="man-title">{{ t.effect }}</h3>
-                  <dl class="man-facts">
-                    <template v-if="selected.reads?.length">
-                      <dt>{{ t.reads }}</dt>
-                      <dd>
-                        <code v-for="r in selected.reads" :key="r">{{ r }}</code>
-                      </dd>
-                    </template>
-                    <template v-if="selected.writes?.length">
-                      <dt>{{ t.writes }}</dt>
-                      <dd>
-                        <code v-for="w in selected.writes" :key="w">{{ w }}</code>
-                      </dd>
-                    </template>
-                    <template v-if="selected.events?.length">
-                      <dt>{{ t.emits }}</dt>
-                      <dd>
-                        <button
-                          v-for="ev in selected.events"
-                          :key="ev"
-                          type="button"
-                          class="linkish"
-                          @click="select('event:' + ev)"
-                        >
-                          <code>{{ ev }}</code>
-                        </button>
-                      </dd>
-                    </template>
-                  </dl>
-                </template>
-
-                <template v-if="selected.guidance?.verification_reads?.length">
-                  <h3 class="man-title">{{ t.verify }}</h3>
-                  <ul>
-                    <li v-for="r in selected.guidance.verification_reads" :key="r.name">
+                    <p v-if="selected.resources?.length" class="man-resources">
+                      {{ t.resourceOf }}:
                       <button
-                        v-if="byId.has('projection:' + r.name)"
+                        v-for="key in selected.resources"
+                        :key="key"
                         type="button"
                         class="linkish"
-                        @click="select('projection:' + r.name)"
+                        @click="openResource(key)"
                       >
-                        <code>{{ r.name }}</code>
+                        {{ loc(resourceByKey.get(key)?.label) }}
                       </button>
-                      <code v-else>{{ r.name }}</code>
-                      — {{ r.proves }}
-                    </li>
-                  </ul>
-                </template>
+                    </p>
 
-                <template v-if="selected.guidance?.limitations?.length">
-                  <h3 class="man-title">{{ t.limitations }}</h3>
-                  <ul>
-                    <li v-for="x in selected.guidance.limitations" :key="x">{{ x }}</li>
-                  </ul>
-                </template>
+                    <h3 class="man-title">{{ t.name }}</h3>
+                    <p>
+                      <code>{{ selected.key }}</code>
+                    </p>
 
-                <template v-if="selected.causes?.length">
-                  <h3 class="man-title">{{ t.causes }}</h3>
-                  <ul>
-                    <li v-for="c in selected.causes" :key="c.id">
-                      <code>{{ c.id }}</code> — {{ c.label }} (<code>{{ c.authority }}</code
-                      >)
-                    </li>
-                  </ul>
-                </template>
+                    <template v-if="selected.synopses?.length || selected.synopsis">
+                      <h3 class="man-title">{{ t.synopsis }}</h3>
+                      <pre
+                        class="man-synopsis"
+                      ><code>{{ (selected.synopses?.length ? selected.synopses : [selected.synopsis]).join("\n") }}</code></pre>
+                    </template>
 
-                <section v-if="operationRelationships.length" data-operation-relationships>
-                  <h3 class="man-title">
-                    {{ loc(model.interface_guide.relationships_title) }}
-                  </h3>
-                  <ul class="man-links">
-                    <li v-for="id in operationRelationships" :key="id">
-                      <button type="button" class="tool-usage-row compact" @click="select(id)">
-                        <span :class="['badge', 'badge-' + byId.get(id)?.kind]">
-                          {{ t["one_" + byId.get(id)?.kind] }}
-                        </span>
-                        <code>{{ byId.get(id)?.key }}</code>
-                        <span class="row-label">{{ name(byId.get(id)) }}</span>
-                      </button>
-                    </li>
-                  </ul>
-                </section>
-
-                <template v-if="selected.links.some((id) => !operationRelationships.includes(id))">
-                  <h3 class="man-title">{{ t.seeAlso }}</h3>
-                  <ul class="man-links">
-                    <li
-                      v-for="id in selected.links.filter(
-                        (id) => !operationRelationships.includes(id),
-                      )"
-                      :key="id"
+                    <section
+                      v-if="selected.read_modes?.length"
+                      class="read-execution"
+                      data-read-execution
                     >
-                      <button type="button" class="tool-usage-row compact" @click="select(id)">
-                        <span :class="['badge', 'badge-' + byId.get(id)?.kind]">
-                          {{ t["one_" + byId.get(id)?.kind] }}
-                        </span>
-                        <code>{{ byId.get(id)?.key }}</code>
-                        <span class="row-label">
-                          {{ name(byId.get(id)) !== byId.get(id)?.key ? name(byId.get(id)) : "" }}
-                        </span>
-                      </button>
-                    </li>
-                  </ul>
-                </template>
+                      <h3 class="man-title">
+                        {{
+                          locale === "de"
+                            ? "So wird diese Abfrage ausgeführt"
+                            : "How this query runs"
+                        }}
+                      </h3>
+                      <div v-for="read in selected.read_modes" :key="read.query">
+                        <p>
+                          <code>{{ read.query }}</code>
+                        </p>
+                        <p>
+                          <strong>{{
+                            canonical(model!.read_mode_definitions[read.mode].label)
+                          }}</strong
+                          ><template v-if="read.default">
+                            · {{ locale === "de" ? "Standard" : "Default" }}</template
+                          >
+                        </p>
+                        <p>{{ loc(model!.read_mode_definitions[read.mode].description) }}</p>
+                      </div>
+                      <p>
+                        <a
+                          :href="`${locale === 'de' ? '/de' : ''}/tool-usage/views#read-execution`"
+                          >{{
+                            locale === "de"
+                              ? "Aktualisierung, Datenstand und Abfragevarianten"
+                              : "Refresh, freshness and query variants"
+                          }}</a
+                        >
+                      </p>
+                    </section>
+
+                    <dl class="man-facts">
+                      <template v-if="selected.adapters?.length">
+                        <dt>{{ t.reach }}</dt>
+                        <dd>{{ selected.adapters.join(" · ") }}</dd>
+                      </template>
+                      <template v-if="selected.mode">
+                        <dt>{{ t.mode }}</dt>
+                        <dd>
+                          <code>{{ selected.mode }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.access">
+                        <dt>{{ t.access }}</dt>
+                        <dd>
+                          <code>{{ selected.access }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.confirmation">
+                        <dt>{{ t.confirmation }}</dt>
+                        <dd>
+                          <code>{{ selected.confirmation }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.route">
+                        <dt>{{ t.route }}</dt>
+                        <dd>
+                          <code>{{ selected.route }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.view_kind">
+                        <dt>{{ t.kind }}</dt>
+                        <dd>
+                          <code>{{ selected.view_kind }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.target_route">
+                        <dt>{{ t.targetRoute }}</dt>
+                        <dd>
+                          <code>{{ selected.target_route }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.prerequisites?.length">
+                        <dt>{{ t.prerequisites }}</dt>
+                        <dd>
+                          <code v-for="p in selected.prerequisites" :key="p">{{ p }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.consumers?.length">
+                        <dt>{{ t.consumers }}</dt>
+                        <dd>{{ selected.consumers.join(", ") }}</dd>
+                      </template>
+                      <template v-if="selected.outputs?.length">
+                        <dt>{{ t.outputs }}</dt>
+                        <dd>
+                          <code v-for="o in selected.outputs" :key="o">{{ o }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.owner">
+                        <dt>{{ t.owner }}</dt>
+                        <dd>{{ selected.owner }}</dd>
+                      </template>
+                      <template v-if="selected.clears_through">
+                        <dt>{{ t.clearsThrough }}</dt>
+                        <dd>{{ selected.clears_through }}</dd>
+                      </template>
+                      <template v-if="selected.severity">
+                        <dt>{{ t.severity }}</dt>
+                        <dd>
+                          <code>{{ selected.severity }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.record_type">
+                        <dt>{{ t.recordType }}</dt>
+                        <dd>
+                          <code>{{ selected.record_type }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.authority">
+                        <dt>{{ t.authority }}</dt>
+                        <dd>
+                          <code>{{ selected.authority }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.producer">
+                        <dt>{{ t.producer }}</dt>
+                        <dd>
+                          <code>{{ selected.producer }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.subject">
+                        <dt>{{ t.subject }}</dt>
+                        <dd>
+                          <code>{{ selected.subject }}</code>
+                        </dd>
+                      </template>
+                      <template v-if="selected.invalidates?.length">
+                        <dt>{{ t.invalidates }}</dt>
+                        <dd>
+                          <code v-for="i in selected.invalidates" :key="i">{{ i }}</code>
+                        </dd>
+                      </template>
+                    </dl>
+
+                    <template v-if="selected.guidance?.use_when?.length">
+                      <h3 class="man-title">{{ t.useWhen }}</h3>
+                      <ul>
+                        <li v-for="x in selected.guidance.use_when" :key="x">{{ x }}</li>
+                      </ul>
+                    </template>
+                    <template v-if="selected.guidance?.do_not_use_when?.length">
+                      <h3 class="man-title">{{ t.doNotUseWhen }}</h3>
+                      <ul>
+                        <li v-for="x in selected.guidance.do_not_use_when" :key="x">{{ x }}</li>
+                      </ul>
+                    </template>
+                    <template v-if="selected.guidance?.preconditions?.length">
+                      <h3 class="man-title">{{ t.preconditions }}</h3>
+                      <ul>
+                        <li v-for="x in selected.guidance.preconditions" :key="x">{{ x }}</li>
+                      </ul>
+                    </template>
+                    <template v-if="selected.guidance?.refusals?.length">
+                      <h3 class="man-title">{{ t.refusals }}</h3>
+                      <ul>
+                        <li v-for="r in selected.guidance.refusals" :key="r.code">
+                          <code>{{ r.code }}</code> — {{ r.description }}
+                        </li>
+                      </ul>
+                    </template>
+
+                    <template v-if="selected.kind === 'command' || selected.kind === 'tool'">
+                      <h3 class="man-title">{{ t.parameters }}</h3>
+                      <template v-if="selected.kind === 'tool'">
+                        <p v-if="!selected.parameters?.length">{{ t.noParameters }}</p>
+                        <ul v-else class="man-params">
+                          <li
+                            v-for="p in selected.parameters"
+                            :key="p.name"
+                            :class="{ nested: p.depth }"
+                            :style="{ paddingLeft: (p.depth || 0) * 16 + 'px' }"
+                          >
+                            <div class="param-head">
+                              <code>{{ p.name }}</code>
+                              <span class="param-type">{{ p.type }}</span>
+                              <span :class="['param-required', { yes: p.required }]">
+                                {{ p.required ? t.required : t.optional }}
+                              </span>
+                            </div>
+                            <p v-if="p.description">{{ p.description }}</p>
+                            <p v-if="p.enum" class="param-extra">
+                              {{ t.oneOf }} <code v-for="v in p.enum" :key="v">{{ v }}</code>
+                            </p>
+                            <p v-if="'default' in p && p.default !== ''" class="param-extra">
+                              {{ t.default }} <code>{{ formatDefault(p.default) }}</code>
+                            </p>
+                          </li>
+                        </ul>
+                      </template>
+                      <template v-else>
+                        <p v-if="!selected.tools?.length">{{ t.noParameters }}</p>
+                        <div
+                          v-for="tool in entriesOf('tool', selected.tools)"
+                          :key="tool.id"
+                          class="man-tool"
+                        >
+                          <p v-if="(selected.tools?.length || 0) > 1" class="man-tool-name">
+                            <button type="button" class="linkish" @click="select(tool.id)">
+                              <code>{{ tool.key }}</code>
+                            </button>
+                          </p>
+                          <p v-if="!tool.parameters?.length">{{ t.noParameters }}</p>
+                          <ul v-else class="man-params">
+                            <li
+                              v-for="p in tool.parameters"
+                              :key="p.name"
+                              :class="{ nested: p.depth }"
+                              :style="{ paddingLeft: (p.depth || 0) * 16 + 'px' }"
+                            >
+                              <div class="param-head">
+                                <code>{{ p.name }}</code>
+                                <span class="param-type">{{ p.type }}</span>
+                                <span :class="['param-required', { yes: p.required }]">
+                                  {{ p.required ? t.required : t.optional }}
+                                </span>
+                              </div>
+                              <p v-if="p.description">{{ p.description }}</p>
+                              <p v-if="p.enum" class="param-extra">
+                                {{ t.oneOf }} <code v-for="v in p.enum" :key="v">{{ v }}</code>
+                              </p>
+                              <p v-if="'default' in p && p.default !== ''" class="param-extra">
+                                {{ t.default }} <code>{{ formatDefault(p.default) }}</code>
+                              </p>
+                            </li>
+                          </ul>
+                        </div>
+                      </template>
+                    </template>
+
+                    <template
+                      v-if="
+                        selected.reads?.length || selected.writes?.length || selected.events?.length
+                      "
+                    >
+                      <h3 class="man-title">{{ t.effect }}</h3>
+                      <dl class="man-facts">
+                        <template v-if="selected.reads?.length">
+                          <dt>{{ t.reads }}</dt>
+                          <dd>
+                            <code v-for="r in selected.reads" :key="r">{{ r }}</code>
+                          </dd>
+                        </template>
+                        <template v-if="selected.writes?.length">
+                          <dt>{{ t.writes }}</dt>
+                          <dd>
+                            <code v-for="w in selected.writes" :key="w">{{ w }}</code>
+                          </dd>
+                        </template>
+                        <template v-if="selected.events?.length">
+                          <dt>{{ t.emits }}</dt>
+                          <dd>
+                            <button
+                              v-for="ev in selected.events"
+                              :key="ev"
+                              type="button"
+                              class="linkish"
+                              @click="select('event:' + ev)"
+                            >
+                              <code>{{ ev }}</code>
+                            </button>
+                          </dd>
+                        </template>
+                      </dl>
+                    </template>
+
+                    <template v-if="selected.guidance?.verification_reads?.length">
+                      <h3 class="man-title">{{ t.verify }}</h3>
+                      <ul>
+                        <li v-for="r in selected.guidance.verification_reads" :key="r.name">
+                          <button
+                            v-if="byId.has('projection:' + r.name)"
+                            type="button"
+                            class="linkish"
+                            @click="select('projection:' + r.name)"
+                          >
+                            <code>{{ r.name }}</code>
+                          </button>
+                          <code v-else>{{ r.name }}</code>
+                          — {{ r.proves }}
+                        </li>
+                      </ul>
+                    </template>
+
+                    <template v-if="selected.guidance?.limitations?.length">
+                      <h3 class="man-title">{{ t.limitations }}</h3>
+                      <ul>
+                        <li v-for="x in selected.guidance.limitations" :key="x">{{ x }}</li>
+                      </ul>
+                    </template>
+
+                    <template v-if="selected.causes?.length">
+                      <h3 class="man-title">{{ t.causes }}</h3>
+                      <ul>
+                        <li v-for="c in selected.causes" :key="c.id">
+                          <code>{{ c.id }}</code> — {{ c.label }} (<code>{{ c.authority }}</code
+                          >)
+                        </li>
+                      </ul>
+                    </template>
+
+                    <section v-if="operationRelationships.length" data-operation-relationships>
+                      <h3 class="man-title">
+                        {{ loc(model.interface_guide.relationships_title) }}
+                      </h3>
+                      <ul class="man-links">
+                        <li v-for="id in operationRelationships" :key="id">
+                          <button type="button" class="tool-usage-row compact" @click="select(id)">
+                            <span :class="['badge', 'badge-' + byId.get(id)?.kind]">
+                              {{ t["one_" + byId.get(id)?.kind] }}
+                            </span>
+                            <code>{{ byId.get(id)?.key }}</code>
+                            <span class="row-label">{{ name(byId.get(id)) }}</span>
+                          </button>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <template
+                      v-if="selected.links.some((id) => !operationRelationships.includes(id))"
+                    >
+                      <h3 class="man-title">{{ t.seeAlso }}</h3>
+                      <ul class="man-links">
+                        <li
+                          v-for="id in selected.links.filter(
+                            (id) => !operationRelationships.includes(id),
+                          )"
+                          :key="id"
+                        >
+                          <button type="button" class="tool-usage-row compact" @click="select(id)">
+                            <span :class="['badge', 'badge-' + byId.get(id)?.kind]">
+                              {{ t["one_" + byId.get(id)?.kind] }}
+                            </span>
+                            <code>{{ byId.get(id)?.key }}</code>
+                            <span class="row-label">
+                              {{
+                                name(byId.get(id)) !== byId.get(id)?.key ? name(byId.get(id)) : ""
+                              }}
+                            </span>
+                          </button>
+                        </li>
+                      </ul>
+                    </template>
+                  </template>
+                </LiveBusinessBlueprint>
               </template>
 
               <template v-else-if="tab === 'resources'">
@@ -2344,11 +2358,12 @@ const explorerIntro = computed(() => {
   margin: 18px 0 6px;
   padding: 0;
   border: 0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--vp-c-text-2);
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--vp-c-text-1);
 }
 
 .man-title:first-of-type {
@@ -2356,6 +2371,7 @@ const explorerIntro = computed(() => {
 }
 
 .tool-usage-detail p {
+  font-size: 14px;
   margin: 4px 0;
   line-height: 1.55;
 }
@@ -2843,6 +2859,10 @@ const explorerIntro = computed(() => {
 </style>
 
 <style scoped>
+.read-execution strong {
+  font-size: 14px;
+  font-weight: 600;
+}
 .read-execution code {
   overflow-wrap: anywhere;
   white-space: normal;
@@ -2914,6 +2934,7 @@ const explorerIntro = computed(() => {
   line-height: 1.3;
 }
 .function-intro p {
+  font-size: 16px;
   margin: 0;
   line-height: 1.7;
 }

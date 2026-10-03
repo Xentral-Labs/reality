@@ -16,9 +16,31 @@ const data = ref<BusinessBlueprint | null>(null);
 const loading = ref(false);
 const elapsed = ref(0);
 const flowId = useId();
-const activeTab = ref("rules");
+const activeTab = ref("");
 const selectedTest = ref("");
-const tabs = ["code", "rules", "tests", "technical"];
+const tabs = ["rules", "code", "tests", "technical"];
+const cache = ref<{
+  source?: BusinessBlueprint;
+  rules?: BusinessBlueprint;
+  full?: BusinessBlueprint;
+}>({});
+let controller: AbortController | undefined;
+function selectTab(tab: string) {
+  activeTab.value = tab;
+  const cached =
+    tab === "tests"
+      ? cache.value.full
+      : tab === "rules"
+        ? cache.value.full || cache.value.rules
+        : cache.value.full || cache.value.rules || cache.value.source;
+  if (cached) {
+    controller?.abort();
+    sequence++;
+    loading.value = false;
+    error.value = "";
+    data.value = cached;
+  } else read(tab);
+}
 const codeSelection = ref("");
 const codeSource = computed(
   () =>
@@ -88,10 +110,6 @@ function sourceRole(source: LogicSource) {
     return wording("Shared full derivation", "Gemeinsame vollständige Berechnung");
   return wording("Source function", "Quelltext-Funktion");
 }
-function showCode() {
-  if (data.value) activeTab.value = "code";
-  else read(true, false);
-}
 function tabKey(event: KeyboardEvent, index: number) {
   let next = index;
   if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
@@ -100,7 +118,7 @@ function tabKey(event: KeyboardEvent, index: number) {
   else if (event.key === "End") next = tabs.length - 1;
   else return;
   event.preventDefault();
-  activeTab.value = tabs[next];
+  selectTab(tabs[next]);
   (event.currentTarget as HTMLElement).parentElement
     ?.querySelectorAll<HTMLButtonElement>("[role=tab]")
     [next]?.focus();
@@ -121,6 +139,7 @@ watch(loading, (busy) => {
   }
 });
 onUnmounted(() => {
+  controller?.abort();
   sequence++;
   stopTimer();
 });
@@ -151,13 +170,22 @@ watch(
   () => {
     sequence++;
     data.value = null;
-    activeTab.value = "rules";
+    activeTab.value = "";
+    cache.value = {};
+    controller?.abort();
     selectedTest.value = "";
     error.value = "";
     loading.value = false;
   },
 );
-async function read(brief = true, interpret = true) {
+async function read(tab = activeTab.value, refresh = false) {
+  if (!tab) return;
+  const brief = tab === "rules";
+  const interpret = tab === "rules" || tab === "tests";
+  activeTab.value = tab;
+  controller?.abort();
+  controller = new AbortController();
+  if (refresh) cache.value = {};
   const request = ++sequence;
   const previousTest = selectedTest.value;
   data.value = null;
@@ -171,7 +199,7 @@ async function read(brief = true, interpret = true) {
     if (!target.value) throw new Error("No configured target");
     const response = await fetch(
       `${target.value}/api/business-logic/entries/${encodeURIComponent(props.kind)}/${encodeURIComponent(props.entryKey)}?language=${de.value ? "de" : "en"}&brief=${brief}&interpret=${interpret}`,
-      { cache: "no-store", credentials: "omit" },
+      { cache: "no-store", credentials: "omit", signal: controller.signal },
     );
     if (!response.ok) {
       failure =
@@ -192,8 +220,15 @@ async function read(brief = true, interpret = true) {
     );
     const result = (await response.json()) as BusinessBlueprint;
     if (request !== sequence) return;
+    if (
+      Object.values(cache.value).some(
+        (item) => item && item.evidence_digest !== result.evidence_digest,
+      )
+    )
+      cache.value = {};
+    cache.value = { ...cache.value, [interpret ? (brief ? "rules" : "full") : "source"]: result };
     data.value = result;
-    activeTab.value = interpret ? "rules" : "code";
+    activeTab.value = tab;
     codeSelection.value = "";
     selectedTest.value = result.scenarios.some((test) => test.id === previousTest)
       ? previousTest
@@ -213,32 +248,50 @@ async function read(brief = true, interpret = true) {
     :class="['live-blueprint', { 'live-blueprint-loaded': data }]"
     data-live-blueprint
   >
-    <h3 v-if="data?.business?.mode === 'llm'">
-      {{ wording("Steps and rules", "Ablauf und Regeln") }}
-    </h3>
-    <p v-if="data" class="source-provenance">
-      {{ wording("From the current source code", "Aus dem aktuellen Code") }}
-    </p>
-    <button
-      type="button"
-      class="explanation-start code-entry"
-      :disabled="loading"
-      @click="showCode"
+    <div
+      class="reading-tabs"
+      role="tablist"
+      :aria-label="wording('Explore business logic', 'Geschäftslogik erkunden')"
     >
-      {{ wording("View code →", "Code anschauen →") }}
-    </button>
-    <button
-      type="button"
-      :disabled="loading"
-      :class="data?.business?.mode === 'llm' ? 'explanation-refresh' : 'explanation-start'"
-      @click="read(true)"
-    >
+      <button
+        v-for="(tab, index) in tabs"
+        :id="`${flowId}-tab-${tab}`"
+        :key="tab"
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === tab"
+        :aria-controls="`${flowId}-panel-${tab}`"
+        :tabindex="activeTab === tab || (!activeTab && index === 0) ? 0 : -1"
+        @click="selectTab(tab)"
+        @keydown="tabKey($event, index)"
+      >
+        {{
+          tab === "code"
+            ? wording("Source code", "Quelltext")
+            : tab === "rules"
+              ? wording("Steps & rules", "Ablauf & Regeln")
+              : tab === "tests"
+                ? wording("Test cases", "Testfälle")
+                : wording("Technical details", "Technische Details")
+        }}<span v-if="tab === 'tests' && data"> ({{ data.scenarios.length }})</span>
+      </button>
+    </div>
+    <div v-if="activeTab" class="section-tools">
+      <button v-if="!error" type="button" :disabled="loading" @click="read(activeTab, true)">
+        {{ wording("Refresh", "Aktualisieren") }}
+      </button>
+      <button v-else type="button" @click="read(activeTab, true)">
+        {{ wording("Retry", "Erneut versuchen") }}
+      </button>
+    </div>
+    <p v-if="!activeTab" class="section-hint">
       {{
-        data?.business?.mode === "llm"
-          ? wording("Refresh explanation", "Erklärung aktualisieren")
-          : wording("Explain steps and rules →", "Ablauf und Regeln erklären →")
+        wording(
+          "Choose a section to inspect this function.",
+          "Wähle einen Bereich, um diese Funktion zu verstehen.",
+        )
       }}
-    </button>
+    </p>
     <div v-if="loading" class="loading-panel" role="status" aria-live="polite">
       <span class="loading-spinner" aria-hidden="true"></span>
       <div>
@@ -248,7 +301,7 @@ async function read(brief = true, interpret = true) {
             "Aktueller Quellcode und Tests werden gelesen…",
           )
         }}</strong>
-        <p>
+        <p v-if="activeTab === 'rules' || activeTab === 'tests'">
           {{
             wording(
               "The business explanation is created live. Complex logic can take longer.",
@@ -269,45 +322,16 @@ async function read(brief = true, interpret = true) {
         </p>
       </div>
     </div>
-    <button
-      v-if="data"
-      type="button"
-      :disabled="loading"
-      class="detailed-read"
-      @click="read(false)"
-    >
-      {{ wording("Detailed explanation and test cases", "Ausführliche Erklärung und Testfälle") }}
-    </button>
     <p v-if="error" role="alert">{{ error }}</p>
+    <div
+      v-if="activeTab === 'technical' && !data"
+      role="tabpanel"
+      :id="`${flowId}-panel-technical`"
+      :aria-labelledby="`${flowId}-tab-technical`"
+    >
+      <slot name="reference" />
+    </div>
     <template v-if="data">
-      <div
-        class="reading-tabs"
-        role="tablist"
-        :aria-label="wording('Explore business logic', 'Geschäftslogik erkunden')"
-      >
-        <button
-          v-for="(tab, index) in tabs"
-          :id="`${flowId}-tab-${tab}`"
-          :key="tab"
-          type="button"
-          role="tab"
-          :aria-selected="activeTab === tab"
-          :aria-controls="`${flowId}-panel-${tab}`"
-          :tabindex="activeTab === tab ? 0 : -1"
-          @click="activeTab = tab"
-          @keydown="tabKey($event, index)"
-        >
-          {{
-            tab === "code"
-              ? wording("Source code", "Quelltext")
-              : tab === "rules"
-                ? wording("Steps", "Schritte")
-                : tab === "tests"
-                  ? wording("Test cases", "Testfälle")
-                  : wording("Technical evidence", "Technische Nachweise")
-          }}<span v-if="tab === 'tests'"> ({{ data.scenarios.length }})</span>
-        </button>
-      </div>
       <section
         v-show="activeTab === 'code'"
         role="tabpanel"
@@ -488,19 +512,11 @@ async function read(brief = true, interpret = true) {
           <p v-if="!data.business?.scenarios.some((item) => item.id === test.id)">
             {{
               wording(
-                "This test was found in code but has not yet been explained in business language.",
-                "Dieser Test wurde im Code gefunden, ist aber noch nicht fachlich erklärt.",
+                "No business-language explanation was returned for this test.",
+                "Für diesen Test wurde keine fachliche Erklärung zurückgegeben.",
               )
             }}
           </p>
-          <button
-            v-if="!data.business?.scenarios.some((item) => item.id === test.id)"
-            type="button"
-            :disabled="loading"
-            @click="read(false)"
-          >
-            {{ wording("Load business explanation", "Fachliche Erklärung laden") }}
-          </button>
           <div
             v-for="item in data.business?.scenarios.filter((item) => item.id === test.id) || []"
             :key="item.id"
@@ -576,7 +592,8 @@ async function read(brief = true, interpret = true) {
         role="tabpanel"
         :aria-labelledby="`${flowId}-tab-technical`"
       >
-        <h4>{{ wording("Technical evidence", "Technische Nachweise") }}</h4>
+        <slot name="reference" />
+        <h4>{{ wording("Live technical evidence", "Live-Nachweise") }}</h4>
         <p>
           {{ wording("API server", "API-Server") }}: <code>{{ target }}</code>
         </p>
@@ -715,6 +732,7 @@ async function read(brief = true, interpret = true) {
       </div>
     </template>
   </section>
+  <slot v-else name="reference" />
 </template>
 <style scoped>
 .live-blueprint {
@@ -722,25 +740,48 @@ async function read(brief = true, interpret = true) {
   overflow-wrap: anywhere;
 }
 .live-blueprint-loaded {
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 8px;
-  padding: 16px;
-  margin: 20px 0;
+  font-size: 14px;
+  line-height: 1.65;
   overflow-wrap: anywhere;
 }
 .reading-tabs {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin: 24px 0;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0;
   border-bottom: 1px solid var(--vp-c-divider);
-  padding-bottom: 10px;
+  position: sticky;
+  top: calc(var(--vp-nav-height, 64px) + 54px);
+  background: var(--vp-c-bg);
+  z-index: 2;
+}
+.reading-tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  flex-shrink: 0;
+  padding: 10px 8px;
+  font-size: 13px;
 }
 .reading-tabs button[aria-selected="true"] {
-  background: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1);
-  border-color: var(--vp-c-brand-1);
+  border-bottom-color: var(--vp-c-brand-1);
   font-weight: 600;
+}
+.section-tools {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 0;
+}
+.section-tools button {
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+  padding: 4px 8px;
+}
+.section-hint {
+  color: var(--vp-c-text-2);
+  font-size: 14px;
 }
 .rule-cards {
   list-style: none;
@@ -809,17 +850,6 @@ async function read(brief = true, interpret = true) {
   font-size: 13px;
   margin-top: -8px;
 }
-.explanation-start {
-  color: var(--vp-c-brand-1);
-  background: transparent;
-  border: 0;
-  padding: 0;
-  font-weight: 600;
-  cursor: pointer;
-}
-.code-entry {
-  margin-right: 20px;
-}
 .code-panel {
   margin-top: 20px;
 }
@@ -879,25 +909,14 @@ async function read(brief = true, interpret = true) {
   font-size: 12px;
   line-height: 1.6;
 }
-.explanation-start:hover {
-  text-decoration: underline;
-}
-.explanation-refresh {
-  font-size: 13px;
-  color: var(--vp-c-text-2);
-  cursor: pointer;
-}
-.explanation-start:focus-visible,
-.explanation-refresh:focus-visible {
+.reading-tabs button:focus-visible,
+.section-tools button:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 3px;
 }
 button:disabled {
   cursor: wait;
   opacity: 0.65;
-}
-.detailed-read {
-  margin-left: 8px;
 }
 button,
 select {
@@ -955,5 +974,28 @@ pre {
 }
 li {
   margin: 10px 0;
+}
+</style>
+
+<style scoped>
+.live-blueprint h3,
+.live-blueprint h4 {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  margin: 24px 0 10px;
+  border: 0;
+  padding: 0;
+}
+@media (max-width: 640px) {
+  .reading-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    position: static;
+  }
+  .reading-tabs button {
+    text-align: left;
+  }
 }
 </style>

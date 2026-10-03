@@ -196,3 +196,10 @@ FR-037 reviewed from user screenshot. CSS-only rendering correction: use 12px mo
 ### Lazy source syntax colors
 
 FR-038 reviewed from explicit user request. Use the existing installed Shiki version with Python grammar and GitHub light/dark themes as declared dependencies. Import on demand; tokenize only the active code function or opened helper, retain plain-code fallback. Render token content through escaped Vue interpolation; never use v-html. Verify keyword/string/comment colors, dark-mode style, exact reconstructed text, compact unwrapped original rows and escaping in the browser. No new backend behavior or unresolved Constitution conflict.
+
+### Four-section function inspector
+
+FR-039 reviewed and approved by user. Keep the existing business title/purpose, use always-visible section tabs and one current-section refresh. Source/technical reads disable interpretation; rules request brief explanation; tests request full explanation. Reuse only current-entry evidence and invalidate on refresh or changed digest; use the existing sequence guard and abort browser fetches when switching requests. Move catalog reference into a named Technical slot with unsupported-kind fallback and keep it available on API failure. Test initial controls, lazy requests, local reuse, stale response isolation, retry, refresh mode, catalog placement, keyboard and mobile layout. No new backend rules/schema; Constitution check passes and no unresolved clarification remains.
+
+### Detail typography review
+FR-040 is presentation-only and preserves source routing and business semantics. Use scoped heading/body/provenance styles and a two-column section navigation on narrow screens. Verify Docs tests, build and browser rendering. Constitution check: no additional authority, persistence, schema or business rules. Analysis: no unresolved requirements or critical findings.
