@@ -313,7 +313,22 @@ def external_stock(
     location_id: str | None = None,
     differing_only: bool = False,
 ) -> list[dict[str, Any]]:
-    """The latest statement per item and location, with Reality's stock then."""
+    """
+    The latest statement per item and location, with Reality's stock then.
+
+    BUSINESS PURPOSE:
+    Show what someone outside last stated is in stock beside what Reality held at
+    that stated time, and the difference, without changing either.
+
+    BUSINESS RULE services.external_stock.external_stock.refusal-location:
+    IF a location is named that the company does not hold:
+        Refuse with external_stock_location_not_stock.
+
+    BUSINESS RULE services.external_stock.external_stock.result:
+    Return the latest statement per item and location with the stated quantity,
+    Reality's quantity at the stated time and their difference; when only
+    differences are asked for, a matching statement is left out.
+    """
     if item_id:
         _item(session, tenant_id, item_id)
     if location_id:
@@ -322,6 +337,7 @@ def external_stock(
                 Location.tenant_id == tenant_id, Location.id == location_id
             )
         )
+        # reality-rule: services.external_stock.external_stock.refusal-location
         if location is None:
             raise InvalidOperation(code="external_stock_location_not_stock")
     rows = _compared(
@@ -333,6 +349,7 @@ def external_stock(
     )
     if differing_only:
         rows = [row for row in rows if row["difference"] != ZERO]
+    # reality-rule: services.external_stock.external_stock.result
     return [
         {
             **row,
@@ -375,11 +392,25 @@ def _held_at(session: Session, tenant_id: str, line: dict[str, Any]) -> Decimal:
 def review_external_stock(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown.
+    """
+    The arguments a confirmation executes and what the person is shown.
 
     A line without a stated time is fixed now, so the confirmation records the
     same statement the person saw.
+
+    BUSINESS PURPOSE:
+    Prepare an external stock statement for confirmation, showing each line
+    beside Reality's stock at its stated time.
+
+    BUSINESS RULE services.external_stock.review_external_stock.refusal-fields:
+    IF the request names fields the statement does not take:
+        Refuse with external_stock_fields_invalid.
+
+    BUSINESS RULE services.external_stock.review_external_stock.result:
+    Return the normalized statement the confirmation records and the preview
+    the person sees; nothing is recorded yet.
     """
+    # reality-rule: services.external_stock.review_external_stock.refusal-fields
     if not isinstance(arguments, dict) or set(arguments) - FIELDS:
         raise InvalidOperation(code="external_stock_fields_invalid")
     reporter = _reporter(session, tenant_id, arguments.get("reporter_party_id"))
@@ -406,6 +437,7 @@ def review_external_stock(
             _line_view(line, _held_at(session, tenant_id, line)) for line in lines
         ],
     }
+    # reality-rule: services.external_stock.review_external_stock.result
     return normalized, preview
 
 
@@ -466,7 +498,21 @@ def record_external_stock(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> list[ExternalStockStatement]:
-    """Record what someone outside states is in stock, without moving stock."""
+    """
+    Record what someone outside states is in stock, without moving stock.
+
+    BUSINESS PURPOSE:
+    Keep a 3PL's or a shop's stock statement as stated, so it can be compared
+    with Reality's own stock; it never creates a movement or an adjustment.
+
+    BUSINESS RULE services.external_stock.record_external_stock.replay:
+    IF the same statement was already recorded:
+        Return the statements recorded the first time.
+
+    BUSINESS RULE services.external_stock.record_external_stock.result:
+    Return one recorded statement per line, each tied to the statement's source
+    record.
+    """
     from reality.services.core import _require_business_mutation, store_source_record
 
     _require_business_mutation(session, tenant_id, "record_external_stock")
@@ -504,6 +550,7 @@ def record_external_stock(
                 )
             )
         )
+        # reality-rule: services.external_stock.record_external_stock.replay
         if existing:
             return existing
     rows = _store(
@@ -516,6 +563,7 @@ def record_external_stock(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.external_stock.record_external_stock.result
     return rows
 
 
