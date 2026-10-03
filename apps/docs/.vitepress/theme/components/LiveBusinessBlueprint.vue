@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted, useId } from "vue";
 import { useData } from "vitepress";
+import type { HighlighterCore } from "shiki/core";
 import {
   diagram,
   sourceRanges,
@@ -34,11 +35,51 @@ const directHelpers = computed(
       source.called_by?.includes(codeSource.value?.function || ""),
     ) || [],
 );
+type SourceToken = { content: string; htmlStyle?: Record<string, string> };
+const coloredSources = ref<Record<string, SourceToken[][]>>({});
+let highlighterPromise: Promise<HighlighterCore> | undefined;
+let highlightEpoch = 0;
+async function colorSource(source: LogicSource) {
+  if (typeof window === "undefined" || coloredSources.value[source.id]) return;
+  const epoch = highlightEpoch;
+  try {
+    highlighterPromise ||= Promise.all([
+      import("shiki/core"),
+      import("shiki/engine/javascript"),
+      import("@shikijs/langs/python"),
+      import("@shikijs/themes/github-light"),
+      import("@shikijs/themes/github-dark"),
+    ]).then(([core, engine, python, light, dark]) =>
+      core.createHighlighterCore({
+        langs: [python.default],
+        themes: [light.default, dark.default],
+        engine: engine.createJavaScriptRegexEngine(),
+      }),
+    );
+    const highlighter = await highlighterPromise;
+    if (epoch !== highlightEpoch) return;
+    const tokens = highlighter.codeToTokens(source.code, {
+      lang: "python",
+      themes: { light: "github-light", dark: "github-dark" },
+    }).tokens;
+    coloredSources.value = { ...coloredSources.value, [source.id]: tokens };
+  } catch {
+    // Plain escaped source remains immediately readable if highlighting is unavailable.
+    highlighterPromise = undefined;
+  }
+}
+function helperToggle(event: Event, source: LogicSource) {
+  if ((event.currentTarget as HTMLDetailsElement).open) colorSource(source);
+}
 const sourceLines = (source: LogicSource) =>
   source.code
     .replace(/\n$/u, "")
     .split("\n")
-    .map((text, index) => ({ number: source.start_line + index, text }));
+    .map((text, index) => ({
+      number: source.start_line + index,
+      text,
+      tokens: coloredSources.value[source.id]?.[index] || [{ content: text || " " }],
+    }));
 function sourceRole(source: LogicSource) {
   if (source.role === "builder") return wording("Build after changes", "Aufbau bei Änderungen");
   if (source.role === "reader")
@@ -98,6 +139,13 @@ const businessNodes = computed(() =>
   })),
 );
 let sequence = 0;
+watch(data, () => {
+  highlightEpoch++;
+  coloredSources.value = {};
+});
+watch([activeTab, codeSource], ([tab, source]) => {
+  if (tab === "code" && source) colorSource(source);
+});
 watch(
   () => [props.kind, props.entryKey],
   () => {
@@ -297,7 +345,7 @@ async function read(brief = true, interpret = true) {
           </p>
           <pre
             data-direct-source
-          ><code><span v-for="line in sourceLines(codeSource)" :key="line.number" class="direct-source-line"><span class="direct-line-number" aria-hidden="true">{{ line.number }}</span><span>{{ line.text || ' ' }}</span></span></code></pre>
+          ><code><span v-for="line in sourceLines(codeSource)" :key="line.number" class="direct-source-line"><span class="direct-line-number" aria-hidden="true">{{ line.number }}</span><span><span v-for="(token, index) in line.tokens" :key="index" class="source-token" :style="token.htmlStyle">{{ token.content }}</span></span></span></code></pre>
           <div v-if="directHelpers.length" class="source-next">
             <p>{{ wording("Continue into the called code", "Weiter im aufgerufenen Code") }}</p>
             <button
@@ -313,14 +361,18 @@ async function read(brief = true, interpret = true) {
             <summary>
               {{ wording("Related source functions", "Weitere Quelltext-Funktionen") }}
             </summary>
-            <details v-for="source in relatedSources" :key="source.id">
+            <details
+              v-for="source in relatedSources"
+              :key="source.id"
+              @toggle="helperToggle($event, source)"
+            >
               <summary>
                 {{ sourceRole(source) }} · <code>{{ source.function }}</code>
               </summary>
               <p class="source-provenance">
                 {{ source.path }} · {{ wording("from line", "ab Zeile") }} {{ source.start_line }}
               </p>
-              <pre><code><span v-for="line in sourceLines(source)" :key="line.number" class="direct-source-line"><span class="direct-line-number" aria-hidden="true">{{ line.number }}</span><span>{{ line.text || ' ' }}</span></span></code></pre>
+              <pre><code><span v-for="line in sourceLines(source)" :key="line.number" class="direct-source-line"><span class="direct-line-number" aria-hidden="true">{{ line.number }}</span><span><span v-for="(token, index) in line.tokens" :key="index" class="source-token" :style="token.htmlStyle">{{ token.content }}</span></span></span></code></pre>
             </details>
           </details>
         </template>
@@ -771,6 +823,9 @@ async function read(brief = true, interpret = true) {
 .code-panel {
   margin-top: 20px;
 }
+.dark .source-token {
+  color: var(--shiki-dark) !important;
+}
 .source-next {
   display: flex;
   flex-wrap: wrap;
@@ -782,14 +837,15 @@ async function read(brief = true, interpret = true) {
 }
 .direct-source-line {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   min-height: 1.6em;
+  width: max-content;
+  min-width: 100%;
 }
 .direct-source-line > span:last-child {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  min-width: 0;
-  flex: 1;
+  white-space: pre;
+  overflow-wrap: normal;
+  flex-shrink: 0;
 }
 .direct-line-number {
   min-width: 4ch;
@@ -812,10 +868,16 @@ async function read(brief = true, interpret = true) {
   cursor: pointer;
   overflow-wrap: anywhere;
 }
+.code-panel pre code {
+  font-size: inherit;
+  line-height: inherit;
+}
 .code-panel pre {
   white-space: pre;
   max-height: 500px;
-  font-size: 13px;
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.6;
 }
 .explanation-start:hover {
   text-decoration: underline;

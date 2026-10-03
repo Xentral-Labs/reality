@@ -292,7 +292,7 @@ test("source tab opens main function without a selector and keeps helper code co
         function: "revise_commitment",
         path: "core.py",
         start_line: 10,
-        code: "main_code()",
+        code: "main_code()\nvalue = '<img src=x onerror=alert(1)>'",
       },
       {
         id: "helper",
@@ -314,6 +314,8 @@ test("source tab opens main function without a selector and keeps helper code co
     assert.match(html, /<pre data-direct-source>/u);
     assert.match(html, /direct-line-number[^>]*[^]*?>10<\/span>/u);
     assert.ok(html.includes("main_code()"));
+    assert.ok(!html.includes("<img"), "Source tokens must remain escaped text");
+    assert.ok(html.includes("&lt;img"));
     assert.match(html, /<details class="called-functions" data-called-functions>/u);
     assert.ok(
       html.includes(locale === "de" ? "Weitere Quelltext-Funktionen" : "Related source functions"),
