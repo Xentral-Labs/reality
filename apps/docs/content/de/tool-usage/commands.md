@@ -39,13 +39,11 @@ angegeben.
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                    | Unternehmen & Zugang    | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                    | Unternehmen & Zugang    | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide               | Bereichsübergreifend    | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
-| [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Bereichsübergreifend    | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Bereichsübergreifend    | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand    | Bereichsübergreifend    | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                  | Bereichsübergreifend    | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision       | Bereichsübergreifend    | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`confirm_run`](#command-confirm_run)                                             | Confirm dunning run                          | Bereichsübergreifend    | `finance_dunning_run_propose`                                                                                                                                                                | Web · MCP · Chat                        |
-| [`define_kit`](#command-define_kit)                                               | Define a kit                                 | Bereichsübergreifend    | `kit_define_propose`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                          | Bereichsübergreifend    | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
 | [`record_customer_exchange`](#command-record_customer_exchange)                   | Exchange returned goods for a replacement    | Bereichsübergreifend    | `customer_exchange_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`record_handover`](#command-record_handover)                                     | Hand over to collection                      | Bereichsübergreifend    | `finance_dunning_collection_propose`                                                                                                                                                         | Web · MCP · Chat                        |
@@ -57,7 +55,6 @@ angegeben.
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Bereichsübergreifend    | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Bereichsübergreifend    | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Bereichsübergreifend    | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
-| [`kit_split`](#command-kit_split)                                                 | Read a kit line's split                      | Bereichsübergreifend    | `kit_split`                                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`payout_detail`](#command-payout_detail)                                         | Read a payout                                | Bereichsübergreifend    | `finance_payout`                                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`handover_detail`](#command-handover_detail)                                     | Read collection handover                     | Bereichsübergreifend    | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                      | Bereichsübergreifend    | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -65,7 +62,7 @@ angegeben.
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                         | Bereichsübergreifend    | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                          | Bereichsübergreifend    | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`schedule`](#command-schedule)                                                   | Read dunning schedule                        | Bereichsübergreifend    | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
-| [`kits`](#command-kits)                                                           | Read kits                                    | Bereichsübergreifend    | `kits`                                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
+| [`outbound_deliveries`](#command-outbound_deliveries)                             | Read planned deliveries                      | Bereichsübergreifend    | `outbound_deliveries`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs               | Bereichsübergreifend    | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence      | Bereichsübergreifend    | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
 | [`reviewed_contribution`](#command-reviewed_contribution)                         | Read reviewed commercial contribution        | Bereichsübergreifend    | `cost_contribution_get`                                                                                                                                                                      | CLI · Web · MCP · Chat                  |
@@ -156,7 +153,11 @@ angegeben.
 | [`hold_commitment`](#command-hold_commitment)                                     | Hold commitment                              | Aufträge & Erfüllung    | `commitment_hold_propose`, `commitment_hold_release_propose`                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`hold_document_commitments`](#command-hold_document_commitments)                 | Hold document commitments                    | Aufträge & Erfüllung    | `document_hold_propose`, `document_hold_release_propose`                                                                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`returns`](#command-returns)                                                     | List returned payments                       | Aufträge & Erfüllung    | `finance_payment_returns`                                                                                                                                                                    | Web · MCP · Chat · CLI                  |
+| [`pick_outbound_delivery`](#command-pick_outbound_delivery)                       | Pick a planned delivery                      | Aufträge & Erfüllung    | `outbound_delivery_pick_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`plan_outbound_delivery`](#command-plan_outbound_delivery)                       | Plan an outbound delivery                    | Aufträge & Erfüllung    | `outbound_delivery_plan_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`preview_stale_promise_closure`](#command-preview_stale_promise_closure)         | Preview stale promise closure                | Aufträge & Erfüllung    | `stale_closure_preview`                                                                                                                                                                      | Web · MCP · Chat                        |
+| [`put_back_outbound_delivery`](#command-put_back_outbound_delivery)               | Put back picked goods                        | Aufträge & Erfüllung    | `outbound_delivery_put_back_propose`                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
+| [`outbound_delivery_detail`](#command-outbound_delivery_detail)                   | Read a planned delivery                      | Aufträge & Erfüllung    | `outbound_delivery_detail`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`return_detail`](#command-return_detail)                                         | Read a returned payment                      | Aufträge & Erfüllung    | `finance_payment_return`                                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`return_announcements`](#command-return_announcements)                           | Read announced returns                       | Aufträge & Erfüllung    | `return_announcements`                                                                                                                                                                       | Web · API · MCP · Chat                  |
 | [`available_to_promise`](#command-available_to_promise)                           | Read available to promise                    | Aufträge & Erfüllung    | `available_to_promise`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
@@ -168,6 +169,7 @@ angegeben.
 | [`remove_reorder_point`](#command-remove_reorder_point)                           | Remove a reorder point                       | Aufträge & Erfüllung    | `reorder_point_remove_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`reserve`](#command-reserve)                                                     | Reserve stock                                | Aufträge & Erfüllung    | `reservation_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_return_disposition`](#command-record_return_disposition)                 | Resolve arrived customer-return goods        | Aufträge & Erfüllung    | `return_disposition_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
+| [`revise_outbound_delivery`](#command-revise_outbound_delivery)                   | Revise a planned delivery                    | Aufträge & Erfüllung    | `outbound_delivery_revise_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`revise_commitment`](#command-revise_commitment)                                 | Revise commitment                            | Aufträge & Erfüllung    | `commitment_revise_propose`                                                                                                                                                                  | Web · MCP · Chat                        |
 | [`serve_backorders`](#command-serve_backorders)                                   | Serve backorders                             | Aufträge & Erfüllung    | `backorders_serve_propose`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`set_reorder_point`](#command-set_reorder_point)                                 | Set a reorder point                          | Aufträge & Erfüllung    | `reorder_point_set_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
@@ -4765,6 +4767,116 @@ Keine Parameter.
 
 **Siehe auch:** Command [`returns`](./commands#command-returns)
 
+### `pick_outbound_delivery` — Pick a planned delivery {#command-pick_outbound_delivery}
+
+Transfers goods from where a promise is reserved into the delivery's staging location; the
+reservation moves with them, so availability stays true.
+
+**Aufruf**
+
+```text
+outbound_delivery_pick_propose outbound_delivery_id lines
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `outbound_delivery`, `outbound_delivery_line`, `outbound_delivery_pick`,
+`commitment`, `reservation`, `movement` · Schreibt: `movement`, `reservation`,
+`outbound_delivery_pick`, `business_event` · Erzeugt: `outbound_delivery.picked`
+
+**Siehe auch:** Agenten-Tool
+[`outbound_delivery_pick_propose`](./commands#tool-outbound_delivery_pick_propose), Event
+[`outbound_delivery.picked`](./events#event-outbound_delivery-picked)
+
+#### `outbound_delivery_pick_propose` — Pick a planned delivery {#tool-outbound_delivery_pick_propose}
+
+Prepare picking for a planned delivery: per line the commitment_id, the quantity and optionally
+from_location_id (default the one location where the promise is reserved). The goods move to the
+delivery's staging location and the reservation moves with them. More than planned is refused. A
+person confirms.
+
+**Aufruf**
+
+```text
+outbound_delivery_pick_propose outbound_delivery_id lines
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                       | Typ      | Pflicht | Beschreibung                                                                                 | Standard |
+| -------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------- | -------- |
+| `outbound_delivery_id`     | `string` | ja      | Opaque identity of a planned outbound delivery.                                              | —        |
+| `lines`                    | `array`  | ja      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —        |
+| `lines[].commitment_id`    | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed.                         | —        |
+| `lines[].quantity`         | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                      | —        |
+| `lines[].from_location_id` | `string` | nein    | Opaque identity of the location from which physical stock leaves.                            | —        |
+
+**Siehe auch:** Command [`pick_outbound_delivery`](./commands#command-pick_outbound_delivery)
+
+### `plan_outbound_delivery` — Plan an outbound delivery {#command-plan_outbound_delivery}
+
+Plans one delivery of a customer's open promises before dispatch, with its recipient, stated
+address, booked slot and staging location; a promise can be split across deliveries up to what is
+still open.
+
+**Aufruf**
+
+```text
+outbound_delivery_plan_propose [recipient_party_id] [address] [slot] [staging_location_id] [note] lines customer_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `party`, `commitment`, `location`, `outbound_delivery`,
+`outbound_delivery_line`, `movement` · Schreibt: `outbound_delivery`, `outbound_delivery_line`,
+`source_record`, `business_event` · Erzeugt: `outbound_delivery.planned`
+
+**Siehe auch:** Agenten-Tool
+[`outbound_delivery_plan_propose`](./commands#tool-outbound_delivery_plan_propose), Event
+[`outbound_delivery.planned`](./events#event-outbound_delivery-planned)
+
+#### `outbound_delivery_plan_propose` — Plan a delivery {#tool-outbound_delivery_plan_propose}
+
+Prepare a planned outbound delivery of one customer's open promises before dispatch: per line the
+commitment_id and the quantity planned (one promise can be split across deliveries up to what is
+still open). Optionally a recipient (recipient_party_id, e.g. a store of a retail chain; default the
+customer), the stated address, a booked slot and the staging location goods are picked into. A
+person confirms.
+
+**Aufruf**
+
+```text
+outbound_delivery_plan_propose [recipient_party_id] [address] [slot] [staging_location_id] [note] lines customer_id
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                    | Typ      | Pflicht | Beschreibung                                                                                                           | Standard |
+| ----------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
+| `recipient_party_id`    | `string` | nein    | Opaque identity of the business partner the goods go to, such as a store of a retail chain; without one, the customer. | —        |
+| `address`               | `object` | nein    | The delivery address as stated (name, street, postal code, city, country, note); nothing calculates on it.             | —        |
+| `address.name`          | `string` | nein    | Human-readable display name; it is not used as internal identity.                                                      | —        |
+| `address.street`        | `string` | nein    | —                                                                                                                      | —        |
+| `address.postal_code`   | `string` | nein    | —                                                                                                                      | —        |
+| `address.city`          | `string` | nein    | —                                                                                                                      | —        |
+| `address.country`       | `string` | nein    | —                                                                                                                      | —        |
+| `address.note`          | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.                                               | —        |
+| `slot`                  | `object` | nein    | The booked delivery slot as stated, with when it opens (from) and when it closes (until), ISO 8601 with offset.        | —        |
+| `slot.from`             | `string` | ja      | —                                                                                                                      | —        |
+| `slot.until`            | `string` | ja      | —                                                                                                                      | —        |
+| `staging_location_id`   | `string` | nein    | Opaque identity of the location goods are picked into before dispatch, such as a packing zone.                         | —        |
+| `note`                  | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.                                               | —        |
+| `lines`                 | `array`  | ja      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                           | —        |
+| `lines[].commitment_id` | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed.                                                   | —        |
+| `lines[].quantity`      | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                | —        |
+| `customer_id`           | `string` | ja      | Opaque identity of the customer whose promises a planned delivery carries.                                             | —        |
+
+**Siehe auch:** Command [`plan_outbound_delivery`](./commands#command-plan_outbound_delivery)
+
 ### `preview_stale_promise_closure` — Preview stale promise closure {#command-preview_stale_promise_closure}
 
 Shows how many stale promises match, what would be released, and a bounded sample, without changing
@@ -4826,6 +4938,114 @@ changing anything.
 
 **Siehe auch:** Command
 [`preview_stale_promise_closure`](./commands#command-preview_stale_promise_closure)
+
+### `put_back_outbound_delivery` — Put back picked goods {#command-put_back_outbound_delivery}
+
+Transfers picked goods out of staging to a stock location; an open promise's reservation moves back
+with them.
+
+**Aufruf**
+
+```text
+outbound_delivery_put_back_propose outbound_delivery_id lines
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `outbound_delivery`, `outbound_delivery_line`, `outbound_delivery_pick`,
+`commitment`, `reservation`, `movement` · Schreibt: `movement`, `reservation`,
+`outbound_delivery_pick`, `business_event` · Erzeugt: `outbound_delivery.put_back`
+
+**Siehe auch:** Agenten-Tool
+[`outbound_delivery_put_back_propose`](./commands#tool-outbound_delivery_put_back_propose), Event
+[`outbound_delivery.put_back`](./events#event-outbound_delivery-put_back)
+
+#### `outbound_delivery_put_back_propose` — Put back picked goods {#tool-outbound_delivery_put_back_propose}
+
+Prepare a put-back from a planned delivery's staging location: per line the commitment_id, the
+quantity and the to_location_id the goods go back to. While the promise is open its reservation
+moves back with them; goods of a cancelled promise go back as free stock. A person confirms.
+
+**Aufruf**
+
+```text
+outbound_delivery_put_back_propose outbound_delivery_id lines
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                     | Typ      | Pflicht | Beschreibung                                                                                 | Standard |
+| ------------------------ | -------- | ------- | -------------------------------------------------------------------------------------------- | -------- |
+| `outbound_delivery_id`   | `string` | ja      | Opaque identity of a planned outbound delivery.                                              | —        |
+| `lines`                  | `array`  | ja      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —        |
+| `lines[].commitment_id`  | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed.                         | —        |
+| `lines[].quantity`       | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                      | —        |
+| `lines[].to_location_id` | `string` | ja      | Opaque identity of the location into which physical stock arrives.                           | —        |
+
+**Siehe auch:** Command
+[`put_back_outbound_delivery`](./commands#command-put_back_outbound_delivery)
+
+### `outbound_delivery_detail` — Read a planned delivery {#command-outbound_delivery_detail}
+
+Shows one planned delivery with its pick and put-back movements, every statement, its shipment and
+the dispatch arguments that ship exactly what it carries.
+
+**Aufruf**
+
+```text
+outbound_delivery_detail outbound_delivery_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `outbound_delivery`, `outbound_delivery_line`, `outbound_delivery_pick`,
+`movement`, `commitment`, `party`, `location`, `source_record`, `shipment` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`outbound_delivery_detail`](./commands#tool-outbound_delivery_detail)
+
+#### `outbound_delivery_detail` — Planned delivery {#tool-outbound_delivery_detail}
+
+Read one planned delivery: its lines with their pick and put-back movements, every statement oldest
+first, its shipment, and `dispatch`, the arguments for shipment_dispatch_propose that ship exactly
+what it carries.
+
+**Aufruf**
+
+```text
+outbound_delivery_detail outbound_delivery_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage               | Art                        | Standard |
+| ------------------------------ | -------------------------- | -------- |
+| `MCP outbound_delivery_detail` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Explain one planned delivery, its picks and statements, and how to ship it.
+
+**Verwenden, wenn**
+
+- Someone asks which address a delivery uses
+- what was picked
+- or what must be put back.
+
+**Nicht verwenden, wenn**
+
+- The question is a shipment's carrier events; read the shipment.
+
+**Parameter**
+
+| Name                   | Typ      | Pflicht | Beschreibung                                    | Standard |
+| ---------------------- | -------- | ------- | ----------------------------------------------- | -------- |
+| `outbound_delivery_id` | `string` | ja      | Opaque identity of a planned outbound delivery. | —        |
+
+**Siehe auch:** Command [`outbound_delivery_detail`](./commands#command-outbound_delivery_detail)
 
 ### `return_detail` — Read a returned payment {#command-return_detail}
 
@@ -5465,6 +5685,65 @@ effect is visible independently.
 **Siehe auch:** Command [`record_return_disposition`](./commands#command-record_return_disposition),
 Projection [`inventory`](./views#projection-inventory)
 
+### `revise_outbound_delivery` — Revise a planned delivery {#command-revise_outbound_delivery}
+
+States a planned delivery anew before it ships, such as a changed address or a promise that rides
+along; every statement is kept as a version.
+
+**Aufruf**
+
+```text
+outbound_delivery_revise_propose [recipient_party_id] [address] [slot] [staging_location_id] [note] [lines] outbound_delivery_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `outbound_delivery`, `outbound_delivery_line`, `outbound_delivery_pick`,
+`commitment`, `party`, `location`, `source_record` · Schreibt: `outbound_delivery`,
+`outbound_delivery_line`, `source_record`, `business_event` · Erzeugt: `outbound_delivery.revised`
+
+**Siehe auch:** Agenten-Tool
+[`outbound_delivery_revise_propose`](./commands#tool-outbound_delivery_revise_propose), Event
+[`outbound_delivery.revised`](./events#event-outbound_delivery-revised)
+
+#### `outbound_delivery_revise_propose` — Revise a planned delivery {#tool-outbound_delivery_revise_propose}
+
+Prepare a revision of a planned delivery before it ships: any of recipient, address, slot, staging
+location, note and the full list of lines. Fields left out stay as stated; every statement is kept.
+Lines with picked goods cannot be removed or planned below what is picked. A person confirms.
+
+**Aufruf**
+
+```text
+outbound_delivery_revise_propose [recipient_party_id] [address] [slot] [staging_location_id] [note] [lines] outbound_delivery_id
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                    | Typ      | Pflicht | Beschreibung                                                                                                           | Standard |
+| ----------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
+| `recipient_party_id`    | `string` | nein    | Opaque identity of the business partner the goods go to, such as a store of a retail chain; without one, the customer. | —        |
+| `address`               | `object` | nein    | The delivery address as stated (name, street, postal code, city, country, note); nothing calculates on it.             | —        |
+| `address.name`          | `string` | nein    | Human-readable display name; it is not used as internal identity.                                                      | —        |
+| `address.street`        | `string` | nein    | —                                                                                                                      | —        |
+| `address.postal_code`   | `string` | nein    | —                                                                                                                      | —        |
+| `address.city`          | `string` | nein    | —                                                                                                                      | —        |
+| `address.country`       | `string` | nein    | —                                                                                                                      | —        |
+| `address.note`          | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.                                               | —        |
+| `slot`                  | `object` | nein    | The booked delivery slot as stated, with when it opens (from) and when it closes (until), ISO 8601 with offset.        | —        |
+| `slot.from`             | `string` | ja      | —                                                                                                                      | —        |
+| `slot.until`            | `string` | ja      | —                                                                                                                      | —        |
+| `staging_location_id`   | `string` | nein    | Opaque identity of the location goods are picked into before dispatch, such as a packing zone.                         | —        |
+| `note`                  | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.                                               | —        |
+| `lines`                 | `array`  | nein    | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                           | —        |
+| `lines[].commitment_id` | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed.                                                   | —        |
+| `lines[].quantity`      | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                | —        |
+| `outbound_delivery_id`  | `string` | ja      | Opaque identity of a planned outbound delivery.                                                                        | —        |
+
+**Siehe auch:** Command [`revise_outbound_delivery`](./commands#command-revise_outbound_delivery)
+
 ### `revise_commitment` — Revise commitment {#command-revise_commitment}
 
 Records that a counterparty now states a different date, a different quantity, or both for a
@@ -6069,7 +6348,7 @@ Atomically records one physical package and its exact existing Movement effects.
 **Aufruf**
 
 ```text
-shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]
+shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by] [outbound_delivery_id]
 shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]
 ```
 
@@ -6092,7 +6371,7 @@ confirmation.
 **Aufruf**
 
 ```text
-shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]
+shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by] [outbound_delivery_id]
 ```
 
 **Zugriff:** `propose`
@@ -6120,6 +6399,7 @@ shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_
 | `occurred_at`                  | `string` | nein    | UTC instant at which the physical or business event occurred.                                                                                                     | —        |
 | `delivery_mode`                | `string` | nein    | How the goods go, as stated, carrier or pickup; a pickup takes no carrier or tracking number.                                                                     | —        |
 | `collected_by`                 | `string` | nein    | Who collected a pickup, as stated; optional free text.                                                                                                            | —        |
+| `outbound_delivery_id`         | `string` | nein    | Opaque identity of a planned outbound delivery.                                                                                                                   | —        |
 
 **Siehe auch:** Command [`record_packaged_execution`](./commands#command-record_packaged_execution)
 
@@ -7486,53 +7766,6 @@ explicit limitations.
 
 **Siehe auch:** Command [`business_journey_guide`](./commands#command-business_journey_guide)
 
-### `assemble_kit` — Assemble kits {#command-assemble_kit}
-
-Consumes every component and produces whole kits at one location under one assembly statement, all
-or nothing; a component short of free stock refuses the whole assembly.
-
-**Aufruf**
-
-```text
-kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
-```
-
-**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
-
-**Wirkung:** Liest: `item`, `location`, `kit_component`, `movement`, `reservation`, `stock_block` ·
-Schreibt: `movement`, `source_record`, `business_event` · Erzeugt: `kit.assembled`
-
-**Siehe auch:** Agenten-Tool [`kit_assemble_propose`](./commands#tool-kit_assemble_propose), Event
-[`kit.assembled`](./events#event-kit-assembled)
-
-#### `kit_assemble_propose` — Assemble kits {#tool-kit_assemble_propose}
-
-Prepare assembling whole kits at a location for confirmation: every component leaves the location by
-its quantity per kit and the kits enter it, all or nothing, optionally at a stated earlier time (ISO
-8601 with its offset). The review shows what each component gives and what is free; a component
-short of free stock refuses the whole assembly. Packing a kit order assembles it this way before it
-ships. A person confirms.
-
-**Aufruf**
-
-```text
-kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
-```
-
-**Zugriff:** `propose`
-
-**Parameter**
-
-| Name          | Typ      | Pflicht | Beschreibung                                                                | Standard |
-| ------------- | -------- | ------- | --------------------------------------------------------------------------- | -------- |
-| `kit_item_id` | `string` | ja      | Opaque same-tenant identity of the stocked item that is the kit (spec 333). | —        |
-| `location_id` | `string` | ja      | Opaque identity of the operational or physical location.                    | —        |
-| `quantity`    | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                     | —        |
-| `occurred_at` | `string` | nein    | UTC instant at which the physical or business event occurred.               | —        |
-| `note`        | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.    | —        |
-
-**Siehe auch:** Command [`assemble_kit`](./commands#command-assemble_kit)
-
 ### `assign_line_item` — Assign an item to an order line {#command-assign_line_item}
 
 Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its
@@ -8011,52 +8244,6 @@ Record the reviewed dunning run's notices for owner confirmation.
 Reminded items now wait for their next level.
 
 **Siehe auch:** Command [`confirm_run`](./commands#command-confirm_run)
-
-### `define_kit` — Define a kit {#command-define_kit}
-
-States the components of a kit once, with how many one kit takes and optionally each component's
-share of the kit's price.
-
-**Aufruf**
-
-```text
-kit_define_propose kit_item_id components
-```
-
-**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
-
-**Wirkung:** Liest: `item`, `kit_component` · Schreibt: `kit_component`, `source_record`,
-`business_event` · Erzeugt: `kit.defined`
-
-**Siehe auch:** Agenten-Tool [`kit_define_propose`](./commands#tool-kit_define_propose), Event
-[`kit.defined`](./events#event-kit-defined)
-
-#### `kit_define_propose` — Define kit {#tool-kit_define_propose}
-
-Prepare the components of a kit for confirmation: per component the item, how many one kit takes in
-the component's stock unit and optionally its share of the kit's price (shares for all or none,
-adding up to exactly 1). The kit and its components are stocked, untracked items; a component is
-never a kit. The components are stated once. A person confirms.
-
-**Aufruf**
-
-```text
-kit_define_propose kit_item_id components
-```
-
-**Zugriff:** `propose`
-
-**Parameter**
-
-| Name                    | Typ      | Pflicht | Beschreibung                                                                                                                                                                                  | Standard |
-| ----------------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `kit_item_id`           | `string` | ja      | Opaque same-tenant identity of the stocked item that is the kit (spec 333).                                                                                                                   | —        |
-| `components`            | `array`  | ja      | The kit's components, each an item, how many one kit takes in that item's stock unit, and optionally its share of the kit's price; shares are stated for all or none and add up to exactly 1. | —        |
-| `components[].item_id`  | `string` | ja      | Opaque identity of the operational item reference.                                                                                                                                            | —        |
-| `components[].quantity` | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                       | —        |
-| `components[].share`    | `string` | nein    | A component's share of the kit's price, between 0 and 1, as stated; the bundle split divides a kit line's stated amounts by it.                                                               | —        |
-
-**Siehe auch:** Command [`define_kit`](./commands#command-define_kit)
 
 ### `cost_review_draft` — Draft a cost review {#command-cost_review_draft}
 
@@ -8732,64 +8919,6 @@ the proposal.
 
 **Siehe auch:** Command [`propose_cost_review`](./commands#command-propose_cost_review)
 
-### `kit_split` — Read a kit line's split {#command-kit_split}
-
-Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up
-exactly to the line.
-
-**Aufruf**
-
-```text
-kit_split document_line_id
-```
-
-**Erreichbar über:** CLI · Web · API · MCP · Chat
-
-**Wirkung:** Liest: `document_line`, `item`, `kit_component` · Schreibt: —
-
-**Siehe auch:** Agenten-Tool [`kit_split`](./commands#tool-kit_split)
-
-#### `kit_split` — Kit split {#tool-kit_split}
-
-Read how a kit's order or invoice line (document_line_id) splits its stated gross, and its stated
-net and tax where the line states them, across the components by the kit's stated shares, with the
-gross per component piece. A kit without stated shares has no split.
-
-**Aufruf**
-
-```text
-kit_split document_line_id
-```
-
-**Zugriff:** `read`
-
-**So wird diese Abfrage ausgeführt**
-
-| Konkrete Abfrage | Art                        | Standard |
-| ---------------- | -------------------------- | -------- |
-| `MCP kit_split`  | Live — beim Aufruf gelesen | ja       |
-
-[So wird diese Abfrage ausgeführt](./views#read-execution)
-
-Show how a kit's order or invoice line splits its price, revenue and tax across the components.
-
-**Verwenden, wenn**
-
-- Someone asks what share of a bundle's revenue or tax a component carries
-- or what to credit for one returned component.
-
-**Nicht verwenden, wenn**
-
-- The line is not a kit line.
-
-**Parameter**
-
-| Name               | Typ      | Pflicht | Beschreibung                                                                              | Standard |
-| ------------------ | -------- | ------- | ----------------------------------------------------------------------------------------- | -------- |
-| `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
-
-**Siehe auch:** Command [`kit_split`](./commands#command-kit_split)
-
 ### `payout_detail` — Read a payout {#command-payout_detail}
 
 Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a
@@ -9201,65 +9330,66 @@ Keine Parameter.
 
 **Siehe auch:** Command [`schedule`](./commands#command-schedule)
 
-### `kits` — Read kits {#command-kits}
+### `outbound_deliveries` — Read planned deliveries {#command-outbound_deliveries}
 
-Lists the kits with their components and, per location, the free kits on hand, the whole kits the
-free components build and the component that limits them.
+Lists the planned deliveries, newest first, with recipient, address, slot, derived state and per
+line planned, picked, to put back and shipped.
 
 **Aufruf**
 
 ```text
-kits [item_id]
+outbound_deliveries [customer_id] [open_only]
 ```
 
 **Erreichbar über:** CLI · Web · API · MCP · Chat
 
-**Wirkung:** Liest: `kit_component`, `item`, `location`, `movement`, `reservation`, `stock_block` ·
-Schreibt: —
+**Wirkung:** Liest: `outbound_delivery`, `outbound_delivery_line`, `outbound_delivery_pick`,
+`movement`, `commitment`, `party`, `location`, `source_record` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`kits`](./commands#tool-kits)
+**Siehe auch:** Agenten-Tool [`outbound_deliveries`](./commands#tool-outbound_deliveries)
 
-#### `kits` — Kits {#tool-kits}
+#### `outbound_deliveries` — Planned deliveries {#tool-outbound_deliveries}
 
-Read the kits of the company, or the kit an item is or is part of (item_id): the components, how
-many one kit takes, the stated price shares, and per location the free kits on hand, the whole kits
-the free components build and the component that limits them.
+Read the planned outbound deliveries, newest first, of one customer (customer_id) or all, optionally
+only those not shipped (open_only): recipient, address, slot, state and per line planned, picked, to
+put back and shipped.
 
 **Aufruf**
 
 ```text
-kits [item_id]
+outbound_deliveries [customer_id] [open_only]
 ```
 
 **Zugriff:** `read`
 
 **So wird diese Abfrage ausgeführt**
 
-| Konkrete Abfrage | Art                        | Standard |
-| ---------------- | -------------------------- | -------- |
-| `MCP kits`       | Live — beim Aufruf gelesen | ja       |
+| Konkrete Abfrage          | Art                        | Standard |
+| ------------------------- | -------------------------- | -------- |
+| `MCP outbound_deliveries` | Live — beim Aufruf gelesen | ja       |
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-Show the kits, their components and how many each location can build.
+List the planned outbound deliveries and where each stands.
 
 **Verwenden, wenn**
 
-- Someone asks whether a set can be sold or packed
-- what a kit is made of
-- or which part is missing.
+- Someone asks what is planned to go out
+- where an order's parts go
+- or what is picked but not shipped.
 
 **Nicht verwenden, wenn**
 
-- The item is not a kit; read the item's stock.
+- The question is what has already shipped; read shipments.
 
 **Parameter**
 
-| Name      | Typ      | Pflicht | Beschreibung                                       | Standard |
-| --------- | -------- | ------- | -------------------------------------------------- | -------- |
-| `item_id` | `string` | nein    | Opaque identity of the operational item reference. | —        |
+| Name          | Typ       | Pflicht | Beschreibung                                                               | Standard |
+| ------------- | --------- | ------- | -------------------------------------------------------------------------- | -------- |
+| `customer_id` | `string`  | nein    | Opaque identity of the customer whose promises a planned delivery carries. | —        |
+| `open_only`   | `boolean` | nein    | Only planned deliveries that have not shipped.                             | —        |
 
-**Siehe auch:** Command [`kits`](./commands#command-kits)
+**Siehe auch:** Command [`outbound_deliveries`](./commands#command-outbound_deliveries)
 
 ### `receipt_cost` — Read receipt acquisition costs {#command-receipt_cost}
 

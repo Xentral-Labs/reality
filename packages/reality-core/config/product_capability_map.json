@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:f6f7ba244d286236b591162bfa0641b900410d7bd0f250c6170a3a194b822266",
+  "knowledge_version": "advisor-v1:sha256:2d5c4e3baded290d93419b4e646baffb694ad751bbbceceaa1babbc6130ea2ca",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -96,6 +96,10 @@
       "tools": [
         {
           "name": "customer_item_numbers",
+          "mode": "query"
+        },
+        {
+          "name": "outbound_deliveries",
           "mode": "query"
         },
         {
@@ -307,16 +311,7 @@
         "evidence_journey_k05",
         "evidence_journey_k06"
       ],
-      "tools": [
-        {
-          "name": "kits",
-          "mode": "query"
-        },
-        {
-          "name": "kit_split",
-          "mode": "query"
-        }
-      ]
+      "tools": []
     },
     {
       "id": "capability_process_master_data_and_identity",
@@ -396,7 +391,12 @@
         "evidence_journey_a23",
         "evidence_journey_a24"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "outbound_delivery_detail",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_payment_and_release",
@@ -495,7 +495,12 @@
         "evidence_journey_d18",
         "evidence_journey_d19"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "outbound_delivery_detail",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_purchasing_demand_and_purchase_order",
@@ -784,6 +789,10 @@
         "evidence_command_set_customer_item_number",
         "evidence_command_remove_customer_item_number",
         "evidence_command_customer_item_numbers",
+        "evidence_command_plan_outbound_delivery",
+        "evidence_command_revise_outbound_delivery",
+        "evidence_command_outbound_deliveries",
+        "evidence_command_outbound_delivery_detail",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
         "evidence_command_credit_exposure",
@@ -800,8 +809,7 @@
         "evidence_command_opening_context",
         "evidence_command_import_opening",
         "evidence_command_record_shipment_notice",
-        "evidence_command_record_packaged_execution",
-        "evidence_command_record_delivery_failure"
+        "evidence_command_record_packaged_execution"
       ],
       "tools": [
         {
@@ -889,6 +897,22 @@
           "mode": "query"
         },
         {
+          "name": "plan_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "revise_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "outbound_deliveries",
+          "mode": "query"
+        },
+        {
+          "name": "outbound_delivery_detail",
+          "mode": "query"
+        },
+        {
           "name": "state_delivery_rule",
           "mode": "mutation"
         },
@@ -955,10 +979,6 @@
         {
           "name": "record_packaged_execution",
           "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
-          "mode": "mutation"
         }
       ]
     },
@@ -971,14 +991,10 @@
         "SKU",
         "stock",
         "inventory",
-        "kit",
-        "bundle",
         "Produkt",
         "Bestand",
         "Lagerbestand",
-        "Verfügbarkeit",
-        "Set",
-        "Stückliste"
+        "Verfügbarkeit"
       ],
       "evidence_ids": [
         "evidence_command_cost_query",
@@ -1005,10 +1021,6 @@
         "evidence_command_set_supplier_item_terms",
         "evidence_command_remove_supplier_item_terms",
         "evidence_command_supplier_item_terms",
-        "evidence_command_define_kit",
-        "evidence_command_assemble_kit",
-        "evidence_command_kits",
-        "evidence_command_kit_split",
         "evidence_command_purchase_match",
         "evidence_command_set_customer_item_number",
         "evidence_command_customer_item_numbers",
@@ -1123,22 +1135,6 @@
           "mode": "query"
         },
         {
-          "name": "define_kit",
-          "mode": "mutation"
-        },
-        {
-          "name": "assemble_kit",
-          "mode": "mutation"
-        },
-        {
-          "name": "kits",
-          "mode": "query"
-        },
-        {
-          "name": "kit_split",
-          "mode": "query"
-        },
-        {
           "name": "purchase_match",
           "mode": "query"
         },
@@ -1223,8 +1219,10 @@
         "evidence_command_correct_movement",
         "evidence_command_block_stock",
         "evidence_command_serve_backorders",
-        "evidence_command_assemble_kit",
-        "evidence_command_kits",
+        "evidence_command_plan_outbound_delivery",
+        "evidence_command_revise_outbound_delivery",
+        "evidence_command_outbound_deliveries",
+        "evidence_command_outbound_delivery_detail",
         "evidence_command_record_stock_count",
         "evidence_command_stock_counts",
         "evidence_command_stock_count_detail",
@@ -1281,11 +1279,19 @@
           "mode": "mutation"
         },
         {
-          "name": "assemble_kit",
+          "name": "plan_outbound_delivery",
           "mode": "mutation"
         },
         {
-          "name": "kits",
+          "name": "revise_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "outbound_deliveries",
+          "mode": "query"
+        },
+        {
+          "name": "outbound_delivery_detail",
           "mode": "query"
         },
         {
@@ -1442,9 +1448,13 @@
         "evidence_command_block_stock",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
-        "evidence_command_assemble_kit",
-        "evidence_command_kits",
         "evidence_command_purchase_match",
+        "evidence_command_plan_outbound_delivery",
+        "evidence_command_revise_outbound_delivery",
+        "evidence_command_pick_outbound_delivery",
+        "evidence_command_put_back_outbound_delivery",
+        "evidence_command_outbound_deliveries",
+        "evidence_command_outbound_delivery_detail",
         "evidence_command_record_stock_count",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
@@ -1459,11 +1469,9 @@
         "evidence_command_close_stale_promises",
         "evidence_command_record_sales_credit",
         "evidence_command_billable_positions",
-        "evidence_command_settle_payout",
         "evidence_command_record_packaged_execution",
         "evidence_command_assign_supply",
         "evidence_command_record_customer_exchange",
-        "evidence_command_record_delivery_failure",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -1536,15 +1544,31 @@
           "mode": "query"
         },
         {
-          "name": "assemble_kit",
-          "mode": "mutation"
-        },
-        {
-          "name": "kits",
+          "name": "purchase_match",
           "mode": "query"
         },
         {
-          "name": "purchase_match",
+          "name": "plan_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "revise_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "pick_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "put_back_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "outbound_deliveries",
+          "mode": "query"
+        },
+        {
+          "name": "outbound_delivery_detail",
           "mode": "query"
         },
         {
@@ -1604,10 +1628,6 @@
           "mode": "query"
         },
         {
-          "name": "settle_payout",
-          "mode": "mutation"
-        },
-        {
           "name": "record_packaged_execution",
           "mode": "mutation"
         },
@@ -1617,10 +1637,6 @@
         },
         {
           "name": "record_customer_exchange",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         },
         {
@@ -1640,20 +1656,13 @@
         "movement",
         "transfer",
         "adjustment",
-        "failed delivery",
-        "undeliverable",
-        "refused delivery",
-        "lost parcel",
         "Warenausgang",
         "Lagerbewegung",
         "Umlagerung",
         "Bestandsanpassung",
         "Sendung",
         "Packstück",
-        "Tracking",
-        "Unzustellbar",
-        "Annahmeverweigerung",
-        "Paketverlust"
+        "Tracking"
       ],
       "evidence_ids": [
         "evidence_command_propose_cost_review",
@@ -1670,9 +1679,13 @@
         "evidence_command_scrap_stock_block",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
-        "evidence_command_assemble_kit",
-        "evidence_command_kits",
         "evidence_command_purchase_match",
+        "evidence_command_plan_outbound_delivery",
+        "evidence_command_revise_outbound_delivery",
+        "evidence_command_pick_outbound_delivery",
+        "evidence_command_put_back_outbound_delivery",
+        "evidence_command_outbound_deliveries",
+        "evidence_command_outbound_delivery_detail",
         "evidence_command_record_stock_count",
         "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
@@ -1681,14 +1694,11 @@
         "evidence_command_close_stale_promises",
         "evidence_command_record_sales_credit",
         "evidence_command_billable_positions",
-        "evidence_command_settle_payout",
-        "evidence_command_payout_detail",
         "evidence_command_record_shipment_notice",
         "evidence_command_record_packaged_execution",
         "evidence_command_record_shipment_event",
         "evidence_command_supersede_shipment_event",
         "evidence_command_record_customer_exchange",
-        "evidence_command_record_delivery_failure",
         "evidence_command_record_return_disposition"
       ],
       "tools": [
@@ -1749,15 +1759,31 @@
           "mode": "query"
         },
         {
-          "name": "assemble_kit",
-          "mode": "mutation"
-        },
-        {
-          "name": "kits",
+          "name": "purchase_match",
           "mode": "query"
         },
         {
-          "name": "purchase_match",
+          "name": "plan_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "revise_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "pick_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "put_back_outbound_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "outbound_deliveries",
+          "mode": "query"
+        },
+        {
+          "name": "outbound_delivery_detail",
           "mode": "query"
         },
         {
@@ -1793,14 +1819,6 @@
           "mode": "query"
         },
         {
-          "name": "settle_payout",
-          "mode": "mutation"
-        },
-        {
-          "name": "payout_detail",
-          "mode": "query"
-        },
-        {
           "name": "record_shipment_notice",
           "mode": "mutation"
         },
@@ -1818,10 +1836,6 @@
         },
         {
           "name": "record_customer_exchange",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         },
         {
@@ -2069,12 +2083,6 @@
         "evidence_command_record_return",
         "evidence_command_returns",
         "evidence_command_return_detail",
-        "evidence_command_settle_payout",
-        "evidence_command_payouts",
-        "evidence_command_payout_detail",
-        "evidence_command_record_authorization",
-        "evidence_command_record_capture",
-        "evidence_command_authorizations",
         "evidence_command_allocate_credit_note",
         "evidence_command_post_customer_refund",
         "evidence_command_allocate_supplier_credit_note",
@@ -2144,30 +2152,6 @@
         },
         {
           "name": "return_detail",
-          "mode": "query"
-        },
-        {
-          "name": "settle_payout",
-          "mode": "mutation"
-        },
-        {
-          "name": "payouts",
-          "mode": "query"
-        },
-        {
-          "name": "payout_detail",
-          "mode": "query"
-        },
-        {
-          "name": "record_authorization",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_capture",
-          "mode": "mutation"
-        },
-        {
-          "name": "authorizations",
           "mode": "query"
         },
         {
@@ -2286,8 +2270,6 @@
         "evidence_command_confirm_run",
         "evidence_command_record_handover",
         "evidence_command_record_return",
-        "evidence_command_settle_payout",
-        "evidence_command_payout_detail",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -2301,8 +2283,7 @@
         "evidence_command_settlement_context",
         "evidence_command_apply_settlement",
         "evidence_command_opening_context",
-        "evidence_command_import_opening",
-        "evidence_command_record_delivery_failure"
+        "evidence_command_import_opening"
       ],
       "tools": [
         {
@@ -2542,14 +2523,6 @@
           "mode": "mutation"
         },
         {
-          "name": "settle_payout",
-          "mode": "mutation"
-        },
-        {
-          "name": "payout_detail",
-          "mode": "query"
-        },
-        {
           "name": "record_sales_invoice",
           "mode": "mutation"
         },
@@ -2603,10 +2576,6 @@
         },
         {
           "name": "import_opening",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         }
       ]
@@ -2802,7 +2771,6 @@
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_hold_document_commitments",
         "evidence_command_release_credit_holds",
-        "evidence_command_kit_split",
         "evidence_command_purchase_match",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
@@ -2832,10 +2800,6 @@
         "evidence_command_record_return",
         "evidence_command_returns",
         "evidence_command_return_detail",
-        "evidence_command_settle_payout",
-        "evidence_command_payouts",
-        "evidence_command_payout_detail",
-        "evidence_command_record_authorization",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -2846,9 +2810,10 @@
         "evidence_command_post_supplier_payment",
         "evidence_command_adjustment_context",
         "evidence_command_accept_adjustment",
+        "evidence_command_settlement_context",
         "evidence_command_apply_settlement",
         "evidence_command_import_opening",
-        "evidence_command_record_delivery_failure",
+        "evidence_command_record_customer_exchange",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -2981,10 +2946,6 @@
           "mode": "mutation"
         },
         {
-          "name": "kit_split",
-          "mode": "query"
-        },
-        {
           "name": "purchase_match",
           "mode": "query"
         },
@@ -3101,22 +3062,6 @@
           "mode": "query"
         },
         {
-          "name": "settle_payout",
-          "mode": "mutation"
-        },
-        {
-          "name": "payouts",
-          "mode": "query"
-        },
-        {
-          "name": "payout_detail",
-          "mode": "query"
-        },
-        {
-          "name": "record_authorization",
-          "mode": "mutation"
-        },
-        {
           "name": "record_sales_invoice",
           "mode": "mutation"
         },
@@ -3157,6 +3102,10 @@
           "mode": "mutation"
         },
         {
+          "name": "settlement_context",
+          "mode": "read"
+        },
+        {
           "name": "apply_settlement",
           "mode": "mutation"
         },
@@ -3165,7 +3114,7 @@
           "mode": "mutation"
         },
         {
-          "name": "record_delivery_failure",
+          "name": "record_customer_exchange",
           "mode": "mutation"
         },
         {

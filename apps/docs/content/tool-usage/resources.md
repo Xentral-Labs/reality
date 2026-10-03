@@ -14,10 +14,10 @@ the technical key stands beside each one.
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 16      | 15                  |
-| [Delivery and goods receipt](#resource-delivery)                 | 2     | 7       | 2                   |
-| [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
+| [Delivery and goods receipt](#resource-delivery)                 | 2     | 10      | 2                   |
+| [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
-| [Payment and settlement](#resource-payment)                      | 2     | 11      | 5                   |
+| [Payment and settlement](#resource-payment)                      | 2     | 8       | 3                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 16      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
@@ -390,9 +390,8 @@ Every physical change of stock is an append-only movement; corrections add a com
 instead of editing. A shipment is the consignment that carries movements to or from a counterparty,
 with carrier observations attached.
 
-**Also called:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
-delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
-Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
+**Also called:** goods receipt, goods issue, shipment, movement, transfer, adjustment, Warenausgang,
+Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
 
 **Lists**
 
@@ -403,18 +402,26 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
 
 - [Record movement](./commands#command-record_movement) (`record_movement`)
 - [Correct movement](./commands#command-correct_movement) (`correct_movement`)
+- [Plan an outbound delivery](./commands#command-plan_outbound_delivery) (`plan_outbound_delivery`)
+- [Revise a planned delivery](./commands#command-revise_outbound_delivery)
+  (`revise_outbound_delivery`)
+- [Pick a planned delivery](./commands#command-pick_outbound_delivery) (`pick_outbound_delivery`)
+- [Put back picked goods](./commands#command-put_back_outbound_delivery)
+  (`put_back_outbound_delivery`)
 - [Record shipment notice](./commands#command-record_shipment_notice) (`record_shipment_notice`)
 - [Dispatch or receive shipment package](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
 - [Record shipment event](./commands#command-record_shipment_event) (`record_shipment_event`)
 - [Supersede shipment event](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
-- [Record a failed delivery](./commands#command-record_delivery_failure) (`record_delivery_failure`)
 
 **Look up**
 
 - [Read the three-way match of a purchase order](./commands#command-purchase_match)
   (`purchase_match`)
+- [Read planned deliveries](./commands#command-outbound_deliveries) (`outbound_deliveries`)
+- [Read a planned delivery](./commands#command-outbound_delivery_detail)
+  (`outbound_delivery_detail`)
 - [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
 
 **Exceptions to clear**
@@ -427,19 +434,22 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
 [Customer returns](./processes#process-returns)
 
 **Underneath:** Tables: `movement`, `movement_correction`, `shipment`, `shipment_package`,
-`shipment_event`, `shipment_event_supersession`, `delivery_failure` · Events:
+`shipment_event`, `shipment_event_supersession`, `outbound_delivery`, `outbound_delivery_line`,
+`outbound_delivery_pick` · Events:
 [`shipment.notice_recorded`](./events#event-shipment-notice_recorded),
 [`shipment.event_recorded`](./events#event-shipment-event_recorded),
 [`shipment.event_superseded`](./events#event-shipment-event_superseded),
 [`commitment.fulfilled`](./events#event-commitment-fulfilled),
 [`reservation.consumed`](./events#event-reservation-consumed),
-[`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
+[`outbound_delivery.planned`](./events#event-outbound_delivery-planned),
+[`outbound_delivery.revised`](./events#event-outbound_delivery-revised),
+[`outbound_delivery.picked`](./events#event-outbound_delivery-picked),
+[`outbound_delivery.put_back`](./events#event-outbound_delivery-put_back),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agent tools without a command:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
-[`movement_explanation`](./commands#tool-movement_explanation),
-[`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
+[`movement_explanation`](./commands#tool-movement_explanation)
 
 ## Lot, serial number and pallet {#resource-lot}
 
@@ -465,8 +475,6 @@ NVE/SSCC. Best-before dates are stated by someone who read them, never computed.
 **Exceptions to clear**
 
 - [Expired stock on hand](./exceptions#exception-stock_expired) (`stock_expired`)
-- [Payment authorization expired](./exceptions#exception-payment_authorization_expired)
-  (`payment_authorization_expired`)
 
 **Underneath:** Tables: `lot`, `serial_unit`, `handling_unit` · Events:
 [`handling_unit.created`](./events#event-handling_unit-created),
@@ -586,9 +594,6 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
   (`record_down_payment_invoice`)
 - [Post customer payment](./commands#command-post_customer_payment) (`post_customer_payment`)
 - [Execute payment run](./commands#command-execute_payment_run) (`execute_payment_run`)
-- [Settle a payout](./commands#command-settle_payout) (`settle_payout`)
-- [Record a payment authorization](./commands#command-record_authorization) (`record_authorization`)
-- [Record a payment capture](./commands#command-record_capture) (`record_capture`)
 - [Post customer refund](./commands#command-post_customer_refund) (`post_customer_refund`)
 - [Post supplier refund](./commands#command-post_supplier_refund) (`post_supplier_refund`)
 - [Post supplier payment](./commands#command-post_supplier_payment) (`post_supplier_payment`)
@@ -600,9 +605,6 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [Preview payment run](./commands#command-preview_payment_run) (`preview_payment_run`)
 - [Preview dunning run](./commands#command-run_context) (`run_context`)
-- [List payouts](./commands#command-payouts) (`payouts`)
-- [Read a payout](./commands#command-payout_detail) (`payout_detail`)
-- [List payment authorizations](./commands#command-authorizations) (`authorizations`)
 - [Read settlement reduction context](./commands#command-adjustment_context) (`adjustment_context`)
 - [Read payment and credit context](./commands#command-settlement_context) (`settlement_context`)
 
@@ -613,18 +615,12 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 - [Unmatched financial event](./exceptions#exception-unmatched_financial_event)
   (`unmatched_financial_event`)
 - [Payment returned](./exceptions#exception-payment_returned) (`payment_returned`)
-- [Payout lines not booked](./exceptions#exception-payout_line_unmatched) (`payout_line_unmatched`)
-- [Payment authorization expired](./exceptions#exception-payment_authorization_expired)
-  (`payment_authorization_expired`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay),
 [Customer returns](./processes#process-returns)
 
-**Underneath:** Tables: `settlement_allocation`, `payment_authorization`, `payment_capture` ·
-Events: [`payout.settled`](./events#event-payout-settled),
-[`payment.authorized`](./events#event-payment-authorized),
-[`payment.captured`](./events#event-payment-captured),
+**Underneath:** Tables: `settlement_allocation` · Events:
 [`payments.run`](./events#event-payments-run),
 [`settlement.allocated`](./events#event-settlement-allocated) · Agent tools without a command:
 [`finance_balances`](./commands#tool-finance_balances),

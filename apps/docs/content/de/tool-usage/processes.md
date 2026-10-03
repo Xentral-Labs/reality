@@ -81,6 +81,8 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 
 **Aktionen**
 
+- [Lieferung planen](./commands#command-plan_outbound_delivery) (`plan_outbound_delivery`)
+- [Lieferung kommissionieren](./commands#command-pick_outbound_delivery) (`pick_outbound_delivery`)
 - [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
 - [Sendungsavis erfassen](./commands#command-record_shipment_notice) (`record_shipment_notice`)
