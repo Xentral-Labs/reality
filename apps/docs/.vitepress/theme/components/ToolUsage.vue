@@ -3010,3 +3010,37 @@ const explorerIntro = computed(() => {
   line-height: 1.7;
 }
 </style>
+
+<style scoped>
+/* Technical section headings frame content; values and destinations stay subordinate. */
+.tool-usage-detail .man-title {
+  margin: 28px 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+  border-radius: 0 4px 4px 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+.tool-usage-detail .man-title:first-of-type {
+  margin-top: 20px;
+}
+.tool-usage-detail .read-execution strong {
+  font-weight: 400;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+}
+.tool-usage-detail .man-links .row-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--vp-c-brand-1);
+}
+.tool-usage-detail .man-links code {
+  font-size: 11px;
+  color: var(--vp-c-text-2);
+}
+.tool-usage-detail .man-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+</style>
