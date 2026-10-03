@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:7a3df2b5c3da4659d0d735a572265df17afe443035352dad87384fc175b87ba7",
+  "knowledge_version": "advisor-v1:sha256:971c76936c271a3298a9e54febd25aece2243137e8d77e4818ee8791b70008c3",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1620,7 +1620,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L11",
-      "fingerprint": "3573850d98a64e7d7a26801f6a6830a337537c2b8f43ac7083e4bebc8b68aded"
+      "fingerprint": "c862885ad42a6641b50b530eb4f485da7d3afc0f47b3156f960721b77db71563"
     },
     {
       "id": "source_journey_l12",
@@ -1953,7 +1953,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#Q02",
-      "fingerprint": "98871a1431d892a185656afac6f4fbc3263672ca4b5e500e1727d9455395141e"
+      "fingerprint": "844d0cc294ee04b358d82001d5254327329678d3c3d622756985522bcbe1d659"
     },
     {
       "id": "source_journey_q03",
@@ -1971,7 +1971,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#Q04",
-      "fingerprint": "7621b1edd886465d83cf41c01087fbb5626c7779251d8941dd77b7fb04bdcaa9"
+      "fingerprint": "6c54541288404188d864136e033ee3d4bbb6301052da4441eb97cf4c318a4695"
     },
     {
       "id": "source_journey_q05",
@@ -5259,16 +5259,17 @@
       "subject": "E-commerce and marketplaces",
       "title": "OSS: EU consumer, destination-country VAT",
       "search_text": "L11 E-commerce and marketplaces OSS: EU consumer, destination-country VAT Tax rate as stated by the source? OSS: EU consumer, destination-country VAT Tax rate as stated by the source?",
-      "claim_text": "Reality evaluates: Tax rate as stated by the source?",
+      "claim_text": "Reality evaluates: Tax rate as stated by the source? Reality keeps the tax a source states and never determines or back-calculates a rate; the destination-country rate is the shop's and the accounting system's job.",
       "support": "unavailable",
       "limitations": [
-        "The tax rate stated by the shop stays in the original source record; Reality does not record it on the order."
+        "A rate the shop states stays in the original source record; Reality does not type or calculate it.",
+        "A source that states only gross amounts gets no derived rate, so no rounding is introduced."
       ],
       "references": [
         "L11"
       ],
       "language": "en",
-      "fingerprint": "d151468f6fa968c556af11eaa2ce678905f952a6d316943a0d222763a4cbc9f8"
+      "fingerprint": "38c446947736a17fd32a0698ef9380070baec5632abff8b9af4835473b5b7b66"
     },
     {
       "id": "evidence_journey_l12",
@@ -5909,7 +5910,7 @@
       "subject": "Time and period",
       "title": "Backdated posting into a closed period",
       "search_text": "Q02 Time and period Backdated posting into a closed period Refused or flagged? Backdated posting into a closed period Refused or flagged?",
-      "claim_text": "Reality evaluates: Refused or flagged?",
+      "claim_text": "Reality evaluates: Refused or flagged? Reality is not the bookkeeping system: it has no accounting periods, so closing a period and locking backdated postings belong to the accounting system that receives the records.",
       "support": "unavailable",
       "limitations": [
         "There are no accounting periods or period closes, so a backdated posting is neither refused nor flagged."
@@ -5918,7 +5919,7 @@
         "Q02"
       ],
       "language": "en",
-      "fingerprint": "3cbbb49901c979d32264d71f9272e058a81b33dfd9c5012c5975fb50ef44528c"
+      "fingerprint": "03655c8724b11e022419a0850fd15113d261d1e3d22d8cad6caf7b5347e43e99"
     },
     {
       "id": "evidence_journey_q03",
@@ -5940,18 +5941,17 @@
       "source_id": "source_journey_q04",
       "subject": "Time and period",
       "title": "Year end with open backorders and purchases",
-      "search_text": "Q04 Time and period Year end with open backorders and purchases Carried over correctly? Year end with open backorders and purchases Carried over correctly?",
-      "claim_text": "Reality evaluates: Carried over correctly?",
-      "support": "unavailable",
+      "search_text": "Q04 Time and period Year end with open backorders and purchases Carried over correctly? year end open backorders carry over Jahreswechsel offene Rückstände Year end with open backorders and purchases Carried over correctly? Was passiert mit offenen Aufträgen zum Jahreswechsel?",
+      "claim_text": "Reality evaluates: Carried over correctly? There is no period to close, so open orders and purchases stay open across the year end, and deliveries keep the dates they were stated with.",
+      "support": "proven",
       "limitations": [
-        "There are no periods and therefore no carry-over; open orders and purchases simply stay open.",
-        "A year-end crossing is not yet proven."
+        "Reality has no accounting periods; a year-end close belongs to the accounting system."
       ],
       "references": [
         "Q04"
       ],
       "language": "en",
-      "fingerprint": "a911012cf15cc3457e4790a3d4d5fb2bf11426adba907c4e6b24d5be141b5238"
+      "fingerprint": "879f01d2a5a133cd45c577cfe8c5421561bd3062d0ddbf4d9e46b33547c1f1f7"
     },
     {
       "id": "evidence_journey_q05",

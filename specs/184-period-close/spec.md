@@ -2,7 +2,7 @@
 
 **Feature Branch**: `184-period-close`
 **Created**: 2026-09-12
-**Status**: Proposed (stub; scope to be written)
+**Status**: Deferred (owner decision 2026-10-03, [spec 340](../340-accounting-boundary/spec.md): Reality is not an accounting system)
 **Language**: English
 **Input**: Follow-up from [Storyline mode](../182-storyline-mode/spec.md): the owner's story
 closes the month and carries open findings into the next period. Research R7 of spec 182

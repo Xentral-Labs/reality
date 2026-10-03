@@ -4420,11 +4420,12 @@ entries:
   section: E-commerce and marketplaces
   title: 'OSS: EU consumer, destination-country VAT'
   question: Tax rate as stated by the source?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Tax rate as stated by the source?'
+  status: out_of_scope
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Tax rate as stated by the source? Reality keeps the tax a source states and never determines or back-calculates a rate; the destination-country rate is the shop''s and the accounting system''s job.'
   limitations:
-  - The tax rate stated by the shop stays in the original source record; Reality does not record it on the order.
+  - A rate the shop states stays in the original source record; Reality does not type or calculate it.
+  - A source that states only gross amounts gets no derived rate, so no rounding is introduced.
   keywords: []
   question_examples:
   - 'OSS: EU consumer, destination-country VAT'
@@ -4434,8 +4435,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: db/core.py Document/DocumentLine (no tax fields); docs/features/demo-data-catalog.md "Deliberate limitations"
-    note: The tax rate lives only in the raw payload; the Shopify interpreter does not record it.
+  - reference: specs/340-accounting-boundary/spec.md Non-Goals (no tax rate determined or derived)
+    note: Tax is recorded as stated (spec 284) and a rate is never derived from amounts; the shop states the destination-country tax.
 - id: L12
   section: E-commerce and marketplaces
   title: Shipment to Switzerland/UK (customs, DDP/DAP)
@@ -5316,9 +5317,9 @@ entries:
   section: Time and period
   title: Backdated posting into a closed period
   question: Refused or flagged?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Refused or flagged?'
+  status: out_of_scope
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Refused or flagged? Reality is not the bookkeeping system: it has no accounting periods, so closing a period and locking backdated postings belong to the accounting system that receives the records.'
   limitations:
   - There are no accounting periods or period closes, so a backdated posting is neither refused nor flagged.
   keywords: []
@@ -5330,8 +5331,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: specs/184-period-close/spec.md (stub, "no period record")
-    note: There's no period or close record, so a backdated posting is neither refused nor flagged.
+  - reference: specs/340-accounting-boundary/spec.md Non-Goals (no accounting periods, close or posting locks)
+    note: The owner decided Reality is not an accounting system; the period close stub of spec 184 is deferred.
 - id: Q03
   section: Time and period
   title: Stock as of 31 December
@@ -5355,23 +5356,28 @@ entries:
   section: Time and period
   title: Year end with open backorders and purchases
   question: Carried over correctly?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Carried over correctly?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Carried over correctly? There is no period to close, so open orders and purchases stay open across the year end, and deliveries keep the dates they were stated with.'
   limitations:
-  - There are no periods and therefore no carry-over; open orders and purchases simply stay open.
-  - A year-end crossing is not yet proven.
-  keywords: []
+  - Reality has no accounting periods; a year-end close belongs to the accounting system.
+  keywords:
+  - year end
+  - open backorders
+  - carry over
+  - Jahreswechsel
+  - offene Rückstände
   question_examples:
   - Year end with open backorders and purchases
   - Carried over correctly?
+  - Was passiert mit offenen Aufträgen zum Jahreswechsel?
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: specs/184-period-close/spec.md
-    note: With no period concept there is no carry-over; open promises simply stay open, and no test crosses a year boundary.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_time.py::test_open_orders_and_purchases_carry_over_the_year_end
+    note: An order and a purchase of 10 with 4 received and shipped in December keep 6 open across the year end; the January delivery fulfils both with December's 4 still counted.
 - id: Q05
   section: Time and period
   title: 'Time zones: order at 23:30 in New York'

@@ -2343,3 +2343,9 @@ Tables `misdelivery` (a wrong-item movement's link to the line it was meant for)
 - `packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py`: stories H04, H05, H06, H07, H17, G16 and D05.
 - `packages/reality-core/tests/test_receipt_deviation_migration.py`: the three tables come and go, and recorded rows block a rollback.
 - `packages/reality-core/tests/test_reporting_graph_coverage.py`: the three tables are deferred operational workflow records.
+
+## Reality is not an accounting system — Spec 340
+
+No code change. The Business Journey Guide states L11 (tax determination) and Q02 (period close) as out of scope, and Q04 is proven.
+
+- `packages/reality-core/tests/scenarios/test_catalog_time.py::test_open_orders_and_purchases_carry_over_the_year_end`: an order and a purchase keep what is open across the year end, and January's delivery fulfils both with December's still counted (Q04).
