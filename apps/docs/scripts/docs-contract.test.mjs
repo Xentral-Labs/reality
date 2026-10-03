@@ -325,7 +325,7 @@ const requiredAreas = [
   ["Agents", "agent-playbooks/index.md"],
   ["API and agent interfaces", "api-tools/index.md"],
   ["Installation & Operations", "operations/index.md"],
-  ["Reality Core Development", "development/index.md"],
+  ["Extending Reality", "development/index.md"],
   ["Tool Usage", "tool-usage/index.md"],
   ["Storylines", "storylines/index.md"],
   ["Demo data guide", "getting-started/demo-data.md"],
@@ -605,7 +605,12 @@ test("technical guidance gives code-grounded ERP extension paths", () => {
     "index.md",
     "connectors.md",
     "commands.md",
-    "derived-views.md",
+    "views.md",
+    "projections.md",
+    "reference.md",
+    "first-extension.md",
+    "api-cli.md",
+    "exceptions.md",
     "application-surfaces.md",
   ];
   const developmentRoot = path.join(contentRoot, "development");
@@ -614,10 +619,12 @@ test("technical guidance gives code-grounded ERP extension paths", () => {
     .join("\n");
   for (const term of [
     "Repository map",
-    "Connect an ERP System",
-    "Implement Business Operations",
-    "Develop Metrics and Operational Warnings",
-    "Expose Functions through API and MCP",
+    "Connect ERP and Data Sources",
+    "Develop Commands",
+    "Develop Views",
+    "Develop Projections",
+    "Develop Exceptions",
+    "Add Entrypoints",
     "SOURCE_INTERPRETERS",
     "mutating=True",
     "OPERATIONAL_PROJECTIONS",
@@ -646,7 +653,8 @@ test("ERP customization separates implementation work from Reality Core developm
     "What Can Be Adapted?",
     "connector transport and order interpreter",
     "workspace catalog",
-    "Reality Core development",
+    "Configuration or development?",
+    "../development/first-extension",
   ]) {
     assert.ok(customization.includes(term), `Missing customization guidance: ${term}`);
   }
@@ -660,7 +668,7 @@ test("ERP customization separates implementation work from Reality Core developm
     assert.ok(example.includes(term), `Missing end-to-end ERP example: ${term}`);
   }
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
-  assert.ok(config.includes('development: "Reality-Core-Entwicklung"'));
+  assert.ok(config.includes('development: "Reality erweitern"'));
   assert.match(config, /text: labels\.development,\s+collapsed: true/u);
 });
 
@@ -712,8 +720,8 @@ test("technical interface guide shares labels and actual operation links", () =>
   );
   const guide = model.interface_guide;
   assert.ok(guide, "generated interface guide missing");
-  assert.equal(guide.kinds.action.label.en, "Web actions");
-  assert.equal(guide.kinds.action.label.de, "Web-Aktionen");
+  assert.equal(guide.kinds.action.label.en, "Web Actions");
+  assert.equal(guide.kinds.action.label.de, "Web Actions");
   const byId = new Map(model.entries.map((entry) => [entry.id, entry]));
   for (const kind of ["action", "command", "tool"])
     assert.equal(byId.get(guide.example[kind]).kind, kind);
@@ -761,7 +769,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
   const commands = fs.readFileSync(path.join(contentRoot, "tool-usage", "commands.md"), "utf8");
   for (const term of [
     "## Finance",
-    "## Agent tools without a business command",
+    "## Agent Tools without a business command",
     "**Synopsis**",
     "**Parameters**",
     "**Reach via:**",
@@ -787,7 +795,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
     "## Workspaces",
     "## Views",
     "## Projections",
-    "## Web actions",
+    "## Web Actions",
     "{#view-inventory}",
     "{#projection-inventory}",
     "{#action-reserve_stock}",
@@ -1230,6 +1238,23 @@ test("theme contracts preserve narrow-screen and keyboard usability", () => {
   assert.match(styles, /overflow-x: auto/u);
 });
 
+test("documentation gives prose tables room and retains the existing responsive outline", () => {
+  const styles = fs.readFileSync(path.join(docsRoot, ".vitepress/theme/custom.css"), "utf8");
+  assert.match(styles, /--vp-layout-max-width:\s*min\(1680px, 100vw\)/u);
+  assert.match(styles, /\.VPDoc\.has-aside\s+\.content-container\s*\{[^}]*max-width:\s*960px/u);
+  assert.match(
+    styles,
+    /@media \(max-width: 1919px\)[\s\S]*?\.VPDoc \.aside\s*\{[^}]*display:\s*none/u,
+  );
+  assert.match(
+    styles,
+    /@media \(min-width: 1280px\) and \(max-width: 1919px\)[\s\S]*?\.VPLocalNav:not\(\.empty\)\s*\{[^}]*display:\s*block/u,
+  );
+  assert.match(styles, /\.vp-doc :is\(th, td\) code\s*\{[^}]*white-space:\s*normal/u);
+  assert.match(styles, /table:not\(:has\(th:nth-child\(6\)\)\)\s*\{[^}]*table-layout:\s*fixed/u);
+  assert.match(styles, /\.vp-doc table\s*\{[^}]*overflow-x:\s*auto/u);
+});
+
 test("documentation does not leak custom-container markup into rendered text", () => {
   for (const file of markdownFiles(contentRoot)) {
     const content = fs.readFileSync(file, "utf8");
@@ -1406,5 +1431,461 @@ test("the docs dark ground matches the product rather than the VitePress default
       Math.abs(a.saturation - b.saturation) <= 20,
       `--${docsToken} (${here}) is ${Math.round(a.saturation)}% saturated; the app's --${appToken} (${there}) is ${Math.round(b.saturation)}%`,
     );
+  }
+});
+
+test("extension navigation leads data-source guides with the shared concept", () => {
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
+  assert.match(
+    config,
+    /text: labels\.connectors,[\s\S]*?items: \[[\s\S]*?labels\.connectorContract[\s\S]*?labels\.exampleErp/u,
+  );
+  assert.ok(config.includes('"/development/exceptions"'));
+  for (const locale of ["", "de/"]) {
+    const overview = fs.readFileSync(
+      path.join(contentRoot, locale, "development/index.md"),
+      "utf8",
+    );
+    for (const term of ["Command", "View", "Projection", "Agent Tool", "Web Action"])
+      assert.ok(overview.includes(term), `${locale}: ${term}`);
+    const derived = fs.readFileSync(
+      path.join(contentRoot, locale, "development/derived-views.md"),
+      "utf8",
+    );
+    assert.ok(derived.includes("./exceptions"));
+    assert.ok(fs.existsSync(path.join(contentRoot, locale, "development/exceptions.md")));
+  }
+});
+
+test("extension tutorials give source-backed Agent Tool and Web Action templates in both languages", () => {
+  const repoRoot = path.resolve(docsRoot, "../..");
+  const registry = fs.readFileSync(
+    path.join(repoRoot, "packages/reality-core/src/reality/mcp/catalog.py"),
+    "utf8",
+  );
+  const workspace = fs.readFileSync(
+    path.join(repoRoot, "packages/reality-core/config/workspace_catalog.yaml"),
+    "utf8",
+  );
+  for (const locale of ["", "de/"]) {
+    const agent = fs.readFileSync(
+      path.join(contentRoot, locale, "development/agent-tools.md"),
+      "utf8",
+    );
+    for (const key of [
+      "reservation_propose",
+      "proposal_approve_and_execute",
+      "inventory_read",
+      '_propose("reserve")',
+      "test_agent_command_parity.py",
+    ])
+      assert.ok(agent.includes(key), `${locale}: ${key}`);
+    const excerpt = agent.match(/```python\n([\s\S]*?)\n```/u)[1];
+    assert.ok(registry.includes(excerpt), "MCP example is copied from the actual registry");
+    const action = fs.readFileSync(
+      path.join(contentRoot, locale, "development/web-actions.md"),
+      "utf8",
+    );
+    assert.ok(workspace.includes("key: reserve_stock"));
+    for (const key of [
+      "key: reserve_stock",
+      "command: reserve",
+      "confirmation: summary",
+      "ActionLauncher.tsx",
+      "CommitmentActionCard.tsx",
+      "make docs-generate",
+    ])
+      assert.ok(action.includes(key), `${locale}: ${key}`);
+    const commands = fs.readFileSync(
+      path.join(contentRoot, locale, "development/commands.md"),
+      "utf8",
+    );
+    assert.ok(commands.includes("./agent-tools") && commands.includes("./web-actions"));
+    const projection = fs.readFileSync(
+      path.join(contentRoot, locale, "development/projections.md"),
+      "utf8",
+    );
+    assert.ok(projection.includes("`_inventory_rows`"));
+    assert.ok(!projection.includes("`inventory_position`"));
+  }
+});
+
+test("extension handbook has a consistent bilingual learning path and building-block-first orientation", () => {
+  const chapters = [
+    "views",
+    "projections",
+    "commands",
+    "exceptions",
+    "agent-tools",
+    "web-actions",
+    "connectors",
+    "api-cli",
+  ];
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
+  const navigation = config.slice(config.indexOf("text: labels.development,"));
+  let previousLink = -1;
+  for (const route of [
+    "/development/",
+    "/integrations/customization",
+    "/development/first-extension",
+    "/development/views",
+    "/development/projections",
+    "/development/commands",
+    "/development/exceptions",
+    "/development/application-surfaces",
+    "/development/agent-tools",
+    "/development/web-actions",
+    "/development/api-cli",
+    "/development/connectors",
+    "/development/reference",
+  ]) {
+    const index = navigation.indexOf(`"${route}"`);
+    assert.ok(index > previousLink, `learning navigation: ${route}`);
+    previousLink = index;
+  }
+  const headings = {
+    "": [
+      "What you will learn",
+      "When to use it",
+      "Before you start",
+      "Worked example",
+      "Step by step",
+      "Check the result",
+      "Try it yourself",
+      "Common mistakes",
+      "Continue",
+    ],
+    "de/": [
+      "Das lernst du",
+      "Wann du diesen Baustein brauchst",
+      "Bevor du beginnst",
+      "Durchgearbeitetes Beispiel",
+      "Schritt für Schritt",
+      "Ergebnis prüfen",
+      "Selbst ausprobieren",
+      "Häufige Fehler",
+      "Weiterlesen",
+    ],
+  };
+  for (const locale of ["", "de/"]) {
+    const root = path.join(contentRoot, locale, "development");
+    const overview = fs.readFileSync(path.join(root, "index.md"), "utf8");
+    assert.match(overview, locale ? /\| Baustein\s*\| Wofür/ : /\| Building block\s*\| Purpose/u);
+    for (const chapter of [...chapters, "first-extension", "reference"])
+      assert.ok(fs.existsSync(path.join(root, `${chapter}.md`)), `${locale}${chapter}`);
+    for (const chapter of chapters) {
+      const text = fs.readFileSync(path.join(root, `${chapter}.md`), "utf8");
+      let previous = -1;
+      for (const heading of headings[locale]) {
+        const index = text.indexOf(`## ${heading}`);
+        assert.ok(index > previous, `${locale}${chapter}: ${heading}`);
+        previous = index;
+      }
+    }
+    const legacy = fs.readFileSync(path.join(root, "derived-views.md"), "utf8");
+    for (const target of ["./views", "./projections", "./exceptions"])
+      assert.ok(legacy.includes(target), target);
+    const anchors = locale
+      ? [
+          "Eine View ergänzen",
+          "Eine Projection ergänzen",
+          "Eine Ausnahmeableitung ergänzen",
+          "Vorlage für eine View: Lagerarbeitsvorrat",
+          "Erfolgsnachweis für eine Projection",
+          "Codebeispiel: Bestandsposition",
+        ]
+      : [
+          "Add a View",
+          "Add a Projection",
+          "Add an Exception derivation",
+          "View template: warehouse queue",
+          "Prove a Projection works",
+          "Code example: inventory position",
+        ];
+    for (const heading of anchors) assert.ok(legacy.includes(heading), heading);
+    const projection = fs.readFileSync(path.join(root, "projections.md"), "utf8");
+    const builder = projection.match(/```python\n([\s\S]*?)\n```/u)[1];
+    const source = fs.readFileSync(
+      path.join(docsRoot, "../../packages/reality-core/src/reality/services/projections.py"),
+      "utf8",
+    );
+    assert.ok(source.includes(builder), "Projection builder is source-exact");
+  }
+});
+
+test("vendor integration guides define complete scope without claiming unimplemented connectors", () => {
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
+  const core = fs.readFileSync(
+    path.join(docsRoot, "../../packages/reality-core/src/reality/services/core.py"),
+    "utf8",
+  );
+  const registry = core.match(/SOURCE_INTERPRETERS = \{([\s\S]*?)\n\}/u)[1];
+  assert.ok(
+    registry.includes('("shopify", "order")') && registry.includes('("shopify", "refund")'),
+  );
+  assert.ok(!registry.includes('("xentral",') && !registry.includes('("odoo",'));
+  const headings = {
+    "": [
+      "What complete means",
+      "Before you start",
+      "Current implementation",
+      "Coverage matrix",
+      "Step by step",
+      "End-to-end acceptance story",
+      "Verify and operate",
+      "References and next steps",
+    ],
+    "de/": [
+      "Was vollständig bedeutet",
+      "Bevor du beginnst",
+      "Aktueller Implementierungsstand",
+      "Abdeckungsmatrix",
+      "Schritt für Schritt",
+      "Durchgehender Abnahmefall",
+      "Prüfen und betreiben",
+      "Referenzen und nächste Schritte",
+    ],
+  };
+  for (const locale of ["", "de/"]) {
+    for (const vendor of ["xentral", "shopify", "odoo"]) {
+      assert.ok(config.includes(`"/integrations/${vendor}"`), vendor);
+      const page = fs.readFileSync(
+        path.join(contentRoot, locale, `integrations/${vendor}.md`),
+        "utf8",
+      );
+      let previous = -1;
+      for (const heading of headings[locale]) {
+        const index = page.indexOf(`## ${heading}`);
+        assert.ok(index > previous, `${locale}${vendor}: ${heading}`);
+        previous = index;
+      }
+      for (const term of [
+        "SOURCE_INTERPRETERS",
+        "connector_catalog.yaml",
+        "SourceRecord",
+        "./connector-contract",
+        "10",
+        "4",
+        "2",
+        "100",
+        "40",
+        "20",
+      ])
+        assert.ok(page.includes(term), `${locale}${vendor}: ${term}`);
+      assert.ok(
+        page.includes(
+          vendor === "odoo"
+            ? "odoo.com/documentation/19.0"
+            : vendor === "shopify"
+              ? "shopify.dev"
+              : "developer.xentral.com",
+        ),
+      );
+      const connector = fs.readFileSync(
+        path.join(contentRoot, locale, "development/connectors.md"),
+        "utf8",
+      );
+      assert.ok(connector.includes(`../integrations/${vendor}`));
+      const pilot = fs.readFileSync(
+        path.join(contentRoot, locale, "integrations/parallel-test.md"),
+        "utf8",
+      );
+      assert.ok(pilot.includes(`./${vendor}`));
+    }
+    const contract = fs.readFileSync(
+      path.join(contentRoot, locale, "integrations/connector-contract.md"),
+      "utf8",
+    );
+    for (const term of [
+      "./xentral",
+      "./shopify",
+      "./odoo",
+      "100 %",
+      "SourceRecord",
+      "Movement",
+      "Reservation",
+      "LedgerEntry",
+    ])
+      assert.ok(contract.includes(term), `${locale}: ${term}`);
+  }
+});
+
+test("vendor acquisition guidance separates recommendations from implemented transport", () => {
+  for (const locale of ["", "de/"]) {
+    const shop = fs.readFileSync(path.join(contentRoot, locale, "integrations/shopify.md"), "utf8");
+    const erp = fs.readFileSync(path.join(contentRoot, locale, "integrations/xentral.md"), "utf8");
+    for (const text of [shop, erp]) {
+      assert.match(text, /### (How and when to fetch data|Wie und wann du die Daten abholst)/);
+      assert.match(text, /recommended starting values|empfohlene Startwerte/);
+      assert.match(text, /5–15/);
+      assert.match(text, /checkpoint/i);
+    }
+    assert.match(shop, /bulk_operations\/finish/);
+    assert.match(shop, /shopifyPaymentsAccount/);
+    assert.match(shop, /inventory_levels\/update/);
+    assert.match(erp, /salesOrder\.dispatched/);
+    assert.match(erp, /api\/v3\/stockMovements/);
+    assert.match(erp, /developer\.xentral\.com\/docs\/fulfillment/);
+  }
+});
+
+test("observation modes explain local interpretation without upstream mutation", () => {
+  for (const locale of ["", "de/"]) {
+    for (const vendor of ["shopify", "xentral"]) {
+      const page = fs.readFileSync(
+        path.join(contentRoot, locale, `integrations/${vendor}.md`),
+        "utf8",
+      );
+      assert.match(page, /### (A\)|B\))/);
+      assert.match(page, /read-only|nur lesend/);
+      assert.match(page, /SourceRecord/);
+      assert.match(page, /Operating modes|Betriebsarten/);
+    }
+  }
+});
+
+test("Reality-master mode separates decisions from evidenced Xentral execution", () => {
+  for (const locale of ["", "de/"]) {
+    const page = fs.readFileSync(path.join(contentRoot, locale, "integrations/xentral.md"), "utf8");
+    assert.match(
+      page,
+      /### C\) (Reality decides, Xentral executes|Reality entscheidet, Xentral führt aus)/,
+    );
+    assert.match(page, /human confirmation|menschliche Bestätigung/);
+    assert.match(page, /not implemented|nicht implementiert/);
+    assert.match(page, /idempotency key|Idempotenzschlüssel/);
+  }
+});
+
+test("coverage matrices scope observation separately from outbound execution", () => {
+  for (const locale of ["", "de/"]) {
+    for (const vendor of ["shopify", "xentral", "odoo"]) {
+      const page = fs.readFileSync(
+        path.join(contentRoot, locale, `integrations/${vendor}.md`),
+        "utf8",
+      );
+      const matrix = page
+        .split(locale ? "## Abdeckungsmatrix" : "## Coverage matrix")[1]
+        .split(locale ? "## Schritt für Schritt" : "## Step by step")[0];
+      assert.match(matrix, /Mode and necessity|Betriebsart und Bedarf/);
+      assert.match(matrix, /Baseline|Basis/);
+      assert.match(matrix, /not a mandatory list|keine Pflichtliste/);
+      if (vendor === "xentral") assert.match(matrix, /C only|Nur C/);
+    }
+  }
+});
+
+test("Odoo modes distinguish observation from requested execution", () => {
+  for (const locale of ["", "de/"]) {
+    const page = fs.readFileSync(path.join(contentRoot, locale, "integrations/odoo.md"), "utf8");
+    assert.match(page, /### (Read only: observe Odoo|Nur lesen: Odoo zuschauen)/);
+    assert.match(page, /### Reality (directs, Odoo executes|steuert, Odoo führt aus)/);
+    assert.match(page, /Execution only|Nur Ausführung/);
+    assert.match(page, /human confirmation|menschliche Bestätigung/);
+  }
+});
+
+test("example ERP chapter teaches progressive capture and knowledge boundaries", () => {
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
+  assert.ok(
+    config.indexOf('"/integrations/example-erp"') < config.indexOf('"/integrations/xentral"'),
+  );
+  for (const locale of ["", "de/"]) {
+    const page = fs.readFileSync(
+      path.join(contentRoot, locale, "integrations/example-erp.md"),
+      "utf8",
+    );
+    for (let stage = 1; stage <= 7; stage++) assert.ok(page.includes(`## ${stage}.`));
+    for (const term of [
+      "SourceRecord",
+      "DocumentLine",
+      "Commitment",
+      "Movement",
+      "Reservation",
+      "10",
+      "4",
+      "6",
+    ])
+      assert.ok(page.includes(term));
+    assert.match(page, /unknown|unbekannt/);
+    assert.match(page, /cutover|Stichtag/);
+    assert.match(page, /human confirmation|menschliche Bestätigung/);
+    const guide = fs.readFileSync(
+      path.join(contentRoot, locale, "development/connectors.md"),
+      "utf8",
+    );
+    assert.ok(guide.includes("../integrations/example-erp"));
+  }
+});
+
+test("example ERP stages explain agent capabilities and bounded execution", () => {
+  for (const locale of ["", "de/"]) {
+    const page = fs.readFileSync(
+      path.join(contentRoot, locale, "integrations/example-erp.md"),
+      "utf8",
+    );
+    for (let stage = 1; stage <= 7; stage++) {
+      const section = page.split(`## ${stage}.`)[1].split("\n## ")[0];
+      assert.match(section, /\*\*(Your agent|Dein Agent):\*\*/);
+    }
+    assert.match(page, /shared (application )?tools|gemeinsamen (Anwendungs-)?Tools/);
+    assert.match(page, /human confirmation|menschliche Bestätigung/);
+  }
+});
+
+test("source concept chapter precedes technical rules and keeps stable references", () => {
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
+  assert.ok(!config.includes('link: route(locale, "/integrations/order-example")'));
+  const sourceMenu = config
+    .split("text: labels.connectors,")[1]
+    .split("text: labels.developmentReference,")[0];
+  assert.ok(sourceMenu.indexOf("labels.connectorContract") >= 0);
+  assert.ok(
+    sourceMenu.indexOf("labels.connectorContract") < sourceMenu.indexOf("labels.exampleErp"),
+  );
+  for (const locale of ["", "de/"]) {
+    const page = fs.readFileSync(
+      path.join(contentRoot, locale, "integrations/connector-contract.md"),
+      "utf8",
+    );
+    assert.ok(
+      page.startsWith(locale ? "# Von Quelldaten zu Reality\n" : "# From source data to Reality\n"),
+    );
+    assert.ok(
+      page.indexOf("Source → Evidence → Reality") <
+        page.indexOf(locale ? "## Verantwortlichkeiten" : "## Responsibilities"),
+    );
+    for (const term of ["DocumentLine", "Commitment", "Movement", "10", "4", "6"])
+      assert.ok(page.includes(term));
+    assert.match(page, /your agent|dein Agent/i);
+    assert.ok(
+      page.includes(locale ? "## Vollständigkeit und Abnahme" : "## Completeness and acceptance"),
+    );
+    const reference = fs.readFileSync(
+      path.join(contentRoot, locale, "development/reference.md"),
+      "utf8",
+    );
+    assert.ok(reference.includes("../integrations/connector-contract"));
+  }
+});
+
+test("source concept distinguishes payload versions from semantic interpretation", () => {
+  for (const locale of ["", "de/"]) {
+    const page = fs.readFileSync(
+      path.join(contentRoot, locale, "integrations/connector-contract.md"),
+      "utf8",
+    );
+    for (const term of [
+      "SourceStream",
+      "external_id",
+      "source_version_at",
+      "Surface",
+      "10",
+      "8",
+      "4",
+    ])
+      assert.ok(page.includes(term));
+    assert.match(page, /identical payload|identischer Payload/);
+    assert.match(page, /not a generic|kein allgemeiner/);
   }
 });

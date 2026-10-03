@@ -13,11 +13,11 @@ ist.
 | Aufträge aus einem weiteren ERP übernehmen       | Connector-Transport und Auftrags-Interpreter | Integrationscode                       |
 | andere CSV-Spaltennamen zuordnen                 | Datei-Mapping                                | Konfiguration oder kleine Codeänderung |
 | einen zusätzlichen ERP-Objekttyp übernehmen      | Source Capability und Interpreter            | Integrationscode                       |
-| eine vorhandene Reality-Aktion aufrufen          | HTTP API oder MCP-Tool                       | Integrationskonfiguration              |
+| eine vorhandene Reality-Aktion aufrufen          | vorhandene HTTP API oder Agent Tool          | Integrationskonfiguration              |
 | eine vorhandene Aktion anders platzieren         | Workspace-Katalog                            | Konfiguration                          |
-| eine wirklich neue Geschäftsposition berechnen   | Projection                                   | Reality-Core-Entwicklung               |
-| ein neues operatives Risiko erkennen             | Exception-Ableitung                          | Reality-Core-Entwicklung               |
-| einen neuen geregelten Geschäftsablauf einführen | Service und Command                          | Reality-Core-Entwicklung               |
+| eine wirklich neue Geschäftsposition berechnen   | Projection                                   | Reality erweitern                      |
+| ein neues operatives Risiko erkennen             | Exception-Ableitung                          | Reality erweitern                      |
+| einen neuen geregelten Geschäftsablauf einführen | Service und Command                          | Reality erweitern                      |
 
 ## Was normalerweise unverändert bleiben kann
 
@@ -25,17 +25,28 @@ Eine ERP-Anbindung braucht kein zweites Auftrags-, Bestands- oder Finanzmodell. 
 den Original-Payload; der Interpreter übersetzt verstandene Bedeutung in vorhandene Evidence- und
 Reality-Datensätze. Unbekannte Felder bleiben im `SourceRecord.payload` verfügbar.
 
-Prüfe vor neuem Code die generierten [Geschäftsaktionen und Agenten-Tools](../tool-usage/commands)
-sowie die [Sichten, Projections und Aktionen](../tool-usage/views). Häufig existiert die benötigte
-Fähigkeit bereits und nur Transport oder Interpretation des ERP fehlen.
+Prüfe vor neuem Code die generierten [Commands und Agent Tools](../tool-usage/commands) sowie die
+[Views und Projections](../tool-usage/views). Häufig existiert die benötigte Fähigkeit bereits und
+nur Transport oder Interpretation des ERP fehlen.
+
+## Konfiguration oder Entwicklung?
+
+Kannst du vorhandene Felder zuordnen oder eine bereits unterstützte Aktion platzieren, genügt
+möglicherweise Konfiguration. Fehlen Reader, Operation, Interpreter oder ausführbare Oberfläche,
+brauchst du Entwicklung. Ein Workspace-Eintrag erzeugt allein weder eine neue Route noch ein
+Formular. Prüfe deshalb die vorhandene Fähigkeit, bevor du ihre Darstellung änderst.
+
+Für den Einstieg folgt die [erste Erweiterung](../development/first-extension). Die
+[Baustein-Übersicht](../development/) trennt View, Projection, Command und ihre Zugänge.
 
 ## Das passende nächste Kapitel
 
 - Für neue Datenquellen: [Ein weiteres ERP anbinden](../development/connectors).
 - Für den vollständigen Weg: [Beispiel eines ERP-Auftrags](./order-example).
-- Für Anmeldung, Versionierung, Wiederholung und Fehler: [Connector-Contract](./connector-contract).
+- Für Anmeldung, Versionierung, Wiederholung und Fehler:
+  [Von Quelldaten zu Reality](./connector-contract).
 - Für vorhandene Funktionen: [API und Agentenschnittstellen](../api-tools/).
-- Nur bei wirklich fehlendem Geschäftsverhalten: [Reality-Core-Entwicklung](../development/).
+- Nur bei wirklich fehlendem Geschäftsverhalten: [Reality erweitern](../development/).
 
 ## Belegte Beobachtungen ohne neuen Connector ergänzen
 
@@ -45,3 +56,7 @@ konfigurieren. Beginne bei
 erst simulieren, dann aktivieren, ältere Quellen getrennt nachverarbeiten. Das kann eine Beobachtung
 auslesen oder eine geprüfte Einordnung erzeugen. Es ist kein allgemeiner Feldeditor, keine
 Datenanbindung, keine freie Formelmaschine und kein Exception-Baukasten.
+
+Für eigene Agentenschnittstellen und Bedienabläufe:
+[Agent Tools ergänzen](../development/agent-tools) und
+[Web Actions ergänzen](../development/web-actions).

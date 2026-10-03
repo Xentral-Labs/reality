@@ -13,7 +13,7 @@ dieser Phase keine ausgehenden Aktionen.
 
 | Quelle  | Im Repository vorhanden                                                                                 | Für eine Live-Anbindung noch nötig                                  |
 | ------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Shopify | Connector-Shell und ein funktionierender Interpreter für `("shopify", "order")`                         | Anmeldung, Polling/Webhooks und produktives Mapping für deinen Shop |
+| Shopify | Connector-Shell; registrierte Interpreter für `("shopify", "order")` und `("shopify", "refund")`        | Anmeldung, Polling/Webhooks und produktives Mapping für deinen Shop |
 | Xentral | Connector-Shell mit `order`, `purchase_order`, `article`, `contact` und `payment`                       | Vendor-Transport und ein Interpreter für jeden getesteten Quelltyp  |
 | Odoo    | Connector-Shell mit `sale.order`, `purchase.order`, `product.product`, `res.partner` und `account.move` | Vendor-Transport und ein Interpreter für jeden getesteten Quelltyp  |
 
@@ -142,5 +142,12 @@ fehlenden Interpreter oder eine fehlende Geschäftsregel sichtbar macht, ist erf
 - [ ] Abweichungen zum ERP sind klassifiziert und fachlich geprüft.
 - [ ] Keine ausgehende ERP-Mutation ist aktiviert.
 
-Lies als Nächstes den [Connector-Contract](./connector-contract), bevor du aus dem Pilotadapter eine
-produktive Integration machst.
+Lies als Nächstes den [Von Quelldaten zu Reality](./connector-contract), bevor du aus dem
+Pilotadapter eine produktive Integration machst.
+
+## Vom Pilot zur vollständigen Anbindung
+
+Dieser Pilot beweist einen engen Fall. Für den gesamten vereinbarten Umfang folgen
+[Xentral](./xentral), [Shopify](./shopify) oder [Odoo](./odoo) mit Abdeckungsmatrix und
+Abnahmegeschichte. Der [Von Quelldaten zu Reality](./connector-contract#vollständigkeit-und-abnahme)
+hält gemeinsame Fertigstellungskriterien fest.

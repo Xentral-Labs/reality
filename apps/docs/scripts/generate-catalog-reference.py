@@ -31,29 +31,49 @@ def load(name: str) -> dict[str, Any]:
 INTERFACE_KINDS = {
     "command": {
         "label": {"en": "Commands", "de": "Commands"},
-        "singular": {"en": "command", "de": "Command"},
+        "singular": {"en": "Command", "de": "Command"},
         "description": {
             "en": "Shared application operations, including reads and changes. CLI, Web and agents reach the same business services.",
             "de": "Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services.",
         },
     },
     "tool": {
-        "label": {"en": "Agent tools", "de": "Agenten-Tools"},
-        "singular": {"en": "agent tool", "de": "Agenten-Tool"},
+        "label": {"en": "Agent Tools", "de": "Agent Tools"},
+        "singular": {"en": "Agent Tool", "de": "Agent Tool"},
         "description": {
             "en": "Callable agent interfaces with defined inputs and access modes. A tool can expose a command; reads, discovery and proposal governance need not map to one business command.",
             "de": "Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein.",
         },
     },
     "action": {
-        "label": {"en": "Web actions", "de": "Web-Aktionen"},
-        "singular": {"en": "Web action", "de": "Web-Aktion"},
+        "label": {"en": "Web Actions", "de": "Web Actions"},
+        "singular": {"en": "Web Action", "de": "Web Action"},
         "description": {
             "en": "Registered Web workspace interactions that start a command, with prerequisites, confirmation and a target view. This count covers registered workspace actions, not every Web button.",
             "de": "Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons.",
         },
     },
 }
+
+
+INTERFACE_KINDS.update({
+    "view": {
+        "label": {"en": "Views", "de": "Views"},
+        "singular": {"en": "View", "de": "View"},
+        "description": {
+            "en": "Business read surfaces, such as Fulfillment blockers. A View reads a Reality register directly or uses a Projection; several Views can share one Projection.",
+            "de": "Fachliche Sichten, etwa Lieferhindernisse. Eine View liest direkt aus einem Reality-Register oder nutzt eine Projection; mehrere Views können dieselbe Projection verwenden.",
+        },
+    },
+    "projection": {
+        "label": {"en": "Projections", "de": "Projections"},
+        "singular": {"en": "Projection", "de": "Projection"},
+        "description": {
+            "en": "Derived read models built from existing records, such as delivery blockers. They supply data for Views and Agent Tools and do not replace authoritative Reality records.",
+            "de": "Aus bestehenden Datensätzen abgeleitete Lesemodelle, etwa Lieferhindernisse. Sie liefern Daten für Views und Agent Tools und ersetzen keine maßgeblichen Reality-Datensätze.",
+        },
+    },
+})
 
 
 def build_interface_guide(entries: list[dict[str, Any]]) -> dict[str, Any]:
@@ -68,19 +88,30 @@ def build_interface_guide(entries: list[dict[str, Any]]) -> dict[str, Any]:
     ]
     if not command or len(candidates) != 1 or candidates[0].get("command") != command["key"]:
         raise ValueError("Catalog relationships no longer resolve the reservation example")
+    read_ids = ["view:fulfillment_blockers", "projection:fulfillment_blockers", "tool:fulfillment_blockers"]
+    if any(entry_id not in by_id for entry_id in read_ids) or by_id[read_ids[0]].get("projection") != "fulfillment_blockers" or "fulfillment_blockers" not in by_id[read_ids[2]].get("projections", []):
+        raise ValueError("Catalog relationships no longer resolve the fulfillment blocker example")
     return {
-        "title": {"en": "Commands, agent tools and Web actions", "de": "Commands, Agenten-Tools und Web-Aktionen"},
+        "title": {"en": "How the five types work together", "de": "Wie die fünf Typen zusammenhängen"},
+        "read_example": {
+            "title": {"en": "Read: inspect fulfillment blockers", "de": "Ansehen: Lieferhindernisse prüfen"},
+            "description": {
+                "en": "The Fulfillment blockers View presents the derived blockers supplied by the fulfillment_blockers Projection. The Agent Tool of the same name makes this read available to agents. These are related definitions at different layers; no reservation or shipment is performed.",
+                "de": "Die View Lieferhindernisse zeigt die abgeleiteten Hindernisse der Projection fulfillment_blockers. Das gleichnamige Agent Tool macht diese Abfrage für Agenten zugänglich. Die Einträge beschreiben unterschiedliche Ebenen derselben Abfrage; dabei wird nichts reserviert oder versendet.",
+            },
+            "entries": read_ids,
+        },
         "kinds": INTERFACE_KINDS,
         "counts_note": {
             "en": "These counts overlap: a command, its agent tool and its Web action can describe the same capability. Do not add them as independent features. A command can have several agent tools or none.",
-            "de": "Diese Zahlen überschneiden sich: Ein Command, sein Agenten-Tool und seine Web-Aktion können dieselbe Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann mehrere Agenten-Tools haben oder keines.",
+            "de": "Diese Zahlen überschneiden sich: Ein Command, sein Agent Tool und seine Web Action können dieselbe Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann mehrere Agent Tools haben oder keines.",
         },
         "relationships_title": {"en": "Shared operation and entrypoints", "de": "Gemeinsame Operation und Zugänge"},
         "example": {
             "title": {"en": "Example: reserve 5 units", "de": "Beispiel: 5 Stück reservieren"},
             "description": {
                 "en": "The Web action starts the reservation command after its confirmation. The agent tool prepares a proposal with a commitment identity and quantity 5; explicit approval through proposal_approve_and_execute then reaches the same command. The service owns allocation checks. Quantity is optional in the agent interface; supplying 5 makes the requested quantity explicit.",
-                "de": "Die Web-Aktion startet den Reservierungs-Command nach ihrer Bestätigung. Das Agenten-Tool bereitet einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung. Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich angegeben.",
+                "de": "Die Web Action startet den Reservierungs-Command nach ihrer Bestätigung. Das Agent Tool bereitet einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung. Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich angegeben.",
             },
             "action": action["id"],
             "command": command["id"],
@@ -348,7 +379,10 @@ def build_model() -> dict[str, Any]:
         "REALITY_DATABASE_URL", "postgresql+psycopg://unused:unused@localhost/unused"
     )
     from reality.mcp.catalog import tool_definitions
-    from reality.services.projections import MATERIALIZED_PROJECTIONS, TIME_SENSITIVE_PROJECTIONS
+    from reality.services.projections import (
+        MATERIALIZED_PROJECTIONS,
+        TIME_SENSITIVE_PROJECTIONS,
+    )
 
     command_catalog = load("command_catalog.yaml")
     glossary: dict[str, str] = command_catalog["parameter_descriptions"]
@@ -737,7 +771,7 @@ def attach_resources(
     resources: list[dict[str, Any]] = []
     for definition in definitions:
         members = [e for e in entries if definition["key"] in e["resources"]]
-        ids = lambda kind, predicate=lambda e: True: [e["id"] for e in members if e["kind"] == kind and predicate(e)]
+        ids = lambda kind, predicate=lambda e: True, members=members: [e["id"] for e in members if e["kind"] == kind and predicate(e)]
         lists = ids("view") + ids("projection")
         resources.append(
             {
@@ -832,7 +866,7 @@ COPY = {
         "technical": "Underneath",
         "tables": "Tables",
         "events_of": "Events",
-        "agent_tools_of": "Agent tools without a command",
+        "agent_tools_of": "Agent Tools without a command",
         "read_playbook": "Read the playbook",
         "play_storyline": "Play it as a storyline",
         "storylines_title": "Storylines",
@@ -891,7 +925,7 @@ COPY = {
         "agent_only_intro": "These agent tools do not stand for one business command. Read tools answer a view or projection; governance tools carry proposals, discovery and missing information.",
         "commands_title": "Business commands",
         "commands_intro": "Every shared state-changing or reading operation, written like a manual page: what it does, how an agent calls it, which parameters it takes, and what to read afterwards. CLI, Web, API, Chat and MCP all reach the same operation.",
-        "agent_only_title": "Agent tools without a business command",
+        "agent_only_title": "Agent Tools without a business command",
         "read_modes": "How this query runs",
         "query": "Concrete query",
         "refresh_events": "Background refresh after",
@@ -899,7 +933,7 @@ COPY = {
         "refresh_note": "Events make stored results eligible for background work; they do not synchronously rebuild every view. Unknown event types conservatively invalidate stored projections. During delays or worker outages, the last completed result remains visible. Time-sensitive exceptions, commitment risk and tenant activity also become eligible every minute. A new company or builder version is initialized in the background. Command validation still uses authoritative records.",
         "states_note": "Snapshot metadata reports `uninitialized` (awaiting first calculation), `ready` (caught up to known relevant events), `pending` (an update is due) or `failed` (calculation failed). `completed_at` is the completed calculation time; processed and target event sequences describe local progress. Missing data before the first calculation is not an empty business result. Upstream freshness remains unknown.",
         "adapter_note": "The mode belongs to a concrete query, not to a business name. The Inspector can read stored inventory while the Warehouse page and the default MCP inventory page read live records. MCP page is the default for the five operational page tools; explicit response_format=legacy reads stored results. Direct application-tool callers retain the legacy default. The catalog's Art/Kind column describes its view definition, not every Web screen with a similar name. All HTTP paths below are tenant-scoped GET requests.",
-        "views_title": "Views, projections and Web actions",
+        "views_title": "Views, Projections and Web Actions",
         "views_intro": "Where an operator looks and what they can trigger there. A view is either an authoritative register or a materialized projection; an action starts a business command.",
         "workspaces": "Workspaces",
         "views": "Views",
@@ -942,7 +976,7 @@ COPY = {
         "technical": "Darunter",
         "tables": "Tabellen",
         "events_of": "Events",
-        "agent_tools_of": "Agenten-Tools ohne Geschäftsaktion",
+        "agent_tools_of": "Agent Tools ohne Geschäftsaktion",
         "read_playbook": "Playbook lesen",
         "play_storyline": "Als Storyline spielen",
         "storylines_title": "Storylines",
@@ -998,10 +1032,10 @@ COPY = {
         "area": "Bereich",
         "access": "Zugriff",
         "answers": "Beantwortet",
-        "agent_only_intro": "Diese Agenten-Tools stehen für keine einzelne Geschäftsaktion. Lese-Tools beantworten eine Sicht oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informationen.",
+        "agent_only_intro": "Diese Agent Tools stehen für keine einzelne Geschäftsaktion. Lese-Tools beantworten eine Sicht oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informationen.",
         "commands_title": "Geschäftsaktionen",
         "commands_intro": "Jede gemeinsam implementierte ändernde oder lesende Operation, geschrieben wie eine Handbuchseite: was sie tut, wie ein Agent sie aufruft, welche Parameter sie nimmt und was danach zu lesen ist. CLI, Web, API, Chat und MCP erreichen dieselbe Operation.",
-        "agent_only_title": "Agenten-Tools ohne Geschäftsaktion",
+        "agent_only_title": "Agent Tools ohne Geschäftsaktion",
         "read_modes": "So wird diese Abfrage ausgeführt",
         "query": "Konkrete Abfrage",
         "refresh_events": "Hintergrundaktualisierung nach",
@@ -1009,10 +1043,10 @@ COPY = {
         "refresh_note": "Events melden Aktualisierungsbedarf; sie berechnen nicht synchron jede Sicht neu. Unbekannte Event-Typen machen gespeicherte Projektionen vorsorglich aktualisierungsbedürftig. Bei Verzögerungen oder einem ausgefallenen Worker bleibt das letzte fertige Ergebnis sichtbar. Zeitabhängige Abweichungen, Verpflichtungsrisiken und Firmenaktivität werden zusätzlich jede Minute berücksichtigt. Neue Firmen und neue Berechnungsversionen werden im Hintergrund initialisiert. Aktionen prüfen weiterhin die maßgeblichen Datensätze.",
         "states_note": "Die Metadaten melden `uninitialized` (erste Berechnung ausstehend), `ready` (bekannte relevante Events verarbeitet), `pending` (Aktualisierung ausstehend) oder `failed` (Berechnung fehlgeschlagen). `completed_at` nennt den Zeitpunkt der fertigen Berechnung; verarbeitete und angestrebte Event-Sequenz zeigen den lokalen Fortschritt. Fehlende Daten vor der ersten Berechnung bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Quellen bleibt unbekannt.",
         "adapter_note": "Der Modus gehört zur konkreten Abfrage, nicht zum Geschäftsbegriff. Der Inspector kann den vorberechneten Bestand lesen, während die Lagerseite und die normale MCP-Bestandsabfrage live lesen. Bei den fünf operativen MCP-Seitenabfragen ist page der Standard; response_format=legacy liest gespeicherte Ergebnisse. Direkte Aufrufe der Anwendungstools behalten legacy als Standard. Die Spalte Art beschreibt die Katalogsicht und nicht jeden ähnlich benannten Web-Bildschirm. Alle HTTP-Pfade unten sind firmenbezogene GET-Abfragen.",
-        "views_title": "Sichten, Projections und Web-Aktionen",
+        "views_title": "Views, Projections und Web Actions",
         "views_intro": "Wo jemand hinschaut und was er dort auslösen kann. Eine Sicht ist entweder ein autoritatives Register oder eine materialisierte Projection; eine Aktion startet eine Geschäftsaktion.",
         "workspaces": "Arbeitsbereiche",
-        "views": "Sichten",
+        "views": "Views",
         "projections": "Projections",
         "route": "Route",
         "kind": "Art",
@@ -1022,7 +1056,7 @@ COPY = {
         "outputs": "Ausgaben",
         "workspace_of": "Arbeitsbereiche",
         "exceptions_title": "Operative Ausnahmen",
-        "exceptions_intro": "Deterministisch abgeleitete Zustände, die Aufmerksamkeit brauchen. Jede nennt, wer sie verantwortet, was sie auflöst und welche Agenten-Tools sie auflisten und erklären.",
+        "exceptions_intro": "Deterministisch abgeleitete Zustände, die Aufmerksamkeit brauchen. Jede nennt, wer sie verantwortet, was sie auflöst und welche Agent Tools sie auflisten und erklären.",
         "owner": "Verantwortlich",
         "clears_through": "Aufgelöst durch",
         "severity": "Schwere",
@@ -1242,6 +1276,9 @@ class Renderer:
                 for row in guide["kinds"].values()
             ]), "",
             self.text(guide["counts_note"]), "",
+            f"### {self.text(guide['read_example']['title'])}", "",
+            self.text(guide["read_example"]["description"]), "",
+            *[f"- {self.named_ref(entry_id)}" for entry_id in guide["read_example"]["entries"]], "",
             f"### {self.text(example['title'])}", "",
             self.text(example["description"]), "",
             *[f"- {self.text(guide['kinds'][kind]['label'])}: {self.named_ref(example[kind])}"
@@ -1554,9 +1591,8 @@ def write_storyline_files() -> None:
 
 def main() -> None:
     model = build_model()
-    from data_model_reference import build_data_models
-
     from analytics_model_reference import build_analytics_model
+    from data_model_reference import build_data_models
 
     model["analyticsModel"] = build_analytics_model()
     model["dataModels"] = build_data_models(model["entries"])

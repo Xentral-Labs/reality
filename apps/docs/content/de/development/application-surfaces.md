@@ -1,55 +1,34 @@
-# Funktionen über API und MCP anbieten
+# Zugänge ergänzen
 
-Die generierte [Tool-Referenz](../tool-usage/commands) listet Zugriffsklasse, Parameter,
-Pflichtfelder und Standardwerte aller aktuell registrierten Tools.
+## Welche Oberfläche braucht die vorhandene Fähigkeit?
 
-Domänen- und Anwendungsservices besitzen das Verhalten. Web, API, MCP, CLI und Chat sind Adapter
-derselben Funktion.
+Zuerst muss die fachliche Abfrage oder Operation existieren. Ein Zugang macht sie erreichbar; er
+definiert keine zweite Geschäftsregel. Fehlt die Operation, beginne mit [Commands](./commands).
 
-## Oberflächen auswählen
+| Zugang     | Wer nutzt ihn?                 | Vorlage                                 | Anleitung                    |
+| ---------- | ------------------------------ | --------------------------------------- | ---------------------------- |
+| Agent Tool | Agent oder Chat                | `inventory_read`, `reservation_propose` | [Agent Tools](./agent-tools) |
+| Web Action | Mensch im Workspace            | `reserve_stock`                         | [Web Actions](./web-actions) |
+| HTTP API   | Unterstützter Client           | `tenant_inventory_control`              | [API und CLI](./api-cli)     |
+| CLI        | Entwicklung und Administration | `commitment_reserve`                    | [API und CLI](./api-cli)     |
 
-- Ergänze eine Web-Ansicht, wenn eine menschliche Rolle das Ergebnis regelmäßig im Alltag braucht.
-- Ergänze eine API-Operation, wenn ein anderer unterstützter Client den Anwendungscontract braucht.
-- Ergänze ein MCP-Werkzeug, wenn ein Unternehmensagent die Funktion finden und aufrufen soll.
-- Stelle sie im CLI für Entwicklung oder operative Administration bereit.
-- Lass Reality fragen das registrierte Anwendungswerkzeug nutzen; erzeuge keinen eigenen
-  Chat-Geschäftsweg.
+Für die reine Anzeige von Daten lies [Views](./views). Sie kann ein vorhandenes Lesemodell verwenden
+und braucht nicht automatisch eine neue Projection.
 
-Leseoperationen dürfen sofort laufen. Änderungen aus Chat oder von einem Agenten erzeugen einen
-`ChangeProposal(status=proposed)` mit exakter serverseitiger Vorschau und brauchen eine getrennte
-menschliche Freigabe. Leseberechtigung bedeutet niemals automatisch Änderungsberechtigung.
+## Was die Zugänge gemeinsam haben
 
-Jeder Adapter erhält Mandantengrenze, typisierte Validierung, sichere Fehler und dieselbe
-Prüf-Abfrage. Für HTTP ist `/openapi.json` der laufenden API maßgeblich. Für Agentenwerkzeuge sind
-MCP-Katalog und Eingabeschemas maßgeblich.
+Alle verwenden die gemeinsamen Services oder Application Tools. Jeder Zugang bewahrt Tenant-Grenze,
+typisierte Eingaben und sichere Fehler. Der Reader nach einer Änderung prüft das maßgebliche
+Ergebnis.
 
-## Wo welche Änderung hingehört
+Lesende Agent Tools können sofort lesen. Ändernde Agent Tools erstellen ein `ChangeProposal` mit
+exakter Server-Vorschau. Ausführung benötigt die separate ausdrückliche Freigabe; Leserecht ist
+keine Änderungsfreigabe. Web Actions verwenden die vorhandene Bestätigungsoberfläche. Die
+vollständigen Vorlagen stehen in den jeweiligen Kapiteln.
 
-| Oberfläche       | Datei                                                    | Verantwortung                                                  |
-| ---------------- | -------------------------------------------------------- | -------------------------------------------------------------- |
-| Gemeinsames Tool | `packages/reality-core/src/reality/tools/application.py` | Argumente prüfen, Service aufrufen, Ergebnis formen            |
-| HTTP             | `packages/reality-core/src/reality/web/api.py`           | Request/Response-Modell, Authentifizierung und Mandantengrenze |
-| HTTP-Lesemodell  | `packages/reality-core/src/reality/web/read_models.py`   | Leseausgabe zusammensetzen, nie ändern                         |
-| MCP              | `packages/reality-core/src/reality/mcp/catalog.py`       | auffindbarer Name, JSON-Schema und Tool-Zuordnung              |
-| Web-Client       | `apps/web/src/api.ts`                                    | typisierter HTTP-Aufruf                                        |
-| Web-Ablauf       | `apps/web/src/App.tsx` und Feature-Komponenten           | Darstellung und Interaktion                                    |
+## Wo du beginnst
 
-## Beispiel: Eine Änderung für Agenten anbieten
-
-Prüfe zuerst, dass Service und Application `Tool` bereits existieren. Ergänze im MCP-Katalog eine
-Proposal-Definition, deren Eingabeschema undurchsichtige IDs verwendet. Ordne sie dem vorhandenen
-Application Tool zu, nicht dem ORM oder Service-Interna. Der Aufruf erzeugt ein `ChangeProposal`;
-ein eigener Freigabeaufruf erhält `proposal_id` und `approved`. Nach der Ausführung wird das
-Ergebnis über das maßgebliche Register kontrolliert.
-
-Für HTTP definierst du Pydantic-Request und -Response sowie eine Route, die mit dem
-authentifizierten `tenant_id` denselben Service oder dasselbe Application Tool aufruft. Prüfe
-`/openapi.json` und ergänze danach die typisierte Client-Methode. Eine React-Komponente darf
-`shortage` darstellen, aber Verfügbarkeit nicht anders als der Service berechnen.
-
-## Tests, bevor die Oberfläche fertig ist
-
-- Application-Tool-Test für genauen Argument- und Ergebnisvertrag;
-- HTTP-Grenztest für Auth, Mandantentrennung, Validierung und sichere Fehler;
-- MCP-Katalogtest für Schema und Zuordnung einschließlich Proposal-Pflicht bei Änderungen;
-- Web-Test für Laden, leeres Ergebnis, Fehler und Erfolg ohne kopierte Geschäftsregeln.
+Arbeite zuerst die [erste Erweiterung](./first-extension) durch oder öffne direkt deine Anleitung.
+Die [gemeinsame Referenz](./reference) hält Repository-Orte, Entwicklungsablauf und Prüfregeln fest.
+Die laufende API beschreibt HTTP über `/openapi.json`; der MCP-Katalog beschreibt Agent Tools und
+ihre Eingaben.

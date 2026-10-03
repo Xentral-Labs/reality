@@ -7,31 +7,43 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 > Automatisch aus `command_catalog.yaml`, `reality/mcp/catalog.py` erzeugt. Diese Seite nicht von
 > Hand bearbeiten.
 
-## Commands, Agenten-Tools und Web-Aktionen
+## Wie die fünf Typen zusammenhängen
 
-| Art           | Beschreibung                                                                                                                                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Commands      | Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services.                                                                                                                    |
-| Agenten-Tools | Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein. |
-| Web-Aktionen  | Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons.                       |
+| Art         | Beschreibung                                                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Commands    | Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services.                                                                                                                    |
+| Agent Tools | Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein. |
+| Web Actions | Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons.                       |
+| Views       | Fachliche Sichten, etwa Lieferhindernisse. Eine View liest direkt aus einem Reality-Register oder nutzt eine Projection; mehrere Views können dieselbe Projection verwenden.                                                         |
+| Projections | Aus bestehenden Datensätzen abgeleitete Lesemodelle, etwa Lieferhindernisse. Sie liefern Daten für Views und Agent Tools und ersetzen keine maßgeblichen Reality-Datensätze.                                                         |
 
-Diese Zahlen überschneiden sich: Ein Command, sein Agenten-Tool und seine Web-Aktion können dieselbe
+Diese Zahlen überschneiden sich: Ein Command, sein Agent Tool und seine Web Action können dieselbe
 Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann
-mehrere Agenten-Tools haben oder keines.
+mehrere Agent Tools haben oder keines.
+
+### Ansehen: Lieferhindernisse prüfen
+
+Die View Lieferhindernisse zeigt die abgeleiteten Hindernisse der Projection fulfillment_blockers.
+Das gleichnamige Agent Tool macht diese Abfrage für Agenten zugänglich. Die Einträge beschreiben
+unterschiedliche Ebenen derselben Abfrage; dabei wird nichts reserviert oder versendet.
+
+- [Lieferhindernisse](./views#view-fulfillment_blockers) (`fulfillment_blockers`)
+- [Lieferhindernisse](./views#projection-fulfillment_blockers) (`fulfillment_blockers`)
+- [Read fulfillment blockers](./commands#tool-fulfillment_blockers) (`fulfillment_blockers`)
 
 ### Beispiel: 5 Stück reservieren
 
-Die Web-Aktion startet den Reservierungs-Command nach ihrer Bestätigung. Das Agenten-Tool bereitet
+Die Web Action startet den Reservierungs-Command nach ihrer Bestätigung. Das Agent Tool bereitet
 einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über
 proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung.
 Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich
 angegeben.
 
-- Web-Aktionen: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
-- Agenten-Tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
+- Web Actions: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
+- Agent Tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
 - Commands: [Bestand reservieren](./commands#command-reserve) (`reserve`)
 
-| Schlüssel                                                                         | Bezeichnung                                  | Bereich                 | Agenten-Tools                                                                                                                                                                                | Erreichbar über                         |
+| Schlüssel                                                                         | Bezeichnung                                  | Bereich                 | Agent Tools                                                                                                                                                                                  | Erreichbar über                         |
 | --------------------------------------------------------------------------------- | -------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | [`business_journey_proposal_create`](#command-business_journey_proposal_create)   | Suggest a Business Journey                   | Agentensteuerung        | `business_journey_suggest_propose`                                                                                                                                                           | Web · API · MCP · Chat                  |
 | [`create_invitation`](#command-create_invitation)                                 | Invite company member                        | Unternehmen & Zugang    | `member_invite_propose`                                                                                                                                                                      | Web · API · MCP · Chat                  |
@@ -231,7 +243,7 @@ business_journey_suggest_propose title business_question expected_outcome proces
 
 **Wirkung:** Liest: `journey_proposal` · Schreibt: `journey_proposal`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`business_journey_suggest_propose`](./commands#tool-business_journey_suggest_propose)
 
 #### `business_journey_suggest_propose` — Suggest a Business Journey {#tool-business_journey_suggest_propose}
@@ -277,7 +289,7 @@ member_invite_propose email [locale]
 **Wirkung:** Liest: `tenant`, `tenant_membership`, `company_invitation` · Schreibt:
 `company_invitation`, `invitation_delivery`, `security_audit_event`
 
-**Siehe auch:** Agenten-Tool [`member_invite_propose`](./commands#tool-member_invite_propose)
+**Siehe auch:** Agent Tool [`member_invite_propose`](./commands#tool-member_invite_propose)
 
 #### `member_invite_propose` — Invite company member {#tool-member_invite_propose}
 
@@ -315,7 +327,7 @@ member_remove_propose membership_id
 
 **Wirkung:** Liest: `tenant_membership` · Schreibt: `tenant_membership`, `security_audit_event`
 
-**Siehe auch:** Agenten-Tool [`member_remove_propose`](./commands#tool-member_remove_propose)
+**Siehe auch:** Agent Tool [`member_remove_propose`](./commands#tool-member_remove_propose)
 
 #### `member_remove_propose` — Remove company member {#tool-member_remove_propose}
 
@@ -354,8 +366,7 @@ invitation_resend_propose invitation_id
 **Wirkung:** Liest: `tenant_membership`, `company_invitation`, `invitation_delivery` · Schreibt:
 `company_invitation`, `invitation_delivery`, `security_audit_event`
 
-**Siehe auch:** Agenten-Tool
-[`invitation_resend_propose`](./commands#tool-invitation_resend_propose)
+**Siehe auch:** Agent Tool [`invitation_resend_propose`](./commands#tool-invitation_resend_propose)
 
 #### `invitation_resend_propose` — Resend company invitation {#tool-invitation_resend_propose}
 
@@ -393,8 +404,7 @@ invitation_revoke_propose invitation_id
 **Wirkung:** Liest: `tenant_membership`, `company_invitation` · Schreibt: `company_invitation`,
 `security_audit_event`
 
-**Siehe auch:** Agenten-Tool
-[`invitation_revoke_propose`](./commands#tool-invitation_revoke_propose)
+**Siehe auch:** Agent Tool [`invitation_revoke_propose`](./commands#tool-invitation_revoke_propose)
 
 #### `invitation_revoke_propose` — Revoke company invitation {#tool-invitation_revoke_propose}
 
@@ -434,9 +444,8 @@ price_tier_create_propose price_list_id item_id min_quantity unit_price unit [va
 **Wirkung:** Liest: `price_list`, `item` · Schreibt: `price_list_entry` · Erzeugt:
 `price_list_entry.created`
 
-**Siehe auch:** Agenten-Tool
-[`price_tier_create_propose`](./commands#tool-price_tier_create_propose), Event
-[`price_list_entry.created`](./events#event-price_list_entry-created)
+**Siehe auch:** Agent Tool [`price_tier_create_propose`](./commands#tool-price_tier_create_propose),
+Event [`price_list_entry.created`](./events#event-price_list_entry-created)
 
 #### `price_tier_create_propose` — Add price tier {#tool-price_tier_create_propose}
 
@@ -480,7 +489,7 @@ party_price_list_assign_propose party_id price_list_id [priority]
 **Wirkung:** Liest: `party`, `price_list` · Schreibt: `party_price_list` · Erzeugt:
 `party_price_list.assigned`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`party_price_list_assign_propose`](./commands#tool-party_price_list_assign_propose), Event
 [`party_price_list.assigned`](./events#event-party_price_list-assigned)
 
@@ -522,7 +531,7 @@ master_data_lifecycle_propose model record_id is_active
 **Wirkung:** Liest: `party`, `item`, `location`, `payment_term` · Schreibt: `party`, `item`,
 `location`, `payment_term` · Erzeugt: `master_data.lifecycle_changed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`master_data_lifecycle_propose`](./commands#tool-master_data_lifecycle_propose), Event
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed)
 
@@ -567,10 +576,10 @@ group_price_list_assign_propose party_group_id price_list_id [priority]
 **Wirkung:** Liest: `party`, `price_list`, `party_group` · Schreibt: `party_group`,
 `party_group_member`, `party_group_price_list` · Erzeugt: `party_group.created`
 
-**Siehe auch:** Agenten-Tool
-[`party_group_create_propose`](./commands#tool-party_group_create_propose), Agenten-Tool
-[`party_group_update_propose`](./commands#tool-party_group_update_propose), Agenten-Tool
-[`party_group_member_add_propose`](./commands#tool-party_group_member_add_propose), Agenten-Tool
+**Siehe auch:** Agent Tool
+[`party_group_create_propose`](./commands#tool-party_group_create_propose), Agent Tool
+[`party_group_update_propose`](./commands#tool-party_group_update_propose), Agent Tool
+[`party_group_member_add_propose`](./commands#tool-party_group_member_add_propose), Agent Tool
 [`group_price_list_assign_propose`](./commands#tool-group_price_list_assign_propose), Event
 [`party_group.created`](./events#event-party_group-created)
 
@@ -679,7 +688,7 @@ item_create_propose records
 **Wirkung:** Liest: `tenant`, `location` · Schreibt: `source_record`, `item` · Erzeugt:
 `item.created`
 
-**Siehe auch:** Agenten-Tool [`item_create_propose`](./commands#tool-item_create_propose), Event
+**Siehe auch:** Agent Tool [`item_create_propose`](./commands#tool-item_create_propose), Event
 [`item.created`](./events#event-item-created)
 
 #### `item_create_propose` — Propose Item creation {#tool-item_create_propose}
@@ -730,7 +739,7 @@ location_create_propose records
 **Wirkung:** Liest: `tenant`, `location` · Schreibt: `source_record`, `location` · Erzeugt:
 `location.created`
 
-**Siehe auch:** Agenten-Tool [`location_create_propose`](./commands#tool-location_create_propose),
+**Siehe auch:** Agent Tool [`location_create_propose`](./commands#tool-location_create_propose),
 Event [`location.created`](./events#event-location-created)
 
 #### `location_create_propose` — Propose Location creation {#tool-location_create_propose}
@@ -781,7 +790,7 @@ party_create_propose records
 **Wirkung:** Liest: `tenant`, `source_record`, `party` · Schreibt: `source_record`, `party`,
 `party_role`, `party_email_address` · Erzeugt: `party.created`
 
-**Siehe auch:** Agenten-Tool [`party_create_propose`](./commands#tool-party_create_propose), Event
+**Siehe auch:** Agent Tool [`party_create_propose`](./commands#tool-party_create_propose), Event
 [`party.created`](./events#event-party-created)
 
 #### `party_create_propose` — Propose Party creation {#tool-party_create_propose}
@@ -835,8 +844,8 @@ payment_term_update_propose payment_term_id code name due_days [discount_percent
 **Wirkung:** Liest: `tenant`, `payment_term` · Schreibt: `source_record`, `payment_term` · Erzeugt:
 `payment_term.created`
 
-**Siehe auch:** Agenten-Tool
-[`payment_term_create_propose`](./commands#tool-payment_term_create_propose), Agenten-Tool
+**Siehe auch:** Agent Tool
+[`payment_term_create_propose`](./commands#tool-payment_term_create_propose), Agent Tool
 [`payment_term_update_propose`](./commands#tool-payment_term_update_propose), Event
 [`payment_term.created`](./events#event-payment_term-created)
 
@@ -912,9 +921,8 @@ price_list_update_propose price_list_id code name direction currency [is_default
 **Wirkung:** Liest: `tenant`, `price_list` · Schreibt: `source_record`, `price_list` · Erzeugt:
 `price_list.created`
 
-**Siehe auch:** Agenten-Tool
-[`price_list_create_propose`](./commands#tool-price_list_create_propose), Agenten-Tool
-[`price_list_update_propose`](./commands#tool-price_list_update_propose), Event
+**Siehe auch:** Agent Tool [`price_list_create_propose`](./commands#tool-price_list_create_propose),
+Agent Tool [`price_list_update_propose`](./commands#tool-price_list_update_propose), Event
 [`price_list.created`](./events#event-price_list-created)
 
 #### `price_list_create_propose` — Create price list {#tool-price_list_create_propose}
@@ -991,8 +999,7 @@ cost_commercial_match_get document_line_id [match_revision_id]
 `cost_inventory_review`, `cost_policy_revision`, `cost_movement_basis`, `cost_attribution_revision`,
 `cost_attribution_part`, `cost_component_basis`, `financial_component` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
-[`cost_commercial_match_get`](./commands#tool-cost_commercial_match_get)
+**Siehe auch:** Agent Tool [`cost_commercial_match_get`](./commands#tool-cost_commercial_match_get)
 
 #### `cost_commercial_match_get` — Reviewed partial commercial match {#tool-cost_commercial_match_get}
 
@@ -1053,7 +1060,7 @@ price_quote_read party_id item_id quantity direction currency unit [at]
 **Wirkung:** Liest: `party`, `item`, `party_price_list`, `party_group`, `party_group_member`,
 `party_group_price_list`, `price_list`, `price_list_entry` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`price_quote_read`](./commands#tool-price_quote_read)
+**Siehe auch:** Agent Tool [`price_quote_read`](./commands#tool-price_quote_read)
 
 #### `price_quote_read` — Read authoritative price quote {#tool-price_quote_read}
 
@@ -1118,7 +1125,7 @@ item_update_propose records
 **Wirkung:** Liest: `item`, `location`, `source_record` · Schreibt: `source_record`, `item`,
 `business_event` · Erzeugt: `item.updated`
 
-**Siehe auch:** Agenten-Tool [`item_update_propose`](./commands#tool-item_update_propose), Event
+**Siehe auch:** Agent Tool [`item_update_propose`](./commands#tool-item_update_propose), Event
 [`item.updated`](./events#event-item-updated)
 
 #### `item_update_propose` — Propose Item update {#tool-item_update_propose}
@@ -1170,7 +1177,7 @@ location_update_propose records
 **Wirkung:** Liest: `location`, `source_record` · Schreibt: `source_record`, `location`,
 `business_event` · Erzeugt: `location.updated`
 
-**Siehe auch:** Agenten-Tool [`location_update_propose`](./commands#tool-location_update_propose),
+**Siehe auch:** Agent Tool [`location_update_propose`](./commands#tool-location_update_propose),
 Event [`location.updated`](./events#event-location-updated)
 
 #### `location_update_propose` — Propose Location update {#tool-location_update_propose}
@@ -1222,7 +1229,7 @@ party_update_propose records
 `source_record`, `party`, `party_role`, `party_email_address`, `business_event` · Erzeugt:
 `party.updated`
 
-**Siehe auch:** Agenten-Tool [`party_update_propose`](./commands#tool-party_update_propose), Event
+**Siehe auch:** Agent Tool [`party_update_propose`](./commands#tool-party_update_propose), Event
 [`party.updated`](./events#event-party-updated)
 
 #### `party_update_propose` — Propose Party update {#tool-party_update_propose}
@@ -1279,7 +1286,7 @@ finance_adjustment_propose expected_revision invoice_id amount reason_category r
 `finance_state` · Schreibt: `source_record`, `document`, `ledger_entry`, `settlement_allocation`,
 `action`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_adjustment_propose`](./commands#tool-finance_adjustment_propose)
 
 #### `finance_adjustment_propose` — Accept a stated settlement reduction {#tool-finance_adjustment_propose}
@@ -1349,7 +1356,7 @@ finance_component_assign_propose expected_revision document_id [document_line_id
 Schreibt: `financial_component`, `component_assignment_revision`, `component_assignment_part`,
 `finance_state`, `business_event` · Erzeugt: `finance.component_assigned`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_component_assign_propose`](./commands#tool-finance_component_assign_propose), Event
 [`finance.component_assigned`](./events#event-finance-component_assigned)
 
@@ -1422,7 +1429,7 @@ finance_create_account_propose expected_revision code name role
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
 Schreibt: `subledger_account`, `finance_state`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_create_account_propose`](./commands#tool-finance_create_account_propose)
 
 #### `finance_create_account_propose` — Configure operational accounts {#tool-finance_create_account_propose}
@@ -1486,7 +1493,7 @@ payment_run_propose payments currency expected_total reason
 Schreibt: `source_record`, `document`, `ledger_entry`, `settlement_allocation`, `business_event` ·
 Erzeugt: `payments.run`
 
-**Siehe auch:** Agenten-Tool [`payment_run_propose`](./commands#tool-payment_run_propose), Event
+**Siehe auch:** Agent Tool [`payment_run_propose`](./commands#tool-payment_run_propose), Event
 [`payments.run`](./events#event-payments-run), Command
 [`post_supplier_payment`](./commands#command-post_supplier_payment)
 
@@ -1534,7 +1541,7 @@ finance_opening_propose expected_revision source_namespace snapshot_key cutover_
 `opening_item_detail`, `document`, `ledger_entry` · Schreibt: `source_record`, `document`,
 `opening_scope`, `opening_item_detail`, `ledger_entry`, `action`
 
-**Siehe auch:** Agenten-Tool [`finance_opening_propose`](./commands#tool-finance_opening_propose)
+**Siehe auch:** Agent Tool [`finance_opening_propose`](./commands#tool-finance_opening_propose)
 
 #### `finance_opening_propose` — Import opening positions {#tool-finance_opening_propose}
 
@@ -1611,7 +1618,7 @@ finance_initialize_accounts_propose expected_revision
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
 Schreibt: `subledger_account`, `finance_state`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_initialize_accounts_propose`](./commands#tool-finance_initialize_accounts_propose)
 
 #### `finance_initialize_accounts_propose` — Configure operational accounts {#tool-finance_initialize_accounts_propose}
@@ -1671,7 +1678,7 @@ finance_target_mappings target_id [query] [limit] [offset]
 `finance_target_mapping_revision`, `finance_reference`, `finance_state`, `document`,
 `document_line`, `ledger_entry` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_target_mappings`](./commands#tool-finance_target_mappings)
+**Siehe auch:** Agent Tool [`finance_target_mappings`](./commands#tool-finance_target_mappings)
 
 #### `finance_target_mappings` — Finance Target Mappings {#tool-finance_target_mappings}
 
@@ -1734,8 +1741,7 @@ finance_target_references target_id [kind] [query] [limit] [offset]
 `finance_target_mapping_revision`, `finance_reference`, `finance_state`, `document`,
 `document_line`, `ledger_entry` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
-[`finance_target_references`](./commands#tool-finance_target_references)
+**Siehe auch:** Agent Tool [`finance_target_references`](./commands#tool-finance_target_references)
 
 #### `finance_target_references` — Finance Target References {#tool-finance_target_references}
 
@@ -1799,7 +1805,7 @@ finance_targets [query] [limit] [offset]
 `finance_target_mapping_revision`, `finance_reference`, `finance_state`, `document`,
 `document_line`, `ledger_entry` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_targets`](./commands#tool-finance_targets)
+**Siehe auch:** Agent Tool [`finance_targets`](./commands#tool-finance_targets)
 
 #### `finance_targets` — Finance Targets {#tool-finance_targets}
 
@@ -1867,13 +1873,13 @@ finance_target_mapping_set_propose expected_revision reason target_id mapping_ki
 `finance_target_mapping_revision`, `finance_state`, `business_event` · Erzeugt:
 `finance.target_configuration_changed`
 
-**Siehe auch:** Agenten-Tool
-[`finance_target_create_propose`](./commands#tool-finance_target_create_propose), Agenten-Tool
-[`finance_target_update_propose`](./commands#tool-finance_target_update_propose), Agenten-Tool
+**Siehe auch:** Agent Tool
+[`finance_target_create_propose`](./commands#tool-finance_target_create_propose), Agent Tool
+[`finance_target_update_propose`](./commands#tool-finance_target_update_propose), Agent Tool
 [`finance_target_reference_create_propose`](./commands#tool-finance_target_reference_create_propose),
-Agenten-Tool
+Agent Tool
 [`finance_target_reference_update_propose`](./commands#tool-finance_target_reference_update_propose),
-Agenten-Tool
+Agent Tool
 [`finance_target_mapping_set_propose`](./commands#tool-finance_target_mapping_set_propose), Event
 [`finance.target_configuration_changed`](./events#event-finance-target_configuration_changed)
 
@@ -2136,8 +2142,8 @@ finance_reference_update_propose expected_revision reference_id name state reaso
 **Wirkung:** Liest: `tenant`, `finance_reference`, `finance_state`, `business_event` · Schreibt:
 `finance_reference`, `finance_state`, `business_event` · Erzeugt: `finance.reference_changed`
 
-**Siehe auch:** Agenten-Tool
-[`finance_reference_create_propose`](./commands#tool-finance_reference_create_propose), Agenten-Tool
+**Siehe auch:** Agent Tool
+[`finance_reference_create_propose`](./commands#tool-finance_reference_create_propose), Agent Tool
 [`finance_reference_update_propose`](./commands#tool-finance_reference_update_propose), Event
 [`finance.reference_changed`](./events#event-finance-reference_changed)
 
@@ -2249,7 +2255,7 @@ finance_target_mapping_history mapping_id [limit] [offset]
 `finance_target_mapping_revision`, `finance_reference`, `finance_state`, `document`,
 `document_line`, `ledger_entry` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_target_mapping_history`](./commands#tool-finance_target_mapping_history)
 
 #### `finance_target_mapping_history` — Finance Target Mapping History {#tool-finance_target_mapping_history}
@@ -2311,7 +2317,7 @@ credit_note_allocate_propose credit_note_id invoice_id amount
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation` · Schreibt:
 `settlement_allocation`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`credit_note_allocate_propose`](./commands#tool-credit_note_allocate_propose)
 
 #### `credit_note_allocate_propose` — Net credit note against invoice {#tool-credit_note_allocate_propose}
@@ -2352,7 +2358,7 @@ supplier_credit_note_allocate_propose credit_note_id invoice_id amount
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation` · Schreibt:
 `settlement_allocation`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_credit_note_allocate_propose`](./commands#tool-supplier_credit_note_allocate_propose)
 
 #### `supplier_credit_note_allocate_propose` — Net supplier credit against invoice {#tool-supplier_credit_note_allocate_propose}
@@ -2394,7 +2400,7 @@ credit_note_post_propose credit_note_id [effective_at]
 
 **Wirkung:** Liest: `document`, `ledger_entry` · Schreibt: `ledger_entry`
 
-**Siehe auch:** Agenten-Tool [`credit_note_post_propose`](./commands#tool-credit_note_post_propose)
+**Siehe auch:** Agent Tool [`credit_note_post_propose`](./commands#tool-credit_note_post_propose)
 
 #### `credit_note_post_propose` — Post credit note {#tool-credit_note_post_propose}
 
@@ -2433,8 +2439,8 @@ customer_payment_post_propose invoice_id amount [payment_number] [source_record_
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation` · Schreibt: `source_record`,
 `document`, `ledger_entry`, `settlement_allocation`
 
-**Siehe auch:** Agenten-Tool
-[`customer_payment_post_propose`](./commands#tool-customer_payment_post_propose), Web-Aktion
+**Siehe auch:** Agent Tool
+[`customer_payment_post_propose`](./commands#tool-customer_payment_post_propose), Web Action
 [`post_customer_payment`](./views#action-post_customer_payment)
 
 #### `customer_payment_post_propose` — Post customer payment {#tool-customer_payment_post_propose}
@@ -2477,7 +2483,7 @@ customer_refund_post_propose credit_note_id amount [refund_number] [source_recor
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation` · Schreibt: `source_record`,
 `document`, `ledger_entry`, `settlement_allocation`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`customer_refund_post_propose`](./commands#tool-customer_refund_post_propose)
 
 #### `customer_refund_post_propose` — Post customer refund {#tool-customer_refund_post_propose}
@@ -2520,7 +2526,7 @@ sales_invoice_post_propose document_id [effective_at]
 
 **Wirkung:** Liest: `document`, `ledger_entry` · Schreibt: `ledger_entry`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`sales_invoice_post_propose`](./commands#tool-sales_invoice_post_propose)
 
 #### `sales_invoice_post_propose` — Post sales invoice {#tool-sales_invoice_post_propose}
@@ -2560,7 +2566,7 @@ supplier_credit_note_post_propose credit_note_id [effective_at]
 
 **Wirkung:** Liest: `document`, `ledger_entry` · Schreibt: `ledger_entry`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_credit_note_post_propose`](./commands#tool-supplier_credit_note_post_propose)
 
 #### `supplier_credit_note_post_propose` — Post supplier credit note {#tool-supplier_credit_note_post_propose}
@@ -2600,7 +2606,7 @@ supplier_invoice_post_propose document_id [effective_at] [exchange_rate]
 
 **Wirkung:** Liest: `document`, `ledger_entry` · Schreibt: `ledger_entry`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_invoice_post_propose`](./commands#tool-supplier_invoice_post_propose)
 
 #### `supplier_invoice_post_propose` — Post supplier invoice {#tool-supplier_invoice_post_propose}
@@ -2641,8 +2647,8 @@ supplier_payment_post_propose invoice_id amount [payment_number] [source_record_
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation` · Schreibt: `source_record`,
 `document`, `ledger_entry`, `settlement_allocation`
 
-**Siehe auch:** Agenten-Tool
-[`supplier_payment_post_propose`](./commands#tool-supplier_payment_post_propose), Web-Aktion
+**Siehe auch:** Agent Tool
+[`supplier_payment_post_propose`](./commands#tool-supplier_payment_post_propose), Web Action
 [`post_supplier_payment`](./views#action-post_supplier_payment)
 
 #### `supplier_payment_post_propose` — Post supplier payment {#tool-supplier_payment_post_propose}
@@ -2686,7 +2692,7 @@ supplier_refund_post_propose credit_note_id amount [refund_number] [source_recor
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation` · Schreibt: `source_record`,
 `document`, `ledger_entry`, `settlement_allocation`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_refund_post_propose`](./commands#tool-supplier_refund_post_propose)
 
 #### `supplier_refund_post_propose` — Post supplier refund {#tool-supplier_refund_post_propose}
@@ -2730,7 +2736,7 @@ payment_run_preview pay_by
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation`, `party`, `payment_term` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`payment_run_preview`](./commands#tool-payment_run_preview)
+**Siehe auch:** Agent Tool [`payment_run_preview`](./commands#tool-payment_run_preview)
 
 #### `payment_run_preview` — Preview a payment run {#tool-payment_run_preview}
 
@@ -2791,7 +2797,7 @@ credit_exposure party_id [as_of]
 **Wirkung:** Liest: `party`, `document`, `document_line`, `commitment`, `ledger_entry`,
 `settlement_allocation` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`credit_exposure`](./commands#tool-credit_exposure)
+**Siehe auch:** Agent Tool [`credit_exposure`](./commands#tool-credit_exposure)
 
 #### `credit_exposure` — Credit exposure {#tool-credit_exposure}
 
@@ -2850,7 +2856,7 @@ invoice_billable_positions direction party_id currency [limit]
 **Wirkung:** Liest: `party`, `document`, `document_line`, `commitment`, `movement`, `ledger_entry`,
 `ledger_reversal` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`invoice_billable_positions`](./commands#tool-invoice_billable_positions)
 
 #### `invoice_billable_positions` — Billable order positions {#tool-invoice_billable_positions}
@@ -2913,8 +2919,7 @@ finance_component_history component_id [limit] [offset]
 `component_assignment_revision`, `component_assignment_part`, `finance_reference`, `finance_state` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool
-[`finance_component_history`](./commands#tool-finance_component_history)
+**Siehe auch:** Agent Tool [`finance_component_history`](./commands#tool-finance_component_history)
 
 #### `finance_component_history` — Attribution history {#tool-finance_component_history}
 
@@ -2971,7 +2976,7 @@ finance_references [kind] [state] [query] [limit] [offset]
 
 **Wirkung:** Liest: `tenant`, `finance_reference`, `finance_state`, `business_event` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_references`](./commands#tool-finance_references)
+**Siehe auch:** Agent Tool [`finance_references`](./commands#tool-finance_references)
 
 #### `finance_references` — Finance references {#tool-finance_references}
 
@@ -3030,7 +3035,7 @@ invoice_credit_context invoice_id
 **Wirkung:** Liest: `document`, `document_line`, `ledger_entry`, `ledger_reversal`,
 `settlement_allocation` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`invoice_credit_context`](./commands#tool-invoice_credit_context)
+**Siehe auch:** Agent Tool [`invoice_credit_context`](./commands#tool-invoice_credit_context)
 
 #### `invoice_credit_context` — Invoice credit context {#tool-invoice_credit_context}
 
@@ -3084,7 +3089,7 @@ finance_opening_context [query]
 
 **Wirkung:** Liest: `party`, `subledger_account`, `finance_state` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_opening_context`](./commands#tool-finance_opening_context)
+**Siehe auch:** Agent Tool [`finance_opening_context`](./commands#tool-finance_opening_context)
 
 #### `finance_opening_context` — Opening positions {#tool-finance_opening_context}
 
@@ -3140,7 +3145,7 @@ finance_accounts
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_accounts`](./commands#tool-finance_accounts)
+**Siehe auch:** Agent Tool [`finance_accounts`](./commands#tool-finance_accounts)
 
 #### `finance_accounts` — Operational accounts {#tool-finance_accounts}
 
@@ -3193,7 +3198,7 @@ finance_matrix
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_matrix`](./commands#tool-finance_matrix)
+**Siehe auch:** Agent Tool [`finance_matrix`](./commands#tool-finance_matrix)
 
 #### `finance_matrix` — Operational transaction matrix {#tool-finance_matrix}
 
@@ -3247,7 +3252,7 @@ finance_settlement_context document_id [query]
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation`, `subledger_account`,
 `finance_state` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_settlement_context`](./commands#tool-finance_settlement_context)
 
 #### `finance_settlement_context` — Payment and credit context {#tool-finance_settlement_context}
@@ -3307,7 +3312,7 @@ finance_components document_id [reference_query] [limit] [offset]
 `component_assignment_revision`, `component_assignment_part`, `finance_reference`, `finance_state` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_components`](./commands#tool-finance_components)
+**Siehe auch:** Agent Tool [`finance_components`](./commands#tool-finance_components)
 
 #### `finance_components` — Financial detail {#tool-finance_components}
 
@@ -3365,8 +3370,7 @@ finance_reference_history reference_id [limit] [offset]
 
 **Wirkung:** Liest: `tenant`, `finance_reference`, `finance_state`, `business_event` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
-[`finance_reference_history`](./commands#tool-finance_reference_history)
+**Siehe auch:** Agent Tool [`finance_reference_history`](./commands#tool-finance_reference_history)
 
 #### `finance_reference_history` — Reference history {#tool-finance_reference_history}
 
@@ -3423,7 +3427,7 @@ finance_adjustment_context invoice_id
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation`, `subledger_account`,
 `finance_state` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_adjustment_context`](./commands#tool-finance_adjustment_context)
 
 #### `finance_adjustment_context` — Settlement reduction context {#tool-finance_adjustment_context}
@@ -3480,7 +3484,7 @@ finance_source_mappings [query] [source_query] [reference_query] [limit] [offset
 **Wirkung:** Liest: `tenant`, `source_system`, `finance_reference`, `finance_state`,
 `source_classification_mapping_revision` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_source_mappings`](./commands#tool-finance_source_mappings)
+**Siehe auch:** Agent Tool [`finance_source_mappings`](./commands#tool-finance_source_mappings)
 
 #### `finance_source_mappings` — Source code mappings {#tool-finance_source_mappings}
 
@@ -3540,7 +3544,7 @@ finance_source_mapping_history mapping_id [limit] [offset]
 **Wirkung:** Liest: `tenant`, `source_system`, `finance_reference`, `finance_state`,
 `source_classification_mapping_revision` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_source_mapping_history`](./commands#tool-finance_source_mapping_history)
 
 #### `finance_source_mapping_history` — Source mapping history {#tool-finance_source_mapping_history}
@@ -3600,7 +3604,7 @@ down_payment_invoice_record_propose order_id number gross_amount [currency] [eff
 `down_payment_offset` · Schreibt: `source_record`, `document`, `document_line`, `ledger_entry`,
 `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`down_payment_invoice_record_propose`](./commands#tool-down_payment_invoice_record_propose)
 
 #### `down_payment_invoice_record_propose` — Record a down-payment invoice {#tool-down_payment_invoice_record_propose}
@@ -3647,7 +3651,7 @@ proforma_invoice_record_propose order_id number gross_amount [currency] [documen
 **Wirkung:** Liest: `document` · Schreibt: `source_record`, `document`, `document_line`,
 `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`proforma_invoice_record_propose`](./commands#tool-proforma_invoice_record_propose)
 
 #### `proforma_invoice_record_propose` — Record a pro-forma invoice {#tool-proforma_invoice_record_propose}
@@ -3697,7 +3701,7 @@ supplier_invoice_free_record_propose supplier_id number currency gross_amount [d
 **Wirkung:** Liest: `party`, `item` · Schreibt: `source_record`, `document`, `document_line`,
 `ledger_entry`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_invoice_free_record_propose`](./commands#tool-supplier_invoice_free_record_propose)
 
 #### `supplier_invoice_free_record_propose` — Record free supplier invoice {#tool-supplier_invoice_free_record_propose}
@@ -3778,7 +3782,7 @@ finance_settlement_propose expected_revision document_id amount [reference] [eff
 `finance_state` · Schreibt: `source_record`, `document`, `ledger_entry`, `settlement_allocation`,
 `action`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_settlement_propose`](./commands#tool-finance_settlement_propose)
 
 #### `finance_settlement_propose` — Record payment or use credit {#tool-finance_settlement_propose}
@@ -3859,7 +3863,7 @@ sales_credit_record_propose [order_line_id] [quantity] [invoice_id] [reason] [al
 `ledger_reversal`, `settlement_allocation` · Schreibt: `source_record`, `document`, `document_line`,
 `ledger_entry`, `settlement_allocation`, `business_event` · Erzeugt: `credit.recorded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`sales_credit_record_propose`](./commands#tool-sales_credit_record_propose), Event
 [`credit.recorded`](./events#event-credit-recorded)
 
@@ -3936,7 +3940,7 @@ sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [re
 **Wirkung:** Liest: `document`, `document_line` · Schreibt: `source_record`, `document`,
 `document_line`, `ledger_entry` · Erzeugt: `invoice.recorded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`sales_invoice_record_propose`](./commands#tool-sales_invoice_record_propose), Event
 [`invoice.recorded`](./events#event-invoice-recorded)
 
@@ -4007,7 +4011,7 @@ supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount 
 **Wirkung:** Liest: `document`, `document_line` · Schreibt: `source_record`, `document`,
 `document_line`, `ledger_entry`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_invoice_record_propose`](./commands#tool-supplier_invoice_record_propose)
 
 #### `supplier_invoice_record_propose` — Record supplier invoice {#tool-supplier_invoice_record_propose}
@@ -4072,7 +4076,7 @@ credit_hold_release_propose document_id reason
 **Wirkung:** Liest: `document`, `commitment`, `commitment_hold`, `party`, `ledger_entry`,
 `document_line` · Schreibt: `commitment_hold`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`credit_hold_release_propose`](./commands#tool-credit_hold_release_propose)
 
 #### `credit_hold_release_propose` — Release a credit hold {#tool-credit_hold_release_propose}
@@ -4114,7 +4118,7 @@ ledger_reversal_propose posting_group_id reason
 `source_record` · Schreibt: `ledger_entry`, `ledger_reversal`, `business_event` · Erzeugt:
 `ledger.reversed`
 
-**Siehe auch:** Agenten-Tool [`ledger_reversal_propose`](./commands#tool-ledger_reversal_propose),
+**Siehe auch:** Agent Tool [`ledger_reversal_propose`](./commands#tool-ledger_reversal_propose),
 Event [`ledger.reversed`](./events#event-ledger-reversed)
 
 #### `ledger_reversal_propose` — Propose Ledger reversal {#tool-ledger_reversal_propose}
@@ -4155,7 +4159,7 @@ finance_set_default_account_propose expected_revision role account_id
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
 Schreibt: `subledger_account`, `finance_state`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_set_default_account_propose`](./commands#tool-finance_set_default_account_propose)
 
 #### `finance_set_default_account_propose` — Configure operational accounts {#tool-finance_set_default_account_propose}
@@ -4218,7 +4222,7 @@ finance_source_mapping_propose expected_revision source_system_id namespace fiel
 `source_classification_mapping_revision` · Schreibt: `source_classification_mapping_revision`,
 `finance_state`, `business_event` · Erzeugt: `finance.source_mapping_changed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_source_mapping_propose`](./commands#tool-finance_source_mapping_propose), Event
 [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed)
 
@@ -4289,7 +4293,7 @@ finance_update_account_propose expected_revision account_id [code] [name] [state
 Schreibt: `subledger_account`, `finance_state`, `business_event` · Erzeugt:
 `finance.account_changed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_update_account_propose`](./commands#tool-finance_update_account_propose), Event
 [`finance.account_changed`](./events#event-finance-account_changed)
 
@@ -4355,7 +4359,7 @@ return_announce_propose commitment_id quantity [reference] [reason] [expected_by
 **Wirkung:** Liest: `commitment`, `movement`, `return_announcement` · Schreibt:
 `return_announcement`, `business_event` · Erzeugt: `return.announced`
 
-**Siehe auch:** Agenten-Tool [`return_announce_propose`](./commands#tool-return_announce_propose),
+**Siehe auch:** Agent Tool [`return_announce_propose`](./commands#tool-return_announce_propose),
 Event [`return.announced`](./events#event-return-announced)
 
 #### `return_announce_propose` — Announce customer return {#tool-return_announce_propose}
@@ -4399,9 +4403,8 @@ commitment_cancel_propose commitment_id reason [source_record_id]
 **Wirkung:** Liest: `commitment`, `reservation`, `commitment_hold`, `source_record` · Schreibt:
 `commitment`, `reservation`, `commitment_hold`, `business_event` · Erzeugt: `commitment.cancelled`
 
-**Siehe auch:** Agenten-Tool
-[`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose), Event
-[`commitment.cancelled`](./events#event-commitment-cancelled)
+**Siehe auch:** Agent Tool [`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose),
+Event [`commitment.cancelled`](./events#event-commitment-cancelled)
 
 #### `commitment_cancel_propose` — Cancel commitment remainder {#tool-commitment_cancel_propose}
 
@@ -4471,7 +4474,7 @@ stale_closure_propose direction due_before expected_count reason
 **Wirkung:** Liest: `commitment`, `movement`, `reservation`, `commitment_hold`, `party_hold` ·
 Schreibt: `commitment`, `reservation`, `business_event` · Erzeugt: `promises.closed`
 
-**Siehe auch:** Agenten-Tool [`stale_closure_propose`](./commands#tool-stale_closure_propose), Event
+**Siehe auch:** Agent Tool [`stale_closure_propose`](./commands#tool-stale_closure_propose), Event
 [`promises.closed`](./events#event-promises-closed), Command
 [`cancel_commitment`](./commands#command-cancel_commitment)
 
@@ -4516,8 +4519,8 @@ order_create_propose direction number company_party_id counterparty_id location_
 `source_stream`, `source_record`, `document`, `document_line`, `commitment`, `business_event` ·
 Erzeugt: `order.recorded`
 
-**Siehe auch:** Agenten-Tool [`order_create_propose`](./commands#tool-order_create_propose),
-Web-Aktion [`create_manual_order`](./views#action-create_manual_order), Event
+**Siehe auch:** Agent Tool [`order_create_propose`](./commands#tool-order_create_propose), Web
+Action [`create_manual_order`](./views#action-create_manual_order), Event
 [`order.recorded`](./events#event-order-recorded)
 
 #### `order_create_propose` — Create order {#tool-order_create_propose}
@@ -4610,9 +4613,9 @@ commitment_hold_release_propose commitment_id
 **Wirkung:** Liest: `commitment`, `commitment_hold` · Schreibt: `commitment_hold` · Erzeugt:
 `commitment.held`
 
-**Siehe auch:** Agenten-Tool [`commitment_hold_propose`](./commands#tool-commitment_hold_propose),
-Agenten-Tool [`commitment_hold_release_propose`](./commands#tool-commitment_hold_release_propose),
-Web-Aktion [`hold_commitment`](./views#action-hold_commitment), Event
+**Siehe auch:** Agent Tool [`commitment_hold_propose`](./commands#tool-commitment_hold_propose),
+Agent Tool [`commitment_hold_release_propose`](./commands#tool-commitment_hold_release_propose), Web
+Action [`hold_commitment`](./views#action-hold_commitment), Event
 [`commitment.held`](./events#event-commitment-held)
 
 #### `commitment_hold_propose` — Hold commitment {#tool-commitment_hold_propose}
@@ -4674,9 +4677,9 @@ document_hold_release_propose document_id
 
 **Wirkung:** Liest: `document`, `commitment`, `commitment_hold` · Schreibt: `commitment_hold`
 
-**Siehe auch:** Agenten-Tool [`document_hold_propose`](./commands#tool-document_hold_propose),
-Agenten-Tool [`document_hold_release_propose`](./commands#tool-document_hold_release_propose),
-Web-Aktion [`hold_document_commitments`](./views#action-hold_document_commitments)
+**Siehe auch:** Agent Tool [`document_hold_propose`](./commands#tool-document_hold_propose), Agent
+Tool [`document_hold_release_propose`](./commands#tool-document_hold_release_propose), Web Action
+[`hold_document_commitments`](./views#action-hold_document_commitments)
 
 #### `document_hold_propose` — Hold document commitments {#tool-document_hold_propose}
 
@@ -4736,7 +4739,7 @@ finance_payment_returns
 
 **Wirkung:** Liest: `payment_return`, `document`, `settlement_allocation` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_payment_returns`](./commands#tool-finance_payment_returns)
+**Siehe auch:** Agent Tool [`finance_payment_returns`](./commands#tool-finance_payment_returns)
 
 #### `finance_payment_returns` — Returned payments {#tool-finance_payment_returns}
 
@@ -4792,7 +4795,7 @@ outbound_delivery_pick_propose outbound_delivery_id lines
 `commitment`, `reservation`, `movement` · Schreibt: `movement`, `reservation`,
 `outbound_delivery_pick`, `business_event` · Erzeugt: `outbound_delivery.picked`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`outbound_delivery_pick_propose`](./commands#tool-outbound_delivery_pick_propose), Event
 [`outbound_delivery.picked`](./events#event-outbound_delivery-picked)
 
@@ -4841,7 +4844,7 @@ outbound_delivery_plan_propose [recipient_party_id] [address] [slot] [staging_lo
 `outbound_delivery_line`, `movement` · Schreibt: `outbound_delivery`, `outbound_delivery_line`,
 `source_record`, `business_event` · Erzeugt: `outbound_delivery.planned`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`outbound_delivery_plan_propose`](./commands#tool-outbound_delivery_plan_propose), Event
 [`outbound_delivery.planned`](./events#event-outbound_delivery-planned)
 
@@ -4901,7 +4904,7 @@ stale_closure_preview direction due_before
 **Wirkung:** Liest: `commitment`, `movement`, `reservation`, `commitment_hold`, `party_hold` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`stale_closure_preview`](./commands#tool-stale_closure_preview)
+**Siehe auch:** Agent Tool [`stale_closure_preview`](./commands#tool-stale_closure_preview)
 
 #### `stale_closure_preview` — Preview a stale promise closure {#tool-stale_closure_preview}
 
@@ -4964,7 +4967,7 @@ outbound_delivery_put_back_propose outbound_delivery_id lines
 `commitment`, `reservation`, `movement` · Schreibt: `movement`, `reservation`,
 `outbound_delivery_pick`, `business_event` · Erzeugt: `outbound_delivery.put_back`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`outbound_delivery_put_back_propose`](./commands#tool-outbound_delivery_put_back_propose), Event
 [`outbound_delivery.put_back`](./events#event-outbound_delivery-put_back)
 
@@ -5011,7 +5014,7 @@ outbound_delivery_detail outbound_delivery_id
 **Wirkung:** Liest: `outbound_delivery`, `outbound_delivery_line`, `outbound_delivery_pick`,
 `movement`, `commitment`, `party`, `location`, `source_record`, `shipment` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`outbound_delivery_detail`](./commands#tool-outbound_delivery_detail)
+**Siehe auch:** Agent Tool [`outbound_delivery_detail`](./commands#tool-outbound_delivery_detail)
 
 #### `outbound_delivery_detail` — Planned delivery {#tool-outbound_delivery_detail}
 
@@ -5069,7 +5072,7 @@ finance_payment_return return_id
 
 **Wirkung:** Liest: `payment_return`, `document`, `settlement_allocation` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_payment_return`](./commands#tool-finance_payment_return)
+**Siehe auch:** Agent Tool [`finance_payment_return`](./commands#tool-finance_payment_return)
 
 #### `finance_payment_return` — Returned payment {#tool-finance_payment_return}
 
@@ -5123,7 +5126,7 @@ return_announcements [commitment_id] [status]
 
 **Wirkung:** Liest: `commitment`, `movement`, `return_announcement` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`return_announcements`](./commands#tool-return_announcements)
+**Siehe auch:** Agent Tool [`return_announcements`](./commands#tool-return_announcements)
 
 #### `return_announcements` — Read announced returns {#tool-return_announcements}
 
@@ -5182,7 +5185,7 @@ available_to_promise item_id
 **Wirkung:** Liest: `item`, `commitment`, `movement`, `reservation`, `stock_block`,
 `supply_assignment`, `party` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`available_to_promise`](./commands#tool-available_to_promise)
+**Siehe auch:** Agent Tool [`available_to_promise`](./commands#tool-available_to_promise)
 
 #### `available_to_promise` — Available to promise {#tool-available_to_promise}
 
@@ -5241,7 +5244,7 @@ delivery_rules [party_id] [document_id]
 **Wirkung:** Liest: `delivery_rule`, `source_record`, `party`, `document`, `commitment` · Schreibt:
 —
 
-**Siehe auch:** Agenten-Tool [`delivery_rules`](./commands#tool-delivery_rules)
+**Siehe auch:** Agent Tool [`delivery_rules`](./commands#tool-delivery_rules)
 
 #### `delivery_rules` — Delivery rules {#tool-delivery_rules}
 
@@ -5300,7 +5303,7 @@ reorder_points [item_id] [location_id]
 
 **Wirkung:** Liest: `item_reorder_point`, `item`, `location` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`reorder_points`](./commands#tool-reorder_points)
+**Siehe auch:** Agent Tool [`reorder_points`](./commands#tool-reorder_points)
 
 #### `reorder_points` — Reorder points {#tool-reorder_points}
 
@@ -5361,7 +5364,7 @@ shipment_delivery_failure_propose shipment_id kind reason [occurred_at] [claim_p
 `movement_correction`, `movement`, `document`, `ledger_entry`, `source_record`, `business_event` ·
 Erzeugt: `shipment.delivery_failed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`shipment_delivery_failure_propose`](./commands#tool-shipment_delivery_failure_propose), Event
 [`shipment.delivery_failed`](./events#event-shipment-delivery_failed)
 
@@ -5408,7 +5411,7 @@ finance_payment_return_propose payment_document_id kind returned_on reason [refe
 `subledger_account` · Schreibt: `payment_return`, `ledger_reversal`, `ledger_entry`, `document`,
 `source_record`, `business_event` · Erzeugt: `payment.returned`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_payment_return_propose`](./commands#tool-finance_payment_return_propose), Event
 [`payment.returned`](./events#event-payment-returned)
 
@@ -5480,7 +5483,7 @@ reservation_release_propose reservation_id
 **Wirkung:** Liest: `reservation`, `commitment` · Schreibt: `reservation`, `business_event` ·
 Erzeugt: `reservation.released`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`reservation_release_propose`](./commands#tool-reservation_release_propose), Event
 [`reservation.released`](./events#event-reservation-released)
 
@@ -5520,7 +5523,7 @@ reorder_point_remove_propose item_id location_id
 **Wirkung:** Liest: `item`, `location`, `item_reorder_point` · Schreibt: `item_reorder_point`,
 `business_event` · Erzeugt: `reorder_point.removed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`reorder_point_remove_propose`](./commands#tool-reorder_point_remove_propose), Event
 [`reorder_point.removed`](./events#event-reorder_point-removed)
 
@@ -5562,8 +5565,8 @@ reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial
 **Wirkung:** Liest: `commitment`, `movement`, `reservation`, `item`, `location`, `handling_unit`,
 `lot`, `serial_unit` · Schreibt: `reservation` · Erzeugt: `reservation.created`
 
-**Siehe auch:** Agenten-Tool [`reservation_propose`](./commands#tool-reservation_propose),
-Web-Aktion [`reserve_stock`](./views#action-reserve_stock), Event
+**Siehe auch:** Agent Tool [`reservation_propose`](./commands#tool-reservation_propose), Web Action
+[`reserve_stock`](./views#action-reserve_stock), Event
 [`reservation.created`](./events#event-reservation-created)
 
 #### `reservation_propose` — Propose reservation {#tool-reservation_propose}
@@ -5634,7 +5637,7 @@ return_disposition_propose return_movement_id disposition quantity [destination_
 **Wirkung:** Liest: `movement`, `movement_correction`, `source_record`, `location` · Schreibt:
 `movement`, `source_record`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`return_disposition_propose`](./commands#tool-return_disposition_propose)
 
 #### `return_disposition_propose` — Resolve returned goods {#tool-return_disposition_propose}
@@ -5708,7 +5711,7 @@ outbound_delivery_revise_propose [recipient_party_id] [address] [slot] [staging_
 `commitment`, `party`, `location`, `source_record` · Schreibt: `outbound_delivery`,
 `outbound_delivery_line`, `source_record`, `business_event` · Erzeugt: `outbound_delivery.revised`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`outbound_delivery_revise_propose`](./commands#tool-outbound_delivery_revise_propose), Event
 [`outbound_delivery.revised`](./events#event-outbound_delivery-revised)
 
@@ -5766,9 +5769,8 @@ commitment_revise_propose commitment_id [due_at] [quantity] [unit_price] [note] 
 **Wirkung:** Liest: `tenant`, `commitment`, `source_record` · Schreibt: `commitment_revision`,
 `business_event` · Erzeugt: `commitment.revised`
 
-**Siehe auch:** Agenten-Tool
-[`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Event
-[`commitment.revised`](./events#event-commitment-revised)
+**Siehe auch:** Agent Tool [`commitment_revise_propose`](./commands#tool-commitment_revise_propose),
+Event [`commitment.revised`](./events#event-commitment-revised)
 
 #### `commitment_revise_propose` — Revise commitment {#tool-commitment_revise_propose}
 
@@ -5848,7 +5850,7 @@ backorders_serve_propose item_id location_id [supplier_commitment_id] [lines]
 **Wirkung:** Liest: `item`, `location`, `commitment`, `movement`, `reservation`, `stock_block`,
 `supply_assignment`, `party` · Schreibt: `reservation`, `business_event`
 
-**Siehe auch:** Agenten-Tool [`backorders_serve_propose`](./commands#tool-backorders_serve_propose)
+**Siehe auch:** Agent Tool [`backorders_serve_propose`](./commands#tool-backorders_serve_propose)
 
 #### `backorders_serve_propose` — Serve backorders {#tool-backorders_serve_propose}
 
@@ -5895,9 +5897,8 @@ reorder_point_set_propose item_id location_id reorder_point reorder_quantity
 **Wirkung:** Liest: `item`, `location`, `item_reorder_point` · Schreibt: `item_reorder_point`,
 `business_event` · Erzeugt: `reorder_point.set`
 
-**Siehe auch:** Agenten-Tool
-[`reorder_point_set_propose`](./commands#tool-reorder_point_set_propose), Event
-[`reorder_point.set`](./events#event-reorder_point-set)
+**Siehe auch:** Agent Tool [`reorder_point_set_propose`](./commands#tool-reorder_point_set_propose),
+Event [`reorder_point.set`](./events#event-reorder_point-set)
 
 #### `reorder_point_set_propose` — Set reorder point {#tool-reorder_point_set_propose}
 
@@ -5940,10 +5941,10 @@ party_delivery_hold_release_propose party_id
 **Wirkung:** Liest: `party`, `party_hold` · Schreibt: `party_hold` · Erzeugt:
 `party.delivery_hold_placed`
 
-**Siehe auch:** Agenten-Tool
-[`party_delivery_hold_propose`](./commands#tool-party_delivery_hold_propose), Agenten-Tool
-[`party_delivery_hold_release_propose`](./commands#tool-party_delivery_hold_release_propose),
-Web-Aktion [`party_delivery_hold`](./views#action-party_delivery_hold), Event
+**Siehe auch:** Agent Tool
+[`party_delivery_hold_propose`](./commands#tool-party_delivery_hold_propose), Agent Tool
+[`party_delivery_hold_release_propose`](./commands#tool-party_delivery_hold_release_propose), Web
+Action [`party_delivery_hold`](./views#action-party_delivery_hold), Event
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed)
 
 #### `party_delivery_hold_propose` — Place party delivery hold {#tool-party_delivery_hold_propose}
@@ -6006,9 +6007,8 @@ delivery_rule_set_propose [party_id] [document_id] rule reason
 **Wirkung:** Liest: `party`, `document`, `commitment`, `delivery_rule` · Schreibt: `delivery_rule`,
 `source_record`, `business_event` · Erzeugt: `delivery_rule.stated`
 
-**Siehe auch:** Agenten-Tool
-[`delivery_rule_set_propose`](./commands#tool-delivery_rule_set_propose), Event
-[`delivery_rule.stated`](./events#event-delivery_rule-stated)
+**Siehe auch:** Agent Tool [`delivery_rule_set_propose`](./commands#tool-delivery_rule_set_propose),
+Event [`delivery_rule.stated`](./events#event-delivery_rule-stated)
 
 #### `delivery_rule_set_propose` — State a delivery rule {#tool-delivery_rule_set_propose}
 
@@ -6052,7 +6052,7 @@ return_announcement_withdraw_propose announcement_id [note]
 **Wirkung:** Liest: `return_announcement` · Schreibt: `return_announcement`, `business_event` ·
 Erzeugt: `return.announcement_withdrawn`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`return_announcement_withdraw_propose`](./commands#tool-return_announcement_withdraw_propose),
 Event [`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn)
 
@@ -6097,7 +6097,7 @@ stock_block_propose item_id location_id quantity reason_code [note] [handling_un
 **Wirkung:** Liest: `item`, `location`, `movement`, `reservation`, `stock_block` · Schreibt:
 `stock_block`, `business_event` · Erzeugt: `stock_block.created`
 
-**Siehe auch:** Agenten-Tool [`stock_block_propose`](./commands#tool-stock_block_propose), Event
+**Siehe auch:** Agent Tool [`stock_block_propose`](./commands#tool-stock_block_propose), Event
 [`stock_block.created`](./events#event-stock_block-created)
 
 #### `stock_block_propose` — Block stock {#tool-stock_block_propose}
@@ -6144,7 +6144,7 @@ lot_expiry_correct_propose lot_id [expires_at] [expected_expires_at] reason
 
 **Wirkung:** Liest: `lot` · Schreibt: `lot`, `business_event` · Erzeugt: `lot.expiry_corrected`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`lot_expiry_correct_propose`](./commands#tool-lot_expiry_correct_propose), Event
 [`lot.expiry_corrected`](./events#event-lot-expiry_corrected)
 
@@ -6190,8 +6190,8 @@ movement_correction_propose movement_id reason [replacement]
 Schreibt: `movement`, `movement_correction`, `commitment`, `business_event`, `misdelivery` ·
 Erzeugt: `movement.corrected`
 
-**Siehe auch:** Agenten-Tool
-[`movement_correction_propose`](./commands#tool-movement_correction_propose), Web-Aktion
+**Siehe auch:** Agent Tool
+[`movement_correction_propose`](./commands#tool-movement_correction_propose), Web Action
 [`correct_movement`](./views#action-correct_movement), Event
 [`movement.corrected`](./events#event-movement-corrected)
 
@@ -6234,8 +6234,8 @@ handling_unit_create_propose [nve] [source_record_id]
 **Wirkung:** Liest: `tenant`, `source_record`, `handling_unit` · Schreibt: `handling_unit`,
 `business_event` · Erzeugt: `handling_unit.created`
 
-**Siehe auch:** Agenten-Tool
-[`handling_unit_create_propose`](./commands#tool-handling_unit_create_propose), Web-Aktion
+**Siehe auch:** Agent Tool
+[`handling_unit_create_propose`](./commands#tool-handling_unit_create_propose), Web Action
 [`create_handling_unit`](./views#action-create_handling_unit), Event
 [`handling_unit.created`](./events#event-handling_unit-created)
 
@@ -6277,7 +6277,7 @@ lot_create_propose item_id lot_number [expires_at] [source_record_id]
 **Wirkung:** Liest: `tenant`, `item`, `source_record`, `lot` · Schreibt: `lot`, `business_event` ·
 Erzeugt: `lot.created`
 
-**Siehe auch:** Agenten-Tool [`lot_create_propose`](./commands#tool-lot_create_propose), Web-Aktion
+**Siehe auch:** Agent Tool [`lot_create_propose`](./commands#tool-lot_create_propose), Web Action
 [`create_lot`](./views#action-create_lot), Event [`lot.created`](./events#event-lot-created)
 
 #### `lot_create_propose` — Create lot {#tool-lot_create_propose}
@@ -6319,8 +6319,8 @@ serial_unit_create_propose item_id serial_number [lot_id] [source_record_id]
 **Wirkung:** Liest: `tenant`, `item`, `lot`, `source_record`, `serial_unit` · Schreibt:
 `serial_unit`, `business_event` · Erzeugt: `serial_unit.created`
 
-**Siehe auch:** Agenten-Tool
-[`serial_unit_create_propose`](./commands#tool-serial_unit_create_propose), Web-Aktion
+**Siehe auch:** Agent Tool
+[`serial_unit_create_propose`](./commands#tool-serial_unit_create_propose), Web Action
 [`create_serial_unit`](./views#action-create_serial_unit), Event
 [`serial_unit.created`](./events#event-serial_unit-created)
 
@@ -6365,9 +6365,8 @@ shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_n
 `reservation`, `movement`, `commitment_substitute`, `misdelivery` · Schreibt: `shipment`,
 `shipment_package`, `shipment_event`, `movement`, `reservation`, `business_event`, `misdelivery`
 
-**Siehe auch:** Agenten-Tool
-[`shipment_dispatch_propose`](./commands#tool-shipment_dispatch_propose), Agenten-Tool
-[`shipment_receive_propose`](./commands#tool-shipment_receive_propose), Command
+**Siehe auch:** Agent Tool [`shipment_dispatch_propose`](./commands#tool-shipment_dispatch_propose),
+Agent Tool [`shipment_receive_propose`](./commands#tool-shipment_receive_propose), Command
 [`record_movement`](./commands#command-record_movement)
 
 #### `shipment_dispatch_propose` — Propose package dispatch {#tool-shipment_dispatch_propose}
@@ -6472,7 +6471,7 @@ stock_count_detail stock_count_id
 **Wirkung:** Liest: `stock_count`, `stock_count_line`, `source_record`, `business_event`, `location`
 · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`stock_count_detail`](./commands#tool-stock_count_detail)
+**Siehe auch:** Agent Tool [`stock_count_detail`](./commands#tool-stock_count_detail)
 
 #### `stock_count_detail` — Stock count {#tool-stock_count_detail}
 
@@ -6528,7 +6527,7 @@ expired_lots
 
 **Wirkung:** Liest: `lot` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`expired_lots`](./commands#tool-expired_lots)
+**Siehe auch:** Agent Tool [`expired_lots`](./commands#tool-expired_lots)
 
 #### `expired_lots` — Read expired lots {#tool-expired_lots}
 
@@ -6591,7 +6590,7 @@ cost_inventory_get item_id [review_id] [assessment_revision_id]
 `cost_conversion_basis_revision`, `cost_receipt_basis`, `cost_input_manifest`,
 `cost_attribution_revision`, `cost_attribution_part`, `cost_scope_review` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`cost_inventory_get`](./commands#tool-cost_inventory_get)
+**Siehe auch:** Agent Tool [`cost_inventory_get`](./commands#tool-cost_inventory_get)
 
 #### `cost_inventory_get` — Reviewed inventory acquisition value {#tool-cost_inventory_get}
 
@@ -6648,7 +6647,7 @@ stock_blocks [item_id] [location_id] [status]
 
 **Wirkung:** Liest: `stock_block`, `item`, `location` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`stock_blocks`](./commands#tool-stock_blocks)
+**Siehe auch:** Agent Tool [`stock_blocks`](./commands#tool-stock_blocks)
 
 #### `stock_blocks` — Stock blocks {#tool-stock_blocks}
 
@@ -6709,7 +6708,7 @@ stock_counts [location_id]
 
 **Wirkung:** Liest: `stock_count`, `stock_count_line`, `location` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`stock_counts`](./commands#tool-stock_counts)
+**Siehe auch:** Agent Tool [`stock_counts`](./commands#tool-stock_counts)
 
 #### `stock_counts` — Stock counts {#tool-stock_counts}
 
@@ -6768,7 +6767,7 @@ drop_shipment_record_propose supplier_commitment_id [customer_commitment_id] qua
 `movement_correction`, `shipment_package` · Schreibt: `shipment`, `shipment_package`,
 `shipment_event`, `movement`, `source_record`, `business_event` · Erzeugt: `drop_shipment.recorded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`drop_shipment_record_propose`](./commands#tool-drop_shipment_record_propose), Event
 [`drop_shipment.recorded`](./events#event-drop_shipment-recorded)
 
@@ -6815,7 +6814,7 @@ stock_count_propose location_id [note] lines
 `commitment` · Schreibt: `stock_count`, `stock_count_line`, `movement`, `stock_block_resolution`,
 `source_record`, `business_event` · Erzeugt: `stock_count.posted`
 
-**Siehe auch:** Agenten-Tool [`stock_count_propose`](./commands#tool-stock_count_propose), Event
+**Siehe auch:** Agent Tool [`stock_count_propose`](./commands#tool-stock_count_propose), Event
 [`stock_count.posted`](./events#event-stock_count-posted)
 
 #### `stock_count_propose` — Count stock {#tool-stock_count_propose}
@@ -6866,8 +6865,8 @@ movement_create_propose movement_type item_id quantity [from_location_id] [to_lo
 `action`, `business_event`, `misdelivery` · Erzeugt: `commitment.fulfilled`, `reservation.consumed`,
 `movement.recorded`
 
-**Siehe auch:** Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose),
-Web-Aktion [`record_movement`](./views#action-record_movement), Event
+**Siehe auch:** Agent Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Web
+Action [`record_movement`](./views#action-record_movement), Event
 [`commitment.fulfilled`](./events#event-commitment-fulfilled), Event
 [`reservation.consumed`](./events#event-reservation-consumed), Event
 [`movement.recorded`](./events#event-movement-recorded)
@@ -6960,7 +6959,7 @@ shipment_event_record_propose shipment_id [shipment_package_id] event_type repor
 **Wirkung:** Liest: `shipment`, `shipment_package`, `source_record` · Schreibt: `shipment_event`,
 `business_event` · Erzeugt: `shipment.event_recorded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`shipment_event_record_propose`](./commands#tool-shipment_event_record_propose), Event
 [`shipment.event_recorded`](./events#event-shipment-event_recorded)
 
@@ -7007,7 +7006,7 @@ shipment_notice_record_propose direction purpose counterparty_id [carrier] [trac
 `shipment_package`, `shipment_event`, `business_event`, `shipment_advice_line` · Erzeugt:
 `shipment.notice_recorded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`shipment_notice_record_propose`](./commands#tool-shipment_notice_record_propose), Event
 [`shipment.notice_recorded`](./events#event-shipment-notice_recorded)
 
@@ -7056,7 +7055,7 @@ stock_block_release_propose block_id [quantity] reason
 **Wirkung:** Liest: `stock_block` · Schreibt: `stock_block`, `business_event` · Erzeugt:
 `stock_block.released`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`stock_block_release_propose`](./commands#tool-stock_block_release_propose), Event
 [`stock_block.released`](./events#event-stock_block-released)
 
@@ -7099,9 +7098,8 @@ stock_block_scrap_propose block_id [quantity] reason
 **Wirkung:** Liest: `stock_block`, `movement` · Schreibt: `stock_block`, `movement`,
 `business_event` · Erzeugt: `stock_block.scrapped`
 
-**Siehe auch:** Agenten-Tool
-[`stock_block_scrap_propose`](./commands#tool-stock_block_scrap_propose), Event
-[`stock_block.scrapped`](./events#event-stock_block-scrapped)
+**Siehe auch:** Agent Tool [`stock_block_scrap_propose`](./commands#tool-stock_block_scrap_propose),
+Event [`stock_block.scrapped`](./events#event-stock_block-scrapped)
 
 #### `stock_block_scrap_propose` — Scrap blocked stock {#tool-stock_block_scrap_propose}
 
@@ -7141,7 +7139,7 @@ lot_expiry_state_propose lot_id expires_at
 
 **Wirkung:** Liest: `lot` · Schreibt: `lot`, `business_event` · Erzeugt: `lot.expiry_stated`
 
-**Siehe auch:** Agenten-Tool [`lot_expiry_state_propose`](./commands#tool-lot_expiry_state_propose),
+**Siehe auch:** Agent Tool [`lot_expiry_state_propose`](./commands#tool-lot_expiry_state_propose),
 Event [`lot.expiry_stated`](./events#event-lot-expiry_stated)
 
 #### `lot_expiry_state_propose` — State lot expiry {#tool-lot_expiry_state_propose}
@@ -7181,7 +7179,7 @@ shipment_event_supersede_propose event_id reason [replacement_event_id] [source_
 **Wirkung:** Liest: `shipment_event`, `source_record` · Schreibt: `shipment_event_supersession`,
 `business_event` · Erzeugt: `shipment.event_superseded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`shipment_event_supersede_propose`](./commands#tool-shipment_event_supersede_propose), Event
 [`shipment.event_superseded`](./events#event-shipment-event_superseded)
 
@@ -7228,9 +7226,9 @@ document_lines_correct_propose document_id expected_revision lines [actor_contex
 `item`, `payment_term` · Schreibt: `document`, `document_line`, `business_event` · Erzeugt:
 `document.corrected`
 
-**Siehe auch:** Agenten-Tool [`document_correct_propose`](./commands#tool-document_correct_propose),
-Agenten-Tool [`document_lines_correct_propose`](./commands#tool-document_lines_correct_propose),
-Event [`document.corrected`](./events#event-document-corrected)
+**Siehe auch:** Agent Tool [`document_correct_propose`](./commands#tool-document_correct_propose),
+Agent Tool [`document_lines_correct_propose`](./commands#tool-document_lines_correct_propose), Event
+[`document.corrected`](./events#event-document-corrected)
 
 #### `document_correct_propose` — Correct manual document {#tool-document_correct_propose}
 
@@ -7305,8 +7303,8 @@ source_capability_lifecycle_propose capability_id is_active
 
 **Wirkung:** Liest: `tenant`, `source_system`, `source_capability` · Schreibt: `source_capability`
 
-**Siehe auch:** Agenten-Tool
-[`source_capability_create_propose`](./commands#tool-source_capability_create_propose), Agenten-Tool
+**Siehe auch:** Agent Tool
+[`source_capability_create_propose`](./commands#tool-source_capability_create_propose), Agent Tool
 [`source_capability_lifecycle_propose`](./commands#tool-source_capability_lifecycle_propose)
 
 #### `source_capability_create_propose` — Create source capability {#tool-source_capability_create_propose}
@@ -7370,8 +7368,8 @@ source_system_lifecycle_propose source_system_id is_active
 
 **Wirkung:** Liest: `tenant`, `source_system` · Schreibt: `source_system`
 
-**Siehe auch:** Agenten-Tool
-[`source_system_create_propose`](./commands#tool-source_system_create_propose), Agenten-Tool
+**Siehe auch:** Agent Tool
+[`source_system_create_propose`](./commands#tool-source_system_create_propose), Agent Tool
 [`source_system_lifecycle_propose`](./commands#tool-source_system_lifecycle_propose)
 
 #### `source_system_create_propose` — Create source system {#tool-source_system_create_propose}
@@ -7437,8 +7435,8 @@ source_record_ingest_propose source_system source_type external_id payload [sour
 `source_stream`, `source_record`, `import_job`, `business_event` · Erzeugt:
 `source_record.received`, `source_record.unmapped`
 
-**Siehe auch:** Agenten-Tool [`source_ingest_propose`](./commands#tool-source_ingest_propose),
-Agenten-Tool [`source_record_ingest_propose`](./commands#tool-source_record_ingest_propose), Event
+**Siehe auch:** Agent Tool [`source_ingest_propose`](./commands#tool-source_ingest_propose), Agent
+Tool [`source_record_ingest_propose`](./commands#tool-source_record_ingest_propose), Event
 [`source_record.received`](./events#event-source_record-received), Event
 [`source_record.unmapped`](./events#event-source_record-unmapped)
 
@@ -7508,8 +7506,7 @@ connector_install_propose connector_code [source_types] [system_code] [system_na
 
 **Wirkung:** Liest: `tenant`, `source_system` · Schreibt: `source_system`, `source_capability`
 
-**Siehe auch:** Agenten-Tool
-[`connector_install_propose`](./commands#tool-connector_install_propose)
+**Siehe auch:** Agent Tool [`connector_install_propose`](./commands#tool-connector_install_propose)
 
 #### `connector_install_propose` — Install connector shell {#tool-connector_install_propose}
 
@@ -7551,8 +7548,8 @@ fact_observe_propose source_record_id subject_type subject_id predicate value ob
 **Wirkung:** Liest: `tenant`, `source_record`, `commitment` · Schreibt: `fact`, `business_event` ·
 Erzeugt: `fact.observed`
 
-**Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
-Web-Aktion [`observe_fact`](./views#action-observe_fact), Event
+**Siehe auch:** Agent Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), Web
+Action [`observe_fact`](./views#action-observe_fact), Event
 [`fact.observed`](./events#event-fact-observed)
 
 #### `fact_observe_propose` — Propose Fact observation {#tool-fact_observe_propose}
@@ -7625,7 +7622,7 @@ finance_target_mapping_preview target_id document_id [limit] [offset]
 `component_assignment_part`, `source_record`, `source_system`,
 `source_classification_mapping_revision` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_target_mapping_preview`](./commands#tool-finance_target_mapping_preview)
 
 #### `finance_target_mapping_preview` — Finance Target Mapping Preview {#tool-finance_target_mapping_preview}
@@ -7688,7 +7685,7 @@ document_source_correct_propose document_id payload [source_version_at]
 **Wirkung:** Liest: `tenant`, `document`, `source_record`, `import_job` · Schreibt: `source_stream`,
 `source_record`, `import_job`, `business_event`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`document_source_correct_propose`](./commands#tool-document_source_correct_propose)
 
 #### `document_source_correct_propose` — Append corrected document source {#tool-document_source_correct_propose}
@@ -7730,7 +7727,7 @@ document_create_propose document_type number party_id lines gross_amount [curren
 **Wirkung:** Liest: `tenant`, `party`, `item`, `price_list`, `document_line` · Schreibt: `document`,
 `document_line`
 
-**Siehe auch:** Agenten-Tool [`document_create_propose`](./commands#tool-document_create_propose)
+**Siehe auch:** Agent Tool [`document_create_propose`](./commands#tool-document_create_propose)
 
 #### `document_create_propose` — Record manual document {#tool-document_create_propose}
 
@@ -7791,7 +7788,7 @@ commitment_substitute_accept_propose commitment_id item_id reason
 `commitment_substitute`, `source_record`, `business_event` · Erzeugt:
 `commitment.substitute_accepted`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`commitment_substitute_accept_propose`](./commands#tool-commitment_substitute_accept_propose),
 Event [`commitment.substitute_accepted`](./events#event-commitment-substitute_accepted)
 
@@ -7836,7 +7833,7 @@ business_journey_guide question [locale]
 
 **Wirkung:** Liest: — · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`business_journey_guide`](./commands#tool-business_journey_guide)
+**Siehe auch:** Agent Tool [`business_journey_guide`](./commands#tool-business_journey_guide)
 
 #### `business_journey_guide` — Ask about Reality capabilities {#tool-business_journey_guide}
 
@@ -7895,7 +7892,7 @@ kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
 **Wirkung:** Liest: `item`, `location`, `kit_component`, `movement`, `reservation`, `stock_block` ·
 Schreibt: `movement`, `source_record`, `business_event` · Erzeugt: `kit.assembled`
 
-**Siehe auch:** Agenten-Tool [`kit_assemble_propose`](./commands#tool-kit_assemble_propose), Event
+**Siehe auch:** Agent Tool [`kit_assemble_propose`](./commands#tool-kit_assemble_propose), Event
 [`kit.assembled`](./events#event-kit-assembled)
 
 #### `kit_assemble_propose` — Assemble kits {#tool-kit_assemble_propose}
@@ -7942,7 +7939,7 @@ order_line_item_assign_propose document_line_id item_id [remember_for_customer]
 **Wirkung:** Liest: `document_line`, `document`, `commitment`, `item`, `import_job` · Schreibt:
 `document_line`, `commitment`, `business_event` · Erzeugt: `document_line.item_assigned`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`order_line_item_assign_propose`](./commands#tool-order_line_item_assign_propose), Event
 [`document_line.item_assigned`](./events#event-document_line-item_assigned)
 
@@ -7985,7 +7982,7 @@ supply_assign_propose supplier_commitment_id [customer_commitment_id] purpose qu
 **Wirkung:** Liest: `commitment`, `supply_assignment`, `source_record` · Schreibt:
 `supply_assignment`, `source_record`
 
-**Siehe auch:** Agenten-Tool [`supply_assign_propose`](./commands#tool-supply_assign_propose)
+**Siehe auch:** Agent Tool [`supply_assign_propose`](./commands#tool-supply_assign_propose)
 
 #### `supply_assign_propose` — Assign supplier supply {#tool-supply_assign_propose}
 
@@ -8027,7 +8024,7 @@ graph_report_change_propose operation request_id [report_id] [expected_revision]
 **Wirkung:** Liest: `tenant`, `app_user`, `tenant_membership`, `analytics_report` · Schreibt:
 `analytics_report`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`graph_report_change_propose`](./commands#tool-graph_report_change_propose)
 
 #### `graph_report_change_propose` — Change private graph report {#tool-graph_report_change_propose}
@@ -8131,7 +8128,7 @@ cost_change_propose expected_event_sequence reason operation [document_id] [docu
 `cost_manifest_attribution`, `cost_manifest_correction`, `cost_manifest_replacement`,
 `business_event`, `action` · Erzeugt: `cost.attributed`, `cost.reviewed`
 
-**Siehe auch:** Agenten-Tool [`cost_change_propose`](./commands#tool-cost_change_propose), Event
+**Siehe auch:** Agent Tool [`cost_change_propose`](./commands#tool-cost_change_propose), Event
 [`cost.attributed`](./events#event-cost-attributed), Event
 [`cost.reviewed`](./events#event-cost-reviewed)
 
@@ -8352,7 +8349,7 @@ finance_dunning_run_propose schedule_source_record_id run_date [party_ids] items
 `source_record`, `document`, `dunning_notice`, `dunning_notice_invoice`, `ledger_entry`,
 `business_event` · Erzeugt: `dunning.run_confirmed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_run_propose`](./commands#tool-finance_dunning_run_propose), Event
 [`dunning.run_confirmed`](./events#event-dunning-run_confirmed)
 
@@ -8421,7 +8418,7 @@ kit_define_propose kit_item_id components
 **Wirkung:** Liest: `item`, `kit_component` · Schreibt: `kit_component`, `source_record`,
 `business_event` · Erzeugt: `kit.defined`
 
-**Siehe auch:** Agenten-Tool [`kit_define_propose`](./commands#tool-kit_define_propose), Event
+**Siehe auch:** Agent Tool [`kit_define_propose`](./commands#tool-kit_define_propose), Event
 [`kit.defined`](./events#event-kit-defined)
 
 #### `kit_define_propose` — Define kit {#tool-kit_define_propose}
@@ -8469,7 +8466,7 @@ cost_review_draft kind scope_id [answers]
 `cost_receipt_basis`, `cost_attribution_revision`, `cost_attribution_part`, `cost_component_basis`,
 `cost_scope_review`, `cost_inventory_review` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`cost_review_draft`](./commands#tool-cost_review_draft)
+**Siehe auch:** Agent Tool [`cost_review_draft`](./commands#tool-cost_review_draft)
 
 #### `cost_review_draft` — Draft a cost review {#tool-cost_review_draft}
 
@@ -8537,9 +8534,8 @@ customer_exchange_propose [return_movement_id] [return_announcement_id] quantity
 `source_record`, `customer_exchange` · Schreibt: `customer_exchange`, `commitment`, `source_record`,
 `business_event` · Erzeugt: `exchange.recorded`
 
-**Siehe auch:** Agenten-Tool
-[`customer_exchange_propose`](./commands#tool-customer_exchange_propose), Event
-[`exchange.recorded`](./events#event-exchange-recorded)
+**Siehe auch:** Agent Tool [`customer_exchange_propose`](./commands#tool-customer_exchange_propose),
+Event [`exchange.recorded`](./events#event-exchange-recorded)
 
 #### `customer_exchange_propose` — Exchange returned goods {#tool-customer_exchange_propose}
 
@@ -8587,7 +8583,7 @@ finance_dunning_collection_propose expected_revision invoice_ids handover_date r
 `collection_handover_invoice`, `party_hold`, `source_record`, `business_event` · Erzeugt:
 `dunning.collection_handover_recorded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_collection_propose`](./commands#tool-finance_dunning_collection_propose), Event
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded)
 
@@ -8669,7 +8665,7 @@ cost_record_get kind record_id [page] [language]
 `cost_company_generation`, `financial_component`, `action`, `movement_correction`,
 `interpretation_outcome` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`cost_record_get`](./commands#tool-cost_record_get)
+**Siehe auch:** Agent Tool [`cost_record_get`](./commands#tool-cost_record_get)
 
 #### `cost_record_get` — Inspect retained cost record {#tool-cost_record_get}
 
@@ -8730,7 +8726,7 @@ finance_dunning_collection_handovers
 **Wirkung:** Liest: `collection_handover`, `collection_handover_invoice`, `business_event` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_collection_handovers`](./commands#tool-finance_dunning_collection_handovers)
 
 #### `finance_dunning_collection_handovers` — Collection handovers {#tool-finance_dunning_collection_handovers}
@@ -8783,7 +8779,7 @@ finance_dunning_notices
 
 **Wirkung:** Liest: `source_record`, `document`, `ledger_entry`, `business_event` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_dunning_notices`](./commands#tool-finance_dunning_notices)
+**Siehe auch:** Agent Tool [`finance_dunning_notices`](./commands#tool-finance_dunning_notices)
 
 #### `finance_dunning_notices` — Dunning notices {#tool-finance_dunning_notices}
 
@@ -8836,7 +8832,7 @@ finance_payment_authorizations [order_document_id] [as_of]
 
 **Wirkung:** Liest: `payment_authorization`, `payment_capture` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_payment_authorizations`](./commands#tool-finance_payment_authorizations)
 
 #### `finance_payment_authorizations` — Payment authorizations {#tool-finance_payment_authorizations}
@@ -8895,7 +8891,7 @@ finance_payouts
 
 **Wirkung:** Liest: `document`, `source_record`, `payment_return` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_payouts`](./commands#tool-finance_payouts)
+**Siehe auch:** Agent Tool [`finance_payouts`](./commands#tool-finance_payouts)
 
 #### `finance_payouts` — Payouts {#tool-finance_payouts}
 
@@ -8951,7 +8947,7 @@ party_merge_propose duplicate_party_id surviving_party_id reason
 `ledger_entry` · Schreibt: `party_merge`, `party`, `source_record`, `business_event` · Erzeugt:
 `party.merged`
 
-**Siehe auch:** Agenten-Tool [`party_merge_propose`](./commands#tool-party_merge_propose), Event
+**Siehe auch:** Agent Tool [`party_merge_propose`](./commands#tool-party_merge_propose), Event
 [`party.merged`](./events#event-party-merged)
 
 #### `party_merge_propose` — Merge duplicate business partner {#tool-party_merge_propose}
@@ -8999,8 +8995,7 @@ cost_contribution_preview document_line_id
 `cost_policy_revision`, `cost_movement_basis`, `cost_ownership_revision`, `cost_input_manifest` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool
-[`cost_contribution_preview`](./commands#tool-cost_contribution_preview)
+**Siehe auch:** Agent Tool [`cost_contribution_preview`](./commands#tool-cost_contribution_preview)
 
 #### `cost_contribution_preview` — Current contribution candidate {#tool-cost_contribution_preview}
 
@@ -9057,7 +9052,7 @@ finance_dunning_run_context run_date [party_ids]
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation`, `dunning_notice`,
 `dunning_notice_invoice`, `dunning_schedule_level`, `collection_handover_invoice` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_run_context`](./commands#tool-finance_dunning_run_context)
 
 #### `finance_dunning_run_context` — Dunning run preview {#tool-finance_dunning_run_context}
@@ -9120,7 +9115,7 @@ cost_review_propose kind scope_id [answers]
 `cost_receipt_basis`, `cost_attribution_revision`, `cost_attribution_part`, `cost_component_basis`,
 `cost_scope_review`, `cost_inventory_review` · Schreibt: `action`
 
-**Siehe auch:** Agenten-Tool [`cost_review_propose`](./commands#tool-cost_review_propose)
+**Siehe auch:** Agent Tool [`cost_review_propose`](./commands#tool-cost_review_propose)
 
 #### `cost_review_propose` — Propose a drafted cost review {#tool-cost_review_propose}
 
@@ -9187,7 +9182,7 @@ kit_split document_line_id
 
 **Wirkung:** Liest: `document_line`, `item`, `kit_component` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`kit_split`](./commands#tool-kit_split)
+**Siehe auch:** Agent Tool [`kit_split`](./commands#tool-kit_split)
 
 #### `kit_split` — Kit split {#tool-kit_split}
 
@@ -9246,7 +9241,7 @@ finance_payout payout_id
 **Wirkung:** Liest: `document`, `source_record`, `ledger_entry`, `settlement_allocation`,
 `payment_return`, `shipment_package` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_payout`](./commands#tool-finance_payout)
+**Siehe auch:** Agent Tool [`finance_payout`](./commands#tool-finance_payout)
 
 #### `finance_payout` — Payout {#tool-finance_payout}
 
@@ -9303,7 +9298,7 @@ party_merges [party_id]
 
 **Wirkung:** Liest: `party_merge`, `party` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`party_merges`](./commands#tool-party_merges)
+**Siehe auch:** Agent Tool [`party_merges`](./commands#tool-party_merges)
 
 #### `party_merges` — Business partner merges {#tool-party_merges}
 
@@ -9363,7 +9358,7 @@ finance_dunning_collection_handover handover_id
 **Wirkung:** Liest: `collection_handover`, `collection_handover_invoice`, `business_event` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_collection_handover`](./commands#tool-finance_dunning_collection_handover)
 
 #### `finance_dunning_collection_handover` — Collection handover {#tool-finance_dunning_collection_handover}
@@ -9424,7 +9419,7 @@ cost_query_get kind scope_id [review_id] [effective_at] [knowledge_at] [policy_r
 `cost_selling_attribution_part`, `cost_selling_review_category`, `cost_selling_review_member`,
 `document_line`, `financial_component`, `item` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`cost_query_get`](./commands#tool-cost_query_get)
+**Siehe auch:** Agent Tool [`cost_query_get`](./commands#tool-cost_query_get)
 
 #### `cost_query_get` — Read cost query context {#tool-cost_query_get}
 
@@ -9485,7 +9480,7 @@ customer_item_numbers [party_id] [item_id]
 
 **Wirkung:** Liest: `customer_item_number`, `party`, `item` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`customer_item_numbers`](./commands#tool-customer_item_numbers)
+**Siehe auch:** Agent Tool [`customer_item_numbers`](./commands#tool-customer_item_numbers)
 
 #### `customer_item_numbers` — Customer item numbers {#tool-customer_item_numbers}
 
@@ -9543,7 +9538,7 @@ finance_dunning_context invoice_ids level notice_date [fee_amount] [reason] [num
 
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation`, `party` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_dunning_context`](./commands#tool-finance_dunning_context)
+**Siehe auch:** Agent Tool [`finance_dunning_context`](./commands#tool-finance_dunning_context)
 
 #### `finance_dunning_context` — Dunning context {#tool-finance_dunning_context}
 
@@ -9607,7 +9602,7 @@ finance_dunning_notice notice_id
 
 **Wirkung:** Liest: `source_record`, `document`, `ledger_entry`, `business_event` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_dunning_notice`](./commands#tool-finance_dunning_notice)
+**Siehe auch:** Agent Tool [`finance_dunning_notice`](./commands#tool-finance_dunning_notice)
 
 #### `finance_dunning_notice` — Dunning notice {#tool-finance_dunning_notice}
 
@@ -9661,7 +9656,7 @@ finance_dunning_schedule
 
 **Wirkung:** Liest: `dunning_schedule_level` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`finance_dunning_schedule`](./commands#tool-finance_dunning_schedule)
+**Siehe auch:** Agent Tool [`finance_dunning_schedule`](./commands#tool-finance_dunning_schedule)
 
 #### `finance_dunning_schedule` — Dunning schedule {#tool-finance_dunning_schedule}
 
@@ -9716,7 +9711,7 @@ kits [item_id]
 **Wirkung:** Liest: `kit_component`, `item`, `location`, `movement`, `reservation`, `stock_block` ·
 Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`kits`](./commands#tool-kits)
+**Siehe auch:** Agent Tool [`kits`](./commands#tool-kits)
 
 #### `kits` — Kits {#tool-kits}
 
@@ -9776,7 +9771,7 @@ outbound_deliveries [customer_id] [open_only]
 **Wirkung:** Liest: `outbound_delivery`, `outbound_delivery_line`, `outbound_delivery_pick`,
 `movement`, `commitment`, `party`, `location`, `source_record` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`outbound_deliveries`](./commands#tool-outbound_deliveries)
+**Siehe auch:** Agent Tool [`outbound_deliveries`](./commands#tool-outbound_deliveries)
 
 #### `outbound_deliveries` — Planned deliveries {#tool-outbound_deliveries}
 
@@ -9838,7 +9833,7 @@ cost_receipt_get movement_id [manifest_id]
 `cost_receipt_basis`, `cost_attribution_revision`, `cost_attribution_part`, `cost_scope_review`,
 `cost_input_manifest` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`cost_receipt_get`](./commands#tool-cost_receipt_get)
+**Siehe auch:** Agent Tool [`cost_receipt_get`](./commands#tool-cost_receipt_get)
 
 #### `cost_receipt_get` — Receipt acquisition costs {#tool-cost_receipt_get}
 
@@ -9896,7 +9891,7 @@ cost_evidence_get document_id [document_line_id]
 `cost_receipt_basis`, `cost_attribution_revision`, `cost_attribution_part`, `cost_scope_review`,
 `cost_input_manifest` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`cost_evidence_get`](./commands#tool-cost_evidence_get)
+**Siehe auch:** Agent Tool [`cost_evidence_get`](./commands#tool-cost_evidence_get)
 
 #### `cost_evidence_get` — Received cost evidence {#tool-cost_evidence_get}
 
@@ -9956,7 +9951,7 @@ cost_contribution_get document_line_id [review_id]
 `cost_revenue_match_basis`, `cost_contribution_review`, `cost_inventory_member`,
 `cost_inventory_review`, `cost_movement_basis`, `cost_input_manifest` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`cost_contribution_get`](./commands#tool-cost_contribution_get)
+**Siehe auch:** Agent Tool [`cost_contribution_get`](./commands#tool-cost_contribution_get)
 
 #### `cost_contribution_get` — Reviewed commercial contribution {#tool-cost_contribution_get}
 
@@ -10013,7 +10008,7 @@ supplier_item_terms [party_id] [item_id]
 
 **Wirkung:** Liest: `supplier_item_terms`, `party`, `item` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`supplier_item_terms`](./commands#tool-supplier_item_terms)
+**Siehe auch:** Agent Tool [`supplier_item_terms`](./commands#tool-supplier_item_terms)
 
 #### `supplier_item_terms` — Supplier item terms {#tool-supplier_item_terms}
 
@@ -10070,7 +10065,7 @@ company_currency
 
 **Wirkung:** Liest: `company_currency`, `ledger_entry` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`company_currency`](./commands#tool-company_currency)
+**Siehe auch:** Agent Tool [`company_currency`](./commands#tool-company_currency)
 
 #### `company_currency` — Company currency {#tool-company_currency}
 
@@ -10124,7 +10119,7 @@ month_end_billing [as_of]
 
 **Wirkung:** Liest: `document`, `document_line`, `commitment`, `movement` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`month_end_billing`](./commands#tool-month_end_billing)
+**Siehe auch:** Agent Tool [`month_end_billing`](./commands#tool-month_end_billing)
 
 #### `month_end_billing` — Month-end billing {#tool-month_end_billing}
 
@@ -10183,7 +10178,7 @@ purchase_match document_id
 **Wirkung:** Liest: `document`, `document_line`, `commitment`, `commitment_revision`, `movement`,
 `item`, `commitment_substitute`, `shipment_advice_line`, `shipment_package` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`purchase_match`](./commands#tool-purchase_match)
+**Siehe auch:** Agent Tool [`purchase_match`](./commands#tool-purchase_match)
 
 #### `purchase_match` — Three-way match of a purchase order {#tool-purchase_match}
 
@@ -10244,7 +10239,7 @@ finance_payment_authorization_record_propose order_document_id amount currency a
 **Wirkung:** Liest: `document`, `payment_authorization` · Schreibt: `payment_authorization`,
 `source_record`, `business_event` · Erzeugt: `payment.authorized`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_payment_authorization_record_propose`](./commands#tool-finance_payment_authorization_record_propose),
 Event [`payment.authorized`](./events#event-payment-authorized)
 
@@ -10312,7 +10307,7 @@ finance_payment_capture_record_propose authorization_id amount captured_at [refe
 **Wirkung:** Liest: `payment_authorization`, `payment_capture` · Schreibt: `payment_capture`,
 `source_record`, `business_event` · Erzeugt: `payment.captured`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_payment_capture_record_propose`](./commands#tool-finance_payment_capture_record_propose),
 Event [`payment.captured`](./events#event-payment-captured)
 
@@ -10378,7 +10373,7 @@ finance_dunning_record_propose expected_revision invoice_ids level notice_date [
 **Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation`, `party` · Schreibt:
 `source_record`, `document`, `ledger_entry`, `business_event` · Erzeugt: `dunning.notice_recorded`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_record_propose`](./commands#tool-finance_dunning_record_propose), Event
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded)
 
@@ -10444,7 +10439,7 @@ company_party_record_propose
 
 **Wirkung:** Liest: `tenant`, `party`, `party_role`, `action` · Schreibt: `action`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`company_party_record_propose`](./commands#tool-company_party_record_propose)
 
 #### `company_party_record_propose` — Propose the company as its business partner {#tool-company_party_record_propose}
@@ -10509,7 +10504,7 @@ finance_dunning_reverse_propose expected_revision notice_id reason
 **Wirkung:** Liest: `source_record`, `document`, `ledger_entry`, `business_event` · Schreibt:
 `ledger_reversal`, `ledger_entry`, `business_event` · Erzeugt: `dunning.notice_reversed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_reverse_propose`](./commands#tool-finance_dunning_reverse_propose), Event
 [`dunning.notice_reversed`](./events#event-dunning-notice_reversed)
 
@@ -10570,7 +10565,7 @@ business_journey_vote_propose proposal_id active
 
 **Wirkung:** Liest: `journey_proposal`, `journey_proposal_vote` · Schreibt: `journey_proposal_vote`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`business_journey_vote_propose`](./commands#tool-business_journey_vote_propose)
 
 #### `business_journey_vote_propose` — Vote for a Business Journey suggestion {#tool-business_journey_vote_propose}
@@ -10611,7 +10606,7 @@ finance_dunning_schedule_set_propose expected_revision levels
 **Wirkung:** Liest: `dunning_schedule_level`, `subledger_account` · Schreibt:
 `dunning_schedule_level`, `source_record`, `business_event` · Erzeugt: `dunning.schedule_set`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_dunning_schedule_set_propose`](./commands#tool-finance_dunning_schedule_set_propose),
 Event [`dunning.schedule_set`](./events#event-dunning-schedule_set)
 
@@ -10684,7 +10679,7 @@ finance_payout_settle_propose provider_party_id payout_reference paid_on currenc
 `settlement_allocation`, `payment_return`, `ledger_reversal`, `business_event` · Erzeugt:
 `payout.settled`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`finance_payout_settle_propose`](./commands#tool-finance_payout_settle_propose), Event
 [`payout.settled`](./events#event-payout-settled)
 
@@ -10770,7 +10765,7 @@ customer_item_number_set_propose party_id item_id customer_item_number [customer
 **Wirkung:** Liest: `party`, `item`, `customer_item_number` · Schreibt: `customer_item_number`,
 `source_record`, `business_event` · Erzeugt: `customer_item_number.set`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`customer_item_number_set_propose`](./commands#tool-customer_item_number_set_propose), Event
 [`customer_item_number.set`](./events#event-customer_item_number-set)
 
@@ -10816,7 +10811,7 @@ supplier_item_terms_set_propose party_id item_id [minimum_quantity] [order_multi
 **Wirkung:** Liest: `party`, `item`, `supplier_item_terms` · Schreibt: `supplier_item_terms`,
 `source_record`, `business_event` · Erzeugt: `supplier_item_terms.set`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_item_terms_set_propose`](./commands#tool-supplier_item_terms_set_propose), Event
 [`supplier_item_terms.set`](./events#event-supplier_item_terms-set)
 
@@ -10862,7 +10857,7 @@ company_currency_set_propose currency
 **Wirkung:** Liest: `company_currency`, `ledger_entry` · Schreibt: `company_currency`,
 `source_record`, `business_event` · Erzeugt: `company_currency.set`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`company_currency_set_propose`](./commands#tool-company_currency_set_propose), Event
 [`company_currency.set`](./events#event-company_currency-set)
 
@@ -10903,7 +10898,7 @@ customer_item_number_remove_propose party_id customer_item_number
 **Wirkung:** Liest: `party`, `customer_item_number` · Schreibt: `customer_item_number`,
 `source_record`, `business_event` · Erzeugt: `customer_item_number.removed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`customer_item_number_remove_propose`](./commands#tool-customer_item_number_remove_propose), Event
 [`customer_item_number.removed`](./events#event-customer_item_number-removed)
 
@@ -10945,7 +10940,7 @@ supplier_item_terms_remove_propose party_id item_id
 **Wirkung:** Liest: `party`, `item`, `supplier_item_terms` · Schreibt: `supplier_item_terms`,
 `source_record`, `business_event` · Erzeugt: `supplier_item_terms.removed`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`supplier_item_terms_remove_propose`](./commands#tool-supplier_item_terms_remove_propose), Event
 [`supplier_item_terms.removed`](./events#event-supplier_item_terms-removed)
 
@@ -10972,10 +10967,10 @@ supplier_item_terms_remove_propose party_id item_id
 **Siehe auch:** Command
 [`remove_supplier_item_terms`](./commands#command-remove_supplier_item_terms)
 
-## Agenten-Tools ohne Geschäftsaktion
+## Agent Tools ohne Geschäftsaktion
 
-Diese Agenten-Tools stehen für keine einzelne Geschäftsaktion. Lese-Tools beantworten eine Sicht
-oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informationen.
+Diese Agent Tools stehen für keine einzelne Geschäftsaktion. Lese-Tools beantworten eine Sicht oder
+Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informationen.
 
 | Schlüssel                                                                                        | Bezeichnung                                    | Zugriff   | Beantwortet            |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------- | --------- | ---------------------- |

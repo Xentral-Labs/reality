@@ -1,12 +1,30 @@
-# Neue Geschäftsabläufe implementieren
+# Commands entwickeln
 
-Eine Geschäftsaktion verändert den Zustand. Die vorhandene Bestandsreservierung ist ein
-vollständiges Beispiel.
+## Das lernst du
 
-Die generierte [Tool-Referenz](../tool-usage/commands) zeigt den vorhandenen Bestand samt den
-genauen öffentlichen Parametern jedes Agenten-Tools.
+Du kannst eine gemeinsame Operation mit Service, Application Tool und Katalogeintrag ergänzen. Du
+unterscheidest dabei Reads von Änderungen.
 
-## `reserve` durch den Code verfolgen
+## Wann du diesen Baustein brauchst
+
+Ein Command beschreibt eine Anwendungsoperation mit definierten Eingaben und Ergebnissen. Ergänze
+ihn, wenn die Operation noch fehlt; ein neuer Zugang zu einer vorhandenen Operation braucht keinen
+zweiten Command.
+
+Verfolge `credit_exposure` in `config/command_catalog.yaml`, `_credit_exposure` und
+`TOOLS["credit_exposure"]` in `tools/application.py` sowie `credit_exposure` im gleichnamigen
+Service-Modul. Anders als `reserve` verwendet dieser Einstieg keine Änderungsfreigabe. Die Abfrage
+liest die vorhandenen Datensätze mandantenbezogen; ein Read darf nicht beim Anzeigen fachliche
+Datensätze verändern. Übernimm Eingaben und Ergebnis aus dem tatsächlichen Schema, statt den
+Reservierungsvertrag für eine Abfrage zu kopieren.
+
+## Bevor du beginnst
+
+Du kennst die beteiligten Reality-Datensätze und den gewünschten fachlichen Ausgang. Nutze eine
+PostgreSQL-Testumgebung und vorhandene Fixtures. Spec, Plan und Tests stehen vor der
+Implementierung; die [gemeinsame Referenz](./reference) beschreibt den Ablauf.
+
+## Durchgearbeitetes Beispiel
 
 1. `packages/reality-core/src/reality/services/core.py::reserve` besitzt die Regeln. Der Service
    lädt das `Commitment` mandantenbezogen, prüft Sperren und Bestandsidentität, berechnet Mengen mit
@@ -18,28 +36,13 @@ genauen öffentlichen Parametern jedes Agenten-Tools.
    und Freigabelogik die Zustandsänderung.
 4. `packages/reality-core/config/command_catalog.yaml` beschreibt Reads, Writes, Wirkung, Parameter
    und Adapter. `workspace_catalog.yaml` platziert die Aktion als `reserve_stock`.
-5. HTTP, MCP, CLI und Chat rufen dieselbe Application-Funktion auf. Dort stehen keine eigenen
-   Regeln.
+5. HTTP, MCP, CLI und Chat verwenden die gemeinsamen Services und Application Tools. Dort stehen
+   keine eigenen Regeln.
 
-```python
-def reserve(session, tenant_id, commitment_id, quantity=None, *, action_id=None):
-    commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
-    require_not_held(session, tenant_id, "commitment", commitment.id)
-    # prüfen, mit Decimal berechnen, Reservation erzeugen, Event schreiben
-    return ReservationResult(...)
-```
+Lies den vollständigen Service und Wrapper im Repository. Die Reservierung verwendet den gleichen
+Weg für Web, CLI und Agenten; Wrapper sind keine neue Regelinstanz.
 
-Der Wrapper liefert ein Anwendungsergebnis und kein ORM-Objekt:
-
-```python
-def _reserve(session, tenant_id, arguments):
-    result = reserve(session, tenant_id, arguments["commitment_id"], arguments.get("quantity"))
-    return {"reservation_id": result.reservation.id,
-            "requested": result.requested, "applied": result.reserved,
-            "shortage": result.shortage}
-```
-
-## Eine neue Aktion Schritt für Schritt
+## Schritt für Schritt
 
 1. Lege unter `packages/reality-core/tests/` zuerst einen fehlschlagenden Business-Test an. Benenne
    Vorbedingungen, geschriebene Datensätze, Event und maßgebliche Kontrollabfrage.
@@ -58,6 +61,34 @@ def _reserve(session, tenant_id, arguments):
 Gute Vorlagen sind `test_inventory_and_fulfillment.py`, `test_application_tools.py`,
 `test_application_catalog.py` und `test_http_boundary.py`.
 
-Eine reine Berechnung, ein aktueller Risikozustand oder ERP-Transport sind keine Geschäftsaktion,
-sondern Projection, Exception oder Connector. Liefer- und Reservierungsstatus gehören nie an ein
-Document; sie werden aus Reality-Datensätzen abgeleitet.
+Ein lesender Command darf eine Berechnung oder Projection zugänglich machen. Die Ableitung bleibt im
+gemeinsamen Service; aktuelle Risikozustände gehören zur Ausnahmeableitung und ERP-Transport zum
+Connector. Liefer- und Reservierungsstatus gehören nie an ein Document; sie werden aus
+Reality-Datensätzen abgeleitet.
+
+## Ergebnis prüfen
+
+Nutze dieselbe fachliche Testgeschichte für Service, Tool und Adapter: ausreichend Bestand,
+Fehlmenge, gesperrtes Commitment und fremde Tenant-ID. Überprüfe das Ergebnis durch Reservations und
+Movements, nicht durch einen neuen Status am Document. Ergänze Ressourcen-Zuordnung und `labels.de`
+in `config/resource_catalog.yaml`, führe `make docs-generate` aus und kontrolliere die Referenz.
+
+Für den nächsten Schritt gibt es konkrete Vorlagen: [Agent Tools](./agent-tools) und
+[Web Actions](./web-actions). Neue Tabellen sind keine Voraussetzung für einen neuen Command; eine
+Schemaänderung braucht einen nachgewiesenen Use Case in Spec und Plan.
+
+## Selbst ausprobieren
+
+Verfolge zunächst den lesenden `credit_exposure`-Command. Notiere Service, Eingaben und Ergebnis.
+Vergleiche ihn mit `reserve`: Nur die Änderung braucht Mutation-Markierung und Freigabe. Erwartetes
+Ergebnis: Du kannst erklären, welche vorhandenen Teile ein zusätzlicher Zugang wiederverwendet.
+
+## Häufige Fehler
+
+Keine Geschäftsregeln im Adapter; keine Belegnummer als ID; kein Fulfillment-Status am Document. Ein
+verkürztes Beispiel ersetzt nicht Guards, Idempotenz und Events der vollständigen Implementierung.
+
+## Weiterlesen
+
+[Ausnahmen entwickeln](./exceptions) erklärt abgeleiteten Handlungsbedarf. Für Zugänge folgen
+[Agent Tools](./agent-tools) und [Web Actions](./web-actions).

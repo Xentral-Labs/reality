@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:cb4ee570c0609d76a3173ce3912885234b1b70a297b394c3b69060e8d0b24da4",
+  "knowledge_version": "advisor-v1:sha256:6932ffe32e9c96a5eb444e41de1d3be59c47bc1c480dc05813bd0473885de69e",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -3491,7 +3491,9 @@
         "Nachvollziehbarkeit"
       ],
       "evidence_ids": [
-        "evidence_document_connector_contract_1"
+        "evidence_document_connector_contract_1",
+        "evidence_document_connector_contract_2",
+        "evidence_document_connector_contract_3"
       ],
       "tools": []
     },

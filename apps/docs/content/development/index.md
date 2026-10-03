@@ -1,58 +1,55 @@
-# Reality Core Development
+# Extending Reality
 
-This section is for contributors who change Reality's shared business behaviour. ERP consultants
-should normally begin with [What can be adapted?](../integrations/customization) and enter this
-section only when the required Command, Projection or Exception does not exist yet.
+## What you will learn
 
-## What Core developers can add
+Learn which building blocks Reality uses and how to adapt an existing template for your own
+extension. You will be able to add a read surface, application operation or interface and verify its
+result.
 
-| You want to…                                            | Extend…                              | Continue with…                                                               |
-| ------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------- |
-| import another ERP object losslessly and interpret it   | connector capability and interpreter | [Connect another ERP](./connectors)                                          |
-| perform an operation such as allocating stock           | service and application command      | [Add business commands](./commands)                                          |
-| calculate a reusable position such as available stock   | Projection                           | [Develop metrics and operational warnings](./derived-views)                  |
-| bring a current risk into the operational queue         | Exception derivation                 | [Develop metrics and operational warnings](./derived-views#add-an-exception) |
-| make an existing capability available to another client | adapter only                         | [Expose capabilities safely](./application-surfaces)                         |
+You need basic Python knowledge and a repository checkout. Web surfaces also require
+TypeScript/React. You do not need to memorize business rules: the chapters share one story,
+**reserve stock and understand fulfillment blockers**.
 
-Do not begin with a page or API endpoint. First decide which business question is missing. The
-implementation order is always:
+## How the building blocks connect
+
+A **View** presents data. A **Projection** supplies a derived read model when needed. A **Command**
+defines a shared application operation; **Agent Tools** and **Web Actions** expose it through
+different entrypoints. An exception describes a current condition requiring attention.
 
 ```text
-domain records → application service → application tool → adapters
+Read:    View or Agent Tool → shared reader → Reality or Projection
+Act:     Web Action or Agent Tool → Command/service → Reality
+Import:  Connector → SourceRecord → interpreter → Evidence → Reality
 ```
 
-## Repository map
+Mutating Agent Tools prepare proposals; execution follows explicit approval. A View does not
+automatically need a Projection. Technical category names remain English in every language.
 
-| Concern               | Main location                                            | Existing example                                  |
-| --------------------- | -------------------------------------------------------- | ------------------------------------------------- |
-| Domain records        | `packages/reality-core/src/reality/db/core.py`           | `Commitment`, `Reservation`, `Movement`           |
-| Business behaviour    | `packages/reality-core/src/reality/services/`            | `core.py::reserve`                                |
-| Application tools     | `packages/reality-core/src/reality/tools/application.py` | `_reserve` and `TOOLS["reserve"]`                 |
-| Executable vocabulary | `packages/reality-core/config/*.yaml`                    | `command_catalog.yaml`, `projection_catalog.yaml` |
-| HTTP adapter          | `packages/reality-core/src/reality/web/api.py`           | tenant-scoped routes calling services             |
-| Agent adapter         | `packages/reality-core/src/reality/mcp/catalog.py`       | tool input schemas and proposal tools             |
-| Web client            | `apps/web/src/`                                          | API client and operational pages                  |
-| Verification          | `packages/reality-core/tests/`                           | service, catalog, HTTP and business-story tests   |
+## Building blocks at a glance
 
-## Before changing code
+| Building block          | Purpose                   | Example              | Guide                        |
+| ----------------------- | ------------------------- | -------------------- | ---------------------------- |
+| View                    | Present data              | Fulfillment blockers | [Views](./views)             |
+| Projection              | Derive a read model       | Fulfillment queue    | [Projections](./projections) |
+| Command                 | Execute an operation      | Reserve stock        | [Commands](./commands)       |
+| Exception               | Identify attention needed | At-risk commitment   | [Exceptions](./exceptions)   |
+| Agent Tool              | Offer agent access        | Propose reservation  | [Agent Tools](./agent-tools) |
+| Web Action              | Offer a human workflow    | Reservation form     | [Web Actions](./web-actions) |
+| Connector / interpreter | Receive source data       | ERP order            | [Data sources](./connectors) |
 
-1. Find the closest existing business story and follow it end to end.
-2. Update the feature specification when observable behaviour changes. A documentation-only
-   clarification has `Spec impact: none`.
-3. Add the service test first where practical.
-4. Keep Source → Evidence → Reality traceable and every query tenant-scoped.
-5. Use opaque IDs. A document number, SKU or ERP number is a reference, never identity.
+API and CLI are further entrypoints to the same services; the [adapter guide](./api-cli) covers
+their implementation.
 
-An upstream field stays in the lossless `SourceRecord.payload` unless core logic repeatedly needs to
-calculate, filter, join, constrain, predict or act on it. Adapters never write through the ORM and
-never reproduce business rules.
+## How to read this handbook
 
-## A useful reading exercise
+1. Start with [configuration or development?](../integrations/customization). Not every adaptation
+   needs code.
+2. Follow the [first extension](./first-extension): a small read agent interface with no new
+   business rules.
+3. Choose your chapter. Each explains purpose, prerequisites, a worked example, changes,
+   verification and an exercise.
+4. Use the [shared development reference](./reference) for repository locations, Spec Kit workflow
+   and checks.
 
-Trace stock reservation through the repository: `reserve` in `services/core.py`, `_reserve` and the
-`TOOLS` entry in `tools/application.py`, `reserve` in `command_catalog.yaml`, `reserve_stock` in
-`workspace_catalog.yaml`, and the assertions in `test_inventory_and_fulfillment.py` and
-`test_application_tools.py`. That is the complete shape a new governed operation should resemble.
-
-Before adding anything, check the generated [Tool Usage reference](../tool-usage/): it lists every
-existing command, Business Event, Projection, Exception, MCP tool and workspace action.
+If you already know what you need, go directly to that building block. Chapters explicitly state
+which parts must already exist.

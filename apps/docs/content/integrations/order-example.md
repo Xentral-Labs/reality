@@ -1,4 +1,7 @@
-# Example: From an ERP Order to Operations
+# Technical implementation of an order import
+
+[What data do I need first? Example ERP step by step](./example-erp) explains a small entry scope
+and successive stages.
 
 This example shows the whole extension path. It is deliberately simplified for learning; the
 production implementation must use the exact validations and services already present in the
@@ -76,9 +79,10 @@ def _my_erp_sales_order_interpretation(session, tenant_id, source, context):
 ```
 
 Use the complete `_shopify_interpretation` in `services/core.py` as the executable example. It also
-creates `DocumentLine` Evidence, validates every tenant-scoped reference, handles idempotency and
-emits Business Events. Changed Shopify source versions currently require review and preserve
-existing Evidence, promises, reservations and movements; automatic amendment is not supported.
+creates `DocumentLine` Evidence, checks tenant-scoped references and handles idempotency/events.
+Later Shopify versions use `shop_order_changes.py::apply_order_version`: supported reductions and
+cancellations update promises through shared services; other cases require review. Original Evidence
+is not replaced. The [Shopify guide](./shopify) explains scope and remaining gaps.
 
 ## 4. What becomes visible
 

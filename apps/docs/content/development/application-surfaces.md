@@ -1,53 +1,33 @@
-# Expose Functions through API and MCP
+# Add Entrypoints
 
-The generated [Tool Usage reference](../tool-usage/commands) lists access class, parameters,
-required fields and defaults for every currently registered tool.
+## Which surface does the existing capability need?
 
-Domain and application services own behaviour. Web, API, MCP, CLI and Chat are adapters to that same
-capability.
+The business query or operation must exist first. An entrypoint makes it accessible without defining
+another business rule. If the operation is missing, start with [Commands](./commands).
 
-## Choose the surfaces
+| Entrypoint | User                           | Template                                | Guide                        |
+| ---------- | ------------------------------ | --------------------------------------- | ---------------------------- |
+| Agent Tool | Agent or Chat                  | `inventory_read`, `reservation_propose` | [Agent Tools](./agent-tools) |
+| Web Action | Human in a workspace           | `reserve_stock`                         | [Web Actions](./web-actions) |
+| HTTP API   | Supported client               | `tenant_inventory_control`              | [API and CLI](./api-cli)     |
+| CLI        | Development and administration | `commitment_reserve`                    | [API and CLI](./api-cli)     |
 
-- Add a Web View when a human role repeatedly needs the result in daily work.
-- Add an API operation when another supported client needs the application contract.
-- Add an MCP tool when an enterprise agent must discover and invoke the capability.
-- Add CLI exposure for development or operational administration.
-- Let Ask Reality use the registered application tool; do not create a Chat-only business path.
+For read presentation, use [Views](./views). A View can reuse an existing read model without a new
+Projection.
 
-Reads may execute immediately. Mutations initiated by Chat or an agent create a
-`ChangeProposal(status=proposed)` with an exact server preview and require separate human approval.
-Permission to read a record never implies permission to mutate it.
+## What entrypoints share
 
-Every adapter preserves tenant scope, typed validation, safe errors and the same verification read.
-The running API's `/openapi.json` is authoritative for HTTP. The MCP catalog is authoritative for
-agent tools and their input schemas.
+All use shared services or Application Tools. Each preserves tenant scope, typed inputs and safe
+errors. A subsequent read verifies the authoritative result of a mutation.
 
-## Where to make each change
+Read Agent Tools can read immediately. Mutating Agent Tools create a `ChangeProposal` with an exact
+server preview. Execution requires separate explicit approval; read permission is not mutation
+approval. Web Actions use the existing confirmation surface. Their chapters provide the complete
+templates.
 
-| Surface         | File                                                     | Responsibility                                   |
-| --------------- | -------------------------------------------------------- | ------------------------------------------------ |
-| Shared tool     | `packages/reality-core/src/reality/tools/application.py` | validate arguments, call service, shape result   |
-| HTTP            | `packages/reality-core/src/reality/web/api.py`           | request/response model, auth and tenant boundary |
-| HTTP read model | `packages/reality-core/src/reality/web/read_models.py`   | compose read output, never mutate                |
-| MCP             | `packages/reality-core/src/reality/mcp/catalog.py`       | discoverable name, JSON schema and tool mapping  |
-| Web client      | `apps/web/src/api.ts`                                    | typed HTTP call                                  |
-| Web workflow    | `apps/web/src/App.tsx` and feature components            | presentation and user interaction                |
+## Where to start
 
-## Example: expose a mutation to an agent
-
-First confirm that the service and application `Tool` already exist. Add an MCP proposal definition
-whose input schema uses opaque IDs. Map it to the existing application tool, not to the ORM or
-service internals. The call creates a `ChangeProposal`; a separate approval call receives
-`proposal_id` and `approved`. After execution, read the authoritative register to verify the result.
-
-For HTTP, define a Pydantic request/response model and route that calls the same service or
-application tool with the authenticated `tenant_id`. Check the generated `/openapi.json`, then add
-the typed client method. A React component may decide how to display `shortage`; it may not
-calculate availability differently from the service.
-
-## Tests before the page is done
-
-- application-tool test: exact argument and result contract;
-- HTTP boundary test: auth, tenant isolation, validation and safe error;
-- MCP catalog test: schema and mapping, including proposal requirement for mutations;
-- Web test: loading, empty, error and success states without copied business rules.
+Follow the [first extension](./first-extension) or open the relevant guide. The
+[shared reference](./reference) covers repository locations, workflow and verification rules. The
+running API’s `/openapi.json` describes HTTP; the MCP catalog describes Agent Tools and their
+inputs.

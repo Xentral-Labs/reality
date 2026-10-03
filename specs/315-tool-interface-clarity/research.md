@@ -23,3 +23,33 @@ Alternatives: a universal schema/form generator would add an unproven abstractio
 ## Compatibility
 
 Keep `action`, `command`, and `tool` IDs, anchors, paths, filters and schemas stable. Rename presentation labels only. General resource/process actions remain business operations. Existing unmapped tool descriptions remain authoritative; mapping absence is explained without guessing a new execution relationship.
+
+## Self-service tutorial review
+
+Reviewed both development overviews, customization guides, connector guides, ERP order example/contract, Command, View/Projection, exception and entrypoint pages against actual source registries. Retain the ERP example's explicit abbreviated-code warning and full-interpreter reference; its ORM example belongs inside the service interpreter, never transport. Existing connector contract covers immutable source versions and chain preservation.
+
+Findings addressed: Commands were incorrectly limited to mutations; source provenance instructions encouraged redundant Reality SourceRecord links; inventory tutorial referred to a nonexistent inventory_position function; Agent Tools/Web Actions lacked visible dedicated templates and end-to-end confirmation examples. Added source-matched MCP registration, full Web Action metadata plus workspace/form wiring, read Command example, shared spec-first workflow, resource labels/docs generation, and business/test verification stories for each extension type. Detailed registry schema remains authoritative; templates illustrate existing operations rather than invent new ones or promise that catalog registration generates forms.
+
+No new runtime capability or service rule. Snippets are disclosed as excerpts in an existing module, not standalone executable projects. Documentation contract tests compare the Agent Tool excerpt to the actual registry.
+
+
+## Systematic handbook review (2026-10-03)
+
+Approved scope is a documentation learning-path rewrite, not a business-runtime extension. Before implementation, FR-017–FR-021, the appended plan and T024–T028 were reviewed for coverage, Constitution constraints and unresolved questions. All requirements have tasks; no critical finding or unanswered design dependency. The new bilingual overview/outline test failed against the old table before edits.
+
+Content placement: the overview now explains relationships and lists Building block first. Shared repository/workflow material moved to reference.md. Separate views.md and projections.md retain the warehouse_queue and _inventory_rows examples; the full row builder is checked verbatim against the implementation. derived-views.md preserves all previous section headings and onward links. application-surfaces.md is the entrypoint decision page; api-cli.md holds HTTP/CLI implementation guidance. The former generic Web App.tsx pointer is replaced by active apps/web/src/unified/ flows in the reference. Connector/example/contract stay together; existing ERP payload narrative and technical contract remain intact. Customization now explicitly distinguishes supported configuration from missing executable code.
+
+Each implementation chapter follows outcome → use → prerequisites → worked example → ordered changes → verification → exercise → mistakes → next steps. Stock/reservation examples connect shared readers, service, Command, proposal access and workspace interaction. Projections distinguish read-time calculation from materialized caches and include a 10/0/10 → 10/3/7 → 10/0/10 expectation. Training inventory access copies the actual schema and read handler, adds no production registration and is removed after the exercise.
+
+This review establishes source correctness and a consistent teaching structure. It does not claim that a new reader independently completed every extension tutorial, or that every hypothetical extension was implemented. Desktop/mobile visual review remains unavailable in the enabled browser environment.
+
+
+## Vendor coverage research and review (2026-10-03)
+
+SOURCE_INTERPRETERS currently registers Shopify order and refund plus demo types; Xentral/Odoo have shells only. The shells advertise more objects than the executable registry implements. The earlier generic Shopify update paragraph was stale: shop_order_changes.apply_order_version applies supported reductions/cancellations through core services and holds unsupported changes. shop_refunds records supported refund Evidence and return announcements/reductions; that does not imply general payment/ledger transport or physical return receipt.
+
+Official references checked: Xentral product/versioned API guide, sales-order lifecycle, stock reads and stock-movement reference; Shopify GraphQL bulk retrieval, HTTPS webhook verification and order/fulfillment guide; Odoo 19 JSON-2 reference (search-returned official content after direct fetch timeout). Guides use version-qualified prerequisites and explicitly require inspection of installed Odoo models/fields and Xentral resource/authentication contracts. No guessed vendor endpoint mappings or runnable fake live adapters are introduced.
+
+Coverage distinguishes source identity and authority, original stated monetary values, physical stock versus allocation, actual shipment versus fulfillment request, snapshot opening versus later movements, legal financial Evidence versus shop order/payment status, return announcement versus physical receipt, and overlapping shop/ERP/provider events. Relevant production/BOM, lots/serials, conditions and service/custom modules are explicit additional scope, not implied support. The shared seven-step numeric scenario and purchasing partial-receipt case are proposed acceptance targets requiring real source fixtures; they are not newly executed vendor integrations.
+
+The Connector Contract is allowlisted input to Product Advisor knowledge. Its prose update invalidated the generated knowledge checksum during Python verification. Regeneration updates only derived knowledge/capability payloads and shared generated references; no new command, schema, transport, interpreter or capability was registered. New vendor pages are documentation destinations, not new advisor capability registrations.
