@@ -193,6 +193,42 @@ try {
   assert.equal(reads, 4, "Opening already loaded source must remain local");
   assert.equal(await page.getByRole("button", { name: "Refresh code", exact: true }).count(), 0);
   assert.equal(reads, 4, "Source tab must not add a refresh request");
+  await page.waitForFunction(() =>
+    document.querySelector("[data-direct-source] .source-token[style*='color']"),
+  );
+  const pre = page.locator("[data-direct-source]");
+  const codeMetrics = await pre.evaluate((element) => {
+    const rows = [...element.querySelectorAll(".direct-source-line")];
+    const token = element.querySelector(".source-token");
+    return {
+      font: parseFloat(getComputedStyle(token).fontSize),
+      whiteSpace: getComputedStyle(token.parentElement).whiteSpace,
+      height: rows[0].getBoundingClientRect().height,
+      colors: new Set(
+        [...element.querySelectorAll(".source-token")].map((el) => getComputedStyle(el).color),
+      ).size,
+      text: rows[50].lastElementChild.textContent,
+      light: getComputedStyle(token).color,
+    };
+  });
+  assert.equal(codeMetrics.font, 12);
+  assert.equal(codeMetrics.whiteSpace, "pre");
+  assert.ok(codeMetrics.height < 21, "An original row must not wrap");
+  assert.ok(codeMetrics.colors >= 3, "Keywords, comments and values need syntax colors");
+  assert.equal(codeMetrics.text, "if exposure > limit:");
+  const keyword = pre.locator(".source-token").filter({ hasText: /^if$/u });
+  const lightKeyword = await keyword.evaluate((el) => getComputedStyle(el).color);
+  await page.evaluate(() => document.documentElement.classList.add("dark"));
+  const darkColor = await pre
+    .locator(".source-token")
+    .first()
+    .evaluate((el) => getComputedStyle(el).color);
+  // Comments may use identical colors; code tokens still have explicit dark-theme styles.
+  assert.ok(await pre.locator(".source-token[style*='--shiki-dark']").count());
+  assert.ok(darkColor);
+  const darkKeyword = await keyword.evaluate((el) => getComputedStyle(el).color);
+  assert.notEqual(darkKeyword, lightKeyword, "Dark theme must apply its matching token colors");
+  await page.evaluate(() => document.documentElement.classList.remove("dark"));
   await page.screenshot({ path: "/tmp/business-blueprints-docs.png", fullPage: true });
   console.log("Live docs browser: freshness, escaping, tests, graph and retry passed.");
 } finally {
