@@ -2412,5 +2412,5 @@ Exception class `purchase_order_unconfirmed`, derived at read time: an open purc
 - `packages/reality-core/tests/test_purchase_order_unconfirmed.py`:
   - Reported after three days, with an order placed yesterday as the control.
   - A confirmation as ordered, a receipt or a cancellation clears it; read as of before the confirmation it was still waiting.
-  - Another company sees nothing.
+  - Another company sees nothing; an overdue line is left to the overdue finding.
 - `packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged` (G10).

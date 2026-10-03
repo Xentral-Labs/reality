@@ -2792,6 +2792,7 @@ entries:
   limitations:
   - The three days are fixed for every company and supplier; a supplier's own response time is not stated.
   - A confirmation exactly as ordered is recorded by restating the line's date.
+  - Once the delivery date has passed, the line is reported as overdue instead.
   keywords:
   - unconfirmed purchase order
   - order confirmation missing

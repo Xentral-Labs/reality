@@ -2716,6 +2716,10 @@ def _purchase_order_unconfirmed_exceptions(
     for commitment, line, document in candidates:
         if commitment.id in confirmed or commitment.id in received:
             continue
+        # Unconfirmed means unrevised, so the date in force is the one it was made
+        # with. Once that has passed the line is overdue, which says more.
+        if commitment.due_at is not None and commitment.due_at <= as_of:
+            continue
         placed_at = _document_instant(document) or commitment.created_at
         expected_by = placed_at + CONFIRMATION_EXPECTED_WITHIN
         if as_of < expected_by:

@@ -69,6 +69,8 @@ supplier's confirmation clears it.
 ### Edge Cases
 
 - Read as of a moment before the confirmation was stated, the line is still reported.
+- Once the line's date has passed it is reported as overdue instead, which says more; it is not
+  reported twice.
 - Tenant isolation: another company sees nothing.
 
 ## Requirements *(mandatory)*
@@ -76,8 +78,9 @@ supplier's confirmation clears it.
 ### Functional Requirements
 
 - **FR-001**: Reality MUST report an open purchase line without a stated revision or receipt
-  three days after its order was placed, naming the order, when it was placed and since when a
-  confirmation was expected; derived at read time and dated at that moment.
+  three days after its order was placed and before its date has passed, naming the order, when
+  it was placed and since when a confirmation was expected; derived at read time and dated at
+  that moment.
 - **FR-002**: A revision of the line, a receipt against it, or its cancellation MUST clear it.
 
 ### Domain and Architecture Requirements
