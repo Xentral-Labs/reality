@@ -701,7 +701,7 @@
         "command:create_serial_unit"
       ],
       "reads": ["command:expired_lots"],
-      "exceptions": ["exception:stock_expired"],
+      "exceptions": ["exception:stock_expired", "exception:payment_authorization_expired"],
       "tools": [],
       "events": [
         "event:handling_unit.created",
@@ -827,12 +827,15 @@
         "Zahllauf",
         "Saldo"
       ],
-      "tables": ["settlement_allocation"],
+      "tables": ["settlement_allocation", "payment_authorization", "payment_capture"],
       "lists": ["view:payments", "projection:payments"],
       "actions": [
         "command:record_down_payment_invoice",
         "command:post_customer_payment",
         "command:execute_payment_run",
+        "command:settle_payout",
+        "command:record_authorization",
+        "command:record_capture",
         "command:post_customer_refund",
         "command:post_supplier_refund",
         "command:post_supplier_payment",
@@ -843,16 +846,27 @@
         "command:credit_exposure",
         "command:preview_payment_run",
         "command:run_context",
+        "command:payouts",
+        "command:payout_detail",
+        "command:authorizations",
         "command:adjustment_context",
         "command:settlement_context"
       ],
       "exceptions": [
         "exception:credit_note_unsettled",
         "exception:unmatched_financial_event",
-        "exception:payment_returned"
+        "exception:payment_returned",
+        "exception:payout_line_unmatched",
+        "exception:payment_authorization_expired"
       ],
       "tools": ["tool:finance_balances", "tool:finance_party_balances", "tool:finance_payments"],
-      "events": ["event:payments.run", "event:settlement.allocated"],
+      "events": [
+        "event:payout.settled",
+        "event:payment.authorized",
+        "event:payment.captured",
+        "event:payments.run",
+        "event:settlement.allocated"
+      ],
       "workspace_actions": ["action:post_customer_payment", "action:post_supplier_payment"]
     },
     {
@@ -13331,6 +13345,477 @@
       "resources": ["return"]
     },
     {
+      "id": "tool:finance_payout_settle_propose",
+      "kind": "tool",
+      "key": "finance_payout_settle_propose",
+      "label": "Settle a payout",
+      "area": "finance",
+      "summary": "Prepare a marketplace, payment-provider or cash-on-delivery payout statement for owner confirmation: every line is booked against the order, invoice or shipment it names on the provider's cash account (payments, refunds against credit notes, chargebacks, fees), the net payout moves to the bank, and lines that lead nowhere stay unbooked and are reported. The lines must add up to the stated net payout.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_payout_settle_propose provider_party_id payout_reference paid_on currency amount clearing_account_id [bank_account_id] lines",
+      "parameters": [
+        {
+          "name": "provider_party_id",
+          "type": "string",
+          "required": true,
+          "description": "The marketplace, provider or carrier Party that paid.",
+          "depth": 0
+        },
+        {
+          "name": "payout_reference",
+          "type": "string",
+          "required": true,
+          "description": "The provider's payout identity; settling the same statement again books only unbooked lines.",
+          "depth": 0
+        },
+        {
+          "name": "paid_on",
+          "type": "string",
+          "required": true,
+          "description": "Calendar date the payout reached the bank.",
+          "depth": 0
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "description": "Currency of the payout and its lines.",
+          "depth": 0
+        },
+        {
+          "name": "amount",
+          "type": "string | integer",
+          "required": true,
+          "description": "The net payout the provider states; the lines must add up to it.",
+          "depth": 0
+        },
+        {
+          "name": "clearing_account_id",
+          "type": "string",
+          "required": true,
+          "description": "The active cash account that holds the provider's balance, apart from the bank.",
+          "depth": 0
+        },
+        {
+          "name": "bank_account_id",
+          "type": "string",
+          "required": false,
+          "description": "The cash account the payout reached; the cash default when omitted.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": true,
+          "description": "Every line of the payout statement as the provider states it.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].line_id",
+          "type": "string",
+          "required": true,
+          "description": "The provider's own identity of the line, unique within the statement.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].kind",
+          "type": "string",
+          "required": true,
+          "description": "A charge the provider collected, a refund or chargeback it paid back, or a fee it kept.",
+          "depth": 1,
+          "enum": ["charge", "refund", "chargeback", "fee"]
+        },
+        {
+          "name": "lines[].amount",
+          "type": "string | integer",
+          "required": true,
+          "description": "The positive amount the line states; its kind gives the sign.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].references",
+          "type": "array",
+          "required": false,
+          "description": "The order, invoice or shipment the line names; a fee may name none.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].references[].type",
+          "type": "string",
+          "required": true,
+          "description": "What the stated value identifies; a tracking number names a shipment.",
+          "depth": 2,
+          "enum": [
+            "invoice_number",
+            "shop_id",
+            "shop_order_number",
+            "customer_reference",
+            "customer_number",
+            "tracking_number"
+          ]
+        },
+        {
+          "name": "lines[].references[].value",
+          "type": "string",
+          "required": true,
+          "description": "The identifier exactly as the provider states it; looked up, never stored as a link.",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reason",
+          "type": "string",
+          "required": false,
+          "description": "The provider's stated reason, kept on a chargeback.",
+          "depth": 1,
+          "default": ""
+        }
+      ],
+      "guidance": {
+        "purpose": "Settle a marketplace or payment-provider payout statement for owner confirmation.",
+        "use_when": [
+          "A marketplace",
+          "payment provider or carrier paid one amount for many orders",
+          "minus refunds",
+          "chargebacks and fees."
+        ],
+        "do_not_use_when": [
+          "A customer paid one invoice directly; record a payment. The statement does not add up; ask the provider."
+        ],
+        "preconditions": [
+          "The provider is a business partner; its balance is held on an active cash account apart from the bank; the lines add up to the net payout."
+        ],
+        "refusals": [
+          {
+            "code": "payout_total_mismatch",
+            "description": "The lines do not add up to the stated net payout."
+          },
+          {
+            "code": "payout_clearing_is_bank",
+            "description": "The provider's account is the bank account."
+          },
+          {
+            "code": "payout_clearing_account_invalid",
+            "description": "The provider's account is not an active cash account."
+          },
+          {
+            "code": "payout_statement_changed",
+            "description": "The payout was settled before with other content."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payout",
+            "proves": "Every line's booking and the invoices it settled are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Settling the same statement again books only lines that were still unbooked; a changed statement under the same reference is refused."
+        }
+      },
+      "read_modes": [],
+      "command": "settle_payout",
+      "projections": [],
+      "links": ["command:settle_payout"],
+      "label_de": "Settle a payout",
+      "resources": ["payment"]
+    },
+    {
+      "id": "tool:finance_payouts",
+      "kind": "tool",
+      "key": "finance_payouts",
+      "label": "Payouts",
+      "area": "finance",
+      "summary": "List marketplace and payment-provider payouts with their net amount and the lines nothing booked yet.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_payouts",
+      "parameters": [],
+      "guidance": {
+        "purpose": "List payouts with their net amount and the lines nothing booked yet.",
+        "use_when": ["Payouts must be reconciled with the bank or followed up."],
+        "do_not_use_when": ["One payout is known; read it."],
+        "limitations": [
+          "Payouts are stated by a person or an agent; provider report files are not read."
+        ],
+        "empty_result": "No payout has been settled.",
+        "freshness": "Read from committed payouts and their bookings."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_payouts",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "payouts",
+      "projections": [],
+      "links": ["command:payouts"],
+      "label_de": "Payouts",
+      "resources": ["payment"]
+    },
+    {
+      "id": "tool:finance_payout",
+      "kind": "tool",
+      "key": "finance_payout",
+      "label": "Payout",
+      "area": "finance",
+      "summary": "Read one payout: every stated line with what it booked, the invoices or credit notes it settled, the shipment a tracking number names, or why it stays unbooked.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_payout payout_id",
+      "parameters": [
+        {
+          "name": "payout_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of a settled payout.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names.",
+        "use_when": ["One payout needs reconciliation", "or a line stayed unbooked."],
+        "do_not_use_when": ["The payout is not known yet; list them first."],
+        "limitations": ["An unbooked line names why from what Reality holds now."],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Read from the selected payout and current allocations."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_payout",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "payout_detail",
+      "projections": [],
+      "links": ["command:payout_detail"],
+      "label_de": "Payout",
+      "resources": ["payment"]
+    },
+    {
+      "id": "tool:finance_payment_authorization_record_propose",
+      "kind": "tool",
+      "key": "finance_payment_authorization_record_propose",
+      "label": "Record a payment authorization",
+      "area": "finance",
+      "summary": "Prepare what a card or wallet provider authorized for one sales order, and until when, for owner confirmation. Captures are recorded against it separately.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_payment_authorization_record_propose order_document_id amount currency authorized_at valid_until reference",
+      "parameters": [
+        {
+          "name": "order_document_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the authorized sales order.",
+          "depth": 0
+        },
+        {
+          "name": "amount",
+          "type": "string | integer",
+          "required": true,
+          "description": "The amount the provider authorized.",
+          "depth": 0
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "description": "The order's currency.",
+          "depth": 0
+        },
+        {
+          "name": "authorized_at",
+          "type": "string",
+          "required": true,
+          "description": "When the provider authorized, as an ISO date-time.",
+          "depth": 0
+        },
+        {
+          "name": "valid_until",
+          "type": "string",
+          "required": true,
+          "description": "When the authorization lapses as the provider states it, as an ISO date-time.",
+          "depth": 0
+        },
+        {
+          "name": "reference",
+          "type": "string",
+          "required": true,
+          "description": "The provider's authorization identity, once per order.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Record what a card or wallet provider authorized for one sales order, for owner confirmation.",
+        "use_when": ["The provider authorized an amount for an order before shipment."],
+        "do_not_use_when": [
+          "Money was captured or paid out; record the capture or settle the payout."
+        ],
+        "preconditions": [
+          "A sales order of the tenant in the same currency; the reference is new for the order."
+        ],
+        "refusals": [
+          {
+            "code": "payment_authorization_currency_mismatch",
+            "description": "The currency differs from the order's."
+          },
+          {
+            "code": "payment_authorization_duplicate",
+            "description": "The reference is already recorded for the order."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payment_authorizations",
+            "proves": "The authorization and what is left of it are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; a reference is recorded once per order."
+        }
+      },
+      "read_modes": [],
+      "command": "record_authorization",
+      "projections": [],
+      "links": ["command:record_authorization"],
+      "label_de": "Record a payment authorization",
+      "resources": ["payment"]
+    },
+    {
+      "id": "tool:finance_payment_capture_record_propose",
+      "kind": "tool",
+      "key": "finance_payment_capture_record_propose",
+      "label": "Record a payment capture",
+      "area": "finance",
+      "summary": "Prepare an amount captured against a recorded authorization for owner confirmation; never more than is left and not after the authorization lapsed.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_payment_capture_record_propose authorization_id amount captured_at [reference]",
+      "parameters": [
+        {
+          "name": "authorization_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the recorded authorization.",
+          "depth": 0
+        },
+        {
+          "name": "amount",
+          "type": "string | integer",
+          "required": true,
+          "description": "The amount captured; never more than is left of the authorization.",
+          "depth": 0
+        },
+        {
+          "name": "captured_at",
+          "type": "string",
+          "required": true,
+          "description": "When the provider captured, as an ISO date-time.",
+          "depth": 0
+        },
+        {
+          "name": "reference",
+          "type": "string",
+          "required": false,
+          "description": "The provider's capture identity, as stated.",
+          "depth": 0,
+          "default": ""
+        }
+      ],
+      "guidance": {
+        "purpose": "Record an amount captured against an authorization, for owner confirmation.",
+        "use_when": [
+          "The provider captured part or all of an authorization",
+          "typically at shipment."
+        ],
+        "do_not_use_when": ["The authorization lapsed; a new authorization is needed first."],
+        "preconditions": [
+          "The capture lies between the authorization and its lapse and is no more than is left."
+        ],
+        "refusals": [
+          {
+            "code": "payment_capture_exceeds_authorization",
+            "description": "More than is left of the authorization."
+          },
+          {
+            "code": "payment_capture_after_expiry",
+            "description": "The authorization had lapsed."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payment_authorizations",
+            "proves": "The capture and the remainder are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the same authorization."
+        }
+      },
+      "read_modes": [],
+      "command": "record_capture",
+      "projections": [],
+      "links": ["command:record_capture"],
+      "label_de": "Record a payment capture",
+      "resources": ["payment"]
+    },
+    {
+      "id": "tool:finance_payment_authorizations",
+      "kind": "tool",
+      "key": "finance_payment_authorizations",
+      "label": "Payment authorizations",
+      "area": "finance",
+      "summary": "List payment authorizations, optionally for one order, with what was captured, what is left and whether each is live, expired or captured at the instant.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_payment_authorizations [order_document_id] [as_of]",
+      "parameters": [
+        {
+          "name": "order_document_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque same-tenant identity of a sales order.",
+          "depth": 0
+        },
+        {
+          "name": "as_of",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant the derivation is evaluated at; the current instant when absent.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "List payment authorizations with what was captured, what is left and whether each is live, expired or captured.",
+        "use_when": ["Before a late shipment", "to see whether the payment is still authorized."],
+        "do_not_use_when": ["The question is whether an invoice is paid; read the invoice."],
+        "limitations": [
+          "Authorizations and captures are stated by a person or an agent; provider feeds are not read."
+        ],
+        "empty_result": "No authorization is recorded for the selection.",
+        "freshness": "Read from recorded authorizations at the requested instant."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_payment_authorizations",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "authorizations",
+      "projections": [],
+      "links": ["command:authorizations"],
+      "label_de": "Payment authorizations",
+      "resources": ["payment"]
+    },
+    {
       "id": "tool:finance_opening_context",
       "kind": "tool",
       "key": "finance_opening_context",
@@ -24210,6 +24695,297 @@
       "resources": ["return"]
     },
     {
+      "id": "command:settle_payout",
+      "kind": "command",
+      "key": "settle_payout",
+      "label": "Settle a payout",
+      "area": "cross_functional",
+      "summary": "Books a stated marketplace or provider payout line by line on the provider's cash account (payments, refunds against credit notes, chargebacks, fees), moves the net payout to the bank and leaves lines that lead nowhere unbooked.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": [
+        "document",
+        "document_line",
+        "ledger_entry",
+        "settlement_allocation",
+        "ledger_reversal",
+        "payment_return",
+        "shipment_package",
+        "movement",
+        "commitment",
+        "source_record",
+        "subledger_account"
+      ],
+      "writes": [
+        "source_record",
+        "document",
+        "ledger_entry",
+        "settlement_allocation",
+        "payment_return",
+        "ledger_reversal",
+        "business_event"
+      ],
+      "confirmation": null,
+      "related_services": ["preview_payout"],
+      "tools": ["finance_payout_settle_propose"],
+      "synopses": [
+        "finance_payout_settle_propose provider_party_id payout_reference paid_on currency amount clearing_account_id [bank_account_id] lines"
+      ],
+      "events": ["payout.settled"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Settle a marketplace or payment-provider payout statement for owner confirmation.",
+        "use_when": [
+          "A marketplace",
+          "payment provider or carrier paid one amount for many orders",
+          "minus refunds",
+          "chargebacks and fees."
+        ],
+        "do_not_use_when": [
+          "A customer paid one invoice directly; record a payment. The statement does not add up; ask the provider."
+        ],
+        "preconditions": [
+          "The provider is a business partner; its balance is held on an active cash account apart from the bank; the lines add up to the net payout."
+        ],
+        "refusals": [
+          {
+            "code": "payout_total_mismatch",
+            "description": "The lines do not add up to the stated net payout."
+          },
+          {
+            "code": "payout_clearing_is_bank",
+            "description": "The provider's account is the bank account."
+          },
+          {
+            "code": "payout_clearing_account_invalid",
+            "description": "The provider's account is not an active cash account."
+          },
+          {
+            "code": "payout_statement_changed",
+            "description": "The payout was settled before with other content."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payout",
+            "proves": "Every line's booking and the invoices it settled are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Settling the same statement again books only lines that were still unbooked; a changed statement under the same reference is refused."
+        }
+      },
+      "links": ["tool:finance_payout_settle_propose", "event:payout.settled"],
+      "label_de": "Auszahlung abrechnen",
+      "resources": ["payment"]
+    },
+    {
+      "id": "command:payouts",
+      "kind": "command",
+      "key": "payouts",
+      "label": "List payouts",
+      "area": "cross_functional",
+      "summary": "Lists payouts with their net amount and the lines nothing booked yet.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": ["document", "source_record", "payment_return"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_payouts"],
+      "synopses": ["finance_payouts"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List payouts with their net amount and the lines nothing booked yet.",
+        "use_when": ["Payouts must be reconciled with the bank or followed up."],
+        "do_not_use_when": ["One payout is known; read it."],
+        "limitations": [
+          "Payouts are stated by a person or an agent; provider report files are not read."
+        ],
+        "empty_result": "No payout has been settled.",
+        "freshness": "Read from committed payouts and their bookings."
+      },
+      "links": ["tool:finance_payouts"],
+      "label_de": "Auszahlungen anzeigen",
+      "resources": ["payment"]
+    },
+    {
+      "id": "command:payout_detail",
+      "kind": "command",
+      "key": "payout_detail",
+      "label": "Read a payout",
+      "area": "cross_functional",
+      "summary": "Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": [
+        "document",
+        "source_record",
+        "ledger_entry",
+        "settlement_allocation",
+        "payment_return",
+        "shipment_package"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_payout"],
+      "synopses": ["finance_payout payout_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names.",
+        "use_when": ["One payout needs reconciliation", "or a line stayed unbooked."],
+        "do_not_use_when": ["The payout is not known yet; list them first."],
+        "limitations": ["An unbooked line names why from what Reality holds now."],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Read from the selected payout and current allocations."
+      },
+      "links": ["tool:finance_payout"],
+      "label_de": "Auszahlung anzeigen",
+      "resources": ["payment"]
+    },
+    {
+      "id": "command:record_authorization",
+      "kind": "command",
+      "key": "record_authorization",
+      "label": "Record a payment authorization",
+      "area": "cross_functional",
+      "summary": "Records what a card or wallet provider authorized for one sales order, until when.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": ["document", "payment_authorization"],
+      "writes": ["payment_authorization", "source_record", "business_event"],
+      "confirmation": null,
+      "related_services": ["preview_authorization"],
+      "tools": ["finance_payment_authorization_record_propose"],
+      "synopses": [
+        "finance_payment_authorization_record_propose order_document_id amount currency authorized_at valid_until reference"
+      ],
+      "events": ["payment.authorized"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Record what a card or wallet provider authorized for one sales order, for owner confirmation.",
+        "use_when": ["The provider authorized an amount for an order before shipment."],
+        "do_not_use_when": [
+          "Money was captured or paid out; record the capture or settle the payout."
+        ],
+        "preconditions": [
+          "A sales order of the tenant in the same currency; the reference is new for the order."
+        ],
+        "refusals": [
+          {
+            "code": "payment_authorization_currency_mismatch",
+            "description": "The currency differs from the order's."
+          },
+          {
+            "code": "payment_authorization_duplicate",
+            "description": "The reference is already recorded for the order."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payment_authorizations",
+            "proves": "The authorization and what is left of it are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; a reference is recorded once per order."
+        }
+      },
+      "links": ["tool:finance_payment_authorization_record_propose", "event:payment.authorized"],
+      "label_de": "Zahlungsautorisierung erfassen",
+      "resources": ["payment"]
+    },
+    {
+      "id": "command:record_capture",
+      "kind": "command",
+      "key": "record_capture",
+      "label": "Record a payment capture",
+      "area": "cross_functional",
+      "summary": "Records an amount captured against an authorization, never more than is left and not after it lapsed.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": ["payment_authorization", "payment_capture"],
+      "writes": ["payment_capture", "source_record", "business_event"],
+      "confirmation": null,
+      "related_services": ["preview_capture"],
+      "tools": ["finance_payment_capture_record_propose"],
+      "synopses": [
+        "finance_payment_capture_record_propose authorization_id amount captured_at [reference]"
+      ],
+      "events": ["payment.captured"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Record an amount captured against an authorization, for owner confirmation.",
+        "use_when": [
+          "The provider captured part or all of an authorization",
+          "typically at shipment."
+        ],
+        "do_not_use_when": ["The authorization lapsed; a new authorization is needed first."],
+        "preconditions": [
+          "The capture lies between the authorization and its lapse and is no more than is left."
+        ],
+        "refusals": [
+          {
+            "code": "payment_capture_exceeds_authorization",
+            "description": "More than is left of the authorization."
+          },
+          {
+            "code": "payment_capture_after_expiry",
+            "description": "The authorization had lapsed."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payment_authorizations",
+            "proves": "The capture and the remainder are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the same authorization."
+        }
+      },
+      "links": ["tool:finance_payment_capture_record_propose", "event:payment.captured"],
+      "label_de": "Zahlungseinzug erfassen",
+      "resources": ["payment"]
+    },
+    {
+      "id": "command:authorizations",
+      "kind": "command",
+      "key": "authorizations",
+      "label": "List payment authorizations",
+      "area": "cross_functional",
+      "summary": "Lists authorizations with what was captured, what is left and whether each is live, expired or captured.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": ["payment_authorization", "payment_capture"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_payment_authorizations"],
+      "synopses": ["finance_payment_authorizations [order_document_id] [as_of]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List payment authorizations with what was captured, what is left and whether each is live, expired or captured.",
+        "use_when": ["Before a late shipment", "to see whether the payment is still authorized."],
+        "do_not_use_when": ["The question is whether an invoice is paid; read the invoice."],
+        "limitations": [
+          "Authorizations and captures are stated by a person or an agent; provider feeds are not read."
+        ],
+        "empty_result": "No authorization is recorded for the selection.",
+        "freshness": "Read from recorded authorizations at the requested instant."
+      },
+      "links": ["tool:finance_payment_authorizations"],
+      "label_de": "Zahlungsautorisierungen anzeigen",
+      "resources": ["payment"]
+    },
+    {
       "id": "command:handovers",
       "kind": "command",
       "key": "handovers",
@@ -25956,6 +26732,7 @@
       ],
       "refresh_events": [
         "payment.returned",
+        "payout.settled",
         "commitment.fulfilled",
         "reservation.consumed",
         "fact.observed",
@@ -26042,6 +26819,7 @@
       ],
       "refresh_events": [
         "payment.returned",
+        "payout.settled",
         "commitment.fulfilled",
         "reservation.consumed",
         "fact.observed",
@@ -26210,6 +26988,9 @@
         "dunning.notice_recorded",
         "dunning.notice_reversed",
         "payment.returned",
+        "payout.settled",
+        "payment.authorized",
+        "payment.captured",
         "dunning.schedule_set",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
@@ -26410,6 +27191,9 @@
         "shipment.event_recorded",
         "shipment.event_superseded",
         "payment.returned",
+        "payout.settled",
+        "payment.authorized",
+        "payment.captured",
         "source_record.stored",
         "commitment.fulfilled",
         "reservation.consumed",
@@ -26523,7 +27307,9 @@
         "exception:stock_in_another_location",
         "exception:order_waiting_for_completeness",
         "exception:backorder_against_rule",
-        "exception:shipped_beyond_order"
+        "exception:shipped_beyond_order",
+        "exception:payout_line_unmatched",
+        "exception:payment_authorization_expired"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -26669,6 +27455,7 @@
         "dunning.notice_recorded",
         "dunning.notice_reversed",
         "payment.returned",
+        "payout.settled",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "party.updated",
@@ -26712,6 +27499,7 @@
       ],
       "refresh_events": [
         "payment.returned",
+        "payout.settled",
         "party.created",
         "party.updated",
         "document.corrected",
@@ -26752,6 +27540,7 @@
       "refresh_events": [
         "finance.account_changed",
         "payment.returned",
+        "payout.settled",
         "payments.run",
         "ledger.posted",
         "ledger.reversed"
@@ -26797,6 +27586,9 @@
         "dunning.notice_recorded",
         "dunning.notice_reversed",
         "payment.returned",
+        "payout.settled",
+        "payment.authorized",
+        "payment.captured",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "order.recorded",
@@ -28168,6 +28960,57 @@
       "resources": ["order"]
     },
     {
+      "id": "exception:payout_line_unmatched",
+      "kind": "exception",
+      "key": "payout_line_unmatched",
+      "label": "Payout lines not booked",
+      "area": "cross_functional",
+      "summary": "A marketplace or payment provider paid out for lines Reality could not book: their references name no order, invoice or shipment it holds, or a chargeback names a payment that was not booked on the provider's account. Their money stays on the provider's account. The entry names the payout, how many lines are open and their amount.",
+      "owner": "Accounts receivable",
+      "clears_through": "Settling the same payout statement again once the orders or payments its open lines name are held.",
+      "severity": "normal",
+      "record_type": "document",
+      "authority": "336/FR-001",
+      "evidence": [
+        "tests/finance/test_payouts.py::test_an_unmatched_line_waits_and_settling_again_books_only_it"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:documents"
+      ],
+      "label_de": "Auszahlungspositionen nicht gebucht",
+      "resources": ["payment"]
+    },
+    {
+      "id": "exception:payment_authorization_expired",
+      "kind": "exception",
+      "key": "payment_authorization_expired",
+      "label": "Payment authorization expired",
+      "area": "finance",
+      "summary": "A card or wallet provider's authorization for an order lapsed before all of it was captured, and the order still has goods to ship. The part no live authorization covers is no longer secured by the provider. The entry names the order and what was authorized, captured and left uncovered. Nothing is cancelled or held by itself.",
+      "owner": "Accounts receivable",
+      "clears_through": "A new authorization for the uncovered amount, or the order having nothing left to ship.",
+      "severity": "high",
+      "record_type": "document",
+      "authority": "336/FR-002",
+      "evidence": [
+        "tests/finance/test_payment_authorizations.py::test_an_expired_authorization_leaves_the_rest_uncovered_until_authorized_again",
+        "tests/finance/test_payment_authorizations.py::test_nothing_left_to_ship_is_not_uncovered"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:documents"
+      ],
+      "label_de": "Zahlungsautorisierung abgelaufen",
+      "resources": ["lot", "payment"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -28385,6 +29228,57 @@
       "links": ["command:record_return"],
       "label_de": "payment.returned",
       "resources": ["return"]
+    },
+    {
+      "id": "event:payout.settled",
+      "kind": "event",
+      "key": "payout.settled",
+      "label": "payout.settled",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "settle_payout",
+      "subject": "document",
+      "invalidates": [
+        "Open financial items",
+        "Payments",
+        "Journal",
+        "Timeline",
+        "Operational Exceptions",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Tenant usage"
+      ],
+      "links": ["command:settle_payout"],
+      "label_de": "payout.settled",
+      "resources": ["payment"]
+    },
+    {
+      "id": "event:payment.authorized",
+      "kind": "event",
+      "key": "payment.authorized",
+      "label": "payment.authorized",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "record_authorization",
+      "subject": "payment_authorization",
+      "invalidates": ["Timeline", "Operational Exceptions", "Tenant usage"],
+      "links": ["command:record_authorization"],
+      "label_de": "payment.authorized",
+      "resources": ["payment"]
+    },
+    {
+      "id": "event:payment.captured",
+      "kind": "event",
+      "key": "payment.captured",
+      "label": "payment.captured",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "record_capture",
+      "subject": "payment_capture",
+      "invalidates": ["Timeline", "Operational Exceptions", "Tenant usage"],
+      "links": ["command:record_capture"],
+      "label_de": "payment.captured",
+      "resources": ["payment"]
     },
     {
       "id": "event:dunning.schedule_set",
@@ -75722,6 +76616,9 @@
         "command:confirm_run",
         "command:record_handover",
         "command:record_return",
+        "command:settle_payout",
+        "command:record_authorization",
+        "command:record_capture",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -76022,6 +76919,7 @@
         "command:record_notice",
         "command:confirm_run",
         "command:record_return",
+        "command:settle_payout",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -77548,6 +78446,7 @@
         "command:reverse_notice",
         "command:confirm_run",
         "command:record_return",
+        "command:settle_payout",
         "command:record_sales_invoice",
         "command:post_sales_credit_note",
         "command:post_customer_refund",
@@ -81264,7 +82163,8 @@
       "actions": [
         "command:reverse_ledger_posting_group",
         "command:reverse_notice",
-        "command:record_return"
+        "command:record_return",
+        "command:settle_payout"
       ]
     },
     {
@@ -81396,6 +82296,7 @@
         "command:post_customer_payment",
         "command:execute_payment_run",
         "command:record_sales_credit",
+        "command:settle_payout",
         "command:allocate_credit_note",
         "command:post_customer_refund",
         "command:allocate_supplier_credit_note",

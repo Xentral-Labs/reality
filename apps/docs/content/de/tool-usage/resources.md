@@ -14,10 +14,10 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 16       | 15        |
-| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 7        | 2         |
-| [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
+| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
+| [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
-| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 8        | 3         |
+| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 11       | 5         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
@@ -394,9 +394,8 @@ Jede physische Bestandsänderung ist eine unveränderliche Lagerbewegung; Korrek
 Gegenbuchung statt zu editieren. Eine Sendung ist die Lieferung, die Bewegungen zu einem
 Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
 
-**Auch genannt:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
-delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
-Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
+**Auch genannt:** goods receipt, goods issue, shipment, movement, transfer, adjustment,
+Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
 
 **Listen**
 
@@ -413,8 +412,6 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
 - [Sendungsereignis erfassen](./commands#command-record_shipment_event) (`record_shipment_event`)
 - [Sendungsereignis korrigieren](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
-- [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure)
-  (`record_delivery_failure`)
 
 **Nachschlagen**
 
@@ -431,19 +428,17 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Tabellen: `movement`, `movement_correction`, `shipment`, `shipment_package`,
-`shipment_event`, `shipment_event_supersession`, `delivery_failure` · Events:
+`shipment_event`, `shipment_event_supersession` · Events:
 [`shipment.notice_recorded`](./events#event-shipment-notice_recorded),
 [`shipment.event_recorded`](./events#event-shipment-event_recorded),
 [`shipment.event_superseded`](./events#event-shipment-event_superseded),
 [`commitment.fulfilled`](./events#event-commitment-fulfilled),
 [`reservation.consumed`](./events#event-reservation-consumed),
-[`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agenten-Tools ohne Geschäftsaktion:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
-[`movement_explanation`](./commands#tool-movement_explanation),
-[`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
+[`movement_explanation`](./commands#tool-movement_explanation)
 
 ## Charge, Seriennummer und Palette {#resource-lot}
 
@@ -470,6 +465,8 @@ hat, nie berechnet.
 **Klärfälle**
 
 - [Abgelaufener Bestand](./exceptions#exception-stock_expired) (`stock_expired`)
+- [Zahlungsautorisierung abgelaufen](./exceptions#exception-payment_authorization_expired)
+  (`payment_authorization_expired`)
 
 **Darunter:** Tabellen: `lot`, `serial_unit`, `handling_unit` · Events:
 [`handling_unit.created`](./events#event-handling_unit-created),
@@ -591,6 +588,9 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
   (`record_down_payment_invoice`)
 - [Zahlungseingang buchen](./commands#command-post_customer_payment) (`post_customer_payment`)
 - [Zahllauf ausführen](./commands#command-execute_payment_run) (`execute_payment_run`)
+- [Auszahlung abrechnen](./commands#command-settle_payout) (`settle_payout`)
+- [Zahlungsautorisierung erfassen](./commands#command-record_authorization) (`record_authorization`)
+- [Zahlungseinzug erfassen](./commands#command-record_capture) (`record_capture`)
 - [Kundenerstattung buchen](./commands#command-post_customer_refund) (`post_customer_refund`)
 - [Lieferantenerstattung buchen](./commands#command-post_supplier_refund) (`post_supplier_refund`)
 - [Zahlungsausgang buchen](./commands#command-post_supplier_payment) (`post_supplier_payment`)
@@ -603,6 +603,9 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Zahllauf vorschauen](./commands#command-preview_payment_run) (`preview_payment_run`)
 - [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)
+- [Auszahlungen anzeigen](./commands#command-payouts) (`payouts`)
+- [Auszahlung anzeigen](./commands#command-payout_detail) (`payout_detail`)
+- [Zahlungsautorisierungen anzeigen](./commands#command-authorizations) (`authorizations`)
 - [Kontext für Abzug anzeigen](./commands#command-adjustment_context) (`adjustment_context`)
 - [Kontext für Zahlung und Gutschrift anzeigen](./commands#command-settlement_context)
   (`settlement_context`)
@@ -614,11 +617,18 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 - [Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event)
   (`unmatched_financial_event`)
 - [Zahlung zurückgegangen](./exceptions#exception-payment_returned) (`payment_returned`)
+- [Auszahlungspositionen nicht gebucht](./exceptions#exception-payout_line_unmatched)
+  (`payout_line_unmatched`)
+- [Zahlungsautorisierung abgelaufen](./exceptions#exception-payment_authorization_expired)
+  (`payment_authorization_expired`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
-**Darunter:** Tabellen: `settlement_allocation` · Events:
+**Darunter:** Tabellen: `settlement_allocation`, `payment_authorization`, `payment_capture` ·
+Events: [`payout.settled`](./events#event-payout-settled),
+[`payment.authorized`](./events#event-payment-authorized),
+[`payment.captured`](./events#event-payment-captured),
 [`payments.run`](./events#event-payments-run),
 [`settlement.allocated`](./events#event-settlement-allocated) · Agenten-Tools ohne Geschäftsaktion:
 [`finance_balances`](./commands#tool-finance_balances),

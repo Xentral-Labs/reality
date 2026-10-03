@@ -892,7 +892,7 @@ entries:
   - item_supply_demand
   demo_references: []
   product_paths: []
-  related_journeys: [L02]
+  related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_item_oversold_in_the_shop_and_on_a_marketplace_names_both
     note: 'With 4 in stock, a Shopify order of 3 is covered; a marketplace order of 3 from its order report makes the item oversold by 2, naming both channels and orders; a purchase order for 2 covers it.'
@@ -1165,42 +1165,63 @@ entries:
   section: Payment and release
   title: 'Card/PayPal/Klarna: authorization ≠ capture'
   question: Are authorization and capture separate facts?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Are authorization and capture separate facts?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Are authorization and capture separate facts? An authorization of an order and each capture against it are recorded as stated through reviewed commands; authorized, captured and left are read apart, and a capture beyond what is left is refused.'
   limitations:
-  - Payment authorization and capture are not recorded as separate steps; only received payments are.
-  keywords: []
+  - Authorizations and captures are stated by a person or an agent; provider feeds are not read yet.
+  - A capture is not a posting; the money posts when the payout arrives.
+  keywords:
+  - payment authorization
+  - capture
+  - authorized amount
+  - Autorisierung
+  - Zahlungsautorisierung
   question_examples:
   - 'Card/PayPal/Klarna: authorization ≠ capture'
   - Are authorization and capture separate facts?
-  tools: []
+  - Klarna authorized 100 but captured 60, what is left?
+  - Wie viel der Kartenautorisierung ist schon eingezogen?
+  tools:
+  - finance_payment_authorization_record_propose
+  - finance_payment_capture_record_propose
+  - finance_payment_authorizations
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: specs/148-accounting-journal-cost-centers/spec.md FR-049/FR-050 (specified, not implemented)
-    note: No authorization or capture record; payment intake has only an unused `money_path` string.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_authorization_and_capture_are_separate_facts
+    note: 'An authorization of 100 is captured as 60 and 40; the read names authorized, captured and left, and a further capture is refused.'
+  - reference: packages/reality-core/tests/finance/test_payment_authorizations.py
+    note: Records, refusals, the read, the expired finding and isolation (spec 336).
 - id: C10
   section: Payment and release
   title: Authorization expires before a late partial shipment
   question: Is the uncovered remainder visible?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Is the uncovered remainder visible?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the uncovered remainder visible? When an authorization lapses with a remainder while the order still has goods to ship, Payment authorization expired names the uncovered amount until a new authorization covers it or nothing is left to ship.'
   limitations:
-  - Authorizations are not recorded, so an expired authorization and the uncovered remainder cannot be shown.
-  keywords: []
+  - Nothing is held or cancelled by itself; the finding asks a person to authorize again.
+  keywords:
+  - authorization expired
+  - expired authorization
+  - uncovered remainder
+  - Autorisierung abgelaufen
   question_examples:
   - Authorization expires before a late partial shipment
   - Is the uncovered remainder visible?
-  tools: []
+  - The card authorization ran out before the rest of the order shipped
+  - Die Autorisierung ist abgelaufen, bevor der Rest geliefert wurde
+  tools:
+  - finance_payment_authorizations
+  - exceptions_list
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: specs/148-accounting-journal-cost-centers/trade-finance-controls.md
-    note: Authorizations are not modeled, so an expired authorization and the uncovered remainder cannot be shown.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_expired_authorization_shows_the_uncovered_rest_of_a_late_shipment
+    note: '600 of 1000 were captured with the first parcel; the authorization lapses, the uncovered 400 are reported, and a new authorization of 400 clears it.'
 - id: C11
   section: Payment and release
   title: B2B invoice with 30 days net, 2 % discount within 10 days
@@ -1243,22 +1264,30 @@ entries:
   section: Payment and release
   title: Cash on delivery
   question: Payment tied to the shipment?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Payment tied to the shipment?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Payment tied to the shipment? The carrier''s cash-on-delivery remittance is settled as a payout whose line states the parcel''s tracking number; it leads to the order and its invoice, pays it, and the payout read names the shipment.'
   limitations:
-  - There is no cash-on-delivery path, and a payment cannot be tied to a shipment.
-  keywords: []
+  - A shipment does not state the amount to collect; the tie is the tracking number the remittance states.
+  keywords:
+  - cash on delivery
+  - COD
+  - Nachnahme
+  - collected amount
   question_examples:
   - Cash on delivery
   - Payment tied to the shipment?
-  tools: []
+  - DHL remitted the cash on delivery, which order does it pay?
+  - Welche Rechnung bezahlt die Nachnahme von DHL?
+  tools:
+  - finance_payout_settle_propose
+  - finance_payout
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: none
-    note: No cash-on-delivery payment path; payments cannot be tied to a shipment.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_cash_on_delivery_is_tied_to_the_parcel_it_was_collected_for
+    note: 'A parcel shipped with a tracking number; the carrier remits 100 minus a fee of 2.50, the line naming the tracking number pays the invoice and the payout read names the shipment.'
 - id: C14
   section: Payment and release
   title: 30 % down payment, rest before shipment
@@ -1285,7 +1314,7 @@ entries:
   - sales_invoice_record_propose
   demo_references: []
   product_paths: []
-  related_journeys: [E11]
+  related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid
     note: 'A prepayment order of 1,000 with a paid down-payment invoice of 300 shows 300 received and 700 required, and its shipment is refused; the final invoice offsets the 300 and is open for 700; once that is paid the order is ready and ships.'
@@ -1905,7 +1934,7 @@ entries:
   - month_end_billing
   demo_references: []
   product_paths: []
-  related_journeys: [Q01]
+  related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_proforma_and_an_early_invoice_are_visible_until_the_goods_ship
     note: A pro-forma is recorded for the order without an open item or a finding; the invoice before shipment is reported as invoiced and not shipped and clears when the ten units ship.
@@ -2095,7 +2124,7 @@ entries:
   - sales_invoice_record_propose
   demo_references: []
   product_paths: []
-  related_journeys: [C14]
+  related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_final_invoice_states_the_down_payment_it_deducts
     note: 'A paid down-payment invoice of 300 is offered on the final invoice of 1,000; the stated offset leaves 700 open, empties received down payments, and the final invoice, the down payment and the order each show the offset.'
@@ -3967,7 +3996,7 @@ entries:
   - source_ingest_propose
   demo_references: []
   product_paths: []
-  related_journeys: [B14]
+  related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_marketplace_order_due_tomorrow_is_at_risk_until_it_ships
     note: Three marketplace orders from order reports, all reserved; the ones due in 20 and 2 hours are at risk, the one due in three days is not; shipping clears the first, and the second is overdue only once its date passes.
@@ -3977,23 +4006,37 @@ entries:
   section: E-commerce and marketplaces
   title: 'Marketplace payout: one payment for hundreds of orders minus fees and refunds'
   question: Each order settled, fees as charges?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Each order settled, fees as charges?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Each order settled, fees as charges? A person or agent states the payout statement; every charge pays its order''s invoice on the provider''s own cash account, a refund settles the order''s credit note, a chargeback returns the payment, fees are payment-fee expense, and the stated net payout moves to the bank.'
   limitations:
-  - Marketplace and payment provider payouts are not matched to orders yet.
-  - Fees, refunds and chargebacks within a payout are not allocated.
-  keywords: []
+  - The statement is stated through the reviewed command (from a JSON file by CLI or by an agent); provider report formats and APIs are not read yet.
+  - A line whose references name nothing Reality holds stays unbooked and is reported until the statement is settled again.
+  keywords:
+  - marketplace payout
+  - payout statement
+  - settlement report
+  - Amazon payout
+  - Auszahlung
+  - Marktplatzauszahlung
+  - Sammelzahlung
   question_examples:
   - 'Marketplace payout: one payment for hundreds of orders minus fees and refunds'
   - Each order settled, fees as charges?
-  tools: []
+  - Amazon pays out once a fortnight minus its fees, which orders does it cover?
+  - Eine Marktplatzauszahlung bezahlt hunderte Aufträge abzüglich Gebühren, wie wird sie verbucht?
+  tools:
+  - finance_payout_settle_propose
+  - finance_payouts
+  - finance_payout
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: specs/148-accounting-journal-cost-centers/spec.md FR-050; docs/features/payment_matching.md Non-goals
-    note: 'Payout and fee matching is specified but not implemented: no payout or provider-clearing code exists.'
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_marketplace_payout_settles_each_order_and_books_the_fees
+    note: 'One payout pays six orders minus a refund and fees: every invoice and the credit note are settled, the fees are payment-fee expense, the bank receives the net and nothing stays on the provider account.'
+  - reference: packages/reality-core/tests/finance/test_payouts.py
+    note: Charges, refunds, chargebacks, fees, the total check, unmatched lines settled again, replay, account refusals and isolation (spec 336).
 - id: L04
   section: E-commerce and marketplaces
   title: Shopify order partially refunded in the shop
@@ -4104,7 +4147,7 @@ entries:
   - exceptions_list
   demo_references: []
   product_paths: []
-  related_journeys: [B14]
+  related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved
     note: 'A burst of 40 Shopify orders through the import jobs is interpreted once each; reserving every promise holds exactly the 60 in stock, and the oversold finding states the rest.'
@@ -5036,7 +5079,7 @@ entries:
   - month_end_billing
   demo_references: []
   product_paths: []
-  related_journeys: [E03]
+  related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_month_end_lists_both_directions_from_the_same_findings
     note: Four shipped and not invoiced on one order and five invoiced and not shipped on another are listed from the findings; once invoiced and shipped the next month both lists are empty.
@@ -5195,22 +5238,28 @@ entries:
   section: Combined stress stories
   title: Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees
   question: Every position allocated.
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Every position allocated.'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Every position allocated. One reviewed settlement books 400 charges against their invoices, 12 refunds against their credit notes, 3 chargebacks as returned payments and the fees, and the provider''s account is empty afterwards.'
   limitations:
-  - Payouts, fees and chargebacks are not allocated across orders; see L03.
-  keywords: []
+  - The settlement reads and writes each line through the shared payment primitives, so its cost grows with the lines; a statement holds at most 2000 lines.
+  keywords:
+  - 400 orders payout
+  - payout with chargebacks
+  - payout refunds chargebacks fees
   question_examples:
   - Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees
   - Every position allocated.
-  tools: []
+  - Eine Auszahlung über 400 Bestellungen mit Erstattungen und Rückbelastungen
+  tools:
+  - finance_payout_settle_propose
+  - finance_payout
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: services/payment_intake.py (refuses references to several invoices); tests/test_payment_intake.py::test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocation
-    note: There's no payout, fee or chargeback allocation across many orders.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_line
+    note: '417 lines in one reviewed action: every invoice settled, the three charged-back invoices open again and reported, fees booked, the provider account empty, and a bounded number of statements per line.'
 - id: R05
   section: Combined stress stories
   title: EDI customer sends ORDCHG after a partial delivery was advised

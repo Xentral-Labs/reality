@@ -25055,6 +25055,65 @@ Object.assign(dictionaries.de, {
   "Back in stock": "Wieder im Bestand",
   "Written off": "Ausgebucht",
   "Claim against": "Forderung an",
+  "Payout lines not booked": "Auszahlungspositionen nicht gebucht",
+  "Settling the same payout statement again once the orders or payments its open lines name are held.":
+    "Dieselbe Auszahlungsabrechnung erneut abrechnen, sobald die Aufträge oder Zahlungen der offenen Positionen vorliegen.",
+  "Payment authorization expired": "Zahlungsautorisierung abgelaufen",
+  "A new authorization for the uncovered amount, or the order having nothing left to ship.":
+    "Eine neue Autorisierung über den ungedeckten Betrag, oder der Auftrag hat nichts mehr zu liefern.",
+  "A payout names the provider's payout reference.":
+    "Eine Auszahlung nennt die Auszahlungsreferenz des Anbieters.",
+  "The payout date must be a date (YYYY-MM-DD).":
+    "Das Auszahlungsdatum muss ein Datum sein (JJJJ-MM-TT).",
+  "A payout cannot be paid in the future.": "Eine Auszahlung kann nicht in der Zukunft eingehen.",
+  "The payout currency must be a three-letter code.":
+    "Die Währung der Auszahlung muss ein dreistelliger Code sein.",
+  "The net payout must be a positive amount with at most four decimals.":
+    "Die Nettoauszahlung muss ein positiver Betrag mit höchstens vier Nachkommastellen sein.",
+  "A payout states between 1 and 2000 lines.":
+    "Eine Auszahlung nennt zwischen 1 und 2000 Positionen.",
+  "Every payout line needs its own line id.":
+    "Jede Auszahlungsposition braucht eine eigene Positions-ID.",
+  "A payout line is a charge, refund, chargeback or fee.":
+    "Eine Auszahlungsposition ist eine Belastung, Erstattung, Rückbelastung oder Gebühr.",
+  "A payout line amount must be positive with at most four decimals.":
+    "Der Betrag einer Auszahlungsposition muss positiv sein, mit höchstens vier Nachkommastellen.",
+  "A payout line reference names a known reference type and a value.":
+    "Eine Referenz einer Auszahlungsposition nennt einen bekannten Referenztyp und einen Wert.",
+  "A charge, refund or chargeback names the order, invoice or shipment it is for.":
+    "Eine Belastung, Erstattung oder Rückbelastung nennt den Auftrag, die Rechnung oder die Sendung, für die sie gilt.",
+  "The payout lines add up to {lines}, not to the stated net payout of {stated}.":
+    "Die Auszahlungspositionen ergeben {lines}, nicht die angegebene Nettoauszahlung von {stated}.",
+  "The provider's account must be an active cash account.":
+    "Das Konto des Anbieters muss ein aktives Geldkonto sein.",
+  "The provider's account cannot be the bank account the payout goes to.":
+    "Das Konto des Anbieters kann nicht das Bankkonto sein, auf das die Auszahlung geht.",
+  "This payout was already settled with other content. A changed statement needs its own payout reference.":
+    "Diese Auszahlung wurde bereits mit anderem Inhalt abgerechnet. Eine geänderte Abrechnung braucht eine eigene Auszahlungsreferenz.",
+  "Payout not found.": "Auszahlung nicht gefunden.",
+  "An authorization is recorded for a sales order.":
+    "Eine Autorisierung wird für einen Kundenauftrag erfasst.",
+  "The authorized amount must be positive with at most four decimals.":
+    "Der autorisierte Betrag muss positiv sein, mit höchstens vier Nachkommastellen.",
+  "The authorization must be in the order's currency.":
+    "Die Autorisierung muss in der Währung des Auftrags sein.",
+  "Authorization times must be date-times.":
+    "Die Zeiten einer Autorisierung müssen Datum und Uhrzeit sein.",
+  "An authorization expires after it was authorized.":
+    "Eine Autorisierung läuft nach ihrer Erteilung ab.",
+  "An authorization names the provider's reference.":
+    "Eine Autorisierung nennt die Referenz des Anbieters.",
+  "This authorization reference is already recorded for the order.":
+    "Diese Autorisierungsreferenz ist für den Auftrag bereits erfasst.",
+  "The captured amount must be positive with at most four decimals.":
+    "Der eingezogene Betrag muss positiv sein, mit höchstens vier Nachkommastellen.",
+  "The capture time must be a date-time.": "Der Zeitpunkt des Einzugs muss Datum und Uhrzeit sein.",
+  "A capture cannot come before its authorization.":
+    "Ein Einzug kann nicht vor seiner Autorisierung liegen.",
+  "The authorization had expired when this was captured.":
+    "Die Autorisierung war beim Einzug bereits abgelaufen.",
+  "Only {remaining} of this authorization is left to capture.":
+    "Von dieser Autorisierung sind nur noch {remaining} einziehbar.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25476,6 +25535,64 @@ Object.assign(dictionaries.nl, {
   "Back in stock": "Weer op voorraad",
   "Written off": "Afgeboekt",
   "Claim against": "Claim op",
+  "Payout lines not booked": "Uitbetalingsregels niet geboekt",
+  "Settling the same payout statement again once the orders or payments its open lines name are held.":
+    "Hetzelfde uitbetalingsoverzicht opnieuw verwerken zodra de orders of betalingen van de open regels aanwezig zijn.",
+  "Payment authorization expired": "Betalingsautorisatie verlopen",
+  "A new authorization for the uncovered amount, or the order having nothing left to ship.":
+    "Een nieuwe autorisatie voor het niet-gedekte bedrag, of de order heeft niets meer te leveren.",
+  "A payout names the provider's payout reference.":
+    "Een uitbetaling noemt de uitbetalingsreferentie van de aanbieder.",
+  "The payout date must be a date (YYYY-MM-DD).":
+    "De uitbetalingsdatum moet een datum zijn (JJJJ-MM-DD).",
+  "A payout cannot be paid in the future.": "Een uitbetaling kan niet in de toekomst binnenkomen.",
+  "The payout currency must be a three-letter code.":
+    "De valuta van de uitbetaling moet een code van drie letters zijn.",
+  "The net payout must be a positive amount with at most four decimals.":
+    "De netto-uitbetaling moet een positief bedrag zijn met hoogstens vier decimalen.",
+  "A payout states between 1 and 2000 lines.": "Een uitbetaling noemt tussen 1 en 2000 regels.",
+  "Every payout line needs its own line id.":
+    "Elke uitbetalingsregel heeft een eigen regel-id nodig.",
+  "A payout line is a charge, refund, chargeback or fee.":
+    "Een uitbetalingsregel is een afschrijving, terugbetaling, chargeback of vergoeding.",
+  "A payout line amount must be positive with at most four decimals.":
+    "Het bedrag van een uitbetalingsregel moet positief zijn met hoogstens vier decimalen.",
+  "A payout line reference names a known reference type and a value.":
+    "Een referentie van een uitbetalingsregel noemt een bekend referentietype en een waarde.",
+  "A charge, refund or chargeback names the order, invoice or shipment it is for.":
+    "Een afschrijving, terugbetaling of chargeback noemt de order, factuur of zending waarvoor ze geldt.",
+  "The payout lines add up to {lines}, not to the stated net payout of {stated}.":
+    "De uitbetalingsregels tellen op tot {lines}, niet tot de opgegeven netto-uitbetaling van {stated}.",
+  "The provider's account must be an active cash account.":
+    "De rekening van de aanbieder moet een actieve geldrekening zijn.",
+  "The provider's account cannot be the bank account the payout goes to.":
+    "De rekening van de aanbieder kan niet de bankrekening zijn waarop de uitbetaling binnenkomt.",
+  "This payout was already settled with other content. A changed statement needs its own payout reference.":
+    "Deze uitbetaling is al met andere inhoud verwerkt. Een gewijzigd overzicht heeft een eigen uitbetalingsreferentie nodig.",
+  "Payout not found.": "Uitbetaling niet gevonden.",
+  "An authorization is recorded for a sales order.":
+    "Een autorisatie wordt voor een verkooporder vastgelegd.",
+  "The authorized amount must be positive with at most four decimals.":
+    "Het geautoriseerde bedrag moet positief zijn met hoogstens vier decimalen.",
+  "The authorization must be in the order's currency.":
+    "De autorisatie moet in de valuta van de order zijn.",
+  "Authorization times must be date-times.":
+    "De tijden van een autorisatie moeten datum en tijd zijn.",
+  "An authorization expires after it was authorized.":
+    "Een autorisatie verloopt na het moment van autoriseren.",
+  "An authorization names the provider's reference.":
+    "Een autorisatie noemt de referentie van de aanbieder.",
+  "This authorization reference is already recorded for the order.":
+    "Deze autorisatiereferentie is voor de order al vastgelegd.",
+  "The captured amount must be positive with at most four decimals.":
+    "Het geïnde bedrag moet positief zijn met hoogstens vier decimalen.",
+  "The capture time must be a date-time.": "Het tijdstip van inning moet datum en tijd zijn.",
+  "A capture cannot come before its authorization.":
+    "Een inning kan niet vóór de autorisatie liggen.",
+  "The authorization had expired when this was captured.":
+    "De autorisatie was al verlopen bij deze inning.",
+  "Only {remaining} of this authorization is left to capture.":
+    "Van deze autorisatie kan nog maar {remaining} worden geïnd.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25897,6 +26014,64 @@ Object.assign(dictionaries.es, {
   "Back in stock": "De vuelta en el stock",
   "Written off": "Dado de baja",
   "Claim against": "Reclamación a",
+  "Payout lines not booked": "Líneas de liquidación sin contabilizar",
+  "Settling the same payout statement again once the orders or payments its open lines name are held.":
+    "Liquidar de nuevo el mismo extracto cuando existan los pedidos o pagos que nombran sus líneas abiertas.",
+  "Payment authorization expired": "Autorización de pago caducada",
+  "A new authorization for the uncovered amount, or the order having nothing left to ship.":
+    "Una nueva autorización por el importe no cubierto, o que el pedido ya no tenga nada por enviar.",
+  "A payout names the provider's payout reference.":
+    "Una liquidación indica la referencia de liquidación del proveedor.",
+  "The payout date must be a date (YYYY-MM-DD).":
+    "La fecha de liquidación debe ser una fecha (AAAA-MM-DD).",
+  "A payout cannot be paid in the future.": "Una liquidación no puede pagarse en el futuro.",
+  "The payout currency must be a three-letter code.":
+    "La moneda de la liquidación debe ser un código de tres letras.",
+  "The net payout must be a positive amount with at most four decimals.":
+    "La liquidación neta debe ser un importe positivo con cuatro decimales como máximo.",
+  "A payout states between 1 and 2000 lines.": "Una liquidación indica entre 1 y 2000 líneas.",
+  "Every payout line needs its own line id.":
+    "Cada línea de la liquidación necesita su propio identificador.",
+  "A payout line is a charge, refund, chargeback or fee.":
+    "Una línea de liquidación es un cobro, un reembolso, un contracargo o una comisión.",
+  "A payout line amount must be positive with at most four decimals.":
+    "El importe de una línea de liquidación debe ser positivo con cuatro decimales como máximo.",
+  "A payout line reference names a known reference type and a value.":
+    "Una referencia de línea de liquidación indica un tipo de referencia conocido y un valor.",
+  "A charge, refund or chargeback names the order, invoice or shipment it is for.":
+    "Un cobro, reembolso o contracargo indica el pedido, la factura o el envío al que corresponde.",
+  "The payout lines add up to {lines}, not to the stated net payout of {stated}.":
+    "Las líneas de la liquidación suman {lines}, no la liquidación neta indicada de {stated}.",
+  "The provider's account must be an active cash account.":
+    "La cuenta del proveedor debe ser una cuenta de tesorería activa.",
+  "The provider's account cannot be the bank account the payout goes to.":
+    "La cuenta del proveedor no puede ser la cuenta bancaria a la que llega la liquidación.",
+  "This payout was already settled with other content. A changed statement needs its own payout reference.":
+    "Esta liquidación ya se procesó con otro contenido. Un extracto modificado necesita su propia referencia.",
+  "Payout not found.": "Liquidación no encontrada.",
+  "An authorization is recorded for a sales order.":
+    "Una autorización se registra para un pedido de venta.",
+  "The authorized amount must be positive with at most four decimals.":
+    "El importe autorizado debe ser positivo con cuatro decimales como máximo.",
+  "The authorization must be in the order's currency.":
+    "La autorización debe estar en la moneda del pedido.",
+  "Authorization times must be date-times.":
+    "Las horas de una autorización deben ser fecha y hora.",
+  "An authorization expires after it was authorized.":
+    "Una autorización caduca después de concederse.",
+  "An authorization names the provider's reference.":
+    "Una autorización indica la referencia del proveedor.",
+  "This authorization reference is already recorded for the order.":
+    "Esta referencia de autorización ya está registrada para el pedido.",
+  "The captured amount must be positive with at most four decimals.":
+    "El importe capturado debe ser positivo con cuatro decimales como máximo.",
+  "The capture time must be a date-time.": "La hora de la captura debe ser fecha y hora.",
+  "A capture cannot come before its authorization.":
+    "Una captura no puede ser anterior a su autorización.",
+  "The authorization had expired when this was captured.":
+    "La autorización ya había caducado cuando se capturó.",
+  "Only {remaining} of this authorization is left to capture.":
+    "De esta autorización solo quedan {remaining} por capturar.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

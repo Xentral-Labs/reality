@@ -98,7 +98,7 @@
 ### 2. Authorizations (`services/payment_authorizations.py`)
 
 **Commands**:
-- `finance.payment.authorization.record`: `order_document_id`, `amount`, `currency`, `authorized_at`, `expires_at`, `reference`.
+- `finance.payment.authorization.record`: `order_document_id`, `amount`, `currency`, `authorized_at`, `valid_until` (stored as `expires_at`), `reference`.
 - `finance.payment.capture.record`: `authorization_id`, `amount`, `captured_at`, `reference`.
 
 **Refusals**:
