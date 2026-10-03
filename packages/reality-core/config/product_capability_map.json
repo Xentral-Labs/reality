@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:2fb54902088e4944827a3d8b5b2a09fadbab3a8e88492fcd532a8f188cb5c784",
+  "knowledge_version": "advisor-v1:sha256:8dabd2fcf0ef4db5f999857972525852f0018114faa11220e95228b72ace9bae",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -791,8 +791,7 @@
         "evidence_command_opening_context",
         "evidence_command_import_opening",
         "evidence_command_record_shipment_notice",
-        "evidence_command_record_packaged_execution",
-        "evidence_command_record_delivery_failure"
+        "evidence_command_record_packaged_execution"
       ],
       "tools": [
         {
@@ -945,10 +944,6 @@
         },
         {
           "name": "record_packaged_execution",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         }
       ]
@@ -1414,10 +1409,10 @@
         "evidence_command_close_stale_promises",
         "evidence_command_record_sales_credit",
         "evidence_command_billable_positions",
+        "evidence_command_settle_payout",
         "evidence_command_record_packaged_execution",
         "evidence_command_assign_supply",
         "evidence_command_record_customer_exchange",
-        "evidence_command_record_delivery_failure",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -1550,6 +1545,10 @@
           "mode": "query"
         },
         {
+          "name": "settle_payout",
+          "mode": "mutation"
+        },
+        {
           "name": "record_packaged_execution",
           "mode": "mutation"
         },
@@ -1559,10 +1558,6 @@
         },
         {
           "name": "record_customer_exchange",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         },
         {
@@ -1582,20 +1577,13 @@
         "movement",
         "transfer",
         "adjustment",
-        "failed delivery",
-        "undeliverable",
-        "refused delivery",
-        "lost parcel",
         "Warenausgang",
         "Lagerbewegung",
         "Umlagerung",
         "Bestandsanpassung",
         "Sendung",
         "Packstück",
-        "Tracking",
-        "Unzustellbar",
-        "Annahmeverweigerung",
-        "Paketverlust"
+        "Tracking"
       ],
       "evidence_ids": [
         "evidence_command_propose_cost_review",
@@ -1621,12 +1609,13 @@
         "evidence_command_close_stale_promises",
         "evidence_command_record_sales_credit",
         "evidence_command_billable_positions",
+        "evidence_command_settle_payout",
+        "evidence_command_payout_detail",
         "evidence_command_record_shipment_notice",
         "evidence_command_record_packaged_execution",
         "evidence_command_record_shipment_event",
         "evidence_command_supersede_shipment_event",
         "evidence_command_record_customer_exchange",
-        "evidence_command_record_delivery_failure",
         "evidence_command_record_return_disposition"
       ],
       "tools": [
@@ -1723,6 +1712,14 @@
           "mode": "query"
         },
         {
+          "name": "settle_payout",
+          "mode": "mutation"
+        },
+        {
+          "name": "payout_detail",
+          "mode": "query"
+        },
+        {
           "name": "record_shipment_notice",
           "mode": "mutation"
         },
@@ -1740,10 +1737,6 @@
         },
         {
           "name": "record_customer_exchange",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         },
         {
@@ -1991,6 +1984,12 @@
         "evidence_command_record_return",
         "evidence_command_returns",
         "evidence_command_return_detail",
+        "evidence_command_settle_payout",
+        "evidence_command_payouts",
+        "evidence_command_payout_detail",
+        "evidence_command_record_authorization",
+        "evidence_command_record_capture",
+        "evidence_command_authorizations",
         "evidence_command_allocate_credit_note",
         "evidence_command_post_customer_refund",
         "evidence_command_allocate_supplier_credit_note",
@@ -2060,6 +2059,30 @@
         },
         {
           "name": "return_detail",
+          "mode": "query"
+        },
+        {
+          "name": "settle_payout",
+          "mode": "mutation"
+        },
+        {
+          "name": "payouts",
+          "mode": "query"
+        },
+        {
+          "name": "payout_detail",
+          "mode": "query"
+        },
+        {
+          "name": "record_authorization",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_capture",
+          "mode": "mutation"
+        },
+        {
+          "name": "authorizations",
           "mode": "query"
         },
         {
@@ -2178,6 +2201,8 @@
         "evidence_command_confirm_run",
         "evidence_command_record_handover",
         "evidence_command_record_return",
+        "evidence_command_settle_payout",
+        "evidence_command_payout_detail",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -2191,8 +2216,7 @@
         "evidence_command_settlement_context",
         "evidence_command_apply_settlement",
         "evidence_command_opening_context",
-        "evidence_command_import_opening",
-        "evidence_command_record_delivery_failure"
+        "evidence_command_import_opening"
       ],
       "tools": [
         {
@@ -2432,6 +2456,14 @@
           "mode": "mutation"
         },
         {
+          "name": "settle_payout",
+          "mode": "mutation"
+        },
+        {
+          "name": "payout_detail",
+          "mode": "query"
+        },
+        {
           "name": "record_sales_invoice",
           "mode": "mutation"
         },
@@ -2485,10 +2517,6 @@
         },
         {
           "name": "import_opening",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         }
       ]
@@ -2713,6 +2741,10 @@
         "evidence_command_record_return",
         "evidence_command_returns",
         "evidence_command_return_detail",
+        "evidence_command_settle_payout",
+        "evidence_command_payouts",
+        "evidence_command_payout_detail",
+        "evidence_command_record_authorization",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -2727,7 +2759,6 @@
         "evidence_command_apply_settlement",
         "evidence_command_import_opening",
         "evidence_command_record_customer_exchange",
-        "evidence_command_record_delivery_failure",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -2976,6 +3007,22 @@
           "mode": "query"
         },
         {
+          "name": "settle_payout",
+          "mode": "mutation"
+        },
+        {
+          "name": "payouts",
+          "mode": "query"
+        },
+        {
+          "name": "payout_detail",
+          "mode": "query"
+        },
+        {
+          "name": "record_authorization",
+          "mode": "mutation"
+        },
+        {
           "name": "record_sales_invoice",
           "mode": "mutation"
         },
@@ -3029,10 +3076,6 @@
         },
         {
           "name": "record_customer_exchange",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_delivery_failure",
           "mode": "mutation"
         },
         {

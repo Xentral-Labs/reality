@@ -2,19 +2,19 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 152 covered, 8 partial, 0 missing, 65 gap, 3 out.
+228 scenarios: 157 covered, 8 partial, 0 missing, 60 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 16 |  |  | 8 |  |
 | B Availability and reservation | 12 |  |  | 6 |  |
-| C Payment and release | 14 |  |  | 4 |  |
+| C Payment and release | 17 |  |  | 1 |  |
 | D Shipment, split and merge | 10 | 1 |  | 8 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
@@ -23,13 +23,13 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
-| L E-commerce and marketplaces | 7 |  |  | 5 |  |
+| L E-commerce and marketplaces | 8 |  |  | 4 |  |
 | M B2B specifics | 3 | 2 |  | 7 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 2 | 1 |  | 2 |  |
-| R Combined stress stories | 4 | 2 |  | 2 |  |
+| R Combined stress stories | 5 | 2 |  | 1 |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
 shipped_not_billed, returned_not_credited, billed_not_received, duplicate supplier invoice) and in
@@ -64,15 +64,17 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
 7. **Shopify orders and refunds are interpreted, other sources are not.** Later Shopify versions
    apply reductions of unshipped quantity and hold everything else (specs 081, 296); refunds
    become evidence. Shipments, marketplace, 3PL and EDI sources have no interpreter.
-   D17, L03, M03 (L01, M04 partial).
+   D17, M03 (L01, M04 partial). Since spec 336 a payout statement is stated through a reviewed
+   command (L03); provider report formats are not read.
 8. **No framework contracts or schedule lines.** One supplier commitment per PO line; no blanket
    order or call-off. A23, G04, G05, M01.
 9. **Party roles and identity are thin.** No bill-to/payer role, party merge,
    supplier item numbers, or receivable/payable netting. L10, M10, M11, O02, O06.
-10. **Spec 148 trade finance is specified, not built.** Authorization/capture, chargeback,
-    marketplace payout, cash on delivery, vouchers and the accounting export package.
-    C09, C10, C13, C18, L03, N07, R04. A person records chargebacks and returned direct
-    debits since spec 297 (C15 covered).
+10. **Spec 148 trade finance is specified, not built.** Vouchers and the accounting export
+    package. C18, N07. A person records chargebacks and returned direct debits since spec 297
+    (C15 covered); since spec 336 a stated payout statement settles marketplace, provider and
+    cash-on-delivery payouts, and authorizations and captures are recorded (C09, C10, C13, L03,
+    R04 covered).
 11. **No kits or bills of material.** K01, K02, K03, K04, K06.
 12. **No period record (spec 184 is a stub).** Q02, Q04. There is also no sales-side
     "invoiced not shipped" class (E03, Q01 partial).
@@ -178,11 +180,11 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | C06 | covered | tests/scenarios/test_catalog_finance.py::test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded | Payment after cancellation stays unallocated as customer credit (119) and is refunded through the confirmed settlement proposal. |
 | C07 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_order_over_the_limit_is_held_and_released_by_an_owner | An order past the credit limit is held at entry with the facts; an owner releases it with a reason recorded with the person (spec 298). |
 | C08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_credit_hold_names_the_overdue_items_behind_it | The hold and the credit-limit finding name the overdue invoices apart from those not yet due, on an exposure that counts open orders and credits (spec 298). |
-| C09 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-049/FR-050 (specified, not implemented) | No authorization or capture record; payment intake has only an unused `money_path` string. |
-| C10 | gap | specs/148-accounting-journal-cost-centers/trade-finance-controls.md | Authorizations are not modeled, so an expired authorization and the uncovered remainder cannot be shown. |
+| C09 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_authorization_and_capture_are_separate_facts | An authorization of 100 is captured as 60 and 40 through reviewed commands; authorized, captured and left are read apart, and a further capture is refused (spec 336). |
+| C10 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_expired_authorization_shows_the_uncovered_rest_of_a_late_shipment | 600 of 1000 captured with the first parcel; the authorization lapses before the rest ships, Payment authorization expired names the uncovered 400, and a new authorization clears it (spec 336). |
 | C11 | covered | tests/test_payment_terms.py::test_the_discount_deadline_is_one_shared_rule; tests/test_ledger.py::test_invoice_due_date_rule | Due date and discount date come from one shared rule in the aging register; the fixture is a supplier invoice, and sales invoices use the same rule. |
 | C12 | covered | tests/operational_exceptions/test_derivation.py::test_a_discount_taken_explains_the_remainder | A discount deducted after the window gets no `early_payment_discount_taken` reason, so it stays a plain overdue receivable. |
-| C13 | gap | none | No cash-on-delivery payment path; payments cannot be tied to a shipment. |
+| C13 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_cash_on_delivery_is_tied_to_the_parcel_it_was_collected_for | The carrier's remittance is a payout whose line states the parcel's tracking number; it pays the order's invoice and the payout read names the shipment. The shipment does not state the amount to collect (spec 336). |
 | C14 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid | A paid 30 % down-payment invoice counts towards the prepayment, the shipment waits for the rest, and the final invoice offsets the down payment (spec 299). |
 | C15 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_returned_direct_debit_reopens_the_invoice_and_charges_the_fee | A returned direct debit or chargeback is recorded with its stated reason and fee; the invoice reopens and is reported until paid again, the fee is an expense or charged on (spec 297). Bank return files and provider disputes are not read. |
 | C16 | covered | tests/test_party_delivery_holds.py::test_customer_delivery_hold_blocks_only_shipment; tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold | A party hold with reason and note blocks only shipments; readiness names the hold. There is no dedicated dunning or insolvency reason code. |
@@ -344,7 +346,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 |---|---|---|---|
 | L01 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_stock_at_an_external_fulfilment_location_is_sold_from_there | Stock at an external fulfilment location is reserved and shipped from there. No marketplace report interpreter exists. |
 | L02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_marketplace_order_due_tomorrow_is_at_risk_until_it_ships | A reserved marketplace order a day before its deadline is reported until it ships, and overdue once the date passes (spec 300). |
-| L03 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-050; docs/features/payment_matching.md Non-goals | Payout and fee matching is specified but not implemented: no payout or provider-clearing code exists. |
+| L03 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_marketplace_payout_settles_each_order_and_books_the_fees | One payout pays six orders minus a refund and fees on the provider's own cash account; the net reaches the bank. The statement is stated through the reviewed command; provider report formats are not read (spec 336). |
 | L04 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_partial_shopify_refund_is_recorded_from_its_source | A partial refund becomes its own shopify/refund source and a sales_refund document on the order without a posting (spec 296). |
 | L05 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_edited_shopify_order_applies_a_removed_line_and_holds_an_added_one | A removed line is cancelled citing the version; an added line waits with line_added (spec 296). |
 | L06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it | Dated customer order without stock; an incoming purchase is assigned through supply_assign; readiness names insufficient_stock and supply_coverage shows 5 protecting (0 before, as control). |
@@ -426,7 +428,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | R01 | partial | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_cannot_be_released_anyway | The 80 % prepaid order is refused by shipment_dispatch and by movement_create (spec 294 fix); spec 275 FR-005 keeps it unshippable and no reviewed release exists. |
 | R02 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_customers_an_under_delivery_a_key_customer_and_a_cancellation | Two orders of 3 assigned to a purchase of 6 that delivers 4 and is reduced: the key customer is reserved 3 by stated quantities, the other 1; its cancellation ends its assignment and the key customer is no longer at risk (spec 305). |
 | R03 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping listed only as an edge case) | There is no drop-shipment model (supplier ships to the customer, no own stock). |
-| R04 | gap | services/payment_intake.py (refuses references to several invoices); tests/test_payment_intake.py::test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocation | There's no payout, fee or chargeback allocation across many orders. |
+| R04 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_line | 400 charges, 12 refunds, 3 chargebacks and fees in one reviewed settlement; every position is booked and the provider account is empty (spec 336). |
 | R05 | partial | tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived, ::test_shrinking_to_what_arrived_finishes_the_promise | Revising after a partial fulfilment is proven on commitments; there's no EDI ORDCHG or advice source. |
 | R06 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_an_import_container_lands_in_eur_with_freight_and_duty | Five USD purchases from two suppliers; the invoice rate as conversion basis lands one receipt in EUR with freight and duty, and the waiting orders are served (spec 309). |
 | R07 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_month_end_loss_uncovers_three_reservations_and_releases_none | Three reservations of 4 against 12, a count of 9: the review names all three, Reservation exceeds stock raises, and none is released by itself (spec 307). |

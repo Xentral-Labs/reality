@@ -58,6 +58,8 @@ it, and which agent tools list and explain it.
 | [`order_waiting_for_completeness`](#exception-order_waiting_for_completeness)             | Order waiting for completeness           | Orders & fulfilment        | `normal` | Sales                                                                                       |
 | [`backorder_against_rule`](#exception-backorder_against_rule)                             | Backorder against the customer's rule    | Orders & fulfilment        | `normal` | Sales                                                                                       |
 | [`shipped_beyond_order`](#exception-shipped_beyond_order)                                 | Shipped beyond the order                 | Orders & fulfilment        | `normal` | Sales                                                                                       |
+| [`payout_line_unmatched`](#exception-payout_line_unmatched)                               | Payout lines not booked                  | Cross-functional           | `normal` | Accounts receivable                                                                         |
+| [`payment_authorization_expired`](#exception-payment_authorization_expired)               | Payment authorization expired            | Finance                    | `high`   | Accounts receivable                                                                         |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1507,3 +1509,44 @@ beyond the order.
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
 [`exception_explain`](./commands#tool-exception_explain), view
 [`commitments`](./views#view-commitments)
+
+## `payout_line_unmatched` — Payout lines not booked {#exception-payout_line_unmatched}
+
+A marketplace or payment provider paid out for lines Reality could not book: their references name
+no order, invoice or shipment it holds, or a chargeback names a payment that was not booked on the
+provider's account. Their money stays on the provider's account. The entry names the payout, how
+many lines are open and their amount.
+
+- **Owner:** Accounts receivable
+- **Clears through:** Settling the same payout statement again once the orders or payments its open
+  lines name are held.
+- **Severity:** `normal`
+- **Record type:** `document`
+- **Authority:** `336/FR-001`
+- **Evidence:**
+  `tests/finance/test_payouts.py::test_an_unmatched_line_waits_and_settling_again_books_only_it`
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+
+## `payment_authorization_expired` — Payment authorization expired {#exception-payment_authorization_expired}
+
+A card or wallet provider's authorization for an order lapsed before all of it was captured, and the
+order still has goods to ship. The part no live authorization covers is no longer secured by the
+provider. The entry names the order and what was authorized, captured and left uncovered. Nothing is
+cancelled or held by itself.
+
+- **Owner:** Accounts receivable
+- **Clears through:** A new authorization for the uncovered amount, or the order having nothing left
+  to ship.
+- **Severity:** `high`
+- **Record type:** `document`
+- **Authority:** `336/FR-002`
+- **Evidence:**
+  `tests/finance/test_payment_authorizations.py::test_an_expired_authorization_leaves_the_rest_uncovered_until_authorized_again`,
+  `tests/finance/test_payment_authorizations.py::test_nothing_left_to_ship_is_not_uncovered`
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)

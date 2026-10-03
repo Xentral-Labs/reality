@@ -69,5 +69,5 @@ With ranks 1 to 19 implemented (311 deferred by the owner), the next packages cl
 | 20 | 3 | [333 Kits, Bundles and Light Assembly](../../specs/333-kits-and-bundles/spec.md) | K01, K02, K03, K04, K06 |
 | 21 | 3 | [334 Picking and Planned Outbound Deliveries](../../specs/334-picking-and-planned-delivery/spec.md) | A08, A11, A21, A24, D04, D13, M05 |
 | 22 | 3 | [335 Undeliverable, Refused and Lost Parcels](../../specs/335-delivery-failures/spec.md) | D07, D08, D09 (implemented; supported) |
-| 23 | 3 | [336 Marketplace and Payment-Provider Payouts](../../specs/336-marketplace-payouts/spec.md) | L03, R04, C09, C10, C13 |
+| 23 | 3 | [336 Marketplace and Payment-Provider Payouts](../../specs/336-marketplace-payouts/spec.md) | L03, R04, C09, C10, C13 (implemented; supported) |
 

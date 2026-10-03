@@ -2269,3 +2269,14 @@ Table `delivery_failure` (kind `undeliverable`, `refused` or `lost`, stated reas
 - `packages/reality-core/tests/test_shipment_reads.py::test_paged_shipment_register_has_bounded_query_cost`: one more bounded read for the page's failed deliveries.
 - `packages/reality-core/tests/test_delivery_failure_migration.py`: set-up companies get the carrier-claim account as their default; the downgrade removes it.
 - `packages/reality-core/tests/finance/test_accounts.py::test_required_ids_and_explicit_setup`: setting up accounts creates the carrier-claim role with the others.
+## Marketplace and payment-provider payouts — Spec 336
+
+Command `finance.payout.settle` books a stated payout statement line by line on the provider's cash account (payments, refunds against credit notes, chargebacks through the spec 297 return, fees) and moves the net payout to the bank; classes `payout_line_unmatched` and `payment_authorization_expired`; tables `payment_authorization` and `payment_capture`.
+
+- `packages/reality-core/tests/finance/test_payouts.py`:
+  - Charges pay their invoices, the fee is expense and the bank receives the net; nothing stays on the provider account.
+  - A refund settles its order's credit note; a chargeback returns the payment held on the provider account, also one charged in the same statement.
+  - A statement that does not add up is refused with both totals; an unmatched line waits and settling again books only it.
+  - A changed statement is refused, a replay books nothing twice; the provider account is a cash account apart from the bank; a charge for an order not invoiced is recorded for its customer; isolation.
+- `packages/reality-core/tests/finance/test_payment_authorizations.py`: authorization and capture as separate records, refusals, the expired finding and how it clears, isolation.
+- `packages/reality-core/tests/scenarios/test_catalog_finance.py`: stories L03, R04 (400 orders with a bounded statement count), C09, C10 and C13.

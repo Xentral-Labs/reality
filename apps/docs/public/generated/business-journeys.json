@@ -927,9 +927,7 @@
       ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": [
-        "L02"
-      ]
+      "related_journeys": []
     },
     {
       "id": "B15",
@@ -1203,18 +1201,31 @@
       "section": "Payment and release",
       "title": "Card/PayPal/Klarna: authorization ≠ capture",
       "question": "Are authorization and capture separate facts?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Are authorization and capture separate facts?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Are authorization and capture separate facts? An authorization of an order and each capture against it are recorded as stated through reviewed commands; authorized, captured and left are read apart, and a capture beyond what is left is refused.",
       "limitations": [
-        "Payment authorization and capture are not recorded as separate steps; only received payments are."
+        "Authorizations and captures are stated by a person or an agent; provider feeds are not read yet.",
+        "A capture is not a posting; the money posts when the payout arrives."
       ],
-      "keywords": [],
+      "keywords": [
+        "payment authorization",
+        "capture",
+        "authorized amount",
+        "Autorisierung",
+        "Zahlungsautorisierung"
+      ],
       "question_examples": [
         "Card/PayPal/Klarna: authorization ≠ capture",
-        "Are authorization and capture separate facts?"
+        "Are authorization and capture separate facts?",
+        "Klarna authorized 100 but captured 60, what is left?",
+        "Wie viel der Kartenautorisierung ist schon eingezogen?"
       ],
-      "tools": [],
+      "tools": [
+        "finance_payment_authorization_record_propose",
+        "finance_payment_capture_record_propose",
+        "finance_payment_authorizations"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1224,18 +1235,28 @@
       "section": "Payment and release",
       "title": "Authorization expires before a late partial shipment",
       "question": "Is the uncovered remainder visible?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Is the uncovered remainder visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the uncovered remainder visible? When an authorization lapses with a remainder while the order still has goods to ship, Payment authorization expired names the uncovered amount until a new authorization covers it or nothing is left to ship.",
       "limitations": [
-        "Authorizations are not recorded, so an expired authorization and the uncovered remainder cannot be shown."
+        "Nothing is held or cancelled by itself; the finding asks a person to authorize again."
       ],
-      "keywords": [],
+      "keywords": [
+        "authorization expired",
+        "expired authorization",
+        "uncovered remainder",
+        "Autorisierung abgelaufen"
+      ],
       "question_examples": [
         "Authorization expires before a late partial shipment",
-        "Is the uncovered remainder visible?"
+        "Is the uncovered remainder visible?",
+        "The card authorization ran out before the rest of the order shipped",
+        "Die Autorisierung ist abgelaufen, bevor der Rest geliefert wurde"
       ],
-      "tools": [],
+      "tools": [
+        "finance_payment_authorizations",
+        "exceptions_list"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1283,18 +1304,28 @@
       "section": "Payment and release",
       "title": "Cash on delivery",
       "question": "Payment tied to the shipment?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Payment tied to the shipment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Payment tied to the shipment? The carrier's cash-on-delivery remittance is settled as a payout whose line states the parcel's tracking number; it leads to the order and its invoice, pays it, and the payout read names the shipment.",
       "limitations": [
-        "There is no cash-on-delivery path, and a payment cannot be tied to a shipment."
+        "A shipment does not state the amount to collect; the tie is the tracking number the remittance states."
       ],
-      "keywords": [],
+      "keywords": [
+        "cash on delivery",
+        "COD",
+        "Nachnahme",
+        "collected amount"
+      ],
       "question_examples": [
         "Cash on delivery",
-        "Payment tied to the shipment?"
+        "Payment tied to the shipment?",
+        "DHL remitted the cash on delivery, which order does it pay?",
+        "Welche Rechnung bezahlt die Nachnahme von DHL?"
       ],
-      "tools": [],
+      "tools": [
+        "finance_payout_settle_propose",
+        "finance_payout"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1330,9 +1361,7 @@
       ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": [
-        "E11"
-      ]
+      "related_journeys": []
     },
     {
       "id": "C15",
@@ -1978,9 +2007,7 @@
       ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": [
-        "Q01"
-      ]
+      "related_journeys": []
     },
     {
       "id": "E04",
@@ -2176,9 +2203,7 @@
       ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": [
-        "C14"
-      ]
+      "related_journeys": []
     },
     {
       "id": "E12",
@@ -4095,28 +4120,40 @@
       ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": [
-        "B14"
-      ]
+      "related_journeys": []
     },
     {
       "id": "L03",
       "section": "E-commerce and marketplaces",
       "title": "Marketplace payout: one payment for hundreds of orders minus fees and refunds",
       "question": "Each order settled, fees as charges?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Each order settled, fees as charges?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Each order settled, fees as charges? A person or agent states the payout statement; every charge pays its order's invoice on the provider's own cash account, a refund settles the order's credit note, a chargeback returns the payment, fees are payment-fee expense, and the stated net payout moves to the bank.",
       "limitations": [
-        "Marketplace and payment provider payouts are not matched to orders yet.",
-        "Fees, refunds and chargebacks within a payout are not allocated."
+        "The statement is stated through the reviewed command (from a JSON file by CLI or by an agent); provider report formats and APIs are not read yet.",
+        "A line whose references name nothing Reality holds stays unbooked and is reported until the statement is settled again."
       ],
-      "keywords": [],
+      "keywords": [
+        "marketplace payout",
+        "payout statement",
+        "settlement report",
+        "Amazon payout",
+        "Auszahlung",
+        "Marktplatzauszahlung",
+        "Sammelzahlung"
+      ],
       "question_examples": [
         "Marketplace payout: one payment for hundreds of orders minus fees and refunds",
-        "Each order settled, fees as charges?"
+        "Each order settled, fees as charges?",
+        "Amazon pays out once a fortnight minus its fees, which orders does it cover?",
+        "Eine Marktplatzauszahlung bezahlt hunderte Aufträge abzüglich Gebühren, wie wird sie verbucht?"
       ],
-      "tools": [],
+      "tools": [
+        "finance_payout_settle_propose",
+        "finance_payouts",
+        "finance_payout"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -4238,9 +4275,7 @@
       ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": [
-        "B14"
-      ]
+      "related_journeys": []
     },
     {
       "id": "L08",
@@ -5193,9 +5228,7 @@
       ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": [
-        "E03"
-      ]
+      "related_journeys": []
     },
     {
       "id": "Q02",
@@ -5356,18 +5389,26 @@
       "section": "Combined stress stories",
       "title": "Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees",
       "question": "Every position allocated.",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Every position allocated.",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Every position allocated. One reviewed settlement books 400 charges against their invoices, 12 refunds against their credit notes, 3 chargebacks as returned payments and the fees, and the provider's account is empty afterwards.",
       "limitations": [
-        "Payouts, fees and chargebacks are not allocated across orders; see L03."
+        "The settlement reads and writes each line through the shared payment primitives, so its cost grows with the lines; a statement holds at most 2000 lines."
       ],
-      "keywords": [],
+      "keywords": [
+        "400 orders payout",
+        "payout with chargebacks",
+        "payout refunds chargebacks fees"
+      ],
       "question_examples": [
         "Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees",
-        "Every position allocated."
+        "Every position allocated.",
+        "Eine Auszahlung über 400 Bestellungen mit Erstattungen und Rückbelastungen"
       ],
-      "tools": [],
+      "tools": [
+        "finance_payout_settle_propose",
+        "finance_payout"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
