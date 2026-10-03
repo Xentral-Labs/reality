@@ -79,6 +79,8 @@ From a customer order through reservation, dispatch and invoice to the settled p
 
 **Actions**
 
+- [Plan an outbound delivery](./commands#command-plan_outbound_delivery) (`plan_outbound_delivery`)
+- [Pick a planned delivery](./commands#command-pick_outbound_delivery) (`pick_outbound_delivery`)
 - [Dispatch or receive shipment package](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
 - [Record shipment notice](./commands#command-record_shipment_notice) (`record_shipment_notice`)

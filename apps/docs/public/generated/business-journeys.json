@@ -182,19 +182,33 @@
       "section": "Order intake and order changes",
       "title": "Cancelled after picking, before shipment",
       "question": "Does the stock go back, and is that visible?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Does the stock go back, and is that visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Does the stock go back, and is that visible? Picking moves the goods into the planned delivery's staging location; a cancellation releases the reservation, the delivery shows the goods as waiting to be put back, and the put-back moves them to their bin again.",
       "limitations": [
-        "Reality has no picking or staging step, so an order cannot be picked but not yet shipped.",
-        "A cancellation in that state, and stock going back to its bin, therefore cannot be shown."
+        "Picking is recorded per planned delivery; a pick list by bin path or a handheld scan is not modelled."
       ],
-      "keywords": [],
+      "keywords": [
+        "cancelled after picking",
+        "picked but not shipped",
+        "put back",
+        "staging",
+        "storniert nach Kommissionierung",
+        "zurücklagern",
+        "Kommissionierung"
+      ],
       "question_examples": [
         "Cancelled after picking, before shipment",
-        "Does the stock go back, and is that visible?"
+        "Does the stock go back, and is that visible?",
+        "An order was picked and then cancelled; does the stock go back to its bin?",
+        "Ein Auftrag wurde kommissioniert und dann storniert; kommt der Bestand zurück?"
       ],
-      "tools": [],
+      "tools": [
+        "outbound_delivery_pick_propose",
+        "commitment_cancel_propose",
+        "outbound_delivery_put_back_propose",
+        "outbound_delivery_detail"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -255,19 +269,32 @@
       "section": "Order intake and order changes",
       "title": "Delivery address changes after release, before shipment",
       "question": "Which address does the shipment use, and is the change traceable?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Which address does the shipment use, and is the change traceable?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Which address does the shipment use, and is the change traceable? A planned delivery states its address; a revision before dispatch states the new one, every statement is kept, and the shipment keeps the address it went with.",
       "limitations": [
-        "The delivery address is kept on the order only; a shipment does not record the address it used.",
-        "Which address a shipment went to, and when it changed, cannot be answered."
+        "The address is a stated value; it is not validated against a postal register or the carrier."
       ],
-      "keywords": [],
+      "keywords": [
+        "address change",
+        "delivery address",
+        "ship-to address",
+        "Adressänderung",
+        "Lieferadresse",
+        "Lieferanschrift"
+      ],
       "question_examples": [
         "Delivery address changes after release, before shipment",
-        "Which address does the shipment use, and is the change traceable?"
+        "Which address does the shipment use, and is the change traceable?",
+        "The customer changed the delivery address after release; which address did the shipment use?",
+        "Der Kunde hat die Lieferadresse nach der Freigabe geändert; welche Adresse hat die Sendung?"
       ],
-      "tools": [],
+      "tools": [
+        "outbound_delivery_revise_propose",
+        "outbound_delivery_detail",
+        "shipment_dispatch_propose",
+        "shipment_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -475,18 +502,31 @@
       "section": "Order intake and order changes",
       "title": "One order split across two delivery addresses",
       "question": "Can lines/quantities go to different recipients?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Can lines/quantities go to different recipients?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Can lines/quantities go to different recipients? One promise can be split across planned deliveries up to what is still open, each with its own address or recipient, and each shipment keeps where it went.",
       "limitations": [
-        "An order line has no recipient or address of its own, so lines cannot go to two delivery addresses."
+        "A shipment's counterparty stays the ordering customer; the recipient and address are stated with the planned delivery."
       ],
-      "keywords": [],
+      "keywords": [
+        "two delivery addresses",
+        "split delivery addresses",
+        "several addresses",
+        "zwei Lieferadressen",
+        "mehrere Lieferanschriften",
+        "Teillieferung an andere Adresse"
+      ],
       "question_examples": [
         "One order split across two delivery addresses",
-        "Can lines/quantities go to different recipients?"
+        "Can lines/quantities go to different recipients?",
+        "Six go to the office and four to the building site; can one order go to two addresses?",
+        "Sechs gehen ans Büro und vier an die Baustelle; kann ein Auftrag an zwei Adressen gehen?"
       ],
-      "tools": [],
+      "tools": [
+        "outbound_delivery_plan_propose",
+        "shipment_dispatch_propose",
+        "shipment_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -536,19 +576,32 @@
       "section": "Order intake and order changes",
       "title": "Line added later that should ride with the open shipment",
       "question": "Does the added commitment join the pending delivery?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Does the added commitment join the pending delivery?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Does the added commitment join the pending delivery? A later promise of the same customer, such as from a follow-up order, joins the open planned delivery through a revision and ships in the same shipment.",
       "limitations": [
-        "An outbound shipment exists only once it is dispatched, so there is no pending delivery a new line could join.",
-        "Lines cannot be added to an order once it is in operation."
+        "Adding a line to the original order document stays blocked once it is in Reality; the added goods come as a follow-up order."
       ],
-      "keywords": [],
+      "keywords": [
+        "added later",
+        "ride with the shipment",
+        "join the delivery",
+        "nachbestellt",
+        "mitliefern",
+        "Position nachträglich",
+        "mit der offenen Lieferung"
+      ],
       "question_examples": [
         "Line added later that should ride with the open shipment",
-        "Does the added commitment join the pending delivery?"
+        "Does the added commitment join the pending delivery?",
+        "The customer adds two more; can they ride with the shipment that is not out yet?",
+        "Der Kunde bestellt zwei nach; können sie mit der noch offenen Lieferung mitgehen?"
       ],
-      "tools": [],
+      "tools": [
+        "outbound_delivery_revise_propose",
+        "shipment_dispatch_propose",
+        "shipment_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1537,18 +1590,32 @@
       "section": "Picking, shipment, split and merge",
       "title": "Picking error caught before shipment",
       "question": "Corrected without a false movement?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Corrected without a false movement?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Corrected without a false movement? Picking more than planned is refused before anything moves, a wrong pick goes back by a put-back that is a true movement, and the dispatch is refused until what is picked matches the planned delivery.",
       "limitations": [
-        "Picking is not recorded, so a picking error caught before shipment has nothing to correct."
+        "Picking the wrong item cannot be recorded, because a pick names the planned promise and its item; the physical mix-up itself is not modelled."
       ],
-      "keywords": [],
+      "keywords": [
+        "picking error",
+        "wrong pick",
+        "over-pick",
+        "Kommissionierfehler",
+        "falsch kommissioniert",
+        "Fehlkommissionierung"
+      ],
       "question_examples": [
         "Picking error caught before shipment",
-        "Corrected without a false movement?"
+        "Corrected without a false movement?",
+        "The picker took six instead of five; is that caught before the parcel leaves?",
+        "Der Kommissionierer hat sechs statt fünf genommen; wird das vor dem Versand bemerkt?"
       ],
-      "tools": [],
+      "tools": [
+        "outbound_delivery_pick_propose",
+        "outbound_delivery_put_back_propose",
+        "outbound_delivery_detail",
+        "shipment_dispatch_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1769,18 +1836,34 @@
       "section": "Picking, shipment, split and merge",
       "title": "Pallet freight with booked delivery slot",
       "question": "Shipment dated to the slot?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Shipment dated to the slot?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Shipment dated to the slot? A planned delivery states its booked slot; the shipment keeps the slot it was booked for, and a slot that closed before anything shipped is shown as missed.",
       "limitations": [
-        "A booked delivery slot is not recorded; only the time of the movement and carrier events are."
+        "The slot is booked outside Reality; freight booking with carriers is not integrated."
       ],
-      "keywords": [],
+      "keywords": [
+        "booked slot",
+        "delivery slot",
+        "time slot",
+        "pallet freight",
+        "Zeitfenster",
+        "Anlieferzeitfenster",
+        "Speditionsavis",
+        "Palettenware"
+      ],
       "question_examples": [
         "Pallet freight with booked delivery slot",
-        "Shipment dated to the slot?"
+        "Shipment dated to the slot?",
+        "The pallets are booked for Thursday 8 to 10; does the shipment show that slot?",
+        "Die Paletten sind für Donnerstag 8 bis 10 Uhr avisiert; zeigt die Sendung das Zeitfenster?"
       ],
-      "tools": [],
+      "tools": [
+        "outbound_delivery_plan_propose",
+        "outbound_delivery_detail",
+        "shipment_dispatch_propose",
+        "shipment_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -4537,18 +4620,32 @@
       "section": "B2B specifics",
       "title": "Retail chain: central warehouse plus store delivery",
       "question": "Several recipients per order?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Several recipients per order?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Several recipients per order? Planned deliveries name a recipient each, such as the stores of a retail chain, and split one order's promises between them; each shipment keeps its recipient.",
       "limitations": [
-        "An order has one delivery address, so several recipients per order cannot be stated."
+        "A store is recorded as a business partner; a chain hierarchy between buyer and stores is not modelled."
       ],
-      "keywords": [],
+      "keywords": [
+        "retail chain",
+        "store delivery",
+        "several recipients",
+        "Filialbelieferung",
+        "Handelskette",
+        "Filiale",
+        "mehrere Empfänger"
+      ],
       "question_examples": [
         "Retail chain: central warehouse plus store delivery",
-        "Several recipients per order?"
+        "Several recipients per order?",
+        "A retail chain orders centrally; can each store get its own delivery?",
+        "Eine Handelskette bestellt zentral; bekommt jede Filiale ihre eigene Lieferung?"
       ],
-      "tools": [],
+      "tools": [
+        "outbound_delivery_plan_propose",
+        "outbound_deliveries",
+        "shipment_dispatch_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
