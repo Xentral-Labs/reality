@@ -2184,7 +2184,7 @@ def store_source_record(
     return source, True, disposition
 
 
-def store_source_records(
+def _store_source_records(
     session: OrmSession,
     tenant_id: str,
     source_system: str,

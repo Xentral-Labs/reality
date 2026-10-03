@@ -1032,7 +1032,7 @@ def _settle(
             _commit=False,
         )
     lines = {line["line_id"]: line for line in statement["lines"]}
-    stored = core.store_source_records(
+    stored = core._store_source_records(
         session,
         tenant_id,
         SOURCE_SYSTEM,
