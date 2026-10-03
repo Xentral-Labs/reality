@@ -277,6 +277,10 @@ def test_practice_company_without_run_is_not_writable(session):
 def test_moving_inputs_fall_back_to_contribution_steps(
     session, business, cost_owner, monkeypatch
 ):
+    # contribution_reviews binds contribution_preview on its first import, which
+    # happens lazily; load it now so it never captures the patch below for the rest
+    # of the worker's tests.
+    import reality.services.contribution_reviews  # noqa: F401
     from reality.services import costing
 
     billed, *_ = revenue.prepared(session, business, cost_owner, reviewed=False)
