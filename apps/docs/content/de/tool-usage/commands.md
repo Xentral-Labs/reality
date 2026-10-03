@@ -7627,7 +7627,7 @@ source_ingest_propose artifact_id [source_system] [source_type] [external_id] [e
 
 | Name              | Typ      | Pflicht | Beschreibung                                                                      | Standard        |
 | ----------------- | -------- | ------- | --------------------------------------------------------------------------------- | --------------- |
-| `artifact_id`     | `string` | ja      | —                                                                                 | —               |
+| `artifact_id`     | `string` | ja      | Opaque identity of the retained original upload within this company.              | —               |
 | `source_system`   | `string` | nein    | Tenant-scoped code naming the external origin of a record.                        | `manual_upload` |
 | `source_type`     | `string` | nein    | Upstream record kind as named by its source, before operational interpretation.   | `data_drop`     |
 | `external_id`     | `string` | nein    | Identifier assigned by the named external source system; never internal identity. | —               |

@@ -42,7 +42,7 @@ try {
   await panel.getByLabel("Name column", { exact: true }).selectOption("title");
   await panel.getByLabel("Unit column", { exact: true }).selectOption("measure");
   await panel.getByLabel("Source code", { exact: true }).fill("catalog_import");
-  const preparation = "**/item-imports/prepare";
+  const preparation = "**/item-imports/reviewed/prepare";
   await page.route(preparation, async (route) => {
     const response = await route.fetch();
     assert.equal(response.status(), 200);
@@ -64,7 +64,7 @@ try {
   const proposal = new URL(page.url()).searchParams.get("import_proposal");
   assert.ok(proposal);
   let data = await (
-    await context.request.get(`${base}${tenantBase}/delivery-actions/${proposal}`)
+    await context.request.get(`${base}${tenantBase}/item-imports/reviewed/${proposal}`)
   ).json();
   assert.equal(data.status, "proposed");
   assert.deepEqual(
@@ -100,7 +100,7 @@ try {
   ]);
   assert.deepEqual(await readFile(await download.path()), content);
   data = await (
-    await context.request.get(`${base}${tenantBase}/delivery-actions/${proposal}`)
+    await context.request.get(`${base}${tenantBase}/item-imports/reviewed/${proposal}`)
   ).json();
   assert.equal(data.verification, "verified");
   const foreign = await context.request.get(

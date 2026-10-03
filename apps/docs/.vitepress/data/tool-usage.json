@@ -5200,7 +5200,7 @@
           "name": "artifact_id",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Opaque identity of the retained original upload within this company.",
           "depth": 0
         },
         {
@@ -21864,7 +21864,13 @@
       "reads": ["source_record", "source_stream", "import_job", "party", "item", "location"],
       "writes": ["action", "import_job", "interpretation_outcome"],
       "confirmation": null,
-      "related_services": [],
+      "related_services": [
+        "stage_reviewed_item_csv",
+        "capture_reviewed_item_artifact",
+        "prepare_reviewed_item_file",
+        "prepare_reviewed_item_import",
+        "prepare_item_package"
+      ],
       "tools": ["intake_prepare_propose"],
       "synopses": ["intake_prepare_propose job_id"],
       "events": [],
@@ -21886,7 +21892,7 @@
       "reads": ["action"],
       "writes": [],
       "confirmation": null,
-      "related_services": [],
+      "related_services": ["reviewed_item_file_detail"],
       "tools": ["intake_review"],
       "synopses": ["intake_review proposal_id"],
       "events": [],

@@ -8610,15 +8610,21 @@ async def post_item_csv_artifact(
     session: DatabaseSession,
     filename: str = Query(min_length=1, max_length=255),
 ):
-    from reality.services.item_imports import MAX_BYTES, stage_item_csv
+    from reality.services.file_intake import RAW_BYTES
+    from reality.services.reviewed_item_imports import stage_reviewed_item_csv
 
     content = bytearray()
     async for chunk in request.stream():
         content.extend(chunk)
-        if len(content) > MAX_BYTES:
-            raise HTTPException(status_code=413, detail="CSV must be at most 2 MiB.")
+        if len(content) > RAW_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail="Large-file raw input must be nonempty and at most 20 MiB.",
+            )
     try:
-        return stage_item_csv(session, tenant_id, bytes(content), filename)
+        return stage_reviewed_item_csv(
+            session, tenant_id, bytes(content), filename, source_system="manual_upload"
+        )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -8657,6 +8663,56 @@ def post_item_csv_prepare(
             actor_id=principal.user_id if principal else "local",
         )
         return delivery_proposal_detail(session, tenant_id, proposal.id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+class ReviewedItemImportPrepare(ItemImportPreview):
+    request_id: str = Field(min_length=1, max_length=128)
+
+
+@router.post("/item-imports/reviewed/prepare")
+def post_reviewed_item_import(
+    tenant_id: str, body: ReviewedItemImportPrepare, session: DatabaseSession
+):
+    from reality.services.reviewed_item_imports import prepare_reviewed_item_import
+
+    try:
+        return prepare_reviewed_item_import(
+            session, tenant_id, body.config, request_id=body.request_id
+        )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/item-imports/reviewed/{batch_id}")
+def get_reviewed_item_import(
+    tenant_id: str,
+    batch_id: str,
+    session: DatabaseSession,
+    package_index: int = Query(default=0, ge=0, le=499),
+):
+    from reality.services.reviewed_item_imports import reviewed_item_file_detail
+
+    try:
+        return reviewed_item_file_detail(
+            session, tenant_id, batch_id, package_index=package_index
+        )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/intake-batches/{batch_id}/stop")
+def post_intake_batch_stop(
+    tenant_id: str, batch_id: str, request: Request, session: DatabaseSession
+):
+    from reality.services.intake_batches import stop_batch
+
+    try:
+        batch = stop_batch(
+            session, tenant_id, batch_id, principal=optional_request_principal(request)
+        )
+        return {"id": batch.id, "status": batch.status}
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

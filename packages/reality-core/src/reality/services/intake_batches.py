@@ -93,14 +93,48 @@ def _batch(session, tenant_id, batch_id, *, lock=False):
 def _manifest(batch):
     held = json.loads(batch.input)
     manifest = IntakeManifest.model_validate(held["manifest"])
-    if content_digest(manifest.model_dump(mode="json")) != held["digest"]:
+    if (
+        content_digest(manifest.model_dump(mode="json", exclude_none=True))
+        != held["digest"]
+    ):
         raise core.InvalidOperation(code="intake_review_invalid")
     if len({entry.proposal_id for entry in manifest.entries}) != len(manifest.entries):
         raise core.InvalidOperation(code="intake_review_invalid")
     return held, manifest
 
 
-def prepare_batch(session, tenant_id, entries, *, request_id, _commit=True):
+def _validate_file_selection(session, tenant_id, manifest):
+    selection = manifest.file_selection
+    if selection is None:
+        return
+    source = core._tenant_record_read(
+        session, SourceRecord, tenant_id, selection.source_record_id
+    )
+    if (
+        source.source_type != "item_csv_raw"
+        or source.source_artifact_id != selection.artifact_id
+    ):
+        raise core.InvalidOperation(code="intake_review_invalid")
+    numbers = [row.row for row in selection.excluded_rows]
+    for entry in manifest.entries:
+        review = review_intake(session, tenant_id, entry.proposal_id)
+        mapping = review["plan"]["mapping"]
+        if (
+            review["digest"] != entry.digest
+            or review["plan"]["profile"] != "item_csv.v1"
+            or mapping.get("parent_source_id") != source.id
+            or mapping.get("mapping") != selection.mapping
+            or mapping.get("default_unit") != selection.default_unit
+        ):
+            raise core.InvalidOperation(code="intake_review_invalid")
+        numbers.extend(mapping["row_numbers"])
+    if sorted(numbers) != list(range(2, selection.original_rows + 2)):
+        raise core.InvalidOperation(code="intake_review_invalid")
+
+
+def prepare_batch(
+    session, tenant_id, entries, *, request_id, _file_selection=None, _commit=True
+):
     """
     BUSINESS PURPOSE:
     Retain an exact selected group without accepting source meaning.
@@ -113,15 +147,17 @@ def prepare_batch(session, tenant_id, entries, *, request_id, _commit=True):
     if not isinstance(request_id, str) or not 1 <= len(request_id) <= 128:
         raise core.InvalidOperation(code="intake_review_invalid")
     try:
-        manifest = IntakeManifest(entries=entries, revision=1)
+        manifest = IntakeManifest(
+            entries=entries, revision=1, file_selection=_file_selection
+        )
     except ValidationError as error:
         raise core.InvalidOperation(code="intake_review_invalid") from error
     if len({entry.proposal_id for entry in manifest.entries}) != len(manifest.entries):
         raise core.InvalidOperation(code="intake_review_invalid")
     held = {
         "request_id": request_id,
-        "manifest": manifest.model_dump(mode="json"),
-        "digest": content_digest(manifest.model_dump(mode="json")),
+        "manifest": manifest.model_dump(mode="json", exclude_none=True),
+        "digest": content_digest(manifest.model_dump(mode="json", exclude_none=True)),
     }
     old = session.scalar(
         select(ChangeProposal).where(
@@ -141,6 +177,7 @@ def prepare_batch(session, tenant_id, entries, *, request_id, _commit=True):
             "executed",
         }:
             raise core.InvalidOperation(code="intake_review_stale")
+    _validate_file_selection(session, tenant_id, manifest)
     batch = ChangeProposal(
         id=core.uid("act"),
         tenant_id=tenant_id,
@@ -224,6 +261,7 @@ def approve_batch(
             raise core.InvalidOperation(code="intake_review_stale")
         if review["plan"]["finance_revision"] is not None:
             require_owner(session, tenant_id, principal)
+    _validate_file_selection(session, tenant_id, manifest)
     authorization = {
         "batch_id": batch.id,
         "manifest_revision": manifest.revision,
@@ -539,6 +577,11 @@ def review_batch(session, tenant_id, batch_id, *, cursor=0, limit=100):
         "digest": held["digest"],
         "manifest_revision": manifest.revision,
         "total": len(manifest.entries),
+        "file_selection": manifest.file_selection.model_dump(
+            mode="json", exclude_none=True
+        )
+        if manifest.file_selection
+        else None,
         "entries": entries,
         "has_more": cursor + limit < len(manifest.entries),
     }

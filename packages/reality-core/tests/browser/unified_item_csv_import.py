@@ -143,6 +143,21 @@ def test_real_unified_item_csv_import(postgres_database, tmp_path):
                     VITE_API_PROXY_TARGET=f"http://127.0.0.1:{api_port}",
                 ),
             ),
+            (
+                "worker",
+                [
+                    sys.executable,
+                    "-m",
+                    "reality.worker.cli",
+                    "work",
+                    "--tenant",
+                    tenant.id,
+                    "--poll-seconds",
+                    "1",
+                ],
+                ROOT / "packages/reality-core",
+                env,
+            ),
         ]:
             output = (artifacts / f"{name}.log").open("w")
             logs.append(output)
@@ -179,9 +194,9 @@ def test_real_unified_item_csv_import(postgres_database, tmp_path):
         result = json.loads((artifacts / "result.json").read_text())
         with factory() as session:
             from reality.db.core import Item, SourceRecord
-            from reality.services.delivery_actions import delivery_proposal_detail
+            from reality.services.reviewed_item_imports import reviewed_item_file_detail
 
-            detail = delivery_proposal_detail(session, tenant.id, result["proposal"])
+            detail = reviewed_item_file_detail(session, tenant.id, result["proposal"])
             assert detail["verification"] == "verified"
             receipt = detail["receipt"]
             assert len(receipt["item_ids"]) == 2

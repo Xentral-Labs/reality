@@ -27547,3 +27547,48 @@ Object.assign(dictionaries.es, { "All companies": "Gestionar todas las empresas"
 Object.assign(dictionaries.de, { "Logic section": "Abschnitt der Logik" });
 Object.assign(dictionaries.nl, { "Logic section": "Logicaonderdeel" });
 Object.assign(dictionaries.es, { "Logic section": "Sección de lógica" });
+
+Object.assign(dictionaries.de, {
+  "CSV must be at most 20 MiB.": "Die CSV-Datei darf höchstens 20 MiB groß sein.",
+  "New items only. Maximum 5,000 rows and 20 MiB, reviewed in packages of up to 500 rows. Existing items are never overwritten.":
+    "Nur neue Artikel. Maximal 5.000 Zeilen und 20 MiB, geprüft in Paketen mit bis zu 500 Zeilen. Bestehende Artikel werden niemals überschrieben.",
+  Package: "Paket",
+  "Excluded rows": "Ausgeschlossene Zeilen",
+  "Settled packages": "Abgeschlossene Pakete",
+  Applied: "Übernommen",
+  "Review required": "Prüfung erforderlich",
+  "Stop remaining packages": "Verbleibende Pakete stoppen",
+  Tracking: "Nachverfolgung",
+  None: "Keine",
+  Stocked: "Lagerartikel",
+});
+
+Object.assign(dictionaries.nl, {
+  "CSV must be at most 20 MiB.": "Het CSV-bestand mag maximaal 20 MiB zijn.",
+  "New items only. Maximum 5,000 rows and 20 MiB, reviewed in packages of up to 500 rows. Existing items are never overwritten.":
+    "Alleen nieuwe artikelen. Maximaal 5.000 rijen en 20 MiB, beoordeeld in pakketten van maximaal 500 rijen. Bestaande artikelen worden nooit overschreven.",
+  Package: "Pakket",
+  "Excluded rows": "Uitgesloten rijen",
+  "Settled packages": "Afgehandelde pakketten",
+  Applied: "Toegepast",
+  "Review required": "Beoordeling vereist",
+  "Stop remaining packages": "Resterende pakketten stoppen",
+  Tracking: "Volgen",
+  None: "Geen",
+  Stocked: "Voorraadartikel",
+});
+
+Object.assign(dictionaries.es, {
+  "CSV must be at most 20 MiB.": "El archivo CSV no puede superar 20 MiB.",
+  "New items only. Maximum 5,000 rows and 20 MiB, reviewed in packages of up to 500 rows. Existing items are never overwritten.":
+    "Solo artículos nuevos. Máximo 5.000 filas y 20 MiB, revisados en paquetes de hasta 500 filas. Los artículos existentes nunca se sobrescriben.",
+  Package: "Paquete",
+  "Excluded rows": "Filas excluidas",
+  "Settled packages": "Paquetes completados",
+  Applied: "Aplicado",
+  "Review required": "Revisión necesaria",
+  "Stop remaining packages": "Detener paquetes restantes",
+  Tracking: "Seguimiento",
+  None: "Ninguno",
+  Stocked: "Artículo de inventario",
+});
