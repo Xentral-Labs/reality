@@ -4,9 +4,9 @@
 
 ## Summary
 
-Mirror spec 308 for suppliers. A `supplier_item_number` table (migration `0134_supplier_item_number`) keeps per supplier one number per item with the supplier's name; statements are versions of one source stream per supplier and number. Manual line normalization (`core._normalize_manual_line_input`) resolves `supplier_item_number` for purchase orders, supplier invoices and supplier credit notes against the document's party, and the line payload keeps the stated number like `customer_item_number`.
+Mirror spec 308 for suppliers. A `supplier_item_number` table (migration `0137_supplier_item_number`) keeps per supplier one number per item with the supplier's name; statements are versions of one source stream per supplier and number. Manual line normalization (`core._normalize_manual_line_input`) resolves `supplier_item_number` for purchase orders, supplier invoices and supplier credit notes against the document's party, and the line payload keeps the stated number like `customer_item_number`.
 
-**Storage**: one new table, `supplier_item_number` (migration 0134). No new column on existing tables; the stated number lives in the line payload.
+**Storage**: one new table, `supplier_item_number` (migration 0137). No new column on existing tables; the stated number lives in the line payload.
 
 ## Constitution Check
 
