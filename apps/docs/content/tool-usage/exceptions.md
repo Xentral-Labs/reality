@@ -1622,6 +1622,6 @@ and when.
   `tests/test_external_stock.py::test_a_count_at_the_stated_time_clears_it`,
   `tests/test_external_stock.py::test_a_newer_statement_that_matches_clears_it`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)

@@ -6589,7 +6589,7 @@ external_stock [item_id] [location_id] [differing_only]
 **Wirkung:** Liest: `external_stock_statement`, `item`, `location`, `party`, `movement`,
 `movement_correction`, `source_record` · Schreibt: —
 
-**Siehe auch:** Agenten-Tool [`external_stock`](./commands#tool-external_stock)
+**Siehe auch:** Agent Tool [`external_stock`](./commands#tool-external_stock)
 
 #### `external_stock` — External stock {#tool-external_stock}
 
@@ -7204,7 +7204,7 @@ external_stock_state_propose [reporter_party_id] [note] lines
 **Wirkung:** Liest: `item`, `location`, `party`, `movement`, `movement_correction` · Schreibt:
 `external_stock_statement`, `source_record`, `business_event` · Erzeugt: `external_stock.stated`
 
-**Siehe auch:** Agenten-Tool
+**Siehe auch:** Agent Tool
 [`external_stock_state_propose`](./commands#tool-external_stock_state_propose), Event
 [`external_stock.stated`](./events#event-external_stock-stated)
 
