@@ -203,3 +203,6 @@ FR-039 reviewed and approved by user. Keep the existing business title/purpose, 
 
 ### Detail typography review
 FR-040 is presentation-only and preserves source routing and business semantics. Use scoped heading/body/provenance styles and a two-column section navigation on narrow screens. Verify Docs tests, build and browser rendering. Constitution check: no additional authority, persistence, schema or business rules. Analysis: no unresolved requirements or critical findings.
+
+### Technical section grouping
+FR-041 uses scoped section heading backgrounds, spacing and leading borders; execution values use muted regular type and related destinations use regular link styling. No semantic or service change. Constitution check PASS. Review: user identified the ambiguous hierarchy; no outstanding clarification. Analysis: requirement and verification map to T077 with no critical findings. Verify browser screenshot plus Docs tests/build.
