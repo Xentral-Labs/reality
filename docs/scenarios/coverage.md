@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07; spec 348 (2026-10-03) proved B12; spec 346 (2026-10-03) proved G10. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07; spec 348 (2026-10-03) proved B12; spec 346 (2026-10-03) proved G10; spec 347 (2026-10-03) proved R01. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 184 covered, 10 partial, 0 missing, 28 gap, 6 out.
+228 scenarios: 185 covered, 9 partial, 0 missing, 28 gap, 6 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -29,7 +29,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | O Master data and identity | 4 |  |  | 1 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 3 | 1 |  |  | 1 |
-| R Combined stress stories | 5 | 3 |  |  |  |
+| R Combined stress stories | 6 | 2 |  |  |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
 shipped_not_billed, returned_not_credited, billed_not_received, duplicate supplier invoice) and in
@@ -121,7 +121,7 @@ Found while writing them, deliberately not pinned by those tests:
   purchase supply assignment until someone reversed it by hand; since #205 it ends at read time,
   and spec 305 proves it in the R02 and G13 stories.
 
-The combined stories R01, R02, R05, R06, R07 and R08 can be written today as end-to-end
+The combined stories R02, R05, R06, R07 and R08 can be written today as end-to-end
 scenario tests from existing pieces. Each will show whether the pieces reconcile together.
 
 ## A. Order intake and order changes
@@ -433,7 +433,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| R01 | partial | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_cannot_be_released_anyway | The 80 % prepaid order is refused by shipment_dispatch and by movement_create (spec 294 fix); spec 275 FR-005 keeps it unshippable and no reviewed release exists. |
+| R01 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_is_released_by_an_owner | The 80 % prepaid order is refused until an owner releases it with a reason (spec 347); it ships in two parts, 5 of 6 reordered arrive on two dates, 1 is cancelled, 2 come back damaged and are scrapped, and a credit for 3 settles the open 20 and refunds 10. |
 | R02 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_customers_an_under_delivery_a_key_customer_and_a_cancellation | Two orders of 3 assigned to a purchase of 6 that delivers 4 and is reduced: the key customer is reserved 3 by stated quantities, the other 1; its cancellation ends its assignment and the key customer is no longer at risk (spec 305). |
 | R03 | partial | packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_a_drop_shipped_return_comes_to_us_and_both_sides_are_credited | Returned to us, credited, sent on to the supplier and credited by it; both sides net out. The wrong item itself cannot be named (D05) (spec 337). |
 | R04 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_line | 400 charges, 12 refunds, 3 chargebacks and fees in one reviewed settlement; every position is booked and the provider account is empty (spec 336). |

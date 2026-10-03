@@ -2423,3 +2423,15 @@ Exception class `purchase_order_unconfirmed`, derived at read time: an open purc
   - A confirmation as ordered, a receipt or a cancellation clears it; read as of before the confirmation it was still waiting.
   - Another company sees nothing; an overdue line is left to the overdue finding.
 - `packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged` (G10).
+
+## Releasing a partly prepaid order — Spec 347
+
+Table `prepayment_release`: a company owner's decision to ship a prepayment order before it is paid, covering the order's stated gross amount.
+
+- `packages/reality-core/tests/test_prepayment_release.py`:
+  - An owner releases a partly paid order with a reason and it ships; the unpaid rest stays open; the delivery case names the release.
+  - A member who is not an owner cannot release it.
+  - A release is refused without prepayment terms, for a paid order, without a reason, with extra fields, for a non-order document, and once one covers the order.
+  - A release covers only the amount it was given for; another company sees nothing.
+- `packages/reality-core/tests/test_prepayment_release_migration.py`: the table comes and goes, and recorded rows block a rollback.
+- `packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_is_released_by_an_owner`: the R01 combined story.

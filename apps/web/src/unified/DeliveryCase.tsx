@@ -4,13 +4,14 @@ import { ActionCard } from "./ActionCard";
 import type { DeliveryAction } from "./ActionLauncher";
 import { useState } from "react";
 import { deliveryApi } from "../api";
-import { formatQuantity, formatDateTime, t } from "../localization";
+import { formatMoney, formatQuantity, formatDateTime, t } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import { Inspector } from "./Inspector";
 import type { Selection } from "./routing";
 import { SupplyAssignmentCard } from "./SupplyAssignmentCard";
 import { CreditHoldRelease } from "./CreditHoldRelease";
+import { PrepaymentRelease } from "./PrepaymentRelease";
 
 export function DeliveryCase({
   tenant,
@@ -31,6 +32,7 @@ export function DeliveryCase({
   );
   const [action, setAction] = useState<DeliveryAction | null>(null);
   const [releasingCredit, setReleasingCredit] = useState(false);
+  const [releasingPrepayment, setReleasingPrepayment] = useState(false);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [cursor, setCursor] = useState("");
   const historyRead = useRead(() => deliveryApi.detail(tenant, id, cursor), [tenant, id, cursor]);
@@ -152,6 +154,11 @@ export function DeliveryCase({
                 {t("Release credit hold")}
               </button>
             )}
+            {owner && detail.document_id && detail.prepayment?.owner_release && (
+              <button className="br-btn" onClick={() => setReleasingPrepayment(true)}>
+                {t("Release prepayment")}
+              </button>
+            )}
             <button
               className="br-btn"
               onClick={() => window.dispatchEvent(new Event("reality:open-chat"))}
@@ -167,6 +174,34 @@ export function DeliveryCase({
               settled={refresh}
             />
           )}
+          {releasingPrepayment && detail.document_id && (
+            <PrepaymentRelease
+              tenant={tenant}
+              order={detail.document_id}
+              close={() => setReleasingPrepayment(false)}
+              settled={refresh}
+            />
+          )}
+          {detail.prepayment &&
+            (detail.prepayment.blockers.length > 0 || detail.prepayment.release_id) && (
+              <div
+                data-prepayment-gate
+                className="mt-5 rounded-lg bg-caution-bg p-4 text-caution-text"
+              >
+                <p className="font-semibold">{t("Prepayment")}</p>
+                <p className="mt-1 text-sm">
+                  {t("Prepayment required")}{" "}
+                  {formatMoney(detail.prepayment.required, detail.prepayment.currency)} ·{" "}
+                  {t("Received")}{" "}
+                  {formatMoney(detail.prepayment.received, detail.prepayment.currency)}
+                </p>
+                {detail.prepayment.release_id && (
+                  <p className="mt-2 text-sm">
+                    {t("An owner released the prepayment; the order ships before it is paid.")}
+                  </p>
+                )}
+              </div>
+            )}
           {!!detail.blockers.length && (
             <div className="mt-5 rounded-lg bg-caution-bg p-4 text-caution-text">
               {detail.blockers.map((row) => (

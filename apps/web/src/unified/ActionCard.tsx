@@ -1,4 +1,5 @@
 import { CreditHoldRelease } from "./CreditHoldRelease";
+import { PrepaymentRelease } from "./PrepaymentRelease";
 import { CustomerHoldCard } from "./CustomerHoldCard";
 import { OpeningStockCard } from "./OpeningStockCard";
 import { CreditCard } from "./CreditCard";
@@ -985,6 +986,7 @@ export function ActionCard(
   )
     return <ShipmentActions {...props} tool={activeTool} />;
   if (activeTool === "credit_hold_release") return <CreditHoldRelease {...props} />;
+  if (activeTool === "prepayment_release") return <PrepaymentRelease {...props} />;
   if (activeTool === "party_delivery_hold" || activeTool === "party_delivery_hold_release")
     return <CustomerHoldCard {...props} tool={activeTool} />;
   if (activeTool === "commitment_revise" || activeTool === "commitment_cancel")

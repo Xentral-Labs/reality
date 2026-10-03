@@ -145,6 +145,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`record_sales_invoice`](#command-record_sales_invoice)                           | Record sales invoice                         | Finance                    | `sales_invoice_record_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`record_supplier_invoice`](#command-record_supplier_invoice)                     | Record supplier invoice                      | Finance                    | `supplier_invoice_record_propose`                                                                                                                                                            | Web · API · MCP · Chat                  |
 | [`release_credit_holds`](#command-release_credit_holds)                           | Release a credit hold                        | Finance                    | `credit_hold_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
+| [`release_prepayment`](#command-release_prepayment)                               | Release a prepayment                         | Finance                    | `prepayment_release_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`reverse_ledger_posting_group`](#command-reverse_ledger_posting_group)           | Reverse ledger posting group                 | Finance                    | `ledger_reversal_propose`                                                                                                                                                                    | CLI · Web · API · Chat · MCP            |
 | [`set_default_account`](#command-set_default_account)                             | Set operational account default              | Finance                    | `finance_set_default_account_propose`                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`set_source_mapping`](#command-set_source_mapping)                               | Set source code mapping                      | Finance                    | `finance_source_mapping_propose`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -4092,6 +4093,48 @@ credit_hold_release_propose document_id reason
 | `reason`      | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change. | —       |
 
 **See also:** Command [`release_credit_holds`](./commands#command-release_credit_holds)
+
+### `release_prepayment` — Release a prepayment {#command-release_prepayment}
+
+Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner;
+the unpaid rest stays an open receivable and a raised order asks again.
+
+**Synopsis**
+
+```text
+prepayment_release_propose document_id reason
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `document`, `commitment`, `payment_term`, `ledger_entry`,
+`settlement_allocation`, `document_line`, `prepayment_release` · Writes: `prepayment_release`,
+`business_event` · Emits: `order.prepayment_released`
+
+**See also:** Agent Tool [`prepayment_release_propose`](./commands#tool-prepayment_release_propose),
+event [`order.prepayment_released`](./events#event-order-prepayment_released)
+
+#### `prepayment_release_propose` — Ship a prepayment order before it is paid {#tool-prepayment_release_propose}
+
+Prepare this business mutation without changing state. Ship a prepayment order before it is paid.
+Human confirmation is required.
+
+**Synopsis**
+
+```text
+prepayment_release_propose document_id reason
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                                             | Default |
+| ------------- | -------- | -------- | ----------------------------------------------------------------------- | ------- |
+| `document_id` | `string` | yes      | Opaque identity of the evidence document to inspect or correct.         | —       |
+| `reason`      | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change. | —       |
+
+**See also:** Command [`release_prepayment`](./commands#command-release_prepayment)
 
 ### `reverse_ledger_posting_group` — Reverse ledger posting group {#command-reverse_ledger_posting_group}
 

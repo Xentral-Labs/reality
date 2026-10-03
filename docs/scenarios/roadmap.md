@@ -48,7 +48,6 @@ J03, I11), because the same capability closes it.
 | Journey | Title | Why |
 |---|---|---|
 | M09 | Annual rebate at year end | deliberately outside Reality |
-| R01 | Combined story with a released prepayment | by design (spec 275 FR-005) |
 | J09 | Consignment from the supplier | rare |
 | P06 | Two systems contradict each other | rare, general mechanism |
 | Q05 | Company time zone | rare |

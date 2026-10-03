@@ -3089,6 +3089,41 @@ def credit_hold_release_propose(
     con.print_json(data=result, default=str)
 
 
+@app.command("prepayment-release-propose")
+def prepayment_release_propose(
+    arguments: str,
+    request_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare shipping a prepayment order before it is paid; an owner confirms."""
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = prepare_delivery_action(
+                session,
+                tenant.id,
+                "prepayment_release",
+                values,
+                request_id=request_id,
+                actor_id="cli",
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
 @app.command("down-payment-invoice-record-propose")
 def down_payment_invoice_record_propose(
     arguments: str,

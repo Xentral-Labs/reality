@@ -25390,6 +25390,29 @@ Object.assign(dictionaries.de, {
     "Ein Artikel und Lagerort sind für denselben Zeitpunkt doppelt angegeben.",
   "The business partner who reported the stock was not found.":
     "Der Geschäftspartner, der den Bestand gemeldet hat, wurde nicht gefunden.",
+  "Release prepayment": "Vorkasse freigeben",
+  Prepayment: "Vorkasse",
+  Received: "Erhalten",
+  "Why does the order ship before it is paid?": "Warum wird der Auftrag vor der Zahlung geliefert?",
+  "The prepayment is released; the order can ship. The unpaid rest stays open.":
+    "Die Vorkasse ist freigegeben; der Auftrag kann geliefert werden. Der unbezahlte Rest bleibt offen.",
+  "An owner released the prepayment; the order ships before it is paid.":
+    "Ein Inhaber hat die Vorkasse freigegeben; der Auftrag wird vor der Zahlung geliefert.",
+  "A prepayment is released for a sales order.":
+    "Eine Vorkasse wird für einen Kundenauftrag freigegeben.",
+  "This order has nothing left to ship.": "Für diesen Auftrag ist nichts mehr zu liefern.",
+  "This order's payment terms require no prepayment.":
+    "Die Zahlungsbedingungen dieses Auftrags verlangen keine Vorkasse.",
+  "An invoice for this order also bills other orders, so what was paid for it is unclear; settle that first.":
+    "Eine Rechnung zu diesem Auftrag berechnet auch andere Aufträge, daher ist unklar, was für ihn bezahlt wurde; klären Sie das zuerst.",
+  "This order is paid, or its prepayment is already released for its amount.":
+    "Dieser Auftrag ist bezahlt, oder seine Vorkasse ist für seinen Betrag bereits freigegeben.",
+  "State why the order ships before it is paid.":
+    "Geben Sie an, warum der Auftrag vor der Zahlung geliefert wird.",
+  "A prepayment release names the order and a reason, nothing else.":
+    "Eine Vorkasse-Freigabe nennt den Auftrag und einen Grund, sonst nichts.",
+  "A prepayment release for this order is still being settled.":
+    "Eine Vorkasse-Freigabe für diesen Auftrag wird noch abgeschlossen.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26142,6 +26165,29 @@ Object.assign(dictionaries.nl, {
     "Een artikel en locatie zijn twee keer voor hetzelfde tijdstip opgegeven.",
   "The business partner who reported the stock was not found.":
     "De zakenpartner die de voorraad meldde, is niet gevonden.",
+  "Release prepayment": "Vooruitbetaling vrijgeven",
+  Prepayment: "Vooruitbetaling",
+  Received: "Ontvangen",
+  "Why does the order ship before it is paid?": "Waarom wordt de order vóór betaling geleverd?",
+  "The prepayment is released; the order can ship. The unpaid rest stays open.":
+    "De vooruitbetaling is vrijgegeven; de order kan worden geleverd. Het onbetaalde restant blijft open.",
+  "An owner released the prepayment; the order ships before it is paid.":
+    "Een eigenaar heeft de vooruitbetaling vrijgegeven; de order wordt vóór betaling geleverd.",
+  "A prepayment is released for a sales order.":
+    "Een vooruitbetaling wordt vrijgegeven voor een verkooporder.",
+  "This order has nothing left to ship.": "Voor deze order hoeft niets meer te worden geleverd.",
+  "This order's payment terms require no prepayment.":
+    "De betalingsvoorwaarden van deze order vereisen geen vooruitbetaling.",
+  "An invoice for this order also bills other orders, so what was paid for it is unclear; settle that first.":
+    "Een factuur voor deze order factureert ook andere orders, dus wat ervoor is betaald is onduidelijk; regel dat eerst.",
+  "This order is paid, or its prepayment is already released for its amount.":
+    "Deze order is betaald, of de vooruitbetaling is al vrijgegeven voor het bedrag.",
+  "State why the order ships before it is paid.":
+    "Geef aan waarom de order vóór betaling wordt geleverd.",
+  "A prepayment release names the order and a reason, nothing else.":
+    "Een vrijgave van vooruitbetaling noemt de order en een reden, verder niets.",
+  "A prepayment release for this order is still being settled.":
+    "Een vrijgave van vooruitbetaling voor deze order wordt nog afgehandeld.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26892,6 +26938,28 @@ Object.assign(dictionaries.es, {
     "Un artículo y una ubicación se indican dos veces para el mismo momento.",
   "The business partner who reported the stock was not found.":
     "No se encontró el socio comercial que informó el stock.",
+  "Release prepayment": "Liberar el prepago",
+  Prepayment: "Prepago",
+  Received: "Recibido",
+  "Why does the order ship before it is paid?": "¿Por qué se envía el pedido antes de pagarse?",
+  "The prepayment is released; the order can ship. The unpaid rest stays open.":
+    "El prepago está liberado; el pedido puede enviarse. El resto impagado sigue abierto.",
+  "An owner released the prepayment; the order ships before it is paid.":
+    "Un propietario liberó el prepago; el pedido se envía antes de pagarse.",
+  "A prepayment is released for a sales order.": "Un prepago se libera para un pedido de venta.",
+  "This order has nothing left to ship.": "Este pedido no tiene nada pendiente de envío.",
+  "This order's payment terms require no prepayment.":
+    "Las condiciones de pago de este pedido no exigen prepago.",
+  "An invoice for this order also bills other orders, so what was paid for it is unclear; settle that first.":
+    "Una factura de este pedido también factura otros pedidos, por lo que no está claro qué se pagó por él; resuélvalo primero.",
+  "This order is paid, or its prepayment is already released for its amount.":
+    "Este pedido está pagado, o su prepago ya está liberado por su importe.",
+  "State why the order ships before it is paid.":
+    "Indique por qué el pedido se envía antes de pagarse.",
+  "A prepayment release names the order and a reason, nothing else.":
+    "Una liberación de prepago indica el pedido y un motivo, nada más.",
+  "A prepayment release for this order is still being settled.":
+    "Una liberación de prepago de este pedido aún se está resolviendo.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

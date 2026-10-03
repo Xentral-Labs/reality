@@ -319,6 +319,30 @@
     "credit_hold_release_unresolved": {
       "message": "A release of this order's credit hold is still being settled."
     },
+    "prepayment_release_order_not_found": {
+      "message": "A prepayment is released for a sales order."
+    },
+    "prepayment_release_nothing_open": {
+      "message": "This order has nothing left to ship."
+    },
+    "prepayment_release_not_required": {
+      "message": "This order's payment terms require no prepayment."
+    },
+    "prepayment_release_attribution_unclear": {
+      "message": "An invoice for this order also bills other orders, so what was paid for it is unclear; settle that first."
+    },
+    "prepayment_release_nothing_to_release": {
+      "message": "This order is paid, or its prepayment is already released for its amount."
+    },
+    "prepayment_release_reason_missing": {
+      "message": "State why the order ships before it is paid."
+    },
+    "prepayment_release_fields_invalid": {
+      "message": "A prepayment release names the order and a reason, nothing else."
+    },
+    "prepayment_release_unresolved": {
+      "message": "A prepayment release for this order is still being settled."
+    },
     "credit_invoice_not_posted": {
       "message": "Credit requires a posted invoice without reversed posting groups."
     },

@@ -515,6 +515,10 @@ def delivery_case(
         if commitment.item_id and commitment.location_id
         else Decimal(0)
     )
+    # Spec 347: the order's prepayment gate, and whether an owner released it.
+    from reality.services.prepayment_release_actions import _prepayment_view
+
+    detail["prepayment"] = _prepayment_view(session, tenant_id, commitment)
     # Spec 308: the customer's own number the line was ordered by.
     from reality.services.customer_item_numbers import line_customer_item
 
