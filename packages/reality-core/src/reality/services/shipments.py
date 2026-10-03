@@ -72,6 +72,7 @@ def record_shipment_notice(
     delivery_mode: str | None = None,
     collected_by: str | None = None,
     commit: bool = True,
+    _planned: dict[str, Any] | None = None,
 ) -> tuple[Shipment, ShipmentPackage, ShipmentEvent]:
     try:
         validate_shipment_direction(purpose, direction)
@@ -145,6 +146,9 @@ def record_shipment_notice(
             **({"delivery_mode": delivery_mode} if delivery_mode else {}),
             # Spec 312: who collected a pickup, as stated; nothing calculates on it.
             **({"collected_by": collected_by} if collected_by else {}),
+            # Spec 334: the planned delivery it executed, with the recipient,
+            # address and slot it went with, as stated then.
+            **(_planned or {}),
         },
         source_record_id=source_record_id,
         action_id=action_id,
@@ -360,9 +364,25 @@ def record_packaged_execution(
     action_id: str | None = None,
     delivery_mode: str | None = None,
     collected_by: str | None = None,
+    outbound_delivery_id: str | None = None,
     commit: bool = True,
 ) -> dict[str, Any]:
     _check_stock_at_moved_time(session, tenant_id, movements, occurred_at)
+    planned_delivery = None
+    if outbound_delivery_id:
+        from reality.services.outbound_deliveries import require_matches_delivery
+
+        # Spec 334: a dispatch of a planned delivery ships exactly what it carries.
+        if direction != "outbound" or purpose != "customer_delivery":
+            raise InvalidOperation(code="outbound_delivery_dispatch_mismatch")
+        planned_delivery = require_matches_delivery(
+            session,
+            tenant_id,
+            outbound_delivery_id,
+            counterparty_id,
+            movements,
+            lock=True,
+        )
     if purpose == "customer_delivery":
         from reality.services.delivery_rules import require_delivery_rule
         from reality.services.fulfillment_readiness import fulfillment_readiness
@@ -418,7 +438,12 @@ def record_packaged_execution(
         delivery_mode=delivery_mode,
         collected_by=collected_by,
         commit=False,
+        _planned=(
+            _planned_details(session, planned_delivery) if planned_delivery else None
+        ),
     )
+    if planned_delivery is not None:
+        planned_delivery.shipment_id = shipment.id
     expected_type = {
         "customer_delivery": "shipment",
         "supplier_delivery": "receipt",
@@ -479,6 +504,12 @@ def record_packaged_execution(
         "notice_event_id": notice.id,
         "movement_ids": [movement.id for movement in created],
     }
+
+
+def _planned_details(session: Session, delivery) -> dict[str, Any]:
+    from reality.services.outbound_deliveries import dispatch_details
+
+    return dispatch_details(session, delivery)
 
 
 def _details(
@@ -667,6 +698,13 @@ def _details(
             or ("carrier" if any(p.carrier for p in shipment_packages) else None),
             "collected_by": notices.get(shipment.id, {}).get("collected_by"),
             "delivery_failure": failures.get(shipment.id),
+            # Spec 334: the planned delivery, recipient, address and slot it went with.
+            "outbound_delivery_id": notices.get(shipment.id, {}).get(
+                "outbound_delivery_id"
+            ),
+            "recipient_party_id": notices.get(shipment.id, {}).get("recipient_party_id"),
+            "address": notices.get(shipment.id, {}).get("address") or {},
+            "slot": notices.get(shipment.id, {}).get("slot"),
             **timing(shipment_events),
             "packages": [
                 {
