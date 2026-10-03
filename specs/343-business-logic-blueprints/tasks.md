@@ -232,3 +232,7 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T071 [FR-037] Preserve original code rows with compact typography and contained horizontal scrolling; verify Docs tests/build and browser dimensions, then update PR.
 
 - [x] T072 [FR-038] Add lazy Python syntax colors for inspected source functions with safe escaped token spans, test exact text/color/fallback in browser, verify Docs tests/build and update PR.
+
+- [x] T075 [FR-039] Test and implement the four-section Docs inspector with lazy evidence, local reuse and correct invalidation; place catalog reference in Technical details, preserve unsupported entries, and verify SSR/browser/build checks before updating PR.
+
+- [x] T076 [FR-040] Apply scoped detail typography and narrow-screen section navigation; verify Docs tests, build and browser layout.

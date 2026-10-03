@@ -3,7 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import { parse, compileScript } from "@vue/compiler-sfc";
 import { transform } from "esbuild";
-import { createSSRApp } from "vue";
+import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 const raw = fs.readFileSync(
   new URL("../.vitepress/theme/components/LiveBusinessBlueprint.vue", import.meta.url),
@@ -18,7 +18,7 @@ async function compileVue(source) {
     code.replace(/from ["']vue["']/gu, `from ${JSON.stringify(import.meta.resolve("vue"))}`),
   );
 }
-async function component(initial = null, language = "en") {
+async function component(initial = null, language = "en", section = initial ? "rules" : "") {
   const shared = fs.readFileSync(
     new URL("../../shared/businessBlueprint.ts", import.meta.url),
     "utf8",
@@ -39,6 +39,7 @@ async function component(initial = null, language = "en") {
     ),
   );
   let source = rewriteShared(raw)
+    .replace('const activeTab = ref("");', `const activeTab = ref(${JSON.stringify(section)});`)
     .replace(
       'import { useData } from "vitepress";',
       `const useData = () => ({ theme: ref({businessLogicUrl:'https://running.example'}),lang:ref(${JSON.stringify(language)}) });`,
@@ -62,8 +63,11 @@ test("docs read configured live target on demand with no tenant credentials or b
   assert.ok(!html.includes("https://running.example"));
   assert.ok(!html.includes("Reads business logic from the currently running system."));
   assert.ok(!html.includes("How does this function work?"));
-  assert.ok(html.includes("Explain steps and rules"));
-  assert.ok(html.includes("View code"));
+  for (const label of ["Steps &amp; rules", "Source code", "Test cases", "Technical details"])
+    assert.ok(html.includes(label));
+  assert.ok(!html.includes("Explain steps and rules →"));
+  assert.ok(!html.includes("View code →"));
+  assert.ok(!html.includes("Detailed explanation and test cases"));
   assert.ok(raw.includes('cache: "no-store"'));
   assert.ok(raw.includes('credentials: "omit"'));
   assert.ok(!raw.includes("v-html"));
@@ -143,8 +147,8 @@ test("business reading view uses live server interpretation and collapses techni
     createSSRApp(await component(data, "de"), { kind: "command", entryKey: "future_operation" }),
   );
   assert.ok(html.includes("Neuer Betrag = Menge × aktueller Preis."));
-  assert.ok(html.includes("Aus dem aktuellen Code"));
-  assert.ok(html.includes("Erklärung aktualisieren"));
+  assert.ok(html.includes("Ablauf &amp; Regeln"));
+  assert.ok(html.includes("Aktualisieren"));
   assert.ok(!html.includes("Wie funktioniert diese Funktion?"));
   assert.ok(html.includes("KI-Interpretation"));
   assert.ok(html.includes("data-business-reading-view"));
@@ -348,4 +352,23 @@ test("source tab opens main function without a selector and keeps helper code co
       "Reverse callers must not invent calls from the selected builder",
     );
   }
+});
+
+test("technical reference is contained in its section and remains available without live evidence", async () => {
+  async function render(kind, section) {
+    const Inspector = await component(null, "en", section);
+    return renderToString(
+      createSSRApp({
+        render: () =>
+          h(
+            Inspector,
+            { kind, entryKey: "example" },
+            { reference: () => h("p", { "data-catalog-reference": "" }, "Catalog reference") },
+          ),
+      }),
+    );
+  }
+  assert.ok(!(await render("view", "")).includes("Catalog reference"));
+  assert.ok((await render("view", "technical")).includes("Catalog reference"));
+  assert.ok((await render("event", "")).includes("Catalog reference"));
 });

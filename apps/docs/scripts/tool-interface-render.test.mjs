@@ -18,9 +18,10 @@ const source = fs
 const props = defineProps<{ testLocale: string; testModel: Model; testSelection: string; testTab: string; testResource: string; testQuery: string }>();
 `,
   )
+  .replace(/import (DataModelExplorer|AnalyticsModelExplorer) from .*;/gu, "const $1 = {};")
   .replace(
-    /import (DataModelExplorer|AnalyticsModelExplorer|LiveBusinessBlueprint) from .*;/gu,
-    "const $1 = {};",
+    /import LiveBusinessBlueprint from .*;/u,
+    "const LiveBusinessBlueprint = { inheritAttrs: false, setup(_props, { slots }) { return () => slots.reference?.(); } };",
   )
   .replace("const { lang } = useData();", "const lang = computed(() => props.testLocale);")
   .replace("shallowRef<Model | null>(null)", "shallowRef<Model | null>(props.testModel)")
