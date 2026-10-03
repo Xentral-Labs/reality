@@ -661,7 +661,7 @@ def test_unstated_source_amount_migration_roundtrip_and_safe_refusal(
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
     config.set_main_option("sqlalchemy.url", postgres_database)
-    command.upgrade(config, "head")
+    command.upgrade(config, "0139_unstated_source_amounts")
     command.downgrade(config, "0138_company_time_zone")
     engine = create_engine(postgres_database)
     try:
@@ -670,7 +670,7 @@ def test_unstated_source_amount_migration_roundtrip_and_safe_refusal(
             for c in inspect(engine).get_columns("document_line")
             if c["name"] == "gross_amount"
         )["nullable"]
-        command.upgrade(config, "head")
+        command.upgrade(config, "0139_unstated_source_amounts")
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration proof")
             party = core.create_party(session, tenant.id, "Customer", "customer")
