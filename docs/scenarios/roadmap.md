@@ -79,3 +79,4 @@ The owner chose drop shipping, receipt deviations and duplicate business partner
 | Rank | Tier | Specification | Journeys |
 |---|---|---|---|
 | 24 | 3 | [337 Drop Shipping](../../specs/337-drop-shipping/spec.md) | D10, D11, G15 (implemented; supported), R03 (partial) |
+| 26 | 3 | [339 Merging Duplicate Business Partners](../../specs/339-party-merge/spec.md) | L10, O02 (implemented; supported) |

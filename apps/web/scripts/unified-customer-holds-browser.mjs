@@ -127,6 +127,7 @@ await page.route("**/api/**", async (route) => {
           : pager,
     });
   }
+  if (p.endsWith("/party-merges")) return reply({ rows: [] });
   if (p.includes("/master-data/customer/")) return reply(party);
   if (p.includes("/customer-holds/")) return reply(context());
   if (p.endsWith("/delivery-actions/prepare")) {

@@ -3162,6 +3162,31 @@ MCP_TOOL_CATALOG += (
         ),
         _propose("kit_assemble"),
     ),
+    MCPToolDefinition(
+        "party_merges",
+        "Business partner merges",
+        "Read the business partner merges of the company, or those one partner took part in (party_id): the duplicate, the survivor it was merged into, the reason and when. A survivor's detail, balances and credit exposure include the history of every partner merged into it.",
+        "read",
+        "Master data",
+        _object_schema({"party_id": OPTIONAL_STRING}),
+        _read("party_merges"),
+    ),
+    MCPToolDefinition(
+        "party_merge_propose",
+        "Merge duplicate business partner",
+        "Prepare merging a duplicate business partner (duplicate_party_id) into the one that survives (surviving_party_id), with a reason, for confirmation. Nothing stated is rewritten: the duplicate's documents, promises and ledger entries keep naming it and read under the survivor; the duplicate becomes inactive, and new shop orders and imports naming it land on the survivor. The survivor must be active and hold every role of the duplicate; merged partners are never merged again; the company's own partner and a partner with an open delivery hold are refused. A person confirms.",
+        "propose",
+        "Master data",
+        _object_schema(
+            {
+                "duplicate_party_id": STRING,
+                "surviving_party_id": STRING,
+                "reason": STRING,
+            },
+            required=("duplicate_party_id", "surviving_party_id", "reason"),
+        ),
+        _propose("party_merge"),
+    ),
 )
 
 MCP_TOOL_CATALOG += (

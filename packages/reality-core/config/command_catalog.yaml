@@ -255,6 +255,8 @@ parameter_descriptions:
   blocked_quantity: Part of a receipt, in the stock unit, held back where it lands (spec 304).
   block_reason: Why the blocked part of a receipt is held back.
   kit_item_id: Opaque same-tenant identity of the stocked item that is the kit (spec 333).
+  duplicate_party_id: Opaque same-tenant identity of the business partner that is a duplicate and is merged (spec 339).
+  surviving_party_id: Opaque same-tenant identity of the business partner the duplicate is merged into; it answers for both histories (spec 339).
   components: The kit's components, each an item, how many one kit takes in that item's stock unit, and optionally its share of the kit's price; shares are stated for all or none and add up to exactly 1.
   share: A component's share of the kit's price, between 0 and 1, as stated; the bundle split divides a kit line's stated amounts by it.
   reorder_point: Stock level, in the item's stock unit, at or below which available plus incoming stock at the location is reported (spec 302).
@@ -1247,6 +1249,22 @@ commands:
     reads: [document_line, item, kit_component]
     writes: []
     effect: Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line.
+  - name: Merge a duplicate business partner
+    service: merge_party
+    related_services: [review_party_merge, validate_party_merge]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, party_role, party_hold, party_merge, document, commitment, ledger_entry]
+    writes: [party_merge, party, source_record, business_event]
+    effect: States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive.
+  - name: Read business partner merges
+    service: party_merges
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party_merge, party]
+    writes: []
+    effect: Lists the business partner merges, or those one partner took part in, with the reason and when.
   - name: Read the three-way match of a purchase order
     service: purchase_match
     mode: query
@@ -5413,6 +5431,24 @@ capability_guidance:
     unknown_when: [Components are held somewhere no movement records.]
     next_steps: [Assemble the kits with kit_assemble_propose before the kit order ships; a person confirms.]
     examples: {use: [{scenario: Check how many bike kits the warehouse can pack today., reason: The read gives the buildable count and the limiting part.}], do_not_use: [{scenario: Find the stock of a single wheel., reason: Read the item's stock instead.}]}
+  party_merges:
+    kind: read
+    application_tool: party_merges
+    purpose: Show which business partners were merged as duplicates and into which survivor.
+    use_when: [Someone asks whether two business partners are the same, where a guest customer's history went, or why a partner is inactive.]
+    do_not_use_when: [Someone asks for a partner's balance or orders; read the partner's detail or balances, which already include merged partners.]
+    required_context: [tenant, optionally party_id]
+    data_basis: [party_merge, party]
+    limitations: [A merge is not undone; the duplicate's records keep naming it.]
+    freshness: Read at request time.
+    empty_result: No business partner was merged.
+    refusal_behavior: Only the company's own partners are read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which partner was merged into which survivor, why and when.], does_not_prove: [That the two partners are really the same; a person stated it.]}
+    unknown_when: [Duplicates nobody merged yet.]
+    next_steps: [Merge a further duplicate with party_merge_propose; a person confirms.]
+    examples: {use: [{scenario: Find out why a shop guest customer is inactive., reason: The read names the account it was merged into.}], do_not_use: [{scenario: Find what a customer owes., reason: Read the balances; they include merged partners.}]}
   kit_split:
     kind: read
     application_tool: kit_split
@@ -5844,6 +5880,8 @@ agent_command_coverage:
   assemble_kit: {classification: eligible, tools: [kit_assemble_propose]}
   kits: {classification: eligible, tools: [kits]}
   kit_split: {classification: eligible, tools: [kit_split]}
+  merge_party: {classification: eligible, tools: [party_merge_propose]}
+  party_merges: {classification: eligible, tools: [party_merges]}
   set_customer_item_number: {classification: eligible, tools: [customer_item_number_set_propose]}
   remove_customer_item_number: {classification: eligible, tools: [customer_item_number_remove_propose]}
   customer_item_numbers: {classification: eligible, tools: [customer_item_numbers]}

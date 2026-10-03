@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:74aacafdbb239d0cd80464c2040b9915bc09290f14f481f5457bc7edc8a23ef9",
+  "knowledge_version": "advisor-v1:sha256:e0dd004afaa818dcd88d363c43a40bccd0394da345e46892b9dac0925f12cfb7",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -210,7 +210,12 @@
         "evidence_journey_l11",
         "evidence_journey_l12"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "party_merges",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_finance_tax_and_currency",
@@ -342,7 +347,12 @@
         "evidence_journey_o05",
         "evidence_journey_o06"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "party_merges",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_order_intake_and_order_changes",
@@ -770,11 +780,15 @@
         "supplier",
         "debtor",
         "creditor",
+        "duplicate",
+        "merge",
         "Kunde",
         "Lieferant",
         "Debitor",
         "Kreditor",
-        "Adresse"
+        "Adresse",
+        "Dublette",
+        "Zusammenführen"
       ],
       "evidence_ids": [
         "evidence_command_propose_cost_review",
@@ -795,6 +809,8 @@
         "evidence_command_set_supplier_item_terms",
         "evidence_command_remove_supplier_item_terms",
         "evidence_command_supplier_item_terms",
+        "evidence_command_merge_party",
+        "evidence_command_party_merges",
         "evidence_command_set_customer_item_number",
         "evidence_command_remove_customer_item_number",
         "evidence_command_customer_item_numbers",
@@ -819,8 +835,7 @@
         "evidence_command_import_opening",
         "evidence_command_record_shipment_notice",
         "evidence_command_record_packaged_execution",
-        "evidence_command_record_delivery_failure",
-        "evidence_command_record_drop_shipment"
+        "evidence_command_record_delivery_failure"
       ],
       "tools": [
         {
@@ -893,6 +908,14 @@
         },
         {
           "name": "supplier_item_terms",
+          "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
+        },
+        {
+          "name": "party_merges",
           "mode": "query"
         },
         {
@@ -994,10 +1017,6 @@
         {
           "name": "record_delivery_failure",
           "mode": "mutation"
-        },
-        {
-          "name": "record_drop_shipment",
-          "mode": "mutation"
         }
       ]
     },
@@ -1062,7 +1081,6 @@
         "evidence_command_record_free_supplier_invoice",
         "evidence_command_record_packaged_execution",
         "evidence_command_assign_supply",
-        "evidence_command_record_drop_shipment",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -1232,10 +1250,6 @@
         },
         {
           "name": "assign_supply",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_drop_shipment",
           "mode": "mutation"
         },
         {
@@ -1508,6 +1522,7 @@
         "evidence_command_available_to_promise",
         "evidence_command_assemble_kit",
         "evidence_command_kits",
+        "evidence_command_merge_party",
         "evidence_command_purchase_match",
         "evidence_command_plan_outbound_delivery",
         "evidence_command_revise_outbound_delivery",
@@ -1534,7 +1549,6 @@
         "evidence_command_assign_supply",
         "evidence_command_record_customer_exchange",
         "evidence_command_record_delivery_failure",
-        "evidence_command_record_drop_shipment",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -1613,6 +1627,10 @@
         {
           "name": "kits",
           "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
         },
         {
           "name": "purchase_match",
@@ -1719,10 +1737,6 @@
           "mode": "mutation"
         },
         {
-          "name": "record_drop_shipment",
-          "mode": "mutation"
-        },
-        {
           "name": "assign_line_item",
           "mode": "mutation"
         }
@@ -1752,11 +1766,7 @@
         "Tracking",
         "Unzustellbar",
         "Annahmeverweigerung",
-        "Paketverlust",
-        "drop shipping",
-        "drop shipment",
-        "Streckengeschäft",
-        "Direktlieferung"
+        "Paketverlust"
       ],
       "evidence_ids": [
         "evidence_command_propose_cost_review",
@@ -1798,7 +1808,6 @@
         "evidence_command_supersede_shipment_event",
         "evidence_command_record_customer_exchange",
         "evidence_command_record_delivery_failure",
-        "evidence_command_record_drop_shipment",
         "evidence_command_record_return_disposition"
       ],
       "tools": [
@@ -1956,10 +1965,6 @@
         },
         {
           "name": "record_delivery_failure",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_drop_shipment",
           "mode": "mutation"
         },
         {
@@ -2402,6 +2407,7 @@
         "evidence_command_release_credit_holds",
         "evidence_command_set_company_currency",
         "evidence_command_company_currency_state",
+        "evidence_command_merge_party",
         "evidence_command_credit_exposure",
         "evidence_command_record_down_payment_invoice",
         "evidence_command_post_customer_payment",
@@ -2590,6 +2596,10 @@
         {
           "name": "company_currency_state",
           "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
         },
         {
           "name": "credit_exposure",
@@ -2941,6 +2951,7 @@
         "evidence_command_hold_document_commitments",
         "evidence_command_release_credit_holds",
         "evidence_command_kit_split",
+        "evidence_command_merge_party",
         "evidence_command_purchase_match",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
@@ -2982,7 +2993,6 @@
         "evidence_command_allocate_supplier_credit_note",
         "evidence_command_post_supplier_refund",
         "evidence_command_post_supplier_payment",
-        "evidence_command_adjustment_context",
         "evidence_command_accept_adjustment",
         "evidence_command_apply_settlement",
         "evidence_command_import_opening",
@@ -3121,6 +3131,10 @@
         {
           "name": "kit_split",
           "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
         },
         {
           "name": "purchase_match",
@@ -3285,10 +3299,6 @@
         {
           "name": "post_supplier_payment",
           "mode": "mutation"
-        },
-        {
-          "name": "adjustment_context",
-          "mode": "read"
         },
         {
           "name": "accept_adjustment",

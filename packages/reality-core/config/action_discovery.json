@@ -176,6 +176,8 @@
     "assemble_kit": "movements",
     "kits": "movements",
     "kit_split": "orders",
+    "merge_party": "references",
+    "party_merges": "references",
     "set_customer_item_number": "orders",
     "remove_customer_item_number": "orders",
     "customer_item_numbers": "orders",

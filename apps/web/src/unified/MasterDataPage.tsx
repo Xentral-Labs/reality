@@ -4,6 +4,7 @@ import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWo
 import { PageActionBar } from "./PageActionBar";
 import { CustomerHoldCard } from "./CustomerHoldCard";
 import { KitSection } from "./KitSection";
+import { PartyMergeSection } from "./PartyMergeSection";
 import { ReorderPoints } from "./ReorderPointCard";
 import { CustomerItemNumbers } from "./CustomerItemNumbers";
 import { SupplierItemTerms } from "./SupplierItemTerms";
@@ -110,6 +111,14 @@ export function MasterDataPage({
       )}
       {family === "supplier" && (
         <SupplierItemTerms key={detail.id} tenant={tenant} party={detail.id} />
+      )}
+      {(family === "customer" || family === "supplier") && (
+        <PartyMergeSection
+          key={`merge-${detail.id}`}
+          tenant={tenant}
+          family={family}
+          party={{ id: detail.id, name: String(detail.name), isActive: detail.is_active }}
+        />
       )}
       {family === "item" && (
         <>

@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 171 covered, 10 partial, 0 missing, 44 gap, 3 out.
+228 scenarios: 173 covered, 10 partial, 0 missing, 42 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -23,10 +23,10 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 5 | 1 |  |  |  |
-| L E-commerce and marketplaces | 8 |  |  | 4 |  |
+| L E-commerce and marketplaces | 9 |  |  | 3 |  |
 | M B2B specifics | 4 | 2 |  | 6 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
-| O Master data and identity | 3 |  |  | 2 | 1 |
+| O Master data and identity | 4 |  |  | 1 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 2 | 1 |  | 2 |  |
 | R Combined stress stories | 5 | 3 |  |  |  |
@@ -70,8 +70,9 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    command (L03); provider report formats are not read.
 8. **No framework contracts or schedule lines.** One supplier commitment per PO line; no blanket
    order or call-off. A23, G04, G05, M01.
-9. **Party roles and identity are thin.** No bill-to/payer role, party merge,
-   supplier item numbers, or receivable/payable netting. L10, M10, M11, O02, O06.
+9. **Party roles and identity are thin.** No bill-to/payer role, supplier item numbers, or
+   receivable/payable netting. M10, M11, O06. Duplicate partners are merged since spec 339
+   (L10, O02 covered).
 10. **Spec 148 trade finance is specified, not built.** Vouchers and the accounting export
     package. C18, N07. A person records chargebacks and returned direct debits since spec 297
     (C15 covered); since spec 336 a stated payout statement settles marketplace, provider and
@@ -355,7 +356,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | L07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved; specs/300-multichannel-oversell/results.md | 10,000 shop orders interpreted in 404 s by one process, each once, never over-reserved (spec 300). |
 | L08 | gap | db/core.py Commitment (no recurrence) | No recurring or subscription commitment; holds exist only per single commitment. |
 | L09 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_shopify_free_promotion_item_is_its_own_zero_price_line_and_commitment | A Shopify gift line at 0.00 becomes its own line and commitment; the raw line payload is kept. |
-| L10 | gap | services/ (no party merge or duplicate-of service) | Duplicate parties cannot be merged with history kept. |
+| L10 | covered | packages/reality-core/tests/scenarios/test_catalog_party_merges.py::test_a_guest_order_later_with_an_account | A guest shop order and invoice merge into the account through the review: the account's detail and balance include them, the guest order still names the guest, and the next shop order naming the guest lands on the account (spec 339). |
 | L11 | gap | db/core.py Document/DocumentLine (no tax fields); docs/features/demo-data-catalog.md "Deliberate limitations" | The tax rate lives only in the raw payload; the Shopify interpreter does not record it. |
 | L12 | gap | db/core.py (no incoterm, duty or customs fields) | Duties and incoterms are not represented beyond the lossless payload. |
 
@@ -394,7 +395,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | O01 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_renamed_item_number_keeps_every_record_on_the_same_item | After reserve, a partial shipment and an invoice, a reviewed item update renames the SKU: movements, reservations and the promise keep the item, stock is unchanged, order and invoice lines keep the old number, and the rest ships. |
-| O02 | gap | — (no merge service in services/) | There is no party merge or duplicate-resolution operation. |
+| O02 | covered | packages/reality-core/tests/scenarios/test_catalog_party_merges.py::test_two_partners_merged_as_duplicates | Two halves of one customer merge; the credit exposure and balance sum both, the duplicate names its survivor, and a further merge into the duplicate is refused (spec 339). |
 | O03 | out | specs/004-master-data/spec.md Non-Goals ("postal addresses") | Addresses exist only in lossless party or source payloads; no test proves an old order shows the old address. |
 | O04 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_delisted_item_still_serves_its_open_commitment | An inactive item is still reserved and shipped for its open commitment. |
 | O05 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_bought_in_cartons_of_twelve_and_held_in_pieces | Bought in cartons of 12, received in cartons and held in pieces; stock, open quantity and the supplier invoice in cartons agree (spec 301). |

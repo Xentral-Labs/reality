@@ -655,6 +655,21 @@
       "effect": "Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line."
     },
     {
+      "name": "Merge a duplicate business partner",
+      "service": "merge_party",
+      "related_services": ["review_party_merge", "validate_party_merge"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive."
+    },
+    {
+      "name": "Read business partner merges",
+      "service": "party_merges",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists the business partner merges, or those one partner took part in, with the reason and when."
+    },
+    {
       "name": "Read the three-way match of a purchase order",
       "service": "purchase_match",
       "mode": "query",

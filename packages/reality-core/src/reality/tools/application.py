@@ -1869,6 +1869,33 @@ def _kit_assemble(session: Session, tenant_id: str, arguments: dict[str, Any]) -
     )
 
 
+def _party_merge(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.party_merges import merge_party
+
+    merge = merge_party(
+        session,
+        tenant_id,
+        arguments["duplicate_party_id"],
+        arguments["surviving_party_id"],
+        arguments["reason"],
+        action_id=arguments.get("_action_id"),
+    )
+    return {
+        "merge_id": merge.id,
+        "duplicate_party_id": merge.duplicate_party_id,
+        "surviving_party_id": merge.surviving_party_id,
+        "source_record_id": merge.source_record_id,
+    }
+
+
+def _party_merges(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.party_merges import party_merges
+
+    return party_merges(
+        session, tenant_id, party_id=arguments.get("party_id") or None
+    )
+
+
 def _order_line_item_assign(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -3207,6 +3234,18 @@ TOOLS = {
         True,
         _kit_assemble,
     ),
+    "party_merge": Tool(
+        "party_merge",
+        "Merge a duplicate business partner into the one that survives, with a reason; both histories stay as stated.",
+        True,
+        _party_merge,
+    ),
+    "party_merges": Tool(
+        "party_merges",
+        "Read the business partner merges, or those one partner took part in.",
+        False,
+        _party_merges,
+    ),
     "credit_hold_release": Tool(
         "credit_hold_release",
         "Release an order's credit holds with a stated reason; an owner confirms.",
@@ -4063,6 +4102,13 @@ def create_change_proposal(
         normalized_arguments, kit_review = review_kit(
             session, tenant_id, tool_name, arguments
         )
+    party_merge_review = None
+    if tool_name == "party_merge":
+        from reality.services.party_merges import review_party_merge
+
+        normalized_arguments, party_merge_review = review_party_merge(
+            session, tenant_id, tool_name, arguments
+        )
     reorder_review = None
     if tool_name in {"reorder_point_set", "reorder_point_remove"}:
         from reality.services.reorder_points import review_reorder_point
@@ -4136,6 +4182,8 @@ def create_change_proposal(
         preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
     if kit_review is not None:
         preview["kit"] = kit_review
+    if party_merge_review is not None:
+        preview["party_merge"] = party_merge_review
     if reorder_review is not None:
         preview["reorder_point"] = reorder_review
     if delivery_rule_review is not None:
@@ -4755,6 +4803,7 @@ def approve_and_execute_proposal(
         "reorder_point_remove",
         "kit_define",
         "kit_assemble",
+        "party_merge",
         "stock_block",
         "stock_block_release",
         "stock_block_scrap",

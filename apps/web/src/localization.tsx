@@ -25280,6 +25280,41 @@ Object.assign(dictionaries.de, {
   Ship: "Versenden",
   "slot passed": "Zeitfenster verpasst",
   "To put back": "Zurückzulagern",
+  "Merged business partners": "Zusammengeführte Geschäftspartner",
+  "Merge a duplicate into this partner": "Dublette in diesen Partner zusammenführen",
+  "Merged into": "Zusammengeführt in",
+  "No duplicate was merged into this partner.":
+    "In diesen Partner wurde keine Dublette zusammengeführt.",
+  documents: "Belege",
+  commitments: "Verpflichtungen",
+  "ledger entries": "Buchungen",
+  "Search business partners": "Geschäftspartner suchen",
+  "Choose the duplicate": "Dublette wählen",
+  "Why the two are one business partner": "Warum beide derselbe Geschäftspartner sind",
+  "Review merge": "Zusammenführung prüfen",
+  Survivor: "Bleibender Partner",
+  "The duplicate's history stays as stated and reads under the survivor; the duplicate becomes inactive.":
+    "Die Historie der Dublette bleibt wie erfasst und erscheint beim bleibenden Partner; die Dublette wird inaktiv.",
+  Merges: "Zusammenführungen",
+  "Merged into this partner": "In diesen Partner zusammengeführt",
+  "Name the duplicate business partner and the one it is merged into.":
+    "Nennen Sie die Dublette und den Geschäftspartner, in den sie zusammengeführt wird.",
+  "Business partner not found.": "Geschäftspartner nicht gefunden.",
+  "Say why the two business partners are one.":
+    "Geben Sie an, warum beide Geschäftspartner derselbe sind.",
+  "The reason is at most 500 characters.": "Die Begründung hat höchstens 500 Zeichen.",
+  "A business partner cannot be merged into itself.":
+    "Ein Geschäftspartner kann nicht in sich selbst zusammengeführt werden.",
+  "{party} is already merged into {survivor}; use that business partner instead.":
+    "{party} ist bereits in {survivor} zusammengeführt; verwenden Sie diesen Geschäftspartner.",
+  "{party} is inactive; merge into an active business partner.":
+    "{party} ist inaktiv; führen Sie in einen aktiven Geschäftspartner zusammen.",
+  "The company's own business partner is never merged.":
+    "Der eigene Geschäftspartner des Unternehmens wird nie zusammengeführt.",
+  "{party} lacks the role {roles} the duplicate has; give it that role first.":
+    "{party} fehlt die Rolle {roles}, die die Dublette hat; vergeben Sie diese Rolle zuerst.",
+  "{party} has an open delivery hold; release it before merging.":
+    "{party} hat eine offene Liefersperre; heben Sie sie vor dem Zusammenführen auf.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25923,6 +25958,41 @@ Object.assign(dictionaries.nl, {
   Ship: "Verzenden",
   "slot passed": "tijdvak verstreken",
   "To put back": "Terug te leggen",
+  "Merged business partners": "Samengevoegde zakenpartners",
+  "Merge a duplicate into this partner": "Duplicaat samenvoegen met deze partner",
+  "Merged into": "Samengevoegd met",
+  "No duplicate was merged into this partner.":
+    "Er is geen duplicaat met deze partner samengevoegd.",
+  documents: "documenten",
+  commitments: "verplichtingen",
+  "ledger entries": "boekingen",
+  "Search business partners": "Zakenpartners zoeken",
+  "Choose the duplicate": "Kies het duplicaat",
+  "Why the two are one business partner": "Waarom beide dezelfde zakenpartner zijn",
+  "Review merge": "Samenvoeging controleren",
+  Survivor: "Blijvende partner",
+  "The duplicate's history stays as stated and reads under the survivor; the duplicate becomes inactive.":
+    "De geschiedenis van het duplicaat blijft zoals vastgelegd en verschijnt bij de blijvende partner; het duplicaat wordt inactief.",
+  Merges: "Samenvoegingen",
+  "Merged into this partner": "Samengevoegd met deze partner",
+  "Name the duplicate business partner and the one it is merged into.":
+    "Noem het duplicaat en de zakenpartner waarmee het wordt samengevoegd.",
+  "Business partner not found.": "Zakenpartner niet gevonden.",
+  "Say why the two business partners are one.":
+    "Geef aan waarom beide zakenpartners dezelfde zijn.",
+  "The reason is at most 500 characters.": "De reden is maximaal 500 tekens.",
+  "A business partner cannot be merged into itself.":
+    "Een zakenpartner kan niet met zichzelf worden samengevoegd.",
+  "{party} is already merged into {survivor}; use that business partner instead.":
+    "{party} is al samengevoegd met {survivor}; gebruik die zakenpartner.",
+  "{party} is inactive; merge into an active business partner.":
+    "{party} is inactief; voeg samen met een actieve zakenpartner.",
+  "The company's own business partner is never merged.":
+    "De eigen zakenpartner van het bedrijf wordt nooit samengevoegd.",
+  "{party} lacks the role {roles} the duplicate has; give it that role first.":
+    "{party} mist de rol {roles} die het duplicaat heeft; geef eerst die rol.",
+  "{party} has an open delivery hold; release it before merging.":
+    "{party} heeft een open leveringsblokkade; hef die op voor het samenvoegen.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26566,6 +26636,41 @@ Object.assign(dictionaries.es, {
   Ship: "Enviar",
   "slot passed": "franja vencida",
   "To put back": "Por devolver",
+  "Merged business partners": "Socios comerciales fusionados",
+  "Merge a duplicate into this partner": "Fusionar un duplicado en este socio",
+  "Merged into": "Fusionado en",
+  "No duplicate was merged into this partner.":
+    "No se ha fusionado ningún duplicado en este socio.",
+  documents: "documentos",
+  commitments: "compromisos",
+  "ledger entries": "asientos",
+  "Search business partners": "Buscar socios comerciales",
+  "Choose the duplicate": "Elegir el duplicado",
+  "Why the two are one business partner": "Por qué ambos son el mismo socio comercial",
+  "Review merge": "Revisar la fusión",
+  Survivor: "Socio que permanece",
+  "The duplicate's history stays as stated and reads under the survivor; the duplicate becomes inactive.":
+    "El historial del duplicado se mantiene tal como se registró y aparece en el socio que permanece; el duplicado queda inactivo.",
+  Merges: "Fusiones",
+  "Merged into this partner": "Fusionado en este socio",
+  "Name the duplicate business partner and the one it is merged into.":
+    "Indique el socio duplicado y el socio en el que se fusiona.",
+  "Business partner not found.": "Socio comercial no encontrado.",
+  "Say why the two business partners are one.":
+    "Indique por qué ambos socios comerciales son el mismo.",
+  "The reason is at most 500 characters.": "El motivo tiene como máximo 500 caracteres.",
+  "A business partner cannot be merged into itself.":
+    "Un socio comercial no puede fusionarse consigo mismo.",
+  "{party} is already merged into {survivor}; use that business partner instead.":
+    "{party} ya está fusionado en {survivor}; use ese socio comercial.",
+  "{party} is inactive; merge into an active business partner.":
+    "{party} está inactivo; fusione en un socio comercial activo.",
+  "The company's own business partner is never merged.":
+    "El socio comercial propio de la empresa nunca se fusiona.",
+  "{party} lacks the role {roles} the duplicate has; give it that role first.":
+    "{party} no tiene el rol {roles} que tiene el duplicado; asígnele primero ese rol.",
+  "{party} has an open delivery hold; release it before merging.":
+    "{party} tiene un bloqueo de entrega abierto; libérelo antes de fusionar.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

@@ -52,11 +52,13 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`notices`](#command-notices)                                                     | List dunning notices                         | Cross-functional           | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`authorizations`](#command-authorizations)                                       | List payment authorizations                  | Cross-functional           | `finance_payment_authorizations`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`payouts`](#command-payouts)                                                     | List payouts                                 | Cross-functional           | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
+| [`merge_party`](#command-merge_party)                                             | Merge a duplicate business partner           | Cross-functional           | `party_merge_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Cross-functional           | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Cross-functional           | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
 | [`kit_split`](#command-kit_split)                                                 | Read a kit line's split                      | Cross-functional           | `kit_split`                                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`payout_detail`](#command-payout_detail)                                         | Read a payout                                | Cross-functional           | `finance_payout`                                                                                                                                                                             | Web · MCP · Chat · CLI                  |
+| [`party_merges`](#command-party_merges)                                           | Read business partner merges                 | Cross-functional           | `party_merges`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`handover_detail`](#command-handover_detail)                                     | Read collection handover                     | Cross-functional           | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                      | Cross-functional           | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
 | [`customer_item_numbers`](#command-customer_item_numbers)                         | Read customer item numbers                   | Cross-functional           | `customer_item_numbers`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
@@ -8841,6 +8843,53 @@ No parameters.
 
 **See also:** command [`payouts`](./commands#command-payouts)
 
+### `merge_party` — Merge a duplicate business partner {#command-merge_party}
+
+States that one business partner is a duplicate of another; both histories stay as stated and read
+under the survivor, and the duplicate becomes inactive.
+
+**Synopsis**
+
+```text
+party_merge_propose duplicate_party_id surviving_party_id reason
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `party`, `party_role`, `party_hold`, `party_merge`, `document`, `commitment`,
+`ledger_entry` · Writes: `party_merge`, `party`, `source_record`, `business_event` · Emits:
+`party.merged`
+
+**See also:** agent tool [`party_merge_propose`](./commands#tool-party_merge_propose), event
+[`party.merged`](./events#event-party-merged)
+
+#### `party_merge_propose` — Merge duplicate business partner {#tool-party_merge_propose}
+
+Prepare merging a duplicate business partner (duplicate_party_id) into the one that survives
+(surviving_party_id), with a reason, for confirmation. Nothing stated is rewritten: the duplicate's
+documents, promises and ledger entries keep naming it and read under the survivor; the duplicate
+becomes inactive, and new shop orders and imports naming it land on the survivor. The survivor must
+be active and hold every role of the duplicate; merged partners are never merged again; the
+company's own partner and a partner with an open delivery hold are refused. A person confirms.
+
+**Synopsis**
+
+```text
+party_merge_propose duplicate_party_id surviving_party_id reason
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                 | Type     | Required | Description                                                                                                                 | Default |
+| -------------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `duplicate_party_id` | `string` | yes      | Opaque same-tenant identity of the business partner that is a duplicate and is merged (spec 339).                           | —       |
+| `surviving_party_id` | `string` | yes      | Opaque same-tenant identity of the business partner the duplicate is merged into; it answers for both histories (spec 339). | —       |
+| `reason`             | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change.                                                     | —       |
+
+**See also:** command [`merge_party`](./commands#command-merge_party)
+
 ### `contribution_preview` — Preview current contribution candidate {#command-contribution_preview}
 
 Follow an exact whole invoice/order/shipment scope to received net revenue and reviewed consumption;
@@ -9147,6 +9196,65 @@ tracking number names.
 | `payout_id` | `string` | yes      | Opaque same-tenant identity of a settled payout. | —       |
 
 **See also:** command [`payout_detail`](./commands#command-payout_detail)
+
+### `party_merges` — Read business partner merges {#command-party_merges}
+
+Lists the business partner merges, or those one partner took part in, with the reason and when.
+
+**Synopsis**
+
+```text
+party_merges [party_id]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `party_merge`, `party` · Writes: —
+
+**See also:** agent tool [`party_merges`](./commands#tool-party_merges)
+
+#### `party_merges` — Business partner merges {#tool-party_merges}
+
+Read the business partner merges of the company, or those one partner took part in (party_id): the
+duplicate, the survivor it was merged into, the reason and when. A survivor's detail, balances and
+credit exposure include the history of every partner merged into it.
+
+**Synopsis**
+
+```text
+party_merges [party_id]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query     | Kind                        | Default |
+| ------------------ | --------------------------- | ------- |
+| `MCP party_merges` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Show which business partners were merged as duplicates and into which survivor.
+
+**Use when**
+
+- Someone asks whether two business partners are the same
+- where a guest customer's history went
+- or why a partner is inactive.
+
+**Do not use when**
+
+- Someone asks for a partner's balance or orders; read the partner's detail or balances
+- which already include merged partners.
+
+**Parameters**
+
+| Name       | Type     | Required | Description                                                            | Default |
+| ---------- | -------- | -------- | ---------------------------------------------------------------------- | ------- |
+| `party_id` | `string` | no       | Opaque identity of the customer, supplier, or other operational party. | —       |
+
+**See also:** command [`party_merges`](./commands#command-party_merges)
 
 ### `handover_detail` — Read collection handover {#command-handover_detail}
 

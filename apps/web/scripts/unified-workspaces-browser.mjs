@@ -205,6 +205,8 @@ await page.route("**/api/**", async (route) => {
         },
       ],
     });
+  // Spec 339: no partner was merged in this fixture.
+  if (path.endsWith("/party-merges")) return reply({ rows: [] });
   if (path.endsWith("/delivery-rules"))
     return reply({
       subject: "party",

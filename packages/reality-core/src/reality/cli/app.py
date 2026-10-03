@@ -994,6 +994,57 @@ def party_deactivate(party_id: str, tenant: str | None = None):
     change_party_active(party_id, False, tenant)
 
 
+@party_app.command("merge")
+def party_merge(
+    duplicate_party_id: str,
+    surviving_party_id: str,
+    reason: str = typer.Option(..., help="Why the two business partners are one."),
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm merging a duplicate business partner into its survivor (spec 339)."""
+    from reality.tools.application import create_change_proposal, reject_proposal
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            proposal = create_change_proposal(
+                s,
+                selected.id,
+                "party_merge",
+                {
+                    "duplicate_party_id": duplicate_party_id,
+                    "surviving_party_id": surviving_party_id,
+                    "reason": reason,
+                },
+                actor_type="human",
+            )
+            con.print_json(data=json.loads(proposal.output)["party_merge"])
+            if not yes and not typer.confirm("Confirm this merge?"):
+                # A declined review leaves no decision waiting for anyone.
+                reject_proposal(s, selected.id, proposal.id)
+                con.print("Stopped; nothing changed.")
+                raise typer.Exit()
+            approve_and_execute_proposal(s, selected.id, proposal.id, confirmed=True)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print(f"✓ Merged {duplicate_party_id} into {surviving_party_id}")
+
+
+@party_app.command("merges")
+def party_merges_show(party_id: str = "", tenant: str | None = None):
+    """List the business partner merges, or those one partner took part in."""
+    from reality.services.party_merges import party_merges
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            rows = party_merges(s, selected.id, party_id=party_id or None)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=rows, default=str)
+
+
 @party_app.command("activate")
 def party_activate(party_id: str, tenant: str | None = None):
     change_party_active(party_id, True, tenant)

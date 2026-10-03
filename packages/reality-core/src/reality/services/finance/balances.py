@@ -12,10 +12,13 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from reality.db.core import Party
 from reality.services import core
 from reality.services.finance.credits import available_credit_rows
+from reality.services.party_merges import merged_members, survivors_of
 
 ZERO = Decimal(0)
 SORT_KEYS = ("party", "open", "overdue", "credit", "balance", "oldest_due")
@@ -48,8 +51,33 @@ def party_balance_rows(
     moment = as_of or datetime.now(UTC)
     account = "accounts_receivable" if side == "customer" else "accounts_payable"
     buckets: dict[tuple[str, str], dict[str, Any]] = {}
+    # Spec 339: a merged partner's rows count under its survivor, and asking for
+    # a survivor asks for the partners merged into it.
+    if party_ids is not None:
+        party_ids = set(party_ids) | set(merged_members(session, tenant_id, party_ids))
+    survivors: dict[str, str] = {}
+    survivor_names: dict[str, str] = {}
+
+    def resolve(rows_party_ids: set[str]) -> None:
+        unknown = rows_party_ids - set(survivors) - {None}
+        if not unknown:
+            return
+        found = survivors_of(session, tenant_id, unknown)
+        survivors.update({pid: found.get(pid, pid) for pid in unknown})
+        names = set(found.values()) - set(survivor_names)
+        if names:
+            survivor_names.update(
+                session.execute(
+                    select(Party.id, Party.name).where(
+                        Party.tenant_id == tenant_id, Party.id.in_(names)
+                    )
+                ).all()
+            )
 
     def bucket(party_id: str, party: str, currency: str) -> dict[str, Any]:
+        survivor = survivors.get(party_id, party_id)
+        if survivor != party_id:
+            party_id, party = survivor, survivor_names.get(survivor, party)
         return buckets.setdefault(
             (party_id, currency),
             {
@@ -89,6 +117,7 @@ def party_balance_rows(
         )
         if cache is not None:
             cache[key] = source
+    resolve({row["control"].party_id for row in source})
     for row in source:
         if row["control"].account != account or row["status"] not in {
             "open",
@@ -117,6 +146,7 @@ def party_balance_rows(
         party_ids=party_ids,
         effective_before=effective_before,
     )
+    resolve({row["party_id"] for row in credit_rows})
     for row in credit_rows:
         available = Decimal(row["open"])
         if available <= ZERO:

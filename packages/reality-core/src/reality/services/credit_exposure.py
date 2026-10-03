@@ -195,18 +195,30 @@ def credit_exposures(
         party_id: core._tenant_record(session, Party, tenant_id, party_id)
         for party_id in dict.fromkeys(party_ids)
     }
+    # Spec 339: the partners merged into a customer count under it.
+    from reality.services.party_merges import merged_members
+
+    owner = {
+        duplicate: survivor
+        for duplicate, survivor in merged_members(session, tenant_id, parties).items()
+        if duplicate not in parties
+    }
+    members = dict(parties)
+    members.update(
+        {duplicate: parties[survivor] for duplicate, survivor in owner.items()}
+    )
     as_of = core.utc_datetime(as_of) or core.now()
     receivables: dict[str, list] = {pid: [] for pid in parties}
     payables: dict[str, list] = {pid: [] for pid in parties}
     not_counted: dict[str, list] = {pid: [] for pid in parties}
     if not parties:
         return {}
-    rows = core.financial_open_items(session, tenant_id, party_ids=set(parties))
+    rows = core.financial_open_items(session, tenant_id, party_ids=set(members))
     for row in core.with_invoice_aging(
         rows, core._payment_terms_by_id(session, tenant_id), as_of
     ):
         document = row["document"]
-        party = parties.get(document.party_id)
+        party = members.get(document.party_id)
         open_amount = Decimal(row["open"])
         if party is None or open_amount <= ZERO:
             continue
@@ -232,10 +244,10 @@ def credit_exposures(
 
     credits: dict[str, list] = {pid: [] for pid in parties}
     items, _ = available_credit_rows(
-        session, tenant_id, side="customer", party_ids=set(parties)
+        session, tenant_id, side="customer", party_ids=set(members)
     )
     for item in items:
-        party = parties.get(item["party_id"])
+        party = members.get(item["party_id"])
         available = Decimal(item["open"])
         if party is None or available <= ZERO:
             continue
@@ -253,8 +265,8 @@ def credit_exposures(
 
     from reality.services.down_payments import held_down_payments
 
-    for row in held_down_payments(session, tenant_id, set(parties)):
-        party = parties[row["party_id"]]
+    for row in held_down_payments(session, tenant_id, set(members)):
+        party = members[row["party_id"]]
         entry = {
             "document_id": row["document_id"],
             "number": row["number"],
@@ -267,7 +279,7 @@ def credit_exposures(
         else:
             credits[party.id].append(entry)
 
-    orders = _order_rows(session, tenant_id, parties)
+    orders = _order_rows(session, tenant_id, members)
     result = {}
     for party_id, party in parties.items():
         counted, unpriced, other = orders[party_id]

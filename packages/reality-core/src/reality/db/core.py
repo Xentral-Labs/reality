@@ -1062,6 +1062,48 @@ class ItemReorderPoint(Base):
     source_record_id: Mapped[str] = mapped_column(String)
 
 
+class PartyMerge(Base):
+    """One business partner stated to be a duplicate of another (spec 339).
+
+    Append-only: the duplicate's documents, promises and ledger entries keep
+    naming it, and reads that answer for the survivor add them at read time.
+    A duplicate is merged once and never becomes a survivor itself.
+    """
+
+    __tablename__ = "party_merge"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "duplicate_party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "surviving_party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id", "duplicate_party_id", name="uq_party_merge_duplicate"
+        ),
+        CheckConstraint(
+            "duplicate_party_id <> surviving_party_id",
+            name="ck_party_merge_distinct",
+        ),
+        Index("ix_party_merge_surviving_party_id", "tenant_id", "surviving_party_id"),
+        Index("ix_party_merge_source_record_id", "tenant_id", "source_record_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    duplicate_party_id: Mapped[str] = mapped_column()
+    surviving_party_id: Mapped[str] = mapped_column()
+    reason: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    source_record_id: Mapped[str] = mapped_column()
+
+
 class KitComponent(Base):
     """One component of a kit and how many of it one kit takes (spec 333).
 

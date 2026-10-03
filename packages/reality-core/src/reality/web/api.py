@@ -1705,6 +1705,13 @@ class KitComponentInput(ApiModel):
     share: str | None = Field(default=None, max_length=40)
 
 
+class PartyMergeProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    duplicate_party_id: str = Field(min_length=1, max_length=200)
+    surviving_party_id: str = Field(min_length=1, max_length=200)
+    reason: str = Field(min_length=1, max_length=500)
+
+
 class KitProposal(ApiModel):
     model_config = ConfigDict(extra="forbid")
     operation: Literal["define", "assemble"]
@@ -6400,6 +6407,32 @@ def _credit_exposure_section(session: OrmSession, tenant_id: str, party):
     return [{"title": "Credit exposure", "rows": rows}]
 
 
+def _party_merge_section(detail: dict) -> list[dict]:
+    """Spec 339: whom this partner absorbed, or whom it was merged into."""
+    rows = [
+        inspector_row(
+            "Merged into this partner",
+            merged["name"],
+            kind="party",
+            record_id=merged["party_id"],
+            meta=merged["reason"],
+        )
+        for merged in detail["merged_parties"]
+    ]
+    if detail["merged_into"]:
+        target = detail["merged_into"]
+        rows.append(
+            inspector_row(
+                "Merged into",
+                target["name"],
+                kind="party",
+                record_id=target["party_id"],
+                meta=target["reason"],
+            )
+        )
+    return [{"title": "Merges", "rows": rows}] if rows else []
+
+
 def party_inspector(session: OrmSession, tenant_id: str, record_id: str):
     detail = party_detail(session, tenant_id, record_id)
     party = detail["party"]
@@ -6450,6 +6483,7 @@ def party_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 ],
             },
             *_credit_exposure_section(session, tenant_id, party),
+            *_party_merge_section(detail),
             {
                 "title": "Commitments",
                 "rows": [
@@ -8427,6 +8461,45 @@ def tenant_party_credit_exposure(
         return run_read_tool(
             session, tenant_id, "credit_exposure", {"party_id": party_id}
         )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/party-merges")
+def get_party_merges(
+    tenant_id: str,
+    session: DatabaseSession,
+    party_id: str | None = Query(default=None, max_length=200),
+):
+    """Spec 339: the business partner merges, or those one partner took part in."""
+    from reality.services.party_merges import party_merges
+
+    try:
+        return {"rows": party_merges(session, tenant_id, party_id=party_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/parties/merge-proposals")
+def post_party_merge_proposal(
+    tenant_id: str, body: PartyMergeProposal, session: DatabaseSession
+):
+    """Spec 339: prepare a merge; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "party_merge",
+            body.model_dump(),
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
