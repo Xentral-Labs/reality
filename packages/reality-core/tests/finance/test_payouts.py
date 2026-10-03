@@ -509,3 +509,33 @@ def test_another_company_sees_no_payout_and_resolves_nothing(session, business):
         for row in operational_exceptions(session, other.id)
         if row.class_id == "payout_line_unmatched"
     ]
+
+
+def test_an_agent_proposes_a_payout_through_the_strict_schema(session, business):
+    """FR-004: the MCP tool takes the statement as its schema states it."""
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+    from reality.mcp.server import _reject_unknown_fields
+
+    tenant = business.tenant.id
+    clearing, _ = _accounts(session, tenant)
+    _invoiced_order(session, business, "AMZ-90", "100")
+    arguments = _statement(
+        business,
+        clearing,
+        [
+            _line("1", "charge", "100", "AMZ-90"),
+            _line("2", "fee", "4.20", references=[]),
+        ],
+        "95.80",
+    )
+    definition = MCP_TOOL_REGISTRY["finance_payout_settle_propose"]
+    _reject_unknown_fields(definition.input_schema, arguments)
+
+    proposed = definition.handler(session, tenant, arguments)
+
+    assert proposed["proposal_id"]
+    # Positive control: a field the schema does not state is refused.
+    with pytest.raises(Exception, match="Unknown field"):
+        _reject_unknown_fields(
+            definition.input_schema, {**arguments, "clearing_account": clearing}
+        )

@@ -1106,53 +1106,68 @@ def payout_detail(session: Session, tenant_id: str, payout_id: str) -> dict[str,
 def unmatched_lines(
     session: Session, tenant_id: str, *, as_of: datetime | None = None
 ) -> list[dict[str, Any]]:
-    """Every payout with lines nothing booked, in four reads for the company."""
-    payouts = list(
+    """Every payout with lines nothing booked, read with one anti-join.
+
+    Only unbooked line sources come back, so a company with many settled
+    payouts pays for what is still open, not for every line it ever settled.
+    """
+    unbooked = list(
         session.execute(
-            select(Document, SourceRecord)
-            .join(
-                SourceRecord,
-                (SourceRecord.tenant_id == Document.tenant_id)
-                & (SourceRecord.id == Document.source_record_id),
-            )
-            .where(Document.tenant_id == tenant_id, Document.type == "payout")
-        ).all()
-    )
-    if not payouts:
-        return []
-    line_sources = {
-        source.external_id: source.id
-        for source in session.scalars(
-            select(SourceRecord).where(
+            select(SourceRecord.external_id).where(
                 SourceRecord.tenant_id == tenant_id,
                 SourceRecord.source_system == SOURCE_SYSTEM,
                 SourceRecord.source_type == LINE_TYPE,
+                ~select(Document.id)
+                .where(
+                    Document.tenant_id == tenant_id,
+                    Document.source_record_id == SourceRecord.id,
+                )
+                .exists(),
+                ~select(PaymentReturn.id)
+                .where(
+                    PaymentReturn.tenant_id == tenant_id,
+                    PaymentReturn.source_record_id == SourceRecord.id,
+                )
+                .exists(),
             )
-        )
-    }
-    bookings = _bookings(session, tenant_id, set(line_sources.values()))
+        ).scalars()
+    )
+    if not unbooked:
+        return []
+    open_lines: dict[str, set[str]] = {}
+    for external_id in unbooked:
+        statement_id, _, line_id = external_id.partition("/")
+        open_lines.setdefault(statement_id, set()).add(line_id)
     rows = []
-    for payout, source in payouts:
+    for payout, source in session.execute(
+        select(Document, SourceRecord)
+        .join(
+            SourceRecord,
+            (SourceRecord.tenant_id == Document.tenant_id)
+            & (SourceRecord.id == Document.source_record_id),
+        )
+        .where(
+            Document.tenant_id == tenant_id,
+            Document.type == "payout",
+            Document.source_record_id.in_(open_lines),
+        )
+    ):
         statement = json.loads(source.payload)
         if as_of is not None and date.fromisoformat(statement["paid_on"]) > as_of.date():
             continue
         lines = [
             line
             for line in statement["lines"]
-            if line_sources.get(_line_external_id(source.id, line["line_id"]))
-            not in bookings
+            if line["line_id"] in open_lines[source.id]
         ]
-        if lines:
-            rows.append(
-                {
-                    "payout": payout,
-                    "statement": statement,
-                    "lines": lines,
-                    "amount": sum(
-                        (Decimal(line["amount"]) for line in lines), Decimal(0)
-                    ),
-                }
-            )
+        rows.append(
+            {
+                "payout": payout,
+                "statement": statement,
+                "lines": lines,
+                "amount": sum((Decimal(line["amount"]) for line in lines), Decimal(0)),
+            }
+        )
     return rows
 
 
