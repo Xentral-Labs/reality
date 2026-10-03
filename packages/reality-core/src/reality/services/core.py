@@ -699,7 +699,11 @@ def _event_progress(session: OrmSession, tenant_id: str) -> TenantEventProgress 
         )
     if not _progress_table[url]:
         return None
-    progress = session.get(TenantEventProgress, tenant_id)
+    progress = session.scalar(
+        select(TenantEventProgress)
+        .where(TenantEventProgress.tenant_id == tenant_id)
+        .execution_options(populate_existing=True)
+    )
     if progress is None:
         progress = TenantEventProgress(tenant_id=tenant_id, last_event_sequence=0)
         session.add(progress)

@@ -1,6 +1,28 @@
 {
   "commands": [
     {
+      "name": "Prepare source interpretation",
+      "service": "prepare_intake",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Retain a non-authoritative exact interpretation and review digest; create no accepted business records."
+    },
+    {
+      "name": "Review source interpretation",
+      "service": "review_intake",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it."
+    },
+    {
+      "name": "Accept reviewed source interpretation",
+      "service": "apply_prepared_intake",
+      "related_services": ["reject_prepared_intake"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Apply the exact unchanged interpretation through canonical services and retain attribution and receipt in the same transaction."
+    },
+    {
       "name": "Ask the Business Journey Guide",
       "service": "business_journey_guide",
       "mode": "read",

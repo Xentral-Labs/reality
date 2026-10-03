@@ -338,6 +338,14 @@ def _outcome(
 def prepare_intake(
     session: Session, tenant_id: str, job_id: str, *, _commit: bool = True
 ) -> ChangeProposal:
+    """
+    BUSINESS PURPOSE:
+    Retain the current source interpretation without accepted business effects.
+
+    BUSINESS RULE intake.prepare_exact:
+    Lock and validate current source identity, retain exact meaning and append its prepared outcome.
+    """
+    # reality-rule: intake.prepare_exact
     lock_delivery_state(session, tenant_id)
     finance = lock_finance(session, tenant_id)
     job = core._tenant_record_read(session, ImportJob, tenant_id, job_id)
@@ -405,6 +413,14 @@ def prepare_intake(
 
 
 def review_intake(session: Session, tenant_id: str, proposal_id: str) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read the exact retained interpretation within its tenant.
+
+    BUSINESS RULE intake.review_exact:
+    Refuse foreign, wrong-kind or modified retained plans before returning their digest.
+    """
+    # reality-rule: intake.review_exact
     proposal = core._tenant_record_read(session, ChangeProposal, tenant_id, proposal_id)
     if proposal.type != INTAKE_TYPE:
         raise core.NotFound(code="proposal_not_found")
@@ -499,10 +515,17 @@ def apply_prepared_intake(
     settling_channel: str | None = None,
     _commit: bool = True,
 ) -> ChangeProposal:
-    """Own one effect transaction; a savepoint also preserves a worker's outer unit."""
+    """
+    BUSINESS PURPOSE:
+    Accept only the confirmed unchanged interpretation with its decision and receipt.
+
+    BUSINESS RULE intake.accept_exact:
+    Recheck current authority and source, mapping and reference state before atomically dispatching canonical effects.
+    """
     from reality.services.tenant_policy import require_proposal_decision
     from reality.tools.application import _record_decision
 
+    # reality-rule: intake.accept_exact
     lock_delivery_state(session, tenant_id)
     finance = lock_finance(session, tenant_id)
     require_delivery_principal(session, tenant_id, principal)
@@ -621,10 +644,17 @@ def reject_prepared_intake(
     settling_channel: str | None = None,
     _commit: bool = True,
 ) -> ChangeProposal:
-    """Reject retained meaning without losing raw input or inventing business effects."""
+    """
+    BUSINESS PURPOSE:
+    Reject retained meaning while preserving received evidence.
+
+    BUSINESS RULE intake.reject_exact:
+    Validate tenant and reviewer authority, then retain one rejection and outcome without accepted business effects.
+    """
     from reality.services.tenant_policy import require_proposal_decision
     from reality.tools.application import _record_decision
 
+    # reality-rule: intake.reject_exact
     lock_delivery_state(session, tenant_id)
     lock_finance(session, tenant_id)
     require_delivery_principal(session, tenant_id, principal)

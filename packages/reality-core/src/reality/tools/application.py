@@ -4307,12 +4307,28 @@ def _business_logic_compare(session, tenant_id, arguments):
 
 def _intake_apply(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     # Intake owns its atomic decision transaction, never the generic handler path.
+    """
+    BUSINESS PURPOSE:
+    Route accepted source effects exclusively through the atomic reviewed executor.
+
+    BUSINESS RULE application.intake_apply_guard:
+    Refuse generic handler execution because its transaction cannot own an intake decision.
+    """
+    # reality-rule: application.intake_apply_guard
     raise InvalidOperation(code="intake_approval_required")
 
 
 def _intake_review(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Expose one exact retained source interpretation through shared tools.
+
+    BUSINESS RULE application.intake_review:
+    Use the tenant-scoped shared review service without refreshing or applying meaning.
+    """
     from reality.services.intake import review_intake
 
+    # reality-rule: application.intake_review
     return review_intake(session, tenant_id, arguments["proposal_id"])
 
 
