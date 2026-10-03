@@ -230,8 +230,8 @@ resources:
         Zahlungsabfragen filtern die Richtung nur als eingehend oder ausgehend; Kunde oder
         Lieferant ist eine Saldo-Seite und keine Zahlungsrichtung.
     synonyms: [payment receipt, allocation, matching, short payment, refund, payment run, Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahllauf, Saldo]
-    tables: [settlement_allocation]
-    match: "payment(?!_term)|refund|settlement|adjustment|balances|unmatched_financial"
+    tables: [settlement_allocation, payment_authorization, payment_capture]
+    match: "payment(?!_term)|payout|refund|settlement|adjustment|balances|unmatched_financial"
     views: [payments]
     projections: [payments]
     exceptions: [unmatched_financial_event, credit_note_unsettled]
@@ -583,6 +583,12 @@ labels:
       set_company_currency: Firmenwährung festlegen
       company_currency_state: Firmenwährung anzeigen
       set_supplier_item_terms: Lieferantenkonditionen festlegen
+      settle_payout: Auszahlung abrechnen
+      payouts: Auszahlungen anzeigen
+      payout_detail: Auszahlung anzeigen
+      record_authorization: Zahlungsautorisierung erfassen
+      record_capture: Zahlungseinzug erfassen
+      authorizations: Zahlungsautorisierungen anzeigen
       remove_supplier_item_terms: Lieferantenkonditionen entfernen
       supplier_item_terms: Lieferantenkonditionen anzeigen
       purchase_match: Bestellabgleich anzeigen
@@ -782,6 +788,8 @@ labels:
       order_waiting_for_completeness: Auftrag wartet auf Vollständigkeit
       backorder_against_rule: Rückstand gegen Kundenregel
       shipped_beyond_order: Mehr geliefert als bestellt
+      payout_line_unmatched: Auszahlungspositionen nicht gebucht
+      payment_authorization_expired: Zahlungsautorisierung abgelaufen
       outgoing_commitment_due_soon: Liefertermin gefährdet
       silent_source: Quelle verstummt
       source_interpretation_failure: Quelle nicht interpretierbar

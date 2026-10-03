@@ -52,6 +52,8 @@ WITHOUT_A_SCENARIO = {
     "order_waiting_for_completeness",
     "backorder_against_rule",
     "shipped_beyond_order",
+    "payout_line_unmatched",
+    "payment_authorization_expired",
     "missing_acquisition_cost",
     "unassigned_cost_component",
     "stale_cost_review",

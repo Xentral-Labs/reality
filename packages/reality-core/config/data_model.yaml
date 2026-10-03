@@ -183,6 +183,30 @@ tables:
       fee_bearer: {}
       source_record_id: {description: "The return's evidence; its fee documents carry the same source record (spec 322)."}
       created_at: {}
+  payment_authorization:
+    description: An amount a card or wallet provider authorized for one sales order, until when (spec 336). Captures against it are their own records; what is left is derived.
+    columns:
+      id: {}
+      tenant_id: {}
+      order_document_id: {}
+      amount: {}
+      currency: {}
+      authorized_at: {}
+      expires_at: {description: "When the authorization lapses, as the provider states it."}
+      reference: {description: "The provider's authorization identity, once per order."}
+      source_record_id: {}
+      created_at: {}
+  payment_capture:
+    description: An amount captured against one payment authorization (spec 336); never more than is left and not after it lapsed.
+    columns:
+      id: {}
+      tenant_id: {}
+      authorization_id: {}
+      amount: {}
+      captured_at: {}
+      reference: {}
+      source_record_id: {}
+      created_at: {}
   down_payment_offset:
     description: A down payment a final invoice states it deducts, bounded by what the down-payment invoice was paid and not yet offset.
     columns:

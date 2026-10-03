@@ -158,6 +158,22 @@ TRANSACTION_MATRIX = (
         "configured_default",
     ),
     (
+        "payout",
+        "Payout deposit",
+        "cash",
+        "cash",
+        "Stated net payout, from the provider's cash account to the bank",
+        "configured_default",
+    ),
+    (
+        "payout_fee",
+        "Payout fee",
+        "payment_fee_expense",
+        "cash",
+        "Stated fee the provider kept from a payout",
+        "configured_default",
+    ),
+    (
         "down_payment_invoice",
         "Down-payment invoice",
         "accounts_receivable",

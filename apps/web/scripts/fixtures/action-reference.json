@@ -961,6 +961,51 @@
       "effect": "Reads one returned payment with its reason, reference, fee and reopened invoices."
     },
     {
+      "name": "Settle a payout",
+      "service": "settle_payout",
+      "related_services": ["preview_payout"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Books a stated marketplace or provider payout line by line on the provider's cash account (payments, refunds against credit notes, chargebacks, fees), moves the net payout to the bank and leaves lines that lead nowhere unbooked."
+    },
+    {
+      "name": "List payouts",
+      "service": "payouts",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Lists payouts with their net amount and the lines nothing booked yet."
+    },
+    {
+      "name": "Read a payout",
+      "service": "payout_detail",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names."
+    },
+    {
+      "name": "Record a payment authorization",
+      "service": "record_authorization",
+      "related_services": ["preview_authorization"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Records what a card or wallet provider authorized for one sales order, until when."
+    },
+    {
+      "name": "Record a payment capture",
+      "service": "record_capture",
+      "related_services": ["preview_capture"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Records an amount captured against an authorization, never more than is left and not after it lapsed."
+    },
+    {
+      "name": "List payment authorizations",
+      "service": "authorizations",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Lists authorizations with what was captured, what is left and whether each is live, expired or captured."
+    },
+    {
       "name": "List collection handovers",
       "service": "handovers",
       "mode": "query",

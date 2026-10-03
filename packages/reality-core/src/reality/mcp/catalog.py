@@ -3279,7 +3279,12 @@ MCP_TOOL_CATALOG += (
     ),
 )
 
-from reality.tools.finance import PaymentReturnRequest
+from reality.tools.finance import (
+    AuthorizationRecordRequest,
+    CaptureRecordRequest,
+    PaymentReturnRequest,
+    PayoutSettleRequest,
+)
 
 MCP_TOOL_CATALOG += (
     MCPToolDefinition(
@@ -3328,6 +3333,63 @@ MCP_TOOL_CATALOG += (
         "finance",
         _object_schema({"return_id": STRING}, required=("return_id",)),
         _read("finance.payment_return"),
+    ),
+    MCPToolDefinition(
+        "finance_payout_settle_propose",
+        "Settle a payout",
+        "Prepare a marketplace, payment-provider or cash-on-delivery payout statement for owner confirmation: every line is booked against the order, invoice or shipment it names on the provider's cash account (payments, refunds against credit notes, chargebacks, fees), the net payout moves to the bank, and lines that lead nowhere stay unbooked and are reported. The lines must add up to the stated net payout.",
+        "propose",
+        "finance",
+        PayoutSettleRequest.model_json_schema(),
+        _propose("finance.payout.settle"),
+    ),
+    MCPToolDefinition(
+        "finance_payouts",
+        "Payouts",
+        "List marketplace and payment-provider payouts with their net amount and the lines nothing booked yet.",
+        "read",
+        "finance",
+        _object_schema(),
+        _read("finance.payouts"),
+    ),
+    MCPToolDefinition(
+        "finance_payout",
+        "Payout",
+        "Read one payout: every stated line with what it booked, the invoices or credit notes it settled, the shipment a tracking number names, or why it stays unbooked.",
+        "read",
+        "finance",
+        _object_schema({"payout_id": STRING}, required=("payout_id",)),
+        _read("finance.payout"),
+    ),
+    MCPToolDefinition(
+        "finance_payment_authorization_record_propose",
+        "Record a payment authorization",
+        "Prepare what a card or wallet provider authorized for one sales order, and until when, for owner confirmation. Captures are recorded against it separately.",
+        "propose",
+        "finance",
+        AuthorizationRecordRequest.model_json_schema(),
+        _propose("finance.payment.authorization.record"),
+    ),
+    MCPToolDefinition(
+        "finance_payment_capture_record_propose",
+        "Record a payment capture",
+        "Prepare an amount captured against a recorded authorization for owner confirmation; never more than is left and not after the authorization lapsed.",
+        "propose",
+        "finance",
+        CaptureRecordRequest.model_json_schema(),
+        _propose("finance.payment.capture.record"),
+    ),
+    MCPToolDefinition(
+        "finance_payment_authorizations",
+        "Payment authorizations",
+        "List payment authorizations, optionally for one order, with what was captured, what is left and whether each is live, expired or captured at the instant.",
+        "read",
+        "finance",
+        _object_schema(
+            {"order_document_id": OPTIONAL_STRING, "as_of": OPTIONAL_STRING},
+            required=(),
+        ),
+        _read("finance.payment_authorizations"),
     ),
 )
 

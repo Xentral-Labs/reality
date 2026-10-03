@@ -171,49 +171,102 @@ class PayoutReferenceRequest(BaseModel):
         "customer_reference",
         "customer_number",
         "tracking_number",
-    ]
-    value: str = Field(min_length=1, max_length=200)
+    ] = Field(description="What the stated value identifies; a tracking number names a shipment.")
+    value: str = Field(
+        min_length=1,
+        max_length=200,
+        description="The identifier exactly as the provider states it; looked up, never stored as a link.",
+    )
 
 
 class PayoutLineRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    line_id: str = Field(min_length=1, max_length=200)
-    kind: Literal["charge", "refund", "chargeback", "fee"]
-    amount: StrictStr | StrictInt
-    references: list[PayoutReferenceRequest] = Field(default_factory=list, max_length=10)
-    reason: str = Field(default="", max_length=4000)
+    line_id: str = Field(
+        min_length=1,
+        max_length=200,
+        description="The provider's own identity of the line, unique within the statement.",
+    )
+    kind: Literal["charge", "refund", "chargeback", "fee"] = Field(
+        description="A charge the provider collected, a refund or chargeback it paid back, or a fee it kept."
+    )
+    amount: StrictStr | StrictInt = Field(
+        description="The positive amount the line states; its kind gives the sign."
+    )
+    references: list[PayoutReferenceRequest] = Field(
+        default_factory=list,
+        max_length=10,
+        description="The order, invoice or shipment the line names; a fee may name none.",
+    )
+    reason: str = Field(
+        default="",
+        max_length=4000,
+        description="The provider's stated reason, kept on a chargeback.",
+    )
 
 
 class PayoutSettleRequest(BaseModel):
     # No finance revision: a statement settles under the finance lock, and every
     # line is resolved again there (spec 336).
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    provider_party_id: str = Field(min_length=1)
-    payout_reference: str = Field(min_length=1, max_length=200)
-    paid_on: str
-    currency: str = Field(pattern=r"^[A-Z]{3}$")
-    amount: StrictStr | StrictInt
-    clearing_account_id: str = Field(min_length=1)
-    bank_account_id: str | None = Field(default=None, min_length=1)
-    lines: list[PayoutLineRequest] = Field(min_length=1, max_length=2000)
+    provider_party_id: str = Field(
+        min_length=1, description="The marketplace, provider or carrier Party that paid."
+    )
+    payout_reference: str = Field(
+        min_length=1,
+        max_length=200,
+        description="The provider's payout identity; settling the same statement again books only unbooked lines.",
+    )
+    paid_on: str = Field(description="Calendar date the payout reached the bank.")
+    currency: str = Field(pattern=r"^[A-Z]{3}$", description="Currency of the payout and its lines.")
+    amount: StrictStr | StrictInt = Field(
+        description="The net payout the provider states; the lines must add up to it."
+    )
+    clearing_account_id: str = Field(
+        min_length=1,
+        description="The active cash account that holds the provider's balance, apart from the bank.",
+    )
+    bank_account_id: str | None = Field(
+        default=None,
+        min_length=1,
+        description="The cash account the payout reached; the cash default when omitted.",
+    )
+    lines: list[PayoutLineRequest] = Field(
+        min_length=1,
+        max_length=2000,
+        description="Every line of the payout statement as the provider states it.",
+    )
 
 
 class AuthorizationRecordRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    order_document_id: str = Field(min_length=1)
-    amount: StrictStr | StrictInt
-    currency: str = Field(pattern=r"^[A-Z]{3}$")
-    authorized_at: str
-    expires_at: str
-    reference: str = Field(min_length=1, max_length=200)
+    order_document_id: str = Field(
+        min_length=1, description="Opaque same-tenant identity of the authorized sales order."
+    )
+    amount: StrictStr | StrictInt = Field(description="The amount the provider authorized.")
+    currency: str = Field(pattern=r"^[A-Z]{3}$", description="The order's currency.")
+    authorized_at: str = Field(description="When the provider authorized, as an ISO date-time.")
+    valid_until: str = Field(
+        description="When the authorization lapses as the provider states it, as an ISO date-time."
+    )
+    reference: str = Field(
+        min_length=1,
+        max_length=200,
+        description="The provider's authorization identity, once per order.",
+    )
 
 
 class CaptureRecordRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    authorization_id: str = Field(min_length=1)
-    amount: StrictStr | StrictInt
-    captured_at: str
-    reference: str = Field(default="", max_length=200)
+    authorization_id: str = Field(
+        min_length=1, description="Opaque same-tenant identity of the recorded authorization."
+    )
+    amount: StrictStr | StrictInt = Field(
+        description="The amount captured; never more than is left of the authorization."
+    )
+    captured_at: str = Field(description="When the provider captured, as an ISO date-time.")
+    reference: str = Field(
+        default="", max_length=200, description="The provider's capture identity, as stated."
+    )
 
 
 class CollectionHandoverRequest(AccountRequest):

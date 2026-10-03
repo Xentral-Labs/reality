@@ -56,7 +56,7 @@ def _authorize(session, tenant, order, amount="100", days=7, reference="AUTH-1")
             "amount": amount,
             "currency": "EUR",
             "authorized_at": at.isoformat(),
-            "expires_at": (at + timedelta(days=days)).isoformat(),
+            "valid_until": (at + timedelta(days=days)).isoformat(),
             "reference": reference,
         },
     )
@@ -122,7 +122,7 @@ def test_what_cannot_be_authorized_or_captured_is_refused(session, business):
         "amount": "100",
         "currency": "EUR",
         "authorized_at": "2026-09-01T10:00:00+00:00",
-        "expires_at": "2026-09-08T10:00:00+00:00",
+        "valid_until": "2026-09-08T10:00:00+00:00",
         "reference": "AUTH-9",
     }
     tool = "finance.payment.authorization.record"
@@ -130,7 +130,7 @@ def test_what_cannot_be_authorized_or_captured_is_refused(session, business):
         ({"order_document_id": invoice.id}, "payment_authorization_order_invalid"),
         ({"currency": "USD"}, "payment_authorization_currency_mismatch"),
         (
-            {"expires_at": "2026-09-01T09:00:00+00:00"},
+            {"valid_until": "2026-09-01T09:00:00+00:00"},
             "payment_authorization_expiry_invalid",
         ),
         ({"amount": "0"}, "payment_authorization_amount_invalid"),
@@ -203,7 +203,7 @@ def test_an_expired_authorization_leaves_the_rest_uncovered_until_authorized_aga
             "amount": "40",
             "currency": "EUR",
             "authorized_at": core.now().isoformat(),
-            "expires_at": (core.now() + timedelta(days=7)).isoformat(),
+            "valid_until": (core.now() + timedelta(days=7)).isoformat(),
             "reference": "AUTH-2",
         },
     )
