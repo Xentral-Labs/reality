@@ -24,6 +24,7 @@ from reality.db.core import (
 from reality.domain.stock_scope import movement_at, reservation_at
 from reality.services.core import (
     NotFound,
+    _company_day,
     _financial_open_items,
     _payment_rows,
     active_reserved,
@@ -302,7 +303,9 @@ def _document(session: Session, tenant: str, record_id: str) -> list[Section]:
                 )
             )
         }
-        position = with_invoice_aging(financial, terms, now())[0]
+        position = with_invoice_aging(
+            financial, terms, _company_day(session, tenant, now())
+        )[0]
         sections.insert(
             1,
             _section(

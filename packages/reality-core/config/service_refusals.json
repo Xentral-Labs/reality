@@ -2110,6 +2110,12 @@
     "order_line_item_no_customer_number": {
       "message": "This line quotes no customer item number to remember."
     },
+    "company_time_zone_invalid": {
+      "message": "A company time zone is UTC or a known IANA zone name such as Europe/Berlin."
+    },
+    "company_time_zone_changed_since_review": {
+      "message": "The company time zone changed since this review. Review it again."
+    },
     "company_currency_invalid": {
       "message": "State the company currency as a three-letter code."
     },

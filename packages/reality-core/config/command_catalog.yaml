@@ -6,6 +6,7 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  time_zone: "The company time zone as an IANA name, such as Europe/Berlin, or UTC (spec 349); business days are counted in it."
   reality_finance_v1: Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.
   answers: What a person decided for a cost review draft's open inputs; only the valuation method and the owner party are accepted.
   delivery_guard: Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.
@@ -1197,6 +1198,22 @@ commands:
     reads: [company_currency, ledger_entry]
     writes: []
     effect: Answers the company currency, EUR until stated, and whether the company has posted anything.
+  - name: State the company time zone
+    service: set_company_time_zone
+    related_services: [review_company_time_zone, company_time_zone_state]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [company_time_zone]
+    writes: [company_time_zone, source_record, business_event]
+    effect: States the time zone the company's business days are counted in, as a new version of the company's time-zone statement; days stored on documents stay as stated.
+  - name: Read the company time zone
+    service: company_time_zone_state
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [company_time_zone]
+    writes: []
+    effect: Answers the time zone the company's business days are counted in, UTC until stated, and whether it was stated.
   - name: State supplier item terms
     service: set_supplier_item_terms
     related_services: [review_supplier_item_terms, order_terms_check]
@@ -5443,6 +5460,24 @@ capability_guidance:
     unknown_when: [Never; the default is EUR.]
     next_steps: [State another currency with company_currency_set_propose before the first posting; a person confirms.]
     examples: {use: [{scenario: Check the books are kept in EUR before posting a USD invoice., reason: The read names the company currency.}], do_not_use: [{scenario: Find the rate of a USD invoice., reason: Read the posting; the rate is stated there.}]}
+  company_time_zone:
+    kind: read
+    application_tool: company_time_zone
+    purpose: Show the time zone the company's business days are counted in.
+    use_when: [Someone asks on which day a late-evening order or posting counts, or why a due date passed a day early or late.]
+    do_not_use_when: [The question is when something happened; instants are read in UTC from the record itself.]
+    required_context: [tenant]
+    data_basis: [company_time_zone]
+    limitations: [UTC until stated; analysis reports group by UTC day.]
+    freshness: Read at request time.
+    empty_result: The company time zone is UTC, the default.
+    refusal_behavior: Only the company's own time zone is read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [The zone business days are counted in and whether it was stated.], does_not_prove: [The day any stored document carries; read the document.]}
+    unknown_when: [Never; the default is UTC.]
+    next_steps: [State the company's zone with company_time_zone_set_propose; a person confirms.]
+    examples: {use: [{scenario: An order at 23:30 Berlin time shows on the next day., reason: The read names the zone days are counted in.}], do_not_use: [{scenario: Find when a parcel left., reason: Read the shipment; its instant is recorded there.}]}
   supplier_item_terms:
     kind: read
     application_tool: supplier_item_terms
@@ -5940,6 +5975,8 @@ agent_command_coverage:
   put_back_outbound_delivery: {classification: eligible, tools: [outbound_delivery_put_back_propose]}
   set_company_currency: {classification: eligible, tools: [company_currency_set_propose]}
   company_currency_state: {classification: eligible, tools: [company_currency]}
+  set_company_time_zone: {classification: eligible, tools: [company_time_zone_set_propose]}
+  company_time_zone_state: {classification: eligible, tools: [company_time_zone]}
   set_supplier_item_terms: {classification: eligible, tools: [supplier_item_terms_set_propose]}
   remove_supplier_item_terms: {classification: eligible, tools: [supplier_item_terms_remove_propose]}
   supplier_item_terms: {classification: eligible, tools: [supplier_item_terms]}

@@ -90,7 +90,7 @@ def record_deposit(
             party.id,
             value,
             currency=currency,
-            document_date=moment.date().isoformat(),
+            document_date=core._company_day(session, tenant_id, moment).isoformat(),
             source_record_id=source.id,
             action_id=action_id,
             _commit=False,

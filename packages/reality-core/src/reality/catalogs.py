@@ -17,6 +17,7 @@ from reality.config import config_text
 from reality.db.core import ROOT, Base
 from reality.services import artifacts as artifact_service_module
 from reality.services import backorders as backorder_service_module
+from reality.services import company_time_zone as company_time_zone_service_module
 from reality.services import core as service_module
 from reality.services import credit_actions as credit_action_service_module
 from reality.services import credit_exposure as credit_exposure_service_module
@@ -1136,6 +1137,7 @@ def _service(name: str) -> Any:
         kit_service_module,
         party_merge_service_module,
         company_currency_service_module,
+        company_time_zone_service_module,
         delivery_failure_service_module,
         drop_shipping_service_module,
         payout_service_module,
@@ -1357,6 +1359,7 @@ def _literal_business_events() -> set[str]:
         kit_service_module,
         party_merge_service_module,
         company_currency_service_module,
+        company_time_zone_service_module,
         delivery_failure_service_module,
         drop_shipping_service_module,
         receipt_deviation_service_module,

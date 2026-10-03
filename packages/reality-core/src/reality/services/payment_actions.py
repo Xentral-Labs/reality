@@ -25,6 +25,7 @@ from reality.domain.calendar import day_text
 from reality.services.core import (
     InvalidOperation,
     NotFound,
+    _company_day,
     _preview_customer_refund,
     _preview_invoice_payment,
     _tenant_record,
@@ -275,7 +276,8 @@ def _payment_evidence(
             return None
         entries.append(entry)
     if refund and (
-        document.document_date != utc_datetime(entries[0].effective_at).date()
+        document.document_date
+        != _company_day(session, tenant_id, utc_datetime(entries[0].effective_at))
         or utc_datetime(entries[0].effective_at)
         != utc_datetime(entries[1].effective_at)
         or utc_datetime(entries[0].effective_at)

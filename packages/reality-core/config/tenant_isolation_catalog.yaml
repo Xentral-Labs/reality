@@ -481,6 +481,8 @@ families:
       - tool:party_merges
       - tool:company_currency_set
       - tool:company_currency
+      - tool:company_time_zone_set
+      - tool:company_time_zone
       - tool:customer_item_number_remove
       - tool:customer_item_numbers
       - tool:stock_counts

@@ -336,7 +336,9 @@ def credit_exposures(
         return {}
     rows = core.financial_open_items(session, tenant_id, party_ids=set(members))
     for row in core.with_invoice_aging(
-        rows, core._payment_terms_by_id(session, tenant_id), as_of
+        rows,
+        core._payment_terms_by_id(session, tenant_id),
+        core._company_day(session, tenant_id, as_of),
     ):
         document = row["document"]
         party = members.get(document.party_id)
