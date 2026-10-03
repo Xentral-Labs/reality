@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:5a0049703905a8df3c40f26399b51f4e45b6b47ee6fc2919016c2c6e9f037c24",
+  "knowledge_version": "advisor-v1:sha256:3b5df44e62f5826ad5c8e4d450d88ea5decd6366dfe7b827a5e723840f7a30b2",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "1ee3a5e73c7fb82b42047b8243b039d8c6169c1c40239dd2346140e7ccaec642"
+      "fingerprint": "01359eb4787421267cc14f3bcdac55a9fa9dcd317d690fb944f2504c724808cd"
     },
     {
       "id": "source_document_product_evaluation",
@@ -6166,6 +6166,36 @@
       ],
       "language": "en",
       "fingerprint": "4739eddecf5f68450ecf459fd50045d19cda68bf41769a9888efc2658ef78d8c"
+    },
+    {
+      "id": "evidence_command_grant_review_mandate",
+      "source_id": "source_executable_commands",
+      "subject": "Grant finite agent review mandate",
+      "title": "Grant finite agent review mandate",
+      "search_text": "grant_review_mandate Grant finite agent review mandate Retain exact finite source/profile/effect delegation and expiry under a real owner decision; accept no business source. mutation",
+      "claim_text": "grant_review_mandate is a governed mutation command for Retain exact finite source/profile/effect delegation and expiry under a real owner decision; accept no business source..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "grant_review_mandate"
+      ],
+      "language": "en",
+      "fingerprint": "a035af447da6dc574140a069f47dffab214d5f58098a3d5acd9e5298a392a36f"
+    },
+    {
+      "id": "evidence_command_revoke_review_mandate",
+      "source_id": "source_executable_commands",
+      "subject": "Revoke agent review mandate",
+      "title": "Revoke agent review mandate",
+      "search_text": "revoke_review_mandate Revoke agent review mandate End current delegated review authority while preserving historical decisions and receipts. mutation",
+      "claim_text": "revoke_review_mandate is a governed mutation command for End current delegated review authority while preserving historical decisions and receipts..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "revoke_review_mandate"
+      ],
+      "language": "en",
+      "fingerprint": "3106f546a2dd6342563c0a5066b2a541dabf297e08d22fd2ef8dcce657fc12ab"
     },
     {
       "id": "evidence_command_prepare_intake",

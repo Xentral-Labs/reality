@@ -30,3 +30,34 @@ Pending: AgentMandates and structured external verdicts; Web/CLI selection and
 stop/recovery flows; financial independence; real competing claims/crashes and
 three-run query/time/memory measurements including 5,000 items. Full repository
 and PR gates must pass before this checkpoint is described as verified globally.
+
+## Named-agent single-unit mandate slice
+
+A separate, confirmed current-owner proposal grants finite authority to one actual
+manual MCP token. Its retained mandate binds source system/capabilities, closed
+profiles/effects, rows, UTC-day units, source-stated per-unit/daily amounts and
+currency, expiry and revision. Review fetch and settlement refresh the token,
+issuer, owner membership, source and capability activation under database locks.
+Built-in Chat and missing/foreign authenticated agents cannot use that authority.
+
+Original payload/artifact bytes are available in fixed 64 KiB pages outside the
+worker. Evidence binds exact plan/source hashes, every original byte range and
+original row/line references, six deterministic checks and a bounded verdict and
+reasons. Coverage claims do not establish cognitive understanding. Uncertainty
+retains review evidence without accepted effects. Accepted receipts name the
+actual token and mandate revision and do not fabricate human approval.
+
+Observed PostgreSQL checks:
+
+- 66 tests passed in 38.15 seconds across initial mandate/tenant refusals and
+  executable application/tenant catalogs.
+- 23 final targeted mandate and migration tests passed in 7.02 seconds, including
+  confirmed revocation, expiry, token revocation, issuer deactivation, owner
+  demotion, currency and amount limits, effect scope, free exact replay, original
+  byte reconstruction and refusal to erase retained mandate history.
+- Ruff passes. The complete repository backend suite is running; no full-suite
+  success is asserted by this checkpoint.
+
+Pending for this feature: queued delegated bulk with per-child retained verdicts
+and execution-time mandate/quota checks, concurrent quota proof, full bulk
+Web/CLI controls and comparative volume measurements.

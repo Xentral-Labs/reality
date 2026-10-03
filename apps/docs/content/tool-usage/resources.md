@@ -21,7 +21,7 @@ the technical key stands beside each one.
 | [Ledger and accounts](#resource-accounting)                      | 2     | 16      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
-| [Document and source system](#resource-source)                   | 3     | 16      | 2                   |
+| [Document and source system](#resource-source)                   | 3     | 18      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 5       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
@@ -918,6 +918,9 @@ Nachweis, Quelle
 **Actions**
 
 - [Prepare selected intake batch](./commands#command-prepare_batch) (`prepare_batch`)
+- [Grant finite agent review mandate](./commands#command-grant_review_mandate)
+  (`grant_review_mandate`)
+- [Revoke agent review mandate](./commands#command-revoke_review_mandate) (`revoke_review_mandate`)
 - [Prepare source interpretation](./commands#command-prepare_intake) (`prepare_intake`)
 - [Accept reviewed source interpretation](./commands#command-apply_prepared_intake)
   (`apply_prepared_intake`)
@@ -967,8 +970,9 @@ Nachweis, Quelle
 
 **Appears in processes:** [Master data and sources](./processes#process-master_data)
 
-**Underneath:** Tables: `source_system`, `source_capability`, `document`, `document_line`, `fact` ·
-Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
+**Underneath:** Tables: `source_system`, `source_capability`, `intake_review_mandate`, `document`,
+`document_line`, `fact` · Events:
+[`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
 [`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
 [`source_record.stored`](./events#event-source_record-stored),

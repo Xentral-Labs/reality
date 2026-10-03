@@ -15,7 +15,7 @@ from reality.services.projections import OPERATIONAL_PROJECTIONS
 def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
-    assert catalog["command_count"] == 194
+    assert catalog["command_count"] == 196
     assert catalog["event_count"] == 100
     assert catalog["projection_count"] == len(OPERATIONAL_PROJECTIONS) == 13
     assert catalog["fact_predicate_count"] == 7
@@ -477,17 +477,17 @@ def test_tenant_operation_discovery_detects_registry_drift():
 def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
-    assert len(catalog.families) == 39
+    assert len(catalog.families) == 40
     assert {"business_logic_generic", "business_logic_case_comparison"} <= {
         family["key"] for family in catalog.families
     }
-    assert len(catalog.discovered_operations) == 693
+    assert len(catalog.discovered_operations) == 702
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 693
+    assert sum(len(family["operations"]) for family in catalog.families) == 702
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

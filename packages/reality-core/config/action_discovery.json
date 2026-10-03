@@ -316,7 +316,9 @@
     "apply_prepared_intake": "intake",
     "prepare_batch": "intake",
     "review_batch": "intake",
-    "batch_status": "intake"
+    "batch_status": "intake",
+    "grant_review_mandate": "intake",
+    "revoke_review_mandate": "intake"
   },
   "entries": [
     {

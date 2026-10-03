@@ -25,7 +25,7 @@ sections:
     tables: [cost_attribution_part, cost_attribution_revision, cost_component_basis, cost_component_replacement, cost_correction_basis, cost_input_manifest, cost_manifest_attribution, cost_manifest_component, cost_manifest_correction, cost_manifest_receipt, cost_manifest_replacement, cost_receipt_basis, cost_scope_review, cost_scope_review_category]
   - name: Foundation
     description: Tenant boundary and immutable upstream evidence.
-    tables: [tenant, source_system, source_capability, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
+    tables: [tenant, source_system, source_capability, intake_review_mandate, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
   - name: Master Data
     description: Operational identities and settings needed for joins and decisions.
     tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, delivery_rule, customer_item_number, supplier_item_number, supplier_item_terms, payment_term, item, kit_component, location, item_reorder_point, stock_count, stock_count_line, external_stock_statement, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
@@ -574,6 +574,18 @@ tables:
       is_active: {description: Whether this declared source/target combination is currently enabled.}
       created_at: {}
       updated_at: {}
+  intake_review_mandate:
+    description: Exact owner-issued finite review delegation to a named MCP agent; the grant decision supplies the responsible owner.
+    columns:
+      id: {description: Opaque mandate identity.}
+      tenant_id: {}
+      grant_decision_id: {description: Same-tenant actual granting owner decision.}
+      agent_token_id: {description: Same-tenant named owner-issued MCP token; token possession alone does not grant review authority.}
+      scope: {description: Strict finite source/capability/profile/effect scope and row, daily unit and received-amount limits.}
+      revision: {description: Immutable authorization version captured in each agent decision; revocation advances the version.}
+      expires_at: {description: Explicit UTC delegation expiry.}
+      revoked_at: {description: UTC revocation instant; earlier receipts remain unchanged.}
+      created_at: {}
   source_record:
     description: Immutable version of a payload received from an external system.
     columns:

@@ -2532,3 +2532,11 @@ Automatic file-adapter cutover remains open until spec 356.
 ## Explicit source-review recovery — Spec 351 FR-006a
 
 - `packages/reality-core/tests/test_intake_review_recovery.py`: phase-local no-effect preparation/application failures, propagated infrastructure failure, immutable renewed plans, stale old approval, exact request replay after completion and foreign-company refusal.
+
+## Named-agent intake mandates — Spec 355
+
+`intake_review_mandate` holds tenant-scoped finite delegation linked to the actual owner grant decision and named MCP token; it adds no commercial or operational state.
+
+- `packages/reality-core/tests/test_intake_agent_review.py`: confirmed owner grant, actual named-token attribution, exact plan/source hashes, complete original-byte references and bounded source pages, uncertainty escalation, distinct-unit quotas and free exact replay; current expiry, mandate revision, revocation, issuer and source/capability activation; foreign-company refusals.
+- `packages/reality-core/tests/test_intake_review_mandates_migration.py`: additive upgrade, empty compatible downgrade and refusal to erase retained delegation history.
+- These tests cover the initial single-unit mandate slice. Queued delegated bulk, concurrent quotas, full adapter cutover and volume measurements remain pending.

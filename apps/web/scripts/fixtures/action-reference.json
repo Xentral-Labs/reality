@@ -22,6 +22,20 @@
       "effect": "Explain applied, replayed, refused and stopped units separately through bounded pagination."
     },
     {
+      "name": "Grant finite agent review mandate",
+      "service": "grant_review_mandate",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Retain exact finite source/profile/effect delegation and expiry under a real owner decision; accept no business source."
+    },
+    {
+      "name": "Revoke agent review mandate",
+      "service": "revoke_review_mandate",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "End current delegated review authority while preserving historical decisions and receipts."
+    },
+    {
       "name": "Prepare source interpretation",
       "service": "prepare_intake",
       "related_services": [
@@ -39,7 +53,11 @@
     {
       "name": "Review source interpretation",
       "service": "review_intake",
-      "related_services": ["reviewed_item_file_detail"],
+      "related_services": [
+        "agent_review_source_page",
+        "agent_review_material",
+        "reviewed_item_file_detail"
+      ],
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "effect": "Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it."
@@ -48,6 +66,7 @@
       "name": "Accept reviewed source interpretation",
       "service": "apply_prepared_intake",
       "related_services": [
+        "submit_agent_review",
         "reject_prepared_intake",
         "approve_batch",
         "settle_chunk",

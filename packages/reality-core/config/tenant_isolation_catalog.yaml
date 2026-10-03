@@ -11,6 +11,11 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.intake_review:grant_review_mandate
+  - reality.services.intake_review:revoke_review_mandate
+  - reality.services.intake_review:agent_review_material
+  - reality.services.intake_review:agent_review_source_page
+  - reality.services.intake_review:submit_agent_review
   - reality.services.intake_batches:prepare_batch
   - reality.services.intake_batches:review_batch
   - reality.services.intake_batches:batch_status
@@ -64,6 +69,37 @@ explicit_operations:
   - reality.services.playground:confirm_step
   - reality.services.playground:reject_step
 families:
+  - key: intake_agent_review
+    description: Named agents review only inside the owner-mandated company.
+    classification: boundary
+    reason: Actual authenticated token, owner decision and all proposal/source references bind the same tenant.
+    authority: 355/FR-007
+    operations:
+      - reality.services.intake_review:grant_review_mandate
+      - reality.services.intake_review:revoke_review_mandate
+      - reality.services.intake_review:agent_review_material
+      - reality.services.intake_review:agent_review_source_page
+      - reality.services.intake_review:submit_agent_review
+      - tool:intake_mandate_grant
+      - tool:intake_mandate_revoke
+      - tool:intake_agent_review_material
+      - tool:intake_agent_review_source_page
+    evidence:
+      - id: tests/test_intake_agent_review.py::test_foreign_company_cannot_use_agent_mandates
+        assertion: boundary
+        operations:
+          - reality.services.intake_review:agent_review_material
+          - reality.services.intake_review:agent_review_source_page
+          - reality.services.intake_review:submit_agent_review
+          - tool:intake_agent_review_material
+          - tool:intake_agent_review_source_page
+      - id: tests/test_intake_agent_review.py::test_foreign_company_cannot_grant_or_revoke_mandates
+        assertion: boundary
+        operations:
+          - reality.services.intake_review:grant_review_mandate
+          - reality.services.intake_review:revoke_review_mandate
+          - tool:intake_mandate_grant
+          - tool:intake_mandate_revoke
   - key: reviewed_item_file
     description: Uploaded item bytes and package selection remain inside the owning company.
     classification: boundary

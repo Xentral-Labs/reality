@@ -61,3 +61,18 @@ and prepared-plan digests, the fixed list of source/line references reviewed,
 deterministic check codes/results and a structured approve/reject/uncertain verdict.
 The server checks binding and required coverage, not whether a model cognitively
 understood the source; token attribution is not proof of independent human review.
+
+### Implemented mandate storage and raw review coverage
+
+Revision 0141 follows 0140. Mandate JSON is a strict closed finite scope; no token
+permission list, source field, model output or actor argument creates authority.
+The token's issuer must equal the actual owner who granted the mandate, and remain
+an active owner with an active account. Composite grant/token FKs preserve tenant
+binding. Revocation advances revision; prior receipts remain unchanged. Downgrade
+refuses when delegation history exists.
+
+Coverage references bind complete 64 KiB original payload/artifact byte ranges,
+SHA-256 hashes and relevant original row/line positions. They are declaration and
+binding evidence, never a cognitive-understanding claim. Source pages are read
+adapters outside workers. Uncertain verdicts remain pending with bounded retained
+evidence; accepted/rejected receipts retain exact agent evidence and actual token.
