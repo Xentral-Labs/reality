@@ -11115,8 +11115,16 @@ def _ledger_group_entries(
 def _ledger_reversal_for_group(
     session: OrmSession, tenant_id: str, posting_group_id: str
 ) -> tuple[LedgerReversal | None, str]:
+    """
+    BUSINESS PURPOSE:
+    Read the recorded reversal classification of a posting group.
+
+    BUSINESS RULE core.ledger_reversal.route:
+    When no batch read scope is active, call _ledger_reversal_read for the current company and opaque record identity. Within a batch, reuse the transaction's retained classification or control entry; the called reader defines selection and refusal rules.
+    """
     memo = _batch_memo(session)
     if memo is None:
+        # reality-rule: core.ledger_reversal.route
         return _ledger_reversal_read(session, tenant_id, posting_group_id)
     # A reversal recorded during the batch is entered where it is made (spec 342).
     key = ("reversal", tenant_id, posting_group_id)
@@ -13631,8 +13639,16 @@ SETTLEMENT_CONTROL = {
 def _settlement_control_entry(
     session: OrmSession, tenant_id: str, invoice_id: str
 ) -> LedgerEntry:
+    """
+    BUSINESS PURPOSE:
+    Read the posted control entry needed to settle a document.
+
+    BUSINESS RULE core.settlement_control.route:
+    When no batch read scope is active, call _settlement_control_entry_read for the current company and opaque record identity. Within a batch, reuse the transaction's retained classification or control entry; the called reader defines selection and refusal rules.
+    """
     memo = _batch_memo(session)
     if memo is None:
+        # reality-rule: core.settlement_control.route
         return _settlement_control_entry_read(session, tenant_id, invoice_id)
     # A posted document's control entry never changes (spec 342).
     key = ("control", tenant_id, invoice_id)
