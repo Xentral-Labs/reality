@@ -22,8 +22,11 @@ test("the CI browser suite lists existing fixture scripts once, in order", () =>
 test("duration-weighted shards contain every script once and stay balanced", () => {
   const shards = distributeByDuration(suite.scripts, suite.estimated_seconds, 7);
   assert.deepEqual(shards.flatMap((shard) => shard.scripts).sort(), suite.scripts);
-  // The additional ten-second fee proof adds at most two seconds per seven-way shard.
-  assert.ok(Math.max(...shards.map((shard) => shard.seconds)) <= 332, JSON.stringify(shards));
+  const mean = shards.reduce((sum, shard) => sum + shard.seconds, 0) / shards.length;
+  assert.ok(
+    Math.max(...shards.map((shard) => shard.seconds)) <= Math.ceil(mean) + 2,
+    JSON.stringify(shards),
+  );
 });
 
 test("shard selection rejects malformed and out-of-range values", () => {

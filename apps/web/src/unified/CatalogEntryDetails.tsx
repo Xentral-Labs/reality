@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { LiveBusinessBlueprint } from "./LiveBusinessBlueprint";
 import { CatalogCodeDialog } from "./CatalogCodeDialog";
 import type {
   CatalogCommand,
@@ -41,6 +42,7 @@ export function CatalogEntryDetails({
   projection,
   usedBy = [],
   actions,
+  showLiveLogic = true,
 }: {
   tenant: string;
   kind: "projection" | "view" | "action" | "command";
@@ -50,6 +52,7 @@ export function CatalogEntryDetails({
   projection?: ProjectionDefinition;
   usedBy?: string[];
   actions: ReactNode;
+  showLiveLogic?: boolean;
 }) {
   const [codeOpen, setCodeOpen] = useState(false);
   const p = kind === "projection" ? (entry as ProjectionDefinition) : projection;
@@ -118,6 +121,7 @@ export function CatalogEntryDetails({
       <div className="flex flex-wrap items-center gap-2" data-catalog-actions>
         {actions}
       </div>
+      {showLiveLogic && <LiveBusinessBlueprint tenant={tenant} kind={kind} entryKey={entryKey} />}
       <div className="space-y-3 border-t border-border-default pt-4" data-catalog-secondary>
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-medium uppercase tracking-wide text-fg-muted">

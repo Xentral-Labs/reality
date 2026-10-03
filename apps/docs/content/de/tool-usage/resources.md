@@ -172,7 +172,7 @@ Verfügbarkeit, Set, Stückliste
 - [Inventuren anzeigen](./commands#command-stock_counts) (`stock_counts`)
 - [Inventur anzeigen](./commands#command-stock_count_detail) (`stock_count_detail`)
 - [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
-- [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
+- [Meldebestände anzeigen](./commands#command-reorder_points) (`reorder_points`)
 
 **Klärfälle**
 
@@ -336,7 +336,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)
 - [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Lieferregel anzeigen](./commands#command-delivery_rules) (`delivery_rules`)
-- [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
+- [Meldebestände anzeigen](./commands#command-reorder_points) (`reorder_points`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
   (`month_end_billing`)
@@ -969,7 +969,8 @@ Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping
 [`document.recorded`](./events#event-document-recorded),
 [`document.corrected`](./events#event-document-corrected),
 [`document_line.item_assigned`](./events#event-document_line-item_assigned) · Agenten-Tools ohne
-Geschäftsaktion: [`interpretation_coverage`](./commands#tool-interpretation_coverage)
+Geschäftsaktion: [`interpretation_coverage`](./commands#tool-interpretation_coverage),
+[`business_logic_source`](./commands#tool-business_logic_source)
 
 ## Unternehmen und Benutzer {#resource-company}
 
@@ -1044,4 +1045,8 @@ Freigabe, Abweichung, Klärfall, Timeline, Verlauf
 [`reality_gap_implementation_prepare_propose`](./commands#tool-reality_gap_implementation_prepare_propose),
 [`reality_gap_rule_activate_propose`](./commands#tool-reality_gap_rule_activate_propose),
 [`reality_gap_rule_disable_propose`](./commands#tool-reality_gap_rule_disable_propose),
-[`reality_gap_rule_replay_propose`](./commands#tool-reality_gap_rule_replay_propose)
+[`reality_gap_rule_replay_propose`](./commands#tool-reality_gap_rule_replay_propose),
+[`business_logic_discover`](./commands#tool-business_logic_discover),
+[`business_logic_explain`](./commands#tool-business_logic_explain),
+[`business_logic_source`](./commands#tool-business_logic_source),
+[`business_logic_compare`](./commands#tool-business_logic_compare)

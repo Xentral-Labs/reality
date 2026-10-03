@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:90b8fadb9324e8fa89222f998ceaa3a721611cabf3a87e27492914f6c8fc5e51",
+  "knowledge_version": "advisor-v1:sha256:cb4ee570c0609d76a3173ce3912885234b1b70a297b394c3b69060e8d0b24da4",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -3537,9 +3537,7 @@
         "exceptions"
       ],
       "evidence_ids": [
-        "evidence_document_tool_usage_1",
-        "evidence_document_tool_usage_2",
-        "evidence_document_tool_usage_3"
+        "evidence_document_tool_usage_1"
       ],
       "tools": []
     }

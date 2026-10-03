@@ -2603,7 +2603,35 @@ from reality.tools.business_journeys import (
     business_journey_vote_set as _business_journey_vote_set,
 )
 
+
+def _business_logic_discover(session, tenant_id, arguments):
+    from reality.domain.business_blueprints import DiscoveryInput
+    from reality.services.business_blueprints import discover
+    return discover(**DiscoveryInput.model_validate(arguments).model_dump())
+
+
+def _business_logic_explain(session, tenant_id, arguments):
+    from reality.services.business_blueprints import explain
+    if set(arguments) - {"kind", "key", "language"}:
+        raise ValueError("Unknown explanation input")
+    return explain(**arguments).model_dump(mode="json")
+
+
+def _business_logic_source(session, tenant_id, arguments):
+    from reality.services.business_blueprints import source_for
+    return source_for(**arguments)
+
+
+def _business_logic_compare(session, tenant_id, arguments):
+    from reality.services.business_blueprints import compare
+    return compare(session, tenant_id, arguments)
+
+
 TOOLS = {
+    "business_logic_discover": Tool("business_logic_discover", "Discover actual registered business logic and live source availability.", False, _business_logic_discover),
+    "business_logic_explain": Tool("business_logic_explain", "Explain actual running business source, decisions and executable test cases.", False, _business_logic_explain),
+    "business_logic_source": Tool("business_logic_source", "Inspect approved source evidence from the running business implementation.", False, _business_logic_source),
+    "business_logic_compare": Tool("business_logic_compare", "Compare supplied or authorized conditions with actual tested cases without executing a mutation.", False, _business_logic_compare),
     "business_journey_guide": Tool(
         "business_journey_guide",
         "Ask what Reality supports and receive cited Business Journey Guide evidence.",

@@ -474,14 +474,15 @@ def test_tenant_operation_discovery_detects_registry_drift():
 def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
-    assert len(catalog.families) == 34
-    assert len(catalog.discovered_operations) == 656
+    assert len(catalog.families) == 36
+    assert {"business_logic_generic", "business_logic_case_comparison"} <= {family["key"] for family in catalog.families}
+    assert len(catalog.discovered_operations) == 660
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 656
+    assert sum(len(family["operations"]) for family in catalog.families) == 660
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

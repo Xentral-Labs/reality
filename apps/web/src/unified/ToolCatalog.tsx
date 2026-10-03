@@ -5,6 +5,7 @@ import { t, currentLanguage } from "../localization";
 import { useActionDiscovery } from "./ActionLauncher";
 import { isActionForm, menuEntries, type DeliveryAction } from "./actionDiscovery";
 import { RegisterToolbar } from "./RegisterWorkbench";
+import { LiveBusinessBlueprint } from "./LiveBusinessBlueprint";
 import { CatalogEntryDetails } from "./CatalogEntryDetails";
 import { ReportExplanation } from "./ReportExplanation";
 import { buildReports, type Report } from "./reportCatalogEntries";
@@ -139,6 +140,12 @@ export function ToolCatalog({
         {!forms.length && !report && (
           <p className="text-xs text-fg-muted">{t("No direct Web action is available here.")}</p>
         )}
+        {row.commands.map((service) => (
+          <LiveBusinessBlueprint key={service} tenant={tenant} kind="command" entryKey={service} />
+        ))}
+        {!row.commands.length && tools.length > 0 && (
+          <LiveBusinessBlueprint tenant={tenant} kind="tool" entryKey={tools[0].name} />
+        )}
         {!!tools.length && (
           <p className="text-xs text-fg-muted">
             {t("MCP support describes available tools, not permission for your connection.")}
@@ -214,6 +221,7 @@ export function ToolCatalog({
                     kind="command"
                     entry={command}
                     actions={null}
+                    showLiveLogic={false}
                   />
                 )
               );

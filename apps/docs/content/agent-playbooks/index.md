@@ -20,7 +20,7 @@ business area, which work must happen, which read tool shows the need, which pro
 the change, what the clerk decides, and how the agent verifies the result without claiming it. How
 the agent itself is built or hosted they do not prescribe; that is your side of the work. The
 technical reference for every tool is the [Tool Usage reference](../tool-usage/commands); the mental
-model is the [agent capabilities chapter](/tool-usage/#choosing-a-tool) and the
+model is the [agent capabilities chapter](/api-tools/agent-guidance#choosing-a-tool) and the
 [Process Owner guide](../concepts/business-reality-guide/04-working-as-process-owner).
 
 ## Playbooks

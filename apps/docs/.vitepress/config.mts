@@ -254,6 +254,10 @@ const sidebar = (locale: LocaleKey) => {
           text: labels.chapters[index],
           link: route(locale, `/concepts/business-reality-guide/${file}`),
         })),
+        {
+          text: locale === "de" ? "Bestand und offene Vorgänge" : "Inventory and open work",
+          link: route(locale, "/concepts/list-evidence"),
+        },
       ],
     },
     {
@@ -297,10 +301,7 @@ const sidebar = (locale: LocaleKey) => {
             },
           ],
         },
-        {
-          text: "Analytics",
-          link: route(locale, "/analytics/"),
-        },
+        { text: "Analytics", link: route(locale, "/analytics/") },
       ],
     },
     {
@@ -309,6 +310,13 @@ const sidebar = (locale: LocaleKey) => {
       items: [
         { text: labels.connectMcp, link: route(locale, "/api-tools/connect-mcp") },
         { text: labels.apiTools, link: route(locale, "/api-tools/") },
+        {
+          text:
+            locale === "de"
+              ? "Tools auswählen und Ergebnisse prüfen"
+              : "Select tools and verify results",
+          link: route(locale, "/api-tools/agent-guidance"),
+        },
         { text: labels.installOptions, link: route(locale, "/operations/") },
         { text: labels.oneLineSetup, link: route(locale, "/operations/installation") },
         { text: labels.dockerCompose, link: route(locale, "/operations/docker-compose") },
@@ -546,6 +554,7 @@ export default defineConfig({
     }
   },
   themeConfig: {
+    businessLogicUrl: normalizedUrl(process.env.BUSINESS_LOGIC_API_URL, apiUrl),
     productUrl: `${appUrl}/app`,
     websiteUrl: siteUrl,
     logo: "/reality-mark.svg",

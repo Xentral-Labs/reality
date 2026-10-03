@@ -34,7 +34,7 @@ Lesezugriffe laufen sofort. Eine Mutation erzeugt zunächst einen Vorschlag und 
 Geschäftszustand erst nach ausdrücklicher menschlicher Freigabe. Danach sollte der Agent das
 Ergebnis über die vorgesehene Projection oder Statusabfrage verifizieren.
 
-Die [Agentenfunktionen](/de/tool-usage/#choosing-a-tool) erklären Auswahl und Verifikation. Die
+Die [Agentenfunktionen](/de/api-tools/agent-guidance#choosing-a-tool) erklären Auswahl und Verifikation. Die
 generierte [Tool-Referenz](../tool-usage/commands) enthält aktuelle Namen und Parameter.
 
 ## Voraussetzungen

@@ -4243,6 +4243,24 @@ def specialized_projection_view(
     )
 
 
+@router.get("/business-logic/{kind}/{key}")
+def get_business_logic(tenant_id: str, kind: str, key: str, language: str = "en", brief: bool = False):
+    from reality.services.business_blueprints import explain
+    try:
+        return explain(kind, key, language=language, brief=brief).model_dump(mode="json")
+    except ValueError:
+        raise HTTPException(404, "Business entry not found.") from None
+
+
+@router.post("/business-logic/compare")
+def compare_business_logic(tenant_id: str, session: DatabaseSession, arguments: dict[str, Any]):
+    from reality.services.business_blueprints import compare
+    try:
+        return compare(session, tenant_id, arguments)
+    except ValueError:
+        raise HTTPException(422, "Invalid business case comparison.") from None
+
+
 @router.get("/catalog-code")
 def get_catalog_code(tenant_id: str, kind: str, key: str):
     from reality.catalogs import catalog_code

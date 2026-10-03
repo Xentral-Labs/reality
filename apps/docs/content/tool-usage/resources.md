@@ -954,7 +954,8 @@ Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping
 [`document.recorded`](./events#event-document-recorded),
 [`document.corrected`](./events#event-document-corrected),
 [`document_line.item_assigned`](./events#event-document_line-item_assigned) · Agent tools without a
-command: [`interpretation_coverage`](./commands#tool-interpretation_coverage)
+command: [`interpretation_coverage`](./commands#tool-interpretation_coverage),
+[`business_logic_source`](./commands#tool-business_logic_source)
 
 ## Company and users {#resource-company}
 
@@ -1027,4 +1028,8 @@ Abweichung, Klärfall, Timeline, Verlauf
 [`reality_gap_implementation_prepare_propose`](./commands#tool-reality_gap_implementation_prepare_propose),
 [`reality_gap_rule_activate_propose`](./commands#tool-reality_gap_rule_activate_propose),
 [`reality_gap_rule_disable_propose`](./commands#tool-reality_gap_rule_disable_propose),
-[`reality_gap_rule_replay_propose`](./commands#tool-reality_gap_rule_replay_propose)
+[`reality_gap_rule_replay_propose`](./commands#tool-reality_gap_rule_replay_propose),
+[`business_logic_discover`](./commands#tool-business_logic_discover),
+[`business_logic_explain`](./commands#tool-business_logic_explain),
+[`business_logic_source`](./commands#tool-business_logic_source),
+[`business_logic_compare`](./commands#tool-business_logic_compare)

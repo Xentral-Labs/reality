@@ -27,7 +27,7 @@ Vorschlagswerkzeug die Änderung vorbereitet, was der Sachbearbeiter entscheidet
 das Ergebnis prüft, ohne es zu behaupten. Wie der Agent selbst gebaut oder gehostet wird, legen sie
 nicht fest; das ist deine Seite der Arbeit. Die technische Referenz jedes Werkzeugs ist die
 [Tool-Referenz](../tool-usage/commands); das Denkmodell steht im Kapitel
-[Agentenfähigkeiten](/de/tool-usage/#choosing-a-tool) und im Guide
+[Agentenfähigkeiten](/de/api-tools/agent-guidance#choosing-a-tool) und im Guide
 [Als Prozessverantwortliche/r arbeiten](../concepts/business-reality-guide/04-working-as-process-owner).
 
 ## Playbooks

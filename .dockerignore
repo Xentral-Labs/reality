@@ -15,3 +15,20 @@ apps/docs/node_modules
 apps/docs/.vitepress/cache
 apps/docs/.vitepress/dist
 *.pyc
+
+# Spec 343: raw approved test evidence, no generated descriptions.
+!packages/reality-core/tests/
+packages/reality-core/tests/**
+!packages/reality-core/tests/test_credit_exposure.py
+!packages/reality-core/tests/test_credit_hold.py
+!packages/reality-core/tests/test_credit_hold_adapters.py
+!packages/reality-core/tests/test_fulfillment_readiness.py
+!packages/reality-core/tests/test_proposal_decision_policy.py
+!packages/reality-core/tests/test_down_payments.py
+!packages/reality-core/tests/test_stock_blocks.py
+!packages/reality-core/tests/test_movement_corrections.py
+!packages/reality-core/tests/finance/
+!packages/reality-core/tests/finance/test_available_credits.py
+!packages/reality-core/tests/finance/
+!packages/reality-core/tests/finance/test_settlement_flows.py
+!packages/reality-core/tests/conftest.py

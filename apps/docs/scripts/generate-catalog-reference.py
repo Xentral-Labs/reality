@@ -653,6 +653,7 @@ def build_model() -> dict[str, Any]:
 
 
 LABEL_SECTIONS = {
+    "tool": "tools",
     "command": "commands",
     "view": "views",
     "projection": "projections",
@@ -670,6 +671,9 @@ def attach_resources(
     for entry in entries:
         section = LABEL_SECTIONS.get(entry["kind"])
         entry["label_de"] = german.get(section, {}).get(entry["key"], entry["label"]) if section else entry["label"]
+        translated_summary = catalog.get("descriptions", {}).get("de", {}).get(section, {}).get(entry["key"]) if section else None
+        if translated_summary:
+            entry["summary_de"] = translated_summary
 
     generic = set(catalog.get("generic_tables", []))
     definitions = catalog["resources"]
@@ -1246,7 +1250,7 @@ class Renderer:
 
     def command_block(self, entry: dict[str, Any], level: int) -> list[str]:
         t = self.t
-        lines = [self.heading(level, entry), "", entry["summary"], ""]
+        lines = [self.heading(level, entry), "", (entry.get("summary_de", entry["summary"]) if self.de else entry["summary"]), ""]
         if entry["synopses"]:
             lines += [f"**{t['synopsis']}**", "", "```text", *entry["synopses"], "```", ""]
         reach = f"**{t['reach']}:** " + " · ".join(entry["adapters"]) if entry["adapters"] else ""
@@ -1268,7 +1272,7 @@ class Renderer:
 
     def tool_block(self, entry: dict[str, Any], level: int) -> list[str]:
         t = self.t
-        lines = [self.heading(level, entry), "", entry["summary"], ""]
+        lines = [self.heading(level, entry), "", (entry.get("summary_de", entry["summary"]) if self.de else entry["summary"]), ""]
         lines += [f"**{t['synopsis']}**", "", "```text", entry["synopsis"], "```", ""]
         lines += [f"**{t['access']}:** `{entry['access']}`", ""]
         lines += self.read_mode_lines(entry)
@@ -1408,7 +1412,7 @@ class Renderer:
             "",
         ]
         for entry in entries:
-            lines += [self.heading(2, entry), "", entry["summary"], ""]
+            lines += [self.heading(2, entry), "", (entry.get("summary_de", entry["summary"]) if self.de else entry["summary"]), ""]
             lines += [
                 f"- **{t['owner']}:** {entry['owner']}",
                 f"- **{t['clears_through']}:** {entry['clears_through']}",
@@ -1490,13 +1494,13 @@ class Renderer:
         target.mkdir(parents=True, exist_ok=True)
         stories = CONTENT / (f"{self.locale}/" if self.locale else "") / "storylines"
         stories.mkdir(parents=True, exist_ok=True)
-        (stories / "index.md").write_text(self.storylines_page() + "\n")
-        (target / "resources.md").write_text(self.resources_page() + "\n")
-        (target / "processes.md").write_text(self.processes_page() + "\n")
-        (target / "commands.md").write_text(self.commands_page() + "\n")
-        (target / "views.md").write_text(self.views_page() + "\n")
-        (target / "exceptions.md").write_text(self.exceptions_page() + "\n")
-        (target / "events.md").write_text(self.events_page() + "\n")
+        (stories / "index.md").write_text(self.storylines_page().rstrip() + "\n")
+        (target / "resources.md").write_text(self.resources_page().rstrip() + "\n")
+        (target / "processes.md").write_text(self.processes_page().rstrip() + "\n")
+        (target / "commands.md").write_text(self.commands_page().rstrip() + "\n")
+        (target / "views.md").write_text(self.views_page().rstrip() + "\n")
+        (target / "exceptions.md").write_text(self.exceptions_page().rstrip() + "\n")
+        (target / "events.md").write_text(self.events_page().rstrip() + "\n")
 
 
 def storyline_models() -> list[dict[str, Any]]:

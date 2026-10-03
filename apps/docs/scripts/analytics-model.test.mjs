@@ -40,10 +40,10 @@ test("analytics explorer is a sibling tab with stable links and both guide entri
   assert.doesNotMatch(component, /fetch\(|v-html/);
 });
 
-test("explorer uses English names while preserving localized explanatory text", () => {
+test("business resources use localized names while technical vocabulary remains exact", () => {
   const parent = read(".vitepress/theme/components/ToolUsage.vue");
-  assert.match(parent, /const name = .*e\?\.label/u);
-  assert.match(parent, /canonical\(r.label\)/u);
+  assert.match(parent, /e\?\.label \|\| ""/u);
+  assert.match(parent, /loc\(r.label\)/u);
   assert.match(parent, /loc\(r.subtitle\)/u);
   assert.match(parent, /canonical\(step.title\)/u);
   assert.match(parent, /e.label_de \|\|/u);

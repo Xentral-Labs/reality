@@ -131,11 +131,13 @@ class FulfillmentReadiness:
 
 
 def _blocker_detail(code: str, result: FulfillmentReadiness) -> str:
+    # reality-rule: fulfillment_readiness._blocker_detail.guard-134
     if code == "prepayment_required":
         return (
             f"{result.required_amount} {result.currency} is required; "
             f"{result.received_amount} {result.currency} is allocated."
         )
+    # reality-rule: fulfillment_readiness._blocker_detail.guard-139
     if code == "prepayment_consolidated_invoice_open":
         return "; ".join(
             f"Consolidated invoice {number} is open by {amount} {result.currency}; "
@@ -154,17 +156,21 @@ def _blocker_detail(code: str, result: FulfillmentReadiness) -> str:
 
 
 def _blocker_links(code: str, result: FulfillmentReadiness) -> list[dict[str, str]]:
+    # reality-rule: fulfillment_readiness._blocker_links.guard-156
     if code == "prepayment_consolidated_invoice_open":
         return [
             {"kind": "invoice", "id": identity}
             for identity, _, _ in result.consolidated_open
         ]
+    # reality-rule: fulfillment_readiness._blocker_links.guard-161
     if code.startswith("prepayment") and result.payment_term_id:
         return [{"kind": "payment_term", "id": result.payment_term_id}]
+    # reality-rule: fulfillment_readiness._blocker_links.guard-163
     if code == "commitment_hold":
         return [
             {"kind": "commitment_hold", "id": row} for row in result.commitment_hold_ids
         ]
+    # reality-rule: fulfillment_readiness._blocker_links.guard-167
     if code == "party_delivery_hold":
         return [{"kind": "party_hold", "id": row} for row in result.party_hold_ids]
     if code == "ship_complete_incomplete" and result.order_id:
@@ -192,6 +198,7 @@ def stock_cover(
     basis = own
     ready = min(reserved_by_location.get(own_location_id or "", ZERO), own)
     for location_id, reserved in reserved_by_location.items():
+        # reality-rule: fulfillment_readiness.stock_cover.guard-192
         if location_id == own_location_id:
             continue
         here = min(reserved, physical_at(location_id))
@@ -238,8 +245,10 @@ def fulfillment_readiness(
             Commitment.id == commitment_id,
         )
     )
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-237
     if commitment is None:
         raise InvalidOperation(code="fulfillment_commitment_not_found")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-239
     if commitment.type != "customer_delivery":
         raise InvalidOperation(
             code="fulfillment_readiness_customer_commitment_required"
@@ -250,6 +259,7 @@ def fulfillment_readiness(
         ZERO,
     )
     checked_quantity = open_quantity if proposed_quantity is None else proposed_quantity
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-249
     if proposed_quantity is not None and (
         checked_quantity <= ZERO or checked_quantity > open_quantity
     ):
@@ -277,6 +287,7 @@ def fulfillment_readiness(
             else ZERO
         )
 
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-276
     if from_location_id:
         # A shipment leaves from one place, and only what is reserved and on
         # hand there can go with it (spec 303).
@@ -306,16 +317,21 @@ def fulfillment_readiness(
     )
     party_hold_ids = (party_hold.id,) if party_hold else ()
     operational_blockers: list[str] = []
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-305
     if commitment_hold_ids:
         operational_blockers.append("commitment_hold")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-307
     if party_hold_ids:
         operational_blockers.append("party_delivery_hold")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-309
     if reserved_quantity < checked_quantity:
         operational_blockers.append("insufficient_reservation")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-311
     if physical_quantity < checked_quantity or (
         reserved_quantity >= checked_quantity > ready_quantity
     ):
         operational_blockers.append("insufficient_stock")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-315
     if not commitment.document_id:
         return FulfillmentReadiness(
             commitment.id,
@@ -342,6 +358,7 @@ def fulfillment_readiness(
             Document.id == commitment.document_id,
         )
     )
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-341
     if order is None or order.type != "sales_order":
         raise InvalidOperation(code="customer_delivery_order_not_found")
     if _delivery_rule:
@@ -364,6 +381,7 @@ def fulfillment_readiness(
         else None
     )
     required = Decimal(order.gross_amount)
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-354
     if term is None or not term.requires_prepayment:
         return FulfillmentReadiness(
             commitment.id,
@@ -446,11 +464,13 @@ def fulfillment_readiness(
                 ),
             )
         ).all()
+        # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-436
         if any(
             (party, currency) != (order.party_id, order.currency)
             for party, currency, _ in billed_orders
         ):
             ambiguous = True
+        # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-441
         elif any(document_id != order.id for _, _, document_id in billed_orders):
             consolidated.add(invoice_id)
 
@@ -497,6 +517,7 @@ def fulfillment_readiness(
     )
     received = sum((Decimal(row.amount) for row in qualifying), ZERO)
     consolidated_open = []
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-487
     if not ambiguous:
         for invoice in session.scalars(
             select(Document)
@@ -504,6 +525,7 @@ def fulfillment_readiness(
             .order_by(Document.number, Document.id)
         ):
             open_amount = open_invoice_amount(session, tenant_id, invoice.id)
+            # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-494
             if open_amount > ZERO:
                 consolidated_open.append((invoice.id, invoice.number, open_amount))
                 continue
@@ -536,12 +558,16 @@ def fulfillment_readiness(
             )
     remaining = max(required - received, ZERO)
     blockers = list(operational_blockers)
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-526
     if not invoice_ids:
         blockers.append("prepayment_invoice_missing")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-528
     if ambiguous:
         blockers.append("prepayment_attribution_ambiguous")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-530
     if consolidated_open:
         blockers.append("prepayment_consolidated_invoice_open")
+    # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-532
     if remaining > ZERO:
         blockers.append("prepayment_required")
     return FulfillmentReadiness(
@@ -590,6 +616,7 @@ def require_paid_prepayment(
     shared: recording goods that physically left needs no reservation. Importers
     record what a source states and do not come through here (spec 294 FR-006).
     """
+    # reality-rule: fulfillment_readiness.require_paid_prepayment.guard-580
     if movement_type != "shipment" or not commitment_id:
         return
     kind = session.scalar(
@@ -597,6 +624,7 @@ def require_paid_prepayment(
             Commitment.tenant_id == tenant_id, Commitment.id == commitment_id
         )
     )
+    # reality-rule: fulfillment_readiness.require_paid_prepayment.guard-587
     if kind != "customer_delivery":
         return
     readiness = fulfillment_readiness(
@@ -612,6 +640,7 @@ def require_paid_prepayment(
 
     require_delivery_rule(session, tenant_id, [(commitment_id, quantity)])
     payment = [code for code in readiness.blocker_codes if code in PAYMENT_BLOCKERS]
+    # reality-rule: fulfillment_readiness.require_paid_prepayment.guard-593
     if payment:
         raise InvalidOperation(
             code="shipment_blocked_readiness",

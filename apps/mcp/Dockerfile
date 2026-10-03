@@ -29,6 +29,11 @@ RUN python -c "import tomllib;print('\n'.join(tomllib.load(open('pyproject.toml'
  && /opt/venv/bin/pip install --upgrade pip \
  && /opt/venv/bin/pip install -r /tmp/requirements.txt
 
+ARG REALITY_COMMIT=
+COPY scripts/package_business_blueprint_evidence.py /tmp/package_business_blueprint_evidence.py
+COPY packages/reality-core/tests /tmp/blueprint-tests
+RUN python /tmp/package_business_blueprint_evidence.py --source /tmp/blueprint-tests --output /opt/blueprint-evidence --commit "${REALITY_COMMIT}"
+
 COPY packages/reality-core/src ./src
 COPY packages/reality-core/migrations ./migrations
 COPY packages/reality-core/config ./config
@@ -59,6 +64,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app/packages/reality-core
 
 COPY --from=build /opt/venv /opt/venv
+COPY --from=build /opt/blueprint-evidence /opt/blueprint-evidence
+ENV REALITY_BLUEPRINT_EVIDENCE=/opt/blueprint-evidence
 
 # Release identity, set by the publish workflow; "dev" for a local build.
 ARG REALITY_VERSION=dev

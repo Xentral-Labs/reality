@@ -31,7 +31,7 @@ business changes such as a reservation or movement. Read calls run immediately. 
 proposal; it does not change business state until a person explicitly approves it. After execution,
 the agent should re-read the declared projection or status tool to verify the result.
 
-See [Agent capabilities](/tool-usage/#choosing-a-tool) for selection and verification guidance and
+See [Agent capabilities](/api-tools/agent-guidance#choosing-a-tool) for selection and verification guidance and
 the generated [Tool Usage reference](../tool-usage/commands) for current names and parameters.
 
 ## Prerequisites

@@ -27123,3 +27123,171 @@ Object.assign(dictionaries.es, {
 Object.assign(dictionaries.de, { "All companies": "Alle Unternehmen verwalten" });
 Object.assign(dictionaries.nl, { "All companies": "Alle bedrijven beheren" });
 Object.assign(dictionaries.es, { "All companies": "Gestionar todas las empresas" });
+Object.assign(dictionaries.de, {
+  "Business logic": "Geschäftslogik",
+  "Read live logic": "Live-Logik lesen",
+  "Refresh live logic": "Live-Logik aktualisieren",
+  "Live business logic is unavailable.": "Live-Geschäftslogik ist nicht verfügbar.",
+  "English explanation from the running source; source identifiers stay exact.":
+    "Englische Erklärung aus dem laufenden Quelltext; Bezeichner bleiben exakt.",
+  "Limits of the explanation": "Grenzen der Nachweise",
+  "Inputs and prerequisites": "Eingaben und Voraussetzungen",
+  "None specified": "Keine angegeben",
+  Function: "Funktion",
+  "Business steps": "Geschäftliche Schritte",
+  "Flow diagram": "Flussdiagramm",
+  "Source evidence": "Quelltext-Nachweis",
+  "Test evidence gaps": "Lücken in den Testnachweisen",
+  "No branch execution is inferred from a related test. Unproven branches remain explicit.":
+    "Verwandte Tests beweisen keine Zweigausführung. Nicht nachgewiesene Zweige bleiben sichtbar.",
+  "Existing executable test cases": "Vorhandene ausführbare Testfälle",
+  "No matching test evidence is available.": "Keine passenden Testnachweise verfügbar.",
+  "Matching release": "Passende Version",
+  "Unverified for this release": "Für diese Version nicht nachgewiesen",
+  "Test setup": "Ausgangslage des Tests",
+  "Test action": "Testaktion",
+  "Asserted expectations": "Geprüfte Erwartungen",
+  "Unknown assumptions": "Unbekannte Voraussetzungen",
+  "Test source": "Test-Quelltext",
+  "Compare my case": "Meinen Fall vergleichen",
+  "Enter the conditions of your case. Leave unknown values blank.":
+    "Geben Sie die Bedingungen Ihres Falls ein. Unbekannte Werte bleiben leer.",
+  "Case comparison is unavailable.": "Fallvergleich ist nicht verfügbar.",
+  "Compare conditions": "Bedingungen vergleichen",
+  Condition: "Bedingung",
+  "Test value": "Testwert",
+  Comparison: "Vergleich",
+});
+
+Object.assign(dictionaries.nl, {
+  "Business logic": "Bedrijfslogica",
+  "Read live logic": "Live logica lezen",
+  "Refresh live logic": "Live logica vernieuwen",
+  "Live business logic is unavailable.": "Live bedrijfslogica is niet beschikbaar.",
+  "English explanation from the running source; source identifiers stay exact.":
+    "Engelse uitleg uit de actieve broncode; namen blijven exact.",
+  "Limits of the explanation": "Beperkingen van bewijs",
+  "Inputs and prerequisites": "Invoer en voorwaarden",
+  "None specified": "Geen opgegeven",
+  Function: "Functie",
+  "Business steps": "Bedrijfsstappen",
+  "Flow diagram": "Stroomdiagram",
+  "Source evidence": "Bronbewijs",
+  "Test evidence gaps": "Ontbrekend testbewijs",
+  "No branch execution is inferred from a related test. Unproven branches remain explicit.":
+    "Verwante tests bewijzen geen uitvoering van een tak. Onbewezen takken blijven zichtbaar.",
+  "Existing executable test cases": "Bestaande uitvoerbare testgevallen",
+  "No matching test evidence is available.": "Geen passend testbewijs beschikbaar.",
+  "Matching release": "Passende versie",
+  "Unverified for this release": "Niet geverifieerd voor deze versie",
+  "Test setup": "Testopstelling",
+  "Test action": "Testactie",
+  "Asserted expectations": "Gecontroleerde verwachtingen",
+  "Unknown assumptions": "Onbekende aannames",
+  "Test source": "Testbroncode",
+  "Compare my case": "Mijn geval vergelijken",
+  "Enter the conditions of your case. Leave unknown values blank.":
+    "Voer de voorwaarden van uw geval in. Laat onbekende waarden leeg.",
+  "Case comparison is unavailable.": "Vergelijking is niet beschikbaar.",
+  "Compare conditions": "Voorwaarden vergelijken",
+  Condition: "Voorwaarde",
+  "Test value": "Testwaarde",
+  Comparison: "Vergelijking",
+});
+
+Object.assign(dictionaries.es, {
+  "Business logic": "Lógica de negocio",
+  "Read live logic": "Leer lógica actual",
+  "Refresh live logic": "Actualizar lógica",
+  "Live business logic is unavailable.": "La lógica actual no está disponible.",
+  "English explanation from the running source; source identifiers stay exact.":
+    "Explicación en inglés del código activo; los identificadores permanecen exactos.",
+  "Limits of the explanation": "Límites de la evidencia",
+  "Inputs and prerequisites": "Entradas y requisitos",
+  "None specified": "Ninguno indicado",
+  Function: "Función",
+  "Business steps": "Pasos de negocio",
+  "Flow diagram": "Diagrama de flujo",
+  "Source evidence": "Evidencia del código",
+  "Test evidence gaps": "Lagunas de evidencia de pruebas",
+  "No branch execution is inferred from a related test. Unproven branches remain explicit.":
+    "Las pruebas relacionadas no demuestran la ejecución de una rama. Las ramas sin evidencia siguen visibles.",
+  "Existing executable test cases": "Casos de prueba ejecutables existentes",
+  "No matching test evidence is available.": "No hay evidencia de pruebas coincidentes.",
+  "Matching release": "Versión coincidente",
+  "Unverified for this release": "Sin verificar para esta versión",
+  "Test setup": "Preparación de la prueba",
+  "Test action": "Acción de la prueba",
+  "Asserted expectations": "Expectativas verificadas",
+  "Unknown assumptions": "Supuestos desconocidos",
+  "Test source": "Código de la prueba",
+  "Compare my case": "Comparar mi caso",
+  "Enter the conditions of your case. Leave unknown values blank.":
+    "Introduzca las condiciones de su caso. Deje vacíos los valores desconocidos.",
+  "Case comparison is unavailable.": "La comparación no está disponible.",
+  "Compare conditions": "Comparar condiciones",
+  Condition: "Condición",
+  "Test value": "Valor de prueba",
+  Comparison: "Comparación",
+});
+
+Object.assign(dictionaries.de, {
+  "Use an existing record": "Vorhandenen Datensatz verwenden",
+  "Record type": "Datensatztyp",
+  "Record ID": "Datensatz-ID",
+  "Current state": "Aktueller Zustand",
+  "Supplied case facts": "Angegebene Fallwerte",
+  "Historical rule version is unknown unless recorded evidence identifies it.":
+    "Die historische Regelversion ist unbekannt, sofern aufgezeichnete Nachweise sie nicht benennen.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Use an existing record": "Bestaand record gebruiken",
+  "Record type": "Recordtype",
+  "Record ID": "Record-ID",
+  "Current state": "Huidige toestand",
+  "Supplied case facts": "Opgegeven gevalswaarden",
+  "Historical rule version is unknown unless recorded evidence identifies it.":
+    "De historische regelversie is onbekend tenzij vastgelegd bewijs deze identificeert.",
+});
+
+Object.assign(dictionaries.es, {
+  "Use an existing record": "Usar un registro existente",
+  "Record type": "Tipo de registro",
+  "Record ID": "ID del registro",
+  "Current state": "Estado actual",
+  "Supplied case facts": "Datos del caso proporcionados",
+  "Historical rule version is unknown unless recorded evidence identifies it.":
+    "La versión histórica de la regla es desconocida salvo que la evidencia registrada la identifique.",
+});
+
+Object.assign(dictionaries.de, {
+  "Case values": "Fallwerte",
+  "Recorded decision": "Aufgezeichnete Entscheidung",
+});
+Object.assign(dictionaries.nl, {
+  "Case values": "Gevalswaarden",
+  "Recorded decision": "Vastgelegde beslissing",
+});
+Object.assign(dictionaries.es, {
+  "Case values": "Valores del caso",
+  "Recorded decision": "Decisión registrada",
+});
+
+Object.assign(dictionaries.de, {
+  "Source constants and bindings": "Quelltext-Konstanten und gebundene Werte",
+});
+Object.assign(dictionaries.nl, {
+  "Source constants and bindings": "Bronconstanten en gebonden waarden",
+});
+Object.assign(dictionaries.es, {
+  "Source constants and bindings": "Constantes del código y valores vinculados",
+});
+
+Object.assign(dictionaries.de, { "All companies": "Alle Unternehmen verwalten" });
+Object.assign(dictionaries.nl, { "All companies": "Alle bedrijven beheren" });
+Object.assign(dictionaries.es, { "All companies": "Gestionar todas las empresas" });
+
+Object.assign(dictionaries.de, { "Logic section": "Abschnitt der Logik" });
+Object.assign(dictionaries.nl, { "Logic section": "Logicaonderdeel" });
+Object.assign(dictionaries.es, { "Logic section": "Sección de lógica" });

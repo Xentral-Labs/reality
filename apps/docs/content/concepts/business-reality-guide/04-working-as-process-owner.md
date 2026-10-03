@@ -117,7 +117,7 @@ not execute the proposed effect. Confirmation and execution are traceable; after
 unclear result, the actual effect must be checked. A Reality change proves no automatic change in an
 ERP or payment provider.
 
-Find tools and their assertion limits in [Tool Usage](../../tool-usage/#choosing-a-tool). The
+Find tools and their assertion limits in [Tool Usage](../../api-tools/agent-guidance#choosing-a-tool). The
 [Chat contract](https://github.com/Xentral-Labs/reality/blob/main/docs/features/chat.md) and the
 respective tool and finance contracts define the binding details.
 
