@@ -33,7 +33,7 @@ function addressLine(address: Record<string, string>) {
  * review walked away from is withdrawn. Deliveries are planned and revised
  * through Chat, the CLI or the API.
  */
-export function PlannedDeliveries({ tenant }: { tenant: string }) {
+export function PlannedDeliveries({ tenant, settled }: { tenant: string; settled?: () => void }) {
   const read = useRead(() => outboundDeliveries.list(tenant), [tenant]);
   const [pending, setPending] = useState<Pending | null>(null),
     [busy, setBusy] = useState(false),
@@ -126,140 +126,144 @@ export function PlannedDeliveries({ tenant }: { tenant: string }) {
       else await outboundDeliveries.confirm(tenant, pending.proposal);
       setPending(null);
       read.refresh();
+      settled?.();
     });
 
+  // The register surface strips its children's padding; the inset keeps the card's own.
   return (
-    <section
-      className="mb-5 rounded-xl border border-border-default bg-surface p-4 text-sm"
-      data-planned-deliveries
-    >
-      <h3 className="font-semibold text-fg-strong">{t("Planned deliveries")}</h3>
-      <p className="mt-1 text-fg-muted">
-        {t(
-          "Planned before dispatch, with recipient, address and booked slot. Picking moves the goods and their reservation into the packing zone; nothing moves before you confirm. Plan or change a delivery through Chat.",
-        )}
-      </p>
-      <ul className="mt-3 divide-y divide-border-default">
-        {rows.map((delivery) => {
-          const waiting = delivery.lines.some((line) => Number(line.to_put_back) > 0),
-            toPick = delivery.lines.some(
-              (line) => open(line) && Number(line.planned) > Number(line.picked),
-            ),
-            mine = pending?.delivery === delivery.id;
-          return (
-            <li key={delivery.id} className="py-3" data-planned-delivery={delivery.id}>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div>
-                  <span className="font-medium text-fg-strong">
-                    {delivery.recipient ?? delivery.customer}
-                  </span>
-                  {addressLine(delivery.address) && (
-                    <span className="text-fg-muted" data-localization="original">
-                      {" "}
-                      · {addressLine(delivery.address)}
+    <div className="register-table-inset pt-4">
+      <section
+        className="rounded-xl border border-border-default bg-surface p-4 text-sm"
+        data-planned-deliveries
+      >
+        <h3 className="font-semibold text-fg-strong">{t("Planned deliveries")}</h3>
+        <p className="mt-1 text-fg-muted">
+          {t(
+            "Planned before dispatch, with recipient, address and booked slot. Picking moves the goods and their reservation into the packing zone; nothing moves before you confirm. Plan or change a delivery through Chat.",
+          )}
+        </p>
+        <ul className="mt-3 divide-y divide-border-default">
+          {rows.map((delivery) => {
+            const waiting = delivery.lines.some((line) => Number(line.to_put_back) > 0),
+              toPick = delivery.lines.some(
+                (line) => open(line) && Number(line.planned) > Number(line.picked),
+              ),
+              mine = pending?.delivery === delivery.id;
+            return (
+              <li key={delivery.id} className="py-3" data-planned-delivery={delivery.id}>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div>
+                    <span className="font-medium text-fg-strong">
+                      {delivery.recipient ?? delivery.customer}
                     </span>
-                  )}
-                </div>
-                <span className="rounded bg-surface-muted px-2 py-0.5 text-xs">
-                  {delivery.state === "picked"
-                    ? t("Picked")
-                    : delivery.state === "picking"
-                      ? t("Picking")
-                      : t("Planned")}
-                </span>
-              </div>
-              {delivery.slot && (
-                <div
-                  className={delivery.slot_passed ? "text-warning-text" : "text-fg-muted"}
-                  data-planned-delivery-slot
-                >
-                  {t("Booked slot")} {formatDateTime(delivery.slot.from)} –{" "}
-                  {formatDateTime(delivery.slot.until)}
-                  {delivery.slot_passed ? ` · ${t("slot passed")}` : ""}
-                </div>
-              )}
-              <table className="mt-2 w-full text-left">
-                <thead className="text-fg-muted">
-                  <tr>
-                    <th className="py-1 pr-3 font-medium">{t("Item")}</th>
-                    <th className="py-1 pr-3 text-right font-medium">{t("Planned")}</th>
-                    <th className="py-1 pr-3 text-right font-medium">{t("Picked")}</th>
-                    <th className="py-1 text-right font-medium">{t("To put back")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {delivery.lines.map((line) => (
-                    <tr key={line.line_id} className="border-t border-border-default">
-                      <td className="py-1 pr-3">
-                        {line.item}
-                        {line.document_number ? (
-                          <span className="text-fg-muted"> · {line.document_number}</span>
-                        ) : null}
-                        {!open(line) && (
-                          <span className="text-fg-muted"> · {t(line.promise_status)}</span>
-                        )}
-                      </td>
-                      <td className="py-1 pr-3 text-right">
-                        {formatQuantity(line.planned)} {line.unit}
-                      </td>
-                      <td className="py-1 pr-3 text-right">{formatQuantity(line.picked)}</td>
-                      <td className="py-1 text-right">{formatQuantity(line.to_put_back)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {mine ? (
-                <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
-                  <span className="mr-auto" data-planned-delivery-review>
-                    {pending.summary}
+                    {addressLine(delivery.address) && (
+                      <span className="text-fg-muted" data-localization="original">
+                        {" "}
+                        · {addressLine(delivery.address)}
+                      </span>
+                    )}
+                  </div>
+                  <span className="rounded bg-surface-muted px-2 py-0.5 text-xs">
+                    {delivery.state === "picked"
+                      ? t("Picked")
+                      : delivery.state === "picking"
+                        ? t("Picking")
+                        : t("Planned")}
                   </span>
-                  <button className="br-btn" disabled={busy} onClick={withdraw}>
-                    {t("Cancel")}
-                  </button>
-                  <button className="br-btn br-btn-primary" disabled={busy} onClick={confirm}>
-                    {t("Confirm")}
-                  </button>
                 </div>
-              ) : (
-                <div className="mt-2 flex flex-wrap justify-end gap-2">
-                  {delivery.staging_location_id && toPick && (
-                    <button
-                      className="br-btn"
-                      disabled={busy || !!pending}
-                      onClick={() => pick(delivery)}
-                    >
-                      {t("Pick")}
+                {delivery.slot && (
+                  <div
+                    className={delivery.slot_passed ? "text-warning-text" : "text-fg-muted"}
+                    data-planned-delivery-slot
+                  >
+                    {t("Booked slot")} {formatDateTime(delivery.slot.from)} –{" "}
+                    {formatDateTime(delivery.slot.until)}
+                    {delivery.slot_passed ? ` · ${t("slot passed")}` : ""}
+                  </div>
+                )}
+                <table className="mt-2 w-full text-left">
+                  <thead className="text-fg-muted">
+                    <tr>
+                      <th className="py-1 pr-3 font-medium">{t("Item")}</th>
+                      <th className="py-1 pr-3 text-right font-medium">{t("Planned")}</th>
+                      <th className="py-1 pr-3 text-right font-medium">{t("Picked")}</th>
+                      <th className="py-1 text-right font-medium">{t("To put back")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {delivery.lines.map((line) => (
+                      <tr key={line.line_id} className="border-t border-border-default">
+                        <td className="py-1 pr-3">
+                          {line.item}
+                          {line.document_number ? (
+                            <span className="text-fg-muted"> · {line.document_number}</span>
+                          ) : null}
+                          {!open(line) && (
+                            <span className="text-fg-muted"> · {t(line.promise_status)}</span>
+                          )}
+                        </td>
+                        <td className="py-1 pr-3 text-right">
+                          {formatQuantity(line.planned)} {line.unit}
+                        </td>
+                        <td className="py-1 pr-3 text-right">{formatQuantity(line.picked)}</td>
+                        <td className="py-1 text-right">{formatQuantity(line.to_put_back)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {mine ? (
+                  <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+                    <span className="mr-auto" data-planned-delivery-review>
+                      {pending.summary}
+                    </span>
+                    <button className="br-btn" disabled={busy} onClick={withdraw}>
+                      {t("Cancel")}
                     </button>
-                  )}
-                  {waiting && (
-                    <button
-                      className="br-btn"
-                      disabled={busy || !!pending}
-                      onClick={() => putBack(delivery)}
-                    >
-                      {t("Put back")}
+                    <button className="br-btn br-btn-primary" disabled={busy} onClick={confirm}>
+                      {t("Confirm")}
                     </button>
-                  )}
-                  {!waiting && (!delivery.staging_location_id || !toPick) && (
-                    <button
-                      className="br-btn br-btn-primary"
-                      disabled={busy || !!pending}
-                      onClick={() => ship(delivery)}
-                    >
-                      {t("Ship")}
-                    </button>
-                  )}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      {error && (
-        <div role="alert" className="mt-3 text-danger">
-          {error}
-        </div>
-      )}
-    </section>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex flex-wrap justify-end gap-2">
+                    {delivery.staging_location_id && toPick && (
+                      <button
+                        className="br-btn"
+                        disabled={busy || !!pending}
+                        onClick={() => pick(delivery)}
+                      >
+                        {t("Pick")}
+                      </button>
+                    )}
+                    {waiting && (
+                      <button
+                        className="br-btn"
+                        disabled={busy || !!pending}
+                        onClick={() => putBack(delivery)}
+                      >
+                        {t("Put back")}
+                      </button>
+                    )}
+                    {!waiting && (!delivery.staging_location_id || !toPick) && (
+                      <button
+                        className="br-btn br-btn-primary"
+                        disabled={busy || !!pending}
+                        onClick={() => ship(delivery)}
+                      >
+                        {t("Ship")}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        {error && (
+          <div role="alert" className="mt-3 text-danger">
+            {error}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }

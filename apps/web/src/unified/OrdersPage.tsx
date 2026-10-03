@@ -291,6 +291,8 @@ export function OrdersPage({
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [billing, setBilling] = useState<{ tool: BillingDocumentTool; order: string } | null>(null);
   const [settledNotice, setSettledNotice] = useState(false);
+  // Spec 334: a shipment made from a planned delivery reloads the register below it.
+  const [shipmentsRead, setShipmentsRead] = useState(0);
   useEffect(() => {
     const settled = () => setSettledNotice(true);
     window.addEventListener("reality:delivery-settled", settled);
@@ -524,9 +526,12 @@ export function OrdersPage({
             {view === "shipments" ? (
               <>
                 {selection.deliveryType !== "supplier_delivery" && (
-                  <PlannedDeliveries tenant={selection.tenant} />
+                  <PlannedDeliveries
+                    tenant={selection.tenant}
+                    settled={() => setShipmentsRead((value) => value + 1)}
+                  />
                 )}
-                <ShipmentsRegister selection={selection} navigate={navigate} />
+                <ShipmentsRegister key={shipmentsRead} selection={selection} navigate={navigate} />
               </>
             ) : !data ? (
               <ReadState loading={read.loading} error={read.error} retry={read.refresh} rows={8} />

@@ -179,6 +179,26 @@ def test_the_web_prepares_confirms_and_reads(session, business, monkeypatch):
     )
     assert refused.status_code in {400, 409, 422}, refused.text
     assert "outbound_delivery_pick_beyond_planned" in refused.text
+    core.cancel_commitment(session, tenant, promise.id, reason="Customer cancelled")
+    put_back = client.post(
+        f"{prefix}/outbound-deliveries/{row['id']}/put-backs",
+        json={
+            "lines": [
+                {
+                    "commitment_id": promise.id,
+                    "quantity": "4",
+                    "to_location_id": business.location.id,
+                }
+            ]
+        },
+    )
+    assert put_back.status_code == 200, put_back.text
+    client.post(
+        f"{prefix}/change-proposals/{put_back.json()['id']}/approve",
+        json={"confirmed": True},
+    )
+    session.expire_all()
+    assert core.stock_at(session, tenant, business.item.id, staging.id) == 0
 
 
 def test_another_company_cannot_plan_or_read(session, business, monkeypatch):
