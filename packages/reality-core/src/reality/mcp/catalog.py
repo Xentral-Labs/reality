@@ -1532,6 +1532,8 @@ ORDER_LINE = _object_schema(
         "price_list_entry_id": OPTIONAL_STRING,
         # Spec 308: a sales order line may name the item by the customer's number.
         "customer_item_number": OPTIONAL_STRING,
+        # Spec 345: a purchase order line may name it by the supplier's number.
+        "supplier_item_number": OPTIONAL_STRING,
     },
     required=("quantity", "unit", "unit_price", "gross_amount"),
 )
@@ -2117,6 +2119,9 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                             "promised_at": OPTIONAL_STRING,
                             "price_list_entry_id": OPTIONAL_STRING,
                             "billed_document_line_id": OPTIONAL_STRING,
+                            # Spec 345: a supplier document's line may name
+                            # the item by the supplier's own number.
+                            "supplier_item_number": OPTIONAL_STRING,
                         },
                         required=("quantity", "unit_price", "gross_amount"),
                     ),
@@ -2982,6 +2987,44 @@ MCP_TOOL_CATALOG += (
         "Orders",
         _object_schema({"party_id": OPTIONAL_STRING, "item_id": OPTIONAL_STRING}),
         _read("customer_item_numbers"),
+    ),
+    MCPToolDefinition(
+        "supplier_item_number_set_propose",
+        "State a supplier item number",
+        "Prepare stating which of our items a supplier's own article number names (party_id, item_id, supplier_item_number), with the supplier's name for it. Purchase orders and supplier invoices by hand or by chat then resolve lines quoting that number (supplier_item_number) for this supplier; case and spaces do not matter. The review shows what the number names now. A person confirms.",
+        "propose",
+        "Purchasing",
+        _object_schema(
+            {
+                "party_id": STRING,
+                "item_id": STRING,
+                "supplier_item_number": STRING,
+                "supplier_item_name": OPTIONAL_STRING,
+            },
+            required=("party_id", "item_id", "supplier_item_number"),
+        ),
+        _propose("supplier_item_number_set"),
+    ),
+    MCPToolDefinition(
+        "supplier_item_number_remove_propose",
+        "Withdraw a supplier item number",
+        "Prepare withdrawing a supplier's article number; lines that already stated it keep it as stated. A person confirms.",
+        "propose",
+        "Purchasing",
+        _object_schema(
+            {"party_id": STRING, "supplier_item_number": STRING},
+            required=("party_id", "supplier_item_number"),
+        ),
+        _propose("supplier_item_number_remove"),
+    ),
+    MCPToolDefinition(
+        "supplier_item_numbers",
+        "Supplier item numbers",
+        "Read a supplier's own article numbers (party_id) or the numbers suppliers use for one of our items (item_id), with the suppliers' names for them.",
+        "read",
+        "Purchasing",
+        _object_schema({"party_id": OPTIONAL_STRING, "item_id": OPTIONAL_STRING}),
+        _read("supplier_item_numbers"),
     ),
     MCPToolDefinition(
         "outbound_delivery_plan_propose",

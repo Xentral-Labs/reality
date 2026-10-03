@@ -7,6 +7,7 @@ import { KitSection } from "./KitSection";
 import { PartyMergeSection } from "./PartyMergeSection";
 import { ReorderPoints } from "./ReorderPointCard";
 import { CustomerItemNumbers } from "./CustomerItemNumbers";
+import { SupplierItemNumbers } from "./SupplierItemNumbers";
 import { SupplierItemTerms } from "./SupplierItemTerms";
 import { DeliveryRuleSection } from "./DeliveryRuleCard";
 import { useRegisterQuery } from "./TableContext";
@@ -110,7 +111,10 @@ export function MasterDataPage({
         </>
       )}
       {family === "supplier" && (
-        <SupplierItemTerms key={detail.id} tenant={tenant} party={detail.id} />
+        <>
+          <SupplierItemTerms key={detail.id} tenant={tenant} party={detail.id} />
+          <SupplierItemNumbers key={`numbers-${detail.id}`} tenant={tenant} party={detail.id} />
+        </>
       )}
       {(family === "customer" || family === "supplier") && (
         <PartyMergeSection

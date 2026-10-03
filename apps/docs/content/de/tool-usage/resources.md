@@ -9,7 +9,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
-| [Geschäftspartner](#resource-party)                            | 1      | 13       | 2         |
+| [Geschäftspartner](#resource-party)                            | 1      | 15       | 2         |
 | [Artikel](#resource-item)                                      | 5      | 14       | 7         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
@@ -89,6 +89,10 @@ Kreditor, Adresse, Dublette, Zusammenführen
   (`set_customer_item_number`)
 - [Kundenartikelnummer entfernen](./commands#command-remove_customer_item_number)
   (`remove_customer_item_number`)
+- [Lieferantenartikelnummer festlegen](./commands#command-set_supplier_item_number)
+  (`set_supplier_item_number`)
+- [Lieferantenartikelnummer entfernen](./commands#command-remove_supplier_item_number)
+  (`remove_supplier_item_number`)
 - [An Inkasso übergeben](./commands#command-record_handover) (`record_handover`)
 
 **Nachschlagen**
@@ -97,6 +101,8 @@ Kreditor, Adresse, Dublette, Zusammenführen
 - [Zusammengeführte Geschäftspartner anzeigen](./commands#command-party_merges) (`party_merges`)
 - [Kundenartikelnummern anzeigen](./commands#command-customer_item_numbers)
   (`customer_item_numbers`)
+- [Lieferantenartikelnummern anzeigen](./commands#command-supplier_item_numbers)
+  (`supplier_item_numbers`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 
 **Klärfälle**
@@ -109,7 +115,7 @@ Kreditor, Adresse, Dublette, Zusammenführen
 **Kommt vor in:** [Stammdaten und Quellen](./processes#process-master_data)
 
 **Darunter:** Tabellen: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
-`customer_item_number`, `supplier_item_terms`, `party_merge` · Events:
+`customer_item_number`, `supplier_item_number`, `supplier_item_terms`, `party_merge` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
@@ -119,6 +125,8 @@ Kreditor, Adresse, Dublette, Zusammenführen
 [`supplier_item_terms.removed`](./events#event-supplier_item_terms-removed),
 [`customer_item_number.set`](./events#event-customer_item_number-set),
 [`customer_item_number.removed`](./events#event-customer_item_number-removed),
+[`supplier_item_number.set`](./events#event-supplier_item_number-set),
+[`supplier_item_number.removed`](./events#event-supplier_item_number-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
 [`party_price_list.assigned`](./events#event-party_price_list-assigned),
 [`party_group.updated`](./events#event-party_group-updated),

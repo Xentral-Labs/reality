@@ -2651,6 +2651,82 @@ def _customer_item_numbers(
     )
 
 
+def _supplier_item_number_set(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    State which of our items a supplier's own article number names, with the supplier's name for it.
+
+    BUSINESS RULE application.supplier_item_number_set.1:
+    Route this company-scoped request to set_supplier_item_number. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
+    from reality.services.supplier_item_numbers import (
+        UNCHECKED,
+        set_supplier_item_number,
+    )
+
+    # reality-rule: application.supplier_item_number_set.1
+    row = set_supplier_item_number(
+        session,
+        tenant_id,
+        arguments["party_id"],
+        arguments["item_id"],
+        arguments["supplier_item_number"],
+        arguments.get("supplier_item_name", ""),
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+    return _entity_result("supplier_item_number", row)
+
+
+def _supplier_item_number_remove(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Withdraw a supplier's article number; lines that stated it keep it as stated.
+
+    BUSINESS RULE application.supplier_item_number_remove.1:
+    Route this company-scoped request to remove_supplier_item_number. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
+    from reality.services.supplier_item_numbers import (
+        UNCHECKED,
+        remove_supplier_item_number,
+    )
+
+    # reality-rule: application.supplier_item_number_remove.1
+    return remove_supplier_item_number(
+        session,
+        tenant_id,
+        arguments["party_id"],
+        arguments["supplier_item_number"],
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+
+
+def _supplier_item_numbers(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Read a supplier's own article numbers for our items, or the numbers suppliers use for one item.
+
+    BUSINESS RULE application.supplier_item_numbers.1:
+    Route this company-scoped request to supplier_item_numbers. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
+    from reality.services.supplier_item_numbers import supplier_item_numbers
+
+    # reality-rule: application.supplier_item_numbers.1
+    return supplier_item_numbers(
+        session,
+        tenant_id,
+        party_id=arguments.get("party_id") or None,
+        item_id=arguments.get("item_id") or None,
+    )
+
+
 def _outbound_delivery_plan(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -4759,6 +4835,24 @@ TOOLS = {
         False,
         _customer_item_numbers,
     ),
+    "supplier_item_number_set": Tool(
+        "supplier_item_number_set",
+        "State which of our items a supplier's own article number names, with the supplier's name for it.",
+        True,
+        _supplier_item_number_set,
+    ),
+    "supplier_item_number_remove": Tool(
+        "supplier_item_number_remove",
+        "Withdraw a supplier's article number; lines that stated it keep it as stated.",
+        True,
+        _supplier_item_number_remove,
+    ),
+    "supplier_item_numbers": Tool(
+        "supplier_item_numbers",
+        "Read a supplier's own article numbers for our items, or the numbers suppliers use for one item.",
+        False,
+        _supplier_item_numbers,
+    ),
     "outbound_delivery_plan": Tool(
         "outbound_delivery_plan",
         "Plan an outbound delivery of one customer's open promises, with recipient, address, booked slot and staging location.",
@@ -5900,6 +5994,15 @@ def create_change_proposal(
         normalized_arguments, customer_item_review = review_customer_item_number(
             session, tenant_id, tool_name, arguments
         )
+    supplier_item_review = None
+    if tool_name in {"supplier_item_number_set", "supplier_item_number_remove"}:
+        from reality.services.supplier_item_numbers import (
+            review_supplier_item_number,
+        )
+
+        normalized_arguments, supplier_item_review = review_supplier_item_number(
+            session, tenant_id, tool_name, arguments
+        )
     company_currency_review = None
     if tool_name == "company_currency_set":
         from reality.services.finance.company_currency import review_company_currency
@@ -6050,6 +6153,8 @@ def create_change_proposal(
         preview["outbound_delivery"] = outbound_delivery_review
     if customer_item_review is not None:
         preview["customer_item_number"] = customer_item_review
+    if supplier_item_review is not None:
+        preview["supplier_item_number"] = supplier_item_review
     if supplier_terms_review is not None:
         preview["supplier_item_terms"] = supplier_terms_review
     if company_currency_review is not None:
@@ -6730,6 +6835,8 @@ def approve_and_execute_proposal(
         "outbound_delivery_put_back",
         "customer_item_number_set",
         "customer_item_number_remove",
+        "supplier_item_number_set",
+        "supplier_item_number_remove",
         "supplier_item_terms_set",
         "supplier_item_terms_remove",
         "company_currency_set",

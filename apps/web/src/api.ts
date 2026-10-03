@@ -3197,6 +3197,16 @@ export type CustomerItemNumber = {
   customer_item_number: string;
   customer_item_name: string;
 };
+export type SupplierItemNumber = {
+  id: string;
+  party_id: string;
+  supplier: string;
+  item_id: string;
+  item: string;
+  sku: string;
+  supplier_item_number: string;
+  supplier_item_name: string;
+};
 export type SupplierTermsCheck = {
   minimum_quantity: string | null;
   order_multiple: string | null;
@@ -3402,6 +3412,31 @@ export const customerItemNumbers = {
   ) =>
     request<{ id: string; status: string; preview: Record<string, unknown> }>(
       `/api/tenants/${encodeURIComponent(tenant)}/customer-item-numbers/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
+export const supplierItemNumbers = {
+  list: (tenant: string, subject: { party_id: string } | { item_id: string }) =>
+    request<{ rows: SupplierItemNumber[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/supplier-item-numbers?${new URLSearchParams(subject)}`,
+    ),
+  prepare: (
+    tenant: string,
+    body: {
+      operation: "set" | "remove";
+      party_id: string;
+      supplier_item_number: string;
+      item_id?: string;
+      supplier_item_name?: string;
+    },
+  ) =>
+    request<{ id: string; status: string; preview: Record<string, unknown> }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/supplier-item-numbers/proposals`,
       { method: "POST", body: JSON.stringify(body) },
     ),
   confirm: (tenant: string, id: string) =>

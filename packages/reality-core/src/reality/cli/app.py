@@ -100,6 +100,9 @@ kit_app = typer.Typer(help="Kits: components, assembly and the bundle split (spe
 customer_item_app = typer.Typer(
     help="Customer item numbers: a customer's own article numbers (spec 308)."
 )
+supplier_item_app = typer.Typer(
+    help="Supplier item numbers: a supplier's own article numbers (spec 345)."
+)
 stock_count_app = typer.Typer(help="Stock counts: count a location and post the differences (spec 307).")
 external_stock_app = typer.Typer(
     help="External stock: what a 3PL or shop states, compared, never taken over (spec 344)."
@@ -140,6 +143,7 @@ app.add_typer(stock_count_app, name="stock-count")
 app.add_typer(external_stock_app, name="external-stock")
 app.add_typer(outbound_delivery_app, name="outbound-delivery")
 app.add_typer(customer_item_app, name="customer-item")
+app.add_typer(supplier_item_app, name="supplier-item")
 supplier_terms_app = typer.Typer(
     help="A supplier's minimum order quantity and order multiple per item (spec 310)."
 )
@@ -1239,6 +1243,66 @@ def customer_item_remove_command(
         preview_key="customer_item_number",
     )
     con.print("✓ Customer item number withdrawn")
+
+
+@supplier_item_app.command("list")
+def supplier_item_list_command(
+    party: str = typer.Option("", "--party"),
+    item: str = typer.Option("", "--item"),
+    tenant: str | None = None,
+):
+    """A supplier's own article numbers, or the numbers used for one item."""
+    from reality.services.supplier_item_numbers import supplier_item_numbers
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        rows = supplier_item_numbers(
+            s, selected.id, party_id=party or None, item_id=item or None
+        )
+    con.print_json(data=rows, default=str)
+
+
+@supplier_item_app.command("set")
+def supplier_item_set_command(
+    party_id: str,
+    supplier_item_number: str,
+    item_id: str,
+    name: str = typer.Option("", "--name"),
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm which of our items a supplier's number names."""
+    _stock_block_change(
+        "supplier_item_number_set",
+        {
+            "party_id": party_id,
+            "supplier_item_number": supplier_item_number,
+            "item_id": item_id,
+            "supplier_item_name": name,
+        },
+        tenant,
+        yes,
+        preview_key="supplier_item_number",
+    )
+    con.print("✓ Supplier item number stated")
+
+
+@supplier_item_app.command("remove")
+def supplier_item_remove_command(
+    party_id: str,
+    supplier_item_number: str,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm withdrawing a supplier's number."""
+    _stock_block_change(
+        "supplier_item_number_remove",
+        {"party_id": party_id, "supplier_item_number": supplier_item_number},
+        tenant,
+        yes,
+        preview_key="supplier_item_number",
+    )
+    con.print("✓ Supplier item number withdrawn")
 
 
 company_currency_app = typer.Typer(

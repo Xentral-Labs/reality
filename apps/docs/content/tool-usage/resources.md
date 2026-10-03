@@ -9,7 +9,7 @@ the technical key stands beside each one.
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
-| [Business partner](#resource-party)                              | 1     | 13      | 2                   |
+| [Business partner](#resource-party)                              | 1     | 15      | 2                   |
 | [Item](#resource-item)                                           | 5     | 14      | 7                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
@@ -87,6 +87,10 @@ Kreditor, Adresse, Dublette, Zusammenführen
   (`set_customer_item_number`)
 - [Withdraw a customer item number](./commands#command-remove_customer_item_number)
   (`remove_customer_item_number`)
+- [State a supplier item number](./commands#command-set_supplier_item_number)
+  (`set_supplier_item_number`)
+- [Withdraw a supplier item number](./commands#command-remove_supplier_item_number)
+  (`remove_supplier_item_number`)
 - [Hand over to collection](./commands#command-record_handover) (`record_handover`)
 
 **Look up**
@@ -94,6 +98,7 @@ Kreditor, Adresse, Dublette, Zusammenführen
 - [Read supplier item terms](./commands#command-supplier_item_terms) (`supplier_item_terms`)
 - [Read business partner merges](./commands#command-party_merges) (`party_merges`)
 - [Read customer item numbers](./commands#command-customer_item_numbers) (`customer_item_numbers`)
+- [Read supplier item numbers](./commands#command-supplier_item_numbers) (`supplier_item_numbers`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 
 **Exceptions to clear**
@@ -104,7 +109,7 @@ Kreditor, Adresse, Dublette, Zusammenführen
 **Appears in processes:** [Master data and sources](./processes#process-master_data)
 
 **Underneath:** Tables: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
-`customer_item_number`, `supplier_item_terms`, `party_merge` · Events:
+`customer_item_number`, `supplier_item_number`, `supplier_item_terms`, `party_merge` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
@@ -114,6 +119,8 @@ Kreditor, Adresse, Dublette, Zusammenführen
 [`supplier_item_terms.removed`](./events#event-supplier_item_terms-removed),
 [`customer_item_number.set`](./events#event-customer_item_number-set),
 [`customer_item_number.removed`](./events#event-customer_item_number-removed),
+[`supplier_item_number.set`](./events#event-supplier_item_number-set),
+[`supplier_item_number.removed`](./events#event-supplier_item_number-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
 [`party_price_list.assigned`](./events#event-party_price_list-assigned),
 [`party_group.updated`](./events#event-party_group-updated),
