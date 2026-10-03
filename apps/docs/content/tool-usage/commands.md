@@ -8062,7 +8062,7 @@ pending for a reviewer. This does not invoke a model provider.
 intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons
 ```
 
-**Access:** `approve`
+**Access:** `confirm`
 
 **Parameters**
 

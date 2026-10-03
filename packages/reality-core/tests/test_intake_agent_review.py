@@ -399,3 +399,15 @@ def test_agent_scope_and_commercial_limits_cannot_be_bypassed(
         with pytest.raises(core.InvalidOperation):
             submit_agent_review(session, business.tenant.id, evidence)
     assert session.scalar(select(Document)) is None
+
+
+def test_agent_settlement_is_a_mutating_mcp_confirmation_tool():
+    from reality.mcp.catalog import MCP_TOOL_CATALOG
+
+    tool = next(
+        tool
+        for tool in MCP_TOOL_CATALOG
+        if tool.name == "intake_agent_review_and_execute"
+    )
+    assert tool.access == "confirm"
+    assert tool.mutating

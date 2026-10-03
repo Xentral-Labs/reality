@@ -2382,7 +2382,7 @@
       "label": "Submit exact delegated agent verdict",
       "area": "cross_functional",
       "summary": "Submit complete structured evidence for one exact source review. Approve applies only within current finite owner-issued delegation; reject preserves a no-effect decision and uncertainty remains pending for a reviewer. This does not invoke a model provider.",
-      "access": "approve",
+      "access": "confirm",
       "group": "Sources",
       "synopsis": "intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons",
       "parameters": [

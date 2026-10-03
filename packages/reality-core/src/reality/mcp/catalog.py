@@ -23,6 +23,9 @@ from reality.services.core import (
 )
 from reality.services.delivery_actions import PUBLIC_MOVEMENT_TYPES
 from reality.tools.application import (
+    _intake_agent_review_submit as _agent_review_submit,
+)
+from reality.tools.application import (
     approve_and_execute_proposal,
     create_change_proposal,
     reject_proposal,
@@ -161,17 +164,6 @@ def _cost_review_propose(
 
 # The proposal it creates is an ordinary cost decision with its existing web review.
 _cost_review_propose.application_name = "cost.change"  # type: ignore[attr-defined]
-
-
-def _agent_review_submit(session, tenant_id, arguments):
-    from reality.services.intake_review import submit_agent_review
-
-    proposal = submit_agent_review(session, tenant_id, arguments)
-    return {
-        "proposal_id": proposal.id,
-        "status": proposal.status,
-        "output": json.loads(proposal.output),
-    }
 
 
 def _mandate_grant_schema():
@@ -867,7 +859,7 @@ MCP_TOOL_CATALOG = (
         "intake_agent_review_and_execute",
         "Submit exact delegated agent verdict",
         "Submit complete structured evidence for one exact source review. Approve applies only within current finite owner-issued delegation; reject preserves a no-effect decision and uncertainty remains pending for a reviewer. This does not invoke a model provider.",
-        "approve",
+        "confirm",
         "Sources",
         _agent_review_schema(),
         _agent_review_submit,

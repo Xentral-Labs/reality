@@ -4318,6 +4318,25 @@ def _intake_apply(session: Session, tenant_id: str, arguments: dict[str, Any]) -
     raise InvalidOperation(code="intake_approval_required")
 
 
+def _intake_agent_review_submit(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Settle an exact named-agent review through current explicit owner delegation.
+
+    BUSINESS RULE application.intake_agent_review_submit:
+    Use the shared mandate executor and return its actual retained decision receipt.
+    """
+    from reality.services.intake_review import submit_agent_review
+
+    # reality-rule: application.intake_agent_review_submit
+    proposal = submit_agent_review(session, tenant_id, arguments)
+    return {
+        "proposal_id": proposal.id,
+        "status": proposal.status,
+        "output": json.loads(proposal.output),
+    }
+
+
 def _intake_agent_review_source_page(session, tenant_id, arguments):
     """
     BUSINESS PURPOSE:
@@ -4326,9 +4345,9 @@ def _intake_agent_review_source_page(session, tenant_id, arguments):
     BUSINESS RULE application.intake_agent_review_source_page:
     Keep original bytes and recheck actual token authority through the shared service.
     """
-    # reality-rule: application.intake_agent_review_source_page
     from reality.services.intake_review import agent_review_source_page
 
+    # reality-rule: application.intake_agent_review_source_page
     return agent_review_source_page(session, tenant_id, **arguments)
 
 
@@ -4340,9 +4359,9 @@ def _intake_agent_review_material(session, tenant_id, arguments):
     BUSINESS RULE application.intake_agent_review_material:
     Use the tenant-scoped mandate service without accepting business effects.
     """
-    # reality-rule: application.intake_agent_review_material
     from reality.services.intake_review import agent_review_material
 
+    # reality-rule: application.intake_agent_review_material
     return agent_review_material(session, tenant_id, **arguments)
 
 
@@ -4354,9 +4373,9 @@ def _intake_mandate_grant(session, tenant_id, arguments):
     BUSINESS RULE application.intake_mandate_grant:
     Delegate to the canonical service inside the exact current owner decision scope.
     """
-    # reality-rule: application.intake_mandate_grant
     from reality.services.intake_review import grant_review_mandate
 
+    # reality-rule: application.intake_mandate_grant
     return grant_review_mandate(session, tenant_id, **arguments)
 
 
@@ -4368,9 +4387,9 @@ def _intake_mandate_revoke(session, tenant_id, arguments):
     BUSINESS RULE application.intake_mandate_revoke:
     Retain actual revocation without rewriting earlier source decisions.
     """
-    # reality-rule: application.intake_mandate_revoke
     from reality.services.intake_review import revoke_review_mandate
 
+    # reality-rule: application.intake_mandate_revoke
     return revoke_review_mandate(session, tenant_id, **arguments)
 
 
