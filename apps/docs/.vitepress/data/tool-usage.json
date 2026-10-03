@@ -612,13 +612,20 @@
         "movement",
         "transfer",
         "adjustment",
+        "failed delivery",
+        "undeliverable",
+        "refused delivery",
+        "lost parcel",
         "Warenausgang",
         "Lagerbewegung",
         "Umlagerung",
         "Bestandsanpassung",
         "Sendung",
         "Packstück",
-        "Tracking"
+        "Tracking",
+        "Unzustellbar",
+        "Annahmeverweigerung",
+        "Paketverlust"
       ],
       "tables": [
         "movement",
@@ -627,6 +634,7 @@
         "shipment_package",
         "shipment_event",
         "shipment_event_supersession",
+        "delivery_failure",
         "outbound_delivery",
         "outbound_delivery_line",
         "outbound_delivery_pick"
@@ -642,7 +650,8 @@
         "command:record_shipment_notice",
         "command:record_packaged_execution",
         "command:record_shipment_event",
-        "command:supersede_shipment_event"
+        "command:supersede_shipment_event",
+        "command:record_delivery_failure"
       ],
       "reads": [
         "command:purchase_match",
@@ -651,7 +660,12 @@
         "command:month_end_billing"
       ],
       "exceptions": ["exception:return_unresolved", "exception:unexplained_movement"],
-      "tools": ["tool:shipments_list", "tool:shipment_explain", "tool:movement_explanation"],
+      "tools": [
+        "tool:shipments_list",
+        "tool:shipment_explain",
+        "tool:movement_explanation",
+        "tool:delivery_failure_summary"
+      ],
       "events": [
         "event:shipment.notice_recorded",
         "event:shipment.event_recorded",
@@ -662,6 +676,7 @@
         "event:outbound_delivery.revised",
         "event:outbound_delivery.picked",
         "event:outbound_delivery.put_back",
+        "event:shipment.delivery_failed",
         "event:movement.recorded",
         "event:movement.corrected"
       ],
@@ -1394,9 +1409,10 @@
             "command:pick_outbound_delivery",
             "command:record_packaged_execution",
             "command:record_shipment_notice",
-            "command:record_shipment_event"
+            "command:record_shipment_event",
+            "command:record_delivery_failure"
           ],
-          "tools": ["tool:shipment_explain"],
+          "tools": ["tool:shipment_explain", "tool:delivery_failure_summary"],
           "lists": ["view:warehouse_queue", "view:movements"],
           "exceptions": ["exception:overdue_outgoing_customer_commitment"]
         },
@@ -8413,6 +8429,69 @@
       "resources": ["return"]
     },
     {
+      "id": "tool:shipment_delivery_failure_propose",
+      "kind": "tool",
+      "key": "shipment_delivery_failure_propose",
+      "label": "Record a failed delivery",
+      "area": "orders",
+      "summary": "Prepare this business mutation without changing state. Record a failed delivery. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "shipment_delivery_failure_propose shipment_id kind reason [occurred_at] [claim_party_id] [claim_amount]",
+      "parameters": [
+        {
+          "name": "shipment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the tenant-scoped physical consignment.",
+          "depth": 0
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0,
+          "enum": ["undeliverable", "refused", "lost"]
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        },
+        {
+          "name": "occurred_at",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant at which the physical or business event occurred.",
+          "depth": 0
+        },
+        {
+          "name": "claim_party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque same-tenant identity of the business partner, the carrier or its insurer, a lost parcel is claimed from.",
+          "depth": 0
+        },
+        {
+          "name": "claim_amount",
+          "type": "string",
+          "required": false,
+          "description": "Positive claim amount stated for a lost parcel, at most two decimals, in the company currency; recorded as stated.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_delivery_failure",
+      "projections": [],
+      "links": ["command:record_delivery_failure"],
+      "label_de": "Record a failed delivery",
+      "resources": ["delivery"]
+    },
+    {
       "id": "tool:order_line_item_assign_propose",
       "kind": "tool",
       "key": "order_line_item_assign_propose",
@@ -11646,6 +11725,60 @@
       "resources": ["return"]
     },
     {
+      "id": "tool:delivery_failure_summary",
+      "kind": "tool",
+      "key": "delivery_failure_summary",
+      "label": "Failed delivery",
+      "area": "orders",
+      "summary": "Read a failed delivery: what happened, what it reversed and the carrier claim it opened.",
+      "access": "read",
+      "group": "Shipping",
+      "synopsis": "delivery_failure_summary [delivery_failure_id] [shipment_id]",
+      "parameters": [
+        {
+          "name": "delivery_failure_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of a recorded failed delivery (spec 335).",
+          "depth": 0
+        },
+        {
+          "name": "shipment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the tenant-scoped physical consignment.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read a failed delivery, what it reversed, where the goods went and the carrier claim it opened with its open amount.",
+        "use_when": [
+          "Customer service or finance needs to explain why a shipped order is open again or what a carrier still owes."
+        ],
+        "do_not_use_when": [
+          "A customer sent goods back; that is a return",
+          "not a failed delivery."
+        ],
+        "limitations": [
+          "A failure covers the whole shipment; reshipping or cancelling is a separate decision."
+        ],
+        "empty_result": "No failed delivery is recorded for the selected shipment.",
+        "freshness": "Derived from the failure, its corrections and the claim's postings and allocations at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP delivery_failure_summary",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Failed delivery",
+      "resources": ["delivery"]
+    },
+    {
       "id": "tool:return_disposition_summary",
       "kind": "tool",
       "key": "return_disposition_summary",
@@ -11816,6 +11949,7 @@
             "bad_debt_expense",
             "dunning_fee_revenue",
             "payment_fee_expense",
+            "carrier_claim_income",
             "opening_counterpart"
           ]
         }
@@ -26355,6 +26489,47 @@
       "resources": ["return"]
     },
     {
+      "id": "command:record_delivery_failure",
+      "kind": "command",
+      "key": "record_delivery_failure",
+      "label": "Record a failed delivery",
+      "area": "orders",
+      "summary": "Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "shipment",
+        "shipment_package",
+        "movement",
+        "movement_correction",
+        "commitment",
+        "party",
+        "subledger_account",
+        "delivery_failure"
+      ],
+      "writes": [
+        "delivery_failure",
+        "movement_correction",
+        "movement",
+        "document",
+        "ledger_entry",
+        "source_record",
+        "business_event"
+      ],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["shipment_delivery_failure_propose"],
+      "synopses": [
+        "shipment_delivery_failure_propose shipment_id kind reason [occurred_at] [claim_party_id] [claim_amount]"
+      ],
+      "events": ["shipment.delivery_failed"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:shipment_delivery_failure_propose", "event:shipment.delivery_failed"],
+      "label_de": "Fehlgeschlagene Zustellung erfassen",
+      "resources": ["delivery"]
+    },
+    {
       "id": "command:assign_line_item",
       "kind": "command",
       "key": "assign_line_item",
@@ -27307,6 +27482,7 @@
         "commitment.revised",
         "promises.closed",
         "document_line.item_assigned",
+        "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -27392,6 +27568,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -27470,6 +27647,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -27601,6 +27779,7 @@
         "return.announced",
         "return.announcement_withdrawn",
         "document_line.item_assigned",
+        "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -27685,6 +27864,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "shipment.delivery_failed",
         "reservation.created",
         "reservation.released",
         "movement.recorded",
@@ -27794,6 +27974,7 @@
         "return.announced",
         "return.announcement_withdrawn",
         "document_line.item_assigned",
+        "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -27906,6 +28087,7 @@
         "commitment.revised",
         "promises.closed",
         "document_line.item_assigned",
+        "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -28021,6 +28203,7 @@
         "document.recorded",
         "document.corrected",
         "payments.run",
+        "shipment.delivery_failed",
         "ledger.posted",
         "ledger.reversed",
         "settlement.allocated"
@@ -28188,6 +28371,7 @@
         "return.announced",
         "return.announcement_withdrawn",
         "document_line.item_assigned",
+        "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -30835,6 +31019,30 @@
       "links": ["command:assign_line_item"],
       "label_de": "document_line.item_assigned",
       "resources": ["order", "source"]
+    },
+    {
+      "id": "event:shipment.delivery_failed",
+      "kind": "event",
+      "key": "shipment.delivery_failed",
+      "label": "shipment.delivery_failed",
+      "area": "orders",
+      "summary": "",
+      "producer": "record_delivery_failure",
+      "subject": "delivery_failure",
+      "invalidates": [
+        "Inventory",
+        "Operational Exceptions",
+        "Commitment register",
+        "Timeline",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Item supply and demand",
+        "Open financial items",
+        "Tenant usage"
+      ],
+      "links": ["command:record_delivery_failure"],
+      "label_de": "shipment.delivery_failed",
+      "resources": ["delivery"]
     },
     {
       "id": "event:exchange.recorded",
@@ -77238,6 +77446,7 @@
         "command:import_opening",
         "command:assign_supply",
         "command:record_customer_exchange",
+        "command:record_delivery_failure",
         "command:record_return_disposition"
       ]
     },
@@ -77535,7 +77744,8 @@
         "command:post_supplier_payment",
         "command:accept_adjustment",
         "command:apply_settlement",
-        "command:import_opening"
+        "command:import_opening",
+        "command:record_delivery_failure"
       ]
     },
     {
@@ -78818,6 +79028,7 @@
         "command:put_back_outbound_delivery",
         "command:record_stock_count",
         "command:record_packaged_execution",
+        "command:record_delivery_failure",
         "command:record_return_disposition"
       ]
     },
@@ -79066,7 +79277,8 @@
         "command:post_supplier_payment",
         "command:accept_adjustment",
         "command:apply_settlement",
-        "command:import_opening"
+        "command:import_opening",
+        "command:record_delivery_failure"
       ]
     },
     {
@@ -82398,7 +82610,7 @@
           "references": []
         }
       ],
-      "actions": ["command:correct_movement"]
+      "actions": ["command:correct_movement", "command:record_delivery_failure"]
     },
     {
       "key": "subledger_account",

@@ -20,7 +20,7 @@
   - put-back moves both back;
   - cancellation leaves goods waiting to be put back;
   - tenant isolation.
-- [x] T005 Migration `0124_outbound_deliveries`, models and indexes
+- [x] T005 Migration `0128_outbound_deliveries`, models and indexes
 - [x] T006 Service, reads and refusals with translations
 
 ## Phase 3: Dispatch (FR-005)

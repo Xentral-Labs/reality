@@ -19,7 +19,7 @@
 
 **Language/Version**: Python 3.12, TypeScript (React)
 
-**Storage**: migration `0124_outbound_deliveries`, three new tables, no change to existing tables
+**Storage**: migration `0128_outbound_deliveries`, three new tables, no change to existing tables
 
 **Testing**:
 - service tests (`tests/test_outbound_deliveries.py`);
