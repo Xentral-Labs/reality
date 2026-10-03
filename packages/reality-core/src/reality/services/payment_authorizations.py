@@ -32,28 +32,27 @@ SOURCE_SYSTEM = "internal_payment_authorization"
 AMOUNT_EXPONENT = -4
 
 
-def _amount(value: Any, code: str) -> Decimal:
+def _amount(value: Any) -> Decimal | None:
+    """A positive amount with at most four decimals, or None."""
     try:
         amount = Decimal(str(value))
-    except (TypeError, ValueError, DecimalInvalid) as error:
-        raise core.InvalidOperation(code=code) from error
+    except (TypeError, ValueError, DecimalInvalid):
+        return None
     if (
         not amount.is_finite()
         or amount <= 0
         or amount.as_tuple().exponent < AMOUNT_EXPONENT
     ):
-        raise core.InvalidOperation(code=code)
+        return None
     return amount
 
 
-def _instant(value: Any, code: str) -> datetime:
+def _instant(value: Any) -> datetime | None:
+    """A stated date-time, or None."""
     try:
-        instant = core.utc_datetime(value)
-    except (TypeError, ValueError) as error:
-        raise core.InvalidOperation(code=code) from error
-    if instant is None:
-        raise core.InvalidOperation(code=code)
-    return instant
+        return core.utc_datetime(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _text(amount: Decimal) -> str:
@@ -87,13 +86,15 @@ def preview_authorization(
     )
     if order.type != "sales_order":
         raise core.InvalidOperation(code="payment_authorization_order_invalid")
-    amount = _amount(values.get("amount"), "payment_authorization_amount_invalid")
+    amount = _amount(values.get("amount"))
+    if amount is None:
+        raise core.InvalidOperation(code="payment_authorization_amount_invalid")
     if values.get("currency") != order.currency:
         raise core.InvalidOperation(code="payment_authorization_currency_mismatch")
-    authorized_at = _instant(
-        values.get("authorized_at"), "payment_authorization_time_invalid"
-    )
-    expires_at = _instant(values.get("expires_at"), "payment_authorization_time_invalid")
+    authorized_at = _instant(values.get("authorized_at"))
+    expires_at = _instant(values.get("valid_until"))
+    if authorized_at is None or expires_at is None:
+        raise core.InvalidOperation(code="payment_authorization_time_invalid")
     if expires_at <= authorized_at:
         raise core.InvalidOperation(code="payment_authorization_expiry_invalid")
     reference = str(values.get("reference") or "").strip()
@@ -185,8 +186,12 @@ def preview_capture(
         tenant_id,
         str(values.get("authorization_id") or ""),
     )
-    amount = _amount(values.get("amount"), "payment_capture_amount_invalid")
-    captured_at = _instant(values.get("captured_at"), "payment_capture_time_invalid")
+    amount = _amount(values.get("amount"))
+    if amount is None:
+        raise core.InvalidOperation(code="payment_capture_amount_invalid")
+    captured_at = _instant(values.get("captured_at"))
+    if captured_at is None:
+        raise core.InvalidOperation(code="payment_capture_time_invalid")
     if captured_at < core.utc_datetime(authorization.authorized_at):
         raise core.InvalidOperation(code="payment_capture_before_authorization")
     if captured_at > core.utc_datetime(authorization.expires_at):

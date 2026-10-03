@@ -2066,3 +2066,401 @@ def test_an_invoice_that_differs_from_the_order_is_reported_each_way(session, bu
         and row.causal_values["billed_unit_price"] == Decimal(11)
         for (class_id, _), row in found.items()
     )
+
+
+# --- Payouts and authorizations: L03, R04, C09, C10, C13 (spec 336) -----------
+
+R04_ORDERS = 400
+
+
+def _provider(session, business, name, account_name):
+    """A provider as a business partner, with its own cash account beside the bank."""
+    from reality.services.finance.accounts import create_account
+
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    _payment_fee_account(session, business)
+    provider = core.create_party(session, tenant, name, "supplier")
+    account = create_account(
+        session,
+        tenant,
+        code=f"13{core.uid('x')[-6:]}",
+        name=account_name,
+        role="cash",
+        expected_revision=_revision(session, business),
+    )
+    return provider, account["id"]
+
+
+def _billed_order(session, business, number, amount, party=None):
+    """A sales order of one line and its posted invoice, written directly for scale."""
+    tenant = business.tenant.id
+    party = party or business.customer
+    line = {
+        "item_id": business.item.id,
+        "quantity": "1",
+        "unit_price": amount,
+        "gross_amount": amount,
+        "unit": "pcs",
+        "source_line_id": "1",
+    }
+    order, (order_line,) = core.create_manual_document_with_lines(
+        session, tenant, "sales_order", number, party.id, [line], amount, _commit=False
+    )
+    invoice, (invoice_line,) = core.create_manual_document_with_lines(
+        session,
+        tenant,
+        "sales_invoice",
+        f"RE-{number}",
+        party.id,
+        [{**line, "billed_document_line_id": order_line.id}],
+        amount,
+        document_date="2026-09-20",
+        _commit=False,
+    )
+    core.post_sales_invoice(session, tenant, invoice.id, _commit=False)
+    return invoice, invoice_line
+
+
+def _payout(provider, account, reference, amount, lines, paid_on="2026-09-30"):
+    return {
+        "provider_party_id": provider.id,
+        "payout_reference": reference,
+        "paid_on": paid_on,
+        "currency": "EUR",
+        "amount": amount,
+        "clearing_account_id": account,
+        "lines": lines,
+    }
+
+
+def _charge(line_id, kind, amount, order=None, reference_type="shop_order_number"):
+    return {
+        "line_id": line_id,
+        "kind": kind,
+        "amount": amount,
+        "references": [{"type": reference_type, "value": order}] if order else [],
+    }
+
+
+def _cash_on(session, business, account_id):
+    total = Decimal(0)
+    for entry in session.scalars(
+        select(LedgerEntry).where(
+            LedgerEntry.tenant_id == business.tenant.id,
+            LedgerEntry.account_id == account_id,
+        )
+    ):
+        total += entry.amount if entry.debit_credit == "debit" else -entry.amount
+    return total
+
+
+def test_a_marketplace_payout_settles_each_order_and_books_the_fees(session, business):
+    """L03: one payment for many orders minus fees and a refund: each order settled,
+    the refund settles its credit note, the fees are charges."""
+    tenant = business.tenant.id
+    amazon, account = _provider(session, business, "Amazon EU S.a.r.l.", "Amazon Payments")
+    invoices = [
+        _billed_order(session, business, f"AMZ-L03-{n}", "39.90")[0] for n in range(5)
+    ]
+    refunded, refunded_line = _billed_order(session, business, "AMZ-L03-R", "20.00")
+    core.create_manual_document_with_lines(
+        session,
+        tenant,
+        "credit_note",
+        "GS-L03",
+        business.customer.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit_price": "20.00",
+                "gross_amount": "20.00",
+                "billed_document_line_id": refunded_line.id,
+            }
+        ],
+        "20.00",
+        _commit=False,
+    )
+    note = session.scalar(
+        select(Document).where(
+            Document.tenant_id == tenant, Document.number == "GS-L03"
+        )
+    )
+    core.post_sales_credit_note(session, tenant, note.id, _commit=False)
+    bank = list_accounts(session, tenant)["defaults"]["cash"]
+    bank_before = _cash_on(session, business, bank)
+
+    lines = [
+        _charge(str(n), "charge", "39.90", f"AMZ-L03-{n}") for n in range(5)
+    ] + [
+        _charge("R", "charge", "20.00", "AMZ-L03-R"),
+        _charge("R-refund", "refund", "20.00", "AMZ-L03-R"),
+        _charge("fees", "fee", "29.93"),
+    ]
+    review, receipt = _finance(
+        session,
+        business,
+        "finance.payout.settle",
+        _payout(amazon, account, "AMZ-PAYOUT-0930", "169.57", lines),
+    )
+
+    assert review["payout"]["unmatched_line_ids"] == []
+    assert [core.open_invoice_amount(session, tenant, i.id) for i in invoices] == [
+        0
+    ] * 5
+    assert core.open_invoice_amount(session, tenant, refunded.id) == 0
+    assert core.open_invoice_amount(session, tenant, note.id) == 0
+    assert core.account_balance(session, tenant, "payment_fee_expense") == Decimal(
+        "29.93"
+    )
+    assert _cash_on(session, business, bank) - bank_before == Decimal("169.57")
+    assert _cash_on(session, business, account) == 0
+    # Positive control: nothing of the payout is reported as unbooked.
+    assert not _findings(session, business, "payout_line_unmatched")
+
+
+def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_line(
+    session, business
+):
+    """R04: 400 orders, 12 refunds, 3 chargebacks and fees in one payout; every
+    position is allocated, and the settlement grows linearly with its lines."""
+    from sqlalchemy import event
+
+    tenant = business.tenant.id
+    amazon, account = _provider(session, business, "Amazon EU S.a.r.l.", "Amazon Payments")
+    # Three orders paid in an earlier payout come back as chargebacks.
+    earlier = [
+        _billed_order(session, business, f"AMZ-R04-E{n}", "40.00")[0] for n in range(3)
+    ]
+    _finance(
+        session,
+        business,
+        "finance.payout.settle",
+        _payout(
+            amazon,
+            account,
+            "AMZ-R04-0915",
+            "120.00",
+            [_charge(f"E{n}", "charge", "40.00", f"AMZ-R04-E{n}") for n in range(3)],
+            paid_on="2026-09-15",
+        ),
+    )
+    billed = [
+        _billed_order(session, business, f"AMZ-R04-{n:03d}", "25.00") for n in range(R04_ORDERS)
+    ]
+    for n, (_, line) in enumerate(billed[:12]):
+        note, _ = core.create_manual_document_with_lines(
+            session,
+            tenant,
+            "credit_note",
+            f"GS-R04-{n:03d}",
+            business.customer.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "25.00",
+                    "gross_amount": "25.00",
+                    "billed_document_line_id": line.id,
+                }
+            ],
+            "25.00",
+            _commit=False,
+        )
+        core.post_sales_credit_note(session, tenant, note.id, _commit=False)
+    session.commit()
+    lines = (
+        [_charge(f"C{n:03d}", "charge", "25.00", f"AMZ-R04-{n:03d}") for n in range(R04_ORDERS)]
+        + [_charge(f"R{n:03d}", "refund", "25.00", f"AMZ-R04-{n:03d}") for n in range(12)]
+        + [_charge(f"B{n}", "chargeback", "40.00", f"AMZ-R04-E{n}") for n in range(3)]
+        + [_charge("commission", "fee", "1500.00"), _charge("ads", "fee", "80.00")]
+    )
+    statements = []
+
+    def count(*_):
+        statements.append(1)
+
+    event.listen(session.bind, "before_cursor_execute", count)
+    try:
+        review, receipt = _finance(
+            session,
+            business,
+            "finance.payout.settle",
+            _payout(amazon, account, "AMZ-R04-0930", f"{R04_ORDERS * 25 - 300 - 120 - 1580:.2f}", lines),
+        )
+    finally:
+        event.remove(session.bind, "before_cursor_execute", count)
+
+    assert review["payout"]["unmatched_line_ids"] == []
+    assert receipt["unmatched_line_ids"] == []
+    assert len(receipt["lines"]) == R04_ORDERS + 17
+    assert all(
+        core.open_invoice_amount(session, tenant, invoice.id) == 0
+        for invoice, _ in billed
+    )
+    assert [core.open_invoice_amount(session, tenant, i.id) for i in earlier] == [
+        Decimal(40)
+    ] * 3
+    assert {row.record_id for row in _findings(session, business, "payment_returned")} == {
+        invoice.id for invoice in earlier
+    }
+    assert core.account_balance(session, tenant, "payment_fee_expense") == Decimal(
+        "1580.00"
+    )
+    # The provider's account is empty after both payouts: everything was booked.
+    assert _cash_on(session, business, account) == 0
+    # Review and settlement read a bounded number of statements per line.
+    assert len(statements) < (R04_ORDERS + 17) * 120, len(statements)
+
+
+def test_cash_on_delivery_is_tied_to_the_parcel_it_was_collected_for(
+    session, business
+):
+    """C13: the carrier remits the collected amount minus its fee; the line names
+    the parcel's tracking number, which leads to the order and its invoice."""
+    tenant = business.tenant.id
+    dhl, account = _provider(session, business, "DHL Paket GmbH", "DHL Nachnahme")
+    _, order_line, commitment = _stocked_order(session, business, "SO-C13", quantity="1")
+    tool, arguments = _dispatch(business, commitment, "1")
+    shipped = _reviewed(
+        session,
+        business,
+        tool,
+        {**arguments, "carrier": "DHL", "tracking_number": "00340434161094042557"},
+        "c13-dispatch",
+    )
+    invoice_id, _ = _invoice_line(
+        session, business, order_line.id, "1", "100.00", "RE-C13"
+    )
+
+    review, receipt = _finance(
+        session,
+        business,
+        "finance.payout.settle",
+        _payout(
+            dhl,
+            account,
+            "DHL-COD-2026-09-30",
+            "97.50",
+            [
+                _charge(
+                    "1",
+                    "charge",
+                    "100.00",
+                    "00340434161094042557",
+                    reference_type="tracking_number",
+                ),
+                _charge("cod-fee", "fee", "2.50"),
+            ],
+        ),
+    )
+
+    (line,) = [row for row in review["payout"]["lines"] if row["kind"] == "charge"]
+    assert (line["outcome"], line["invoice_id"]) == ("allocate", invoice_id)
+    assert core.open_invoice_amount(session, tenant, invoice_id) == 0
+    paid = next(row for row in receipt["lines"] if row["line_id"] == "1")
+    assert paid["allocated_to"] == [invoice_id]
+    assert paid["shipment_ids"] == [shipped["shipment_id"]]
+
+
+def _authorization(session, business, order, amount, valid_days, reference, at=None):
+    from datetime import timedelta
+
+    at = at or core.now() - timedelta(days=10)
+    _, receipt = _finance(
+        session,
+        business,
+        "finance.payment.authorization.record",
+        {
+            "order_document_id": order.id,
+            "amount": amount,
+            "currency": "EUR",
+            "authorized_at": at.isoformat(),
+            "valid_until": (at + timedelta(days=valid_days)).isoformat(),
+            "reference": reference,
+        },
+    )
+    return receipt
+
+
+def _capture(session, business, authorization, amount, at):
+    return _finance(
+        session,
+        business,
+        "finance.payment.capture.record",
+        {
+            "authorization_id": authorization["id"],
+            "amount": amount,
+            "captured_at": at.isoformat(),
+            "reference": f"CAP-{amount}",
+        },
+    )[1]
+
+
+def test_authorization_and_capture_are_separate_facts(session, business):
+    """C09: a card authorization of 100 is captured in two parts as the goods ship;
+    authorized, captured and left are read apart, and nothing beyond is captured."""
+    from datetime import timedelta
+
+    from reality.services.payment_authorizations import authorizations
+
+    tenant = business.tenant.id
+    order, _, _ = _stocked_order(session, business, "SO-C09", quantity="1")
+    authorized = _authorization(
+        session, business, order, "100.00", 30, "pi_3Q0C09", at=core.now() - timedelta(days=2)
+    )
+    first = _capture(
+        session, business, authorized, "60.00", core.now() - timedelta(days=1)
+    )
+    assert (first["captured"], first["remaining"], first["state"]) == ("60", "40", "live")
+
+    second = _capture(session, business, authorized, "40.00", core.now())
+
+    (row,) = authorizations(session, tenant, order_document_id=order.id)
+    assert (row["amount"], row["captured"], row["remaining"], row["state"]) == (
+        "100",
+        "100",
+        "0",
+        "captured",
+    )
+    assert second["state"] == "captured"
+    with pytest.raises(core.InvalidOperation) as refused:
+        _capture(session, business, authorized, "0.01", core.now())
+    assert refused.value.code == "payment_capture_exceeds_authorization"
+    assert not _findings(session, business, "payment_authorization_expired")
+
+
+def test_an_expired_authorization_shows_the_uncovered_rest_of_a_late_shipment(
+    session, business
+):
+    """C10: 60 of 100 were captured with the first parcel; the authorization lapses
+    before the late rest ships, and the uncovered 40 are visible until re-authorized."""
+    from datetime import timedelta
+
+    from reality.services.exceptions import operational_exceptions
+
+    tenant = business.tenant.id
+    order, _, commitment = _stocked_order(session, business, "SO-C10")
+    authorized = _authorization(session, business, order, "1000.00", 7, "pi_3Q0C10")
+    tool, arguments = _dispatch(business, commitment, "6")
+    _reviewed(session, business, tool, arguments, "c10-first")
+    _capture(session, business, authorized, "600.00", core.now() - timedelta(days=9))
+
+    found = {
+        row.record_id: row
+        for row in operational_exceptions(session, tenant)
+        if row.class_id == "payment_authorization_expired"
+    }
+    assert found[order.id].causal_values["uncovered_amount"] == 400
+    assert found[order.id].causal_values["captured_amount"] == 600
+
+    _authorization(
+        session, business, order, "400.00", 7, "pi_3Q0C10-re", at=core.now()
+    )
+
+    assert order.id not in {
+        row.record_id
+        for row in operational_exceptions(session, tenant)
+        if row.class_id == "payment_authorization_expired"
+    }

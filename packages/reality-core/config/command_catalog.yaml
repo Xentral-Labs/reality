@@ -28,6 +28,8 @@ parameter_descriptions:
   handover_id: Opaque same-tenant identity of a collection handover.
   payment_document_id: Opaque same-tenant identity of the recorded customer payment that came back.
   kind: Whether the payment came back as a returned direct debit or a chargeback.
+  payout_id: Opaque same-tenant identity of a settled payout.
+  order_document_id: Opaque same-tenant identity of a sales order.
   returned_on: Calendar date the bank or provider states for the return.
   reference: The bank's or provider's own reference for the return, as stated.
   fee_bearer: Who bears a stated fee - charged on to the customer, or kept by the company as payment-fee expense; none when there is no fee.
@@ -1547,6 +1549,51 @@ commands:
     reads: [payment_return, document, settlement_allocation]
     writes: []
     effect: Reads one returned payment with its reason, reference, fee and reopened invoices.
+  - name: Settle a payout
+    service: settle_payout
+    related_services: [preview_payout]
+    mode: mutation
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [document, document_line, ledger_entry, settlement_allocation, ledger_reversal, payment_return, shipment_package, movement, commitment, source_record, subledger_account]
+    writes: [source_record, document, ledger_entry, settlement_allocation, payment_return, ledger_reversal, business_event]
+    effect: Books a stated marketplace or provider payout line by line on the provider's cash account (payments, refunds against credit notes, chargebacks, fees), moves the net payout to the bank and leaves lines that lead nowhere unbooked.
+  - name: List payouts
+    service: payouts
+    mode: query
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [document, source_record, payment_return]
+    writes: []
+    effect: Lists payouts with their net amount and the lines nothing booked yet.
+  - name: Read a payout
+    service: payout_detail
+    mode: query
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [document, source_record, ledger_entry, settlement_allocation, payment_return, shipment_package]
+    writes: []
+    effect: Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names.
+  - name: Record a payment authorization
+    service: record_authorization
+    related_services: [preview_authorization]
+    mode: mutation
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [document, payment_authorization]
+    writes: [payment_authorization, source_record, business_event]
+    effect: Records what a card or wallet provider authorized for one sales order, until when.
+  - name: Record a payment capture
+    service: record_capture
+    related_services: [preview_capture]
+    mode: mutation
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [payment_authorization, payment_capture]
+    writes: [payment_capture, source_record, business_event]
+    effect: Records an amount captured against an authorization, never more than is left and not after it lapsed.
+  - name: List payment authorizations
+    service: authorizations
+    mode: query
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [payment_authorization, payment_capture]
+    writes: []
+    effect: Lists authorizations with what was captured, what is left and whether each is live, expired or captured.
   - name: List collection handovers
     service: handovers
     mode: query
@@ -5407,6 +5454,99 @@ capability_guidance:
     events: [payment.returned, ledger.reversed, ledger.posted]
     verification_reads: [{name: finance.payment_return, proves: The return, its reversal and fee documents are retained.}]
     examples: {use: [{scenario: A direct debit came back with a bank fee of 3.50., reason: The invoice is open again and the customer owes the fee.}], do_not_use: [{scenario: A customer asks for a refund., reason: A refund is recorded from a credit note.}]}
+  finance_payout_settle_propose:
+    application_tool: finance.payout.settle
+    purpose: Settle a marketplace or payment-provider payout statement for owner confirmation.
+    use_when: [A marketplace, payment provider or carrier paid one amount for many orders, minus refunds, chargebacks and fees.]
+    do_not_use_when: [A customer paid one invoice directly; record a payment. The statement does not add up; ask the provider.]
+    required_context: [provider_party_id, payout_reference, paid_on, currency, amount, clearing_account_id, lines]
+    preconditions: [The provider is a business partner; its balance is held on an active cash account apart from the bank; the lines add up to the net payout.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Settling the same statement again books only lines that were still unbooked; a changed statement under the same reference is refused.}
+    refusals: [{code: payout_total_mismatch, description: The lines do not add up to the stated net payout.}, {code: payout_clearing_is_bank, description: The provider's account is the bank account.}, {code: payout_clearing_account_invalid, description: The provider's account is not an active cash account.}, {code: payout_statement_changed, description: The payout was settled before with other content.}]
+    events: [payout.settled, ledger.posted, settlement.allocated, payment.returned, ledger.reversed]
+    verification_reads: [{name: finance.payout, proves: Every line's booking and the invoices it settled are retained.}]
+    examples: {use: [{scenario: An Amazon payout of 400 orders minus 12 refunds, 3 chargebacks and fees., reason: Each order is paid, every deduction is booked, the bank receives the net.}], do_not_use: [{scenario: A single card payment for one invoice., reason: Record the customer payment instead.}]}
+  finance_payouts:
+    kind: read
+    application_tool: finance.payouts
+    purpose: List payouts with their net amount and the lines nothing booked yet.
+    use_when: [Payouts must be reconciled with the bank or followed up.]
+    do_not_use_when: [One payout is known; read it.]
+    required_context: [tenant]
+    data_basis: [document, source_record, payment_return]
+    limitations: [Payouts are stated by a person or an agent; provider report files are not read.]
+    freshness: Read from committed payouts and their bookings.
+    empty_result: No payout has been settled.
+    refusal_behavior: Only tenant-owned payouts are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which payouts arrived and how many of their lines are booked.], does_not_prove: [That the provider holds nothing more.]}
+    unknown_when: [A payout arrived at the bank that nobody stated.]
+    next_steps: [Read one payout with finance_payout.]
+    examples: {use: [{scenario: Find the payouts that still have unbooked lines., reason: Each row names the unbooked lines and their amount.}], do_not_use: [{scenario: Settle a payout., reason: Use finance_payout_settle_propose.}]}
+  finance_payout:
+    kind: read
+    application_tool: finance.payout
+    purpose: Read one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names.
+    use_when: [One payout needs reconciliation, or a line stayed unbooked.]
+    do_not_use_when: [The payout is not known yet; list them first.]
+    required_context: [payout_id]
+    data_basis: [document, source_record, ledger_entry, settlement_allocation, payment_return, shipment_package]
+    limitations: [An unbooked line names why from what Reality holds now.]
+    freshness: Read from the selected payout and current allocations.
+    empty_result: Unknown and foreign identities are refused as not found.
+    refusal_behavior: Cross-tenant identities disclose nothing.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Each line's booking, the invoices and credit notes it settled and the shipment it names.], does_not_prove: [That the provider's statement is complete.]}
+    unknown_when: [An order named by an unbooked line arrives after the read.]
+    next_steps: [Settle the same statement again once the orders an unbooked line names are held.]
+    examples: {use: [{scenario: See which order a cash-on-delivery remittance paid., reason: The line names its shipment and the invoice it settled.}], do_not_use: [{scenario: Record a chargeback for a direct payment., reason: Use finance_payment_return_propose.}]}
+  finance_payment_authorization_record_propose:
+    application_tool: finance.payment.authorization.record
+    purpose: Record what a card or wallet provider authorized for one sales order, for owner confirmation.
+    use_when: [The provider authorized an amount for an order before shipment.]
+    do_not_use_when: [Money was captured or paid out; record the capture or settle the payout.]
+    required_context: [order_document_id, amount, currency, authorized_at, valid_until, reference]
+    preconditions: [A sales order of the tenant in the same currency; the reference is new for the order.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; a reference is recorded once per order.}
+    refusals: [{code: payment_authorization_currency_mismatch, description: The currency differs from the order's.}, {code: payment_authorization_duplicate, description: The reference is already recorded for the order.}]
+    events: [payment.authorized]
+    verification_reads: [{name: finance.payment_authorizations, proves: The authorization and what is left of it are retained.}]
+    examples: {use: [{scenario: Klarna authorized 100 for an order shipped in two parts., reason: Each capture is then checked against what is left.}], do_not_use: [{scenario: The provider paid out., reason: Settle the payout.}]}
+  finance_payment_capture_record_propose:
+    application_tool: finance.payment.capture.record
+    purpose: Record an amount captured against an authorization, for owner confirmation.
+    use_when: [The provider captured part or all of an authorization, typically at shipment.]
+    do_not_use_when: [The authorization lapsed; a new authorization is needed first.]
+    required_context: [authorization_id, amount, captured_at]
+    preconditions: [The capture lies between the authorization and its lapse and is no more than is left.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; confirmed replay returns the same authorization.}
+    refusals: [{code: payment_capture_exceeds_authorization, description: More than is left of the authorization.}, {code: payment_capture_after_expiry, description: The authorization had lapsed.}]
+    events: [payment.captured]
+    verification_reads: [{name: finance.payment_authorizations, proves: The capture and the remainder are retained.}]
+    examples: {use: [{scenario: 60 of 100 were captured with the first parcel., reason: 40 remain authorized for the rest.}], do_not_use: [{scenario: Record the money arriving., reason: Settle the payout.}]}
+  finance_payment_authorizations:
+    kind: read
+    application_tool: finance.payment_authorizations
+    purpose: List payment authorizations with what was captured, what is left and whether each is live, expired or captured.
+    use_when: [Before a late shipment, to see whether the payment is still authorized.]
+    do_not_use_when: [The question is whether an invoice is paid; read the invoice.]
+    required_context: [tenant]
+    data_basis: [payment_authorization, payment_capture]
+    limitations: [Authorizations and captures are stated by a person or an agent; provider feeds are not read.]
+    freshness: Read from recorded authorizations at the requested instant.
+    empty_result: No authorization is recorded for the selection.
+    refusal_behavior: Only tenant-owned authorizations are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [What was authorized and captured, and what is left.], does_not_prove: [That the captured money was paid out.]}
+    unknown_when: [The provider extended an authorization nobody recorded.]
+    next_steps: [Record a new authorization when an expired one leaves goods to ship uncovered.]
+    examples: {use: [{scenario: Check whether the rest of an order is still authorized., reason: The read names live, expired and captured amounts.}], do_not_use: [{scenario: Record a capture., reason: Use finance_payment_capture_record_propose.}]}
   finance_dunning_run_propose:
     application_tool: finance.dunning.run
     purpose: Record the reviewed dunning run's notices for owner confirmation.
@@ -5473,6 +5613,12 @@ agent_command_coverage:
   record_return: {classification: eligible, tools: [finance_payment_return_propose]}
   returns: {classification: eligible, tools: [finance_payment_returns]}
   return_detail: {classification: eligible, tools: [finance_payment_return]}
+  settle_payout: {classification: eligible, tools: [finance_payout_settle_propose]}
+  payouts: {classification: eligible, tools: [finance_payouts]}
+  payout_detail: {classification: eligible, tools: [finance_payout]}
+  record_authorization: {classification: eligible, tools: [finance_payment_authorization_record_propose]}
+  record_capture: {classification: eligible, tools: [finance_payment_capture_record_propose]}
+  authorizations: {classification: eligible, tools: [finance_payment_authorizations]}
   change_graph_report: {classification: eligible, tools: [graph_report_change_propose]}
   record_shipment_notice: {classification: eligible, tools: [shipment_notice_record_propose]}
   record_packaged_execution: {classification: eligible, tools: [shipment_dispatch_propose, shipment_receive_propose]}

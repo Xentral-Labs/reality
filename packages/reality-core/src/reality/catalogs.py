@@ -37,7 +37,9 @@ from reality.services import month_end_billing as month_end_billing_service_modu
 from reality.services import notifications as notification_service_module
 from reality.services import order_line_items as order_line_item_service_module
 from reality.services import payment_intake as payment_intake_service_module
+from reality.services import payment_authorizations as authorization_service_module
 from reality.services import payment_returns as payment_return_service_module
+from reality.services import payouts as payout_service_module
 from reality.services import playground as playground_service_module
 from reality.services import projection_jobs as projection_job_service_module
 from reality.services import projections as projection_service_module
@@ -146,6 +148,8 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "order_waiting_for_completeness",
     "backorder_against_rule",
     "shipped_beyond_order",
+    "payout_line_unmatched",
+    "payment_authorization_expired",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays
@@ -1121,6 +1125,8 @@ def _service(name: str) -> Any:
         purchase_match_service_module,
         company_currency_service_module,
         delivery_failure_service_module,
+        payout_service_module,
+        authorization_service_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1322,6 +1328,8 @@ def _literal_business_events() -> set[str]:
         dunning_run_service_module,
         order_line_item_service_module,
         payment_return_service_module,
+        payout_service_module,
+        authorization_service_module,
         reorder_point_service_module,
         stock_block_service_module,
         backorder_service_module,

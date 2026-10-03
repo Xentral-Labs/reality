@@ -8185,6 +8185,42 @@ def get_payment_return(tenant_id: str, return_id: str, session: DatabaseSession)
         raise api_error(error) from error
 
 
+@router.get("/finance/payouts")
+def get_payouts(tenant_id: str, session: DatabaseSession):
+    from reality.services.payouts import payouts
+
+    try:
+        return {"items": payouts(session, tenant_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/payouts/{payout_id}")
+def get_payout(tenant_id: str, payout_id: str, session: DatabaseSession):
+    from reality.services.payouts import payout_detail
+
+    try:
+        return payout_detail(session, tenant_id, payout_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/payment-authorizations")
+def get_payment_authorizations(
+    tenant_id: str, session: DatabaseSession, order_document_id: str | None = None
+):
+    from reality.services.payment_authorizations import authorizations
+
+    try:
+        return {
+            "items": authorizations(
+                session, tenant_id, order_document_id=order_document_id
+            )
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/finance/dunning/collection-handovers")
 def get_collection_handovers(tenant_id: str, session: DatabaseSession):
     from reality.services.dunning_runs import handovers

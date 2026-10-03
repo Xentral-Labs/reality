@@ -119,6 +119,8 @@ DEFERRED = {
             "stock_count_line",
             "payment_return",
             "delivery_failure",
+            "payment_authorization",
+            "payment_capture",
             "supply_assignment",
         },
         set(),

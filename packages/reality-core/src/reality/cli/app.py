@@ -2817,6 +2817,57 @@ def finance_payment_returns(
         _finance_read("finance.payment_returns", {}, tenant_id)
 
 
+@app.command("finance-payout-settle-propose")
+def finance_payout_settle_propose(
+    arguments: str | None = None,
+    file: Path | None = None,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare a payout statement for owner confirmation, as JSON or from a JSON file."""
+    if (arguments is None) == (file is None):
+        raise typer.BadParameter("State the payout as arguments or as a file.")
+    _finance_propose(
+        "finance.payout.settle",
+        arguments if arguments is not None else file.read_text(),
+        tenant_id,
+    )
+
+
+@app.command("finance-payouts")
+def finance_payouts(payout_id: str | None = None, tenant_id: str | None = None) -> None:
+    """List payouts, or read one with every line and what it booked."""
+    if payout_id:
+        _finance_read("finance.payout", {"payout_id": payout_id}, tenant_id)
+    else:
+        _finance_read("finance.payouts", {}, tenant_id)
+
+
+@app.command("finance-payment-authorization-propose")
+def finance_payment_authorization_propose(
+    arguments: str, tenant_id: str | None = None
+) -> None:
+    """Prepare a payment authorization of a sales order for owner confirmation."""
+    _finance_propose("finance.payment.authorization.record", arguments, tenant_id)
+
+
+@app.command("finance-payment-capture-propose")
+def finance_payment_capture_propose(arguments: str, tenant_id: str | None = None) -> None:
+    """Prepare a capture against a payment authorization for owner confirmation."""
+    _finance_propose("finance.payment.capture.record", arguments, tenant_id)
+
+
+@app.command("finance-payment-authorizations")
+def finance_payment_authorizations(
+    order_document_id: str | None = None, tenant_id: str | None = None
+) -> None:
+    """List payment authorizations with what was captured and what is left."""
+    _finance_read(
+        "finance.payment_authorizations",
+        {"order_document_id": order_document_id} if order_document_id else {},
+        tenant_id,
+    )
+
+
 @app.command("finance-dunning-collection")
 def finance_dunning_collection(
     handover_id: str | None = None, tenant_id: str | None = None

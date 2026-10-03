@@ -61,17 +61,18 @@ MAX_LINES = 2000
 AMOUNT_EXPONENT = -4
 
 
-def _amount(value: Any, code: str) -> Decimal:
+def _amount(value: Any) -> Decimal | None:
+    """A positive amount with at most four decimals, or None."""
     try:
         amount = Decimal(str(value))
-    except (TypeError, ValueError, DecimalInvalid) as error:
-        raise core.InvalidOperation(code=code) from error
+    except (TypeError, ValueError, DecimalInvalid):
+        return None
     if (
         not amount.is_finite()
         or amount <= 0
         or amount.as_tuple().exponent < AMOUNT_EXPONENT
     ):
-        raise core.InvalidOperation(code=code)
+        return None
     return amount
 
 
@@ -94,7 +95,9 @@ def _statement(values: dict[str, Any]) -> dict[str, Any]:
     currency = str(values.get("currency") or "")
     if len(currency) != 3 or not currency.isupper():
         raise core.InvalidOperation(code="payout_currency_invalid")
-    amount = _amount(values.get("amount"), "payout_amount_invalid")
+    amount = _amount(values.get("amount"))
+    if amount is None:
+        raise core.InvalidOperation(code="payout_amount_invalid")
     lines = values.get("lines") or []
     if not lines or len(lines) > MAX_LINES:
         raise core.InvalidOperation(code="payout_lines_invalid")
@@ -119,11 +122,14 @@ def _statement(values: dict[str, Any]) -> dict[str, Any]:
             ) from error
         if kind != "fee" and not references:
             raise core.InvalidOperation(code="payout_line_reference_missing")
+        line_amount = _amount(line.get("amount"))
+        if line_amount is None:
+            raise core.InvalidOperation(code="payout_line_amount_invalid")
         normalized.append(
             {
                 "line_id": line_id,
                 "kind": kind,
-                "amount": _text(_amount(line.get("amount"), "payout_line_amount_invalid")),
+                "amount": _text(line_amount),
                 "references": references,
                 "reason": str(line.get("reason") or "").strip(),
             }
@@ -480,95 +486,151 @@ def _held_payment(
     return next(iter(payments)) if len(payments) == 1 else None
 
 
-def _plan(
-    session: Session,
-    tenant_id: str,
-    statement: dict[str, Any],
-    line: dict[str, Any],
-    pending: dict[tuple[str, str], list[str]],
-) -> dict[str, Any]:
-    """What one line will do, read from what Reality holds now."""
-    plan: dict[str, Any] = {
-        "line_id": line["line_id"],
-        "kind": line["kind"],
-        "amount": line["amount"],
-        "outcome": "unmatched",
-        "reasons": [],
-    }
-    if line["kind"] == "fee":
-        plan["outcome"] = "expense"
-        return plan
-    references = [Reference.model_validate(item) for item in line["references"]]
-    customers = _customers(session, tenant_id, references)
-    if len(customers) != 1:
-        plan["reasons"].append(
-            "the references name no customer"
-            if not customers
-            else "the references name several customers"
-        )
-        return plan
-    (party_id,) = customers
-    plan["party_id"] = party_id
-    currency = statement["currency"]
-    amount = Decimal(line["amount"])
-    if line["kind"] == "charge":
-        resolution = resolve_references(
-            session, tenant_id, party_id, currency, tuple(references)
-        )
-        invoice = resolution.unambiguous
-        plan["reasons"] = list(resolution.reasons)
-        plan["outcome"] = "record"
-        if invoice is not None:
-            open_amount = core.open_invoice_amount(session, tenant_id, invoice.id)
-            if open_amount > 0:
-                plan.update(
-                    outcome="allocate",
-                    invoice_id=invoice.id,
-                    invoice_number=invoice.number,
-                    allocate=_text(min(amount, open_amount)),
+class _Planner:
+    """Decides what each line does, reading open amounts once for the statement.
+
+    A statement of hundreds of charges would otherwise measure each invoice on
+    its own; the open amounts are read in one pass and lowered here as lines
+    allocate, inside the one transaction that books them.
+    """
+
+    def __init__(
+        self, session: Session, tenant_id: str, statement: dict[str, Any]
+    ) -> None:
+        self.session = session
+        self.tenant_id = tenant_id
+        self.statement = statement
+        self.pending: dict[tuple[str, str], list[str]] = {}
+        self.open: dict[str, Decimal] = {}
+        self.resolved: dict[str, tuple[set[str], Any]] = {}
+
+    def prefetch(self, lines: list[dict[str, Any]]) -> None:
+        invoices: dict[str, Document] = {}
+        for line in lines:
+            if line["kind"] != "charge":
+                continue
+            references = [Reference.model_validate(item) for item in line["references"]]
+            customers = _customers(self.session, self.tenant_id, references)
+            resolution = (
+                resolve_references(
+                    self.session,
+                    self.tenant_id,
+                    next(iter(customers)),
+                    self.statement["currency"],
+                    tuple(references),
                 )
-                pending.setdefault((invoice.id, line["amount"]), []).append(
-                    line["line_id"]
-                )
-            else:
-                plan["reasons"].append(f"invoice {invoice.number} is already settled")
-        return plan
-    invoices = _invoices_named(session, tenant_id, party_id, currency, references)
-    if line["kind"] == "refund":
-        note = _open_credit_note(session, tenant_id, invoices)
-        plan["outcome"] = "record"
-        if note is None:
-            plan["reasons"].append("no open credit note for the order")
-        else:
-            open_amount = core.open_invoice_amount(session, tenant_id, note.id)
-            plan.update(
-                outcome="allocate",
-                credit_note_id=note.id,
-                credit_note_number=note.number,
-                allocate=_text(min(amount, open_amount)),
+                if len(customers) == 1
+                else None
             )
-        return plan
-    # A chargeback returns a payment held on this provider's account, or the
-    # payment a charge of the same statement is about to book.
-    payment = _held_payment(
-        session, tenant_id, invoices, statement["clearing_account_id"], amount
-    )
-    if payment is not None:
-        plan.update(outcome="return", payment_document_id=payment)
-        return plan
-    for invoice in invoices:
-        waiting = pending.get((invoice.id, line["amount"]))
-        if waiting:
-            plan.update(
-                outcome="return",
-                invoice_id=invoice.id,
-                charge_line_id=waiting.pop(0),
+            self.resolved[line["line_id"]] = (customers, resolution)
+            if resolution is not None and resolution.unambiguous is not None:
+                invoices[resolution.unambiguous.id] = resolution.unambiguous
+        self.open.update(
+            core.open_invoice_amounts(
+                self.session, self.tenant_id, list(invoices.values())
+            )
+        )
+
+    def _open(self, document: Document) -> Decimal:
+        if document.id not in self.open:
+            self.open[document.id] = core.open_invoice_amount(
+                self.session, self.tenant_id, document.id
+            )
+        return self.open[document.id]
+
+    def booked(self, plan: dict[str, Any]) -> None:
+        """Lower the open amount a booked allocation settled."""
+        target = plan.get("invoice_id") or plan.get("credit_note_id")
+        if plan["outcome"] == "allocate" and target in self.open:
+            self.open[target] -= Decimal(plan["allocate"])
+
+    def plan(self, line: dict[str, Any]) -> dict[str, Any]:
+        """What one line will do, read from what Reality holds now."""
+        session, tenant_id, statement = self.session, self.tenant_id, self.statement
+        plan: dict[str, Any] = {
+            "line_id": line["line_id"],
+            "kind": line["kind"],
+            "amount": line["amount"],
+            "outcome": "unmatched",
+            "reasons": [],
+        }
+        if line["kind"] == "fee":
+            plan["outcome"] = "expense"
+            return plan
+        references = [Reference.model_validate(item) for item in line["references"]]
+        customers, resolution = self.resolved.pop(line["line_id"], (None, None))
+        if customers is None:
+            customers = _customers(session, tenant_id, references)
+        if len(customers) != 1:
+            plan["reasons"].append(
+                "the references name no customer"
+                if not customers
+                else "the references name several customers"
             )
             return plan
-    plan["reasons"].append(
-        "no payment of this amount on the provider account for the order"
-    )
-    return plan
+        (party_id,) = customers
+        plan["party_id"] = party_id
+        currency = statement["currency"]
+        amount = Decimal(line["amount"])
+        if line["kind"] == "charge":
+            resolution = resolution or resolve_references(
+                session, tenant_id, party_id, currency, tuple(references)
+            )
+            invoice = resolution.unambiguous
+            plan["reasons"] = list(resolution.reasons)
+            plan["outcome"] = "record"
+            if invoice is not None:
+                open_amount = self._open(invoice)
+                if open_amount > 0:
+                    plan.update(
+                        outcome="allocate",
+                        invoice_id=invoice.id,
+                        invoice_number=invoice.number,
+                        allocate=_text(min(amount, open_amount)),
+                    )
+                    self.pending.setdefault((invoice.id, line["amount"]), []).append(
+                        line["line_id"]
+                    )
+                else:
+                    plan["reasons"].append(
+                        f"invoice {invoice.number} is already settled"
+                    )
+            return plan
+        invoices = _invoices_named(session, tenant_id, party_id, currency, references)
+        if line["kind"] == "refund":
+            note = _open_credit_note(session, tenant_id, invoices)
+            plan["outcome"] = "record"
+            if note is None:
+                plan["reasons"].append("no open credit note for the order")
+            else:
+                plan.update(
+                    outcome="allocate",
+                    credit_note_id=note.id,
+                    credit_note_number=note.number,
+                    allocate=_text(min(amount, self._open(note))),
+                )
+            return plan
+        # A chargeback returns a payment held on this provider's account, or the
+        # payment a charge of the same statement is about to book.
+        payment = _held_payment(
+            session, tenant_id, invoices, statement["clearing_account_id"], amount
+        )
+        if payment is not None:
+            plan.update(outcome="return", payment_document_id=payment)
+            return plan
+        for invoice in invoices:
+            waiting = self.pending.get((invoice.id, line["amount"]))
+            if waiting:
+                plan.update(
+                    outcome="return",
+                    invoice_id=invoice.id,
+                    charge_line_id=waiting.pop(0),
+                )
+                return plan
+        plan["reasons"].append(
+            "no payment of this amount on the provider account for the order"
+        )
+        return plan
 
 
 def _plans(
@@ -577,7 +639,10 @@ def _plans(
     statement: dict[str, Any],
     booked: set[str],
 ) -> list[dict[str, Any]]:
-    pending: dict[tuple[str, str], list[str]] = {}
+    planner = _Planner(session, tenant_id, statement)
+    planner.prefetch(
+        [line for line in statement["lines"] if line["line_id"] not in booked]
+    )
     plans = []
     for kind in KINDS:
         for line in statement["lines"]:
@@ -594,7 +659,7 @@ def _plans(
                     }
                 )
             else:
-                plans.append(_plan(session, tenant_id, statement, line, pending))
+                plans.append(planner.plan(line))
     return plans
 
 
@@ -837,14 +902,17 @@ def settle_payout(
     }
     bookings = _bookings(session, tenant_id, {s.id for s in sources.values()})
     booked = {line_id for line_id, s in sources.items() if s.id in bookings}
-    pending: dict[tuple[str, str], list[str]] = {}
+    planner = _Planner(session, tenant_id, statement)
+    planner.prefetch(
+        [line for line_id, line in lines.items() if line_id not in booked]
+    )
     newly: list[str] = []
     unmatched: list[str] = []
     for kind in KINDS:
         for line_id, line in lines.items():
             if line["kind"] != kind or line_id in booked:
                 continue
-            plan = _plan(session, tenant_id, statement, line, pending)
+            plan = planner.plan(line)
             if plan["outcome"] == "unmatched":
                 unmatched.append(line_id)
                 continue
@@ -858,6 +926,7 @@ def settle_payout(
                 action_id=action_id,
                 actor_id=actor_id,
             )
+            planner.booked(plan)
             newly.append(line_id)
     session.flush()
     emit_business_event(
@@ -907,20 +976,33 @@ def _allocated_to(
             )
         )
     }
-    targets: dict[str, list[str]] = {}
-    for allocation in core.active_settlement_allocations(
+    allocations = core.active_settlement_allocations(
         session, tenant_id, entry_ids=set(entries)
-    ):
-        document_id = entries.get(allocation.payment_ledger_entry_id)
-        if document_id is None:
-            continue
-        target = session.scalar(
-            select(LedgerEntry.document_id).where(
-                LedgerEntry.tenant_id == tenant_id,
-                LedgerEntry.id == allocation.invoice_ledger_entry_id,
-            )
+    )
+    target_entries = {
+        allocation.invoice_ledger_entry_id
+        for allocation in allocations
+        if allocation.payment_ledger_entry_id in entries
+    }
+    documents = (
+        dict(
+            session.execute(
+                select(LedgerEntry.id, LedgerEntry.document_id).where(
+                    LedgerEntry.tenant_id == tenant_id,
+                    LedgerEntry.id.in_(target_entries),
+                )
+            ).all()
         )
-        targets.setdefault(document_id, []).append(target)
+        if target_entries
+        else {}
+    )
+    targets: dict[str, list[str]] = {}
+    for allocation in allocations:
+        document_id = entries.get(allocation.payment_ledger_entry_id)
+        if document_id is not None:
+            targets.setdefault(document_id, []).append(
+                documents[allocation.invoice_ledger_entry_id]
+            )
     return targets
 
 

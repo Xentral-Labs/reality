@@ -16,6 +16,9 @@ events:
   - {type: dunning.notice_recorded, producer: record_notice, subject: dunning_notice, invalidates: [Open financial items, Timeline, Tenant usage]}
   - {type: dunning.notice_reversed, producer: reverse_notice, subject: dunning_notice, invalidates: [Open financial items, Timeline, Tenant usage]}
   - {type: payment.returned, producer: record_return, subject: payment_return, invalidates: [Open financial items, Payments, Journal, Timeline, Operational Exceptions, Fulfillment queue, Fulfillment blockers, Tenant usage]}
+  - {type: payout.settled, producer: settle_payout, subject: document, invalidates: [Open financial items, Payments, Journal, Timeline, Operational Exceptions, Fulfillment queue, Fulfillment blockers, Tenant usage]}
+  - {type: payment.authorized, producer: record_authorization, subject: payment_authorization, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
+  - {type: payment.captured, producer: record_capture, subject: payment_capture, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
   - {type: dunning.schedule_set, producer: set_schedule, subject: tenant, invalidates: [Tenant usage]}
   - {type: dunning.run_confirmed, producer: confirm_run, subject: source_record, invalidates: [Open financial items, Timeline, Tenant usage]}
   - {type: dunning.collection_handover_recorded, producer: record_handover, subject: collection_handover, invalidates: [Open financial items, Timeline, Tenant usage]}
