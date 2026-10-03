@@ -13164,6 +13164,9 @@ def record_customer_payment(
             action_id=action_id,
             _commit=False,
         )
+        from reality.services.intake import _bind_payment_document
+
+        _bind_payment_document(session, tenant_id, payment.id)
         entries = post_ledger(
             session,
             tenant_id,
@@ -13651,6 +13654,7 @@ def record_supplier_payment(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     _control_account_id: str | None = None,
+    _cash_account_id: str | None = None,
     _exchange: dict[str, Any] | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
@@ -13665,6 +13669,9 @@ def record_supplier_payment(
     Create payment evidence, debit accounts payable and credit cash for the stated positive amount. When exchange information is supplied, retain its company amounts and record its stated gain/loss treatment. Keep document recording and posting within the shared atomic transaction boundary.
     """
     _require_business_mutation(session, tenant_id, "record_supplier_payment")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("record_supplier_payment", locals())
     # reality-rule: core.record_supplier_payment.1
     amount = positive(amount, "amount")
     # reality-rule: core.record_supplier_payment.2
@@ -13684,6 +13691,9 @@ def record_supplier_payment(
             action_id=action_id,
             _commit=False,
         )
+        from reality.services.intake import _bind_payment_document
+
+        _bind_payment_document(session, tenant_id, payment.id)
         entries = post_ledger(
             session,
             tenant_id,
@@ -13705,9 +13715,15 @@ def record_supplier_payment(
                     else []
                 ),
             ],
-            account_ids={"accounts_payable": _control_account_id}
-            if _control_account_id
-            else None,
+            account_ids={
+                role: account
+                for role, account in (
+                    ("accounts_payable", _control_account_id),
+                    ("cash", _cash_account_id),
+                )
+                if account
+            }
+            or None,
             currency=currency,
             source_record_id=source_record_id,
             effective_at=effective_at,

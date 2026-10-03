@@ -1,7 +1,7 @@
 # Feature Specification: Reviewed invoice, payment and allocation intake
 
 **Created**: 2026-10-03
-**Status**: Specified; implementation pending
+**Status**: Explicit payment and invoice profiles in progress; adapter cutover pending
 **Language**: English
 **Input**: Owner requested decision-gated interpretation across imports, master data,
 payments and changes, explicitly included bulk processing, and authorized autonomous
@@ -94,6 +94,7 @@ Handle many statements while respecting stronger authority and per-statement ato
 - **FR-005**: An unambiguous reference MUST propose an allocation rather than execute it during interpretation; review MUST name the exact invoice/entries and amount.
 - **FR-006**: Allocation MUST recheck open amounts, party, currency and allowed accounts. Ambiguity or changed availability MUST NOT authorize automatic rematching, reductions or residual write-offs.
 - **FR-007**: A valid payment MAY be approved without allocation when review explicitly proposes only its evidence/posting. Changing an already prepared combined unit into posting-only MUST require a fresh review.
+- **FR-007a**: Financial freshness MUST bind reviewed accounts, company currency and the selected invoice settlement state. An unrelated independent posting MUST NOT stale a sibling; changed selected-invoice availability MUST refuse the complete combined unit. Nested evidence and ledger calls MUST preserve exact reviewed dates, accounts and document linkage.
 - **FR-008**: Financial batch execution MUST apply package 351's manifest and replay rules and current finance authority per statement; one bad independent statement MUST NOT cause duplicate or partial other statements.
 - **FR-009**: Source interpretation MUST NOT claim bank/provider payment execution; refund payouts, write-offs and other unsupported effects MUST remain outside intake approval.
 

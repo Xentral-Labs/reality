@@ -15,11 +15,13 @@ from reality.db.core import (
     ChangeProposal,
     CompanyTimeZone,
     Document,
+    DocumentLine,
     ImportJob,
     Item,
     LedgerEntry,
     Location,
     Party,
+    PaymentTerm,
     SourceArtifact,
     SourceRecord,
     SourceStream,
@@ -29,6 +31,7 @@ from reality.domain.intake import (
     PACKAGE_BYTES,
     CalendarState,
     Effect,
+    ObservationState,
     PreparedIntake,
     ReferenceState,
     canonical_json,
@@ -41,12 +44,17 @@ from reality.services.finance.accounts import lock_finance
 from reality.services.memberships import Principal, require_owner
 
 INTAKE_TYPE = "tool:intake_apply"
+_FINANCIAL_PROFILES = frozenset(
+    {"customer_payment.v1", "supplier_payment.v1", "sales_invoice.v1"}
+)
 _MODELS = {
     "source_artifact": SourceArtifact,
     "party": Party,
     "item": Item,
     "location": Location,
     "document": Document,
+    "document_line": DocumentLine,
+    "payment_term": PaymentTerm,
     "ledger_entry": LedgerEntry,
     "account": SubledgerAccount,
 }
@@ -111,12 +119,21 @@ def _require_intake_scope(session: Session, tenant_id: str, proposal_id: str) ->
 
 
 _EFFECT_OPERATIONS = {
+    "invoice_post": frozenset({"post_ledger", "emit_business_event"}),
     "item_package": frozenset({"create_item", "emit_business_event"}),
     "document": frozenset({"create_manual_document_with_lines", "emit_business_event"}),
     "commitment": frozenset({"create_commitment", "emit_business_event"}),
     "customer_payment": frozenset(
         {
             "record_customer_payment",
+            "post_ledger",
+            "create_document",
+            "emit_business_event",
+        }
+    ),
+    "supplier_payment": frozenset(
+        {
+            "record_supplier_payment",
             "create_document",
             "post_ledger",
             "emit_business_event",
@@ -172,6 +189,11 @@ def _dispatch_effect(operation: str):
         _active_effect.reset(token)
 
 
+_payment_document: ContextVar[str | None] = ContextVar(
+    "intake_payment_document", default=None
+)
+
+
 _call_intent: ContextVar[tuple[str, str] | None] = ContextVar(
     "intake_call_intent", default=None
 )
@@ -187,6 +209,8 @@ _INTENT_DEFAULTS = {
     }
     for name in (
         "create_item",
+        "record_supplier_payment",
+        "post_ledger",
         "create_manual_document_with_lines",
         "create_commitment",
         "record_customer_payment",
@@ -206,9 +230,11 @@ def _invoke(
     token = _call_intent.set(
         (operation, canonical_json({**_INTENT_DEFAULTS[operation], **arguments}))
     )
+    document_token = _payment_document.set(None)
     try:
         return handler(session, tenant_id, **arguments)
     finally:
+        _payment_document.reset(document_token)
         _call_intent.reset(token)
 
 
@@ -220,44 +246,127 @@ def require_scoped_intent(operation: str, actual: dict[str, Any]) -> None:
         raise core.InvalidOperation(code="intake_approval_required")
     expected_operation, frozen = intent
     expected = json.loads(frozen)
+    payment_call = expected_operation in {
+        "record_customer_payment",
+        "record_supplier_payment",
+    }
+    supplier = expected_operation == "record_supplier_payment"
+    control_role = "accounts_payable" if supplier else "accounts_receivable"
     if operation == expected_operation:
         offered = {key: actual.get(key) for key in expected}
         if canonical_json(offered) != canonical_json(expected):
             raise core.InvalidOperation(code="intake_review_invalid")
-    elif (
-        expected_operation == "record_customer_payment"
-        and operation == "create_document"
-    ):
-        for key, value in {
-            "document_type": "customer_payment",
+    elif payment_call and operation == "create_document":
+        required = {
+            **_INTENT_DEFAULTS["create_document"],
+            "document_type": "supplier_payment" if supplier else "customer_payment",
             "party_id": expected["party_id"],
             "currency": expected["currency"],
             "source_record_id": expected["source_record_id"],
             "action_id": expected["action_id"],
+            "document_date": core._company_day(
+                actual["session"],
+                actual["tenant_id"],
+                core.utc_datetime(expected["effective_at"]),
+            ).isoformat(),
             "_commit": False,
-        }.items():
-            if actual.get(key) != value:
-                raise core.InvalidOperation(code="intake_review_invalid")
+        }
+        if expected["payment_number"] is not None:
+            required["number"] = expected["payment_number"]
+        if canonical_json({key: actual.get(key) for key in required}) != canonical_json(
+            required
+        ):
+            raise core.InvalidOperation(code="intake_review_invalid")
         if core.decimal(actual["amount"]) != core.decimal(expected["amount"]):
             raise core.InvalidOperation(code="intake_review_invalid")
-    elif expected_operation == "record_customer_payment" and operation == "post_ledger":
-        if (
-            actual["party_id"] != expected["party_id"]
-            or actual["source_record_id"] != expected["source_record_id"]
-            or actual["currency"] != expected["currency"]
-        ):
+    elif payment_call and operation == "post_ledger":
+        required = {
+            "document_id": _payment_document.get(),
+            "party_id": expected["party_id"],
+            "source_record_id": expected["source_record_id"],
+            "currency": expected["currency"],
+            "action_id": expected["action_id"],
+            "effective_at": expected["effective_at"],
+            "account_ids": {
+                control_role: expected["_control_account_id"],
+                "cash": expected["_cash_account_id"],
+            },
+            "exchange_rate": None,
+            "company_amounts": None,
+            "_line_account_ids": None,
+            "_commit": False,
+        }
+        if required["document_id"] is None or canonical_json(
+            {key: actual.get(key) for key in required}
+        ) != canonical_json(required):
             raise core.InvalidOperation(code="intake_review_invalid")
         postings = actual["postings"]
         if (
             len(postings) != 2
             or [(row[0], row[1]) for row in postings]
-            != [("cash", "debit"), ("accounts_receivable", "credit")]
+            != (
+                [("accounts_payable", "debit"), ("cash", "credit")]
+                if supplier
+                else [("cash", "debit"), ("accounts_receivable", "credit")]
+            )
             or any(
                 core.decimal(row[2]) != core.decimal(expected["amount"])
                 for row in postings
             )
         ):
             raise core.InvalidOperation(code="intake_review_invalid")
+    else:
+        raise core.InvalidOperation(code="intake_review_invalid")
+
+
+def _bind_payment_document(session, tenant_id, document_id):
+    if _approved.get() is None:
+        return
+    _require_scoped_operation(
+        session,
+        tenant_id,
+        "record_supplier_payment"
+        if _call_intent.get() and _call_intent.get()[0] == "record_supplier_payment"
+        else "record_customer_payment",
+    )
+    intent = _call_intent.get()
+    if (
+        intent is None
+        or intent[0] not in {"record_customer_payment", "record_supplier_payment"}
+        or _payment_document.get() is not None
+    ):
+        raise core.InvalidOperation(code="intake_review_invalid")
+    _payment_document.set(document_id)
+
+
+def _payment_state(session, tenant_id, invoice_id):
+    state = {"company_currency": core._book_currency(session, tenant_id)}
+    if not invoice_id:
+        return state
+    invoice = core._tenant_record_read(session, Document, tenant_id, invoice_id)
+    position = core.settlement_positions(session, tenant_id, [invoice]).get(invoice.id)
+    if position is None:
+        return {**state, "invoice_id": invoice.id, "position": None}
+    allocations = core.active_settlement_allocations(
+        session, tenant_id, entry_ids={position.control.id}
+    )
+    return {
+        **state,
+        "invoice_id": invoice.id,
+        "control_id": position.control.id,
+        "open": position.open,
+        "role": position.role,
+        "reversal_id": position.relation.id if position.relation else None,
+        "allocations": sorted(
+            (
+                row.id,
+                str(row.amount),
+                row.payment_ledger_entry_id,
+                row.invoice_ledger_entry_id,
+            )
+            for row in allocations
+        ),
+    }
 
 
 def _state(record: Any) -> str:
@@ -319,20 +428,63 @@ def _payment_plan(
         payment = normalise_payment(payload)
     else:
         payment = NormalisedPayment.model_validate(payload)
-    prepared = prepare_customer_payment(session, tenant_id, source, payment)
-    effects = [Effect(operation="customer_payment", arguments=prepared["arguments"])]
+    outgoing = json.loads(job.input).get("profile") == "supplier_payment.v1"
+    if outgoing:
+        from reality.services.finance.accounts import resolve_account
+
+        if payment.references:
+            raise core.InvalidOperation(code="intake_review_invalid")
+        core._tenant_record_read(session, Party, tenant_id, payment.party_id)
+        control = resolve_account(session, tenant_id, "accounts_payable")
+        cash = resolve_account(session, tenant_id, "cash")
+        prepared = {
+            "arguments": {
+                "party_id": payment.party_id,
+                "amount": str(payment.amount),
+                "currency": payment.currency,
+                "payment_number": payment.payment_number or None,
+                "source_record_id": source.id,
+                "effective_at": payment.effective_at.isoformat(),
+                "_control_account_id": control.id,
+                "_cash_account_id": cash.id,
+            },
+            "references": [
+                ("party", payment.party_id),
+                ("account", control.id),
+                ("account", cash.id),
+            ],
+            "allocation": None,
+            "issues": [
+                "This records a received payment statement; it does not send funds or execute a bank transfer."
+            ],
+        }
+    else:
+        prepared = prepare_customer_payment(session, tenant_id, source, payment)
+    operation = "supplier_payment" if outgoing else "customer_payment"
+    effects = [Effect(operation=operation, arguments=prepared["arguments"])]
     if prepared["allocation"]:
         effects.append(
             Effect(operation="payment_allocation", arguments=prepared["allocation"])
         )
+    invoice_id = next(
+        (identity for kind, identity in prepared["references"] if kind == "document"),
+        "",
+    )
     return PreparedIntake(
         tenant_id=tenant_id,
         source_record_id=source.id,
         source_hash=source.payload_hash,
         source_version=source.version,
         import_job_id=job.id,
-        profile="customer_payment.v1",
-        finance_revision=finance_revision,
+        profile="supplier_payment.v1" if outgoing else "customer_payment.v1",
+        finance_revision=None,
+        observations=(
+            ObservationState(
+                kind="payment_state",
+                arguments={"invoice_id": invoice_id},
+                digest=content_digest(_payment_state(session, tenant_id, invoice_id)),
+            ),
+        ),
         mapping=json.loads(job.input),
         references=tuple(
             _reference(session, tenant_id, kind, record_id)
@@ -342,6 +494,115 @@ def _payment_plan(
         issues=tuple(prepared["issues"]),
         row_count=1,
     )
+
+
+def _invoice_plan(session, tenant_id, source, job):
+    from reality.services.finance.accounts import resolve_account
+    from reality.services.payment_intake import NormalisedInvoice, _invoice_fields
+
+    payload = json.loads(source.payload)
+    if (source.source_system, source.source_type) == ("demo_data", "invoice"):
+        from reality.integrations.demo_data import normalise_invoice
+
+        invoice = normalise_invoice(payload)
+    else:
+        invoice = NormalisedInvoice.model_validate(payload)
+    order, lines, term = _invoice_fields(session, tenant_id, source, invoice)
+    control = resolve_account(session, tenant_id, "accounts_receivable")
+    revenue = resolve_account(session, tenant_id, "sales_revenue")
+    refs = [
+        ("party", invoice.party_id),
+        ("document", order.id),
+        ("account", control.id),
+        ("account", revenue.id),
+    ]
+    refs.extend(("document_line", row["billed_document_line_id"]) for row in lines)
+    refs.extend(("item", row["item_id"]) for row in lines if row["item_id"])
+    if term:
+        refs.append(("payment_term", term.id))
+    document = {
+        "document_type": "sales_invoice",
+        "number": invoice.number,
+        "party_id": invoice.party_id,
+        "lines": lines,
+        "gross_amount": str(invoice.gross_amount),
+        "currency": invoice.currency,
+        "document_date": core._company_day(
+            session, tenant_id, invoice.issued_at
+        ).isoformat(),
+        "payment_term_code": invoice.payment_term_code,
+        "source_record_id": source.id,
+    }
+    posting = {
+        "party_id": invoice.party_id,
+        "postings": [
+            ("accounts_receivable", "debit", str(invoice.gross_amount)),
+            ("sales_revenue", "credit", str(invoice.gross_amount)),
+        ],
+        "account_ids": {"accounts_receivable": control.id, "sales_revenue": revenue.id},
+        "currency": invoice.currency,
+        "source_record_id": source.id,
+        "effective_at": invoice.issued_at.isoformat(),
+    }
+    return PreparedIntake(
+        tenant_id=tenant_id,
+        source_record_id=source.id,
+        source_hash=source.payload_hash,
+        source_version=source.version,
+        import_job_id=job.id,
+        profile="sales_invoice.v1",
+        mapping=json.loads(job.input),
+        references=tuple(
+            _reference(session, tenant_id, kind, identity)
+            for kind, identity in sorted(set(refs))
+        ),
+        observations=(
+            ObservationState(
+                kind="payment_state",
+                arguments={"invoice_id": ""},
+                digest=content_digest(_payment_state(session, tenant_id, "")),
+            ),
+        ),
+        effects=(
+            Effect(operation="document", arguments=document),
+            Effect(operation="invoice_post", arguments=posting),
+        ),
+        row_count=len(lines),
+    )
+
+
+def _freeze_effect_defaults(plan):
+    """Retain canonical business defaults when meaning is prepared, before review."""
+    operations = {
+        "document": "create_manual_document_with_lines",
+        "commitment": "create_commitment",
+        "customer_payment": "record_customer_payment",
+        "supplier_payment": "record_supplier_payment",
+        "invoice_post": "post_ledger",
+        "payment_allocation": "allocate_settlement",
+        "source_document": "create_document",
+        "return_announcement": "announce_customer_return",
+        "commitment_revision": "revise_commitment",
+        "commitment_cancellation": "cancel_commitment",
+    }
+    effects = []
+    for effect in plan.effects:
+        operation = operations.get(effect.operation)
+        defaults = dict(_INTENT_DEFAULTS[operation]) if operation else {}
+        for technical in (
+            "action_id",
+            "_commit",
+            "_carry_unstated_price",
+            "_carry_unstated_amount",
+        ):
+            defaults.pop(technical, None)
+        if effect.operation == "commitment":
+            for linkage in ("document_id", "document_line_id"):
+                defaults.pop(linkage, None)
+        effects.append(
+            effect.model_copy(update={"arguments": {**defaults, **effect.arguments}})
+        )
+    return plan.model_copy(update={"effects": tuple(effects)})
 
 
 def _source_current(session: Session, tenant_id: str, source: SourceRecord) -> None:
@@ -421,14 +682,19 @@ def prepare_intake(
         from reality.services.shop_refunds import prepare_refund
 
         plan = prepare_refund(session, tenant_id, source, job)
-    elif context.get("profile") == "customer_payment.v1" or (
+    elif context.get("profile") == "sales_invoice.v1" or (
+        source.source_system,
+        source.source_type,
+    ) == ("demo_data", "invoice"):
+        plan = _invoice_plan(session, tenant_id, source, job)
+    elif context.get("profile") in {"customer_payment.v1", "supplier_payment.v1"} or (
         source.source_system,
         source.source_type,
     ) == ("demo_data", "payment"):
         plan = _payment_plan(session, tenant_id, source, job, finance.revision)
     else:
         raise core.InvalidOperation(code="intake_profile_unsupported")
-    plan = plan.model_copy(update={"calendar": calendar})
+    plan = _freeze_effect_defaults(plan).model_copy(update={"calendar": calendar})
     retained = {"plan": plan.model_dump(mode="json"), "digest": plan.review_digest()}
     if len(canonical_json(retained).encode("utf-8")) > PACKAGE_BYTES:
         raise core.InvalidOperation(code="intake_package_too_large")
@@ -533,11 +799,15 @@ def _apply_effects(
                         *(("document_line", row.id) for row in lines),
                     ]
                 )
-            elif effect.operation == "customer_payment":
+            elif effect.operation in {"customer_payment", "supplier_payment"}:
                 arguments["effective_at"] = core.utc_datetime(arguments["effective_at"])
                 payment_entries = _invoke(
-                    "record_customer_payment",
-                    core.record_customer_payment,
+                    "record_supplier_payment"
+                    if effect.operation == "supplier_payment"
+                    else "record_customer_payment",
+                    core.record_supplier_payment
+                    if effect.operation == "supplier_payment"
+                    else core.record_customer_payment,
                     session,
                     tenant_id,
                     **arguments,
@@ -553,6 +823,20 @@ def _apply_effects(
                         *(("ledger_entry", row.id) for row in payment_entries),
                     ]
                 )
+            elif effect.operation == "invoice_post":
+                if document is None or document.type != "sales_invoice":
+                    raise core.InvalidOperation(code="intake_review_invalid")
+                entries = _invoke(
+                    "post_ledger",
+                    core.post_ledger,
+                    session,
+                    tenant_id,
+                    document_id=document.id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _commit=False,
+                )
+                records.extend(("ledger_entry", row.id) for row in entries)
             elif effect.operation == "payment_allocation":
                 if not payment_entries:
                     raise core.InvalidOperation(code="intake_review_invalid")
@@ -687,7 +971,7 @@ def apply_prepared_intake(
         raise core.NotFound(code="proposal_not_found")
     review = review_intake(session, tenant_id, proposal.id)
     plan = PreparedIntake.model_validate(review["plan"])
-    if plan.finance_revision is not None:
+    if plan.finance_revision is not None or plan.profile in _FINANCIAL_PROFILES:
         if principal is not None:
             require_owner(session, tenant_id, principal)
         elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
@@ -748,6 +1032,10 @@ def apply_prepared_intake(
                 tenant_id,
                 observation.arguments["party_id"],
                 as_of=core.utc_datetime(observation.arguments["as_of"]),
+            )
+        elif observation.kind == "payment_state":
+            current = _payment_state(
+                session, tenant_id, observation.arguments["invoice_id"]
             )
         else:
             from reality.services.shopify_intake import order_state

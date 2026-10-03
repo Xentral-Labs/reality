@@ -196,18 +196,9 @@ def _order_document(
     return order
 
 
-def interpret_sales_invoice(
-    session: Session, tenant_id: str, source: SourceRecord, invoice: NormalisedInvoice
-) -> tuple[SourceRecord, Document, list[DocumentLine], list[LedgerEntry]]:
-    """Record the stated invoice with lines billing the order lines, then post it."""
-    existing = _existing(session, tenant_id, source, "sales_invoice")
-    if existing:
-        return (
-            source,
-            existing,
-            _lines_of(session, tenant_id, existing.id),
-            _entries_of(session, tenant_id, existing.id),
-        )
+def _invoice_fields(session, tenant_id, source, invoice):
+    """Resolve source-stated invoice evidence without recording or posting it."""
+    core._tenant_record_read(session, SourceRecord, tenant_id, source.id)
     order = _order_document(
         session,
         tenant_id,
@@ -239,13 +230,32 @@ def interpret_sales_invoice(
                 "billed_document_line_id": billed.id,
             }
         )
+    term = None
     if invoice.payment_term_code:
         try:
-            core.payment_term_by_code(session, tenant_id, invoice.payment_term_code)
+            term = core.payment_term_by_code(
+                session, tenant_id, invoice.payment_term_code
+            )
         except core.NotFound as error:
             raise core.InvalidOperation(
                 "The invoice names a payment term Reality does not hold."
             ) from error
+    return order, lines, term
+
+
+def interpret_sales_invoice(
+    session: Session, tenant_id: str, source: SourceRecord, invoice: NormalisedInvoice
+) -> tuple[SourceRecord, Document, list[DocumentLine], list[LedgerEntry]]:
+    """Record the stated invoice with lines billing the order lines, then post it."""
+    existing = _existing(session, tenant_id, source, "sales_invoice")
+    if existing:
+        return (
+            source,
+            existing,
+            _lines_of(session, tenant_id, existing.id),
+            _entries_of(session, tenant_id, existing.id),
+        )
+    _order, lines, _term = _invoice_fields(session, tenant_id, source, invoice)
     document, document_lines = core.create_manual_document_with_lines(
         session,
         tenant_id,
