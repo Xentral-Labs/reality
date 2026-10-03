@@ -209,6 +209,7 @@
     "record_return_disposition": "returns",
     "record_customer_exchange": "returns",
     "record_delivery_failure": "tracking",
+    "record_drop_shipment": "tracking",
     "assign_line_item": "orders",
     "release_credit_holds": "holds",
     "credit_exposure": "holds",
@@ -402,6 +403,16 @@
       "label": "Record failed delivery",
       "command": "record_delivery_failure",
       "form": "shipment_delivery_failure",
+      "placements": [
+        "global",
+        "warehouse.tracking"
+      ]
+    },
+    {
+      "key": "drop_shipment_record",
+      "label": "Record drop shipment",
+      "command": "record_drop_shipment",
+      "form": "drop_shipment_record",
       "placements": [
         "global",
         "warehouse.tracking"

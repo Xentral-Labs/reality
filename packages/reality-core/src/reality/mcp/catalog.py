@@ -2199,6 +2199,22 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "drop_shipment_record_propose",
+        "Record a drop shipment",
+        "drop_shipment_record",
+        _object_schema(
+            {
+                "supplier_commitment_id": STRING,
+                "customer_commitment_id": OPTIONAL_STRING,
+                "quantity": STRING,
+                "occurred_at": OPTIONAL_STRING,
+                "carrier": OPTIONAL_STRING,
+                "tracking_number": OPTIONAL_STRING,
+            },
+            required=("supplier_commitment_id", "quantity"),
+        ),
+    ),
+    (
         "order_line_item_assign_propose",
         "Assign an item to an order line",
         "order_line_item_assign",
@@ -3172,6 +3188,15 @@ MCP_TOOL_CATALOG += (
             }
         ),
         _read("customer_exchange"),
+    ),
+    MCPToolDefinition(
+        "drop_shipments",
+        "Drop shipping",
+        "Read a promise's drop shipping: the purchase assigned to it and what the supplier shipped straight to the customer.",
+        "read",
+        "Shipping",
+        _object_schema({"commitment_id": STRING}, required=("commitment_id",)),
+        _read("drop_shipments"),
     ),
     MCPToolDefinition(
         "delivery_failure_summary",

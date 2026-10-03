@@ -587,6 +587,11 @@ def _commitment_exceptions(
             Commitment.tenant_id == tenant_id, Commitment.status == "open"
         )
     )
+    from reality.services.drop_shipping import drop_ship_cover
+
+    # Spec 337: what a supplier still ships straight to the customer is never
+    # reserved, because it never lies in stock; it is not a shortage.
+    drop_shipped = drop_ship_cover(session, tenant_id)
     for row in rows:
         movement_type = "shipment" if row.type == "customer_delivery" else "receipt"
         fulfilled = _fulfilled_quantity(session, tenant_id, row.id, movement_type)
@@ -609,7 +614,9 @@ def _commitment_exceptions(
                     Reservation.status == "active",
                 )
             )
-            unreserved = max(ZERO, remaining - reserved)
+            unreserved = max(
+                ZERO, remaining - reserved - drop_shipped.get(row.id, ZERO)
+            )
             overdue = due_at is not None and due_at < as_of
             # An already broken promise says more than a risky one, so the
             # overdue class supersedes the at-risk class for the same
@@ -3574,6 +3581,8 @@ def _reorder_point_reached_exceptions(
         session, tenant_id, item_ids
     ).items():
         reserved[key] = reserved.get(key, ZERO) + quantity
+    from reality.services.drop_shipping import ships_to_customer
+
     _, fulfilled, _ = fulfillment_expressions()
     items = {row.Item.id: row.Item for row in points}
     incoming: dict[tuple[str, str], Decimal] = {}
@@ -3598,6 +3607,9 @@ def _reorder_point_reached_exceptions(
             Commitment.type == "supplier_delivery",
             Commitment.status == "open",
             Commitment.item_id.in_(item_ids),
+            # Spec 337: a supplier shipping straight to a customer brings nothing
+            # to the location.
+            ~ships_to_customer(),
         )
     ):
         item = items[row.item_id]

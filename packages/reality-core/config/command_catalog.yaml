@@ -1919,6 +1919,15 @@ commands:
     writes: [delivery_failure, movement_correction, movement, document, ledger_entry, source_record, business_event]
     effect: Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim.
 
+  - name: Record a drop shipment
+    service: record_drop_shipment
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [commitment, supply_assignment, document, party_role, movement, movement_correction, shipment_package]
+    writes: [shipment, shipment_package, shipment_event, movement, source_record, business_event]
+    effect: Records that a supplier shipped an assigned purchase straight to the customer; keeps the purchase and the customer promise with one receipt and one shipment that pass none of the company's locations, so stock is untouched.
+
   - name: Assign an item to an order line
     service: assign_line_item
     related_services: [preview_item_assignment]
@@ -4876,6 +4885,24 @@ capability_guidance:
     unknown_when: [The failure or its shipment is absent.]
     next_steps: [Reserve and ship the reopened promise again, cancel its rest, or record the carrier's payment.]
     examples: {use: [{scenario: Explain why a delivered order is open again., reason: The failure names the shipment, the kind and the reason.}], do_not_use: [{scenario: Credit a customer for returned goods., reason: Returns and credits are separate evidence.}]}
+  drop_shipments:
+    kind: read
+    application_tool: drop_shipments
+    purpose: Read a promise's drop shipping, the purchase assigned to it and what the supplier shipped straight to the customer, with carrier and tracking number.
+    use_when: [A customer asks where goods from a drop-ship order are, or purchasing needs to see what a supplier already shipped to a customer.]
+    do_not_use_when: [The goods ship from the company's own stock; that is an ordinary shipment.]
+    required_context: [tenant]
+    data_basis: [commitment, supply_assignment, movement, movement_correction, shipment_package, source_record]
+    limitations: [Only purchases assigned to the customer promise are shown; what the supplier stated is recorded as stated.]
+    freshness: Derived from the assignments and the drop-shipment movements at request time.
+    empty_result: No purchase is assigned to the promise and nothing was drop-shipped.
+    refusal_behavior: Foreign-company promises are not disclosed.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [What the supplier stated it shipped to the customer, and when.], does_not_prove: [That the customer received it.]}
+    unknown_when: [The promise or its assignment is absent.]
+    next_steps: [Record the supplier's dispatch, invoice the customer, or match the supplier invoice.]
+    examples: {use: [{scenario: Tell a customer the tracking number of a drop-shipped order., reason: The drop shipment carries the supplier's carrier and tracking number.}], do_not_use: [{scenario: Check stock on hand., reason: Drop-shipped goods never lie in stock.}]}
   customer_exchange:
     kind: read
     application_tool: customer_exchange
@@ -5789,6 +5816,7 @@ agent_command_coverage:
   record_return_disposition: {classification: eligible, tools: [return_disposition_propose]}
   record_customer_exchange: {classification: eligible, tools: [customer_exchange_propose]}
   record_delivery_failure: {classification: eligible, tools: [shipment_delivery_failure_propose]}
+  record_drop_shipment: {classification: eligible, tools: [drop_shipment_record_propose]}
   assign_line_item: {classification: eligible, tools: [order_line_item_assign_propose]}
   release_credit_holds: {classification: eligible, tools: [credit_hold_release_propose]}
   credit_exposure: {classification: eligible, tools: [credit_exposure]}

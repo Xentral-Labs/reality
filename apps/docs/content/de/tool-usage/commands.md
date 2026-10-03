@@ -201,6 +201,7 @@ angegeben.
 | [`inventory_cost`](#command-inventory_cost)                                       | Read reviewed inventory acquisition costs    | Lager & Logistik        | `cost_inventory_get`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
 | [`stock_blocks`](#command-stock_blocks)                                           | Read stock blocks                            | Lager & Logistik        | `stock_blocks`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`stock_counts`](#command-stock_counts)                                           | Read stock counts                            | Lager & Logistik        | `stock_counts`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
+| [`record_drop_shipment`](#command-record_drop_shipment)                           | Record a drop shipment                       | Lager & Logistik        | `drop_shipment_record_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`record_stock_count`](#command-record_stock_count)                               | Record a stock count                         | Lager & Logistik        | `stock_count_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_movement`](#command-record_movement)                                     | Record movement                              | Lager & Logistik        | `movement_create_propose`                                                                                                                                                                    | CLI · Web · API · scenario · MCP · Chat |
 | [`record_shipment_event`](#command-record_shipment_event)                         | Record shipment event                        | Lager & Logistik        | `shipment_event_record_propose`                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
@@ -6743,6 +6744,54 @@ List the counts taken at a location or in the company.
 
 **Siehe auch:** Command [`stock_counts`](./commands#command-stock_counts)
 
+### `record_drop_shipment` — Record a drop shipment {#command-record_drop_shipment}
+
+Records that a supplier shipped an assigned purchase straight to the customer; keeps the purchase
+and the customer promise with one receipt and one shipment that pass none of the company's
+locations, so stock is untouched.
+
+**Aufruf**
+
+```text
+drop_shipment_record_propose supplier_commitment_id [customer_commitment_id] quantity [occurred_at] [carrier] [tracking_number]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `commitment`, `supply_assignment`, `document`, `party_role`, `movement`,
+`movement_correction`, `shipment_package` · Schreibt: `shipment`, `shipment_package`,
+`shipment_event`, `movement`, `source_record`, `business_event` · Erzeugt: `drop_shipment.recorded`
+
+**Siehe auch:** Agenten-Tool
+[`drop_shipment_record_propose`](./commands#tool-drop_shipment_record_propose), Event
+[`drop_shipment.recorded`](./events#event-drop_shipment-recorded)
+
+#### `drop_shipment_record_propose` — Record a drop shipment {#tool-drop_shipment_record_propose}
+
+Prepare this business mutation without changing state. Record a drop shipment. Human confirmation is
+required.
+
+**Aufruf**
+
+```text
+drop_shipment_record_propose supplier_commitment_id [customer_commitment_id] quantity [occurred_at] [carrier] [tracking_number]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                     | Typ      | Pflicht | Beschreibung                                                                                                                                                  | Standard |
+| ------------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `supplier_commitment_id` | `string` | ja      | Opaque identity of the incoming supplier commitment whose quantity is being assigned.                                                                         | —        |
+| `customer_commitment_id` | `string` | nein    | Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock. | —        |
+| `quantity`               | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                                                       | —        |
+| `occurred_at`            | `string` | nein    | UTC instant at which the physical or business event occurred.                                                                                                 | —        |
+| `carrier`                | `string` | nein    | Carrier name stated for a physical package; it is descriptive and not an internal identity.                                                                   | —        |
+| `tracking_number`        | `string` | nein    | Carrier-assigned package reference used for operational lookup; it is not internal identity.                                                                  | —        |
+
+**Siehe auch:** Command [`record_drop_shipment`](./commands#command-record_drop_shipment)
+
 ### `record_stock_count` — Record a stock count {#command-record_stock_count}
 
 Records what was counted at a location and posts each difference against the book at its counting
@@ -10798,6 +10847,7 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 | [`supply_coverage`](#tool-supply_coverage)                                                       | Supply coverage                                | `read`    | —                      |
 | [`movement_explanation`](#tool-movement_explanation)                                             | Movement explanation                           | `read`    | —                      |
 | [`customer_exchange`](#tool-customer_exchange)                                                   | Customer exchange                              | `read`    | —                      |
+| [`drop_shipments`](#tool-drop_shipments)                                                         | Drop shipping                                  | `read`    | —                      |
 | [`delivery_failure_summary`](#tool-delivery_failure_summary)                                     | Failed delivery                                | `read`    | —                      |
 | [`return_disposition_summary`](#tool-return_disposition_summary)                                 | Return disposition summary                     | `read`    | —                      |
 | [`finance_credits`](#tool-finance_credits)                                                       | Available credit                               | `read`    | —                      |
@@ -11985,6 +12035,45 @@ and the decision behind it.
 | `exchange_id`               | `string` | nein    | Opaque identity of a recorded customer exchange.                                                 | —        |
 | `return_movement_id`        | `string` | nein    | Opaque identity of the arrived customer-return Movement whose physical outcome is being decided. | —        |
 | `replacement_commitment_id` | `string` | nein    | Opaque identity of the free delivery promise an exchange sent in place of a credit.              | —        |
+
+### `drop_shipments` — Drop shipping {#tool-drop_shipments}
+
+Read a promise's drop shipping: the purchase assigned to it and what the supplier shipped straight
+to the customer.
+
+**Aufruf**
+
+```text
+drop_shipments commitment_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage     | Art                        | Standard |
+| -------------------- | -------------------------- | -------- |
+| `MCP drop_shipments` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read a promise's drop shipping, the purchase assigned to it and what the supplier shipped straight
+to the customer, with carrier and tracking number.
+
+**Verwenden, wenn**
+
+- A customer asks where goods from a drop-ship order are
+- or purchasing needs to see what a supplier already shipped to a customer.
+
+**Nicht verwenden, wenn**
+
+- The goods ship from the company's own stock; that is an ordinary shipment.
+
+**Parameter**
+
+| Name            | Typ      | Pflicht | Beschreibung                                                         | Standard |
+| --------------- | -------- | ------- | -------------------------------------------------------------------- | -------- |
+| `commitment_id` | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed. | —        |
 
 ### `delivery_failure_summary` — Failed delivery {#tool-delivery_failure_summary}
 

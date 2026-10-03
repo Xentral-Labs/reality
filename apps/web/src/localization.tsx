@@ -25007,6 +25007,50 @@ Object.assign(dictionaries.de, {
   Pickup: "Abholung",
   "The goods were not there at the stated time; record the receipt that brought them first.":
     "Die Ware war zum angegebenen Zeitpunkt nicht da; erfasse zuerst den Wareneingang, der sie gebracht hat.",
+  "Record drop shipment": "Streckengeschäft erfassen",
+  drop_shipment_record: "Streckengeschäft erfassen",
+  "Purchase delivery ID": "ID der Einkaufslieferung",
+  "Customer delivery ID (optional)": "ID der Kundenlieferung (optional)",
+  "Quantity shipped": "Gelieferte Menge",
+  "Shipped at (optional)": "Versandt am (optional)",
+  "Carrier (optional)": "Spediteur (optional)",
+  "Tracking number (optional)": "Trackingnummer (optional)",
+  "The supplier shipped straight to the customer. The purchase and the customer order are both delivered; your stock does not change.":
+    "Der Lieferant hat direkt an den Kunden geliefert. Bestellung und Kundenauftrag sind beide geliefert; Ihr Bestand ändert sich nicht.",
+  "Drop shipment": "Streckengeschäft",
+  "Purchase delivery": "Einkaufslieferung",
+  "Customer delivery": "Kundenlieferung",
+  "Still open afterwards": "Danach noch offen",
+  "Your stock does not change: the goods never pass your warehouse.":
+    "Ihr Bestand ändert sich nicht: Die Ware kommt nie in Ihr Lager.",
+  "A drop shipment keeps a promise without passing any of the company's locations.":
+    "Ein Streckengeschäft erfüllt eine Verpflichtung, ohne einen Lagerort des Unternehmens zu berühren.",
+  "Only an open supplier delivery can be drop-shipped.":
+    "Nur eine offene Lieferantenlieferung kann als Streckengeschäft geliefert werden.",
+  "Only an open customer delivery can be served by a drop shipment.":
+    "Nur eine offene Kundenlieferung kann per Streckengeschäft bedient werden.",
+  "This supplier delivery is not assigned to the customer delivery. Assign it first.":
+    "Diese Lieferantenlieferung ist der Kundenlieferung nicht zugeordnet. Ordnen Sie sie zuerst zu.",
+  "This supplier delivery serves several customer deliveries. Name the one the supplier shipped.":
+    "Diese Lieferantenlieferung bedient mehrere Kundenlieferungen. Nennen Sie die, an die der Lieferant geliefert hat.",
+  "Only {remaining} of the assignment is left to drop-ship.":
+    "Von der Zuordnung sind nur noch {remaining} per Streckengeschäft zu liefern.",
+  "A drop shipment cannot exceed what either delivery still has open.":
+    "Ein Streckengeschäft kann nicht mehr liefern, als eine der beiden Lieferungen noch offen hat.",
+  "A drop-shipped quantity is positive, with at most four decimals.":
+    "Eine per Streckengeschäft gelieferte Menge ist positiv, mit höchstens vier Nachkommastellen.",
+  "When the supplier shipped is not a valid time.":
+    "Wann der Lieferant versandt hat, ist keine gültige Zeit.",
+  "When the supplier shipped cannot lie in the future.":
+    "Wann der Lieferant versandt hat, kann nicht in der Zukunft liegen.",
+  "Drop shipping is read for a customer or supplier delivery.":
+    "Streckengeschäft wird für eine Kunden- oder Lieferantenlieferung gelesen.",
+  "Name the supplier delivery and the quantity the supplier shipped.":
+    "Nennen Sie die Lieferantenlieferung und die Menge, die der Lieferant versandt hat.",
+  "A drop shipment of this supplier delivery is still being recorded.":
+    "Ein Streckengeschäft dieser Lieferantenlieferung wird noch erfasst.",
+  "The purchase order does not ship to this customer. A drop-ship purchase order names the customer as where the goods go.":
+    "Die Bestellung geht nicht an diesen Kunden. Eine Streckengeschäft-Bestellung nennt den Kunden als Lieferadresse.",
   "Record failed delivery": "Fehlgeschlagene Zustellung erfassen",
   shipment_delivery_failure: "Fehlgeschlagene Zustellung erfassen",
   undeliverable: "Unzustellbar",
@@ -25610,6 +25654,50 @@ Object.assign(dictionaries.nl, {
   Pickup: "Afhalen",
   "The goods were not there at the stated time; record the receipt that brought them first.":
     "De goederen waren er niet op het opgegeven tijdstip; leg eerst de ontvangst vast die ze bracht.",
+  "Record drop shipment": "Dropshipment vastleggen",
+  drop_shipment_record: "Dropshipment vastleggen",
+  "Purchase delivery ID": "ID van de inkooplevering",
+  "Customer delivery ID (optional)": "ID van de klantlevering (optioneel)",
+  "Quantity shipped": "Verzonden hoeveelheid",
+  "Shipped at (optional)": "Verzonden op (optioneel)",
+  "Carrier (optional)": "Vervoerder (optioneel)",
+  "Tracking number (optional)": "Trackingnummer (optioneel)",
+  "The supplier shipped straight to the customer. The purchase and the customer order are both delivered; your stock does not change.":
+    "De leverancier heeft rechtstreeks aan de klant geleverd. De inkoop en de klantorder zijn allebei geleverd; je voorraad verandert niet.",
+  "Drop shipment": "Dropshipment",
+  "Purchase delivery": "Inkooplevering",
+  "Customer delivery": "Klantlevering",
+  "Still open afterwards": "Daarna nog open",
+  "Your stock does not change: the goods never pass your warehouse.":
+    "Je voorraad verandert niet: de goederen komen nooit in je magazijn.",
+  "A drop shipment keeps a promise without passing any of the company's locations.":
+    "Een dropshipment komt een toezegging na zonder langs een locatie van het bedrijf te gaan.",
+  "Only an open supplier delivery can be drop-shipped.":
+    "Alleen een openstaande leverancierslevering kan als dropshipment worden geleverd.",
+  "Only an open customer delivery can be served by a drop shipment.":
+    "Alleen een openstaande klantlevering kan met een dropshipment worden bediend.",
+  "This supplier delivery is not assigned to the customer delivery. Assign it first.":
+    "Deze leverancierslevering is niet aan de klantlevering toegewezen. Wijs haar eerst toe.",
+  "This supplier delivery serves several customer deliveries. Name the one the supplier shipped.":
+    "Deze leverancierslevering bedient meerdere klantleveringen. Noem de levering die de leverancier heeft verzonden.",
+  "Only {remaining} of the assignment is left to drop-ship.":
+    "Van de toewijzing is nog maar {remaining} over om als dropshipment te leveren.",
+  "A drop shipment cannot exceed what either delivery still has open.":
+    "Een dropshipment kan niet meer zijn dan wat een van beide leveringen nog open heeft.",
+  "A drop-shipped quantity is positive, with at most four decimals.":
+    "Een als dropshipment geleverde hoeveelheid is positief, met hoogstens vier decimalen.",
+  "When the supplier shipped is not a valid time.":
+    "Wanneer de leverancier verzond, is geen geldige tijd.",
+  "When the supplier shipped cannot lie in the future.":
+    "Wanneer de leverancier verzond, kan niet in de toekomst liggen.",
+  "Drop shipping is read for a customer or supplier delivery.":
+    "Dropshipping wordt gelezen voor een klant- of leverancierslevering.",
+  "Name the supplier delivery and the quantity the supplier shipped.":
+    "Noem de leverancierslevering en de hoeveelheid die de leverancier verzond.",
+  "A drop shipment of this supplier delivery is still being recorded.":
+    "Een dropshipment van deze leverancierslevering wordt nog vastgelegd.",
+  "The purchase order does not ship to this customer. A drop-ship purchase order names the customer as where the goods go.":
+    "De inkooporder gaat niet naar deze klant. Een dropship-inkooporder noemt de klant als bestemming van de goederen.",
   "Record failed delivery": "Mislukte levering vastleggen",
   shipment_delivery_failure: "Mislukte levering vastleggen",
   undeliverable: "Onbestelbaar",
@@ -26208,6 +26296,50 @@ Object.assign(dictionaries.es, {
   Pickup: "Recogida",
   "The goods were not there at the stated time; record the receipt that brought them first.":
     "La mercancía no estaba en el momento indicado; registra primero la entrada que la trajo.",
+  "Record drop shipment": "Registrar envío directo",
+  drop_shipment_record: "Registrar envío directo",
+  "Purchase delivery ID": "ID de la entrega de compra",
+  "Customer delivery ID (optional)": "ID de la entrega al cliente (opcional)",
+  "Quantity shipped": "Cantidad enviada",
+  "Shipped at (optional)": "Enviado el (opcional)",
+  "Carrier (optional)": "Transportista (opcional)",
+  "Tracking number (optional)": "Número de seguimiento (opcional)",
+  "The supplier shipped straight to the customer. The purchase and the customer order are both delivered; your stock does not change.":
+    "El proveedor envió directamente al cliente. La compra y el pedido del cliente quedan entregados; tus existencias no cambian.",
+  "Drop shipment": "Envío directo",
+  "Purchase delivery": "Entrega de compra",
+  "Customer delivery": "Entrega al cliente",
+  "Still open afterwards": "Pendiente después",
+  "Your stock does not change: the goods never pass your warehouse.":
+    "Tus existencias no cambian: la mercancía nunca pasa por tu almacén.",
+  "A drop shipment keeps a promise without passing any of the company's locations.":
+    "Un envío directo cumple un compromiso sin pasar por ninguna ubicación de la empresa.",
+  "Only an open supplier delivery can be drop-shipped.":
+    "Solo una entrega de proveedor abierta puede enviarse directamente.",
+  "Only an open customer delivery can be served by a drop shipment.":
+    "Solo una entrega al cliente abierta puede servirse con un envío directo.",
+  "This supplier delivery is not assigned to the customer delivery. Assign it first.":
+    "Esta entrega de proveedor no está asignada a la entrega al cliente. Asígnala primero.",
+  "This supplier delivery serves several customer deliveries. Name the one the supplier shipped.":
+    "Esta entrega de proveedor sirve a varias entregas al cliente. Indica la que envió el proveedor.",
+  "Only {remaining} of the assignment is left to drop-ship.":
+    "De la asignación solo quedan {remaining} por enviar directamente.",
+  "A drop shipment cannot exceed what either delivery still has open.":
+    "Un envío directo no puede superar lo que cualquiera de las dos entregas tiene pendiente.",
+  "A drop-shipped quantity is positive, with at most four decimals.":
+    "Una cantidad enviada directamente es positiva, con como máximo cuatro decimales.",
+  "When the supplier shipped is not a valid time.":
+    "Cuándo envió el proveedor no es una hora válida.",
+  "When the supplier shipped cannot lie in the future.":
+    "Cuándo envió el proveedor no puede estar en el futuro.",
+  "Drop shipping is read for a customer or supplier delivery.":
+    "El envío directo se consulta para una entrega al cliente o de proveedor.",
+  "Name the supplier delivery and the quantity the supplier shipped.":
+    "Indica la entrega de proveedor y la cantidad que envió el proveedor.",
+  "A drop shipment of this supplier delivery is still being recorded.":
+    "Todavía se está registrando un envío directo de esta entrega de proveedor.",
+  "The purchase order does not ship to this customer. A drop-ship purchase order names the customer as where the goods go.":
+    "El pedido de compra no se envía a este cliente. Un pedido de compra de envío directo indica al cliente como destino de la mercancía.",
   "Record failed delivery": "Registrar entrega fallida",
   shipment_delivery_failure: "Registrar entrega fallida",
   undeliverable: "No entregable",

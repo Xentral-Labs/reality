@@ -204,6 +204,7 @@ try {
     ["Record tracking event", "Shipment ID"],
     ["Correct tracking event", "Event ID"],
     ["Record failed delivery", "Shipment ID"],
+    ["Record drop shipment", "Purchase delivery ID"],
   ];
   for (const [action, field] of forms) {
     await startAction(page, action);

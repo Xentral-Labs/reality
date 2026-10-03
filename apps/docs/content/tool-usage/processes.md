@@ -86,8 +86,10 @@ From a customer order through reservation, dispatch and invoice to the settled p
 - [Record shipment notice](./commands#command-record_shipment_notice) (`record_shipment_notice`)
 - [Record shipment event](./commands#command-record_shipment_event) (`record_shipment_event`)
 - [Record a failed delivery](./commands#command-record_delivery_failure) (`record_delivery_failure`)
+- [Record a drop shipment](./commands#command-record_drop_shipment) (`record_drop_shipment`)
 - [Explain a physical shipment](./commands#tool-shipment_explain) (`shipment_explain`)
 - [Failed delivery](./commands#tool-delivery_failure_summary) (`delivery_failure_summary`)
+- [Drop shipping](./commands#tool-drop_shipments) (`drop_shipments`)
 
 **Check afterwards:** [Warehouse Queue](./views#view-warehouse_queue) (`warehouse_queue`),
 [Movements](./views#view-movements) (`movements`)

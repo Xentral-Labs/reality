@@ -14,6 +14,7 @@ type ShipmentTool = Extract<
   | "return_disposition"
   | "customer_exchange_record"
   | "shipment_delivery_failure"
+  | "drop_shipment_record"
 >;
 
 export function ShipmentActions({
@@ -71,6 +72,9 @@ export function ShipmentActions({
   const [failedAt, setFailedAt] = useState("");
   const [claimParty, setClaimParty] = useState("");
   const [claimAmount, setClaimAmount] = useState("");
+  // Spec 337: a supplier that shipped an assigned purchase straight to the customer.
+  const [supplierPromise, setSupplierPromise] = useState("");
+  const [customerPromise, setCustomerPromise] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -103,7 +107,16 @@ export function ShipmentActions({
   const prepare = () =>
     run(async () => {
       let arguments_: Record<string, unknown>;
-      if (tool === "shipment_delivery_failure") {
+      if (tool === "drop_shipment_record") {
+        arguments_ = {
+          supplier_commitment_id: supplierPromise,
+          quantity,
+          ...(customerPromise ? { customer_commitment_id: customerPromise } : {}),
+          ...(movedAt ? { occurred_at: new Date(movedAt).toISOString() } : {}),
+          ...(carrier ? { carrier } : {}),
+          ...(tracking ? { tracking_number: tracking } : {}),
+        };
+      } else if (tool === "shipment_delivery_failure") {
         const claimed = failureKind === "lost" && (claimParty || claimAmount);
         arguments_ = {
           shipment_id: shipment,
@@ -205,7 +218,37 @@ export function ShipmentActions({
 
       {!proposal && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {tool === "shipment_delivery_failure" ? (
+          {tool === "drop_shipment_record" ? (
+            <>
+              <Field
+                label="Purchase delivery ID"
+                value={supplierPromise}
+                set={setSupplierPromise}
+              />
+              <Field
+                label="Customer delivery ID (optional)"
+                value={customerPromise}
+                set={setCustomerPromise}
+              />
+              <Field label="Quantity shipped" value={quantity} set={setQuantity} />
+              <label className="text-sm">
+                {t("Shipped at (optional)")}
+                <input
+                  className="br-control mt-2 w-full"
+                  type="datetime-local"
+                  value={movedAt}
+                  onChange={(e) => setMovedAt(e.target.value)}
+                />
+              </label>
+              <Field label="Carrier (optional)" value={carrier} set={setCarrier} />
+              <Field label="Tracking number (optional)" value={tracking} set={setTracking} />
+              <p className="rounded-lg bg-surface-muted p-3 text-sm text-fg-muted sm:col-span-2">
+                {t(
+                  "The supplier shipped straight to the customer. The purchase and the customer order are both delivered; your stock does not change.",
+                )}
+              </p>
+            </>
+          ) : tool === "shipment_delivery_failure" ? (
             <>
               <Field label="Shipment ID" value={shipment} set={setShipment} />
               <Select
@@ -422,7 +465,11 @@ export function ShipmentActions({
           <p className="font-medium text-fg-strong">
             {t(proposal.status === "executed" ? "Recorded" : "Review exact effect")}
           </p>
-          {tool === "shipment_delivery_failure" && proposal.review ? (
+          {tool === "drop_shipment_record" && proposal.review ? (
+            <DropShipmentReview
+              state={proposal.review.state as unknown as Record<string, string>}
+            />
+          ) : tool === "shipment_delivery_failure" && proposal.review ? (
             <DeliveryFailureReview effect={proposal.review.effect} />
           ) : tool === "customer_exchange_record" && proposal.review ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -519,6 +566,48 @@ export function ShipmentActions({
         </p>
       )}
     </dialog>
+  );
+}
+
+function DropShipmentReview({ state }: { state: Record<string, string> }) {
+  return (
+    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <section className="rounded-lg bg-surface-muted p-4">
+        <h3 className="font-medium text-fg-strong">{t("Drop shipment")}</h3>
+        <p className="mt-2 text-sm">
+          {t("Quantity shipped")}: {state.quantity}
+        </p>
+        <p className="mt-1 text-sm">
+          {t("Purchase delivery")}:{" "}
+          <span data-localization="original">{state.supplier_commitment_id}</span>
+        </p>
+        <p className="mt-1 text-sm">
+          {t("Customer delivery")}:{" "}
+          <span data-localization="original">{state.customer_commitment_id}</span>
+        </p>
+        {state.tracking_number && (
+          <p className="mt-1 text-sm">
+            {t("Tracking number")}:{" "}
+            <span data-localization="original">{state.tracking_number}</span>
+          </p>
+        )}
+      </section>
+      <section className="rounded-lg bg-surface-muted p-4">
+        <h3 className="font-medium text-fg-strong">{t("Still open afterwards")}</h3>
+        <p className="mt-2 text-sm">
+          {t("Purchase delivery")}: {state.supplier_open_after}
+        </p>
+        <p className="mt-1 text-sm">
+          {t("Customer delivery")}: {state.customer_open_after}
+        </p>
+      </section>
+      <section className="rounded-lg border border-border-default p-4 sm:col-span-2">
+        <h3 className="font-medium text-fg-strong">{t("Stock")}</h3>
+        <p className="mt-2 text-sm text-fg-muted">
+          {t("Your stock does not change: the goods never pass your warehouse.")}
+        </p>
+      </section>
+    </div>
   );
 }
 

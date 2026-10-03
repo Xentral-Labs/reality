@@ -2,23 +2,23 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 168 covered, 9 partial, 0 missing, 48 gap, 3 out.
+228 scenarios: 171 covered, 10 partial, 0 missing, 44 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 20 |  |  | 4 |  |
 | B Availability and reservation | 12 |  |  | 6 |  |
 | C Payment and release | 17 |  |  | 1 |  |
-| D Shipment, split and merge | 12 | 1 |  | 6 |  |
+| D Shipment, split and merge | 14 | 1 |  | 4 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
-| G Purchase demand and order | 12 |  |  | 5 |  |
+| G Purchase demand and order | 13 |  |  | 4 |  |
 | H Receipt and supplier deviations | 14 |  |  | 5 |  |
 | I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
@@ -29,7 +29,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 2 | 1 |  | 2 |  |
-| R Combined stress stories | 5 | 2 |  | 1 |  |
+| R Combined stress stories | 5 | 3 |  |  |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
 shipped_not_billed, returned_not_credited, billed_not_received, duplicate supplier invoice) and in
@@ -51,7 +51,7 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    cannot be told apart from a customer return. D07, D08, D09. Since spec 335 they are failed
    deliveries: the shipment is reversed through the movement correction, the promise is open again,
    and a lost parcel may open a claim against the carrier.
-4. **No drop-ship path.** Fulfilment derives only from own-stock movements. D10, D11, G15, R03.
+4. **Drop shipping since spec 337.** A purchase order shipping to the customer is assigned to its line and the supplier's dispatch keeps both orders without touching stock (D10, D11, G15 covered); the wrong item a supplier sent cannot be named (R03 partial, see D05).
 5. **No allocation policy.** Priority between promises, reserving by requested date, ship-complete,
    reservation lapse, channel quotas and shelf-life eligibility are all absent; spec 068 names
    allocation a non-goal. A12, B03, B11, B12, B15, B16, B17. Since spec 306 a customer or order states ship
@@ -206,8 +206,8 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | D07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again | A lost parcel is a failed delivery: the shipment no longer counts, the goods stay written off, the promise is open again, and a claim against the carrier is an open receivable its payment settles (spec 335). |
 | D08 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_undeliverable_parcel_comes_back_and_is_sent_again | An undeliverable parcel is a failed delivery, not a return: stock is back, the promise is open again, and the issued invoice is invoiced and not shipped until the order ships again (spec 335). |
 | D09 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_refused_delivery_keeps_the_reason_and_the_rest_is_cancelled | A refused delivery keeps its stated reason on the shipment; the promise is open again and here the customer's withdrawal cancels it (spec 335). |
-| D10 | gap | packages/reality-core/src/reality/services/core.py (fulfilment derives only from own stock `shipment` Movements) | No drop-ship path: a commitment cannot be fulfilled without a movement out of own stock. |
-| D11 | gap | same as D10 | Same as D10: no supplier-direct fulfilment path to combine with own stock. |
+| D10 | covered | packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_the_supplier_ships_straight_to_the_customer | A purchase shipping to the customer, assigned to the line; the reviewed drop shipment keeps both orders with a tracked shipment and leaves stock unchanged (spec 337). |
+| D11 | covered | packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_one_order_is_served_partly_from_stock_and_partly_by_the_supplier | 6 shipped from stock and 4 drop-shipped keep one order of 10 in full; stock ends at 0 (spec 337). |
 | D12 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_3pl_confirms_on_thursday_what_left_on_monday | Movements carry when the goods left; the shipment shows when it was recorded and the lag, and overdue clears (spec 312). |
 | D13 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_pallet_freight_ships_with_its_booked_slot | The planned delivery states its booked slot, the shipment keeps it, and a slot that closed unshipped shows as missed (spec 334). |
 | D14 | gap | db/core.py Shipment/Document (no customs or export-proof link) | Export evidence could only sit in a lossless payload; nothing typed links it to the shipment. |
@@ -270,7 +270,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | G12 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_cancelled_after_production_records_the_suppliers_charge | The cancellation charge is a supplier invoice against the cancelled line, without purchase findings (spec 310). |
 | G13 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_cancelled_order_frees_its_purchase_before_the_purchase_is_reduced | Cancelling the order ends its assignment, so all 10 of the purchase are unassigned and promisable; the reviewed revision to 6 then reduces the purchase (spec 305). |
 | G14 | covered | tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_purchases_together_protect_one_customer_promise | 6 + 4 from two suppliers protect a demand of 10. Defect found: protection could reach 11 of 10; fixed in #201. |
-| G15 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping only listed as edge case) | No drop-ship commitment type or supplier-to-customer link. |
+| G15 | covered | packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_a_drop_ship_purchase_order_is_linked_to_the_customer_order | The purchase order states the customer as ship-to and is assigned to the order line; the line is no longer at risk and nothing is incoming to the warehouse (spec 337). |
 | G16 | gap | src/reality/services/shipments.py (`announced` quantity always None) | Inbound notices/`in_transit` events carry no per-commitment contents, so in-transit per purchase cannot be derived. |
 | G17 | covered | tests/operational_exceptions/test_derivation.py::test_non_deliverable_lines_are_never_reported; tests/test_free_supplier_invoice.py::test_free_supplier_invoice_is_source_backed_atomic_and_has_no_stock_effect | A PO line with no commitment expects no receipt. |
 
@@ -429,7 +429,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 |---|---|---|---|
 | R01 | partial | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_cannot_be_released_anyway | The 80 % prepaid order is refused by shipment_dispatch and by movement_create (spec 294 fix); spec 275 FR-005 keeps it unshippable and no reviewed release exists. |
 | R02 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_customers_an_under_delivery_a_key_customer_and_a_cancellation | Two orders of 3 assigned to a purchase of 6 that delivers 4 and is reduced: the key customer is reserved 3 by stated quantities, the other 1; its cancellation ends its assignment and the key customer is no longer at risk (spec 305). |
-| R03 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping listed only as an edge case) | There is no drop-shipment model (supplier ships to the customer, no own stock). |
+| R03 | partial | packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_a_drop_shipped_return_comes_to_us_and_both_sides_are_credited | Returned to us, credited, sent on to the supplier and credited by it; both sides net out. The wrong item itself cannot be named (D05) (spec 337). |
 | R04 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_line | 400 charges, 12 refunds, 3 chargebacks and fees in one reviewed settlement; every position is booked and the provider account is empty (spec 336). |
 | R05 | partial | tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived, ::test_shrinking_to_what_arrived_finishes_the_promise | Revising after a partial fulfilment is proven on commitments; there's no EDI ORDCHG or advice source. |
 | R06 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_an_import_container_lands_in_eur_with_freight_and_duty | Five USD purchases from two suppliers; the invoice rate as conversion basis lands one receipt in EUR with freight and duty, and the waiting orders are served (spec 309). |

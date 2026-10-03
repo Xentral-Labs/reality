@@ -74,6 +74,7 @@ def inventory_position_query(
         .subquery()
     )
     from reality.services.delivery_reads import fulfillment_expressions
+    from reality.services.drop_shipping import ships_to_customer
 
     _, _, remaining = fulfillment_expressions()
     supplier_open = (
@@ -85,6 +86,8 @@ def inventory_position_query(
             Commitment.tenant_id == tenant_id,
             Commitment.type == "supplier_delivery",
             Commitment.status != "cancelled",
+            # Spec 337: a supplier shipping straight to a customer brings nothing here.
+            ~ships_to_customer(),
             *([Commitment.location_id == location_id] if location_id else []),
         )
         .group_by(Commitment.item_id)

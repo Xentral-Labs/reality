@@ -2497,6 +2497,51 @@
       "values": {
         "fields": "text"
       }
+    },
+    "movement_drop_ship_shape_invalid": {
+      "message": "A drop shipment keeps a promise without passing any of the company's locations."
+    },
+    "drop_ship_supplier_promise_not_open": {
+      "message": "Only an open supplier delivery can be drop-shipped."
+    },
+    "drop_ship_customer_promise_not_open": {
+      "message": "Only an open customer delivery can be served by a drop shipment."
+    },
+    "drop_ship_not_assigned": {
+      "message": "This supplier delivery is not assigned to the customer delivery. Assign it first."
+    },
+    "drop_ship_customer_promise_required": {
+      "message": "This supplier delivery serves several customer deliveries. Name the one the supplier shipped."
+    },
+    "drop_ship_exceeds_assigned": {
+      "message": "Only {remaining} of the assignment is left to drop-ship.",
+      "values": {
+        "remaining": "quantity"
+      }
+    },
+    "drop_ship_exceeds_open": {
+      "message": "A drop shipment cannot exceed what either delivery still has open."
+    },
+    "drop_ship_quantity_invalid": {
+      "message": "A drop-shipped quantity is positive, with at most four decimals."
+    },
+    "drop_ship_time_invalid": {
+      "message": "When the supplier shipped is not a valid time."
+    },
+    "drop_ship_time_future": {
+      "message": "When the supplier shipped cannot lie in the future."
+    },
+    "drop_ship_promise_required": {
+      "message": "Drop shipping is read for a customer or supplier delivery."
+    },
+    "drop_ship_fields_invalid": {
+      "message": "Name the supplier delivery and the quantity the supplier shipped."
+    },
+    "drop_ship_unresolved": {
+      "message": "A drop shipment of this supplier delivery is still being recorded."
+    },
+    "drop_ship_purchase_not_to_customer": {
+      "message": "The purchase order does not ship to this customer. A drop-ship purchase order names the customer as where the goods go."
     }
   },
   "terms": [

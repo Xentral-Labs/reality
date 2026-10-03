@@ -228,6 +228,8 @@
     "movement_explanation": "shipping",
     "customer_exchange": "shipping",
     "delivery_failure_summary": "shipping",
+    "drop_shipments": "shipping",
+    "drop_shipment_record_propose": "shipping",
     "shipment_delivery_failure_propose": "shipping",
     "order_line_item_assign_propose": "orders",
     "return_disposition_summary": "shipping",

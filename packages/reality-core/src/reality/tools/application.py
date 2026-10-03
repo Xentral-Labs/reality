@@ -1359,6 +1359,21 @@ def _shipment_delivery_failure(
     }
 
 
+def _drop_shipment_record(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.drop_shipping import record_drop_shipment
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    return record_drop_shipment(session, tenant_id, **arguments)
+
+
+def _drop_shipments(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.drop_shipping import drop_shipments
+
+    return drop_shipments(session, tenant_id, **arguments)
+
+
 def _delivery_failure_summary(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2964,6 +2979,12 @@ TOOLS = {
         True,
         _shipment_delivery_failure,
     ),
+    "drop_shipment_record": Tool(
+        "drop_shipment_record",
+        "Record that a supplier shipped an assigned purchase straight to the customer, keeping both promises.",
+        True,
+        _drop_shipment_record,
+    ),
     "customer_exchange_record": Tool(
         "customer_exchange_record",
         "Settle part of a customer return with a free replacement instead of a credit.",
@@ -3203,6 +3224,12 @@ TOOLS = {
         "Read what a customer exchange replaced, what it sent and what it still settles.",
         False,
         _customer_exchange,
+    ),
+    "drop_shipments": Tool(
+        "drop_shipments",
+        "Read a promise's drop shipping: the purchase assigned to it and what the supplier shipped straight to the customer.",
+        False,
+        _drop_shipments,
     ),
     "delivery_failure_summary": Tool(
         "delivery_failure_summary",
@@ -4721,6 +4748,7 @@ def approve_and_execute_proposal(
         "return_disposition",
         "customer_exchange_record",
         "shipment_delivery_failure",
+        "drop_shipment_record",
         "order_line_item_assign",
         "credit_hold_release",
         "reorder_point_set",
