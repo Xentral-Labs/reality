@@ -80189,7 +80189,7 @@
         {
           "name": "gross_amount",
           "type": "NUMERIC(18, 4)",
-          "nullable": false,
+          "nullable": true,
           "default": {
             "kind": "scalar",
             "value": 0

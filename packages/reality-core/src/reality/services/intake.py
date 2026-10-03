@@ -14,12 +14,14 @@ from sqlalchemy.orm import Session
 from reality.db.core import (
     ChangeProposal,
     CompanyTimeZone,
+    CustomerItemNumber,
     Document,
     DocumentLine,
     ImportJob,
     Item,
     LedgerEntry,
     Location,
+    Movement,
     Party,
     PaymentTerm,
     SourceArtifact,
@@ -45,10 +47,16 @@ from reality.services.memberships import Principal, require_owner
 
 INTAKE_TYPE = "tool:intake_apply"
 _FINANCIAL_PROFILES = frozenset(
-    {"customer_payment.v1", "supplier_payment.v1", "sales_invoice.v1"}
+    {
+        "customer_payment.v1",
+        "supplier_payment.v1",
+        "sales_invoice.v1",
+        "artifact:bank_statement.v1",
+    }
 )
 _MODELS = {
     "source_artifact": SourceArtifact,
+    "customer_item_number": CustomerItemNumber,
     "party": Party,
     "item": Item,
     "location": Location,
@@ -119,6 +127,13 @@ def _require_intake_scope(session: Session, tenant_id: str, proposal_id: str) ->
 
 
 _EFFECT_OPERATIONS = {
+    "master_item": frozenset({"create_item", "emit_business_event"}),
+    "master_party": frozenset({"create_party", "emit_business_event"}),
+    "master_location": frozenset({"create_location", "emit_business_event"}),
+    "inventory_adjustment": frozenset({"record_movement", "emit_business_event"}),
+    "external_stock_statement": frozenset(
+        {"record_external_stock_source", "emit_business_event"}
+    ),
     "invoice_post": frozenset({"post_ledger", "emit_business_event"}),
     "item_package": frozenset({"create_item", "emit_business_event"}),
     "document": frozenset({"create_manual_document_with_lines", "emit_business_event"}),
@@ -209,6 +224,9 @@ _INTENT_DEFAULTS = {
     }
     for name in (
         "create_item",
+        "create_party",
+        "create_location",
+        "record_movement",
         "record_supplier_payment",
         "post_ledger",
         "create_manual_document_with_lines",
@@ -221,6 +239,8 @@ _INTENT_DEFAULTS = {
         "cancel_commitment",
     )
 }
+
+_INTENT_DEFAULTS["record_external_stock_source"] = {}
 
 
 def _invoke(
@@ -366,6 +386,32 @@ def _payment_state(session, tenant_id, invoice_id):
             )
             for row in allocations
         ),
+    }
+
+
+def _stock_state(session, tenant_id, item_id, location_id):
+    from sqlalchemy import or_
+
+    core._tenant_record_read(session, Item, tenant_id, item_id)
+    core._tenant_record_read(session, Location, tenant_id, location_id)
+    movements = list(
+        session.scalars(
+            select(Movement)
+            .where(
+                Movement.tenant_id == tenant_id,
+                Movement.item_id == item_id,
+                or_(
+                    Movement.from_location_id == location_id,
+                    Movement.to_location_id == location_id,
+                ),
+            )
+            .order_by(Movement.id)
+            .execution_options(populate_existing=True)
+        )
+    )
+    return {
+        "quantity": str(core.stock_at(session, tenant_id, item_id, location_id)),
+        "movements": [(row.id, _state(row)) for row in movements],
     }
 
 
@@ -574,6 +620,10 @@ def _invoice_plan(session, tenant_id, source, job):
 def _freeze_effect_defaults(plan):
     """Retain canonical business defaults when meaning is prepared, before review."""
     operations = {
+        "master_item": "create_item",
+        "master_party": "create_party",
+        "master_location": "create_location",
+        "inventory_adjustment": "record_movement",
         "document": "create_manual_document_with_lines",
         "commitment": "create_commitment",
         "customer_payment": "record_customer_payment",
@@ -673,7 +723,28 @@ def prepare_intake(
 
         plan = prepare_item_package(session, tenant_id, source, job)
     elif source.source_artifact_id:
-        raise core.InvalidOperation(code="intake_profile_unsupported")
+        from reality.services.artifact_batches import _prepare_artifact_or_batch
+
+        plan = _prepare_artifact_or_batch(session, tenant_id, source, job)
+        if isinstance(plan, ChangeProposal):
+            job.input = canonical_json({**context, "intake_proposal_id": plan.id})
+            job.status = "awaiting_decision"
+            job.error = ""
+            job.next_attempt_at = None
+            _outcome(
+                session,
+                tenant_id,
+                source,
+                job,
+                "prepared",
+                reason_code="intake_awaiting_decision",
+                summary="The exact artifact packages await a batch decision.",
+            )
+            if _commit:
+                session.commit()
+            else:
+                session.flush()
+            return plan
     elif (source.source_system, source.source_type) == ("shopify", "order"):
         from reality.services.shopify_intake import prepare_order
 
@@ -763,7 +834,41 @@ def _apply_effects(
     for effect in plan.effects:
         with _dispatch_effect(effect.operation):
             arguments = dict(effect.arguments)
-            if effect.operation == "item_package":
+            if effect.operation in {
+                "master_item",
+                "master_party",
+                "master_location",
+                "inventory_adjustment",
+            }:
+                operation, record_type = {
+                    "master_item": ("create_item", "item"),
+                    "master_party": ("create_party", "party"),
+                    "master_location": ("create_location", "location"),
+                    "inventory_adjustment": ("record_movement", "movement"),
+                }[effect.operation]
+                row = _invoke(
+                    operation,
+                    getattr(core, operation),
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _commit=False,
+                )
+                records.append((record_type, row.id))
+            elif effect.operation == "external_stock_statement":
+                from reality.services.external_stock import _record_received_source
+
+                rows = _invoke(
+                    "record_external_stock_source",
+                    _record_received_source,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                )
+                records.extend(("external_stock_statement", row.id) for row in rows)
+            elif effect.operation == "item_package":
                 from reality.services.item_imports import _validate_new_rows
 
                 _validate_new_rows(session, tenant_id, arguments["rows"])
@@ -1011,6 +1116,13 @@ def apply_prepared_intake(
         != plan.mapping
     ):
         raise core.InvalidOperation(code="intake_review_stale")
+    if plan.mapping.get("parent_source_id"):
+        parent_source = core._tenant_record_read(
+            session, SourceRecord, tenant_id, plan.mapping["parent_source_id"]
+        )
+        _source_current(session, tenant_id, parent_source)
+        if parent_source.source_artifact_id != source.source_artifact_id:
+            raise core.InvalidOperation(code="intake_review_stale")
     for reference in sorted(
         plan.references, key=lambda row: (row.record_type, row.record_id)
     ):
@@ -1033,6 +1145,26 @@ def apply_prepared_intake(
                 observation.arguments["party_id"],
                 as_of=core.utc_datetime(observation.arguments["as_of"]),
             )
+        elif observation.kind == "stock_state":
+            current = _stock_state(
+                session,
+                tenant_id,
+                observation.arguments["item_id"],
+                observation.arguments["location_id"],
+            )
+        elif observation.kind == "customer_item_resolution":
+            from reality.services.customer_item_numbers import resolve_customer_item
+
+            mapped = resolve_customer_item(
+                session,
+                tenant_id,
+                observation.arguments["party_id"],
+                observation.arguments["number"],
+            )
+            current = {
+                "mapping_id": mapped.id if mapped else None,
+                "item_id": mapped.item_id if mapped else None,
+            }
         elif observation.kind == "payment_state":
             current = _payment_state(
                 session, tenant_id, observation.arguments["invoice_id"]

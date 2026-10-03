@@ -1687,7 +1687,9 @@ class Document(Base):
     number: Mapped[str] = mapped_column(String)
     party_id: Mapped[str | None] = mapped_column()
     currency: Mapped[str] = mapped_column(String, default="EUR")
-    gross_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
+    gross_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(18, 4).evaluates_none(), default=0
+    )
     status: Mapped[str] = mapped_column(String, default="open")
     # A day, stored as a day: the register orders and filters on it, analysis groups
     # by it, and an impossible date cannot reach the column at all. Callers and every

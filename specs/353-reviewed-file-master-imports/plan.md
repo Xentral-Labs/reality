@@ -47,7 +47,7 @@ against the implemented diff and migration before marking tasks complete.
 - `packages/reality-core/src/reality/services/item_imports.py`
 - `packages/reality-core/tests/test_file_intake_admission.py`
 
-- No new schema in this package; see data-model.md for reused storage and compatibility.
+- Migration 0140 makes Document.gross_amount nullable for source-unstated order totals; no new table. See data-model.md for rollback constraints.
 
 ## Design
 
@@ -63,7 +63,7 @@ Reuse artifact staging and item-import review hashing. Add a streaming file_inta
 
 ### Data and migration impact
 
-Reuse SourceArtifact, SourceRecord, ChangeProposal and existing business tables. New package/file manifest schemas live in proposal JSON, not business staging tables. Raw file SourceRecord uses artifact identity/hash and received metadata, with bytes in SourceArtifact; normalized proposed rows are separately identified as interpretation. No new table is required. Any master-data update continues its existing expected revision contract.
+Reuse SourceArtifact, SourceRecord, ChangeProposal and existing business tables. New package/file manifest schemas live in proposal JSON, not business staging tables. Raw file SourceRecord uses artifact identity/hash and received metadata, with bytes in SourceArtifact; normalized proposed rows are separately identified as interpretation. No new table is required. Migration 0140 allows a null order header amount so FR-008a can preserve unknown source totals instead of inventing them. Existing values remain unchanged; downgrade refuses while null totals exist. Any master-data update continues its existing expected revision contract.
 
 ### Failure, security and tenant behavior
 
@@ -123,3 +123,15 @@ external-I/O scheduler contract is proposed: provider inference stays client-sid
 Follow spec 351's common lock hierarchy and immutable phase/outcome attempt
 allocation; do not acquire business/finance locks after proposal/source locks.
 Replay never appends a new phase outcome or re-invokes interpretation.
+
+## Additional profile implementation
+
+`artifact_intake.py` prepares the existing item, party, location, inventory,
+external-stock, bank-statement and complete sales-order profiles without writes.
+`artifact_batches.py` validates the whole bounded input, freezes its complete row
+coverage, and selects separate child SourceRecords and proposals for larger files.
+Each file order has one complete unit; each bank statement has one payment unit.
+The shared batch service retains reviewer authority and continuation state.
+A single coherent unit retains the synchronous intake contract. References and
+stock/mapping/credit observations are revalidated before canonical effects run.
+Source-unstated document totals use nullable storage, never a calculated amount.

@@ -620,3 +620,28 @@ def _record_file_rows(
             source.id,
         )
     return stored
+
+
+def _record_received_source(
+    session, tenant_id, source_record_id, reporter_party_id, lines, *, action_id
+):
+    """Apply an exact reviewed file statement through the canonical statement store."""
+    from reality.services.core import _require_business_mutation
+    from reality.services.intake import _require_intake_scope, require_scoped_intent
+
+    require_scoped_intent("record_external_stock_source", locals())
+    _require_intake_scope(session, tenant_id, action_id)
+    _require_business_mutation(session, tenant_id, "record_external_stock_source")
+    from reality.services.core import _tenant_record_read
+
+    source = _tenant_record_read(session, SourceRecord, tenant_id, source_record_id)
+    reporter = _reporter(session, tenant_id, reporter_party_id)
+    checked = _checked_lines(session, tenant_id, lines, source.received_at)
+    return _store(
+        session,
+        tenant_id,
+        checked,
+        reporter.id if reporter else None,
+        source.id,
+        action_id=action_id,
+    )

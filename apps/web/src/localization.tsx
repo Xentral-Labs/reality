@@ -10490,15 +10490,17 @@ export const formatNumber = (value: string | number, maximumFractionDigits = 4) 
   new Intl.NumberFormat(active.locale, { maximumFractionDigits }).format(Number(value));
 export const formatQuantity = (value: string | number) => formatNumber(value, 4);
 export const formatMoney = (
-  value: string | number,
+  value: string | number | null,
   currency: string,
   maximumFractionDigits?: number,
 ) =>
-  new Intl.NumberFormat(active.locale, {
-    style: "currency",
-    currency,
-    ...(maximumFractionDigits === undefined ? {} : { maximumFractionDigits }),
-  }).format((maximumFractionDigits === undefined ? Number(value) : value) as number);
+  value === null
+    ? "—"
+    : new Intl.NumberFormat(active.locale, {
+        style: "currency",
+        currency,
+        ...(maximumFractionDigits === undefined ? {} : { maximumFractionDigits }),
+      }).format((maximumFractionDigits === undefined ? Number(value) : value) as number);
 
 Object.assign(dictionaries.de, {
   Completed: "Erledigt",

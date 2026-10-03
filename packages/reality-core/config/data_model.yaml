@@ -918,7 +918,7 @@ tables:
       number: {description: Human-readable document number, never used as identity.}
       party_id: {description: Primary counterparty represented by the document.}
       currency: {description: ISO currency of monetary amounts.}
-      gross_amount: {description: Gross monetary total represented by the document.}
+      gross_amount: {description: "Gross monetary total stated by the source; null for an order whose source states no total. Never derive a replacement from its lines."}
       status: {description: Evidence lifecycle state only; never delivery, reservation, or fulfillment state.}
       document_date: {description: Date printed or assigned by the source document.}
       ordered_at: {description: UTC order timestamp supplied by the source.}

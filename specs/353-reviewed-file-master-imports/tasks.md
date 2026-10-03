@@ -40,6 +40,8 @@ does not prove runtime behavior. Domain → services → tools → adapters.
 - [ ] T014 Update exact source/decision explanation and applicable contracts in `specs/129-unified-item-csv-import/spec.md` plus the other paths listed in plan.md; include DR-001–DR-003 and register new test families in `docs/SPEC_COVERAGE_MATRIX.md`.
 - [ ] T015 Run required gates from `quickstart.md`, review the actual diff and migration/rollback evidence, and record measured results in this feature's `verification.md` before marking any story complete (SC-002).
 
+- [ ] T016 Add nullable order-total migration, received-zero/inconsistent-total and unknown inspector proofs for FR-008a in `test_artifact_intake_admission.py` and `test_unstated_document_totals_migration.py`; preserve prior values and refuse unsafe downgrade.
+
 ## Dependencies and execution order
 
 T001 → T002 → each story's failing proof → its domain/service implementation →
