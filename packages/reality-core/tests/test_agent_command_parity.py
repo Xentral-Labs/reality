@@ -39,7 +39,9 @@ def test_all_mapped_agent_tools_exist_and_chat_uses_same_schema_registry():
     schemas = {schema["function"]["name"] for schema in model_tool_schemas()}
 
     assert mapped <= MCP_TOOL_NAMES
-    assert mapped <= schemas | {"proposal_approve_and_execute"}
+    confirmations = {tool.name for tool in MCP_TOOL_CATALOG if tool.mutating}
+    assert mapped <= schemas | confirmations
+    assert schemas.isdisjoint(confirmations)  # Built-in Chat cannot acquire confirmation authority.
 
 
 def test_every_public_schema_is_strict():

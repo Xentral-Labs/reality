@@ -61,3 +61,12 @@ Observed PostgreSQL checks:
 Pending for this feature: queued delegated bulk with per-child retained verdicts
 and execution-time mandate/quota checks, concurrent quota proof, full bulk
 Web/CLI controls and comparative volume measurements.
+
+The final stable single-unit mandate commit completed the full PostgreSQL suite:
+6,133 passed, 10 skipped and three inventory/parity failures in 955.60 seconds.
+Those three tests identified missing explicit mandate classifications in the
+reporting/index inventories and an outdated built-in Chat parity exemption.
+The corrections classify delegation as governance metadata, retain the existing
+schema indexing invariant and require all confirmation tools to stay outside the
+built-in Chat schema. All 18 affected catalog/reporting/index tests pass after
+the corrections (18.59 seconds). Final PR gates remain the completion authority.
