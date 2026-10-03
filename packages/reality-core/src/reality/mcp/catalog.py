@@ -680,6 +680,74 @@ PAGE_PROPERTIES = {
 
 MCP_TOOL_CATALOG = (
     MCPToolDefinition(
+        "intake_batch_prepare_propose",
+        "Prepare a selected intake batch",
+        "Freeze up to 500 exact selected proposal IDs and digests. Later arrivals are excluded; this does not approve or apply business meaning.",
+        "propose",
+        "Sources",
+        _object_schema(
+            {
+                "request_id": STRING,
+                "entries": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "items": _object_schema(
+                        {
+                            "proposal_id": STRING,
+                            "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                        },
+                        required=("proposal_id", "digest"),
+                    ),
+                },
+            },
+            required=("request_id", "entries"),
+        ),
+        _propose("intake_batch_apply"),
+    ),
+    MCPToolDefinition(
+        "intake_batch_review",
+        "Review a selected intake batch",
+        "Read at most 100 members of a fixed manifest and its exact confirmation digest. This never refreshes or applies a child decision.",
+        "read",
+        "Sources",
+        _object_schema(
+            {
+                "batch_id": STRING,
+                "cursor": {"type": "integer", "minimum": 0, "default": 0},
+                "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 100,
+                },
+            },
+            required=("batch_id",),
+        ),
+        _read("intake_batch_review"),
+    ),
+    MCPToolDefinition(
+        "intake_batch_status",
+        "Read intake batch results",
+        "Read at most 100 retained child dispositions; successful queue processing can include review-required or stopped decisions.",
+        "read",
+        "Sources",
+        _object_schema(
+            {
+                "batch_id": STRING,
+                "cursor": {"type": "integer", "minimum": 0, "default": 0},
+                "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 100,
+                },
+            },
+            required=("batch_id",),
+        ),
+        _read("intake_batch_status"),
+    ),
+    MCPToolDefinition(
         "intake_prepare_propose",
         "Prepare source interpretation",
         "Prepare exact meaning of a retained source job without accepting business effects. Review and confirm the returned proposal separately.",

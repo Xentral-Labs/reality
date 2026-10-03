@@ -1,6 +1,27 @@
 {
   "commands": [
     {
+      "name": "Prepare selected intake batch",
+      "service": "prepare_batch",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Retain up to 500 exact independently reviewed source units; create no accepted effects and exclude future arrivals."
+    },
+    {
+      "name": "Review selected intake batch",
+      "service": "review_batch",
+      "mode": "read",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Read at most 100 exact selected members and the immutable manifest digest."
+    },
+    {
+      "name": "Read intake batch results",
+      "service": "batch_status",
+      "mode": "read",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Explain applied, replayed, refused and stopped units separately through bounded pagination."
+    },
+    {
       "name": "Prepare source interpretation",
       "service": "prepare_intake",
       "mode": "mutation",
@@ -17,7 +38,14 @@
     {
       "name": "Accept reviewed source interpretation",
       "service": "apply_prepared_intake",
-      "related_services": ["reject_prepared_intake"],
+      "related_services": [
+        "reject_prepared_intake",
+        "approve_batch",
+        "settle_chunk",
+        "reject_batch",
+        "stop_batch",
+        "enqueue_intake_batch_run"
+      ],
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "effect": "Apply the exact unchanged interpretation through canonical services and retain attribution and receipt in the same transaction."

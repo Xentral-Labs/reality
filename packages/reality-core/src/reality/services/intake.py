@@ -737,8 +737,18 @@ def apply_prepared_intake(
             records = _apply_effects(session, tenant_id, proposal, plan)
         _record_decision(proposal, principal, settling_token_id, settling_channel)
         proposal.status = "executed"
+        from reality.services.intake_batches import _current_child_authorization
+
+        parent_authorization = _current_child_authorization(
+            session, tenant_id, proposal.id
+        )
         proposal.output = canonical_json(
             {
+                **(
+                    {"batch_authorization": parent_authorization}
+                    if parent_authorization
+                    else {}
+                ),
                 "proposal_id": proposal.id,
                 "source_record_id": source.id,
                 "digest": digest,

@@ -4332,7 +4332,53 @@ def _intake_review(session: Session, tenant_id: str, arguments: dict[str, Any]) 
     return review_intake(session, tenant_id, arguments["proposal_id"])
 
 
+def _intake_batch_review(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Expose a bounded read of the exact selected source decisions.
+
+    BUSINESS RULE application.intake_batch_review:
+    Read the tenant-owned manifest without applying or renewing its members.
+    """
+    from reality.services.intake_batches import review_batch
+
+    # reality-rule: application.intake_batch_review
+    return review_batch(session, tenant_id, **arguments)
+
+
+def _intake_batch_status(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Explain successful, refused and stopped source decisions separately.
+
+    BUSINESS RULE application.intake_batch_status:
+    Read bounded retained progress; queue success is not universal business acceptance.
+    """
+    from reality.services.intake_batches import batch_status
+
+    # reality-rule: application.intake_batch_status
+    return batch_status(session, tenant_id, **arguments)
+
+
 TOOLS = {
+    "intake_batch_apply": Tool(
+        "intake_batch_apply",
+        "Approve one exact selected manifest for bounded settlement.",
+        True,
+        _intake_apply,
+    ),
+    "intake_batch_review": Tool(
+        "intake_batch_review",
+        "Read one exact selected manifest.",
+        False,
+        _intake_batch_review,
+    ),
+    "intake_batch_status": Tool(
+        "intake_batch_status",
+        "Read retained independent batch dispositions.",
+        False,
+        _intake_batch_status,
+    ),
     "intake_apply": Tool(
         "intake_apply",
         "Accept exactly reviewed source meaning in one transaction.",
@@ -5994,6 +6040,12 @@ def create_change_proposal(
     # reality-rule: application.create_change_proposal.2
     if not tool.mutating:
         raise InvalidOperation(code="proposal_read_tool_not_needed")
+    if tool_name == "intake_batch_apply":
+        from reality.services.intake_batches import prepare_batch
+
+        if set(arguments) != {"entries", "request_id"}:
+            raise InvalidOperation(code="intake_review_invalid")
+        return prepare_batch(session, tenant_id, **arguments)
     if tool_name == "intake_apply":
         from reality.services.intake import prepare_intake
 
@@ -6687,6 +6739,19 @@ def approve_and_execute_proposal(
         phase="preflight",
         confirmed=confirmed,
     )
+    if candidate.type == "tool:intake_batch_apply":
+        from reality.services.intake_batches import approve_batch
+
+        return approve_batch(
+            session,
+            tenant_id,
+            proposal_id,
+            review_token or "",
+            confirmed=confirmed,
+            principal=confirming_principal,
+            settling_token_id=settling_token_id,
+            settling_channel=settling_channel,
+        )
     if candidate.type == "tool:intake_apply":
         from reality.services.intake import apply_prepared_intake
 
@@ -7064,6 +7129,17 @@ def reject_proposal(
     )
     if existing is None:
         raise NotFound(code="proposal_not_found")
+    if existing.type == "tool:intake_batch_apply":
+        from reality.services.intake_batches import reject_batch
+
+        return reject_batch(
+            session,
+            tenant_id,
+            proposal_id,
+            principal=confirming_principal,
+            token_id=settling_token_id,
+            channel=settling_channel,
+        )
     if existing.type == "tool:intake_apply":
         from reality.services.intake import reject_prepared_intake
 

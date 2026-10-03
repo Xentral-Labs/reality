@@ -61,7 +61,10 @@ def resolve_decision_policy(
     elif tool in ACCOUNT_MUTATION_TOOLS:
         authority = "account_user"
         checks.append("account_identity")
-    if "_delivery_review" in arguments or tool == "intake_apply":
+    if "_delivery_review" in arguments or tool in {
+        "intake_apply",
+        "intake_batch_apply",
+    }:
         checks.append("reviewed_member")
         if authority == "action_context":
             authority = "company_member"

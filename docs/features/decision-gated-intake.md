@@ -64,3 +64,13 @@ member or changed row invalidates review. Credit proposals freeze the current
 exposure at the reviewed observation time; new exposure requires a fresh review.
 The nullable amount migration never rewrites historical records and refuses an
 unsafe rollback while source-unstated amounts remain.
+
+The explicit bulk services retain up to 500 exact reviewed child IDs/digests. One
+manifest confirmation queues database-only shared-worker continuations of at most
+25 units; it grants no permission for future arrivals. Current original reviewer
+membership/token and each child's stronger permission/state are checked again.
+Known no-effect refusals and stops are retained separately from accepted children;
+unknown infrastructure failure rolls back the entire provisional chunk. Paginated
+status reads return child receipts without running work. This checkpoint still
+leaves external AgentMandates, selection/recovery UI and the universal adapter
+cutover unfinished (spec 355).

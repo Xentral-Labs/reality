@@ -1292,6 +1292,7 @@
       "tables": ["source_system", "source_capability", "document", "document_line", "fact"],
       "lists": ["view:documents", "view:sources_imports", "projection:document_register"],
       "actions": [
+        "command:prepare_batch",
         "command:prepare_intake",
         "command:apply_prepared_intake",
         "command:set_source_mapping",
@@ -1309,6 +1310,8 @@
         "command:assign_line_item"
       ],
       "reads": [
+        "command:review_batch",
+        "command:batch_status",
         "command:review_intake",
         "command:commercial_match",
         "command:preview_document",
@@ -1934,6 +1937,166 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:intake_batch_prepare_propose",
+      "kind": "tool",
+      "key": "intake_batch_prepare_propose",
+      "label": "Prepare a selected intake batch",
+      "area": "cross_functional",
+      "summary": "Freeze up to 500 exact selected proposal IDs and digests. Later arrivals are excluded; this does not approve or apply business meaning.",
+      "access": "propose",
+      "group": "Sources",
+      "synopsis": "intake_batch_prepare_propose request_id entries",
+      "parameters": [
+        {
+          "name": "request_id",
+          "type": "string",
+          "required": true,
+          "description": "Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused.",
+          "depth": 0
+        },
+        {
+          "name": "entries",
+          "type": "array",
+          "required": true,
+          "description": "Exact selected proposal IDs and reviewed digests; never future arrivals.",
+          "depth": 0
+        },
+        {
+          "name": "entries[].proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 1
+        },
+        {
+          "name": "entries[].digest",
+          "type": "string",
+          "required": true,
+          "description": "Exact content digest of the retained interpretation explicitly reviewed for this decision.",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "prepare_batch",
+      "projections": [],
+      "links": ["command:prepare_batch"],
+      "label_de": "Prepare a selected intake batch",
+      "resources": ["source"]
+    },
+    {
+      "id": "tool:intake_batch_review",
+      "kind": "tool",
+      "key": "intake_batch_review",
+      "label": "Review a selected intake batch",
+      "area": "cross_functional",
+      "summary": "Read at most 100 members of a fixed manifest and its exact confirmation digest. This never refreshes or applies a child decision.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "intake_batch_review batch_id [cursor] [limit]",
+      "parameters": [
+        {
+          "name": "batch_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained selected manifest.",
+          "depth": 0
+        },
+        {
+          "name": "cursor",
+          "type": "integer",
+          "required": false,
+          "description": "Zero-based retained manifest or result position for this bounded page.",
+          "depth": 0,
+          "default": 0
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 0,
+          "default": 100
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one page of exact selected source decisions.",
+        "use_when": ["An operator needs to inspect a selected batch."],
+        "do_not_use_when": ["New units should be included or existing reviews renewed."],
+        "limitations": ["A completed batch may include refused or stopped children."],
+        "empty_result": "A missing or foreign batch is not found.",
+        "freshness": "Reads retained state without applying effects."
+      },
+      "read_modes": [
+        {
+          "query": "MCP intake_batch_review",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "review_batch",
+      "projections": [],
+      "links": ["command:review_batch"],
+      "label_de": "Review a selected intake batch",
+      "resources": ["source"]
+    },
+    {
+      "id": "tool:intake_batch_status",
+      "kind": "tool",
+      "key": "intake_batch_status",
+      "label": "Read intake batch results",
+      "area": "cross_functional",
+      "summary": "Read at most 100 retained child dispositions; successful queue processing can include review-required or stopped decisions.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "intake_batch_status batch_id [cursor] [limit]",
+      "parameters": [
+        {
+          "name": "batch_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained selected manifest.",
+          "depth": 0
+        },
+        {
+          "name": "cursor",
+          "type": "integer",
+          "required": false,
+          "description": "Zero-based retained manifest or result position for this bounded page.",
+          "depth": 0,
+          "default": 0
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 0,
+          "default": 100
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one page of retained source acceptance dispositions.",
+        "use_when": ["An operator needs to inspect a selected batch."],
+        "do_not_use_when": ["New units should be included or existing reviews renewed."],
+        "limitations": ["A completed batch may include refused or stopped children."],
+        "empty_result": "A missing or foreign batch is not found.",
+        "freshness": "Reads retained state without applying effects."
+      },
+      "read_modes": [
+        {
+          "query": "MCP intake_batch_status",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "batch_status",
+      "projections": [],
+      "links": ["command:batch_status"],
+      "label_de": "Read intake batch results",
+      "resources": ["source"]
+    },
     {
       "id": "tool:intake_prepare_propose",
       "kind": "tool",
@@ -5658,7 +5821,7 @@
           "name": "cursor",
           "type": "string",
           "required": false,
-          "description": "",
+          "description": "Zero-based retained manifest or result position for this bounded page.",
           "depth": 0
         },
         {
@@ -14832,7 +14995,7 @@
           "name": "cursor",
           "type": "integer",
           "required": false,
-          "description": "",
+          "description": "Zero-based retained manifest or result position for this bounded page.",
           "depth": 0
         },
         {
@@ -17576,7 +17739,7 @@
           "name": "cursor",
           "type": "string",
           "required": false,
-          "description": "",
+          "description": "Zero-based retained manifest or result position for this bounded page.",
           "depth": 0,
           "default": null
         },
@@ -17639,7 +17802,7 @@
           "name": "cursor",
           "type": "string",
           "required": false,
-          "description": "",
+          "description": "Zero-based retained manifest or result position for this bounded page.",
           "depth": 0,
           "default": null
         }
@@ -17692,7 +17855,7 @@
           "name": "cursor",
           "type": "string",
           "required": false,
-          "description": "",
+          "description": "Zero-based retained manifest or result position for this bounded page.",
           "depth": 0,
           "default": null
         }
@@ -21610,6 +21773,86 @@
       "resources": ["accounting", "contribution"]
     },
     {
+      "id": "command:prepare_batch",
+      "kind": "command",
+      "key": "prepare_batch",
+      "label": "Prepare selected intake batch",
+      "area": "cross_functional",
+      "summary": "Retain up to 500 exact independently reviewed source units; create no accepted effects and exclude future arrivals.",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "reads": ["action"],
+      "writes": ["action"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["intake_batch_prepare_propose"],
+      "synopses": ["intake_batch_prepare_propose request_id entries"],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:intake_batch_prepare_propose"],
+      "label_de": "Importauswahl vorbereiten",
+      "resources": ["source"]
+    },
+    {
+      "id": "command:review_batch",
+      "kind": "command",
+      "key": "review_batch",
+      "label": "Review selected intake batch",
+      "area": "cross_functional",
+      "summary": "Read at most 100 exact selected members and the immutable manifest digest.",
+      "mode": "read",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "reads": ["action"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["intake_batch_review"],
+      "synopses": ["intake_batch_review batch_id [cursor] [limit]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one page of exact selected source decisions.",
+        "use_when": ["An operator needs to inspect a selected batch."],
+        "do_not_use_when": ["New units should be included or existing reviews renewed."],
+        "limitations": ["A completed batch may include refused or stopped children."],
+        "empty_result": "A missing or foreign batch is not found.",
+        "freshness": "Reads retained state without applying effects."
+      },
+      "links": ["tool:intake_batch_review"],
+      "label_de": "Importauswahl prüfen",
+      "resources": ["source"]
+    },
+    {
+      "id": "command:batch_status",
+      "kind": "command",
+      "key": "batch_status",
+      "label": "Read intake batch results",
+      "area": "cross_functional",
+      "summary": "Explain applied, replayed, refused and stopped units separately through bounded pagination.",
+      "mode": "read",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "reads": ["action"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["intake_batch_status"],
+      "synopses": ["intake_batch_status batch_id [cursor] [limit]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one page of retained source acceptance dispositions.",
+        "use_when": ["An operator needs to inspect a selected batch."],
+        "do_not_use_when": ["New units should be included or existing reviews renewed."],
+        "limitations": ["A completed batch may include refused or stopped children."],
+        "empty_result": "A missing or foreign batch is not found.",
+        "freshness": "Reads retained state without applying effects."
+      },
+      "links": ["tool:intake_batch_status"],
+      "label_de": "Ergebnisse der Importauswahl anzeigen",
+      "resources": ["source"]
+    },
+    {
       "id": "command:prepare_intake",
       "kind": "command",
       "key": "prepare_intake",
@@ -21691,7 +21934,14 @@
         "business_event"
       ],
       "confirmation": "required",
-      "related_services": ["reject_prepared_intake"],
+      "related_services": [
+        "reject_prepared_intake",
+        "approve_batch",
+        "settle_chunk",
+        "reject_batch",
+        "stop_batch",
+        "enqueue_intake_batch_run"
+      ],
       "tools": ["proposal_approve_and_execute"],
       "synopses": ["proposal_approve_and_execute proposal_id [approved] [review_token]"],
       "events": [],

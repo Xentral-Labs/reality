@@ -122,11 +122,13 @@ def definitions() -> dict[str, JobDefinition]:
             REFRESH_INVENTORY,
         )
         from reality.jobs.handlers.demo_data import DEMO, SETTLE
+        from reality.jobs.handlers.intake import BATCH
         from reality.jobs.handlers.invitations import CLEANUP
         from reality.jobs.handlers.projections import REFRESH
 
         register(REFRESH)
         register(CLEANUP)
+        register(BATCH)
         register(DEMO)
         register(SETTLE)
         register(INITIALIZE)

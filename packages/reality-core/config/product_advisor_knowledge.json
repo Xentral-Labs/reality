@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:c535c114cc9e6d0daf46908c2967292d80cf96479a3de42a7f4992eb3286ec75",
+  "knowledge_version": "advisor-v1:sha256:a66d426f16a88cd0782cf9f8c20f90a2b859348af68588f38489935a48ba156b",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "8efbb4744b5c75d6be4a44e69b514b7d5fab84f067cd5bdb45ec4c5c6c617f8f"
+      "fingerprint": "501c5ea2707de9afa4820b595406927e4b03159e34b6abbcc48d8ddeab0cbb51"
     },
     {
       "id": "source_document_product_evaluation",
@@ -6121,6 +6121,51 @@
       ],
       "language": "en",
       "fingerprint": "b593b97aa5d9e126f7e804b459a90061e305a7e576733498d75ae539b145a583"
+    },
+    {
+      "id": "evidence_command_prepare_batch",
+      "source_id": "source_executable_commands",
+      "subject": "Prepare selected intake batch",
+      "title": "Prepare selected intake batch",
+      "search_text": "prepare_batch Prepare selected intake batch Retain up to 500 exact independently reviewed source units; create no accepted effects and exclude future arrivals. mutation",
+      "claim_text": "prepare_batch is a governed mutation command for Retain up to 500 exact independently reviewed source units; create no accepted effects and exclude future arrivals..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "prepare_batch"
+      ],
+      "language": "en",
+      "fingerprint": "7705290f4042640657d18c7acfe56b6150bccc57f54940f0c04a0c37238edbb1"
+    },
+    {
+      "id": "evidence_command_review_batch",
+      "source_id": "source_executable_commands",
+      "subject": "Review selected intake batch",
+      "title": "Review selected intake batch",
+      "search_text": "review_batch Review selected intake batch Read at most 100 exact selected members and the immutable manifest digest. read",
+      "claim_text": "review_batch is a governed read command for Read at most 100 exact selected members and the immutable manifest digest..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "review_batch"
+      ],
+      "language": "en",
+      "fingerprint": "b7e485edce9168dc7c06f163735c74dbf7577faa1b53815ca9a9e8a21d1480f6"
+    },
+    {
+      "id": "evidence_command_batch_status",
+      "source_id": "source_executable_commands",
+      "subject": "Read intake batch results",
+      "title": "Read intake batch results",
+      "search_text": "batch_status Read intake batch results Explain applied, replayed, refused and stopped units separately through bounded pagination. read",
+      "claim_text": "batch_status is a governed read command for Explain applied, replayed, refused and stopped units separately through bounded pagination..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "batch_status"
+      ],
+      "language": "en",
+      "fingerprint": "4739eddecf5f68450ecf459fd50045d19cda68bf41769a9888efc2658ef78d8c"
     },
     {
       "id": "evidence_command_prepare_intake",

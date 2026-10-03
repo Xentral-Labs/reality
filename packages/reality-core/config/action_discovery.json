@@ -313,7 +313,10 @@
     "change_graph_report": "reports",
     "prepare_intake": "intake",
     "review_intake": "intake",
-    "apply_prepared_intake": "intake"
+    "apply_prepared_intake": "intake",
+    "prepare_batch": "intake",
+    "review_batch": "intake",
+    "batch_status": "intake"
   },
   "entries": [
     {

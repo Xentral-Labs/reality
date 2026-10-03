@@ -11,6 +11,13 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.intake_batches:prepare_batch
+  - reality.services.intake_batches:review_batch
+  - reality.services.intake_batches:batch_status
+  - reality.services.intake_batches:approve_batch
+  - reality.services.intake_batches:settle_chunk
+  - reality.services.intake_batches:stop_batch
+  - reality.services.intake_batches:reject_batch
   - reality.services.intake:prepare_intake
   - reality.services.intake:review_intake
   - reality.services.intake:apply_prepared_intake
@@ -56,6 +63,27 @@ explicit_operations:
   - reality.services.playground:confirm_step
   - reality.services.playground:reject_step
 families:
+  - key: reviewed_intake_batch
+    description: A fixed selected manifest never delegates decisions across companies.
+    classification: boundary
+    reason: Parent and child references resolve within the server-owned tenant; current child authority is independently rechecked.
+    authority: 355/DR-003
+    operations: &reviewed_intake_batch_operations
+      - reality.services.intake_batches:prepare_batch
+      - reality.services.intake_batches:review_batch
+      - reality.services.intake_batches:batch_status
+      - reality.services.intake_batches:approve_batch
+      - reality.services.intake_batches:settle_chunk
+      - reality.services.intake_batches:stop_batch
+      - reality.services.intake_batches:reject_batch
+      - reality.services.scheduled_jobs:enqueue_intake_batch_run
+      - tool:intake_batch_apply
+      - tool:intake_batch_review
+      - tool:intake_batch_status
+    evidence:
+      - id: tests/test_bulk_intake_admission.py::test_foreign_tenant_cannot_read_or_settle_batch
+        assertion: boundary
+        operations: *reviewed_intake_batch_operations
   - key: reviewed_intake
     description: Frozen interpretations and exact decision application stay inside their owning company.
     classification: boundary

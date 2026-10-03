@@ -241,3 +241,24 @@ Its strict configuration names one sealed `generation_id` and nullable
 ambiguous or stale queued request fails without changing the pointer; same-generation retry
 is unchanged. The result reports only whether the pointer changed plus the opaque generation
 reference. It neither builds a cache nor changes financial eligibility.
+
+## Exact selected intake continuations (spec 355)
+
+`intake.batch_apply` is a database-only continuation of one retained exact manifest
+confirmation. Configuration contains only `batch_id`, `manifest_revision` and the
+opaque `continuation_id`; the tenant-scoped parent retains the selected members.
+Each delivery applies or refuses at most 25 independent child decisions, under
+current original reviewer/token and relevant financial authority. The infrastructure
+worker never becomes their reviewer. A revoked reviewer produces retained no-effect
+child dispositions so the authorized selection can reach an honest terminal state.
+
+Child savepoints isolate known domain refusals; an infrastructure failure aborts
+the entire provisional chunk. Progress, child receipts, the next queued continuation
+and current run success commit together. A repeated completed delivery cannot apply
+or enqueue another chunk. Results contain counts and one parent reference within
+the shared result bound; full child receipts are available through scoped paginated
+reads. Original reviewer Stop prevents later units; committed results remain.
+
+Registration creates no recurring schedule. External agent assessment and provider
+calls are outside this handler. Mandate delegation and the complete adapter/UI
+rollout remain unfinished; this registration does not grant them.
