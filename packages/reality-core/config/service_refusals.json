@@ -2190,6 +2190,51 @@
     },
     "shipment_occurred_before_stock": {
       "message": "The goods were not there at the stated time; record the receipt that brought them first."
+    },
+    "delivery_failure_not_customer_delivery": {
+      "message": "Only a shipment to a customer can fail to be delivered."
+    },
+    "delivery_failure_kind_invalid": {
+      "message": "A failed delivery came back undeliverable, was refused, or was lost."
+    },
+    "delivery_failure_reason_required": {
+      "message": "Say why the delivery failed."
+    },
+    "delivery_failure_time_invalid": {
+      "message": "When the delivery failed is not a valid time."
+    },
+    "delivery_failure_time_future": {
+      "message": "When the delivery failed cannot lie in the future."
+    },
+    "delivery_failure_before_shipment": {
+      "message": "A delivery cannot fail before the goods left."
+    },
+    "delivery_failure_already_recorded": {
+      "message": "This shipment's failed delivery is already recorded."
+    },
+    "delivery_failure_nothing_standing": {
+      "message": "Nothing of this shipment still counts as delivered."
+    },
+    "delivery_failure_claim_lost_only": {
+      "message": "A claim against the carrier is made for a lost parcel only."
+    },
+    "delivery_failure_claim_incomplete": {
+      "message": "A claim names the business partner it is made against and its amount."
+    },
+    "delivery_failure_claim_amount_invalid": {
+      "message": "A claim amount is positive, with at most two decimals."
+    },
+    "delivery_failure_lookup_invalid": {
+      "message": "Name either the failed delivery or its shipment."
+    },
+    "delivery_failure_not_found": {
+      "message": "No failed delivery is recorded for this."
+    },
+    "delivery_failure_fields_invalid": {
+      "message": "Name the shipment, what happened and why, and a claim only for a lost parcel."
+    },
+    "delivery_failure_unresolved": {
+      "message": "This shipment's failed delivery is still being recorded."
     }
   },
   "terms": [

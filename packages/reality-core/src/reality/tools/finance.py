@@ -27,6 +27,7 @@ class CreateAccount(AccountRequest):
         "bad_debt_expense",
         "dunning_fee_revenue",
         "payment_fee_expense",
+        "carrier_claim_income",
         "opening_counterpart",
     ]
 

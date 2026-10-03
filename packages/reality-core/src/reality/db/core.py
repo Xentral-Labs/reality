@@ -2291,6 +2291,44 @@ class ShipmentEventSupersession(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class DeliveryFailure(Base):
+    """A customer shipment that did not reach the customer (spec 335).
+
+    Reality, append-only, at most one per shipment. It keeps what was stated:
+    the parcel came back undeliverable, was refused, or was lost, why, and
+    when. What it caused points back to it, never the other way (spec 322):
+    the corrections are those of the shipment's movements, and a carrier claim
+    is the document that carries this failure's source record.
+    """
+
+    __tablename__ = "delivery_failure"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "shipment_id"], ["shipment.tenant_id", "shipment.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint("tenant_id", "shipment_id", name="uq_delivery_failure_shipment"),
+        CheckConstraint(
+            "kind IN ('undeliverable', 'refused', 'lost')",
+            name="ck_delivery_failure_kind",
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="ck_delivery_failure_reason"),
+        Index("ix_delivery_failure_source_record", "tenant_id", "source_record_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    shipment_id: Mapped[str] = mapped_column(String)
+    kind: Mapped[str] = mapped_column(String)
+    reason: Mapped[str] = mapped_column(Text)
+    occurred_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class Movement(Base):
     __tablename__ = "movement"
     __table_args__ = (
@@ -2655,7 +2693,7 @@ class SubledgerAccount(Base):
         ),
         CheckConstraint("state IN ('active', 'blocked')"),
         CheckConstraint(
-            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','customer_down_payments','exchange_difference','opening_counterpart')",
+            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','customer_down_payments','exchange_difference','carrier_claim_income','opening_counterpart')",
             name="ck_subledger_account_role",
         ),
     )

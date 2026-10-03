@@ -175,5 +175,6 @@ def test_paged_shipment_register_has_bounded_query_cost(session, business):
         event.remove(bind, "before_cursor_execute", counted)
     assert len(result["items"]) == 50
     assert result["page"]["total"] == 80
-    # Spec 312 adds one read for the page's notices (mode and collector).
-    assert count <= 7, f"Shipment register issued {count} queries for one page"
+    # Spec 312 adds one read for the page's notices (mode and collector), spec
+    # 335 one for its failed deliveries.
+    assert count <= 8, f"Shipment register issued {count} queries for one page"

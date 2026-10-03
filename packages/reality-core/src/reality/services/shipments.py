@@ -592,6 +592,11 @@ def _details(
         )
     }
 
+    # Spec 335: a shipment that did not reach the customer says so, and why.
+    from reality.services.delivery_failures import failures_by_shipment
+
+    failures = failures_by_shipment(session, tenant_id, shipment_ids)
+
     def timing(shipment_events: list[ShipmentEvent]) -> dict[str, Any]:
         """When the goods moved, as stated, and when Reality was told."""
         notice = next(
@@ -661,6 +666,7 @@ def _details(
             "delivery_mode": notices.get(shipment.id, {}).get("delivery_mode")
             or ("carrier" if any(p.carrier for p in shipment_packages) else None),
             "collected_by": notices.get(shipment.id, {}).get("collected_by"),
+            "delivery_failure": failures.get(shipment.id),
             **timing(shipment_events),
             "packages": [
                 {

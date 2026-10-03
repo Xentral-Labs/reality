@@ -85,7 +85,10 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
   (`record_packaged_execution`)
 - [Sendungsavis erfassen](./commands#command-record_shipment_notice) (`record_shipment_notice`)
 - [Sendungsereignis erfassen](./commands#command-record_shipment_event) (`record_shipment_event`)
+- [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure)
+  (`record_delivery_failure`)
 - [Explain a physical shipment](./commands#tool-shipment_explain) (`shipment_explain`)
+- [Failed delivery](./commands#tool-delivery_failure_summary) (`delivery_failure_summary`)
 
 **Danach prüfen:** [Lagerarbeitsvorrat](./views#view-warehouse_queue) (`warehouse_queue`),
 [Lagerbewegungen](./views#view-movements) (`movements`)

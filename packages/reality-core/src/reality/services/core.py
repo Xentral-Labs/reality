@@ -9337,6 +9337,20 @@ def _company_amounts_stored(session: OrmSession) -> bool:
     return known
 
 
+def _delivery_failures_stored(session: OrmSession) -> bool:
+    """Whether the schema has spec 335's table and its carrier-claim account role.
+
+    Only the historical migration tests run the services on an older schema.
+    """
+    known = session.info.get("reality_delivery_failures")
+    if known is None:
+        from sqlalchemy import inspect as sa_inspect
+
+        known = sa_inspect(session.connection()).has_table("delivery_failure")
+        session.info["reality_delivery_failures"] = known
+    return known
+
+
 def _book_currency(session: OrmSession, tenant_id: str) -> str | None:
     if not _company_amounts_stored(session):
         return None
@@ -11739,6 +11753,7 @@ SETTLEMENT_CONTROL = {
     "supplier_deposit": ("accounts_payable", "debit"),
     "dunning_fee_charge": ("accounts_receivable", "debit"),
     "payment_return_fee_charge": ("accounts_receivable", "debit"),
+    "carrier_claim": ("accounts_receivable", "debit"),
     "down_payment_invoice": ("accounts_receivable", "debit"),
 }
 

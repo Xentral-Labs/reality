@@ -21,6 +21,7 @@ export const formKeys = [
   "shipment_event_supersede",
   "return_disposition",
   "customer_exchange_record",
+  "shipment_delivery_failure",
   "order_create",
   "sales_invoice_record",
   "sales_credit_record",

@@ -2145,6 +2145,25 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "shipment_delivery_failure_propose",
+        "Record a failed delivery",
+        "shipment_delivery_failure",
+        _object_schema(
+            {
+                "shipment_id": STRING,
+                "kind": {
+                    "type": "string",
+                    "enum": ["undeliverable", "refused", "lost"],
+                },
+                "reason": STRING,
+                "occurred_at": OPTIONAL_STRING,
+                "claim_party_id": OPTIONAL_STRING,
+                "claim_amount": OPTIONAL_STRING,
+            },
+            required=("shipment_id", "kind", "reason"),
+        ),
+    ),
+    (
         "order_line_item_assign_propose",
         "Assign an item to an order line",
         "order_line_item_assign",
@@ -2949,6 +2968,20 @@ MCP_TOOL_CATALOG += (
             }
         ),
         _read("customer_exchange"),
+    ),
+    MCPToolDefinition(
+        "delivery_failure_summary",
+        "Failed delivery",
+        "Read a failed delivery: what happened, what it reversed and the carrier claim it opened.",
+        "read",
+        "Shipping",
+        _object_schema(
+            {
+                "delivery_failure_id": OPTIONAL_STRING,
+                "shipment_id": OPTIONAL_STRING,
+            }
+        ),
+        _read("delivery_failure_summary"),
     ),
     MCPToolDefinition(
         "return_disposition_summary",

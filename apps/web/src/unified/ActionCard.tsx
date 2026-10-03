@@ -979,7 +979,8 @@ export function ActionCard(
     activeTool === "shipment_event_record" ||
     activeTool === "shipment_event_supersede" ||
     activeTool === "return_disposition" ||
-    activeTool === "customer_exchange_record"
+    activeTool === "customer_exchange_record" ||
+    activeTool === "shipment_delivery_failure"
   )
     return <ShipmentActions {...props} tool={activeTool} />;
   if (activeTool === "credit_hold_release") return <CreditHoldRelease {...props} />;

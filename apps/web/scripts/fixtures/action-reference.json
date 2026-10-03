@@ -1146,6 +1146,13 @@
       "effect": "Settles part of a customer return with a free replacement delivery to the same customer instead of a credit; no money moves."
     },
     {
+      "name": "Record a failed delivery",
+      "service": "record_delivery_failure",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim."
+    },
+    {
       "name": "Assign an item to an order line",
       "service": "assign_line_item",
       "related_services": ["preview_item_assignment"],

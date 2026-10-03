@@ -2411,6 +2411,93 @@ def customer_exchange_confirm(
     con.print_json(data=result, default=str)
 
 
+@app.command("delivery-failure")
+def delivery_failure_command(
+    delivery_failure_id: str | None = None,
+    shipment_id: str | None = None,
+    tenant_id: str | None = None,
+) -> None:
+    """Read a failed delivery: what happened, what it reversed and its claim."""
+    from reality.services.delivery_failures import delivery_failure_summary
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            result = delivery_failure_summary(
+                session,
+                tenant.id,
+                delivery_failure_id=delivery_failure_id,
+                shipment_id=shipment_id,
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("delivery-failure-propose")
+def delivery_failure_propose(
+    arguments: str,
+    request_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare recording an undeliverable, refused or lost shipment for confirmation."""
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = prepare_delivery_action(
+                session,
+                tenant.id,
+                "shipment_delivery_failure",
+                values,
+                request_id=request_id,
+                actor_id="cli",
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("delivery-failure-confirm")
+def delivery_failure_confirm(
+    proposal_id: str,
+    review_token: str,
+    yes: bool = typer.Option(False, "--yes", help="Confirm the reviewed failure."),
+    tenant_id: str | None = None,
+) -> None:
+    """Explicitly confirm one reviewed failed delivery."""
+    from reality.services.delivery_actions import delivery_proposal_detail
+    from reality.tools.application import approve_and_execute_proposal
+
+    if not yes:
+        typer.confirm("Execute this exact reviewed failed delivery?", abort=True)
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            approve_and_execute_proposal(
+                session,
+                tenant.id,
+                proposal_id,
+                review_token=review_token,
+                confirmed=True,
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
 @app.command("order-line-item-assign-propose")
 def order_line_item_assign_propose(
     arguments: str,

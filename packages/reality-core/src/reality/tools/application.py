@@ -1313,6 +1313,35 @@ def _customer_exchange_record(
     }
 
 
+def _shipment_delivery_failure(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.delivery_failures import (
+        delivery_failure_summary,
+        record_delivery_failure,
+    )
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    failure = record_delivery_failure(session, tenant_id, **arguments)
+    claim = delivery_failure_summary(
+        session, tenant_id, delivery_failure_id=failure.id
+    )["claim"]
+    return {
+        "delivery_failure_id": failure.id,
+        "shipment_id": failure.shipment_id,
+        "claim_document_id": claim["document_id"] if claim else None,
+        "source_record_id": failure.source_record_id,
+    }
+
+
+def _delivery_failure_summary(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.delivery_failures import delivery_failure_summary
+
+    return delivery_failure_summary(session, tenant_id, **arguments)
+
+
 def _down_payment_invoice_record(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2757,6 +2786,12 @@ TOOLS = {
         True,
         _return_disposition,
     ),
+    "shipment_delivery_failure": Tool(
+        "shipment_delivery_failure",
+        "Record that a customer shipment came back undeliverable, was refused or was lost, reopening its promise.",
+        True,
+        _shipment_delivery_failure,
+    ),
     "customer_exchange_record": Tool(
         "customer_exchange_record",
         "Settle part of a customer return with a free replacement instead of a credit.",
@@ -2936,6 +2971,12 @@ TOOLS = {
         "Read what a customer exchange replaced, what it sent and what it still settles.",
         False,
         _customer_exchange,
+    ),
+    "delivery_failure_summary": Tool(
+        "delivery_failure_summary",
+        "Read a failed delivery: what happened, what it reversed and the carrier claim it opened.",
+        False,
+        _delivery_failure_summary,
     ),
     "return_disposition_summary": Tool(
         "return_disposition_summary",
@@ -4405,6 +4446,7 @@ def approve_and_execute_proposal(
         "supply_assign",
         "return_disposition",
         "customer_exchange_record",
+        "shipment_delivery_failure",
         "order_line_item_assign",
         "credit_hold_release",
         "reorder_point_set",

@@ -18,6 +18,7 @@ ACCOUNT_ROLES.update(
         "payment_fee_expense": "Payment fees",
         "customer_down_payments": "Received down payments",
         "exchange_difference": "Realised exchange differences",
+        "carrier_claim_income": "Carrier and insurance claims",
     }
 )
 CONTROL_ROLES = frozenset({"accounts_receivable", "accounts_payable"})
@@ -38,8 +39,12 @@ OPENING_CREDITS = {
     "opening_supplier_credit": "supplier",
 }
 
-# Existing customer charges are payable claims, not invoices to dun again.
-FEE_RECEIVABLE_TYPES = frozenset({"dunning_fee_charge", "payment_return_fee_charge"})
+# Existing customer charges are payable claims, not invoices to dun again. A
+# claim against a carrier for a lost parcel is the same kind of receivable
+# (spec 335): settled by a payment, never dunned, without a due date.
+FEE_RECEIVABLE_TYPES = frozenset(
+    {"dunning_fee_charge", "payment_return_fee_charge", "carrier_claim"}
+)
 OPEN_ITEM_TYPES = frozenset(
     {
         "sales_invoice",
@@ -174,6 +179,14 @@ TRANSACTION_MATRIX = (
         "accounts_receivable",
         "dunning_fee_revenue",
         "Stated dunning fee",
+        "configured_default",
+    ),
+    (
+        "carrier_claim",
+        "Carrier claim for a lost parcel",
+        "accounts_receivable",
+        "carrier_claim_income",
+        "Stated claim amount",
         "configured_default",
     ),
     (

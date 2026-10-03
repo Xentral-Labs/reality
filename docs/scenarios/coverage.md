@@ -2,20 +2,20 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 149 covered, 8 partial, 0 missing, 68 gap, 3 out.
+228 scenarios: 152 covered, 8 partial, 0 missing, 65 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 16 |  |  | 8 |  |
 | B Availability and reservation | 12 |  |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
-| D Shipment, split and merge | 7 | 1 |  | 11 |  |
+| D Shipment, split and merge | 10 | 1 |  | 8 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 12 |  |  | 5 |  |
@@ -46,7 +46,9 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    cannot be tied to the purchase or order; they appear only as `unexplained_movement`.
    H04, H05, H06, H07, D05 (F03 related).
 3. **A return never reopens a kept promise (spec 079).** Undeliverable, refused and lost parcels
-   cannot be told apart from a customer return. D07, D08, D09.
+   cannot be told apart from a customer return. D07, D08, D09. Since spec 335 they are failed
+   deliveries: the shipment is reversed through the movement correction, the promise is open again,
+   and a lost parcel may open a claim against the carrier.
 4. **No drop-ship path.** Fulfilment derives only from own-stock movements. D10, D11, G15, R03.
 5. **No allocation policy.** Priority between promises, reserving by requested date, ship-complete,
    reservation lapse, channel quotas and shelf-life eligibility are all absent; spec 068 names
@@ -197,9 +199,9 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | D04 | gap | packages/reality-core/src/reality/db/core.py (no picking record; only Reservation → Movement) | Picking is not modelled, so there is no record for a caught picking error to correct. |
 | D05 | gap | packages/reality-core/src/reality/services/core.py `_append_movement` ("Movement does not match the commitment") | A shipment of the wrong item cannot name the commitment it was meant for; it can only be recorded unlinked, as an unexplained movement. |
 | D06 | covered | packages/reality-core/tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock | A stocktake-loss adjustment raises reservation_exceeds_stock with the shortfall; the entry clears on receipt. |
-| D07 | gap | packages/reality-core/src/reality/db/core.py ShipmentEvent (`delivery_exception` only) | No carrier-claim receivable. The lost shipment still counts as fulfilment unless it is corrected. No test uses delivery_exception. |
-| D08 | gap | specs/079-returns-connect/spec.md (kept promise stays kept); tests/test_returns.py::test_a_return_leaves_the_promise_kept | Stock comes back, but a return can never reopen the commitment. "Undeliverable" and "returned by customer" are not told apart. |
-| D09 | gap | same as D08 | Same as D08. Also, a return Movement has no reason; only ReturnAnnouncement carries one. |
+| D07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again | A lost parcel is a failed delivery: the shipment no longer counts, the goods stay written off, the promise is open again, and a claim against the carrier is an open receivable its payment settles (spec 335). |
+| D08 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_undeliverable_parcel_comes_back_and_is_sent_again | An undeliverable parcel is a failed delivery, not a return: stock is back, the promise is open again, and the issued invoice is invoiced and not shipped until the order ships again (spec 335). |
+| D09 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_refused_delivery_keeps_the_reason_and_the_rest_is_cancelled | A refused delivery keeps its stated reason on the shipment; the promise is open again and here the customer's withdrawal cancels it (spec 335). |
 | D10 | gap | packages/reality-core/src/reality/services/core.py (fulfilment derives only from own stock `shipment` Movements) | No drop-ship path: a commitment cannot be fulfilled without a movement out of own stock. |
 | D11 | gap | same as D10 | Same as D10: no supplier-direct fulfilment path to combine with own stock. |
 | D12 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_3pl_confirms_on_thursday_what_left_on_monday | Movements carry when the goods left; the shipment shows when it was recorded and the lag, and overdue clears (spec 312). |
