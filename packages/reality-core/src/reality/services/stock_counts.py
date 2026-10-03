@@ -100,11 +100,18 @@ def book_as_of(
     lot_id: str | None,
     at: datetime,
 ) -> Decimal:
-    """What the movements up to `at` hold of an item, and its lot, at a location.
+    """
+    What the movements up to `at` hold of an item, and its lot, at a location.
 
     A corrected movement and its compensation are left out, wherever in time
     the correction was made: the original never happened as recorded. Its
     replacement, if any, counts at its own time like every movement.
+
+    BUSINESS PURPOSE:
+    What the movements up to `at` hold of an item, and its lot, at a location.
+
+    BUSINESS RULE services.stock_counts.book_as_of.result:
+    Return totals[0] - totals[1], as prepared by the preceding checks and service calls.
     """
     from reality.db.core import MovementCorrection
 
@@ -127,6 +134,7 @@ def book_as_of(
         if lot_id:
             query = query.where(Movement.lot_id == lot_id)
         totals.append(Decimal(session.scalar(query) or 0))
+    # reality-rule: services.stock_counts.book_as_of.result
     return totals[0] - totals[1]
 
 
@@ -374,11 +382,18 @@ def _reviewed_line(line: dict[str, Any]) -> list[str]:
 def review_stock_count(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown.
+    """
+    The arguments a confirmation executes and what the person is shown.
 
     The counting time of a line without one is fixed now, so the confirmation
     compares with the same book; the books the review saw travel along, and a
     confirmation after any of them changed is refused.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.stock_counts.review_stock_count.result:
+    Return normalized, preview, as prepared by the preceding checks and service calls.
     """
     location = _location(session, tenant_id, str(arguments.get("location_id") or ""))
     lines = _lines(session, tenant_id, arguments.get("lines"), now())
@@ -406,6 +421,7 @@ def review_stock_count(
         "lines": [_line_view(line) for line in assessed],
         "uncovered": _uncovered(session, tenant_id, location, assessed),
     }
+    # reality-rule: services.stock_counts.review_stock_count.result
     return normalized, preview
 
 
@@ -420,9 +436,43 @@ def record_stock_count(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> StockCount:
-    """Record a count and post its differences in one transaction."""
+    """
+    Record a count and post its differences in one transaction.
+
+    BUSINESS PURPOSE:
+    Record a count and post its differences in one transaction.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.step-14:
+    Require the business permission for 'record_stock_count' before changing company records.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.step-33:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.refusal-52:
+    IF reviewed count lines were supplied and current assessed line values differ:
+        Refuse with stock_count_changed_since_review.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.step-144:
+    Record the stock_count.posted audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.refusal-122:
+    IF a counted loss remains after the available stock deductions:
+        Refuse with stock_count_loss_exceeds_stock.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.result:
+    Return count, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.effect-102:
+    IF the counted quantity exceeds the assessed book quantity:
+        Pass the stated inputs to the shared record movement service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.stock_counts.record_stock_count.effect-118:
+    IF the count shows a loss and a positive quantity can be deducted from free stock:
+        Pass the stated inputs to the shared record movement service. Its own source describes validation and record changes.
+    """
     from reality.services.stock_blocks import scrap_stock_block
 
+    # reality-rule: services.stock_counts.record_stock_count.step-14
     _require_business_mutation(session, tenant_id, "record_stock_count")
     lock_delivery_state(session, tenant_id)
     location = _location(session, tenant_id, location_id)
@@ -442,6 +492,7 @@ def record_stock_count(
         "statement_id": action_id or uid("stm"),
     }
     count_id = uid("cnt")
+    # reality-rule: services.stock_counts.record_stock_count.step-33
     source, inserted, _ = store_source_record(
         session,
         tenant_id,
@@ -461,6 +512,7 @@ def record_stock_count(
         if existing is not None:
             return existing
     assessed = _assess(session, tenant_id, location, checked)
+    # reality-rule: services.stock_counts.record_stock_count.refusal-52
     if reviewed is not None and [_reviewed_line(line) for line in assessed] != [
         list(row) for row in reviewed
     ]:
@@ -483,6 +535,7 @@ def record_stock_count(
         movement = None
         scrapped: list[str] = []
         if line["difference"] > 0:
+            # reality-rule: services.stock_counts.record_stock_count.effect-102
             movement = record_movement(
                 session,
                 tenant_id,
@@ -499,6 +552,7 @@ def record_stock_count(
             )
         elif line["difference"] < 0:
             if line["from_free"] > 0:
+                # reality-rule: services.stock_counts.record_stock_count.effect-118
                 movement = record_movement(
                     session,
                     tenant_id,
@@ -531,6 +585,7 @@ def record_stock_count(
                 )
                 scrapped.append(result["movement_id"])
                 rest -= taken
+            # reality-rule: services.stock_counts.record_stock_count.refusal-122
             if rest > 0:
                 raise InvalidOperation(code="stock_count_loss_exceeds_stock")
         row = StockCountLine(
@@ -553,6 +608,7 @@ def record_stock_count(
             }
         )
     session.flush()
+    # reality-rule: services.stock_counts.record_stock_count.step-144
     emit_business_event(
         session,
         tenant_id,
@@ -566,13 +622,22 @@ def record_stock_count(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.stock_counts.record_stock_count.result
     return count
 
 
 def stock_counts(
     session: Session, tenant_id: str, *, location_id: str | None = None
 ) -> list[dict[str, Any]]:
-    """The company's counts, of one location or all, newest first."""
+    """
+    The company's counts, of one location or all, newest first.
+
+    BUSINESS PURPOSE:
+    The company's counts, of one location or all, newest first.
+
+    BUSINESS RULE services.stock_counts.stock_counts.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     query = (
         select(StockCount, Location.name)
         .join(
@@ -598,6 +663,7 @@ def stock_counts(
             .group_by(StockCountLine.stock_count_id)
         )
     }
+    # reality-rule: services.stock_counts.stock_counts.result
     return [
         {
             "id": count.id,
@@ -615,12 +681,23 @@ def stock_counts(
 def stock_count_detail(
     session: Session, tenant_id: str, stock_count_id: str
 ) -> dict[str, Any]:
-    """One count: its lines as counted, and the movements that posted them.
+    """
+    One count: its lines as counted, and the movements that posted them.
 
     Each line is read from what was recorded: the counted quantity, and the
     adjustment and block scraps the posting wrote. The difference is what those
     movements moved, and the book is the counted quantity less it. A movement
     corrected since is shown as such; nothing here is taken from a stored figure.
+
+    BUSINESS PURPOSE:
+    One count: its lines as counted, and the movements that posted them.
+
+    BUSINESS RULE services.stock_counts.stock_count_detail.refusal-17:
+    IF the selected stock count cannot be found in this company:
+        Refuse with stock_count_not_found.
+
+    BUSINESS RULE services.stock_counts.stock_count_detail.result:
+    Return the current result with id, location_id, location, note, created_at, source_record_id, lines.
     """
     from reality.db.core import BusinessEvent, MovementCorrection
 
@@ -629,6 +706,7 @@ def stock_count_detail(
             StockCount.tenant_id == tenant_id, StockCount.id == stock_count_id
         )
     )
+    # reality-rule: services.stock_counts.stock_count_detail.refusal-17
     if count is None:
         raise NotFound(code="stock_count_not_found")
     location = _tenant_record(session, Location, tenant_id, count.location_id)
@@ -716,6 +794,7 @@ def stock_count_detail(
                 "corrected": bool({row.movement_id, *scrap_ids} & corrected - {None}),
             }
         )
+    # reality-rule: services.stock_counts.stock_count_detail.result
     return {
         "id": count.id,
         "location_id": location.id,

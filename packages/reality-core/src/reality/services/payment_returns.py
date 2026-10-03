@@ -142,10 +142,51 @@ def _payment_cash_account(
 def preview_return(
     session: Session, tenant_id: str, values: dict[str, Any]
 ) -> dict[str, Any]:
-    """What returning this payment would do, recording nothing."""
+    """
+    What returning this payment would do, recording nothing.
+
+    BUSINESS PURPOSE:
+    What returning this payment would do, recording nothing.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-7:
+    IF the selected document is not a customer payment:
+        Refuse with payment_return_not_customer_payment.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-15:
+    IF this customer payment already has a recorded return:
+        Refuse with payment_return_already_returned.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-24:
+    IF the customer payment posting group has already been reversed:
+        Refuse with payment_return_already_reversed.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-26:
+    IF the customer payment still has an active settlement reduction:
+        Refuse with payment_return_reduction_active.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-29:
+    IF the return kind is not supported:
+        Refuse with payment_return_kind_invalid.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-32:
+    IF the return reason is empty after trimming whitespace:
+        Refuse with payment_return_reason_missing.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-42:
+    IF the fee is non-finite, negative or has more than four decimal places:
+        Refuse with payment_return_fee_invalid.
+
+    BUSINESS RULE services.payment_returns.preview_return.refusal-45:
+    IF a zero fee has a bearer other than none, or a positive fee has no supported bearer:
+        Refuse with payment_return_fee_bearer_invalid.
+
+    BUSINESS RULE services.payment_returns.preview_return.result:
+    Return the current result with payment_document_id, payment_number, party_id, currency, amount, posting_group_id, kind, reason, reference, returned_on, fee_amount, fee_bearer, accounts, reopened.
+    """
     payment = core._tenant_record(
         session, Document, tenant_id, str(values.get("payment_document_id") or "")
     )
+    # reality-rule: services.payment_returns.preview_return.refusal-7
     if payment.type != "customer_payment":
         raise core.InvalidOperation(code="payment_return_not_customer_payment")
     existing = session.scalar(
@@ -154,6 +195,7 @@ def preview_return(
             PaymentReturn.payment_document_id == payment.id,
         )
     )
+    # reality-rule: services.payment_returns.preview_return.refusal-15
     if existing:
         raise core.InvalidOperation(code="payment_return_already_returned")
     entry = _payment_entry(session, tenant_id, payment)
@@ -163,14 +205,18 @@ def preview_return(
             LedgerReversal.original_posting_group_id == entry.posting_group_id,
         )
     )
+    # reality-rule: services.payment_returns.preview_return.refusal-24
     if reversed_group:
         raise core.InvalidOperation(code="payment_return_already_reversed")
+    # reality-rule: services.payment_returns.preview_return.refusal-26
     if _reduction_active(session, tenant_id, payment):
         raise core.InvalidOperation(code="payment_return_reduction_active")
     kind = values.get("kind")
+    # reality-rule: services.payment_returns.preview_return.refusal-29
     if kind not in KINDS:
         raise core.InvalidOperation(code="payment_return_kind_invalid")
     reason = str(values.get("reason") or "").strip()
+    # reality-rule: services.payment_returns.preview_return.refusal-32
     if not reason:
         raise core.InvalidOperation(code="payment_return_reason_missing")
     try:
@@ -181,9 +227,11 @@ def preview_return(
         fee = Decimal(str(values.get("fee_amount") or "0"))
     except (TypeError, ValueError, DecimalInvalid) as error:
         raise core.InvalidOperation(code="payment_return_fee_invalid") from error
+    # reality-rule: services.payment_returns.preview_return.refusal-42
     if not fee.is_finite() or fee < 0 or fee.as_tuple().exponent < -4:
         raise core.InvalidOperation(code="payment_return_fee_invalid")
     bearer = str(values.get("fee_bearer") or ("none" if not fee else "customer"))
+    # reality-rule: services.payment_returns.preview_return.refusal-45
     if (fee == 0) != (bearer == "none") or (fee and bearer not in BEARERS):
         raise core.InvalidOperation(code="payment_return_fee_bearer_invalid")
     accounts = {}
@@ -208,6 +256,7 @@ def preview_return(
         }
         for invoice, amount in _paid_invoices(session, tenant_id, entry)
     ]
+    # reality-rule: services.payment_returns.preview_return.result
     return {
         "payment_document_id": payment.id,
         "payment_number": payment.number,
@@ -241,13 +290,38 @@ def record_return(
     actor_id: str | None,
     _source_record: SourceRecord | None = None,
 ) -> dict[str, Any]:
-    """Reverse a returned payment and keep what was stated; callers own the transaction.
+    """
+    Reverse a returned payment and keep what was stated; callers own the transaction.
 
     It re-checks everything under the finance lock instead of comparing a revision:
     every posting raises the revision, and an unrelated payment must not refuse this.
     A payout's chargeback line (spec 336) passes its own source record: the line is
     what the provider stated, and the return carries it.
+
+    BUSINESS PURPOSE:
+    Reverse a returned payment and keep what was stated; callers own the transaction.
+
+    BUSINESS RULE services.payment_returns.record_return.step-22:
+    Require the business permission for 'record_payment_return' before changing company records.
+
+    BUSINESS RULE services.payment_returns.record_return.step-43:
+    Run the shared preview return check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.payment_returns.record_return.step-148:
+    Record the payment.returned audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.payment_returns.record_return.result:
+    Return the result from return detail; inspect that called function for its calculation and eligibility rules.
+
+    BUSINESS RULE services.payment_returns.record_return.effect-98:
+    IF a positive return fee was stated:
+        Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.payment_returns.record_return.effect-124:
+    IF a positive return fee was stated and the customer bears it:
+        Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
     """
+    # reality-rule: services.payment_returns.record_return.step-22
     core._require_business_mutation(session, tenant_id, "record_payment_return")
     lock_finance(session, tenant_id)
     replay = session.scalar(
@@ -269,6 +343,7 @@ def record_return(
     )
     if replay:
         return return_detail(session, tenant_id, replay)
+    # reality-rule: services.payment_returns.record_return.step-43
     preview = preview_return(
         session,
         tenant_id,
@@ -282,15 +357,18 @@ def record_return(
             "fee_bearer": fee_bearer,
         },
     )
-    source = _source_record or (
-        core.store_source_record(
-            session,
-            tenant_id,
-            SOURCE_SYSTEM,
-            "payment_return",
-            action_id,
-            {**preview, "actor_id": actor_id, "confirmation_id": action_id},
-        )[0]
+    source = (
+        _source_record
+        or (
+            core.store_source_record(
+                session,
+                tenant_id,
+                SOURCE_SYSTEM,
+                "payment_return",
+                action_id,
+                {**preview, "actor_id": actor_id, "confirmation_id": action_id},
+            )[0]
+        )
     )
     record_id = uid("prt")
     reversal = core.reverse_ledger_posting_group(
@@ -306,6 +384,7 @@ def record_return(
     fee_document = fee_charge = None
     if fee:
         stated_on = preview["returned_on"]
+        # reality-rule: services.payment_returns.record_return.effect-98
         fee_document = core.create_document(
             session,
             tenant_id,
@@ -332,6 +411,7 @@ def record_return(
             _commit=False,
         )
         if preview["fee_bearer"] == "customer":
+            # reality-rule: services.payment_returns.record_return.effect-124
             fee_charge = core.create_document(
                 session,
                 tenant_id,
@@ -374,6 +454,7 @@ def record_return(
     )
     session.add(row)
     session.flush()
+    # reality-rule: services.payment_returns.record_return.step-148
     emit_business_event(
         session,
         tenant_id,
@@ -395,6 +476,7 @@ def record_return(
         source_record_id=source.id,
         action_id=action_id,
     )
+    # reality-rule: services.payment_returns.record_return.result
     return return_detail(session, tenant_id, row.id)
 
 
@@ -428,9 +510,17 @@ def _caused(
 
 
 def return_detail(session: Session, tenant_id: str, return_id: str) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read the selected payment return and its recorded financial evidence.
+
+    BUSINESS RULE services.payment_returns.return_detail.result:
+    Return the current result with id, payment_document_id, payment_number, party_id, kind, reason, reference, returned_on, fee_amount, fee_bearer, reopened, source_record_id.
+    """
     row = core._tenant_record(session, PaymentReturn, tenant_id, return_id)
     payment = core._tenant_record(session, Document, tenant_id, row.payment_document_id)
     entry = _payment_entry(session, tenant_id, payment)
+    # reality-rule: services.payment_returns.return_detail.result
     return {
         "id": row.id,
         "payment_document_id": payment.id,
@@ -458,8 +548,17 @@ def return_detail(session: Session, tenant_id: str, return_id: str) -> dict[str,
 
 
 def returns(session: Session, tenant_id: str) -> list[dict[str, Any]]:
-    """Returned payments, newest first."""
+    """
+    Returned payments, newest first.
+
+    BUSINESS PURPOSE:
+    Returned payments, newest first.
+
+    BUSINESS RULE services.payment_returns.returns.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     core.get_tenant(session, tenant_id)
+    # reality-rule: services.payment_returns.returns.result
     return [
         return_detail(session, tenant_id, return_id)
         for return_id in session.scalars(

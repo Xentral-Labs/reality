@@ -139,9 +139,36 @@ def create_invitation(
     *,
     locale: str = "en",
 ) -> CompanyInvitation | None:
+    """
+    BUSINESS PURPOSE:
+    Invite a person to this company as an owner-authorized action; preserve pending invitations and queue delivery.
+
+    BUSINESS RULE services.memberships.create_invitation.step-8:
+    Require the business permission for 'invitation_create' before changing company records.
+
+    BUSINESS RULE services.memberships.create_invitation.step-10:
+    Require this company's owner authorization before changing access.
+
+    BUSINESS RULE services.memberships.create_invitation.refusal-11:
+    IF the company is archived:
+        Refuse: Archived companies cannot change membership.
+
+    BUSINESS RULE services.memberships.create_invitation.refusal-34:
+    IF this company has created at least 20 invitations within INVITE_WINDOW:
+        Refuse: Invitation creation rate limit reached.
+
+    BUSINESS RULE services.memberships.create_invitation.step-49:
+    Record the invitation.created audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.memberships.create_invitation.result:
+    Return invitation, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.memberships.create_invitation.step-8
     require_business_operation(session, tenant_id, "invitation_create")
     tenant = _tenant(session, tenant_id, lock=True)
+    # reality-rule: services.memberships.create_invitation.step-10
     require_owner(session, tenant_id, principal)
+    # reality-rule: services.memberships.create_invitation.refusal-11
     if tenant.archived_at is not None:
         raise Conflict("Archived companies cannot change membership.")
     normalized = normalize_email(email)
@@ -165,6 +192,7 @@ def create_invitation(
             CompanyInvitation.created_at > now() - INVITE_WINDOW,
         )
     )
+    # reality-rule: services.memberships.create_invitation.refusal-34
     if (count or 0) >= 20:
         raise Conflict("Invitation creation rate limit reached.")
     timestamp = now()
@@ -180,6 +208,7 @@ def create_invitation(
     session.add(invitation)
     session.flush()
     enqueue_invitation_delivery(session, invitation, locale=locale)
+    # reality-rule: services.memberships.create_invitation.step-49
     _audit(
         session,
         tenant_id,
@@ -189,6 +218,7 @@ def create_invitation(
         "pending",
         actor_user_id=principal.user_id,
     )
+    # reality-rule: services.memberships.create_invitation.result
     return invitation
 
 
@@ -407,9 +437,37 @@ def access_summary(
 def revoke_invitation(
     session: OrmSession, tenant_id: str, principal: Principal, invitation_id: str
 ) -> None:
+    """
+    BUSINESS PURPOSE:
+    Revoke a pending company invitation after owner authorization.
+
+    BUSINESS RULE services.memberships.revoke_invitation.step-3:
+    Require the business permission for 'invitation_revoke' before changing company records.
+
+    BUSINESS RULE services.memberships.revoke_invitation.step-5:
+    Require this company's owner authorization before changing access.
+
+    BUSINESS RULE services.memberships.revoke_invitation.refusal-6:
+    IF the company is archived:
+        Refuse: Archived companies cannot change membership.
+
+    BUSINESS RULE services.memberships.revoke_invitation.refusal-16:
+    IF the invitation cannot be found in this company:
+        Refuse: Invitation not found.
+
+    BUSINESS RULE services.memberships.revoke_invitation.refusal-18:
+    IF the invitation is no longer pending:
+        Refuse: Invitation is no longer pending.
+
+    BUSINESS RULE services.memberships.revoke_invitation.step-26:
+    Record the invitation.revoked audit or business-event evidence with the supplied record and confirmation identity.
+    """
+    # reality-rule: services.memberships.revoke_invitation.step-3
     require_business_operation(session, tenant_id, "invitation_revoke")
     tenant = _tenant(session, tenant_id, lock=True)
+    # reality-rule: services.memberships.revoke_invitation.step-5
     require_owner(session, tenant_id, principal)
+    # reality-rule: services.memberships.revoke_invitation.refusal-6
     if tenant.archived_at is not None:
         raise Conflict("Archived companies cannot change membership.")
     invitation = session.scalar(
@@ -420,8 +478,10 @@ def revoke_invitation(
         )
         .with_for_update()
     )
+    # reality-rule: services.memberships.revoke_invitation.refusal-16
     if invitation is None:
         raise NotFound("Invitation not found.")
+    # reality-rule: services.memberships.revoke_invitation.refusal-18
     if invitation.status != "pending":
         raise Conflict("Invitation is no longer pending.")
     timestamp = now()
@@ -430,6 +490,7 @@ def revoke_invitation(
     invitation.revoked_at = timestamp
     invitation.terminal_at = timestamp
     invitation.updated_at = timestamp
+    # reality-rule: services.memberships.revoke_invitation.step-26
     _audit(
         session,
         tenant_id,
@@ -449,9 +510,48 @@ def resend_invitation(
     *,
     locale: str = "en",
 ) -> CompanyInvitation:
+    """
+    BUSINESS PURPOSE:
+    Queue another delivery of a still-valid company invitation after owner authorization.
+
+    BUSINESS RULE services.memberships.resend_invitation.step-8:
+    Require the business permission for 'invitation_resend' before changing company records.
+
+    BUSINESS RULE services.memberships.resend_invitation.step-10:
+    Require this company's owner authorization before changing access.
+
+    BUSINESS RULE services.memberships.resend_invitation.refusal-11:
+    IF the company is archived:
+        Refuse: Archived companies cannot change membership.
+
+    BUSINESS RULE services.memberships.resend_invitation.refusal-22:
+    IF the invitation cannot be found in this company:
+        Refuse: Invitation not found.
+
+    BUSINESS RULE services.memberships.resend_invitation.refusal-24:
+    IF the invitation is neither pending nor expired:
+        Refuse: Invitation cannot be resent.
+
+    BUSINESS RULE services.memberships.resend_invitation.refusal-38:
+    IF the invitation has reached five resends:
+        Refuse: Invitation resend rate limit reached.
+
+    BUSINESS RULE services.memberships.resend_invitation.refusal-40:
+    IF the most recent delivery was created within RESEND_COOLDOWN:
+        Refuse: Please wait before resending this invitation.
+
+    BUSINESS RULE services.memberships.resend_invitation.step-53:
+    Record the invitation.resent audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.memberships.resend_invitation.result:
+    Return invitation, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.memberships.resend_invitation.step-8
     require_business_operation(session, tenant_id, "invitation_resend")
     tenant = _tenant(session, tenant_id, lock=True)
+    # reality-rule: services.memberships.resend_invitation.step-10
     require_owner(session, tenant_id, principal)
+    # reality-rule: services.memberships.resend_invitation.refusal-11
     if tenant.archived_at is not None:
         raise Conflict("Archived companies cannot change membership.")
     _expire_elapsed(session, tenant_id)
@@ -463,8 +563,10 @@ def resend_invitation(
         )
         .with_for_update()
     )
+    # reality-rule: services.memberships.resend_invitation.refusal-22
     if invitation is None:
         raise NotFound("Invitation not found.")
+    # reality-rule: services.memberships.resend_invitation.refusal-24
     if invitation.status not in {"pending", "expired"}:
         raise Conflict("Invitation cannot be resent.")
     deliveries = list(
@@ -479,8 +581,10 @@ def resend_invitation(
         )
     )
     resend_count = sum(delivery.generation > 1 for delivery in deliveries)
+    # reality-rule: services.memberships.resend_invitation.refusal-38
     if resend_count >= 5:
         raise Conflict("Invitation resend rate limit reached.")
+    # reality-rule: services.memberships.resend_invitation.refusal-40
     if deliveries and deliveries[0].created_at > now() - RESEND_COOLDOWN:
         raise Conflict("Please wait before resending this invitation.")
     timestamp = now()
@@ -494,6 +598,7 @@ def resend_invitation(
     invitation.revoked_at = None
     invitation.updated_at = timestamp
     enqueue_invitation_delivery(session, invitation, locale=locale)
+    # reality-rule: services.memberships.resend_invitation.step-53
     _audit(
         session,
         tenant_id,
@@ -504,6 +609,7 @@ def resend_invitation(
         actor_user_id=principal.user_id,
         detail={"generation": invitation.token_generation},
     )
+    # reality-rule: services.memberships.resend_invitation.result
     return invitation
 
 
@@ -513,11 +619,44 @@ def remove_member(
     principal: Principal,
     membership_id: str,
 ) -> None:
+    """
+    BUSINESS PURPOSE:
+    Remove an active company member only after owner authorization and membership safeguards.
+
+    BUSINESS RULE services.memberships.remove_member.step-6:
+    Require the business permission for 'membership_remove' before changing company records.
+
+    BUSINESS RULE services.memberships.remove_member.refusal-8:
+    IF the company is archived:
+        Refuse: Archived companies cannot change membership.
+
+    BUSINESS RULE services.memberships.remove_member.refusal-20:
+    IF the selected membership cannot be found in this company:
+        Refuse: Membership not found.
+
+    BUSINESS RULE services.memberships.remove_member.refusal-22:
+    IF the selected member is a company owner:
+        Refuse: Owners cannot be removed by this operation.
+
+    BUSINESS RULE services.memberships.remove_member.refusal-24:
+    IF the selected membership is not active:
+        Refuse: Membership is not active.
+
+    BUSINESS RULE services.memberships.remove_member.step-27:
+    Record the membership.removed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.memberships.remove_member.effect-39:
+    IF the caller is not a platform administrator:
+        Require this company's owner authorization before changing access.
+    """
+    # reality-rule: services.memberships.remove_member.step-6
     require_business_operation(session, tenant_id, "membership_remove")
     tenant = _tenant(session, tenant_id, lock=True)
+    # reality-rule: services.memberships.remove_member.refusal-8
     if tenant.archived_at is not None:
         raise Conflict("Archived companies cannot change membership.")
     if not principal.is_platform_admin:
+        # reality-rule: services.memberships.remove_member.effect-39
         require_owner(session, tenant_id, principal)
     membership = session.scalar(
         select(TenantMembership)
@@ -527,13 +666,17 @@ def remove_member(
         )
         .with_for_update()
     )
+    # reality-rule: services.memberships.remove_member.refusal-20
     if membership is None:
         raise NotFound("Membership not found.")
+    # reality-rule: services.memberships.remove_member.refusal-22
     if membership.role == "owner":
         raise InvalidOperation("Owners cannot be removed by this operation.")
+    # reality-rule: services.memberships.remove_member.refusal-24
     if membership.status != "active":
         raise Conflict("Membership is not active.")
     membership.status = "removed"
+    # reality-rule: services.memberships.remove_member.step-27
     _audit(
         session,
         tenant_id,

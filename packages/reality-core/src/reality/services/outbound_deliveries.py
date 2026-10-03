@@ -171,7 +171,9 @@ def _planned_elsewhere(
 ) -> dict[str, Decimal]:
     """What other deliveries not yet shipped already plan for each promise."""
     query = (
-        select(OutboundDeliveryLine.commitment_id, func.sum(OutboundDeliveryLine.quantity))
+        select(
+            OutboundDeliveryLine.commitment_id, func.sum(OutboundDeliveryLine.quantity)
+        )
         .join(
             OutboundDelivery,
             (OutboundDelivery.tenant_id == OutboundDeliveryLine.tenant_id)
@@ -260,7 +262,9 @@ def _picks(
     return result
 
 
-def _identity(movement: Movement | Reservation) -> tuple[str | None, str | None, str | None]:
+def _identity(
+    movement: Movement | Reservation,
+) -> tuple[str | None, str | None, str | None]:
     return (movement.handling_unit_id, movement.lot_id, movement.serial_unit_id)
 
 
@@ -344,7 +348,10 @@ def _review_rows(lines: list[tuple[Commitment, Decimal, Decimal]]) -> list[list[
 
 
 def _revised_arguments(
-    session: Session, tenant_id: str, delivery: OutboundDelivery, changes: dict[str, Any]
+    session: Session,
+    tenant_id: str,
+    delivery: OutboundDelivery,
+    changes: dict[str, Any],
 ) -> dict[str, Any]:
     unknown = set(changes) - set(REVISABLE)
     if unknown:
@@ -378,7 +385,10 @@ def _check_revision(
             raise InvalidOperation(code="outbound_delivery_line_picked")
         if line.commitment_id in planned and planned[line.commitment_id] < held:
             raise InvalidOperation(code="outbound_delivery_line_picked")
-    if waiting > ZERO and statement["staging_location_id"] != delivery.staging_location_id:
+    if (
+        waiting > ZERO
+        and statement["staging_location_id"] != delivery.staging_location_id
+    ):
         raise InvalidOperation(code="outbound_delivery_staging_occupied")
 
 
@@ -574,7 +584,9 @@ def review_outbound_delivery(
         statement, lines = _plan_arguments(session, tenant_id, arguments, None)
         normalized = {**statement, "reviewed": _review_rows(lines)}
         return normalized, _preview(session, tenant_id, statement, lines)
-    delivery = _delivery(session, tenant_id, str(arguments.get("outbound_delivery_id") or ""))
+    delivery = _delivery(
+        session, tenant_id, str(arguments.get("outbound_delivery_id") or "")
+    )
     if tool == "outbound_delivery_revise":
         if delivery.shipment_id:
             raise InvalidOperation(code="outbound_delivery_shipped")
@@ -647,7 +659,9 @@ def _preview(
             {
                 "commitment_id": commitment.id,
                 "item_id": commitment.item_id,
-                "item": items[commitment.item_id].name if commitment.item_id in items else None,
+                "item": items[commitment.item_id].name
+                if commitment.item_id in items
+                else None,
                 "quantity": _plain(quantity),
                 "may_plan": _plain(room),
             }
@@ -708,7 +722,22 @@ def plan_outbound_delivery(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> OutboundDelivery:
-    """Plan one delivery of a customer's open promises."""
+    """
+    Plan one delivery of a customer's open promises.
+
+    BUSINESS PURPOSE:
+    Plan one delivery of a customer's open promises.
+
+    BUSINESS RULE services.outbound_deliveries.plan_outbound_delivery.step-16:
+    Require the business permission for 'plan_outbound_delivery' before changing company records.
+
+    BUSINESS RULE services.outbound_deliveries.plan_outbound_delivery.step-59:
+    Record the outbound_delivery.planned audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.outbound_deliveries.plan_outbound_delivery.result:
+    Return delivery, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.outbound_deliveries.plan_outbound_delivery.step-16
     _require_business_mutation(session, tenant_id, "plan_outbound_delivery")
     lock_delivery_state(session, tenant_id)
     delivery_id = _delivery_id_for(tenant_id, action_id)
@@ -752,6 +781,7 @@ def plan_outbound_delivery(
     session.add(delivery)
     session.flush()
     _write_lines(session, tenant_id, delivery, checked)
+    # reality-rule: services.outbound_deliveries.plan_outbound_delivery.step-59
     emit_business_event(
         session,
         tenant_id,
@@ -765,6 +795,7 @@ def plan_outbound_delivery(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.outbound_deliveries.plan_outbound_delivery.result
     return delivery
 
 
@@ -783,10 +814,27 @@ def revise_outbound_delivery(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> OutboundDelivery:
-    """State a delivery anew before it ships; the earlier statement is kept.
+    """
+    State a delivery anew before it ships; the earlier statement is kept.
 
     A field left unstated stays as the current statement says; a field stated
     as empty clears it.
+
+    BUSINESS PURPOSE:
+    State a delivery anew before it ships; the earlier statement is kept.
+
+    BUSINESS RULE services.outbound_deliveries.revise_outbound_delivery.step-32:
+    Require the business permission for 'revise_outbound_delivery' before changing company records.
+
+    BUSINESS RULE services.outbound_deliveries.revise_outbound_delivery.refusal-35:
+    IF the outbound delivery already has a shipment:
+        Refuse with outbound_delivery_shipped.
+
+    BUSINESS RULE services.outbound_deliveries.revise_outbound_delivery.step-54:
+    Record the outbound_delivery.revised audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.outbound_deliveries.revise_outbound_delivery.result:
+    Return delivery, as prepared by the preceding checks and service calls.
     """
     changes = {
         key: value
@@ -800,9 +848,11 @@ def revise_outbound_delivery(
         )
         if value is not UNSTATED
     }
+    # reality-rule: services.outbound_deliveries.revise_outbound_delivery.step-32
     _require_business_mutation(session, tenant_id, "revise_outbound_delivery")
     lock_delivery_state(session, tenant_id)
     delivery = _delivery(session, tenant_id, outbound_delivery_id, lock=True)
+    # reality-rule: services.outbound_deliveries.revise_outbound_delivery.refusal-35
     if delivery.shipment_id:
         raise InvalidOperation(code="outbound_delivery_shipped")
     previous = _statement(session, delivery)
@@ -822,6 +872,7 @@ def revise_outbound_delivery(
     delivery.staging_location_id = statement["staging_location_id"]
     delivery.source_record_id = source.id
     _write_lines(session, tenant_id, delivery, checked)
+    # reality-rule: services.outbound_deliveries.revise_outbound_delivery.step-54
     emit_business_event(
         session,
         tenant_id,
@@ -843,6 +894,7 @@ def revise_outbound_delivery(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.outbound_deliveries.revise_outbound_delivery.result
     return delivery
 
 
@@ -991,7 +1043,22 @@ def pick_outbound_delivery(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> OutboundDelivery:
-    """Pick goods into staging; each promise's reservation moves with them."""
+    """
+    Pick goods into staging; each promise's reservation moves with them.
+
+    BUSINESS PURPOSE:
+    Pick goods into staging; each promise's reservation moves with them.
+
+    BUSINESS RULE services.outbound_deliveries.pick_outbound_delivery.step-11:
+    Require the business permission for 'pick_outbound_delivery' before changing company records.
+
+    BUSINESS RULE services.outbound_deliveries.pick_outbound_delivery.step-66:
+    Record the outbound_delivery.picked audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.outbound_deliveries.pick_outbound_delivery.result:
+    Return delivery, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.outbound_deliveries.pick_outbound_delivery.step-11
     _require_business_mutation(session, tenant_id, "pick_outbound_delivery")
     lock_delivery_state(session, tenant_id)
     delivery = _delivery(session, tenant_id, outbound_delivery_id, lock=True)
@@ -1047,6 +1114,7 @@ def pick_outbound_delivery(
             }
         )
     session.flush()
+    # reality-rule: services.outbound_deliveries.pick_outbound_delivery.step-66
     emit_business_event(
         session,
         tenant_id,
@@ -1059,6 +1127,7 @@ def pick_outbound_delivery(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.outbound_deliveries.pick_outbound_delivery.result
     return delivery
 
 
@@ -1072,7 +1141,22 @@ def put_back_outbound_delivery(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> OutboundDelivery:
-    """Move picked goods out of staging again, and an open promise's reservation."""
+    """
+    Move picked goods out of staging again, and an open promise's reservation.
+
+    BUSINESS PURPOSE:
+    Move picked goods out of staging again, and an open promise's reservation.
+
+    BUSINESS RULE services.outbound_deliveries.put_back_outbound_delivery.step-11:
+    Require the business permission for 'put_back_outbound_delivery' before changing company records.
+
+    BUSINESS RULE services.outbound_deliveries.put_back_outbound_delivery.step-78:
+    Record the outbound_delivery.put_back audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.outbound_deliveries.put_back_outbound_delivery.result:
+    Return delivery, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.outbound_deliveries.put_back_outbound_delivery.step-11
     _require_business_mutation(session, tenant_id, "put_back_outbound_delivery")
     lock_delivery_state(session, tenant_id)
     delivery = _delivery(session, tenant_id, outbound_delivery_id, lock=True)
@@ -1102,7 +1186,10 @@ def put_back_outbound_delivery(
             if row["commitment"].status == "open":
                 left = take
                 for reservation in _reservations_at(
-                    session, tenant_id, row["commitment"].id, delivery.staging_location_id
+                    session,
+                    tenant_id,
+                    row["commitment"].id,
+                    delivery.staging_location_id,
                 ):
                     if left <= ZERO:
                         break
@@ -1140,6 +1227,7 @@ def put_back_outbound_delivery(
             }
         )
     session.flush()
+    # reality-rule: services.outbound_deliveries.put_back_outbound_delivery.step-78
     emit_business_event(
         session,
         tenant_id,
@@ -1152,6 +1240,7 @@ def put_back_outbound_delivery(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.outbound_deliveries.put_back_outbound_delivery.result
     return delivery
 
 
@@ -1180,9 +1269,15 @@ def _dispatch_movements(
                         "item_id": commitment.item_id,
                         "from_location_id": delivery.staging_location_id,
                         "quantity": _plain(held),
-                        **({"handling_unit_id": handling_unit_id} if handling_unit_id else {}),
+                        **(
+                            {"handling_unit_id": handling_unit_id}
+                            if handling_unit_id
+                            else {}
+                        ),
                         **({"lot_id": lot_id} if lot_id else {}),
-                        **({"serial_unit_id": serial_unit_id} if serial_unit_id else {}),
+                        **(
+                            {"serial_unit_id": serial_unit_id} if serial_unit_id else {}
+                        ),
                     }
                 )
             continue
@@ -1201,7 +1296,9 @@ def _dispatch_movements(
             {
                 "commitment_id": commitment.id,
                 "item_id": commitment.item_id,
-                "from_location_id": places[0] if len(places) == 1 else commitment.location_id,
+                "from_location_id": places[0]
+                if len(places) == 1
+                else commitment.location_id,
                 "quantity": _plain(Decimal(line.quantity)),
             }
         )
@@ -1292,7 +1389,11 @@ def _state(
 
 
 def _views(
-    session: Session, tenant_id: str, deliveries: list[OutboundDelivery], *, detail: bool
+    session: Session,
+    tenant_id: str,
+    deliveries: list[OutboundDelivery],
+    *,
+    detail: bool,
 ) -> list[dict[str, Any]]:
     ids = [delivery.id for delivery in deliveries]
     lines_of = _delivery_lines(session, tenant_id, ids)
@@ -1366,17 +1467,25 @@ def _views(
         for source in session.scalars(
             select(SourceRecord).where(
                 SourceRecord.tenant_id == tenant_id,
-                SourceRecord.id.in_({delivery.source_record_id for delivery in deliveries}),
+                SourceRecord.id.in_(
+                    {delivery.source_record_id for delivery in deliveries}
+                ),
             )
         )
     }
     shipped: dict[tuple[str, str], Decimal] = {}
-    shipment_ids = [delivery.shipment_id for delivery in deliveries if delivery.shipment_id]
+    shipment_ids = [
+        delivery.shipment_id for delivery in deliveries if delivery.shipment_id
+    ]
     if shipment_ids:
         from reality.db.core import ShipmentPackage
 
         for shipment_id, commitment_id, quantity in session.execute(
-            select(ShipmentPackage.shipment_id, Movement.commitment_id, func.sum(Movement.quantity))
+            select(
+                ShipmentPackage.shipment_id,
+                Movement.commitment_id,
+                func.sum(Movement.quantity),
+            )
             .join(
                 Movement,
                 (Movement.tenant_id == ShipmentPackage.tenant_id)
@@ -1402,8 +1511,12 @@ def _views(
                 "line_id": line.id,
                 "commitment_id": commitment.id,
                 "item_id": commitment.item_id,
-                "item": items[commitment.item_id].name if commitment.item_id in items else None,
-                "unit": items[commitment.item_id].unit if commitment.item_id in items else None,
+                "item": items[commitment.item_id].name
+                if commitment.item_id in items
+                else None,
+                "unit": items[commitment.item_id].unit
+                if commitment.item_id in items
+                else None,
                 "document_id": commitment.document_id,
                 "document_number": documents.get(commitment.document_id),
                 "promise_status": commitment.status,
@@ -1437,7 +1550,9 @@ def _views(
             "customer_id": delivery.customer_id,
             "customer": parties.get(delivery.customer_id),
             "recipient_party_id": delivery.recipient_party_id,
-            "recipient": parties.get(delivery.recipient_party_id or delivery.customer_id),
+            "recipient": parties.get(
+                delivery.recipient_party_id or delivery.customer_id
+            ),
             "address": statement.get("address") or {},
             "slot": statement.get("slot"),
             "note": statement.get("note") or "",
@@ -1479,7 +1594,9 @@ def _views(
     return views
 
 
-def _statements(session: Session, tenant_id: str, delivery_id: str) -> list[dict[str, Any]]:
+def _statements(
+    session: Session, tenant_id: str, delivery_id: str
+) -> list[dict[str, Any]]:
     """Every statement of the delivery, oldest first, as stated."""
     rows = []
     for source in session.scalars(
@@ -1516,7 +1633,15 @@ def outbound_deliveries(
     customer_id: str | None = None,
     open_only: bool = False,
 ) -> list[dict[str, Any]]:
-    """The company's planned deliveries, newest first."""
+    """
+    The company's planned deliveries, newest first.
+
+    BUSINESS PURPOSE:
+    The company's planned deliveries, newest first.
+
+    BUSINESS RULE services.outbound_deliveries.outbound_deliveries.result:
+    Return the selected outbound deliveries in the shared delivery-view format, preserving the requested status filter and result bound.
+    """
     query = select(OutboundDelivery).where(OutboundDelivery.tenant_id == tenant_id)
     if customer_id:
         query = query.where(OutboundDelivery.customer_id == customer_id)
@@ -1527,13 +1652,22 @@ def outbound_deliveries(
             query.order_by(OutboundDelivery.created_at.desc(), OutboundDelivery.id)
         )
     )
+    # reality-rule: services.outbound_deliveries.outbound_deliveries.result
     return _views(session, tenant_id, deliveries, detail=False)
 
 
 def outbound_delivery_detail(
     session: Session, tenant_id: str, outbound_delivery_id: str
 ) -> dict[str, Any]:
-    """One planned delivery: its lines, picks, statements, shipment and dispatch."""
-    delivery = _delivery(session, tenant_id, outbound_delivery_id)
-    return _views(session, tenant_id, [delivery], detail=True)[0]
+    """
+    One planned delivery: its lines, picks, statements, shipment and dispatch.
 
+    BUSINESS PURPOSE:
+    One planned delivery: its lines, picks, statements, shipment and dispatch.
+
+    BUSINESS RULE services.outbound_deliveries.outbound_delivery_detail.result:
+    Return _views(session, tenant_id, [delivery], detail=True) [0], as prepared by the preceding checks and service calls.
+    """
+    delivery = _delivery(session, tenant_id, outbound_delivery_id)
+    # reality-rule: services.outbound_deliveries.outbound_delivery_detail.result
+    return _views(session, tenant_id, [delivery], detail=True)[0]

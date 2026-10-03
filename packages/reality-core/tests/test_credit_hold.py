@@ -74,6 +74,16 @@ def _holds(session, business, commitments):
 
 
 def test_an_order_past_the_limit_is_held_with_its_facts(session, business):
+    """
+    BUSINESS TEST:
+    An order past the limit is held with its facts.
+    GIVEN:
+    Customer limit 1000 and overdue invoice 700 exist.
+    WHEN:
+    Create orders 200 and then 400.
+    THEN:
+    First order has no credit hold; second has one with exposure 1300, excess 300, order value and overdue invoice evidence.
+    """
     party = _customer(session, business)
     _open_invoice(session, business, party, "700.00")
     # Positive control: an order that stays within the limit is not held.
@@ -103,6 +113,16 @@ def test_an_order_past_the_limit_is_held_with_its_facts(session, business):
 
 
 def test_a_held_promise_is_not_ready_to_ship(session, business):
+    """
+    BUSINESS TEST:
+    A held promise is not ready to ship.
+    GIVEN:
+    Order 400 exceeds customer limit 100.
+    WHEN:
+    Read fulfillment readiness for its commitment.
+    THEN:
+    Readiness reports a commitment-hold blocker.
+    """
     party = _customer(session, business, limit="100")
     _, over = _order(session, business, party, "SO-C-SHIP", "400.00")
 
@@ -113,6 +133,16 @@ def test_a_held_promise_is_not_ready_to_ship(session, business):
 
 @pytest.mark.parametrize("currency", ["EUR", "USD"])
 def test_no_limit_holds_nothing_in_any_currency(session, business, currency):
+    """
+    BUSINESS TEST:
+    No limit holds nothing in any currency.
+    GIVEN:
+    Customer limit is zero; currency parameter is EUR or USD.
+    WHEN:
+    Create order 400 in that currency.
+    THEN:
+    No credit hold is created.
+    """
     party = _customer(session, business, limit="0")
     _, commitments = _order(session, business, party, "SO-C-NONE", "400.00", currency)
 
@@ -120,7 +150,18 @@ def test_no_limit_holds_nothing_in_any_currency(session, business, currency):
 
 
 def test_an_order_in_another_currency_waits_for_a_person(session, business):
-    """Spec 341: a limit in EUR cannot count a USD order without converting."""
+    """
+    Spec 341: a limit in EUR cannot count a USD order without converting.
+
+    BUSINESS TEST:
+    An order in another currency waits for a person.
+    GIVEN:
+    Customer limit 1000 EUR and order 200 EUR exist.
+    WHEN:
+    Create a 50 USD order.
+    THEN:
+    A review hold names currency mismatch; USD order is excluded from EUR exposure and no numeric limit breach is claimed.
+    """
     party = _customer(session, business, limit="1000")
     # Positive control: an order in the limit's currency within it is not held.
     _, within = _order(session, business, party, "SO-C-EUR", "200.00")
@@ -148,6 +189,16 @@ def test_an_order_in_another_currency_waits_for_a_person(session, business):
 
 
 def test_an_owner_releases_a_currency_hold_and_a_raise_asks_again(session, business):
+    """
+    BUSINESS TEST:
+    An owner releases a currency hold and a raise asks again.
+    GIVEN:
+    A USD order has a currency credit hold and an owner principal exists.
+    WHEN:
+    Confirm reasoned release, then raise commitment quantity to 8.
+    THEN:
+    Release executes and clears hold; revision creates another credit hold.
+    """
     tenant = business.tenant.id
     party = _customer(session, business, limit="1000")
     order, commitments = _order(session, business, party, "SO-C-USD-R", "50.00", "USD")
@@ -165,6 +216,16 @@ def test_an_owner_releases_a_currency_hold_and_a_raise_asks_again(session, busin
 
 
 def test_the_reviewed_order_tool_holds_too(session, business):
+    """
+    BUSINESS TEST:
+    The reviewed order tool holds too.
+    GIVEN:
+    Customer limit 100 and reviewed order proposal 400 exist.
+    WHEN:
+    Approve order creation with its review token.
+    THEN:
+    Created commitments carry one active credit hold.
+    """
     party = _customer(session, business, limit="100")
     proposal = prepare_delivery_action(
         session,
@@ -213,6 +274,16 @@ def _shop_order(order_id, customer_sku, price="100.00"):
 
 
 def test_a_shop_order_past_the_limit_is_held_once_even_when_replayed(session, business):
+    """
+    BUSINESS TEST:
+    A shop order past the limit is held once even when replayed.
+    GIVEN:
+    Shopify order 400 is imported for customer limit 100.
+    WHEN:
+    Process the order and replay the same intake.
+    THEN:
+    Exactly one active credit hold remains after each intake.
+    """
     tenant = business.tenant.id
     party = _customer(session, business, limit="100")
 
@@ -237,6 +308,16 @@ def test_a_shop_order_past_the_limit_is_held_once_even_when_replayed(session, bu
 
 
 def test_a_file_order_past_the_limit_is_held(session, business, tmp_path, monkeypatch):
+    """
+    BUSINESS TEST:
+    A file order past the limit is held.
+    GIVEN:
+    CSV order states four items at 100 EUR for customer limit 100.
+    WHEN:
+    Stage file, confirm mapped source intake and process import job.
+    THEN:
+    One credit-check hold is recorded.
+    """
     import csv
 
     from reality.services.artifacts import stage_artifact
@@ -287,6 +368,16 @@ def test_a_file_order_past_the_limit_is_held(session, business, tmp_path, monkey
 
 
 def test_a_credit_hold_is_added_beside_another_hold(session, business):
+    """
+    BUSINESS TEST:
+    A credit hold is added beside another hold.
+    GIVEN:
+    An order commitment already has an address-clarification hold.
+    WHEN:
+    Explicitly place credit holds using its current exposure.
+    THEN:
+    A new credit hold is added and both original and new holds remain active.
+    """
     tenant = business.tenant.id
     party = _customer(session, business, limit="0")
     _, commitments = _order(session, business, party, "SO-C-ADDR", "400.00")
@@ -315,6 +406,16 @@ def test_a_credit_hold_is_added_beside_another_hold(session, business):
 
 
 def test_an_assigned_line_of_a_credit_held_order_is_held(session, business):
+    """
+    BUSINESS TEST:
+    An assigned line of a credit held order is held.
+    GIVEN:
+    Imported over-limit order has one unknown item line and an existing credit hold.
+    WHEN:
+    Assign that line to a known item.
+    THEN:
+    The new commitment receives a credit hold with the original order hold note.
+    """
     from reality.services.order_line_items import assign_line_item
 
     tenant = business.tenant.id
@@ -404,6 +505,16 @@ def _held_order(session, business):
 
 
 def test_an_owner_releases_a_credit_hold_with_a_reason(session, business):
+    """
+    BUSINESS TEST:
+    An owner releases a credit hold with a reason.
+    GIVEN:
+    Order 400 exceeds limit 100 and an owner supplies a reason.
+    WHEN:
+    Confirm reviewed release, inspect event/decision, add stock and reserve.
+    THEN:
+    Hold clears, reason and proposal attribution remain traceable, and commitment becomes ship-ready.
+    """
     from reality.services.decision_attribution import record_decisions
 
     tenant = business.tenant.id
@@ -451,6 +562,16 @@ def test_an_owner_releases_a_credit_hold_with_a_reason(session, business):
 
 @pytest.mark.parametrize("reason", ["", "   "])
 def test_a_credit_hold_is_released_only_with_a_reason(session, business, reason):
+    """
+    BUSINESS TEST:
+    A credit hold is released only with a reason.
+    GIVEN:
+    A credit-held order exists; reason parameter is empty or whitespace.
+    WHEN:
+    Prepare credit-hold release.
+    THEN:
+    Refusal code is credit_hold_release_reason_missing.
+    """
     order, _ = _held_order(session, business)
 
     with pytest.raises(core.InvalidOperation) as refused:
@@ -459,6 +580,16 @@ def test_a_credit_hold_is_released_only_with_a_reason(session, business, reason)
 
 
 def test_a_member_who_is_not_an_owner_cannot_release_it(session, business):
+    """
+    BUSINESS TEST:
+    A member who is not an owner cannot release it.
+    GIVEN:
+    A credit-held order has a release proposal and a member principal.
+    WHEN:
+    Confirm as the member.
+    THEN:
+    Company-owner access is required and the credit hold remains.
+    """
     order, commitments = _held_order(session, business)
     member = _person(session, business, "member")
     proposal = _prepare_release(session, business, order, "Customer is fine")
@@ -471,6 +602,16 @@ def test_a_member_who_is_not_an_owner_cannot_release_it(session, business):
 
 
 def test_an_order_without_a_credit_hold_has_nothing_to_release(session, business):
+    """
+    BUSINESS TEST:
+    An order without a credit hold has nothing to release.
+    GIVEN:
+    An order for a customer with no limit has no credit hold.
+    WHEN:
+    Prepare credit-hold release.
+    THEN:
+    Refusal code is credit_hold_not_found.
+    """
     party = _customer(session, business, limit="0")
     order, _ = _order(session, business, party, "SO-C-FREE", "400.00")
 
@@ -480,6 +621,16 @@ def test_an_order_without_a_credit_hold_has_nothing_to_release(session, business
 
 
 def test_the_generic_release_leaves_the_credit_hold(session, business):
+    """
+    BUSINESS TEST:
+    The generic release leaves the credit hold.
+    GIVEN:
+    A credit-held commitment first has no other hold, then gains an address hold.
+    WHEN:
+    Prepare generic release before and after adding address hold, then confirm.
+    THEN:
+    Credit-only release is refused; generic release clears the address hold and retains credit hold.
+    """
     tenant = business.tenant.id
     _, commitments = _held_order(session, business)
 
@@ -521,6 +672,16 @@ def test_the_generic_release_leaves_the_credit_hold(session, business):
 
 
 def test_cancelling_the_order_still_releases_every_hold(session, business):
+    """
+    BUSINESS TEST:
+    Cancelling the order still releases every hold.
+    GIVEN:
+    An order commitment is credit-held.
+    WHEN:
+    Cancel the commitment with a reason.
+    THEN:
+    No active credit hold remains.
+    """
     tenant = business.tenant.id
     _, commitments = _held_order(session, business)
 
@@ -548,6 +709,16 @@ def _finding(session, business, party):
 
 
 def test_the_finding_reports_the_exposure_the_hold_used(session, business):
+    """
+    BUSINESS TEST:
+    The finding reports the exposure the hold used.
+    GIVEN:
+    Customer limit 1000 has invoices 700 overdue and 150 current.
+    WHEN:
+    Create order 400 and inspect exception, exposure and hold.
+    THEN:
+    Exception values agree with exposure, open order and overdue evidence; hold note contains that exposure.
+    """
     from reality.services.credit_exposure import credit_exposure
 
     tenant = business.tenant.id
@@ -581,6 +752,16 @@ def test_the_finding_reports_the_exposure_the_hold_used(session, business):
 
 
 def test_an_available_credit_lowers_the_finding(session, business):
+    """
+    BUSINESS TEST:
+    An available credit lowers the finding.
+    GIVEN:
+    Customer limit 1000 has an invoice 1100 and a limit-exceeded finding.
+    WHEN:
+    Post a credit note 200.
+    THEN:
+    The limit-exceeded finding disappears.
+    """
     party = _customer(session, business)
     _open_invoice(session, business, party, "1100.00")
     assert _finding(session, business, party) is not None
@@ -597,6 +778,16 @@ def test_an_available_credit_lowers_the_finding(session, business):
 
 
 def test_every_generic_release_path_keeps_the_credit_hold(session, business):
+    """
+    BUSINESS TEST:
+    Every generic release path keeps the credit hold.
+    GIVEN:
+    Credit-held order also has an address hold.
+    WHEN:
+    Confirm document release, then invoke generic commitment and document release services.
+    THEN:
+    Address hold clears but credit hold remains through every path.
+    """
     from reality.tools.application import confirm_tool, propose_tool
 
     tenant = business.tenant.id
@@ -626,6 +817,16 @@ def test_every_generic_release_path_keeps_the_credit_hold(session, business):
 
 
 def test_the_generic_release_is_verified_when_it_keeps_a_credit_hold(session, business):
+    """
+    BUSINESS TEST:
+    The generic release is verified when it keeps a credit hold.
+    GIVEN:
+    Credit-held commitment also has a customer-request hold.
+    WHEN:
+    Confirm generic release and inspect verification.
+    THEN:
+    Result is verified and effect states one hold released and one credit hold kept.
+    """
     from reality.services.delivery_actions import delivery_proposal_detail
 
     tenant = business.tenant.id
@@ -660,6 +861,16 @@ def test_the_generic_release_is_verified_when_it_keeps_a_credit_hold(session, bu
 def test_the_order_value_is_its_stated_amount_not_quantity_times_price(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    The order value is its stated amount not quantity times price.
+    GIVEN:
+    Customer limit 300; four units have price 100 but stated gross amount 200.
+    WHEN:
+    Read exposure and create another order 200.
+    THEN:
+    First order counts 200 and has no hold; second order crosses the limit and is held.
+    """
     party = _customer(session, business, limit="300")
     # Four at a list price of 100 with a stated rebate to 200 in total.
     _, _, _, commitments = core.create_manual_order(
@@ -692,6 +903,16 @@ def test_the_order_value_is_its_stated_amount_not_quantity_times_price(
 
 
 def test_a_cancelled_order_stops_counting_its_service_line(session, business):
+    """
+    BUSINESS TEST:
+    A cancelled order stops counting its service line.
+    GIVEN:
+    Imported order 215 includes physical goods 200 and service line 15.
+    WHEN:
+    Read exposure, cancel every commitment and read again.
+    THEN:
+    Open order amount changes from 215 to zero, including the service line.
+    """
     from reality.services.credit_exposure import credit_exposure
 
     tenant = business.tenant.id
@@ -735,6 +956,16 @@ def test_a_cancelled_order_stops_counting_its_service_line(session, business):
 
 
 def test_an_order_revised_upwards_past_the_limit_is_held(session, business):
+    """
+    BUSINESS TEST:
+    An order revised upwards past the limit is held.
+    GIVEN:
+    Order 400 is below customer limit 500.
+    WHEN:
+    Raise commitment quantity from four to eight.
+    THEN:
+    A credit hold is created after revision.
+    """
     party = _customer(session, business, limit="500")
     _, commitments = _order(session, business, party, "SO-C-UP", "400.00")
     assert _holds(session, business, commitments) == []
@@ -747,6 +978,16 @@ def test_an_order_revised_upwards_past_the_limit_is_held(session, business):
 
 
 def test_the_exposure_read_does_not_grow_with_the_order_lines(session, business):
+    """
+    BUSINESS TEST:
+    The exposure read does not grow with the order lines.
+    GIVEN:
+    A customer has an order with two lines and later another with forty lines.
+    WHEN:
+    Count database statements for exposure reads before and after.
+    THEN:
+    Later read uses no more than two additional statements.
+    """
     from sqlalchemy import event
 
     from reality.services.credit_exposure import credit_exposure
@@ -797,6 +1038,16 @@ def test_the_exposure_read_does_not_grow_with_the_order_lines(session, business)
 
 
 def test_the_delivery_case_says_which_hold_only_an_owner_releases(session, business):
+    """
+    BUSINESS TEST:
+    The delivery case says which hold only an owner releases.
+    GIVEN:
+    Commitment has automatic credit hold and manually placed credit-check hold.
+    WHEN:
+    Read delivery case blockers.
+    THEN:
+    Automatic hold requires owner release; manually placed hold does not.
+    """
     from reality.services.delivery_reads import delivery_case
 
     tenant = business.tenant.id

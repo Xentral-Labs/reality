@@ -26,7 +26,15 @@ LISTS = {
 def month_end_billing(
     session: Session, tenant_id: str, *, as_of: datetime | str | None = None
 ) -> dict[str, Any]:
-    """Shipped-not-billed and billed-not-shipped order lines at `as_of`."""
+    """
+    Shipped-not-billed and billed-not-shipped order lines at `as_of`.
+
+    BUSINESS PURPOSE:
+    Shipped-not-billed and billed-not-shipped order lines at `as_of`.
+
+    BUSINESS RULE services.month_end_billing.month_end_billing.result:
+    Return result, as prepared by the preceding checks and service calls.
+    """
     moment = core.utc_datetime(as_of) or core.now()
     findings = [
         row
@@ -74,4 +82,5 @@ def month_end_billing(
         )
     for rows in (result[key] for key in LISTS):
         rows.sort(key=lambda row: (row["order_number"] or "", row["order_line_id"]))
+    # reality-rule: services.month_end_billing.month_end_billing.result
     return result

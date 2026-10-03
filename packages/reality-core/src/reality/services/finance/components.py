@@ -201,6 +201,13 @@ def component_context(
     offset: int = 0,
     reference_query: str = "",
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read a financial component and the current evidence available for its allocation.
+
+    BUSINESS RULE services.finance.components.component_context.result:
+    Return the current result with document_id, number, summary, line_scope, total, limit, offset, revision, items, references.
+    """
     _page(limit, offset)
     doc = _document(session, tenant_id, document_id)
     summary = _received(session, tenant_id, doc, None)
@@ -237,6 +244,7 @@ def component_context(
 
         item["source_resolution"] = resolve_source_codes(session, tenant_id, item)
         items.append(item)
+    # reality-rule: services.finance.components.component_context.result
     return {
         "document_id": doc.id,
         "number": doc.number,
@@ -272,6 +280,13 @@ def component_history(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read recorded allocation revisions for the selected financial component.
+
+    BUSINESS RULE services.finance.components.component_history.result:
+    Return the current result with component_id, document_id, document_line_id, amounts, currency, total, limit, offset, items.
+    """
     _page(limit, offset)
     component = core._tenant_record(
         session, FinancialComponent, tenant_id, component_id
@@ -280,6 +295,7 @@ def component_history(
         ComponentAssignment.tenant_id == tenant_id,
         ComponentAssignment.component_id == component.id,
     ]
+    # reality-rule: services.finance.components.component_history.result
     return {
         "component_id": component.id,
         "document_id": component.document_id,
@@ -411,7 +427,25 @@ def assign_component(
     action_id: str,
     actor_id: str | None = None,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Record a reviewed allocation revision for a received financial component, preserving stated amounts and its reference snapshot.
+
+    BUSINESS RULE services.finance.components.assign_component.step-8:
+    Require the business permission for 'finance_component_assign' before changing company records.
+
+    BUSINESS RULE services.finance.components.assign_component.step-9:
+    Run the shared preview assignment check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.finance.components.assign_component.step-62:
+    Record the finance.component_assigned audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.finance.components.assign_component.result:
+    Return result, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.finance.components.assign_component.step-8
     core._require_business_mutation(session, tenant_id, "finance_component_assign")
+    # reality-rule: services.finance.components.assign_component.step-9
     review = preview_assignment(session, tenant_id, arguments)
     received = review["received"]
     after = review["after"]
@@ -465,6 +499,7 @@ def assign_component(
     result = _assignment(session, tenant_id, component, row)
     from reality.services.core import emit_business_event
 
+    # reality-rule: services.finance.components.assign_component.step-62
     emit_business_event(
         session,
         tenant_id,
@@ -479,4 +514,5 @@ def assign_component(
         action_id=action_id,
     )
     session.flush()
+    # reality-rule: services.finance.components.assign_component.result
     return result

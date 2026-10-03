@@ -51,6 +51,13 @@ def _day(value: str | None, name: str) -> date | None:
 def opening_context(
     session: Session, tenant_id: str, query: str = ""
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read opening-finance state and existing evidence before importing opening balances.
+
+    BUSINESS RULE services.finance.opening.opening_context.result:
+    Return the current result with counterpart, parties, more_parties.
+    """
     accounts = list_accounts(session, tenant_id)
     statement = select(Party).where(
         Party.tenant_id == tenant_id, Party.is_active.is_(True)
@@ -58,6 +65,7 @@ def opening_context(
     if query.strip():
         statement = statement.where(Party.name.ilike(f"%{query.strip()}%"))
     parties = list(session.scalars(statement.order_by(Party.name, Party.id).limit(101)))
+    # reality-rule: services.finance.opening.opening_context.result
     return {
         **accounts,
         "counterpart": next(
@@ -282,9 +290,27 @@ def preview_opening(session: Session, tenant_id: str, values: dict) -> dict:
 def import_opening(
     session: Session, tenant_id: str, *, action_id: str, actor_id: str | None, **values
 ) -> dict:
-    """Called inside the owner-confirmed finance transaction; no independent commit."""
+    """
+    Called inside the owner-confirmed finance transaction; no independent commit.
+
+    BUSINESS PURPOSE:
+    Called inside the owner-confirmed finance transaction; no independent commit.
+
+    BUSINESS RULE services.finance.opening.import_opening.step-6:
+    Run the shared preview opening check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.finance.opening.import_opening.result:
+    Return the current result with items.
+
+    BUSINESS RULE services.finance.opening.import_opening.effect-56:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.finance.opening.import_opening.effect-74:
+    Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
+    """
     lock_delivery_state(session, tenant_id)
     lock_finance(session, tenant_id)
+    # reality-rule: services.finance.opening.import_opening.step-6
     preview = preview_opening(session, tenant_id, values)
     scopes, results = {}, []
     with session.begin_nested():
@@ -323,6 +349,7 @@ def import_opening(
                 )
                 == (*key, item["external_item_key"])
             )
+            # reality-rule: services.finance.opening.import_opening.effect-56
             source, _, _ = core.store_source_record(
                 session,
                 tenant_id,
@@ -341,6 +368,7 @@ def import_opening(
                     "confirmed_at": core.now().isoformat(),
                 },
             )
+            # reality-rule: services.finance.opening.import_opening.effect-74
             document = core.create_document(
                 session,
                 tenant_id,
@@ -403,6 +431,7 @@ def import_opening(
                     "reference": document.number,
                 }
             )
+    # reality-rule: services.finance.opening.import_opening.result
     return {**preview, "items": results}
 
 

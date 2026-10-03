@@ -365,7 +365,31 @@ def record_customer_exchange(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> CustomerExchange:
-    """Record a confirmed exchange and the free replacement it promises."""
+    """
+    Record a confirmed exchange and the free replacement it promises.
+
+    BUSINESS PURPOSE:
+    Record a confirmed exchange and the free replacement it promises.
+
+    BUSINESS RULE services.customer_exchanges.record_customer_exchange.step-16:
+    Require the business permission for 'record_customer_exchange' before changing company records.
+
+    BUSINESS RULE services.customer_exchanges.record_customer_exchange.result:
+    Return exchange, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.customer_exchanges.record_customer_exchange.effect-38:
+    Run the shared preview customer exchange check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.customer_exchanges.record_customer_exchange.effect-51:
+    Pass the stated inputs to the shared create master source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.customer_exchanges.record_customer_exchange.effect-72:
+    Pass the stated inputs to the shared create commitment service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.customer_exchanges.record_customer_exchange.effect-98:
+    Record the exchange.recorded audit or business-event evidence with the supplied record and confirmation identity.
+    """
+    # reality-rule: services.customer_exchanges.record_customer_exchange.step-16
     core._require_business_mutation(session, tenant_id, "record_customer_exchange")
     with session.begin_nested():
         delivery, _, _ = _returned_delivery(
@@ -376,6 +400,7 @@ def record_customer_exchange(
             .where(Commitment.tenant_id == tenant_id, Commitment.id == delivery.id)
             .with_for_update()
         )
+        # reality-rule: services.customer_exchanges.record_customer_exchange.effect-38
         reviewed = preview_customer_exchange(
             session,
             tenant_id,
@@ -389,6 +414,7 @@ def record_customer_exchange(
             due_at=due_at,
         )
         replacement_spec = reviewed["replacement"]
+        # reality-rule: services.customer_exchanges.record_customer_exchange.effect-51
         source = core.create_master_source_record(
             session,
             tenant_id,
@@ -410,6 +436,7 @@ def record_customer_exchange(
             action_id=action_id,
             _commit=False,
         )
+        # reality-rule: services.customer_exchanges.record_customer_exchange.effect-72
         replacement = core.create_commitment(
             session,
             tenant_id,
@@ -436,6 +463,7 @@ def record_customer_exchange(
         )
         session.add(exchange)
         session.flush()
+        # reality-rule: services.customer_exchanges.record_customer_exchange.effect-98
         emit_business_event(
             session,
             tenant_id,
@@ -453,6 +481,7 @@ def record_customer_exchange(
         )
     if _commit:
         session.commit()
+    # reality-rule: services.customer_exchanges.record_customer_exchange.result
     return exchange
 
 

@@ -117,12 +117,23 @@ def waiting_promises(
     location_id: str,
     supplier_commitment_id: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """The promises waiting for the item here, in serving order, and those on hold.
+    """
+    The promises waiting for the item here, in serving order, and those on hold.
 
     A promise waits when it is an open customer delivery of the item with an
     open quantity it has not reserved. Those the named purchase is assigned to
     come first, in the order they were assigned, wherever they are held; then
     the others held at the location, by due date, then by when they were made.
+
+    BUSINESS PURPOSE:
+    The promises waiting for the item here, in serving order, and those on hold.
+
+    BUSINESS RULE services.backorders.waiting_promises.refusal-21:
+    IF a supplier promise was selected but is not a supplier delivery for this item:
+        Refuse with backorder_serving_purchase_not_for_item.
+
+    BUSINESS RULE services.backorders.waiting_promises.result:
+    Return waiting, held, as prepared by the preceding checks and service calls.
     """
     from reality.services.supply_assignments import _effective_rows
 
@@ -131,6 +142,7 @@ def waiting_promises(
         supplier = _tenant_record(
             session, Commitment, tenant_id, supplier_commitment_id
         )
+        # reality-rule: services.backorders.waiting_promises.refusal-21
         if supplier.type != "supplier_delivery" or supplier.item_id != item_id:
             raise InvalidOperation(code="backorder_serving_purchase_not_for_item")
         for row in _effective_rows(
@@ -200,6 +212,7 @@ def waiting_promises(
             held.append({**entry, "hold_reason": "held_in_line_unit"})
         else:
             waiting.append(entry)
+    # reality-rule: services.backorders.waiting_promises.result
     return waiting, held
 
 
@@ -217,11 +230,38 @@ def _fingerprint(
 def review_backorder_serving(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The lines a confirmation reserves and what the person is shown.
+    """
+    The lines a confirmation reserves and what the person is shown.
 
     Without stated lines the available quantity is given out in serving order.
     Stated lines are checked instead: only waiting promises, none beyond its
     need, all together not beyond what is available.
+
+    BUSINESS PURPOSE:
+    The lines a confirmation reserves and what the person is shown.
+
+    BUSINESS RULE services.backorders.review_backorder_serving.refusal-41:
+    IF the plan reserves no positive quantity:
+        Refuse with backorder_serving_nothing_to_serve.
+
+    BUSINESS RULE services.backorders.review_backorder_serving.refusal-26:
+    IF the supplied reservation quantities are not a list:
+        Refuse with backorder_serving_line_quantity_invalid.
+
+    BUSINESS RULE services.backorders.review_backorder_serving.refusal-38:
+    IF the sum of planned reservations exceeds available stock:
+        Refuse with backorder_serving_exceeds_available.
+
+    BUSINESS RULE services.backorders.review_backorder_serving.refusal-32:
+    IF a selected promise is not waiting for stock or is selected more than once:
+        Refuse with backorder_serving_line_not_waiting.
+
+    BUSINESS RULE services.backorders.review_backorder_serving.refusal-35:
+    IF a selected reservation quantity exceeds that promise's uncovered need:
+        Refuse with backorder_serving_line_exceeds_need.
+
+    BUSINESS RULE services.backorders.review_backorder_serving.result:
+    Return normalized, preview, as prepared by the preceding checks and service calls.
     """
     item, location = _place(
         session,
@@ -240,21 +280,26 @@ def review_backorder_serving(
             quantities[entry["commitment_id"]] = min(entry["need"], left)
             left -= quantities[entry["commitment_id"]]
     else:
+        # reality-rule: services.backorders.review_backorder_serving.refusal-26
         if not isinstance(stated, list):
             raise InvalidOperation(code="backorder_serving_line_quantity_invalid")
         needs = {entry["commitment_id"]: entry["need"] for entry in waiting}
         quantities = {}
         for line in stated:
             identity = str((line or {}).get("commitment_id") or "")
+            # reality-rule: services.backorders.review_backorder_serving.refusal-32
             if identity not in needs or identity in quantities:
                 raise InvalidOperation(code="backorder_serving_line_not_waiting")
             amount = _quantity(line.get("quantity", ""))
+            # reality-rule: services.backorders.review_backorder_serving.refusal-35
             if amount > needs[identity]:
                 raise InvalidOperation(code="backorder_serving_line_exceeds_need")
             quantities[identity] = amount
+        # reality-rule: services.backorders.review_backorder_serving.refusal-38
         if sum(quantities.values(), ZERO) > available:
             raise InvalidOperation(code="backorder_serving_exceeds_available")
     reserving = sum(quantities.values(), ZERO)
+    # reality-rule: services.backorders.review_backorder_serving.refusal-41
     if reserving <= 0:
         raise InvalidOperation(code="backorder_serving_nothing_to_serve")
     lines = [
@@ -286,6 +331,7 @@ def review_backorder_serving(
         "lines": lines,
         "held": [{**entry, "need": _plain(entry["need"])} for entry in held],
     }
+    # reality-rule: services.backorders.review_backorder_serving.result
     return normalized, preview
 
 
@@ -300,10 +346,32 @@ def serve_backorders(
     reviewed: dict[str, Any] | None = None,
     action_id: str | None = None,
 ) -> dict[str, Any]:
-    """Reserve the confirmed lines; refuse all of them if anything changed.
+    """
+    Reserve the confirmed lines; refuse all of them if anything changed.
 
     Under the delivery lock, the stock, the waiting promises and the holds are
     read again and compared with what the review showed.
+
+    BUSINESS PURPOSE:
+    Reserve the confirmed lines; refuse all of them if anything changed.
+
+    BUSINESS RULE services.backorders.serve_backorders.refusal-27:
+    IF a prior reviewed plan was supplied and the current plan differs:
+        Refuse with backorder_serving_changed_since_review.
+
+    BUSINESS RULE services.backorders.serve_backorders.refusal-62:
+    IF the recorded reservation quantity differs from the reviewed line quantity or no reservation was produced:
+        Refuse with backorder_serving_changed_since_review.
+
+    BUSINESS RULE services.backorders.serve_backorders.refusal-41:
+    IF execution finds that a selected line is no longer waiting, exceeds current need, exceeds available stock or has no quantity to serve:
+        Refuse with backorder_serving_changed_since_review.
+
+    BUSINESS RULE services.backorders.serve_backorders.result:
+    Return the current result with item_id, location_id, reservations, records.
+
+    BUSINESS RULE services.backorders.serve_backorders.effect-50:
+    Run the shared review backorder serving check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
     """
     from reality.services.business_locks import lock_delivery_state
 
@@ -316,9 +384,11 @@ def serve_backorders(
         current = _fingerprint(
             free_at(session, tenant_id, item.id, location.id), waiting, held
         )
+        # reality-rule: services.backorders.serve_backorders.refusal-27
         if current != reviewed:
             raise InvalidOperation(code="backorder_serving_changed_since_review")
     try:
+        # reality-rule: services.backorders.serve_backorders.effect-50
         normalized, _ = review_backorder_serving(
             session,
             tenant_id,
@@ -330,6 +400,7 @@ def serve_backorders(
             },
         )
     except InvalidOperation as error:
+        # reality-rule: services.backorders.serve_backorders.refusal-41
         if error.code in {
             "backorder_serving_line_not_waiting",
             "backorder_serving_line_exceeds_need",
@@ -351,6 +422,7 @@ def serve_backorders(
             action_id=action_id,
             _commit=False,
         )
+        # reality-rule: services.backorders.serve_backorders.refusal-62
         if result.reserved != Decimal(line["quantity"]) or result.reservation is None:
             session.rollback()
             raise InvalidOperation(code="backorder_serving_changed_since_review")
@@ -362,6 +434,7 @@ def serve_backorders(
             }
         )
     session.commit()
+    # reality-rule: services.backorders.serve_backorders.result
     return {
         "item_id": item_id,
         "location_id": location_id,
@@ -376,12 +449,19 @@ def serve_backorders(
 def available_to_promise(
     session: Session, tenant_id: str, item_id: str
 ) -> dict[str, Any]:
-    """From when, and how much, the item can be promised, purchase by purchase.
+    """
+    From when, and how much, the item can be promised, purchase by purchase.
 
     Free now is what lies in stock less reservations and blocks, less the
     waiting need that neither a reservation nor supply still to come covers.
     Each open purchase then adds, on its stated date, what its customer
     assignments do not still expect. Read when asked; never stored.
+
+    BUSINESS PURPOSE:
+    From when, and how much, the item can be promised, purchase by purchase.
+
+    BUSINESS RULE services.backorders.available_to_promise.result:
+    Return the current result with item_id, item, unit, now, purchases, not_in_stock_unit.
     """
     from reality.services.supply_assignments import _effective_rows, assignment_split
 
@@ -480,6 +560,7 @@ def available_to_promise(
                 "total": _plain(total),
             }
         )
+    # reality-rule: services.backorders.available_to_promise.result
     return {
         "item_id": item.id,
         "item": item.name,

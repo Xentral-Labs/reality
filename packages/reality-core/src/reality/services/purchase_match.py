@@ -56,7 +56,19 @@ def _billed_in_promise_unit(
 def purchase_match(
     session: Session, tenant_id: str, document_id: str
 ) -> dict[str, Any]:
-    """Whether each line of a purchase order is ordered = received = billed."""
+    """
+    Whether each line of a purchase order is ordered = received = billed.
+
+    BUSINESS PURPOSE:
+    Whether each line of a purchase order is ordered = received = billed.
+
+    BUSINESS RULE services.purchase_match.purchase_match.refusal-14:
+    IF the selected document is not a purchase order:
+        Refuse with purchase_match_order_required.
+
+    BUSINESS RULE services.purchase_match.purchase_match.result:
+    Return the current result with document_id, number, party_id, currency, matched, lines.
+    """
     from reality.services.exceptions import (
         _billing_lines,
         _invoice_lines,
@@ -67,6 +79,7 @@ def purchase_match(
     )
 
     order = _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: services.purchase_match.purchase_match.refusal-14
     if order.type != "purchase_order":
         raise InvalidOperation(code="purchase_match_order_required")
     lines = list(
@@ -243,6 +256,7 @@ def purchase_match(
                 ],
             }
         )
+    # reality-rule: services.purchase_match.purchase_match.result
     return {
         "document_id": order.id,
         "number": order.number,

@@ -78,6 +78,16 @@ def _prepayment_order(session, business):
 def test_prepayment_readiness_uses_stated_order_and_active_allocation(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Prepayment readiness uses stated order and active allocation.
+    GIVEN:
+    Prepayment order 100 has stock and reservation but no invoice.
+    WHEN:
+    Read readiness, invoice 100 and pay it.
+    THEN:
+    Missing invoice and required payment block initially; invoice removes first blocker and active payment makes ship-ready with received 100 and one allocation.
+    """
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
 
@@ -115,6 +125,16 @@ def test_prepayment_readiness_uses_stated_order_and_active_allocation(
 def test_reversed_and_foreign_payment_evidence_does_not_satisfy_prepayment(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Reversed and foreign payment evidence does not satisfy prepayment.
+    GIVEN:
+    Prepayment order has a fully paid invoice 100.
+    WHEN:
+    Change payment party, change currency and finally reverse payment.
+    THEN:
+    Each invalid evidence state counts zero received and leaves shipment unready.
+    """
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
     receipt = record_sales_invoice(
@@ -161,7 +181,18 @@ def test_reversed_and_foreign_payment_evidence_does_not_satisfy_prepayment(
 def test_invoice_line_of_another_partys_order_blocks_without_guessing(
     session, business
 ):
-    """An invoice line billing another party's order cannot be attributed."""
+    """
+    An invoice line billing another party's order cannot be attributed.
+
+    BUSINESS TEST:
+    Invoice line of another partys order blocks without guessing.
+    GIVEN:
+    Prepayment invoice gains an extra line linked to another customer's order.
+    WHEN:
+    Read fulfillment readiness.
+    THEN:
+    Other order is not attributed; ambiguous-attribution blocker appears, received is zero and shipment is unready.
+    """
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
     receipt = record_sales_invoice(
@@ -207,7 +238,18 @@ def test_invoice_line_of_another_partys_order_blocks_without_guessing(
 def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
     session, business
 ):
-    """Spec 283 FR-004: no split of a payment; the whole invoice must be settled."""
+    """
+    Spec 283 FR-004: no split of a payment; the whole invoice must be settled.
+
+    BUSINESS TEST:
+    A consolidated invoice releases prepayment only when settled in full.
+    GIVEN:
+    Invoice 110 covers prepayment order 100 and another order 10 for the same customer.
+    WHEN:
+    Read readiness, pay 50 and then 60.
+    THEN:
+    Consolidated-open blocker names invoice and amount; partial payment counts zero, full settlement counts target order 100 and makes ship-ready.
+    """
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
     _other, other_lines = create_manual_document_with_lines(
@@ -265,6 +307,16 @@ def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
 
 
 def test_unpaid_net_term_is_not_blocked_by_prepayment(session, business):
+    """
+    BUSINESS TEST:
+    Unpaid net term is not blocked by prepayment.
+    GIVEN:
+    Order has ordinary terms, available stock and full reservation.
+    WHEN:
+    Read fulfillment readiness without payment.
+    THEN:
+    Commitment is ship-ready.
+    """
     tenant_id = business.tenant.id
     order, lines = create_manual_document_with_lines(
         session,
@@ -309,6 +361,16 @@ def test_unpaid_net_term_is_not_blocked_by_prepayment(session, business):
 
 
 def test_readiness_combines_stock_reservation_and_active_hold(session, business):
+    """
+    BUSINESS TEST:
+    Readiness combines stock reservation and active hold.
+    GIVEN:
+    Order needs two units and initially lacks stock and reservation.
+    WHEN:
+    Read readiness, add/reserve two units and place a manual hold.
+    THEN:
+    Initial blockers name insufficient reservation/stock; later only linked commitment hold remains.
+    """
     tenant_id = business.tenant.id
     order, lines = create_manual_document_with_lines(
         session,
@@ -362,6 +424,16 @@ def test_readiness_combines_stock_reservation_and_active_hold(session, business)
 def test_fulfillment_readiness_refuses_foreign_and_unknown_commitments_equally(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Fulfillment readiness refuses foreign and unknown commitments equally.
+    GIVEN:
+    A prepayment commitment belongs to one tenant.
+    WHEN:
+    Read it and an unknown ID through another tenant.
+    THEN:
+    Both raise InvalidOperation with identical messages.
+    """
     other = create_tenant(session, "Other readiness tenant")
     _order, _line, commitment = _prepayment_order(session, business)
 

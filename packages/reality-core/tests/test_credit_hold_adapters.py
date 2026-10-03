@@ -50,6 +50,16 @@ def _held(session, business, commitments):
 
 
 def test_the_mcp_release_schema_is_strict():
+    """
+    BUSINESS TEST:
+    The mcp release schema is strict.
+    GIVEN:
+    Public MCP credit-hold release schema is registered.
+    WHEN:
+    Inspect its fields and required arguments.
+    THEN:
+    Only document_id and reason are allowed and both are required.
+    """
     schema = next(
         tool["function"]["parameters"]
         for tool in model_tool_schemas()
@@ -61,6 +71,16 @@ def test_the_mcp_release_schema_is_strict():
 
 
 def test_an_agent_proposes_the_release_and_reads_the_exposure(session, business):
+    """
+    BUSINESS TEST:
+    An agent proposes the release and reads the exposure.
+    GIVEN:
+    Order 400 exceeds limit 100.
+    WHEN:
+    Read MCP exposure, propose release and approve with review token.
+    THEN:
+    Exposure excess is 300; proposal alone retains hold, confirmation clears it.
+    """
     tenant = business.tenant.id
     party, order, commitments = _held_order(session, business)
 
@@ -86,6 +106,16 @@ def test_an_agent_proposes_the_release_and_reads_the_exposure(session, business)
 def test_the_web_prepares_the_release_and_reads_the_exposure(
     session, business, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    The web prepares the release and reads the exposure.
+    GIVEN:
+    A credit-held order is exposed through the tenant HTTP API.
+    WHEN:
+    Read exposure, prepare release and confirm with review token.
+    THEN:
+    Read shows order amount 400, review requires owner and confirmed release clears hold.
+    """
     party, order, commitments = _held_order(session, business)
     factory = sessionmaker(session.bind, expire_on_commit=False)
     monkeypatch.setattr(api_module, "Session", factory)
@@ -118,6 +148,16 @@ def test_the_web_prepares_the_release_and_reads_the_exposure(
 def test_the_web_refuses_another_companys_order_and_party(
     session, business, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    The web refuses another companys order and party.
+    GIVEN:
+    A credit-held order and customer belong to one tenant.
+    WHEN:
+    Request release and exposure through another tenant's HTTP routes.
+    THEN:
+    Both return 404 and original hold remains.
+    """
     party, order, commitments = _held_order(session, business)
     other = core.create_tenant(session, "Other GmbH")
     factory = sessionmaker(session.bind, expire_on_commit=False)
@@ -141,6 +181,16 @@ def test_the_web_refuses_another_companys_order_and_party(
 def test_the_cli_proposes_the_release_and_reads_the_exposure(
     session, business, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    The cli proposes the release and reads the exposure.
+    GIVEN:
+    A credit-held order is exposed to CLI with the business tenant.
+    WHEN:
+    Read exposure, propose release and confirm returned proposal/token.
+    THEN:
+    CLI succeeds and reports over-limit; preparation retains hold and confirmation clears it.
+    """
     tenant = business.tenant.id
     party, order, commitments = _held_order(session, business)
     factory = sessionmaker(session.bind, expire_on_commit=False)
@@ -178,6 +228,16 @@ def test_the_cli_proposes_the_release_and_reads_the_exposure(
 
 
 def test_the_cli_help_lists_the_credit_commands():
+    """
+    BUSINESS TEST:
+    The cli help lists the credit commands.
+    GIVEN:
+    CLI application is registered.
+    WHEN:
+    Request top-level help.
+    THEN:
+    Help contains credit-hold-release-propose and credit-exposure.
+    """
     result = CliRunner().invoke(cli_module.app, ["--help"])
     for command in ("credit-hold-release-propose", "credit-exposure"):
         assert command in result.output
@@ -186,6 +246,16 @@ def test_the_cli_help_lists_the_credit_commands():
 def test_the_party_inspector_shows_the_exposure_for_a_limited_customer(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    The party inspector shows the exposure for a limited customer.
+    GIVEN:
+    One customer has a credit limit and held order; fixture customer has no limit.
+    WHEN:
+    Read both party inspectors.
+    THEN:
+    Only limited customer gets credit exposure section with invoice, order, credit, exposure and limit rows.
+    """
     from reality.web.api import party_inspector
 
     party, _, _ = _held_order(session, business)

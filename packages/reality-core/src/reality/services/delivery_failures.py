@@ -236,7 +236,32 @@ def record_delivery_failure(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> DeliveryFailure:
-    """Record a failed delivery, reverse its shipment and open any claim."""
+    """
+    Record a failed delivery, reverse its shipment and open any claim.
+
+    BUSINESS PURPOSE:
+    Record a failed delivery, reverse its shipment and open any claim.
+
+    BUSINESS RULE services.delivery_failures.record_delivery_failure.step-14:
+    Require the business permission for 'record_delivery_failure' before changing company records.
+
+    BUSINESS RULE services.delivery_failures.record_delivery_failure.result:
+    Return failure, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.delivery_failures.record_delivery_failure.effect-36:
+    Run the shared preview delivery failure check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.delivery_failures.record_delivery_failure.effect-50:
+    Pass the stated inputs to the shared create master source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.delivery_failures.record_delivery_failure.effect-139:
+    Record the shipment.delivery_failed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.delivery_failures.record_delivery_failure.effect-111:
+    IF the reviewed delivery failure includes a claim:
+        Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
+    """
+    # reality-rule: services.delivery_failures.record_delivery_failure.step-14
     core._require_business_mutation(session, tenant_id, "record_delivery_failure")
     from reality.services.business_locks import lock_delivery_state
 
@@ -247,6 +272,7 @@ def record_delivery_failure(
             .where(Shipment.tenant_id == tenant_id, Shipment.id == shipment_id)
             .with_for_update()
         )
+        # reality-rule: services.delivery_failures.record_delivery_failure.effect-36
         reviewed = preview_delivery_failure(
             session,
             tenant_id,
@@ -261,6 +287,7 @@ def record_delivery_failure(
             from reality.services.finance.accounts import lock_finance
 
             lock_finance(session, tenant_id)
+        # reality-rule: services.delivery_failures.record_delivery_failure.effect-50
         source = core.create_master_source_record(
             session,
             tenant_id,
@@ -322,6 +349,7 @@ def record_delivery_failure(
         claim_document = None
         if reviewed["claim"]:
             claim = reviewed["claim"]
+            # reality-rule: services.delivery_failures.record_delivery_failure.effect-111
             claim_document = core.create_document(
                 session,
                 tenant_id,
@@ -350,6 +378,7 @@ def record_delivery_failure(
                 action_id=action_id,
                 _commit=False,
             )
+        # reality-rule: services.delivery_failures.record_delivery_failure.effect-139
         emit_business_event(
             session,
             tenant_id,
@@ -372,6 +401,7 @@ def record_delivery_failure(
         )
     if _commit:
         session.commit()
+    # reality-rule: services.delivery_failures.record_delivery_failure.result
     return failure
 
 

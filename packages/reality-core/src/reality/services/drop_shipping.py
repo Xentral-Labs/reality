@@ -295,13 +295,38 @@ def record_drop_shipment(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Record that the supplier shipped straight to the customer."""
+    """
+    Record that the supplier shipped straight to the customer.
+
+    BUSINESS PURPOSE:
+    Record that the supplier shipped straight to the customer.
+
+    BUSINESS RULE services.drop_shipping.record_drop_shipment.step-14:
+    Require the business permission for 'record_drop_shipment' before changing company records.
+
+    BUSINESS RULE services.drop_shipping.record_drop_shipment.result:
+    Return the current result with shipment_id, receipt_movement_id, shipment_movement_id, source_record_id.
+
+    BUSINESS RULE services.drop_shipping.record_drop_shipment.effect-32:
+    Run the shared preview drop shipment check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.drop_shipping.record_drop_shipment.effect-42:
+    Pass the stated inputs to the shared create master source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.drop_shipping.record_drop_shipment.effect-63:
+    Pass the stated inputs to the shared record shipment notice service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.drop_shipping.record_drop_shipment.effect-103:
+    Record the drop_shipment.recorded audit or business-event evidence with the supplied record and confirmation identity.
+    """
+    # reality-rule: services.drop_shipping.record_drop_shipment.step-14
     core._require_business_mutation(session, tenant_id, "record_drop_shipment")
     from reality.services.business_locks import lock_delivery_state
     from reality.services.shipments import record_shipment_notice
 
     with session.begin_nested():
         lock_delivery_state(session, tenant_id)
+        # reality-rule: services.drop_shipping.record_drop_shipment.effect-32
         reviewed = preview_drop_shipment(
             session,
             tenant_id,
@@ -312,6 +337,7 @@ def record_drop_shipment(
             carrier=carrier,
             tracking_number=tracking_number,
         )
+        # reality-rule: services.drop_shipping.record_drop_shipment.effect-42
         source = core.create_master_source_record(
             session,
             tenant_id,
@@ -333,6 +359,7 @@ def record_drop_shipment(
             _commit=False,
         )
         moment = core.utc_datetime(reviewed["occurred_at"])
+        # reality-rule: services.drop_shipping.record_drop_shipment.effect-63
         shipment, package, _notice = record_shipment_notice(
             session,
             tenant_id,
@@ -373,6 +400,7 @@ def record_drop_shipment(
             action_id=action_id,
             _drop_ship=True,
         )
+        # reality-rule: services.drop_shipping.record_drop_shipment.effect-103
         emit_business_event(
             session,
             tenant_id,
@@ -394,6 +422,7 @@ def record_drop_shipment(
         )
     if _commit:
         session.commit()
+    # reality-rule: services.drop_shipping.record_drop_shipment.result
     return {
         "shipment_id": shipment.id,
         "receipt_movement_id": received.id,

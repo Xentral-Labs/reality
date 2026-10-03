@@ -118,9 +118,7 @@ def _statement(values: dict[str, Any]) -> dict[str, Any]:
                 for item in line.get("references") or []
             ]
         except ValidationError as error:
-            raise core.InvalidOperation(
-                code="payout_line_reference_invalid"
-            ) from error
+            raise core.InvalidOperation(code="payout_line_reference_invalid") from error
         if kind != "fee" and not references:
             raise core.InvalidOperation(code="payout_line_reference_missing")
         line_amount = _amount(line.get("amount"))
@@ -193,9 +191,7 @@ def _held_statement(
         .order_by(SourceRecord.version.desc())
         .limit(1)
     )
-    if held is not None and held.payload_hash != core.canonical_payload_hash(
-        statement
-    ):
+    if held is not None and held.payload_hash != core.canonical_payload_hash(statement):
         raise core.InvalidOperation(code="payout_statement_changed")
     return held
 
@@ -809,7 +805,14 @@ def _totals(statement: dict[str, Any]) -> dict[str, str]:
 def preview_payout(
     session: Session, tenant_id: str, values: dict[str, Any]
 ) -> dict[str, Any]:
-    """What settling this statement would do, line by line; records nothing."""
+    """
+    BUSINESS PURPOSE:
+    Preview the current payout statement line by line without recording business changes.
+
+    BUSINESS RULE services.payouts.preview_payout.batch_route:
+    Read the statement through the shared preview implementation, reusing stable reads for this batch. Inspect the called implementation for line matching, totals and unmatched amounts.
+    """
+    # reality-rule: services.payouts.preview_payout.batch_route
     with core._batch_reads(session):
         return _preview(session, tenant_id, values)
 
@@ -817,6 +820,15 @@ def preview_payout(
 def _preview(
     session: Session, tenant_id: str, values: dict[str, Any]
 ) -> dict[str, Any]:
+    """
+    What settling this statement would do, line by line; records nothing.
+
+    BUSINESS PURPOSE:
+    What settling this statement would do, line by line; records nothing.
+
+    BUSINESS RULE services.payouts.preview_payout.result:
+    Return the current result with provider, settled_before, totals, lines, unmatched_line_ids, unmatched_amount.
+    """
     statement = _statement(values)
     provider = core._tenant_record(
         session, Party, tenant_id, statement["provider_party_id"]
@@ -828,6 +840,7 @@ def _preview(
     booked = {line_id for line_id, s in sources.items() if s.id in bookings}
     plans = _plans(session, tenant_id, statement, booked)
     unbooked = [plan for plan in plans if plan["outcome"] == "unmatched"]
+    # reality-rule: services.payouts.preview_payout.result
     return {
         **{key: statement[key] for key in statement if key != "lines"},
         "provider": provider.name,
@@ -957,13 +970,21 @@ def settle_payout(
     actor_id: str | None,
     **values: Any,
 ) -> dict[str, Any]:
-    """Book the statement's lines, once each, and its deposit; callers own the transaction.
+    """
+    Book the statement's lines, once each, and its deposit; callers own the transaction.
 
     Every line is resolved again under the finance lock, so a payment or order
     recorded since the review is seen as it is now. The lines are booked as one
     batch: locks taken and stable reads made for the first line hold for the rest
     (spec 342).
+
+    BUSINESS PURPOSE:
+    Settle the payout statement's lines once each and record its deposit in the caller's transaction.
+
+    BUSINESS RULE services.payouts.settle_payout.batch_route:
+    Execute the shared settlement implementation within the statement's batch read scope. The called implementation owns current finance permission, line validation, records and posting; this wrapper preserves the caller's transaction.
     """
+    # reality-rule: services.payouts.settle_payout.batch_route
     with core._batch_reads(session):
         return _settle(
             session, tenant_id, action_id=action_id, actor_id=actor_id, **values
@@ -978,21 +999,44 @@ def _settle(
     actor_id: str | None,
     **values: Any,
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Book the payout statement after checking its current line outcomes and finance permission.
+
+    BUSINESS RULE services.payouts.settle_payout.step-13:
+    Require the business permission for 'settle_payout' before changing company records.
+
+    BUSINESS RULE services.payouts.settle_payout.step-114:
+    Record the payout.settled audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.payouts.settle_payout.result:
+    Return the result from payout detail; inspect that called function for its calculation and eligibility rules.
+
+    BUSINESS RULE services.payouts.settle_payout.effect-51:
+    IF no payout document has yet been recorded:
+        Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
+    """
+    # reality-rule: services.payouts.settle_payout.step-13
     core._require_business_mutation(session, tenant_id, "settle_payout")
     lock_finance(session, tenant_id)
     statement = _statement(values)
     core._tenant_record(session, Party, tenant_id, statement["provider_party_id"])
     _accounts(session, tenant_id, statement)
     held = _held_statement(session, tenant_id, statement)
-    source = held or core.store_source_record(
-        session,
-        tenant_id,
-        SOURCE_SYSTEM,
-        STATEMENT_TYPE,
-        _external_id(statement),
-        statement,
-    )[0]
-    effective_at = datetime.combine(date.fromisoformat(statement["paid_on"]), time(), UTC)
+    source = (
+        held
+        or core.store_source_record(
+            session,
+            tenant_id,
+            SOURCE_SYSTEM,
+            STATEMENT_TYPE,
+            _external_id(statement),
+            statement,
+        )[0]
+    )
+    effective_at = datetime.combine(
+        date.fromisoformat(statement["paid_on"]), time(), UTC
+    )
     payout = session.scalar(
         select(Document).where(
             Document.tenant_id == tenant_id,
@@ -1002,6 +1046,7 @@ def _settle(
     )
     if payout is None:
         amount = Decimal(statement["amount"])
+        # reality-rule: services.payouts.settle_payout.effect-51
         payout = core.create_document(
             session,
             tenant_id,
@@ -1055,9 +1100,7 @@ def _settle(
     bookings = _bookings(session, tenant_id, {s.id for s in sources.values()})
     booked = {line_id for line_id, s in sources.items() if s.id in bookings}
     planner = _Planner(session, tenant_id, statement)
-    planner.prefetch(
-        [line for line_id, line in lines.items() if line_id not in booked]
-    )
+    planner.prefetch([line for line_id, line in lines.items() if line_id not in booked])
     newly: list[str] = []
     unmatched: list[str] = []
     for kind in KINDS:
@@ -1081,6 +1124,7 @@ def _settle(
             planner.booked(plan)
             newly.append(line_id)
     session.flush()
+    # reality-rule: services.payouts.settle_payout.step-114
     emit_business_event(
         session,
         tenant_id,
@@ -1098,6 +1142,7 @@ def _settle(
         source_record_id=source.id,
         action_id=action_id,
     )
+    # reality-rule: services.payouts.settle_payout.result
     return payout_detail(session, tenant_id, payout.id)
 
 
@@ -1159,7 +1204,15 @@ def _allocated_to(
 
 
 def payout_detail(session: Session, tenant_id: str, payout_id: str) -> dict[str, Any]:
-    """One payout: the stated statement and what each line booked or why it did not."""
+    """
+    One payout: the stated statement and what each line booked or why it did not.
+
+    BUSINESS PURPOSE:
+    One payout: the stated statement and what each line booked or why it did not.
+
+    BUSINESS RULE services.payouts.payout_detail.result:
+    Return the current result with id, payout_reference, provider_party_id, paid_on, currency, amount, clearing_account_id, bank_account_id, totals, lines, unmatched_line_ids, unmatched_amount, source_record_id.
+    """
     payout = _payout(session, tenant_id, payout_id)
     source = core._tenant_record(
         session, SourceRecord, tenant_id, payout.source_record_id
@@ -1176,8 +1229,7 @@ def payout_detail(session: Session, tenant_id: str, payout_id: str) -> dict[str,
     unbooked = {
         line["line_id"]
         for line in statement["lines"]
-        if line["line_id"] not in sources
-        or sources[line["line_id"]].id not in bookings
+        if line["line_id"] not in sources or sources[line["line_id"]].id not in bookings
     }
     plans = (
         {
@@ -1229,6 +1281,7 @@ def payout_detail(session: Session, tenant_id: str, payout_id: str) -> dict[str,
         if line["line_id"] in unbooked:
             row["reasons"] = plans.get(line["line_id"], {}).get("reasons", [])
         rows.append(row)
+    # reality-rule: services.payouts.payout_detail.result
     return {
         "id": payout.id,
         "payout_reference": statement["payout_reference"],
@@ -1305,7 +1358,10 @@ def unmatched_lines(
         )
     ):
         statement = json.loads(source.payload)
-        if as_of is not None and date.fromisoformat(statement["paid_on"]) > as_of.date():
+        if (
+            as_of is not None
+            and date.fromisoformat(statement["paid_on"]) > as_of.date()
+        ):
             continue
         lines = [
             line
@@ -1324,7 +1380,15 @@ def unmatched_lines(
 
 
 def payouts(session: Session, tenant_id: str) -> list[dict[str, Any]]:
-    """Payouts newest first, with how many lines are booked and what is not."""
+    """
+    Payouts newest first, with how many lines are booked and what is not.
+
+    BUSINESS PURPOSE:
+    Payouts newest first, with how many lines are booked and what is not.
+
+    BUSINESS RULE services.payouts.payouts.result:
+    Return rows, as prepared by the preceding checks and service calls.
+    """
     core.get_tenant(session, tenant_id)
     open_by_payout = {
         row["payout"].id: row for row in unmatched_lines(session, tenant_id)
@@ -1355,4 +1419,5 @@ def payouts(session: Session, tenant_id: str) -> list[dict[str, Any]]:
                 "unmatched_amount": _text(unmatched["amount"]) if unmatched else "0",
             }
         )
+    # reality-rule: services.payouts.payouts.result
     return rows

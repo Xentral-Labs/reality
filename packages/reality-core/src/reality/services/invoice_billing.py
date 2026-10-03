@@ -133,9 +133,27 @@ def billable_positions(
     currency: str,
     limit: int = MAX_LIMIT,
 ) -> dict[str, Any]:
-    """List a party's order positions that can be invoiced now, grouped by order."""
+    """
+    List a party's order positions that can be invoiced now, grouped by order.
+
+    BUSINESS PURPOSE:
+    List a party's order positions that can be invoiced now, grouped by order.
+
+    BUSINESS RULE services.invoice_billing.billable_positions.refusal-10:
+    IF billing direction is neither sales nor purchase:
+        Refuse: Direction must be sales or purchase.
+
+    BUSINESS RULE services.invoice_billing.billable_positions.refusal-12:
+    IF the requested result limit lies outside the inclusive range 1 to MAX_LIMIT:
+        Refuse the operation with the displayed business error.
+
+    BUSINESS RULE services.invoice_billing.billable_positions.result:
+    Return the current result with direction, party, currency, limit, total, orders.
+    """
+    # reality-rule: services.invoice_billing.billable_positions.refusal-10
     if direction not in _DIRECTIONS:
         raise core.InvalidOperation("Direction must be sales or purchase.")
+    # reality-rule: services.invoice_billing.billable_positions.refusal-12
     if not 1 <= limit <= MAX_LIMIT:
         raise core.InvalidOperation(f"The limit must be between 1 and {MAX_LIMIT}.")
     party = core._tenant_record(session, Party, tenant_id, party_id)
@@ -205,6 +223,7 @@ def billable_positions(
                 "order_line_amount": line.gross_amount,
             }
         )
+    # reality-rule: services.invoice_billing.billable_positions.result
     return {
         "direction": direction,
         "party": {"id": party.id, "name": party.name},

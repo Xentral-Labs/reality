@@ -199,6 +199,30 @@ def record_return_disposition(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Movement:
+    """
+    BUSINESS PURPOSE:
+    Record the stated disposition of received customer-return quantities using the existing return evidence.
+
+    BUSINESS RULE services.return_dispositions.record_return_disposition.step-12:
+    Require the business permission for 'record_return_disposition' before changing company records.
+
+    BUSINESS RULE services.return_dispositions.record_return_disposition.refusal-22:
+    IF the selected returned-goods movement cannot be found in this company:
+        Refuse with return_movement_not_found.
+
+    BUSINESS RULE services.return_dispositions.record_return_disposition.result:
+    Return movement, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.return_dispositions.record_return_disposition.effect-40:
+    Run the shared preview return disposition check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.return_dispositions.record_return_disposition.effect-49:
+    Pass the stated inputs to the shared create master source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.return_dispositions.record_return_disposition.effect-64:
+    Pass the stated inputs to the shared record movement service. Its own source describes validation and record changes.
+    """
+    # reality-rule: services.return_dispositions.record_return_disposition.step-12
     core._require_business_mutation(session, tenant_id, "record_return_disposition")
     with session.begin_nested():
         arrived = session.scalar(
@@ -209,8 +233,10 @@ def record_return_disposition(
             )
             .with_for_update()
         )
+        # reality-rule: services.return_dispositions.record_return_disposition.refusal-22
         if arrived is None:
             raise core.NotFound(code="return_movement_not_found")
+        # reality-rule: services.return_dispositions.record_return_disposition.effect-40
         reviewed = preview_return_disposition(
             session,
             tenant_id,
@@ -220,6 +246,7 @@ def record_return_disposition(
             destination_location_id=destination_location_id,
             reason=reason,
         )
+        # reality-rule: services.return_dispositions.record_return_disposition.effect-49
         source = core.create_master_source_record(
             session,
             tenant_id,
@@ -235,6 +262,7 @@ def record_return_disposition(
             },
             _commit=False,
         )
+        # reality-rule: services.return_dispositions.record_return_disposition.effect-64
         movement = core.record_movement(
             session,
             tenant_id,
@@ -246,4 +274,5 @@ def record_return_disposition(
         session.flush()
     if _commit:
         session.commit()
+    # reality-rule: services.return_dispositions.record_return_disposition.result
     return movement

@@ -163,10 +163,35 @@ def cost_evidence(
     document_id: str,
     document_line_id: str | None = None,
 ) -> dict:
-    """Read exact received fields, including not-yet-normalized supplier evidence."""
+    """
+    Read exact received fields, including not-yet-normalized supplier evidence.
+
+    BUSINESS PURPOSE:
+    Read exact received fields, including not-yet-normalized supplier evidence.
+
+    BUSINESS RULE services.costing.cost_evidence.refusal-10:
+    IF the evidence is neither a supplier invoice nor a supplier credit note:
+        Refuse: receipt_cost_supplier_evidence_required.
+
+    BUSINESS RULE services.costing.cost_evidence.refusal-17:
+    IF the selected line belongs to another document:
+        Refuse: costing_scope_not_found.
+
+    BUSINESS RULE services.costing.cost_evidence.refusal-19:
+    IF the document has lines but no specific line was selected:
+        Refuse: receipt_cost_use_line_not_total. Do not treat the invoice total as one line's cost evidence.
+
+    BUSINESS RULE services.costing.cost_evidence.refusal-31:
+    IF an existing financial component's retained amounts or currency disagree with the received source fields:
+        Refuse: receipt_cost_evidence_changed.
+
+    BUSINESS RULE services.costing.cost_evidence.result:
+    Return the exact received amounts and currency, current event sequence, existing component identity and any offered conversion basis. No normalization or cost assignment is performed by this read.
+    """
     with session.no_autoflush:
         core.get_tenant(session, tenant_id)
         doc = _row(session, Document, tenant_id, document_id)
+        # reality-rule: services.costing.cost_evidence.refusal-10
         if doc.type not in {"supplier_invoice", "supplier_credit_note"}:
             raise core.InvalidOperation(code="receipt_cost_supplier_evidence_required")
         line = (
@@ -174,8 +199,10 @@ def cost_evidence(
             if document_line_id
             else None
         )
+        # reality-rule: services.costing.cost_evidence.refusal-17
         if line and line.document_id != doc.id:
             raise core.NotFound(code="costing_scope_not_found")
+        # reality-rule: services.costing.cost_evidence.refusal-19
         if not line and session.scalar(
             select(DocumentLine.id)
             .where(
@@ -188,12 +215,14 @@ def cost_evidence(
         component = components._component(
             session, tenant_id, doc.id, line.id if line else None
         )
+        # reality-rule: services.costing.cost_evidence.refusal-31
         if component and (
             components._stored_amounts(component) != received["amounts"]
             or component.currency != received["currency"]
         ):
             raise core.Conflict(code="receipt_cost_evidence_changed")
         offer = _offered_conversion_basis(session, tenant_id, doc)
+        # reality-rule: services.costing.cost_evidence.result
         return {
             **received,
             "event_sequence": _sequence(session, tenant_id),
@@ -594,13 +623,30 @@ def receipt_cost(
     *,
     manifest_id: str | None = None,
 ) -> dict:
-    """Read one receipt at current retained knowledge or an exact sealed review basis."""
+    """
+    Read one receipt at current retained knowledge or an exact sealed review basis.
+
+    BUSINESS PURPOSE:
+    Read one receipt at current retained knowledge or an exact sealed review basis.
+
+    BUSINESS RULE services.costing.receipt_cost.refusal-14:
+    IF the movement has no admitted receipt basis AND a sealed manifest was requested:
+        Refuse: costing_scope_not_found.
+
+    BUSINESS RULE services.costing.receipt_cost.refusal-30:
+    IF the selected sealed manifest does not contain this receipt basis:
+        Refuse: costing_scope_not_found.
+
+    BUSINESS RULE services.costing.receipt_cost.result:
+    Return known cost and its evidence trace. Publish actual cost only when a review exists and no required basis is missing. When complete, unit cost is known cost divided by admitted base quantity, rounded to six decimal places using half-even rounding; otherwise actual and unit cost remain unknown. Report stale or incomplete reviews explicitly. This read writes neither business records nor projection rows.
+    """
     with session.no_autoflush:
         core.get_tenant(session, tenant_id)
         _movement(session, tenant_id, movement_id)
         cursor = None if manifest_id else _sequence(session, tenant_id)
         basis = _receipt(session, tenant_id, movement_id)
         if basis is None:
+            # reality-rule: services.costing.receipt_cost.refusal-14
             if manifest_id:
                 raise core.NotFound(code="costing_scope_not_found")
             return {
@@ -617,6 +663,7 @@ def receipt_cost(
         if manifest_id:
             manifest = _row(session, CostInputManifest, tenant_id, manifest_id)
             _verify_manifest(session, tenant_id, manifest)
+            # reality-rule: services.costing.receipt_cost.refusal-30
             if not session.scalar(
                 select(CostManifestReceipt.id).where(
                     CostManifestReceipt.tenant_id == tenant_id,
@@ -741,6 +788,7 @@ def receipt_cost(
         complete = review is not None and not missing
         if review and missing and review_state != "stale":
             review_state = "incomplete"
+        # reality-rule: services.costing.receipt_cost.result
         return {
             "movement_id": movement_id,
             "receipt_basis_id": basis.id,
@@ -1201,21 +1249,55 @@ def execute_cost_change(
     actor_id: str | None,
     confirmed: bool = False,
 ) -> dict:
-    """Execute one bound, explicitly confirmed owner decision in the caller transaction."""
+    """
+    Execute one bound, explicitly confirmed owner decision in the caller transaction.
+
+    BUSINESS PURPOSE:
+    Execute one bound, explicitly confirmed owner decision in the caller transaction.
+
+    BUSINESS RULE services.costing.execute_cost_change.refusal-10:
+    IF the cost decision is not explicitly confirmed:
+        Refuse with cost_decision_confirmation_required.
+
+    BUSINESS RULE services.costing.execute_cost_change.refusal-16:
+    IF the selected proposal is not a cost-change proposal or its retained typed request differs from the submitted request:
+        Refuse with cost_decision_not_bound_to_proposal.
+
+    BUSINESS RULE services.costing.execute_cost_change.refusal-22:
+    IF the selected cost proposal is no longer proposed:
+        Refuse with cost_proposal_not_executable.
+
+    BUSINESS RULE services.costing.execute_cost_change.step-24:
+    Require the business permission for 'execute_cost_change' before changing company records.
+
+    BUSINESS RULE services.costing.execute_cost_change.result:
+    Finish the confirmed cost decision through the existing cost-proposal receipt service and return its recorded result. The selected typed cost action owns the corresponding evidence or review changes.
+
+    BUSINESS RULE services.costing.execute_cost_change.effect-67:
+    IF the confirmed typed action records a cost, inventory, contribution, commercial-match, valuation or conversion-basis review:
+        Record the cost.reviewed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.costing.execute_cost_change.effect-77:
+    Record the cost.attributed audit or business-event evidence with the supplied record and confirmation identity.
+    """
+    # reality-rule: services.costing.execute_cost_change.refusal-10
     if not confirmed:
         raise core.InvalidOperation(code="cost_decision_confirmation_required")
     lock_delivery_state(session, tenant_id)
     _owner(session, tenant_id, Principal(actor_id) if actor_id else None, lock=True)
     action = _row(session, ChangeProposal, tenant_id, action_id)
     request = _request(arguments)
+    # reality-rule: services.costing.execute_cost_change.refusal-16
     if action.type != "tool:cost.change" or _request(
         json.loads(action.input)
     ).model_dump(mode="json") != request.model_dump(mode="json"):
         raise core.InvalidOperation(code="cost_decision_not_bound_to_proposal")
     if action.status == "executed":
         return json.loads(action.output)
+    # reality-rule: services.costing.execute_cost_change.refusal-22
     if action.status != "proposed":
         raise core.InvalidOperation(code="cost_proposal_not_executable")
+    # reality-rule: services.costing.execute_cost_change.step-24
     core._require_business_mutation(session, tenant_id, "execute_cost_change")
     with session.begin_nested():
         review = _check_change(session, tenant_id, request)
@@ -1232,6 +1314,7 @@ def execute_cost_change(
                 ConversionBasisReview,
             ),
         ):
+            # reality-rule: services.costing.execute_cost_change.effect-67
             event = emit_business_event(
                 session,
                 tenant_id,
@@ -1242,6 +1325,7 @@ def execute_cost_change(
                 action_id=action.id,
             )
         else:
+            # reality-rule: services.costing.execute_cost_change.effect-77
             event = emit_business_event(
                 session,
                 tenant_id,
@@ -1405,6 +1489,7 @@ def execute_cost_change(
                 review_id=row.id,
                 **category.model_dump(),
             )
+        # reality-rule: services.costing.execute_cost_change.result
         return _finish(
             session,
             action,
@@ -1480,9 +1565,18 @@ def inventory_cost(
     review_id: str | None = None,
     assessment_revision_id: str | None = None,
 ) -> dict:
-    """Read a confirmed bounded inventory basis without writing or live history replay."""
+    """
+    Read a confirmed bounded inventory basis without writing or live history replay.
+
+    BUSINESS PURPOSE:
+    Read a confirmed bounded inventory basis without writing or live history replay.
+
+    BUSINESS RULE services.costing.inventory_cost.result:
+    Return the result from reality.services.inventory_costing._read; its calculation and eligibility rules remain in that service.
+    """
     from reality.services.inventory_costing import _read
 
+    # reality-rule: services.costing.inventory_cost.result
     return _read(
         session,
         tenant_id,
@@ -1495,9 +1589,18 @@ def inventory_cost(
 def contribution_preview(
     session: Session, tenant_id: str, document_line_id: str
 ) -> dict:
-    """Read a current, unconfirmed revenue/consumption candidate without writes."""
+    """
+    Read a current, unconfirmed revenue/consumption candidate without writes.
+
+    BUSINESS PURPOSE:
+    Read a current, unconfirmed revenue/consumption candidate without writes.
+
+    BUSINESS RULE services.costing.contribution_preview.result:
+    Return the result from reality.services.contribution._read; its calculation and eligibility rules remain in that service.
+    """
     from reality.services.contribution import _read
 
+    # reality-rule: services.costing.contribution_preview.result
     return _read(session, tenant_id, document_line_id)
 
 
@@ -1508,9 +1611,18 @@ def reviewed_contribution(
     *,
     review_id: str | None = None,
 ) -> dict:
-    """Derive confirmed DB1 from an exact retained commercial and inventory review."""
+    """
+    Derive confirmed DB1 from an exact retained commercial and inventory review.
+
+    BUSINESS PURPOSE:
+    Derive confirmed DB1 from an exact retained commercial and inventory review.
+
+    BUSINESS RULE services.costing.reviewed_contribution.result:
+    Return the result from reality.services.contribution_reviews._read; its calculation and eligibility rules remain in that service.
+    """
     from reality.services.contribution_reviews import _read
 
+    # reality-rule: services.costing.reviewed_contribution.result
     return _read(session, tenant_id, document_line_id, review_id=review_id)
 
 
@@ -1521,9 +1633,18 @@ def commercial_match(
     *,
     match_revision_id: str | None = None,
 ) -> dict:
-    """Read a retained partial commercial match and derive its current observation."""
+    """
+    Read a retained partial commercial match and derive its current observation.
+
+    BUSINESS PURPOSE:
+    Read a retained partial commercial match and derive its current observation.
+
+    BUSINESS RULE services.costing.commercial_match.result:
+    Return the result from reality.services.commercial_matching._read; its calculation and eligibility rules remain in that service.
+    """
     from reality.services.commercial_matching import _read
 
+    # reality-rule: services.costing.commercial_match.result
     return _read(
         session,
         tenant_id,
@@ -1541,9 +1662,18 @@ def cost_record(
     page: int = 1,
     language: str = "en",
 ) -> dict:
-    """Inspect a retained cost record and bounded exact membership without valuation writes."""
+    """
+    Inspect a retained cost record and bounded exact membership without valuation writes.
+
+    BUSINESS PURPOSE:
+    Inspect a retained cost record and bounded exact membership without valuation writes.
+
+    BUSINESS RULE services.costing.cost_record.result:
+    Return the result from reality.services.cost_records._read; its calculation and eligibility rules remain in that service.
+    """
     from reality.services.cost_records import _read
 
+    # reality-rule: services.costing.cost_record.result
     return _read(session, tenant_id, kind, record_id, page=page, language=language)
 
 
@@ -1555,9 +1685,18 @@ def cost_review_draft(
     scope_id: str,
     answers: dict | None = None,
 ) -> dict:
-    """Draft the review the held records support for one scope (spec 282)."""
+    """
+    Draft the review the held records support for one scope (spec 282).
+
+    BUSINESS PURPOSE:
+    Draft the review the held records support for one scope (spec 282).
+
+    BUSINESS RULE services.costing.cost_review_draft.result:
+    Return the result from draft; inspect that called function for its calculation and eligibility rules.
+    """
     from reality.services.cost_review_draft import cost_review_draft as draft
 
+    # reality-rule: services.costing.cost_review_draft.result
     return draft(session, tenant_id, kind=kind, scope_id=scope_id, answers=answers)
 
 
@@ -1569,7 +1708,15 @@ def propose_cost_review(
     scope_id: str,
     answers: dict | None = None,
 ) -> dict:
-    """Propose the review the held records support now, for an owner to confirm."""
+    """
+    Propose the review the held records support now, for an owner to confirm.
+
+    BUSINESS PURPOSE:
+    Propose the review the held records support now, for an owner to confirm.
+
+    BUSINESS RULE services.costing.propose_cost_review.result:
+    Return the current result with proposal_id, status, created, requires_confirmation, preview, next_step.
+    """
     from reality.services.cost_review_draft import propose_drafted_review
     from reality.services.proposal_reviews import proposal_next_step
 
@@ -1581,6 +1728,7 @@ def propose_cost_review(
         answers=answers,
         actor_type="agent",
     )
+    # reality-rule: services.costing.propose_cost_review.result
     return {
         "proposal_id": proposal.id,
         "status": proposal.status,
@@ -1602,9 +1750,18 @@ def cost_query(
     knowledge_at: datetime | str | None = None,
     policy_revision_id: str | None = None,
 ) -> dict:
-    """Resolve a retained cost answer and its exact constrained query context."""
+    """
+    Resolve a retained cost answer and its exact constrained query context.
+
+    BUSINESS PURPOSE:
+    Resolve a retained cost answer and its exact constrained query context.
+
+    BUSINESS RULE services.costing.cost_query.result:
+    Return the result from reality.services.cost_query._read; its calculation and eligibility rules remain in that service.
+    """
     from reality.services.cost_query import _read
 
+    # reality-rule: services.costing.cost_query.result
     return _read(
         session,
         tenant_id,

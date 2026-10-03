@@ -95,7 +95,15 @@ def _credit(
 def settlement_context(
     session: Session, tenant_id: str, document_id: str, query: str = ""
 ) -> dict[str, Any]:
-    """Read an invoice or original credit and bounded matching invoice choices."""
+    """
+    Read an invoice or original credit and bounded matching invoice choices.
+
+    BUSINESS PURPOSE:
+    Read an invoice or original credit and bounded matching invoice choices.
+
+    BUSINESS RULE services.finance.settlement_flows.settlement_context.result:
+    Return the current result with document_id, number, kind, side, party_id, party, currency, available, control_entry_id, control_account_id, control_account_code, source_record_id, revision, invoices, more_invoices, candidates.
+    """
     document = core._tenant_record(session, Document, tenant_id, document_id)
     accounts = list_accounts(session, tenant_id)
     if document.type in INVOICES:
@@ -162,6 +170,7 @@ def settlement_context(
         if len(choices) == 51:
             break
     choices.sort(key=lambda choice: (not choice["reasons"], choice["number"]))
+    # reality-rule: services.finance.settlement_flows.settlement_context.result
     return {
         "document_id": document.id,
         "number": document.number,
@@ -370,9 +379,25 @@ def preview_settlement(session: Session, tenant_id: str, values: dict) -> dict:
 def apply_settlement(
     session: Session, tenant_id: str, *, action_id: str, actor_id: str | None, **values
 ) -> dict:
-    """Compose existing primitives inside the confirmed finance transaction."""
+    """
+    Compose existing primitives inside the confirmed finance transaction.
+
+    BUSINESS PURPOSE:
+    Compose existing primitives inside the confirmed finance transaction.
+
+    BUSINESS RULE services.finance.settlement_flows.apply_settlement.step-6:
+    Run the shared preview settlement check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.finance.settlement_flows.apply_settlement.result:
+    Return result, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.finance.settlement_flows.apply_settlement.effect-34:
+    IF settlement is not merely an allocation of existing credit:
+        Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+    """
     lock_delivery_state(session, tenant_id)
     lock_finance(session, tenant_id)
+    # reality-rule: services.finance.settlement_flows.apply_settlement.step-6
     preview = preview_settlement(session, tenant_id, values)
     mode, side = preview["mode"], preview["side"]
     role = "accounts_receivable" if side == "customer" else "accounts_payable"
@@ -389,6 +414,7 @@ def apply_settlement(
             preview["target_entry_id"],
         )
         if mode != "allocate_credit":
+            # reality-rule: services.finance.settlement_flows.apply_settlement.effect-34
             source, _, _ = core.store_source_record(
                 session,
                 tenant_id,
@@ -454,4 +480,5 @@ def apply_settlement(
                 expected_revision=list_accounts(session, tenant_id)["revision"],
                 **values["reduction"],
             )
+    # reality-rule: services.finance.settlement_flows.apply_settlement.result
     return result

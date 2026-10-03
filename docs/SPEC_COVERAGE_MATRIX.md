@@ -2380,6 +2380,8 @@ No schema change. An order in another currency than the customer's credit limit 
 
 - Source-authored business explanations (spec 343 FR-042–046): `packages/reality-core/tests/test_business_blueprint_annotations.py`; live parser, actual marker binding, invalid/missing descriptions, current docstring freshness, test variants and shared-service no-provider regression. Credit descriptions preserve `packages/reality-core/tests/test_credit_exposure.py`; Docs rendering covered by `apps/docs/scripts/business-blueprints.test.mjs`.
 
+- Complete current source-description preparation (spec 343 FR-047–049): `packages/reality-core/tests/test_business_annotation_audit.py`; future root/test gaps, unresolved rule references, missing bindings and shared physical templates. `packages/reality-core/tests/test_business_blueprint_annotations.py` verifies complete repository inventory and finance-account named-adapter call parity. `scripts/check_business_annotations.py` gates registered roots and approved test descriptions. Bulk commentary preserves executable ASTs apart from the specified pure-delegate lambda replacement.
+
 ## Payout settlement cost — Spec 342
 
 No schema change. A payout statement is reviewed and settled as one batch: locks and stable reads are kept for the transaction, line sources are stored together and order references are read for the whole statement.

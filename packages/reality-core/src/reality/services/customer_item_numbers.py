@@ -83,10 +83,19 @@ def mapping_values(row: CustomerItemNumber | None) -> dict[str, str] | None:
 def resolve_customer_item(
     session: Session, tenant_id: str, party_id: str | None, number: str | None
 ) -> CustomerItemNumber | None:
-    """The mapping a customer's number names, or None."""
+    """
+    The mapping a customer's number names, or None.
+
+    BUSINESS PURPOSE:
+    The mapping a customer's number names, or None.
+
+    BUSINESS RULE services.customer_item_numbers.resolve_customer_item.result:
+    Return the current mapping for this customer and customer item number, or no mapping if none is recorded. Do not guess an item from a similar number.
+    """
     key = match_key(number or "")
     if not party_id or not key:
         return None
+    # reality-rule: services.customer_item_numbers.resolve_customer_item.result
     return _current(session, tenant_id, party_id, key)
 
 
@@ -157,9 +166,28 @@ def set_customer_item_number(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> CustomerItemNumber:
-    """State, or restate, which of our items a customer's number names."""
+    """
+    State, or restate, which of our items a customer's number names.
+
+    BUSINESS PURPOSE:
+    State, or restate, which of our items a customer's number names.
+
+    BUSINESS RULE services.customer_item_numbers.set_customer_item_number.step-13:
+    Require the business permission for 'set_customer_item_number' before changing company records.
+
+    BUSINESS RULE services.customer_item_numbers.set_customer_item_number.step-15:
+    Run the shared validate customer item number check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.customer_item_numbers.set_customer_item_number.step-56:
+    Record the customer_item_number.set audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.customer_item_numbers.set_customer_item_number.result:
+    Return row, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.customer_item_numbers.set_customer_item_number.step-13
     _require_business_mutation(session, tenant_id, "set_customer_item_number")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.customer_item_numbers.set_customer_item_number.step-15
     party, item, stated, key = validate_customer_item_number(
         session, tenant_id, party_id, item_id, number
     )
@@ -201,6 +229,7 @@ def set_customer_item_number(
         # The same confirmation again: it already stated this.
         return row
     session.flush()
+    # reality-rule: services.customer_item_numbers.set_customer_item_number.step-56
     emit_business_event(
         session,
         tenant_id,
@@ -220,6 +249,7 @@ def set_customer_item_number(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.customer_item_numbers.set_customer_item_number.result
     return row
 
 
@@ -233,9 +263,28 @@ def remove_customer_item_number(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Withdraw a customer's number; lines ordered by it keep it as stated."""
+    """
+    Withdraw a customer's number; lines ordered by it keep it as stated.
+
+    BUSINESS PURPOSE:
+    Withdraw a customer's number; lines ordered by it keep it as stated.
+
+    BUSINESS RULE services.customer_item_numbers.remove_customer_item_number.step-11:
+    Require the business permission for 'remove_customer_item_number' before changing company records.
+
+    BUSINESS RULE services.customer_item_numbers.remove_customer_item_number.step-13:
+    Run the shared validate customer item number check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.customer_item_numbers.remove_customer_item_number.step-22:
+    Record the customer_item_number.removed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.customer_item_numbers.remove_customer_item_number.result:
+    Return the current result with source_record_id.
+    """
+    # reality-rule: services.customer_item_numbers.remove_customer_item_number.step-11
     _require_business_mutation(session, tenant_id, "remove_customer_item_number")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.customer_item_numbers.remove_customer_item_number.step-13
     party, _, _, key = validate_customer_item_number(
         session, tenant_id, party_id, None, number, removing=True
     )
@@ -245,6 +294,7 @@ def remove_customer_item_number(
     source = _state(session, tenant_id, party, key, {"removed": True}, action_id)
     session.delete(row)
     session.flush()
+    # reality-rule: services.customer_item_numbers.remove_customer_item_number.step-22
     emit_business_event(
         session,
         tenant_id,
@@ -258,6 +308,7 @@ def remove_customer_item_number(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.customer_item_numbers.remove_customer_item_number.result
     return {**removed, "source_record_id": source.id}
 
 
@@ -268,7 +319,15 @@ def customer_item_numbers(
     party_id: str | None = None,
     item_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """The company's customer item numbers, of one customer or one item."""
+    """
+    The company's customer item numbers, of one customer or one item.
+
+    BUSINESS PURPOSE:
+    The company's customer item numbers, of one customer or one item.
+
+    BUSINESS RULE services.customer_item_numbers.customer_item_numbers.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     query = (
         select(CustomerItemNumber, Item, Party)
         .join(
@@ -287,6 +346,7 @@ def customer_item_numbers(
         query = query.where(CustomerItemNumber.party_id == party_id)
     if item_id:
         query = query.where(CustomerItemNumber.item_id == item_id)
+    # reality-rule: services.customer_item_numbers.customer_item_numbers.result
     return [
         {
             "id": row.id,
@@ -357,15 +417,31 @@ CUSTOMER_ITEM_NUMBER_TOOLS = {"customer_item_number_set", "customer_item_number_
 def review_customer_item_number(
     session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown.
+    """
+    The arguments a confirmation executes and what the person is shown.
 
     The review shows what the number names now, or nothing, beside what it
     will name, and carries the current mapping: a confirmation after it changed
     is refused.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.customer_item_numbers.review_customer_item_number.refusal-9:
+    IF the requested operation is not registered for this review service:
+        Refuse with proposal_tool_not_found.
+
+    BUSINESS RULE services.customer_item_numbers.review_customer_item_number.step-12:
+    Run the shared validate customer item number check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.customer_item_numbers.review_customer_item_number.result:
+    Return normalized, preview, as prepared by the preceding checks and service calls.
     """
+    # reality-rule: services.customer_item_numbers.review_customer_item_number.refusal-9
     if tool_name not in CUSTOMER_ITEM_NUMBER_TOOLS:
         raise InvalidOperation(code="proposal_tool_not_found")
     removing = tool_name == "customer_item_number_remove"
+    # reality-rule: services.customer_item_numbers.review_customer_item_number.step-12
     party, item, stated, key = validate_customer_item_number(
         session,
         tenant_id,
@@ -405,4 +481,5 @@ def review_customer_item_number(
             "customer_item_name": name,
         },
     }
+    # reality-rule: services.customer_item_numbers.review_customer_item_number.result
     return normalized, preview

@@ -85,6 +85,13 @@ def _object_schema(
 
 def _read(application_name: str) -> ToolHandler:
     def handler(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+        """
+        BUSINESS PURPOSE:
+        Run the bound read-only application tool for this company. Selected list tools default to the paginated response format.
+
+        BUSINESS RULE mcp.catalog._read.handler.step-10:
+        Pass the stated inputs to the shared run read tool service. Its own source describes validation and record changes.
+        """
         if application_name in {
             "business_discover",
             "inventory",
@@ -94,6 +101,7 @@ def _read(application_name: str) -> ToolHandler:
             "item_supply_demand",
         }:
             arguments = {"response_format": "page", **arguments}
+        # reality-rule: mcp.catalog._read.handler.step-10
         return run_read_tool(session, tenant_id, application_name, arguments)
 
     return handler
@@ -157,6 +165,16 @@ _cost_review_propose.application_name = "cost.change"  # type: ignore[attr-defin
 
 def _propose(application_name: str) -> ToolHandler:
     def handler(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+        """
+        BUSINESS PURPOSE:
+        Prepare a change proposal for the bound application tool. Normalize absent arguments and expose the review; do not execute the change.
+
+        BUSINESS RULE mcp.catalog._propose.handler.step-8:
+        Pass the stated inputs to the shared create change proposal service. Its own source describes validation and record changes.
+
+        BUSINESS RULE mcp.catalog._propose.handler.result:
+        Return the prepared proposal identity, status, normalized arguments, review preview and next-step guidance. requires_confirmation is always true; this adapter does not execute the proposed business change.
+        """
         normalized = {
             key: value for key, value in arguments.items() if value is not None
         }
@@ -164,11 +182,13 @@ def _propose(application_name: str) -> ToolHandler:
             normalized.setdefault("source_system", "manual_upload")
             normalized.setdefault("source_type", "data_drop")
             normalized.setdefault("expected_target", "data_drop")
+        # reality-rule: mcp.catalog._propose.handler.step-8
         proposal = create_change_proposal(
             session, tenant_id, application_name, normalized
         )
         from reality.services.proposal_reviews import proposal_next_step
 
+        # reality-rule: mcp.catalog._propose.handler.result
         return {
             "proposal_id": proposal.id,
             "status": proposal.status,
@@ -204,6 +224,25 @@ def decision_channel(channel: str):
 def _approve_proposal(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Settle an explicit authorized approval through the shared proposal service; legacy delivery proposals first return a review requiring confirmation.
+
+    BUSINESS RULE mcp.catalog._approve_proposal.refusal-3:
+    IF approved is not explicitly true:
+        Refuse: Set approved=true only for an explicit authorized decision.
+
+    BUSINESS RULE mcp.catalog._approve_proposal.step-29:
+    Pass the stated inputs to the shared approve and execute proposal service. Its own source describes validation and record changes.
+
+    BUSINESS RULE mcp.catalog._approve_proposal.result:
+    Return the settled proposal identity, status, tool, receipt and recorded decision evidence. Successful settlement delegates execution to the common approval service.
+
+    BUSINESS RULE mcp.catalog._approve_proposal.effect-31:
+    IF a proposed legacy delivery action was found and has no retained delivery review:
+        Run the shared review existing check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+    """
+    # reality-rule: mcp.catalog._approve_proposal.refusal-3
     if arguments.get("approved") is not True:
         raise ValueError("Set approved=true only for an explicit authorized decision.")
     from reality.services.delivery_actions import get_delivery_proposal, review_existing
@@ -217,6 +256,7 @@ def _approve_proposal(
         and "_delivery_review" not in json.loads(candidate.input)
         and candidate.status == "proposed"
     ):
+        # reality-rule: mcp.catalog._approve_proposal.effect-31
         reviewed = review_existing(session, tenant_id, candidate.id)
         return {
             "proposal_id": reviewed.id,
@@ -230,6 +270,7 @@ def _approve_proposal(
         from reality.services.memberships import Principal
 
         confirming_principal = Principal(mcp_principal.user_id)
+    # reality-rule: mcp.catalog._approve_proposal.step-29
     proposal = approve_and_execute_proposal(
         session,
         tenant_id,
@@ -241,6 +282,7 @@ def _approve_proposal(
         settling_channel=SETTLING_CHANNEL.get(),
     )
     receipt = json.loads(proposal.output)
+    # reality-rule: mcp.catalog._approve_proposal.result
     return {
         "proposal_id": proposal.id,
         "status": proposal.status,
@@ -254,6 +296,21 @@ def _approve_proposal(
 def _reject_proposal(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Settle an explicit authorized rejection through the shared proposal service without applying a business change.
+
+    BUSINESS RULE mcp.catalog._reject_proposal.refusal-3:
+    IF rejected is not explicitly true:
+        Refuse: Set rejected=true only for an explicit authorized decision.
+
+    BUSINESS RULE mcp.catalog._reject_proposal.step-11:
+    Pass the stated inputs to the shared reject proposal service. Its own source describes validation and record changes.
+
+    BUSINESS RULE mcp.catalog._reject_proposal.result:
+    Return the rejected proposal and recorded decider. Report business_effect as none; rejection does not execute the proposed mutation.
+    """
+    # reality-rule: mcp.catalog._reject_proposal.refusal-3
     if arguments.get("rejected") is not True:
         raise ValueError("Set rejected=true only for an explicit authorized decision.")
     mcp_principal = current_mcp_principal()
@@ -262,6 +319,7 @@ def _reject_proposal(
         from reality.services.memberships import Principal
 
         confirming_principal = Principal(mcp_principal.user_id)
+    # reality-rule: mcp.catalog._reject_proposal.step-11
     proposal = reject_proposal(
         session,
         tenant_id,
@@ -270,6 +328,7 @@ def _reject_proposal(
         settling_token_id=_settling_token(session, tenant_id),
         settling_channel=SETTLING_CHANNEL.get(),
     )
+    # reality-rule: mcp.catalog._reject_proposal.result
     return {
         "proposal_id": proposal.id,
         "status": proposal.status,

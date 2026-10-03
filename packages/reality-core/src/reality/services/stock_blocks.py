@@ -159,12 +159,24 @@ def stock_blocks(
     location_id: str | None = None,
     status: str = "active",
 ) -> list[dict[str, Any]]:
-    """The company's stock blocks, open ones by default, newest first.
+    """
+    The company's stock blocks, open ones by default, newest first.
 
     `active` holds something back still, `resolved` holds nothing back any
     more; both are read from the resolutions, never stored (spec 316).
+
+    BUSINESS PURPOSE:
+    The company's stock blocks, open ones by default, newest first.
+
+    BUSINESS RULE services.stock_blocks.stock_blocks.refusal-14:
+    IF status is neither active, resolved nor all:
+        Refuse with stock_block_status_unsupported.
+
+    BUSINESS RULE services.stock_blocks.stock_blocks.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
     """
     get_tenant(session, tenant_id)
+    # reality-rule: services.stock_blocks.stock_blocks.refusal-14
     if status not in {"active", "resolved", "all"}:
         raise InvalidOperation(code="stock_block_status_unsupported")
     resolved = (
@@ -202,6 +214,7 @@ def stock_blocks(
         query = query.where(StockBlock.location_id == location_id)
     rows = session.execute(query).all()
     resolutions = _resolutions(session, tenant_id, [block.id for block, _, _ in rows])
+    # reality-rule: services.stock_blocks.stock_blocks.result
     return [
         _row(block, resolutions[block.id], item, location)
         for block, item, location in rows
@@ -290,9 +303,28 @@ def block_stock(
     _receipt: Decimal | None = None,
     _commit: bool = True,
 ) -> StockBlock:
-    """Hold back a quantity where it lies; nothing moves."""
+    """
+    Hold back a quantity where it lies; nothing moves.
+
+    BUSINESS PURPOSE:
+    Hold back a quantity where it lies; nothing moves.
+
+    BUSINESS RULE services.stock_blocks.block_stock.step-19:
+    Require the business permission for 'block_stock' before changing company records.
+
+    BUSINESS RULE services.stock_blocks.block_stock.step-21:
+    Run the shared validate block check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.stock_blocks.block_stock.step-49:
+    Record the stock_block.created audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.stock_blocks.block_stock.result:
+    Return block, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.stock_blocks.block_stock.step-19
     _require_business_mutation(session, tenant_id, "block_stock")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.stock_blocks.block_stock.step-21
     item, location, amount, lot_id = validate_block(
         session,
         tenant_id,
@@ -321,6 +353,7 @@ def block_stock(
     )
     session.add(block)
     session.flush()
+    # reality-rule: services.stock_blocks.block_stock.step-49
     emit_business_event(
         session,
         tenant_id,
@@ -342,6 +375,7 @@ def block_stock(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.stock_blocks.block_stock.result
     return block
 
 
@@ -413,9 +447,28 @@ def release_stock_block(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Make blocked goods available again, wholly or partly; nothing moves."""
+    """
+    Make blocked goods available again, wholly or partly; nothing moves.
+
+    BUSINESS PURPOSE:
+    Make blocked goods available again, wholly or partly; nothing moves.
+
+    BUSINESS RULE services.stock_blocks.release_stock_block.step-12:
+    Require the business permission for 'release_stock_block' before changing company records.
+
+    BUSINESS RULE services.stock_blocks.release_stock_block.step-14:
+    Run the shared validate resolution check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.stock_blocks.release_stock_block.step-21:
+    Record the stock_block.released audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.stock_blocks.release_stock_block.result:
+    Return the current result with block_id, released, open_quantity.
+    """
+    # reality-rule: services.stock_blocks.release_stock_block.step-12
     _require_business_mutation(session, tenant_id, "release_stock_block")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.stock_blocks.release_stock_block.step-14
     block, amount, stated, remaining = validate_resolution(
         session, tenant_id, block_id, quantity, reason
     )
@@ -423,6 +476,7 @@ def release_stock_block(
         session, tenant_id, block, "release", amount, stated, resolved_by
     )
     left = _plain(remaining - amount)
+    # reality-rule: services.stock_blocks.release_stock_block.step-21
     emit_business_event(
         session,
         tenant_id,
@@ -442,6 +496,7 @@ def release_stock_block(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.stock_blocks.release_stock_block.result
     return {"block_id": block.id, "released": _plain(amount), "open_quantity": left}
 
 
@@ -457,11 +512,33 @@ def scrap_stock_block(
     _occurred_at: datetime | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Write blocked goods off: one reasoned adjustment out of their location."""
+    """
+    Write blocked goods off: one reasoned adjustment out of their location.
+
+    BUSINESS PURPOSE:
+    Write blocked goods off: one reasoned adjustment out of their location.
+
+    BUSINESS RULE services.stock_blocks.scrap_stock_block.step-15:
+    Require the business permission for 'scrap_stock_block' before changing company records.
+
+    BUSINESS RULE services.stock_blocks.scrap_stock_block.step-17:
+    Run the shared validate resolution check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.stock_blocks.scrap_stock_block.step-27:
+    Pass the stated inputs to the shared record movement service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.stock_blocks.scrap_stock_block.step-44:
+    Record the stock_block.scrapped audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.stock_blocks.scrap_stock_block.result:
+    Return the current result with block_id, scrapped, movement_id, open_quantity.
+    """
     from reality.services.core import record_movement
 
+    # reality-rule: services.stock_blocks.scrap_stock_block.step-15
     _require_business_mutation(session, tenant_id, "scrap_stock_block")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.stock_blocks.scrap_stock_block.step-17
     block, amount, stated, remaining = validate_resolution(
         session, tenant_id, block_id, quantity, reason
     )
@@ -472,6 +549,7 @@ def scrap_stock_block(
     resolution = _resolve(
         session, tenant_id, block, "scrap", amount, stated, resolved_by, movement_id
     )
+    # reality-rule: services.stock_blocks.scrap_stock_block.step-27
     movement = record_movement(
         session,
         tenant_id,
@@ -489,6 +567,7 @@ def scrap_stock_block(
         _movement_id=movement_id,
     )
     left = _plain(remaining - amount)
+    # reality-rule: services.stock_blocks.scrap_stock_block.step-44
     emit_business_event(
         session,
         tenant_id,
@@ -509,6 +588,7 @@ def scrap_stock_block(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.stock_blocks.scrap_stock_block.result
     return {
         "block_id": block.id,
         "scrapped": _plain(amount),
@@ -541,18 +621,37 @@ STOCK_BLOCK_TOOLS = {"stock_block", "stock_block_release", "stock_block_scrap"}
 def review_stock_block(
     session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown.
+    """
+    The arguments a confirmation executes and what the person is shown.
 
     A block's review shows the stock at its identity: physical, reserved,
     already blocked and what this block leaves available. A release or scrap
     review shows the block and carries the quantity it saw, so a confirmation
     after the block changed is refused.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.stock_blocks.review_stock_block.refusal-51:
+    IF the requested operation is not registered for this review service:
+        Refuse with proposal_tool_not_found.
+
+    BUSINESS RULE services.stock_blocks.review_stock_block.step-53:
+    Run the shared validate resolution check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.stock_blocks.review_stock_block.result:
+    Return normalized, preview, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.stock_blocks.review_stock_block.effect-29:
+    IF the requested operation places a stock block:
+        Run the shared validate block check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
     """
     if tool_name == "stock_block":
         identity = {
             key: arguments.get(key) or None
             for key in ("handling_unit_id", "lot_id", "serial_unit_id")
         }
+        # reality-rule: services.stock_blocks.review_stock_block.effect-29
         item, location, amount, lot_id = validate_block(
             session,
             tenant_id,
@@ -589,8 +688,10 @@ def review_stock_block(
             "reason_code": arguments["reason_code"],
         }
         return normalized, preview
+    # reality-rule: services.stock_blocks.review_stock_block.refusal-51
     if tool_name not in STOCK_BLOCK_TOOLS:
         raise InvalidOperation(code="proposal_tool_not_found")
+    # reality-rule: services.stock_blocks.review_stock_block.step-53
     block, amount, stated, remaining = validate_resolution(
         session,
         tenant_id,
@@ -606,6 +707,7 @@ def review_stock_block(
     }
     detail = stock_block_detail(session, tenant_id, block.id)
     preview = {**detail, "resolving": _plain(amount), "reason": stated}
+    # reality-rule: services.stock_blocks.review_stock_block.result
     return normalized, preview
 
 

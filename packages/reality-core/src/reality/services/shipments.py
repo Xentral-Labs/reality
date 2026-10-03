@@ -75,7 +75,36 @@ def record_shipment_notice(
     commit: bool = True,
     _planned: dict[str, Any] | None = None,
 ) -> tuple[Shipment, ShipmentPackage, ShipmentEvent]:
+    """
+    BUSINESS PURPOSE:
+    Record a stated shipment notice and its referenced company delivery records.
+
+    BUSINESS RULE services.shipments.record_shipment_notice.refusal-29:
+    IF the selected counterparty lacks the business role required by this shipment direction within the current company:
+        Refuse with shipment_counterparty_role_mismatch.
+
+    BUSINESS RULE services.shipments.record_shipment_notice.refusal-40:
+    IF the reporter type is not registered for shipment events:
+        Refuse with shipment_event_reporter_unsupported.
+
+    BUSINESS RULE services.shipments.record_shipment_notice.step-45:
+    Run the shared validate advice check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.shipments.record_shipment_notice.step-91:
+    Record the shipment.notice_recorded audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.shipments.record_shipment_notice.result:
+    Return shipment, package, event, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.shipments.record_shipment_notice.effect-41:
+    Run the shared validate shipment direction check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.shipments.record_shipment_notice.effect-114:
+    IF receipt advice was supplied:
+        Pass the stated inputs to the shared record advice service. Its own source describes validation and record changes.
+    """
     try:
+        # reality-rule: services.shipments.record_shipment_notice.effect-41
         validate_shipment_direction(purpose, direction)
     except ShipmentCompatibilityError as error:
         raise InvalidOperation.from_refusal(error) from error
@@ -85,6 +114,7 @@ def record_shipment_notice(
     _check_moved_at(occurred_at)
     _record(session, Party, tenant_id, counterparty_id)
     role = required_party_role(purpose)
+    # reality-rule: services.shipments.record_shipment_notice.refusal-29
     if not session.scalar(
         select(
             exists().where(
@@ -96,11 +126,13 @@ def record_shipment_notice(
     ):
         raise InvalidOperation(code="shipment_counterparty_role_mismatch")
     _validate_source(session, tenant_id, source_record_id)
+    # reality-rule: services.shipments.record_shipment_notice.refusal-40
     if reporter_type not in REPORTER_TYPES:
         raise InvalidOperation(code="shipment_event_reporter_unsupported")
     from reality.services.receipt_deviations import record_advice, validate_advice
 
     # Spec 338: an inbound notice may say how much it brings for each purchase.
+    # reality-rule: services.shipments.record_shipment_notice.step-45
     advice = validate_advice(
         session,
         tenant_id,
@@ -146,7 +178,9 @@ def record_shipment_notice(
     session.add(event)
     session.flush()
     if advice:
+        # reality-rule: services.shipments.record_shipment_notice.effect-114
         record_advice(session, tenant_id, shipment.id, advice)
+    # reality-rule: services.shipments.record_shipment_notice.step-91
     emit_business_event(
         session,
         tenant_id,
@@ -183,6 +217,7 @@ def record_shipment_notice(
     )
     if commit:
         session.commit()
+    # reality-rule: services.shipments.record_shipment_notice.result
     return shipment, package, event
 
 
@@ -224,7 +259,10 @@ def _check_stock_at_moved_time(
         except (ArithmeticError, ValueError):
             continue
     for (item_id, location_id, lot_id), quantity in taken.items():
-        if book_as_of(session, tenant_id, item_id, location_id, lot_id, stated) < quantity:
+        if (
+            book_as_of(session, tenant_id, item_id, location_id, lot_id, stated)
+            < quantity
+        ):
             raise InvalidOperation(code="shipment_occurred_before_stock")
 
 
@@ -267,11 +305,31 @@ def record_shipment_event(
     action_id: str | None = None,
     commit: bool = True,
 ) -> ShipmentEvent:
+    """
+    BUSINESS PURPOSE:
+    Record a stated shipment event against this company's shipment evidence.
+
+    BUSINESS RULE services.shipments.record_shipment_event.refusal-16:
+    IF the event type or reporter type is not registered:
+        Refuse with shipment_event_kind_or_reporter_unsupported.
+
+    BUSINESS RULE services.shipments.record_shipment_event.step-47:
+    Record the shipment.event_recorded audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.shipments.record_shipment_event.refusal-20:
+    IF a package was supplied but belongs to another shipment:
+        Refuse with shipment_package_not_on_shipment.
+
+    BUSINESS RULE services.shipments.record_shipment_event.result:
+    Return event, as prepared by the preceding checks and service calls.
+    """
     _record(session, Shipment, tenant_id, shipment_id)
+    # reality-rule: services.shipments.record_shipment_event.refusal-16
     if event_type not in EVENT_TYPES or reporter_type not in REPORTER_TYPES:
         raise InvalidOperation(code="shipment_event_kind_or_reporter_unsupported")
     if shipment_package_id:
         package = _record(session, ShipmentPackage, tenant_id, shipment_package_id)
+        # reality-rule: services.shipments.record_shipment_event.refusal-20
         if package.shipment_id != shipment_id:
             raise InvalidOperation(code="shipment_package_not_on_shipment")
     _validate_source(session, tenant_id, source_record_id)
@@ -299,6 +357,7 @@ def record_shipment_event(
     )
     session.add(event)
     session.flush()
+    # reality-rule: services.shipments.record_shipment_event.step-47
     emit_business_event(
         session,
         tenant_id,
@@ -317,6 +376,7 @@ def record_shipment_event(
     )
     if commit:
         session.commit()
+    # reality-rule: services.shipments.record_shipment_event.result
     return event
 
 
@@ -332,12 +392,32 @@ def supersede_shipment_event(
     action_id: str | None = None,
     commit: bool = True,
 ) -> ShipmentEventSupersession:
+    """
+    BUSINESS PURPOSE:
+    Replace a shipment-event statement while preserving the prior event as superseded evidence.
+
+    BUSINESS RULE services.shipments.supersede_shipment_event.refusal-13:
+    IF the correction reason is empty after trimming whitespace:
+        Refuse with shipment_event_correction_reason_required.
+
+    BUSINESS RULE services.shipments.supersede_shipment_event.step-40:
+    Record the shipment.event_superseded audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.shipments.supersede_shipment_event.refusal-18:
+    IF the replacement event belongs to another shipment or is the event being replaced:
+        Refuse with shipment_event_replacement_invalid.
+
+    BUSINESS RULE services.shipments.supersede_shipment_event.result:
+    Return result, as prepared by the preceding checks and service calls.
+    """
     event = _record(session, ShipmentEvent, tenant_id, event_id)
+    # reality-rule: services.shipments.supersede_shipment_event.refusal-13
     if not reason.strip():
         raise InvalidOperation(code="shipment_event_correction_reason_required")
     replacement = None
     if replacement_event_id:
         replacement = _record(session, ShipmentEvent, tenant_id, replacement_event_id)
+        # reality-rule: services.shipments.supersede_shipment_event.refusal-18
         if replacement.shipment_id != event.shipment_id or replacement.id == event.id:
             raise InvalidOperation(code="shipment_event_replacement_invalid")
     _validate_source(session, tenant_id, source_record_id)
@@ -360,6 +440,7 @@ def supersede_shipment_event(
     )
     session.add(result)
     session.flush()
+    # reality-rule: services.shipments.supersede_shipment_event.step-40
     emit_business_event(
         session,
         tenant_id,
@@ -373,6 +454,7 @@ def supersede_shipment_event(
     )
     if commit:
         session.commit()
+    # reality-rule: services.shipments.supersede_shipment_event.result
     return result
 
 
@@ -395,6 +477,43 @@ def record_packaged_execution(
     shipment_id: str | None = None,
     commit: bool = True,
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Record the stated packaged warehouse execution through the common movement service.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.refusal-169:
+    IF the execution produced no warehouse movement:
+        Refuse with shipment_execution_movement_missing.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.refusal-41:
+    IF an outbound delivery was selected but direction is not outbound or purpose is not customer delivery:
+        Refuse with outbound_delivery_dispatch_mismatch.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.refusal-128:
+    IF the supplied movement type differs from the type required by this execution:
+        Refuse with shipment_movement_type_mismatch.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.refusal-63:
+    IF customer delivery was requested without a delivery promise:
+        Refuse with customer_dispatch_commitment_missing.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.refusal-80:
+    IF customer delivery was requested and the shared readiness result is not ship-ready:
+        Refuse with shipment_blocked_readiness.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.refusal-152:
+    IF a stock block was requested for a movement other than receipt:
+        Refuse with stock_block_receipt_only.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.result:
+    Return the current result with shipment_id, package_id, notice_event_id, movement_ids.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.effect-130:
+    Pass the stated inputs to the shared record shipment notice service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.shipments.record_packaged_execution.effect-173:
+    Pass the stated inputs to the shared record movement service. Its own source describes validation and record changes.
+    """
     _check_stock_at_moved_time(session, tenant_id, movements, occurred_at)
     announced = (
         _announced_shipment(
@@ -417,6 +536,7 @@ def record_packaged_execution(
         from reality.services.outbound_deliveries import require_matches_delivery
 
         # Spec 334: a dispatch of a planned delivery ships exactly what it carries.
+        # reality-rule: services.shipments.record_packaged_execution.refusal-41
         if direction != "outbound" or purpose != "customer_delivery":
             raise InvalidOperation(code="outbound_delivery_dispatch_mismatch")
         planned_delivery = require_matches_delivery(
@@ -439,6 +559,7 @@ def record_packaged_execution(
         )
         for movement_arguments in movements:
             commitment_id = movement_arguments.get("commitment_id")
+            # reality-rule: services.shipments.record_packaged_execution.refusal-63
             if not commitment_id:
                 raise InvalidOperation(code="customer_dispatch_commitment_missing")
             try:
@@ -456,6 +577,7 @@ def record_packaged_execution(
                 # The whole shipment answers to the order's rule, checked above.
                 _delivery_rule=False,
             )
+            # reality-rule: services.shipments.record_packaged_execution.refusal-80
             if not readiness.ship_ready:
                 raise InvalidOperation(
                     code="shipment_blocked_readiness",
@@ -472,6 +594,7 @@ def record_packaged_execution(
         # what it advised is compared with what was received into it.
         shipment, package, notice = announced
     else:
+        # reality-rule: services.shipments.record_packaged_execution.effect-130
         shipment, package, notice = record_shipment_notice(
             session,
             tenant_id,
@@ -504,6 +627,7 @@ def record_packaged_execution(
     created = []
     for movement_arguments in movements:
         supplied_type = movement_arguments.get("movement_type", expected_type)
+        # reality-rule: services.shipments.record_packaged_execution.refusal-128
         if supplied_type != expected_type:
             raise InvalidOperation(code="shipment_movement_type_mismatch")
         arguments = {**movement_arguments, "movement_type": supplied_type}
@@ -514,6 +638,7 @@ def record_packaged_execution(
         # late 3PL confirmation states as earlier than its recording.
         if occurred_at is not None and "occurred_at" not in arguments:
             arguments["occurred_at"] = utc_datetime(occurred_at)
+        # reality-rule: services.shipments.record_packaged_execution.effect-173
         movement = record_movement(
             session,
             tenant_id,
@@ -528,6 +653,7 @@ def record_packaged_execution(
             # Spec 304: part of what arrives is held back where it lands.
             from reality.services.stock_blocks import block_stock
 
+            # reality-rule: services.shipments.record_packaged_execution.refusal-152
             if supplied_type != "receipt":
                 raise InvalidOperation(code="stock_block_receipt_only")
             block_stock(
@@ -545,10 +671,12 @@ def record_packaged_execution(
                 _receipt=movement.quantity,
                 _commit=False,
             )
+    # reality-rule: services.shipments.record_packaged_execution.refusal-169
     if not created:
         raise InvalidOperation(code="shipment_execution_movement_missing")
     if commit:
         session.commit()
+    # reality-rule: services.shipments.record_packaged_execution.result
     return {
         "shipment_id": shipment.id,
         "package_id": package.id,
@@ -741,7 +869,8 @@ def _details(
         [
             shipment.id
             for shipment in shipments
-            if shipment.direction == "inbound" and shipment.purpose == "supplier_delivery"
+            if shipment.direction == "inbound"
+            and shipment.purpose == "supplier_delivery"
         ],
     )
     meant_for = {
@@ -827,7 +956,9 @@ def _details(
             "outbound_delivery_id": notices.get(shipment.id, {}).get(
                 "outbound_delivery_id"
             ),
-            "recipient_party_id": notices.get(shipment.id, {}).get("recipient_party_id"),
+            "recipient_party_id": notices.get(shipment.id, {}).get(
+                "recipient_party_id"
+            ),
             "address": notices.get(shipment.id, {}).get("address") or {},
             "slot": notices.get(shipment.id, {}).get("slot"),
             **timing(shipment_events),

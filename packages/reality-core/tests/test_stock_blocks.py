@@ -70,6 +70,17 @@ def _active(session, business):
 
 
 def test_the_table_refuses_nonsense(session, business):
+    """
+    BUSINESS TEST:
+    The table refuses nonsense.
+    GIVEN:
+    Stock-block table has a valid one-unit quality block control.
+    WHEN:
+    Try zero quantity and unsupported reason, then inspect schema.
+    THEN:
+    Constraints refuse both invalid values; table has receipt link but no duplicated resolution/status fields.
+    """
+
     def insert(**overrides):
         values = {
             "id": uid("blk"),
@@ -103,6 +114,16 @@ def test_the_table_refuses_nonsense(session, business):
 
 
 def test_a_resolution_refuses_nonsense(session, business):
+    """
+    BUSINESS TEST:
+    A resolution refuses nonsense.
+    GIVEN:
+    Five units are blocked and a scrap adjustment movement exists.
+    WHEN:
+    Insert valid release/scrap resolutions and invalid quantity, kind, blank reason or inconsistent movement links.
+    THEN:
+    Valid controls succeed; each malformed resolution violates database constraints.
+    """
     tenant = business.tenant.id
     _stock(session, business, "20")
     block = block_stock(
@@ -151,6 +172,16 @@ def test_a_resolution_refuses_nonsense(session, business):
 
 
 def test_the_migration_refuses_to_drop_stated_blocks(postgres_database, monkeypatch):
+    """
+    BUSINESS TEST:
+    The migration refuses to drop stated blocks.
+    GIVEN:
+    PostgreSQL schema can upgrade and empty downgrade.
+    WHEN:
+    Create a stated stock block after re-upgrading and attempt downgrade.
+    THEN:
+    Empty downgrade removes table; recorded block prevents downgrade and table remains.
+    """
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine, inspect, text
@@ -210,6 +241,16 @@ def test_the_migration_refuses_to_drop_stated_blocks(postgres_database, monkeypa
 
 
 def test_a_block_holds_back_stock_without_moving_it(session, business):
+    """
+    BUSINESS TEST:
+    A block holds back stock without moving it.
+    GIVEN:
+    Twenty units are physically in stock.
+    WHEN:
+    Block five for quality with a note.
+    THEN:
+    Movement count and physical twenty stay unchanged; blocked quantity is five and creation event retains quantity/reason.
+    """
     tenant = business.tenant.id
     _stock(session, business, "20")
     before = _movements(session, business)
@@ -233,6 +274,16 @@ def test_a_block_holds_back_stock_without_moving_it(session, business):
 
 
 def test_only_free_stock_can_be_blocked(session, business):
+    """
+    BUSINESS TEST:
+    Only free stock can be blocked.
+    GIVEN:
+    Twenty units include twelve reserved and five already blocked.
+    WHEN:
+    Try blocking four more, then three.
+    THEN:
+    Four exceeds availability and is refused; three succeeds leaving eight blocked.
+    """
     tenant = business.tenant.id
     _stock(session, business, "20")
     promise = core.create_commitment(
@@ -260,6 +311,16 @@ def test_only_free_stock_can_be_blocked(session, business):
 
 
 def test_a_block_is_refused_with_its_reason(session, business):
+    """
+    BUSINESS TEST:
+    A block is refused with its reason.
+    GIVEN:
+    Twenty stock units and a service item exist.
+    WHEN:
+    Try unsupported reason, zero/overprecision quantity, service item and foreign tenant.
+    THEN:
+    Stable refusal codes identify invalid inputs; foreign item is not found and no active block is created.
+    """
     tenant = business.tenant.id
     _stock(session, business, "20")
     service = core.create_item(
@@ -288,6 +349,16 @@ def test_a_block_is_refused_with_its_reason(session, business):
 
 
 def test_a_lot_is_blocked_exactly(session, business):
+    """
+    BUSINESS TEST:
+    A lot is blocked exactly.
+    GIVEN:
+    Lot-tracked item has good lot ten and bad lot four.
+    WHEN:
+    Try block without lot, block five from bad lot and block exactly four.
+    THEN:
+    Lot is required, excessive block is refused and only bad lot becomes blocked.
+    """
     tenant = business.tenant.id
     item = core.create_item(session, tenant, "LOT-304", "Lot item", tracking_type="lot")
     good = core.create_lot(session, tenant, item.id, "L-GOOD")
@@ -320,7 +391,18 @@ def _block(session, tenant, block_id):
 
 
 def test_a_block_keeps_what_was_stated_through_its_resolutions(session, business):
-    """Spec 316 US1: block 20, release 5, scrap 3, release the rest."""
+    """
+    Spec 316 US1: block 20, release 5, scrap 3, release the rest.
+
+    BUSINESS TEST:
+    A block keeps what was stated through its resolutions.
+    GIVEN:
+    Twenty units are stated in a single quality block.
+    WHEN:
+    Release five, scrap three and release remaining twelve.
+    THEN:
+    Original quantity twenty remains; open quantities become fifteen/twelve/zero, scrap reduces stock to seventeen, resolutions/events retain exact effects and one block record remains.
+    """
     tenant = business.tenant.id
     _stock(session, business, "20")
     block = block_stock(
@@ -380,6 +462,16 @@ def test_a_block_keeps_what_was_stated_through_its_resolutions(session, business
 
 
 def test_scrapping_writes_the_part_off_with_one_adjustment(session, business):
+    """
+    BUSINESS TEST:
+    Scrapping writes the part off with one adjustment.
+    GIVEN:
+    Twenty stock units include damage block five.
+    WHEN:
+    Scrap four from the block.
+    THEN:
+    Stock becomes sixteen, blocked amount one; one linked outward adjustment and scrap resolution/event record four without receipt identity.
+    """
     tenant = business.tenant.id
     _stock(session, business, "20")
     block = block_stock(
@@ -411,7 +503,18 @@ def test_scrapping_writes_the_part_off_with_one_adjustment(session, business):
 
 
 def test_a_receipt_block_keeps_its_receipt_when_wholly_scrapped(session, business):
-    """Spec 316 FR-005: the receipt and the scrap are two different movements."""
+    """
+    Spec 316 FR-005: the receipt and the scrap are two different movements.
+
+    BUSINESS TEST:
+    A receipt block keeps its receipt when wholly scrapped.
+    GIVEN:
+    Receipt five is linked to a damage block five.
+    WHEN:
+    Scrap the whole block.
+    THEN:
+    Block retains original receipt identity while resolution points to a distinct scrap movement.
+    """
     tenant = business.tenant.id
     receipt = core.record_movement(
         session,
@@ -441,6 +544,16 @@ def test_a_receipt_block_keeps_its_receipt_when_wholly_scrapped(session, busines
 
 
 def test_a_resolution_is_refused_with_its_reason(session, business):
+    """
+    BUSINESS TEST:
+    A resolution is refused with its reason.
+    GIVEN:
+    Five units are blocked for quality.
+    WHEN:
+    Try excessive release, blank reason, excessive scrap after partial release, scrap after closure and foreign-tenant release.
+    THEN:
+    Stable codes name quantity/reason/inactive errors and foreign block is not found.
+    """
     tenant = business.tenant.id
     _stock(session, business, "20")
     block = block_stock(
@@ -470,7 +583,18 @@ def test_a_resolution_is_refused_with_its_reason(session, business):
 def test_the_migration_folds_split_blocks_into_what_was_stated(
     postgres_database, monkeypatch
 ):
-    """Spec 316 FR-008: a spec 304 chain becomes one block with its resolutions."""
+    """
+    Spec 316 FR-008: a spec 304 chain becomes one block with its resolutions.
+
+    BUSINESS TEST:
+    The migration folds split blocks into what was stated.
+    GIVEN:
+    Legacy schema contains split block chain with releases/scraps and receipt evidence.
+    WHEN:
+    Upgrade to current schema and attempt downgrade.
+    THEN:
+    Chain becomes one stated block twenty plus exact resolutions; receipt-linked block retains evidence and existing resolutions prevent destructive downgrade.
+    """
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine

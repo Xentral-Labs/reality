@@ -31,7 +31,19 @@ SOURCE_SYSTEM = "internal_settlement_adjustment"
 def adjustment_context(
     session: Session, tenant_id: str, invoice_id: str
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read the selected customer or supplier invoice and its current claim context before accepting a reduction.
+
+    BUSINESS RULE services.finance.settlement.adjustment_context.refusal-4:
+    IF the selected document is neither a customer invoice, supplier invoice nor their supported opening-debt document:
+        Refuse: Select a customer or supplier invoice.
+
+    BUSINESS RULE services.finance.settlement.adjustment_context.result:
+    Return the current invoice claim context from the shared claim reader, including evidence needed before accepting a reduction.
+    """
     invoice = core._tenant_record(session, Document, tenant_id, invoice_id)
+    # reality-rule: services.finance.settlement.adjustment_context.refusal-4
     if invoice.type not in {
         "sales_invoice",
         "supplier_invoice",
@@ -39,6 +51,7 @@ def adjustment_context(
         "opening_supplier_debt",
     }:
         raise core.InvalidOperation("Select a customer or supplier invoice.")
+    # reality-rule: services.finance.settlement.adjustment_context.result
     return _claim_context(session, tenant_id, invoice)
 
 
@@ -183,7 +196,24 @@ def accept_adjustment(
     source_record_id: str | None = None,
     source_effect_id: str | None = None,
 ) -> dict:
-    """Called only inside the confirmed tool transaction; never commits independently."""
+    """
+    Called only inside the confirmed tool transaction; never commits independently.
+
+    BUSINESS PURPOSE:
+    Called only inside the confirmed tool transaction; never commits independently.
+
+    BUSINESS RULE services.finance.settlement.accept_adjustment.step-30:
+    Run the shared preview adjustment check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.finance.settlement.accept_adjustment.result:
+    Return the current result with document_id, source_record_id, posting_group_id, ledger_entry_ids, allocation_id, amount, currency, remaining, cash_change.
+
+    BUSINESS RULE services.finance.settlement.accept_adjustment.effect-46:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.finance.settlement.accept_adjustment.effect-61:
+    Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
+    """
     from reality.services.business_locks import lock_delivery_state
 
     values = {
@@ -198,10 +228,12 @@ def accept_adjustment(
     }
     lock_delivery_state(session, tenant_id)
     lock_finance(session, tenant_id)
+    # reality-rule: services.finance.settlement.accept_adjustment.step-30
     preview = preview_adjustment(session, tenant_id, values)
     side = preview["side"]
     amount = Decimal(preview["amount"])
     with session.begin_nested():
+        # reality-rule: services.finance.settlement.accept_adjustment.effect-46
         source, _, _ = core.store_source_record(
             session,
             tenant_id,
@@ -217,6 +249,7 @@ def accept_adjustment(
                 "accepted_at": core.now().isoformat(),
             },
         )
+        # reality-rule: services.finance.settlement.accept_adjustment.effect-61
         document = core.create_document(
             session,
             tenant_id,
@@ -283,6 +316,7 @@ def accept_adjustment(
             action_id=action_id,
             _commit=False,
         )
+        # reality-rule: services.finance.settlement.accept_adjustment.result
         return {
             "document_id": document.id,
             "source_record_id": source.id,

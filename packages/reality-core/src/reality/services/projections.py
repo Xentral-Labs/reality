@@ -458,18 +458,37 @@ def _open_delivery_reasons(
     commitment_holds: dict[str, Any],
     party_holds: dict[str, Any],
 ) -> list[tuple[str, str]]:
-    """Why one open promise cannot ship, by the three rules that decide it.
+    """
+    Why one open promise cannot ship, by the three rules that decide it.
 
     Written once because two paths ask it now: the company's whole open work, and
     one article's share of it when supply and demand derives by change (FR-002). A
     blocker that appears in one and not the other is exactly the silent wrongness
     the equivalence property is there to catch, so there is one rule to disagree with.
+
+    BUSINESS PURPOSE:
+    Identify promise holds, customer delivery holds and insufficient reservation for an open customer-delivery promise.
+
+    BUSINESS RULE services.projections._open_delivery_reasons.promise_hold:
+    IF the promise has an active execution hold:
+        Add commitment_hold and retain its recorded reason code.
+
+    BUSINESS RULE services.projections._open_delivery_reasons.customer_hold:
+    IF the receiving business partner has an active delivery hold:
+        Add party_delivery_hold and retain its recorded reason code.
+
+    BUSINESS RULE services.projections._open_delivery_reasons.reservation_shortage:
+    IF uncovered quantity is positive:
+        Add insufficient_reservation. This condition describes stock not fully assigned to the promise, not an actual warehouse shipment.
     """
     reasons: list[tuple[str, str]] = []
+    # reality-rule: services.projections._open_delivery_reasons.promise_hold
     if hold := commitment_holds.get(commitment.id):
         reasons.append(("commitment_hold", hold.reason_code))
+    # reality-rule: services.projections._open_delivery_reasons.customer_hold
     if hold := party_holds.get(commitment.to_party_id or ""):
         reasons.append(("party_delivery_hold", hold.reason_code))
+    # reality-rule: services.projections._open_delivery_reasons.reservation_shortage
     if shortage > 0:
         reasons.append(("insufficient_reservation", "stock not fully reserved"))
     return reasons
@@ -521,13 +540,78 @@ def _open_work_rows(
     commitments: list[Commitment],
     terms: dict[str, Any],
 ) -> OpenWork:
-    """The fulfillment queue and its blockers for the promises it is given.
+    """
+    The fulfillment queue and its blockers for the promises it is given.
 
     Every read here is bounded by those promises: the orders they were made on, the
     source records of those orders, and the parties, articles, document lines,
     reservations and holds they name. The whole-company path hands it every open
     customer promise; a narrowed refresh hands it the promises of the orders that
     changed (FR-002). Neither reads a company's finished history (FR-003).
+
+    BUSINESS PURPOSE:
+    Derive warehouse queue rows, delivery blockers and per-item open demand from the supplied customer promises and their effective fulfillment terms. All related reads stay within this company and those promises.
+
+    BUSINESS RULE services.projections._open_work_rows.active_reservations:
+    Read only active reservations belonging to the supplied promises. A reservation at another warehouse remains associated with the stock at that warehouse.
+
+    BUSINESS RULE services.projections._open_work_rows.stock_in:
+    For each relevant article and warehouse, add stated movement quantities arriving at that warehouse.
+
+    BUSINESS RULE services.projections._open_work_rows.stock_out:
+    Subtract stated movement quantities leaving that warehouse. Physical stock is recorded arrivals minus recorded departures.
+
+    BUSINESS RULE services.projections._open_work_rows.blocked_stock:
+    Subtract currently open stock-block quantities from physical stock available to support delivery. Blocked goods do not count as shippable stock.
+
+    BUSINESS RULE services.projections._open_work_rows.reserve_by_location:
+    Sum active reserved quantities by promise and by reservation warehouse. Retain each warehouse separately for stock coverage.
+
+    BUSINESS RULE services.projections._open_work_rows.group_orders:
+    Group promises under their order document identity. A promise with no document uses its own opaque identity as its order key.
+
+    BUSINESS RULE services.projections._open_work_rows.uncovered:
+    For each promise, uncovered quantity is effective open quantity minus active reserved quantity, bounded below by zero. Open quantities come from the shared commitment-terms reader.
+
+    BUSINESS RULE services.projections._open_work_rows.missing_item:
+    IF the promise has no item identity:
+        Exclude it from article demand and warehouse line calculations.
+
+    BUSINESS RULE services.projections._open_work_rows.physical_cover:
+    Read physical and reservation-backed ready quantities through the shared stock_cover calculation. Keep reservation warehouses distinct; a reservation alone does not prove sufficient physical stock.
+
+    BUSINESS RULE services.projections._open_work_rows.stock_blocker:
+    IF physical stock is less than open quantity OR the promise is fully reserved but physically ready reservation coverage is less than open quantity:
+        Add insufficient_stock.
+
+    BUSINESS RULE services.projections._open_work_rows.prepayment_readiness:
+    IF the order's payment terms require prepayment:
+        Ask the shared fulfillment-readiness service for its current payment evidence.
+    ELSE:
+        This step adds no prepayment readiness result.
+
+    BUSINESS RULE services.projections._open_work_rows.payment_blockers:
+    When payment readiness was evaluated, add its reported blocker codes only if they are not already present. Describe required and received amounts in the readiness result's currency.
+
+    BUSINESS RULE services.projections._open_work_rows.base_shippable:
+    Potentially shippable quantity is the smaller of open quantity and physically ready reservation coverage.
+
+    BUSINESS RULE services.projections._open_work_rows.hard_blockers:
+    IF any blocker other than insufficient reservation or insufficient stock is present:
+        Set shippable quantity to zero. Quantity shortages may still leave a partly shippable quantity; execution or payment holds stop it entirely.
+
+    BUSINESS RULE services.projections._open_work_rows.blocker_identity:
+    Create a blocker row for each promise and reason, keyed by that promise identity and reason. Only insufficient-reservation blockers carry the uncovered quantity as shortage; other blocker rows report zero shortage.
+
+    BUSINESS RULE services.projections._open_work_rows.ship_complete:
+    IF the order has a ship-complete rule AND any derived order line is blocked:
+        Add ship_complete_incomplete to otherwise unblocked lines, set their shippable quantity to zero and clear their warehouse-ready quantities. These waiting lines do not add an article-stock shortage.
+
+    BUSINESS RULE services.projections._open_work_rows.queue_summary:
+    For each order, report the earliest stated due date among its lines and the highest promise priority. Mark the order ready only when no order blocker exists; otherwise mark it blocked. Include original source, partner, promise and document evidence.
+
+    BUSINESS RULE services.projections._open_work_rows.result:
+    Return order queue rows, promise blockers, summed open demand and uncovered demand per article, plus identities of blocked orders by article. These are observations derived for this read, not new authoritative business records.
     """
     from reality.services.fulfillment_readiness import (
         fulfillment_readiness,
@@ -610,6 +694,7 @@ def _open_work_rows(
     item_ids = {row.item_id for row in commitments} - {None}
     # Spec 303: a reservation at another location counts with that location's
     # stock, so the stock read covers every location a reservation holds.
+    # reality-rule: services.projections._open_work_rows.active_reservations
     reservation_rows = (
         list(
             session.scalars(
@@ -655,8 +740,10 @@ def _open_work_rows(
                 ),
             )
         ):
+            # reality-rule: services.projections._open_work_rows.stock_in
             if to_location_id:
                 physical_by_item_location[(item_id, to_location_id)] += quantity
+            # reality-rule: services.projections._open_work_rows.stock_out
             if from_location_id:
                 physical_by_item_location[(item_id, from_location_id)] -= quantity
         # Spec 304: blocked stock is neither shippable nor stock behind a promise.
@@ -669,6 +756,7 @@ def _open_work_rows(
                 blocks.c.location_id.in_(location_ids),
             )
         ):
+            # reality-rule: services.projections._open_work_rows.blocked_stock
             physical_by_item_location[(item_id, location_id)] -= quantity
     items = (
         {
@@ -702,6 +790,7 @@ def _open_work_rows(
     party_holds: dict[str, Any] = {}
     if commitment_ids:
         for reservation in reservation_rows:
+            # reality-rule: services.projections._open_work_rows.reserve_by_location
             active_reservations[reservation.commitment_id] += reservation.quantity
             reserved_by_location[reservation.commitment_id][
                 reservation.location_id
@@ -730,6 +819,7 @@ def _open_work_rows(
         }
     grouped: dict[str, list[Commitment]] = defaultdict(list)
     for commitment in commitments:
+        # reality-rule: services.projections._open_work_rows.group_orders
         grouped[commitment.document_id or commitment.id].append(commitment)
 
     queue: dict[str, dict[str, Any]] = {}
@@ -745,29 +835,36 @@ def _open_work_rows(
         for commitment in order_commitments:
             open_value = terms[commitment.id].open
             reserved = active_reservations[commitment.id]
+            # reality-rule: services.projections._open_work_rows.uncovered
             shortage = max(Decimal(0), open_value - reserved)
+            # reality-rule: services.projections._open_work_rows.missing_item
             if not commitment.item_id:
                 continue
             demand_by_item[commitment.item_id] += open_value
             reasons = _open_delivery_reasons(
                 commitment, shortage, commitment_holds, party_holds
             )
+
             def physical_at(location, item=commitment.item_id):
                 return physical_by_item_location[(item, location or "")]
 
+            # reality-rule: services.projections._open_work_rows.physical_cover
             physical, ready = stock_cover(
                 commitment.location_id, reserved_by_location[commitment.id], physical_at
             )
             ready_parts = ready_by_location(
                 commitment.location_id, reserved_by_location[commitment.id], physical_at
             )
+            # reality-rule: services.projections._open_work_rows.stock_blocker
             if physical < open_value or reserved >= open_value > ready:
                 reasons.append(("insufficient_stock", "physical stock is insufficient"))
+            # reality-rule: services.projections._open_work_rows.prepayment_readiness
             payment_readiness = (
                 fulfillment_readiness(session, tenant_id, commitment.id)
                 if commitment.document_id in prepayment_document_ids
                 else None
             )
+            # reality-rule: services.projections._open_work_rows.payment_blockers
             if payment_readiness is not None:
                 existing_reasons = {reason for reason, _ in reasons}
                 reasons.extend(
@@ -787,7 +884,9 @@ def _open_work_rows(
                 )
             if shortage > 0:
                 uncovered_by_item[commitment.item_id] += shortage
+            # reality-rule: services.projections._open_work_rows.base_shippable
             shippable = min(open_value, ready)
+            # reality-rule: services.projections._open_work_rows.hard_blockers
             if any(
                 reason not in {"insufficient_reservation", "insufficient_stock"}
                 for reason, _detail in reasons
@@ -838,6 +937,7 @@ def _open_work_rows(
             }
             lines.append(line)
             for reason, detail in reasons:
+                # reality-rule: services.projections._open_work_rows.blocker_identity
                 blocker_key = f"{commitment.id}:{reason}"
                 blocker = {
                     "blocker_id": blocker_key,
@@ -860,6 +960,7 @@ def _open_work_rows(
                 blockers[blocker_key] = blocker
                 order_blockers.append(blocker)
                 blocked_orders_by_item[commitment.item_id].add(record_key)
+        # reality-rule: services.projections._open_work_rows.ship_complete
         if (
             document
             and document.id in ship_complete_document_ids
@@ -904,6 +1005,7 @@ def _open_work_rows(
                 # fine, and the narrowed supply-and-demand path agrees.
         party_id = document.party_id if document else order_commitments[0].to_party_id
         party = parties.get(party_id or "")
+        # reality-rule: services.projections._open_work_rows.queue_summary
         queue[record_key] = {
             "order_key": record_key,
             "document_id": document.id if document else None,
@@ -925,6 +1027,7 @@ def _open_work_rows(
             "blocking_reasons": sorted({row["blocker_type"] for row in order_blockers}),
             "lines": lines,
         }
+    # reality-rule: services.projections._open_work_rows.result
     return OpenWork(
         queue, blockers, demand_by_item, uncovered_by_item, blocked_orders_by_item
     )
@@ -935,6 +1038,26 @@ def _build_operational_rows(
 ) -> dict[str, dict[str, dict[str, Any]]]:
     # Imported here to keep the authoritative domain services independent from
     # their disposable read cache.
+    """
+    BUSINESS PURPOSE:
+    Derive the requested company's operational projections from the common business readers without creating new business authority. Queue, blockers and supply-demand use the same open-work derivation.
+
+    BUSINESS RULE services.projections._build_operational_rows.selected_work:
+    Only prepare open warehouse work when queue, blockers or article supply-demand were requested.
+
+    BUSINESS RULE services.projections._build_operational_rows.open_customer_promises:
+    For warehouse work, read only this company's open customer-delivery promises. Finished and cancelled promises are excluded by the query; the separate promise register retains its own broader scope.
+
+    BUSINESS RULE services.projections._build_operational_rows.shared_work:
+    Derive queue rows, blockers and article demand once through the shared open-work reader using effective commitment terms.
+
+    BUSINESS RULE services.projections._build_operational_rows.requested_result:
+    Return queue, blocker and article supply-demand rows only for projections that were selected. Supply-demand combines the shared open-demand observations with the canonical inventory reader.
+
+    BUSINESS RULE services.projections._build_operational_rows.other_projections:
+    IF inventory was selected:
+        Derive its rows through the shared inventory reader. Other projection branches remain separately inspectable in this shared builder.
+    """
     from reality.services.core import (
         commitment_terms,
         inventory_rows,
@@ -949,11 +1072,13 @@ def _build_operational_rows(
     # nothing else. A closed promise excluded here is excluded by predicate, never
     # fetched and skipped. The commitment register is a register — it shows a promise
     # that was cancelled — and reads its own promises.
+    # reality-rule: services.projections._build_operational_rows.selected_work
     working_set = selected & {
         FULFILLMENT_QUEUE,
         FULFILLMENT_BLOCKERS,
         ITEM_SUPPLY_DEMAND,
     }
+    # reality-rule: services.projections._build_operational_rows.open_customer_promises
     customer_commitments = (
         list(
             session.scalars(
@@ -973,6 +1098,7 @@ def _build_operational_rows(
         else {}
     )
     if working_set:
+        # reality-rule: services.projections._build_operational_rows.shared_work
         work = _open_work_rows(session, tenant_id, customer_commitments, terms)
         supply_demand: dict[str, dict[str, Any]] = {}
         for row in inventory_rows(session, tenant_id):
@@ -983,6 +1109,7 @@ def _build_operational_rows(
                 work.uncovered_by_item[item.id],
                 work.blocked_orders_by_item[item.id],
             )
+        # reality-rule: services.projections._build_operational_rows.requested_result
         for name, rows in (
             (FULFILLMENT_QUEUE, work.queue),
             (FULFILLMENT_BLOCKERS, work.blockers),
@@ -990,6 +1117,7 @@ def _build_operational_rows(
         ):
             if name in selected:
                 result[name] = rows
+    # reality-rule: services.projections._build_operational_rows.other_projections
     if INVENTORY in selected:
         result[INVENTORY] = _inventory_rows(session, tenant_id)
     if EXCEPTIONS in selected:
@@ -1064,10 +1192,23 @@ def _build_operational_rows(
 def derive_projection_rows(
     session: Session, tenant_id: str, projection_name: str
 ) -> dict[str, dict[str, Any]]:
-    """Use the canonical derivation without creating or refreshing cache records."""
+    """
+    Use the canonical derivation without creating or refreshing cache records.
+
+    BUSINESS PURPOSE:
+    Use the canonical derivation without creating or refreshing cache records.
+
+    BUSINESS RULE services.projections.derive_projection_rows.refusal-7:
+    IF the requested projection is not registered:
+        Refuse: Unknown operational projection.
+
+    BUSINESS RULE services.projections.derive_projection_rows.result:
+    Return freshly derived rows without creating or refreshing stored projection records. Financial open items use the financial builder; payments use the payment builder; other registered projections use the canonical operational builder.
+    """
     from reality.services.core import get_tenant
 
     get_tenant(session, tenant_id)
+    # reality-rule: services.projections.derive_projection_rows.refusal-7
     if projection_name not in OPERATIONAL_PROJECTIONS:
         raise ValueError("Unknown operational projection.")
     with session.no_autoflush:
@@ -1080,6 +1221,7 @@ def derive_projection_rows(
                 projection_name
             ]
         )
+        # reality-rule: services.projections.derive_projection_rows.result
         return json.loads(_dump(rows))
 
 
@@ -1243,7 +1385,8 @@ class NarrowedRows:
 def _narrowed_journal(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The journal, for the posting groups and accounts that changed (FR-002).
+    """
+    The journal, for the posting groups and accounts that changed (FR-002).
 
     Four event types reach this projection. Two name a `posting_group`, one names a
     `subledger_account` whose code every entry on it prints, and `payments.run` names
@@ -1255,6 +1398,12 @@ def _narrowed_journal(
     event names. Narrowing on the subject alone would leave those entries out of the
     journal, so the stored reversal relation is followed to find them. That is a
     recorded link, not an assumption about what the producer happens to do today.
+
+    BUSINESS PURPOSE:
+    The journal, for the posting groups and accounts that changed (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_journal.result:
+    Return journal entries reached through changed posting groups or accounts. Include both original and reversing posting groups through their recorded reversal relationship.
     """
     from reality.db.core import LedgerEntry, LedgerReversal
 
@@ -1295,6 +1444,7 @@ def _narrowed_journal(
     rows = json.loads(_dump({entry.id: _journal_row(entry) for entry in entries}))
     # A ledger entry is never deleted — a correction is a reversing entry — so the
     # entries read here are exactly the stored rows this refresh speaks for.
+    # reality-rule: services.projections._narrowed_journal.result
     return NarrowedRows(rows, frozenset(rows))
 
 
@@ -1309,7 +1459,8 @@ MAX_NARROWED_ROWS = 2_000
 def _narrowed_document_register(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The document register, for the documents the changed records belong to.
+    """
+    The document register, for the documents the changed records belong to.
 
     Five subject types reach this projection and each resolves to documents without
     guessing: a document is itself, a commitment and a source record name the document
@@ -1318,6 +1469,12 @@ def _narrowed_document_register(
     That last pair is the reason `MAX_NARROWED_ROWS` exists. One `party.updated` for a
     customer with the company's whole order history resolves to the whole company, and
     a narrowed path that visits everything is the slow path with extra steps.
+
+    BUSINESS PURPOSE:
+    The document register, for the documents the changed records belong to.
+
+    BUSINESS RULE services.projections._narrowed_document_register.result:
+    Return rebuilt document-register rows and the document identities they cover. Unknown subject types, no resolved documents or an oversized change set return a fallback reason rather than claiming a narrow rebuild.
     """
     known = {"document", "commitment", "source_record", "party", "payment_term"}
     unknown = sorted(set(changes.subjects or {}) - known)
@@ -1358,6 +1515,7 @@ def _narrowed_document_register(
     rows = json.loads(_dump(_document_register_rows(session, tenant_id, documents)))
     # A document is never deleted, so the documents read here are exactly the stored
     # rows this refresh speaks for.
+    # reality-rule: services.projections._narrowed_document_register.result
     return NarrowedRows(rows, frozenset(rows))
 
 
@@ -1457,7 +1615,15 @@ def _items_touched(
 def _narrowed_inventory(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """Stock, for the articles the changed records belong to (FR-002)."""
+    """
+    Stock, for the articles the changed records belong to (FR-002).
+
+    BUSINESS PURPOSE:
+    Stock, for the articles the changed records belong to (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_inventory.result:
+    Return inventory rebuilt for affected articles and the produced row identities. An unresolved or oversized article set returns a reason to use the full derivation.
+    """
     items = _items_touched(session, tenant_id, changes)
     if isinstance(items, str):
         return items
@@ -1468,13 +1634,15 @@ def _narrowed_inventory(
     rows = json.loads(_dump(_inventory_rows(session, tenant_id, items)))
     # An Item is never deleted, so the articles read here are exactly the stored rows
     # this refresh speaks for.
+    # reality-rule: services.projections._narrowed_inventory.result
     return NarrowedRows(rows, frozenset(rows))
 
 
 def _narrowed_item_supply_demand(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """Supply and demand, for the articles the changed records belong to (FR-002).
+    """
+    Supply and demand, for the articles the changed records belong to (FR-002).
 
     This projection is stock plus the open promises made against it, so it narrows by
     the same articles stock does — with one subject stock never sees. A delivery hold
@@ -1488,6 +1656,12 @@ def _narrowed_item_supply_demand(
     those promises have not reserved, and the blocked orders are the orders blocked on
     it. No figure here is a share of a company-wide total, which is why one article can
     be derived without the others.
+
+    BUSINESS PURPOSE:
+    Supply and demand, for the articles the changed records belong to (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_item_supply_demand.result:
+    Return stock, open demand, uncovered demand and blocked-order identities for the affected articles. Open demand sums the open quantity of open customer-delivery promises. Uncovered demand is open quantity minus active reserved quantity, bounded below by zero. Delivery holds on parties reach every article in their open customer promises. An unresolved or oversized article set returns a full-build fallback reason.
     """
     from reality.services.core import commitment_terms, inventory_rows
 
@@ -1594,6 +1768,7 @@ def _narrowed_item_supply_demand(
     )
     # An Item is never deleted, so the articles read here are exactly the stored rows
     # this refresh speaks for.
+    # reality-rule: services.projections._narrowed_item_supply_demand.result
     return NarrowedRows(rows, frozenset(rows))
 
 
@@ -1678,10 +1853,22 @@ def _settled_documents(
 def _orders_billed_by(
     session: Session, tenant_id: str, documents: set[str]
 ) -> set[str]:
-    """The orders these invoices bill, and that a down-payment or pro-forma is for."""
+    """
+    The orders these invoices bill, and that a down-payment or pro-forma is for.
+
+    BUSINESS PURPOSE:
+    Find the order identities referenced by invoices, down-payment documents and proforma documents through their recorded evidence links.
+
+    BUSINESS RULE services.projections._orders_billed_by.invoice_lines:
+    Follow each selected document line's billed-line link to that original line's order document, keeping both lines within the same company.
+
+    BUSINESS RULE services.projections._orders_billed_by.explicit_order:
+    Also include selected documents' explicit order references. Use recorded relationships, never match human document numbers.
+    """
     if not documents:
         return set()
     billed = aliased(DocumentLine)
+    # reality-rule: services.projections._orders_billed_by.invoice_lines
     orders = set(
         session.scalars(
             select(billed.document_id)
@@ -1697,6 +1884,7 @@ def _orders_billed_by(
             )
         )
     )
+    # reality-rule: services.projections._orders_billed_by.explicit_order
     orders.update(
         session.scalars(
             select(Document.order_document_id).where(
@@ -1712,7 +1900,8 @@ def _orders_billed_by(
 def _orders_touched(
     session: Session, tenant_id: str, changes: ChangeSet, projection: str
 ) -> frozenset[str] | str:
-    """The orders the changed records belong to, or why they cannot be found.
+    """
+    The orders the changed records belong to, or why they cannot be found.
 
     An order here is a document with delivery promises on it, or a promise made with
     no document; either way its key is `document_id or commitment_id`, the same key
@@ -1732,6 +1921,44 @@ def _orders_touched(
     a finished order has no row in the queue, so there is nothing about it to refresh
     (FR-003). A party is also resolved through the documents that cite it, because the
     row prints the document's party and that need not be the promise's.
+
+    BUSINESS PURPOSE:
+    Resolve changed business records to the orders whose warehouse queue or blockers may have changed, using recorded relationships rather than guessing identities.
+
+    BUSINESS RULE services.projections._orders_touched.supported_subjects:
+    IF a changed subject type is not registered for bounded order resolution:
+        Return a full-build fallback reason.
+
+    BUSINESS RULE services.projections._orders_touched.fact_subjects:
+    Follow a changed fact's recorded subject only when it names a promise, document, movement or reservation. A fact about another subject returns a fallback reason.
+
+    BUSINESS RULE services.projections._orders_touched.movement_corrections:
+    For changed movements, include the recorded original, compensating and replacement movement identities. Follow all of their promise links, because a replacement can belong to a different order.
+
+    BUSINESS RULE services.projections._orders_touched.reservation_links:
+    For changed reservations, follow their recorded promise identities.
+
+    BUSINESS RULE services.projections._orders_touched.source_links:
+    For changed sources, include documents that directly cite those sources within the company.
+
+    BUSINESS RULE services.projections._orders_touched.item_partner_links:
+    For changed articles or receiving partners, include only open customer-delivery promises naming them. Finished orders have no current warehouse work to refresh through these subjects.
+
+    BUSINESS RULE services.projections._orders_touched.billed_orders:
+    Include directly affected documents and the orders those documents bill or explicitly reference as down-payment or proforma evidence.
+
+    BUSINESS RULE services.projections._orders_touched.standalone_promises:
+    Resolve each affected promise to its document identity; if it has no document, use the promise identity itself.
+
+    BUSINESS RULE services.projections._orders_touched.empty_resolution:
+    IF no changed subject resolves to an order:
+        Return a fallback reason rather than claiming coverage of no known orders.
+
+    BUSINESS RULE services.projections._orders_touched.bounded_resolution:
+    IF the resolved order count exceeds MAX_NARROWED_ROWS:
+        Return a full-build fallback reason.
+    ELSE:
+        Return the resolved order identities for bounded derivation.
     """
     from reality.db.core import Fact, MovementCorrection
 
@@ -1749,6 +1976,7 @@ def _orders_touched(
         "payment_return",
     }
     unknown = sorted(set(changes.subjects or {}) - known)
+    # reality-rule: services.projections._orders_touched.supported_subjects
     if unknown:
         return f"{projection} cannot narrow by {unknown[0]}"
     commitments = set(changes.ids("commitment"))
@@ -1757,6 +1985,7 @@ def _orders_touched(
     )
     movements = set(changes.ids("movement"))
     reservations = set(changes.ids("reservation"))
+    # reality-rule: services.projections._orders_touched.fact_subjects
     if facts := changes.ids("fact"):
         for subject_type, subject_id in session.execute(
             select(Fact.subject_type, Fact.subject_id).where(
@@ -1776,6 +2005,7 @@ def _orders_touched(
                     f"{projection} cannot narrow by an observation "
                     f"about a {subject_type}"
                 )
+    # reality-rule: services.projections._orders_touched.movement_corrections
     if movements:
         for original, compensating, replacement in session.execute(
             select(
@@ -1799,6 +2029,7 @@ def _orders_touched(
                 )
             )
         )
+    # reality-rule: services.projections._orders_touched.reservation_links
     if reservations:
         commitments.update(
             session.scalars(
@@ -1808,6 +2039,7 @@ def _orders_touched(
                 )
             )
         )
+    # reality-rule: services.projections._orders_touched.source_links
     if sources := changes.ids("source_record"):
         documents.update(
             session.scalars(
@@ -1823,6 +2055,7 @@ def _orders_touched(
         reach.append(Commitment.item_id.in_(items))
     if parties:
         reach.append(Commitment.to_party_id.in_(parties))
+    # reality-rule: services.projections._orders_touched.item_partner_links
     if reach:
         commitments.update(
             session.scalars(
@@ -1847,7 +2080,9 @@ def _orders_touched(
                 )
             )
         )
+    # reality-rule: services.projections._orders_touched.billed_orders
     orders = set(documents) | _orders_billed_by(session, tenant_id, documents)
+    # reality-rule: services.projections._orders_touched.standalone_promises
     if commitments:
         for commitment_id, document_id in session.execute(
             select(Commitment.id, Commitment.document_id).where(
@@ -1855,8 +2090,10 @@ def _orders_touched(
             )
         ).all():
             orders.add(document_id or commitment_id)
+    # reality-rule: services.projections._orders_touched.empty_resolution
     if not orders:
         return f"no {projection} subject resolved to an order"
+    # reality-rule: services.projections._orders_touched.bounded_resolution
     if len(orders) > MAX_NARROWED_ROWS:
         return f"{len(orders)} orders is not worth visiting one at a time"
     return frozenset(orders)
@@ -1865,18 +2102,40 @@ def _orders_touched(
 def _narrowed_open_work(
     session: Session, tenant_id: str, changes: ChangeSet, projection: str
 ) -> tuple[OpenWork, frozenset[str], frozenset[str]] | str:
-    """The open work of the orders that changed, with what it speaks for.
+    """
+    The open work of the orders that changed, with what it speaks for.
 
     The promises of those orders are read whatever their status, because what a
     narrowed refresh must say about a promise that is finished is that its rows are
     gone — and a key nobody names is a key nobody deletes. Only the open ones are
     derived; the rest are there to be spoken for.
+
+    BUSINESS PURPOSE:
+    Rebuild warehouse work for affected orders and retain coverage of promises that have finished, so stale queue and blocker rows can be removed.
+
+    BUSINESS RULE services.projections._narrowed_open_work.resolve_orders:
+    Resolve changed records to their actual order identities through the shared order-reachability reader. If it returns a fallback reason, propagate that reason instead of claiming a bounded rebuild.
+
+    BUSINESS RULE services.projections._narrowed_open_work.all_statuses:
+    Read this company's customer-delivery promises belonging to the resolved order documents or standalone promise identities. Include all promise statuses here so completed and cancelled rows can still be covered and removed.
+
+    BUSINESS RULE services.projections._narrowed_open_work.bounded_fallback:
+    IF the affected promise count exceeds MAX_NARROWED_ROWS:
+        Return a reason to use the full rebuild instead of visiting an oversized bounded set.
+
+    BUSINESS RULE services.projections._narrowed_open_work.open_only:
+    Derive current warehouse work only from promises whose stored status is open. Read their effective quantities and fulfillment through the common commitment-terms service.
+
+    BUSINESS RULE services.projections._narrowed_open_work.coverage:
+    Return the current warehouse work, every resolved order identity and every resolved customer promise identity, including promises that no longer produce work rows.
     """
     from reality.services.core import commitment_terms
 
+    # reality-rule: services.projections._narrowed_open_work.resolve_orders
     orders = _orders_touched(session, tenant_id, changes, projection)
     if isinstance(orders, str):
         return orders
+    # reality-rule: services.projections._narrowed_open_work.all_statuses
     promises = list(
         session.scalars(
             select(Commitment).where(
@@ -1886,8 +2145,10 @@ def _narrowed_open_work(
             )
         )
     )
+    # reality-rule: services.projections._narrowed_open_work.bounded_fallback
     if len(promises) > MAX_NARROWED_ROWS:
         return f"{len(promises)} promises is not worth visiting one at a time"
+    # reality-rule: services.projections._narrowed_open_work.open_only
     open_promises = [row for row in promises if row.status == "open"]
     work = _open_work_rows(
         session,
@@ -1895,33 +2156,49 @@ def _narrowed_open_work(
         open_promises,
         commitment_terms(session, tenant_id, [row.id for row in open_promises]),
     )
+    # reality-rule: services.projections._narrowed_open_work.coverage
     return work, orders, frozenset(row.id for row in promises)
 
 
 def _narrowed_fulfillment_queue(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The fulfillment queue, for the orders the changed records belong to (FR-002).
+    """
+    The fulfillment queue, for the orders the changed records belong to (FR-002).
 
     What it speaks for is the orders it resolved, not the rows it produced: an order
     whose last open promise was just fulfilled produces no row, and that is exactly
     when its row has to go.
+
+    BUSINESS PURPOSE:
+    The fulfillment queue, for the orders the changed records belong to (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_fulfillment_queue.result:
+    Return the current warehouse queue for the affected orders together with the order identities this rebuild covers. Cover an order even when it no longer produces a row after its last open promise is fulfilled. IF the shared open-work resolver cannot narrow the change, return its fallback reason instead of claiming a narrowed rebuild.
     """
     outcome = _narrowed_open_work(session, tenant_id, changes, "the fulfillment queue")
     if isinstance(outcome, str):
         return outcome
     work, orders, _ = outcome
+    # reality-rule: services.projections._narrowed_fulfillment_queue.result
     return NarrowedRows(json.loads(_dump(work.queue)), orders)
 
 
 def _narrowed_fulfillment_blockers(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """What blocks those orders (FR-002).
+    """
+    What blocks those orders (FR-002).
 
     A blocker's key is the promise and the reason, and a blocker that cleared leaves
     nothing behind to notice, so this refresh speaks for every reason of every promise
     of the orders it read — including the promises that are no longer open.
+
+    BUSINESS PURPOSE:
+    What blocks those orders (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_fulfillment_blockers.result:
+    Return blockers from the shared open-work derivation for affected orders. Cover every registered blocker reason for every resolved promise, including reasons that cleared and promises no longer open. This coverage removes stale stored blockers; it does not invent delivery completion.
     """
     outcome = _narrowed_open_work(
         session, tenant_id, changes, "the fulfillment blockers"
@@ -1934,6 +2211,7 @@ def _narrowed_fulfillment_blockers(
         for commitment_id in promises
         for reason in DELIVERY_BLOCKER_TYPES
     )
+    # reality-rule: services.projections._narrowed_fulfillment_blockers.result
     return NarrowedRows(json.loads(_dump(work.blockers)), covers)
 
 
@@ -2058,7 +2336,15 @@ def _promises_touched(
 def _narrowed_commitment_register(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The register of promises, for the promises that changed (FR-002)."""
+    """
+    The register of promises, for the promises that changed (FR-002).
+
+    BUSINESS PURPOSE:
+    The register of promises, for the promises that changed (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_commitment_register.result:
+    Return rebuilt promise-register rows together with every resolved promise identity. Cancelled promises remain in the register; coverage identifies the stored rows this refresh may replace.
+    """
     promises = _promises_touched(session, tenant_id, changes, "the commitment register")
     if isinstance(promises, str):
         return promises
@@ -2066,6 +2352,7 @@ def _narrowed_commitment_register(
     # A promise is never deleted — it is cancelled, and the register keeps showing it
     # — so the promises resolved here are exactly the stored rows this refresh speaks
     # for.
+    # reality-rule: services.projections._narrowed_commitment_register.result
     return NarrowedRows(rows, promises)
 
 
@@ -2192,12 +2479,19 @@ def _timeline_records(
 def _narrowed_timeline(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The timeline, for the records that changed (FR-002).
+    """
+    The timeline, for the records that changed (FR-002).
 
     This is the builder that reads a company's whole history every time: five tables
     end to end, every refresh. It is also the one that can answer "nothing of mine
     changed" — a window that touched only documents and parties produces no rows and
     speaks for none, which removes and writes nothing.
+
+    BUSINESS PURPOSE:
+    The timeline, for the records that changed (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_timeline.result:
+    Return timeline rows for resolved changed records. A change that reaches no timeline record produces no covered rows and therefore removes nothing.
     """
     records = _timeline_records(session, tenant_id, changes, "the timeline")
     if isinstance(records, str):
@@ -2205,6 +2499,7 @@ def _narrowed_timeline(
     rows = json.loads(_dump(_timeline_rows(session, tenant_id, records)))
     # The five records never move in time and are never deleted, so a row read here
     # is the stored row for that record and no other key can belong to it.
+    # reality-rule: services.projections._narrowed_timeline.result
     return NarrowedRows(rows, frozenset(rows))
 
 
@@ -2331,16 +2626,24 @@ def _open_items_touched(
 def _narrowed_open_financial_items(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The open items, for the documents that changed (FR-002).
+    """
+    The open items, for the documents that changed (FR-002).
 
     What it speaks for is the documents it resolved, not the rows it produced: a
     document that has no control posting is not an open item at all, so a refresh that
     finds none must be able to remove the row that was there.
+
+    BUSINESS PURPOSE:
+    The open items, for the documents that changed (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_open_financial_items.result:
+    Return current financial open-item rows and cover every resolved document, including documents that now produce no open-item row.
     """
     documents = _open_items_touched(session, tenant_id, changes, "the open items")
     if isinstance(documents, str):
         return documents
     rows = json.loads(_dump(_build_financial_rows(session, tenant_id, documents)))
+    # reality-rule: services.projections._narrowed_open_financial_items.result
     return NarrowedRows(rows, documents)
 
 
@@ -2446,20 +2749,30 @@ def _payments_touched(
 def _narrowed_payments(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The payments, for the cash entries that changed (FR-002)."""
+    """
+    The payments, for the cash entries that changed (FR-002).
+
+    BUSINESS PURPOSE:
+    The payments, for the cash entries that changed (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_payments.result:
+    Return current payment rows and cover the resolved cash-entry identities.
+    """
     entries = _payments_touched(session, tenant_id, changes, "the payments")
     if isinstance(entries, str):
         return entries
     rows = json.loads(_dump(_build_payment_rows(session, tenant_id, entries)))
     # What it speaks for is every entry it resolved, not the rows it produced: an
     # entry that is no longer a payment row must be able to lose one.
+    # reality-rule: services.projections._narrowed_payments.result
     return NarrowedRows(rows, entries)
 
 
 def _narrowed_exceptions(
     session: Session, tenant_id: str, changes: ChangeSet
 ) -> NarrowedRows | str:
-    """The exception classes a change could have moved, and no others (FR-002).
+    """
+    The exception classes a change could have moved, and no others (FR-002).
 
     This projection narrows by *class* rather than by record, which is the opposite
     of the other eleven and is what its shape allows. Half of its classes judge what
@@ -2475,6 +2788,12 @@ def _narrowed_exceptions(
     What it speaks for is every key of the classes it evaluated — read from the
     stored rows, because an exception that has cleared leaves no row to find and its
     key has to be named to be removed.
+
+    BUSINESS PURPOSE:
+    The exception classes a change could have moved, and no others (FR-002).
+
+    BUSINESS RULE services.projections._narrowed_exceptions.result:
+    Return current exceptions for affected classes and cover both produced keys and previously stored keys of those classes. Covering cleared keys allows their stored rows to be removed.
     """
     from reality.services.exceptions import (
         DERIVATION_REGISTRY,
@@ -2510,6 +2829,7 @@ def _narrowed_exceptions(
             )
         )
     )
+    # reality-rule: services.projections._narrowed_exceptions.result
     return NarrowedRows(rows, frozenset(covered))
 
 
@@ -2832,15 +3152,33 @@ def refresh_projection(session: Session, tenant_id: str, projection_name: str) -
 def projection_rows(
     session: Session, tenant_id: str, projection_name: str, *, refresh: bool = False
 ) -> list[dict[str, Any]]:
+    """
+    BUSINESS PURPOSE:
+    Read stored rows of the selected operational projection for this company. This reader neither derives fresh rows nor performs maintenance refreshes.
+
+    BUSINESS RULE services.projections.projection_rows.refusal-6:
+    IF the requested projection is not registered:
+        Refuse: Unknown operational projection.
+
+    BUSINESS RULE services.projections.projection_rows.refusal-8:
+    IF a maintenance refresh was requested through the stored-projection reader:
+        Refuse: Use the explicit maintenance refresh service.
+
+    BUSINESS RULE services.projections.projection_rows.result:
+    Return stored projection payloads for this company and projection, ordered by record key. Unknown projections and implicit refresh requests are refused; price resolution has no ordinary stored-row list.
+    """
     from reality.services.core import get_tenant
 
     get_tenant(session, tenant_id)
+    # reality-rule: services.projections.projection_rows.refusal-6
     if projection_name not in OPERATIONAL_PROJECTIONS:
         raise ValueError("Unknown operational projection.")
+    # reality-rule: services.projections.projection_rows.refusal-8
     if refresh:
         raise ValueError("Use the explicit maintenance refresh service.")
     if projection_name == PRICE_RESOLUTION:
         return []
+    # reality-rule: services.projections.projection_rows.result
     return [
         json.loads(row.payload)
         for row in session.scalars(
@@ -2867,7 +3205,15 @@ def materialized_resolve_price(
     *,
     at: datetime | str | None = None,
 ) -> dict[str, Any] | None:
-    """Compatibility entrypoint for the live, parameterized canonical price read."""
+    """
+    Compatibility entrypoint for the live, parameterized canonical price read.
+
+    BUSINESS PURPOSE:
+    Compatibility entrypoint for the live, parameterized canonical price read.
+
+    BUSINESS RULE services.projections.materialized_resolve_price.result:
+    Return the materialized price-resolution result produced by the selected query path; preserve the registered price resolution and freshness boundaries.
+    """
     from reality.services.core import resolve_price
 
     result = resolve_price(
@@ -2883,6 +3229,7 @@ def materialized_resolve_price(
     )
     if result is None:
         return None
+    # reality-rule: services.projections.materialized_resolve_price.result
     return json.loads(
         _dump(
             {
@@ -3131,7 +3478,9 @@ def _explain_retained_order(
                 "unit_mismatch": quantity_unit(items.get(line.item_id), line)[
                     "unit_mismatch"
                 ],
-                "unit_price": str(line.unit_price) if line.unit_price is not None else None,
+                "unit_price": str(line.unit_price)
+                if line.unit_price is not None
+                else None,
                 "gross_amount": str(line.gross_amount),
                 "billed_document_line_id": line.billed_document_line_id,
             }

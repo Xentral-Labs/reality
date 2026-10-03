@@ -110,47 +110,118 @@ def validate_substitute(
     item_id: Any,
     reason: Any,
 ) -> tuple[Commitment, Item, str]:
-    """What accepting a substitute would state, or the reason it cannot."""
+    """
+    What accepting a substitute would state, or the reason it cannot.
+
+    BUSINESS PURPOSE:
+    What accepting a substitute would state, or the reason it cannot.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-13:
+    IF the selected delivery promise does not exist in this company:
+        Refuse with commitment_not_found.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-15:
+    IF the selected promise is not a supplier delivery:
+        Refuse with substitute_purchase_only.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-17:
+    IF the purchase promise is cancelled:
+        Refuse with substitute_line_cancelled.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-22:
+    IF the selected item does not exist in this company:
+        Refuse with item_not_found.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-24:
+    IF the proposed substitute is the originally ordered item:
+        Refuse with substitute_same_item.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-26:
+    IF the proposed substitute is not a stocked item:
+        Refuse with substitute_item_not_stocked.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-29:
+    IF the original item exists and its stock unit differs from the substitute's stock unit:
+        Refuse with substitute_unit_differs.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-35:
+    IF the reason is empty after trimming whitespace:
+        Refuse with substitute_reason_required.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.refusal-37:
+    IF this substitute has already been accepted for the purchase promise:
+        Refuse with substitute_already_accepted.
+
+    BUSINESS RULE services.receipt_deviations.validate_substitute.result:
+    Return commitment, item, stated, as prepared by the preceding checks and service calls.
+    """
     commitment = session.scalar(
         select(Commitment).where(
             Commitment.tenant_id == tenant_id, Commitment.id == str(commitment_id or "")
         )
     )
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-13
     if commitment is None:
         raise NotFound(code="commitment_not_found")
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-15
     if commitment.type != "supplier_delivery":
         raise InvalidOperation(code="substitute_purchase_only")
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-17
     if commitment.status == "cancelled":
         raise InvalidOperation(code="substitute_line_cancelled")
     item = session.scalar(
         select(Item).where(Item.tenant_id == tenant_id, Item.id == str(item_id or ""))
     )
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-22
     if item is None:
         raise NotFound(code="item_not_found")
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-24
     if item.id == commitment.item_id:
         raise InvalidOperation(code="substitute_same_item")
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-26
     if item.item_type != "stocked":
         raise InvalidOperation(code="substitute_item_not_stocked")
     ordered = session.get(Item, (tenant_id, commitment.item_id))
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-29
     if ordered is not None and ordered.unit != item.unit:
         raise InvalidOperation(
             code="substitute_unit_differs",
             values={"ordered": ordered.unit, "substitute": item.unit},
         )
     stated = str(reason or "").strip()
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-35
     if not stated:
         raise InvalidOperation(code="substitute_reason_required")
+    # reality-rule: services.receipt_deviations.validate_substitute.refusal-37
     if accepted_substitute(session, tenant_id, commitment, item.id):
         raise InvalidOperation(code="substitute_already_accepted")
+    # reality-rule: services.receipt_deviations.validate_substitute.result
     return commitment, item, stated
 
 
 def review_substitute(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown."""
+    """
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.receipt_deviations.review_substitute.refusal-4:
+    IF arguments contain fields other than commitment_id, item_id and reason:
+        Refuse with substitute_fields_invalid.
+
+    BUSINESS RULE services.receipt_deviations.review_substitute.step-6:
+    Run the shared validate substitute check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.receipt_deviations.review_substitute.result:
+    Return normalized confirmation arguments and a review showing the ordered item, proposed substitute, purchase promise, document and stated reason.
+    """
+    # reality-rule: services.receipt_deviations.review_substitute.refusal-4
     if set(arguments) - {"commitment_id", "item_id", "reason"}:
         raise InvalidOperation(code="substitute_fields_invalid")
+    # reality-rule: services.receipt_deviations.review_substitute.step-6
     commitment, item, reason = validate_substitute(
         session,
         tenant_id,
@@ -159,6 +230,7 @@ def review_substitute(
         arguments.get("reason"),
     )
     ordered = session.get(Item, (tenant_id, commitment.item_id))
+    # reality-rule: services.receipt_deviations.review_substitute.result
     return (
         {"commitment_id": commitment.id, "item_id": item.id, "reason": reason},
         {
@@ -185,18 +257,41 @@ def accept_substitute(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> CommitmentSubstitute:
-    """Accept an item in place of what a purchase line ordered."""
+    """
+    Accept an item in place of what a purchase line ordered.
+
+    BUSINESS PURPOSE:
+    Accept an item in place of what a purchase line ordered.
+
+    BUSINESS RULE services.receipt_deviations.accept_substitute.step-17:
+    Require the business permission for 'accept_substitute' before changing company records.
+
+    BUSINESS RULE services.receipt_deviations.accept_substitute.step-19:
+    Run the shared validate substitute check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.receipt_deviations.accept_substitute.step-22:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.receipt_deviations.accept_substitute.step-46:
+    Record the commitment.substitute_accepted audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.receipt_deviations.accept_substitute.result:
+    Return row, as prepared by the preceding checks and service calls.
+    """
     from reality.services.core import (
         _require_business_mutation,
         emit_business_event,
         store_source_record,
     )
 
+    # reality-rule: services.receipt_deviations.accept_substitute.step-17
     _require_business_mutation(session, tenant_id, "accept_substitute")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.receipt_deviations.accept_substitute.step-19
     commitment, item, stated = validate_substitute(
         session, tenant_id, commitment_id, item_id, reason
     )
+    # reality-rule: services.receipt_deviations.accept_substitute.step-22
     source, _, _ = store_source_record(
         session,
         tenant_id,
@@ -221,6 +316,7 @@ def accept_substitute(
     )
     session.add(row)
     session.flush()
+    # reality-rule: services.receipt_deviations.accept_substitute.step-46
     emit_business_event(
         session,
         tenant_id,
@@ -239,6 +335,7 @@ def accept_substitute(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.receipt_deviations.accept_substitute.result
     return row
 
 

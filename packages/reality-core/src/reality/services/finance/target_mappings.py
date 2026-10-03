@@ -97,6 +97,14 @@ def list_targets(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read configured finance export targets for this company.
+
+    BUSINESS RULE services.finance.target_mappings.list_targets.result:
+    Return this company's finance export targets using the registered target list reader and requested page.
+    """
+    # reality-rule: services.finance.target_mappings.list_targets.result
     return _list(session, tenant_id, Target, [], query, limit, offset)
 
 
@@ -110,9 +118,22 @@ def list_target_references(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read references configured for the selected finance export target.
+
+    BUSINESS RULE services.finance.target_mappings.list_target_references.refusal-11:
+    IF a reference kind was supplied other than account or tax code:
+        Refuse: Invalid external reference kind.
+
+    BUSINESS RULE services.finance.target_mappings.list_target_references.result:
+    Return this company's external references for the requested target and optional account/tax-code kind using the common list reader.
+    """
     _get_row(session, tenant_id, Target, target_id)
+    # reality-rule: services.finance.target_mappings.list_target_references.refusal-11
     if kind is not None and kind not in ("account", "tax_code"):
         raise core.InvalidOperation("Invalid external reference kind.")
+    # reality-rule: services.finance.target_mappings.list_target_references.result
     return _list(
         session,
         tenant_id,
@@ -133,7 +154,15 @@ def list_mappings(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read this company's configured finance target mappings.
+
+    BUSINESS RULE services.finance.target_mappings.list_mappings.result:
+    Return this company's finance target mappings using the common mapping-list reader and requested page.
+    """
     _get_row(session, tenant_id, Target, target_id)
+    # reality-rule: services.finance.target_mappings.list_mappings.result
     return _list(
         session,
         tenant_id,
@@ -160,9 +189,17 @@ def mapping_history(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read recorded changes to the company's finance target mapping.
+
+    BUSINESS RULE services.finance.target_mappings.mapping_history.result:
+    Return the current result with total, limit, offset, items.
+    """
     _page(limit, offset)
     row = _get_row(session, tenant_id, Mapping, mapping_id)
     clauses = _scope(tenant_id, serialize(row))
+    # reality-rule: services.finance.target_mappings.mapping_history.result
     return {
         "total": session.scalar(
             select(func.count()).select_from(Mapping).where(*clauses)
@@ -337,8 +374,26 @@ def maintain_target_configuration(
     action_id: str,
     actor_id: str | None = None,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Maintain the selected finance target configuration through its reviewed service boundary.
+
+    BUSINESS RULE services.finance.target_mappings.maintain_target_configuration.step-9:
+    Require the business permission for 'finance_target_maintain' before changing company records.
+
+    BUSINESS RULE services.finance.target_mappings.maintain_target_configuration.step-11:
+    Run the shared preview change check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.finance.target_mappings.maintain_target_configuration.step-49:
+    Record the finance.target_configuration_changed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.finance.target_mappings.maintain_target_configuration.result:
+    Return result, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.finance.target_mappings.maintain_target_configuration.step-9
     core._require_business_mutation(session, tenant_id, "finance_target_maintain")
     coordinator = lock_finance(session, tenant_id)
+    # reality-rule: services.finance.target_mappings.maintain_target_configuration.step-11
     review = preview_change(session, tenant_id, command, arguments)
     model = (
         Mapping
@@ -377,6 +432,7 @@ def maintain_target_configuration(
     coordinator.revision += 1
     session.flush()
     result = serialize(row)
+    # reality-rule: services.finance.target_mappings.maintain_target_configuration.step-49
     emit_business_event(
         session,
         tenant_id,
@@ -392,6 +448,7 @@ def maintain_target_configuration(
         action_id=action_id,
     )
     session.flush()
+    # reality-rule: services.finance.target_mappings.maintain_target_configuration.result
     return result
 
 
@@ -440,7 +497,15 @@ def preview_document(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
-    """Use one repeatable snapshot without locking or writing operational state."""
+    """
+    Use one repeatable snapshot without locking or writing operational state.
+
+    BUSINESS PURPOSE:
+    Use one repeatable snapshot without locking or writing operational state.
+
+    BUSINESS RULE services.finance.target_mappings.preview_document.result:
+    Return the finance-target preview for the selected document from the shared target preview reader; this read does not export or mutate the document.
+    """
     from reality.services.finance.components import component_context
 
     # A separate read transaction also excludes uncommitted caller writes from this public read.
@@ -448,6 +513,7 @@ def preview_document(
         session.get_bind().engine.execution_options(isolation_level="REPEATABLE READ"),
         autoflush=False,
     ) as reader:
+        # reality-rule: services.finance.target_mappings.preview_document.result
         return _preview_document(
             reader, tenant_id, target_id, document_id, limit, offset, component_context
         )

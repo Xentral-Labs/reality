@@ -78,7 +78,15 @@ def reorder_points(
     item_id: str | None = None,
     location_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Every reorder point of the company, or those of one item or location."""
+    """
+    Every reorder point of the company, or those of one item or location.
+
+    BUSINESS PURPOSE:
+    Every reorder point of the company, or those of one item or location.
+
+    BUSINESS RULE services.reorder_points.reorder_points.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     get_tenant(session, tenant_id)
     query = (
         select(ItemReorderPoint, Item, Location)
@@ -99,6 +107,7 @@ def reorder_points(
         query = query.where(ItemReorderPoint.item_id == item_id)
     if location_id:
         query = query.where(ItemReorderPoint.location_id == location_id)
+    # reality-rule: services.reorder_points.reorder_points.result
     return [_row(*row) for row in session.execute(query)]
 
 
@@ -202,9 +211,28 @@ def set_reorder_point(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> ItemReorderPoint:
-    """State, or restate, the reorder point and quantity of an item at a location."""
+    """
+    State, or restate, the reorder point and quantity of an item at a location.
+
+    BUSINESS PURPOSE:
+    State, or restate, the reorder point and quantity of an item at a location.
+
+    BUSINESS RULE services.reorder_points.set_reorder_point.step-13:
+    Require the business permission for 'set_reorder_point' before changing company records.
+
+    BUSINESS RULE services.reorder_points.set_reorder_point.step-15:
+    Run the shared validate reorder point check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.reorder_points.set_reorder_point.step-49:
+    Record the reorder_point.set audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.reorder_points.set_reorder_point.result:
+    Return point, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.reorder_points.set_reorder_point.step-13
     _require_business_mutation(session, tenant_id, "set_reorder_point")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.reorder_points.set_reorder_point.step-15
     item, location, point_value, quantity = validate_reorder_point(
         session, tenant_id, item_id, location_id, reorder_point, reorder_quantity
     )
@@ -239,6 +267,7 @@ def set_reorder_point(
         # The same confirmation again: it already stated this.
         return point
     session.flush()
+    # reality-rule: services.reorder_points.set_reorder_point.step-49
     emit_business_event(
         session,
         tenant_id,
@@ -258,6 +287,7 @@ def set_reorder_point(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.reorder_points.set_reorder_point.result
     return point
 
 
@@ -271,11 +301,31 @@ def remove_reorder_point(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Withdraw a reorder point; the event keeps what it was."""
+    """
+    Withdraw a reorder point; the event keeps what it was.
+
+    BUSINESS PURPOSE:
+    Withdraw a reorder point; the event keeps what it was.
+
+    BUSINESS RULE services.reorder_points.remove_reorder_point.step-11:
+    Require the business permission for 'remove_reorder_point' before changing company records.
+
+    BUSINESS RULE services.reorder_points.remove_reorder_point.refusal-15:
+    IF the selected item and location have no current reorder point:
+        Refuse with reorder_point_not_found.
+
+    BUSINESS RULE services.reorder_points.remove_reorder_point.step-27:
+    Record the reorder_point.removed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.reorder_points.remove_reorder_point.result:
+    Return removed, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.reorder_points.remove_reorder_point.step-11
     _require_business_mutation(session, tenant_id, "remove_reorder_point")
     lock_delivery_state(session, tenant_id)
     item, location = _subjects(session, tenant_id, item_id, location_id)
     point = current_reorder_point(session, tenant_id, item.id, location.id)
+    # reality-rule: services.reorder_points.remove_reorder_point.refusal-15
     if point is None:
         raise NotFound(code="reorder_point_not_found")
     _check_expected(point, _expected)
@@ -288,6 +338,7 @@ def remove_reorder_point(
     }
     session.delete(point)
     session.flush()
+    # reality-rule: services.reorder_points.remove_reorder_point.step-27
     emit_business_event(
         session,
         tenant_id,
@@ -302,6 +353,7 @@ def remove_reorder_point(
     removed["source_record_id"] = source.id
     if _commit:
         session.commit()
+    # reality-rule: services.reorder_points.remove_reorder_point.result
     return removed
 
 
@@ -311,17 +363,38 @@ REORDER_POINT_TOOLS = {"reorder_point_set", "reorder_point_remove"}
 def review_reorder_point(
     session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown.
+    """
+    The arguments a confirmation executes and what the person is shown.
 
     The review states the point as it is now, or none, beside what it becomes,
     and carries the current values into the arguments: executing them later
     refuses if the point has changed in between.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.reorder_points.review_reorder_point.refusal-9:
+    IF the requested operation is not registered for this review service:
+        Refuse with proposal_tool_not_found.
+
+    BUSINESS RULE services.reorder_points.review_reorder_point.refusal-32:
+    IF the selected item and location have no current reorder point:
+        Refuse with reorder_point_not_found.
+
+    BUSINESS RULE services.reorder_points.review_reorder_point.result:
+    Return normalized, preview, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.reorder_points.review_reorder_point.effect-30:
+    IF the requested operation sets a reorder point:
+        Run the shared validate reorder point check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
     """
+    # reality-rule: services.reorder_points.review_reorder_point.refusal-9
     if tool_name not in REORDER_POINT_TOOLS:
         raise InvalidOperation(code="proposal_tool_not_found")
     item_id = str(arguments.get("item_id") or "")
     location_id = str(arguments.get("location_id") or "")
     if tool_name == "reorder_point_set":
+        # reality-rule: services.reorder_points.review_reorder_point.effect-30
         item, location, point, quantity = validate_reorder_point(
             session,
             tenant_id,
@@ -340,6 +413,7 @@ def review_reorder_point(
     current = reorder_point_values(
         current_reorder_point(session, tenant_id, item.id, location.id)
     )
+    # reality-rule: services.reorder_points.review_reorder_point.refusal-32
     if tool_name == "reorder_point_remove" and current is None:
         raise NotFound(code="reorder_point_not_found")
     normalized = {
@@ -358,4 +432,5 @@ def review_reorder_point(
         "current": current,
         "proposed": proposed,
     }
+    # reality-rule: services.reorder_points.review_reorder_point.result
     return normalized, preview

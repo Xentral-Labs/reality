@@ -51,7 +51,15 @@ def _finance_revision(session: Session, tenant_id: str) -> int:
 
 
 def schedule(session: Session, tenant_id: str) -> dict[str, Any]:
-    """The company's dunning levels, empty when none is set, with the finance revision."""
+    """
+    The company's dunning levels, empty when none is set, with the finance revision.
+
+    BUSINESS PURPOSE:
+    The company's dunning levels, empty when none is set, with the finance revision.
+
+    BUSINESS RULE services.dunning_runs.schedule.result:
+    Return the current result with revision, levels, source_record_id.
+    """
     core.get_tenant(session, tenant_id)
     rows = list(
         session.scalars(
@@ -60,6 +68,7 @@ def schedule(session: Session, tenant_id: str) -> dict[str, Any]:
             .order_by(DunningScheduleLevel.level)
         )
     )
+    # reality-rule: services.dunning_runs.schedule.result
     return {
         "revision": _finance_revision(session, tenant_id),
         "levels": [
@@ -116,7 +125,29 @@ def set_schedule(
     action_id: str,
     actor_id: str | None,
 ) -> dict[str, Any]:
-    """Replace the company's three dunning levels; callers own the outer transaction."""
+    """
+    Replace the company's three dunning levels; callers own the outer transaction.
+
+    BUSINESS PURPOSE:
+    Replace the company's three dunning levels; callers own the outer transaction.
+
+    BUSINESS RULE services.dunning_runs.set_schedule.step-10:
+    Require the business permission for 'set_dunning_schedule' before changing company records.
+
+    BUSINESS RULE services.dunning_runs.set_schedule.refusal-22:
+    IF the current finance revision differs from the reviewed revision:
+        Refuse with dunning_preview_stale.
+
+    BUSINESS RULE services.dunning_runs.set_schedule.step-25:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.dunning_runs.set_schedule.step-55:
+    Record the dunning.schedule_set audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.dunning_runs.set_schedule.result:
+    Return the result from schedule; inspect that called function for its calculation and eligibility rules.
+    """
+    # reality-rule: services.dunning_runs.set_schedule.step-10
     core._require_business_mutation(session, tenant_id, "set_dunning_schedule")
     state = lock_finance(session, tenant_id)
     replay = session.scalar(
@@ -129,9 +160,11 @@ def set_schedule(
     )
     if replay:
         return schedule(session, tenant_id)
+    # reality-rule: services.dunning_runs.set_schedule.refusal-22
     if state.revision != expected_revision:
         raise core.Conflict(code="dunning_preview_stale")
     stated = _stated_levels(session, tenant_id, levels)
+    # reality-rule: services.dunning_runs.set_schedule.step-25
     source, _, _ = core.store_source_record(
         session,
         tenant_id,
@@ -162,6 +195,7 @@ def set_schedule(
     # The schedule decides levels and fees, so a prepared run is stale after it.
     state.revision += 1
     session.flush()
+    # reality-rule: services.dunning_runs.set_schedule.step-55
     emit_business_event(
         session,
         tenant_id,
@@ -172,6 +206,7 @@ def set_schedule(
         source_record_id=source.id,
         action_id=action_id,
     )
+    # reality-rule: services.dunning_runs.set_schedule.result
     return schedule(session, tenant_id)
 
 
@@ -181,10 +216,17 @@ def set_schedule(
 def invoice_dunning_state(
     session: Session, tenant_id: str, invoice_ids: set[str] | None = None
 ) -> dict[str, dict[str, Any]]:
-    """Per invoice, its last non-reversed notice and any collection handover.
+    """
+    Per invoice, its last non-reversed notice and any collection handover.
 
     The one reader behind the run, the handover and the invoice explanation, so
     all of them agree on an item's level. Three queries, whatever the count.
+
+    BUSINESS PURPOSE:
+    Per invoice, its last non-reversed notice and any collection handover.
+
+    BUSINESS RULE services.dunning_runs.invoice_dunning_state.result:
+    Return the result from dict; inspect that called function for its calculation and eligibility rules.
     """
     reversed_ids = select(BusinessEvent.subject_id).where(
         BusinessEvent.tenant_id == tenant_id,
@@ -237,6 +279,7 @@ def invoice_dunning_state(
         )
     for invoice_id, handover_id in session.execute(handovers):
         state[invoice_id]["handover_id"] = handover_id
+    # reality-rule: services.dunning_runs.invoice_dunning_state.result
     return dict(state)
 
 
@@ -294,10 +337,17 @@ def run_context(
     run_date: Any,
     party_ids: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Which overdue items a run on this date would remind, at which level, and why.
+    """
+    Which overdue items a run on this date would remind, at which level, and why.
 
     Records nothing. Each item's level follows from its last non-reversed notice
     and the company schedule; items that cannot be reminded are named with a code.
+
+    BUSINESS PURPOSE:
+    Which overdue items a run on this date would remind, at which level, and why.
+
+    BUSINESS RULE services.dunning_runs.run_context.result:
+    Return the current result with revision, run_date, party_ids, schedule_source_record_id, notices, ready_for_collection, left_out.
     """
     core.get_tenant(session, tenant_id)
     day = _run_date(run_date)
@@ -387,6 +437,7 @@ def run_context(
         }
         for (party_id, currency, level), items in groups.items()
     ]
+    # reality-rule: services.dunning_runs.run_context.result
     return {
         "revision": _finance_revision(session, tenant_id),
         "run_date": day.isoformat(),
@@ -566,14 +617,35 @@ def confirm_run(
     actor_id: str | None,
     party_ids: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Record the reviewed notices still due at their reviewed level, name the rest.
+    """
+    Record the reviewed notices still due at their reviewed level, name the rest.
 
     Re-derives the run for the same date and customers under the finance lock, so
     an item paid, reminded or handed over since the review is skipped with a code
     instead of reminded twice or wrongly. Only a changed schedule makes the review
     stale, because it changes the fees the person approved. Callers own the outer
     transaction.
+
+    BUSINESS PURPOSE:
+    Record the reviewed notices still due at their reviewed level, name the rest.
+
+    BUSINESS RULE services.dunning_runs.confirm_run.step-19:
+    Require the business permission for 'record_dunning_run' before changing company records.
+
+    BUSINESS RULE services.dunning_runs.confirm_run.refusal-33:
+    IF the current schedule source record differs from the schedule source that was reviewed:
+        Refuse with dunning_preview_stale.
+
+    BUSINESS RULE services.dunning_runs.confirm_run.step-36:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.dunning_runs.confirm_run.step-80:
+    Record the dunning.run_confirmed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.dunning_runs.confirm_run.result:
+    Return the recorded dunning-run receipt and its affected invoice identities from the shared run receipt reader.
     """
+    # reality-rule: services.dunning_runs.confirm_run.step-19
     core._require_business_mutation(session, tenant_id, "record_dunning_run")
     lock_finance(session, tenant_id)
     replay = session.scalar(
@@ -588,9 +660,11 @@ def confirm_run(
         return _run_receipt(session, tenant_id, replay)
     chosen = _run_items(session, tenant_id, items)
     context = run_context(session, tenant_id, run_date=run_date, party_ids=party_ids)
+    # reality-rule: services.dunning_runs.confirm_run.refusal-33
     if context["schedule_source_record_id"] != schedule_source_record_id:
         raise core.Conflict(code="dunning_preview_stale")
     selected, skipped = run_outcome(session, tenant_id, context, chosen)
+    # reality-rule: services.dunning_runs.confirm_run.step-36
     run_source, _, _ = core.store_source_record(
         session,
         tenant_id,
@@ -635,6 +709,7 @@ def confirm_run(
             context={"dunning_run_source_record_id": run_source.id},
         )
         notice_ids.append(recorded["id"])
+    # reality-rule: services.dunning_runs.confirm_run.step-80
     emit_business_event(
         session,
         tenant_id,
@@ -650,6 +725,7 @@ def confirm_run(
         action_id=action_id,
     )
     session.flush()
+    # reality-rule: services.dunning_runs.confirm_run.result
     return _run_receipt(session, tenant_id, run_source.id)
 
 
@@ -659,6 +735,13 @@ def confirm_run(
 def handover_detail(
     session: Session, tenant_id: str, handover_id: str
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read a recorded collections handover and its invoice evidence for this company.
+
+    BUSINESS RULE services.dunning_runs.handover_detail.result:
+    Return the current result with id, party_id, handover_date, reason, invoice_ids, last_notice_ids, hold_id, hold_placed, source_record_id, created_at.
+    """
     handover = core._tenant_record(session, CollectionHandover, tenant_id, handover_id)
     invoice_ids = sorted(
         session.scalars(
@@ -681,6 +764,7 @@ def handover_detail(
         if event
         else {}
     )
+    # reality-rule: services.dunning_runs.handover_detail.result
     return {
         "id": handover.id,
         "party_id": handover.party_id,
@@ -696,8 +780,17 @@ def handover_detail(
 
 
 def handovers(session: Session, tenant_id: str) -> list[dict[str, Any]]:
-    """Collection handovers newest first with their invoices and delivery hold."""
+    """
+    Collection handovers newest first with their invoices and delivery hold.
+
+    BUSINESS PURPOSE:
+    Collection handovers newest first with their invoices and delivery hold.
+
+    BUSINESS RULE services.dunning_runs.handovers.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     core.get_tenant(session, tenant_id)
+    # reality-rule: services.dunning_runs.handovers.result
     return [
         handover_detail(session, tenant_id, handover_id)
         for handover_id in session.scalars(
@@ -749,8 +842,21 @@ def _handover_invoices(
 def preview_handover(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
-    """Validate a handover and name what it would do, recording nothing."""
+    """
+    Validate a handover and name what it would do, recording nothing.
+
+    BUSINESS PURPOSE:
+    Validate a handover and name what it would do, recording nothing.
+
+    BUSINESS RULE services.dunning_runs.preview_handover.refusal-5:
+    IF the collection handover reason is empty after trimming whitespace:
+        Refuse with collection_reason_missing.
+
+    BUSINESS RULE services.dunning_runs.preview_handover.result:
+    Return the current result with party_id, invoice_ids, last_notice_ids, delivery_hold.
+    """
     reason = str(arguments.get("reason") or "").strip()
+    # reality-rule: services.dunning_runs.preview_handover.refusal-5
     if not reason:
         raise core.InvalidOperation(code="collection_reason_missing")
     _run_date(arguments.get("handover_date"))
@@ -758,6 +864,7 @@ def preview_handover(
         session, tenant_id, arguments.get("invoice_ids")
     )
     existing = core.active_party_delivery_hold(session, tenant_id, invoices[0].party_id)
+    # reality-rule: services.dunning_runs.preview_handover.result
     return {
         "party_id": invoices[0].party_id,
         "invoice_ids": [invoice.id for invoice in invoices],
@@ -779,12 +886,36 @@ def record_handover(
     action_id: str,
     actor_id: str | None,
 ) -> dict[str, Any]:
-    """Hand dunned invoices to collection and hold the customer's deliveries.
+    """
+    Hand dunned invoices to collection and hold the customer's deliveries.
 
     One transaction: the handover, its invoice links and the delivery hold with
     the reason `collection` (an already active hold is kept). Callers own the
     outer transaction.
+
+    BUSINESS PURPOSE:
+    Hand dunned invoices to collection and hold the customer's deliveries.
+
+    BUSINESS RULE services.dunning_runs.record_handover.step-17:
+    Require the business permission for 'record_collection_handover' before changing company records.
+
+    BUSINESS RULE services.dunning_runs.record_handover.refusal-35:
+    IF the current finance revision differs from the reviewed revision:
+        Refuse with dunning_preview_stale.
+
+    BUSINESS RULE services.dunning_runs.record_handover.step-37:
+    Run the shared preview handover check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.dunning_runs.record_handover.step-42:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.dunning_runs.record_handover.step-86:
+    Record the dunning.collection_handover_recorded audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.dunning_runs.record_handover.result:
+    Return the result from handover detail; inspect that called function for its calculation and eligibility rules.
     """
+    # reality-rule: services.dunning_runs.record_handover.step-17
     core._require_business_mutation(session, tenant_id, "record_collection_handover")
     state = lock_finance(session, tenant_id)
     replay = session.scalar(
@@ -803,13 +934,16 @@ def record_handover(
     )
     if replay:
         return handover_detail(session, tenant_id, replay)
+    # reality-rule: services.dunning_runs.record_handover.refusal-35
     if state.revision != expected_revision:
         raise core.Conflict(code="dunning_preview_stale")
+    # reality-rule: services.dunning_runs.record_handover.step-37
     preview = preview_handover(
         session,
         tenant_id,
         {"invoice_ids": invoice_ids, "handover_date": handover_date, "reason": reason},
     )
+    # reality-rule: services.dunning_runs.record_handover.step-42
     source, _, _ = core.store_source_record(
         session,
         tenant_id,
@@ -854,6 +988,7 @@ def record_handover(
         action_id=action_id,
         _commit=False,
     )
+    # reality-rule: services.dunning_runs.record_handover.step-86
     emit_business_event(
         session,
         tenant_id,
@@ -871,6 +1006,7 @@ def record_handover(
         action_id=action_id,
     )
     session.flush()
+    # reality-rule: services.dunning_runs.record_handover.result
     return handover_detail(session, tenant_id, handover.id)
 
 
