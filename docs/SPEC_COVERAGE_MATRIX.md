@@ -2404,3 +2404,13 @@ Table `external_stock_statement` (migration 0133): stock someone outside states 
 - `packages/reality-core/tests/test_external_stock_migration.py`: the table comes and goes, and recorded rows block a rollback.
 - `packages/reality-core/tests/scenarios/test_catalog_external_stock.py`: story J07.
 - `packages/reality-core/tests/test_reporting_graph_coverage.py`: the table is a deferred operational workflow record.
+
+## Unconfirmed purchase orders — Spec 346
+
+Exception class `purchase_order_unconfirmed`, derived at read time: an open purchase line with no supplier revision and no receipt three days after its order was placed.
+
+- `packages/reality-core/tests/test_purchase_order_unconfirmed.py`:
+  - Reported after three days, with an order placed yesterday as the control.
+  - A confirmation as ordered, a receipt or a cancellation clears it; read as of before the confirmation it was still waiting.
+  - Another company sees nothing.
+- `packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged` (G10).

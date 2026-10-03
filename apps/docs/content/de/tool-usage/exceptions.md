@@ -64,6 +64,7 @@ was sie auflöst und welche Agent Tools sie auflisten und erklären.
 | [`received_beyond_order`](#exception-received_beyond_order)                               | Received beyond the order                | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
 | [`misdelivery_outstanding`](#exception-misdelivery_outstanding)                           | Wrong item delivered                     | Aufträge & Erfüllung    | `normal` | Warehouse                                                                                   |
 | [`external_stock_differs`](#exception-external_stock_differs)                             | External stock differs                   | Lager & Logistik        | `normal` | Warehouse                                                                                   |
+| [`purchase_order_unconfirmed`](#exception-purchase_order_unconfirmed)                     | Purchase order not confirmed             | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1628,3 +1629,26 @@ and when.
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
+
+## `purchase_order_unconfirmed` — Purchase order not confirmed {#exception-purchase_order_unconfirmed}
+
+A supplier has not confirmed an open purchase line three days after the order was placed. A
+confirmation is the supplier restating the promise — its date, quantity or price, or the date as
+ordered — and goods arriving answer it too. The entry names the order, when it was placed and since
+when a confirmation was expected, so the buyer can ask before the delivery date has passed. It
+changes nothing by itself.
+
+- **Verantwortlich:** Purchasing
+- **Aufgelöst durch:** The supplier's confirmation recorded as a revision of the line, goods
+  arriving against it, or the line cancelled.
+- **Schwere:** `normal`
+- **Datensatztyp:** `commitment`
+- **Spezifikation:** `346/FR-001`
+- **Nachweis:**
+  `tests/test_purchase_order_unconfirmed.py::test_an_unconfirmed_line_is_reported_after_three_days`,
+  `tests/test_purchase_order_unconfirmed.py::test_a_confirmation_or_a_receipt_clears_it`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
+[`commitments`](./views#view-commitments)

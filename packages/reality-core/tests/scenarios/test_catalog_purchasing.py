@@ -2002,3 +2002,72 @@ def test_a_purchase_receipt_and_invoice_that_agree_are_matched(session, business
     assert _match(session, business, other)["lines"][0]["differences"] == [
         "received_short"
     ]
+
+
+# --- G10: an unconfirmed purchase order (spec 346) ------------------------------
+
+
+def test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged(session, business):
+    """G10: asked about before its delivery date, cleared by the confirmation."""
+    tenant = business.tenant.id
+    placed = core.now() - timedelta(days=4)
+    due = (core.now() + timedelta(days=21)).isoformat()
+
+    def purchase(number):
+        _, _, _, (promise,) = core.create_manual_order(
+            session,
+            tenant,
+            "purchase",
+            number,
+            business.company.id,
+            business.supplier.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "50",
+                    "unit_price": "8",
+                    "gross_amount": "400",
+                }
+            ],
+            "400",
+            ordered_at=placed,
+            requested_delivery_at=due,
+        )
+        return promise
+
+    silent = purchase("PO-G10-A")
+    answered = purchase("PO-G10-B")
+
+    def unconfirmed():
+        return {
+            row.record_id: row
+            for row in operational_exceptions(session, tenant)
+            if row.class_id == "purchase_order_unconfirmed"
+        }
+
+    # Neither supplier has answered; the delivery date is still three weeks away.
+    assert {silent.id, answered.id} <= set(unconfirmed())
+    assert not any(
+        row.class_id == "overdue_incoming_supplier_commitment"
+        and row.record_id in {silent.id, answered.id}
+        for row in operational_exceptions(session, tenant)
+    )
+
+    # The second supplier confirms exactly as ordered: the buyer restates its date.
+    _reviewed(
+        session,
+        business,
+        "commitment_revise",
+        {
+            "commitment_id": answered.id,
+            "due_at": due,
+            "note": "Order confirmation AB-7781 as ordered",
+        },
+        "g10-confirm",
+    )
+
+    found = unconfirmed()
+    assert answered.id not in found
+    # Positive control: the supplier who stayed silent is still asked about.
+    assert "PO-G10-A" in found[silent.id].impact

@@ -628,7 +628,8 @@
         "exception:order_waiting_for_completeness",
         "exception:backorder_against_rule",
         "exception:shipped_beyond_order",
-        "exception:received_beyond_order"
+        "exception:received_beyond_order",
+        "exception:purchase_order_unconfirmed"
       ],
       "tools": [
         "tool:commitments_list",
@@ -1585,7 +1586,10 @@
           "actions": ["command:create_manual_order"],
           "tools": [],
           "lists": ["view:commitments"],
-          "exceptions": ["exception:overdue_incoming_supplier_commitment"]
+          "exceptions": [
+            "exception:overdue_incoming_supplier_commitment",
+            "exception:purchase_order_unconfirmed"
+          ]
         },
         {
           "title": {
@@ -29417,7 +29421,8 @@
         "exception:payment_authorization_expired",
         "exception:received_beyond_order",
         "exception:misdelivery_outstanding",
-        "exception:external_stock_differs"
+        "exception:external_stock_differs",
+        "exception:purchase_order_unconfirmed"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -31206,6 +31211,32 @@
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Fremdbestand weicht ab",
       "resources": ["item"]
+    },
+    {
+      "id": "exception:purchase_order_unconfirmed",
+      "kind": "exception",
+      "key": "purchase_order_unconfirmed",
+      "label": "Purchase order not confirmed",
+      "area": "orders",
+      "summary": "A supplier has not confirmed an open purchase line three days after the order was placed. A confirmation is the supplier restating the promise — its date, quantity or price, or the date as ordered — and goods arriving answer it too. The entry names the order, when it was placed and since when a confirmation was expected, so the buyer can ask before the delivery date has passed. It changes nothing by itself.",
+      "owner": "Purchasing",
+      "clears_through": "The supplier's confirmation recorded as a revision of the line, goods arriving against it, or the line cancelled.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "346/FR-001",
+      "evidence": [
+        "tests/test_purchase_order_unconfirmed.py::test_an_unconfirmed_line_is_reported_after_three_days",
+        "tests/test_purchase_order_unconfirmed.py::test_a_confirmation_or_a_receipt_clears_it"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Bestellung nicht bestätigt",
+      "resources": ["order"]
     },
     {
       "id": "event:cost.attributed",

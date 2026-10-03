@@ -75,6 +75,9 @@ UNARRIVED_ANNOUNCEMENT_FLOOR = timedelta(days=14)
 # ordinary and a week is the shortest span in which "forgotten" means anything.
 # Matched to the stalled-order floor for the same reason.
 UNLIFTED_HOLD_FLOOR = timedelta(days=7)
+# Spec 346: a supplier confirms a purchase order within a few days, or it is worth
+# asking. Fixed, like the floors above, so it means the same in every company.
+CONFIRMATION_EXPECTED_WITHIN = timedelta(days=3)
 CREDIT_POSTING_FLOOR = timedelta(days=14)  # a fortnight to book one's own paperwork
 # Spec 300 FR-002: a promise less than a day before its date is at risk, reserved
 # or not. Fixed by the owner, so that "at risk" means the same in every company.
@@ -137,6 +140,7 @@ CLASS_ORDER = {
     "received_beyond_order": 53,
     "misdelivery_outstanding": 54,
     "external_stock_differs": 55,
+    "purchase_order_unconfirmed": 56,
 }
 
 
@@ -2663,6 +2667,78 @@ def _received_beyond_order_exceptions(
                 },
                 _order_line_trace(commitment, line, document),
                 _last_movement_at(session, tenant_id, commitment.id, "receipt"),
+            )
+        )
+    return result
+
+
+def _purchase_order_unconfirmed_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 346: a purchase line the supplier has not confirmed in time.
+
+    A supplier's confirmation is a statement restating the promise, which Reality
+    already keeps as a revision; a confirmation exactly as ordered restates the
+    date. Goods arriving answer the question too. A line still open with neither,
+    `CONFIRMATION_EXPECTED_WITHIN` after the order was placed, is reported from that
+    moment, so it shows before the delivery date has passed.
+    """
+    candidates = [
+        (commitment, line, document)
+        for commitment, line, document in _order_line_promises(
+            session, tenant_id, "supplier_delivery"
+        )
+        if commitment.status == "open"
+    ]
+    if not candidates:
+        return []
+    ids = [commitment.id for commitment, _, _ in candidates]
+    confirmed = set(
+        session.scalars(
+            select(CommitmentRevision.commitment_id).where(
+                CommitmentRevision.tenant_id == tenant_id,
+                CommitmentRevision.commitment_id.in_(ids),
+                CommitmentRevision.stated_at <= as_of,
+            )
+        )
+    )
+    received = set(
+        session.scalars(
+            select(Movement.commitment_id).where(
+                Movement.tenant_id == tenant_id,
+                Movement.commitment_id.in_(ids),
+                Movement.type == "receipt",
+                Movement.occurred_at <= as_of,
+            )
+        )
+    )
+    result: list[OperationalException] = []
+    for commitment, line, document in candidates:
+        if commitment.id in confirmed or commitment.id in received:
+            continue
+        placed_at = _document_instant(document) or commitment.created_at
+        expected_by = placed_at + CONFIRMATION_EXPECTED_WITHIN
+        if as_of < expected_by:
+            continue
+        result.append(
+            OperationalException(
+                _identity("purchase_order_unconfirmed", commitment.id),
+                "purchase_order_unconfirmed",
+                (),
+                "normal",
+                "Purchase order not confirmed",
+                f"{document.number} was placed on {placed_at.date().isoformat()} and "
+                "the supplier has not confirmed this line",
+                "commitment",
+                commitment.id,
+                {
+                    "placed_at": placed_at,
+                    "confirmation_expected_by": expected_by,
+                    "ordered_quantity": Decimal(commitment.quantity),
+                    "unit": commitment.unit or line.unit,
+                },
+                _order_line_trace(commitment, line, document),
+                expected_by,
             )
         )
     return result
@@ -5273,6 +5349,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "payment_authorization_expired": _payment_authorization_expired_exceptions,
     "received_beyond_order": _received_beyond_order_exceptions,
     "external_stock_differs": _external_stock_differs_exceptions,
+    "purchase_order_unconfirmed": _purchase_order_unconfirmed_exceptions,
     "misdelivery_outstanding": _misdelivery_outstanding_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,

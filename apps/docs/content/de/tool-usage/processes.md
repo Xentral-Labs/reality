@@ -192,7 +192,9 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Kann hinterlassen:**
 [Lieferverzug des Lieferanten](./exceptions#exception-overdue_incoming_supplier_commitment)
-(`overdue_incoming_supplier_commitment`)
+(`overdue_incoming_supplier_commitment`),
+[Bestellung nicht bestätigt](./exceptions#exception-purchase_order_unconfirmed)
+(`purchase_order_unconfirmed`)
 
 ### 3. Wareneingang buchen
 

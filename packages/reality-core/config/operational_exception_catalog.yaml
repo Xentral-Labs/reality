@@ -1307,3 +1307,20 @@ classes:
       - tests/test_external_stock.py::test_a_statement_that_differs_is_reported_and_moves_nothing
       - tests/test_external_stock.py::test_a_count_at_the_stated_time_clears_it
       - tests/test_external_stock.py::test_a_newer_statement_that_matches_clears_it
+  - id: purchase_order_unconfirmed
+    label: Purchase order not confirmed
+    description: >-
+      A supplier has not confirmed an open purchase line three days after the order was
+      placed. A confirmation is the supplier restating the promise — its date, quantity or
+      price, or the date as ordered — and goods arriving answer it too. The entry names the
+      order, when it was placed and since when a confirmation was expected, so the buyer can
+      ask before the delivery date has passed. It changes nothing by itself.
+    owner: Purchasing
+    clears_through: The supplier's confirmation recorded as a revision of the line, goods arriving against it, or the line cancelled.
+    severity: normal
+    derivation: purchase_order_unconfirmed
+    record_type: commitment
+    authority: 346/FR-001
+    evidence:
+      - tests/test_purchase_order_unconfirmed.py::test_an_unconfirmed_line_is_reported_after_three_days
+      - tests/test_purchase_order_unconfirmed.py::test_a_confirmation_or_a_receipt_clears_it
