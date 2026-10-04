@@ -217,6 +217,7 @@ def test_a_signed_in_approval_records_the_person_and_no_token(session, business)
         session,
         business.tenant.id,
         proposal.id,
+        confirmed=True,
         confirming_principal=Principal(owner.id),
     )
 
@@ -233,6 +234,7 @@ def test_a_person_and_a_token_together_record_the_person_only(session, business)
         session,
         business.tenant.id,
         proposal.id,
+        confirmed=True,
         confirming_principal=Principal(owner.id),
         settling_token_id=token.id,
     )

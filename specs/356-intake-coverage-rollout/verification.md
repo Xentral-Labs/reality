@@ -417,3 +417,5 @@ seconds. It includes all 20 actual authenticated-person HTTP cases and both CLI
 confirmation/decline cases. Ruff, business annotation audit and spec policy pass.
 Complete committed-head CI remains required; lifecycle and other writer families
 remain open.
+
+Committed-head commercial CI found two older positive signed-in payment-term decision-attribution tests omitted explicit confirmed=True. Their actual person/token precedence assertions remain unchanged; both now confirm the actual retained input. All 138 decision-attribution and commercial refusal/positive/replay checks passed in 21.99 seconds. Updated-head full CI remains required.
