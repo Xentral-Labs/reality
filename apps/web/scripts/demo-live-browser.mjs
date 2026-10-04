@@ -8,7 +8,7 @@ const browser = await chromium.launch({
   executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
 });
 const base = process.env.UNIFIED_APP_URL || "http://127.0.0.1:5190";
-const out = "/private/tmp/reality-demo-live-browser";
+const out = process.env.DEMO_LIVE_ARTIFACTS || "/tmp/reality-demo-live-browser";
 await mkdir(out, { recursive: true });
 try {
   for (const language of process.env.DEMO_VISUAL_ONLY
@@ -29,6 +29,8 @@ try {
           reads = 0,
           failed = false,
           state = "running",
+          awaitingReview = false,
+          reviewRequired = false,
           revision = 1;
         await page.route("**/api/**", async (route) => {
           const req = route.request(),
@@ -85,14 +87,20 @@ try {
               : reply({
                   id: "connection",
                   state,
-                  derived_state: state,
+                  derived_state: reviewRequired
+                    ? "review_required"
+                    : awaitingReview
+                      ? "awaiting_reviewer"
+                      : state,
                   revision,
                   rate: 60,
                   next_arrival: state === "running" ? "2026-09-09T09:00:00Z" : null,
-                  last_success: "2026-09-09T08:59:00Z",
+                  last_success: awaitingReview ? null : "2026-09-09T08:59:00Z",
                   generated: count,
-                  imported: count,
-                  pending: 0,
+                  imported: awaitingReview ? 0 : count,
+                  pending: awaitingReview ? count : 0,
+                  awaiting_decision: awaitingReview && !reviewRequired ? count : 0,
+                  review_required: reviewRequired ? count : 0,
                   failed: 0,
                 });
           }
@@ -102,11 +110,15 @@ try {
               items: Array.from({ length: count }, (_, i) => ({
                 id: `imp-${count - i}`,
                 source_record_id: `src-${count - i}`,
-                status: "completed",
-                document_id: `doc-${count - i}`,
-                document_number: `DEMO-${count - i}`,
+                status: reviewRequired
+                  ? "review_required"
+                  : awaitingReview
+                    ? "awaiting_decision"
+                    : "completed",
+                document_id: awaitingReview ? null : `doc-${count - i}`,
+                document_number: awaitingReview ? null : `DEMO-${count - i}`,
                 created_at: "2026-09-09T08:58:00Z",
-                completed_at: "2026-09-09T08:59:00Z",
+                completed_at: awaitingReview ? null : "2026-09-09T08:59:00Z",
               })),
               next_cursor: null,
               has_more: false,
@@ -184,6 +196,23 @@ try {
           await panel.getByRole("heading", { name: activity, exact: true }).waitFor();
           assert.equal(writes.length, 0, "Localized activity must remain read-only");
         }
+        awaitingReview = true;
+        const writesBeforeReview = writes.length;
+        await panel.locator(".demo-live-activity header button").click();
+        await panel.locator("[data-awaiting-reviewer]").waitFor();
+        await panel.locator('.demo-live-event[data-status="awaiting_decision"]').first().waitFor();
+        assert.equal(await panel.locator('.demo-live-event[data-status="completed"]').count(), 0);
+        const reviewLink = panel.locator("[data-awaiting-reviewer] a");
+        assert.equal(await reviewLink.getAttribute("href"), "/app/decisions?tenant=demo");
+        assert.equal(
+          await panel.locator('.demo-live-badge[data-state="awaiting_reviewer"]').count(),
+          1,
+        );
+        assert.equal(
+          writes.length,
+          writesBeforeReview,
+          "Awaiting review must not enroll an agent or accept a source",
+        );
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({
           path: `${out}/demo-live-${language === "en" ? "" : `${language}-`}${theme}-${mobile}.png`,
@@ -206,6 +235,19 @@ try {
           await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
           false,
           "No horizontal overflow",
+        );
+        reviewRequired = true;
+        await panel.locator(".demo-live-activity header button").click();
+        await panel.locator('.demo-live-badge[data-state="review_required"]').waitFor();
+        await panel.locator('.demo-live-event[data-status="review_required"]').first().waitFor();
+        assert.equal(
+          await panel.locator("[data-awaiting-reviewer] a").getAttribute("href"),
+          "/app/data-sources?tenant=demo&data_view=records",
+        );
+        assert.equal(
+          writes.length,
+          writesBeforeReview,
+          "Unsupported meaning cannot become approval",
         );
         if (language === "en") {
           await page.goto(`${base}/app/data-sources?tenant=demo`);

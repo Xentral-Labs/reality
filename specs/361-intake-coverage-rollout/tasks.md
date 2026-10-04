@@ -29,8 +29,8 @@ does not prove runtime behavior. Domain → services → tools → adapters.
 **Independent acceptance**: Execute US1 scenarios; require exact retained-result counts and zero unapproved effects. Write/observe failing tests before their corresponding implementation.
 
 - [ ] T003 [US1] Add and observe failing proofs for FR-001, FR-002, FR-003 in `packages/reality-core/tests/test_intake_rollout_coverage.py`: `test_writer_inventory_has_no_unowned_path`, `test_all_transports_and_direct_calls_are_guarded`, `test_exceptions_cannot_be_reused_for_business_effects`.
-- [ ] T004 [US1] Close remaining canonical-writer and adapter bypasses without putting business rules in transports in `packages/reality-core/src/reality/services/tenant_policy.py`; deliver FR-001, FR-002, FR-003 without weakening their refusal checks.
-- [ ] T005 [US1] Complete baseline inventory and catalog/service caller coverage with exact test links in `specs/356-decision-gated-intake/writer-coverage.md`; deliver FR-001, FR-002, FR-003 without weakening their refusal checks.
+- [ ] T004 [US1] Close external-source adapter bypasses without putting business rules in transports in `packages/reality-core/src/reality/services/tenant_policy.py`; deliver FR-001, FR-002, FR-003 without weakening their refusal checks.
+- [ ] T005 [US1] Classify baseline inventory as discovery and complete external-source caller coverage with exact test links in `specs/356-decision-gated-intake/writer-coverage.md`; deliver FR-001, FR-002, FR-003 without weakening their refusal checks.
 
 ## Phase 3: US2 — Run demo through the same admission
 
@@ -76,3 +76,5 @@ Deliver one independently tested story at a time. The first foundation/Shopify s
 proves the mechanism, not all-path coverage. Do not deploy a migrated adapter while
 old write-capable workers can still bypass its boundary. Completion remains gated
 by all required checks and honest unresolved-outcome reporting.
+
+- [ ] T017 Restore stable demo schedule/run/connection locking from #352, with a failure-first two-connection regression and source/scheduler qualification (FR-006; spec 146).

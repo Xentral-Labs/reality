@@ -34,6 +34,9 @@ Exact batch review and settlement, bounded durable processing, revocable unatten
 
 ### Non-Goals
 
+Universal canonical-writer enforcement and another proposal/confirmation cycle for
+direct authenticated human actions are outside this rollout.
+
 No blanket approve-all filter, unrestricted background authority, new timer/queue engine, network calls inside transaction-bound scheduled handlers, removal of built-in Chat confirmation restrictions or weakening of finance permissions.
 
 ### Existing Contracts

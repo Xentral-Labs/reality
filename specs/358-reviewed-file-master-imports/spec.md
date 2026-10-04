@@ -34,6 +34,9 @@ Move all existing business-target file profiles and their master-data effects to
 
 ### Non-Goals
 
+Universal canonical-writer enforcement and another proposal/confirmation cycle for
+direct authenticated human actions are outside this rollout.
+
 No unrestricted mapping workbench, automatic master-data merge, SKU-as-identity, new provider formats, physical stock inference or silently changed update semantics.
 
 ### Existing Contracts

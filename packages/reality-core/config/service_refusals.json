@@ -2792,6 +2792,9 @@
     "intake_review_invalid": {
       "message": "The retained intake review is invalid."
     },
+    "intake_demo_source_required": {
+      "message": "Bound preparation requires a registered Demo Data source."
+    },
     "intake_profile_unsupported": {
       "message": "This source profile has no reviewed intake adapter."
     },

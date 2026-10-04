@@ -34,6 +34,9 @@ Prepare and review first orders, later source versions, cancellation and refund 
 
 ### Non-Goals
 
+Universal canonical-writer enforcement and another proposal/confirmation cycle for
+direct authenticated human actions are outside this rollout.
+
 No direct Shopify API integration, new shipment authority, refund payout execution, automatic acceptance of currently unsupported edits or inference of unprovided prices/totals.
 
 ### Existing Contracts

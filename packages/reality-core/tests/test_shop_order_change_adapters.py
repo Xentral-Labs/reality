@@ -3,6 +3,7 @@
 import json
 
 from fastapi.testclient import TestClient
+from intake_review_support import accept_import_job
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -35,7 +36,7 @@ def _order_with_unknown_item(session, business):
         business.customer.id,
         business.location.id,
     )
-    core.process_import_job(session, business.tenant.id, job.id)
+    accept_import_job(session, business.tenant.id, job.id)
     line = session.scalars(
         select(DocumentLine).where(
             DocumentLine.tenant_id == business.tenant.id,

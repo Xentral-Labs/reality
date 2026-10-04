@@ -213,7 +213,15 @@ def test_item_csv_file_is_explicitly_mapped_by_worker(
     )
     executed = confirm_tool(session, business.tenant.id, proposal.id)
     output = json.loads(executed.output)
-    result = process_import_job(session, business.tenant.id, output["import_job_id"])
+    from intake_review_support import accept_import_job
+
+    prepared = process_import_job(session, business.tenant.id, output["import_job_id"])
+    assert prepared.status == "proposed"
+    assert (
+        session.query(Item).filter_by(tenant_id=business.tenant.id, sku="BELL").count()
+        == 0
+    )
+    result = accept_import_job(session, business.tenant.id, output["import_job_id"])
     imported = (
         session.query(Item).filter_by(tenant_id=business.tenant.id, sku="BELL").one()
     )

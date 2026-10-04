@@ -29,7 +29,7 @@ events:
   - {type: fact.observed, producer: observe_fact, subject: fact, invalidates: [Timeline, Inventory, Commitment register, Fulfillment queue, Fulfillment blockers, Item supply and demand, Operational Exceptions, Tenant usage]}
   - {type: source_record.received, producer: enqueue_source, subject: source_record, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
   - {type: source_record.unmapped, producer: enqueue_source, subject: source_record, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
-  - {type: source_record.interpreted, producer: process_import_job, subject: source_record, invalidates: [Operational Exceptions, Document register, Timeline, Fulfillment queue, Fulfillment blockers, Tenant usage]}
+  - {type: source_record.interpreted, producer: apply_prepared_intake, subject: source_record, invalidates: [Operational Exceptions, Document register, Timeline, Fulfillment queue, Fulfillment blockers, Tenant usage]}
   - {type: party.created, producer: create_party, subject: party, invalidates: [Document register, Commitment register, Fulfillment queue, Payments, Timeline, Operational Exceptions, Tenant usage]}
   - {type: party.updated, producer: update_party, subject: party, invalidates: [Document register, Commitment register, Open financial items, Fulfillment queue, Payments, Timeline, Operational Exceptions, Tenant usage]}
   - {type: party.delivery_hold_placed, producer: hold_party_delivery, subject: party, invalidates: [Operational Exceptions, Commitment register, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}

@@ -9,6 +9,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import accept_import_job
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, CommitmentHold
@@ -296,7 +297,7 @@ def test_a_shop_order_past_the_limit_is_held_once_even_when_replayed(session, bu
             party.id,
             business.location.id,
         )
-        return core.process_import_job(session, tenant, job.id)
+        return accept_import_job(session, tenant, job.id)
 
     interpreted = intake()
     commitments = interpreted[3]
@@ -356,7 +357,7 @@ def test_a_file_order_past_the_limit_is_held(session, business, tmp_path, monkey
     job_id = json.loads(confirm_tool(session, tenant, proposal.id).output)[
         "import_job_id"
     ]
-    core.process_import_job(session, tenant, job_id)
+    accept_import_job(session, tenant, job_id)
 
     holds = session.scalars(
         select(CommitmentHold).where(
@@ -428,7 +429,7 @@ def test_an_assigned_line_of_a_credit_held_order_is_held(session, business):
     _, job = core.enqueue_shopify_order(
         session, tenant, payload, business.company.id, party.id, business.location.id
     )
-    _, _, lines, commitments = core.process_import_job(session, tenant, job.id)
+    _, _, lines, commitments = accept_import_job(session, tenant, job.id)
     (order_hold,) = _holds(session, business, commitments)
     unknown = next(line for line in lines if line.item_id is None)
 
@@ -928,12 +929,19 @@ def test_a_cancelled_order_stops_counting_its_service_line(session, business):
             "created_at": "2026-09-20T10:00:00Z",
             "updated_at": "2026-09-20T10:00:00Z",
             "line_items": [
-                {"id": 1, "sku": business.item.sku, "quantity": 2, "price": "100.00"},
+                {
+                    "id": 1,
+                    "sku": business.item.sku,
+                    "quantity": 2,
+                    "price": "100.00",
+                    "total_price": "200.00",
+                },
                 {
                     "id": 2,
                     "sku": "",
                     "quantity": 1,
                     "price": "15.00",
+                    "total_price": "15.00",
                     "requires_shipping": False,
                     "title": "Gift wrap",
                 },
@@ -943,7 +951,7 @@ def test_a_cancelled_order_stops_counting_its_service_line(session, business):
         party.id,
         business.location.id,
     )
-    _, _, _, commitments = core.process_import_job(session, tenant, job.id)
+    _, _, _, commitments = accept_import_job(session, tenant, job.id)
     # Positive control: while the order is open its service line counts.
     assert credit_exposure(session, tenant, party.id)["open_orders"][
         "amount"

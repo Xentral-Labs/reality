@@ -5,6 +5,8 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from conftest import record_by_id
+from intake_review_support import accept_import_job, accept_pending_import_jobs
+from intake_review_support import accept_shopify_order as ingest_shopify_order
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -25,7 +27,6 @@ from reality.services.core import (
     create_commitment,
     create_item,
     fulfilled_quantity,
-    ingest_shopify_order,
     open_quantity,
     record_movement,
     reserve,
@@ -316,12 +317,19 @@ def test_shopify_free_promotion_item_is_its_own_zero_price_line_and_commitment(
         "currency": "EUR",
         "total_price": "98.00",
         "line_items": [
-            {"id": 900001, "sku": "BIKE-LIGHT", "quantity": 2, "price": "49.00"},
+            {
+                "id": 900001,
+                "sku": "BIKE-LIGHT",
+                "quantity": 2,
+                "price": "49.00",
+                "total_price": "98.00",
+            },
             {
                 "id": 900002,
                 "sku": "GIFT-BELL",
                 "quantity": 1,
                 "price": "0.00",
+                "total_price": "0.00",
                 "discount_allocations": [{"title": "Free bell above EUR 50"}],
             },
         ],
@@ -853,9 +861,7 @@ def _shop_order(session, business, number, quantity):
         business.customer.id,
         business.location.id,
     )
-    _, order, _, commitments = core.process_import_job(
-        session, business.tenant.id, job.id
-    )
+    _, order, _, commitments = accept_import_job(session, business.tenant.id, job.id)
     return order, commitments[0]
 
 
@@ -916,7 +922,7 @@ def _marketplace_order(session, business, tmp_path, number, quantity, due_at):
     job_id = json.loads(confirm_tool(session, tenant, proposal.id).output)[
         "import_job_id"
     ]
-    core.process_import_job(session, tenant, job_id)
+    accept_import_job(session, tenant, job_id)
     order = session.scalars(
         select(Document).where(Document.tenant_id == tenant, Document.number == number)
     ).one()
@@ -1050,8 +1056,11 @@ def test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved(
         "60",
         to_location_id=business.location.id,
     )
+    from intake_review_support import explicit_owner
+
     company = Company(
         tenant,
+        explicit_owner(session, tenant).user_id,
         business.company.id,
         business.customer.id,
         business.location.id,
@@ -1066,7 +1075,7 @@ def test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved(
             business.customer.id,
             business.location.id,
         )
-    while sum(core.process_pending_import_jobs(session, tenant, limit=25)):
+    while sum(accept_pending_import_jobs(session, tenant)):
         pass
 
     orders = session.scalars(
@@ -1447,7 +1456,7 @@ def _order_file(session, business, tmp_path, order_id, rows):
         },
     )
     output = json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)
-    core.process_import_job(session, business.tenant.id, output["import_job_id"])
+    accept_import_job(session, business.tenant.id, output["import_job_id"])
 
 
 def _unknown_lines(session, business):

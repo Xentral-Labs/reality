@@ -204,28 +204,6 @@ writers_that_do_not_set_a_reference:
     reason: >-
       The same compensating movement. A correction fulfils no announcement; the movement it
       reverses may have, and reversing it is what stops that counting.
-  - module: services/core.py
-    function: _shopify_interpretation
-    record: DocumentLine
-    reference: billed_document_line_id
-    reason: >-
-      Shopify order ingestion builds sales-order lines. An order line is what a billing line
-      points *at*, so it can never carry the reference itself.
-  - module: services/file_interpreters.py
-    function: interpret_artifact
-    record: DocumentLine
-    reference: billed_document_line_id
-    reason: >-
-      File-based order ingestion, and the same argument: these are order lines, not billing
-      lines.
-  - module: services/shop_refunds.py
-    function: interpret_shop_refund
-    record: DocumentLine
-    reference: billed_document_line_id
-    reason: >-
-      A Shopify refund line is evidence of money returned, not a bill or a credit note. Every
-      billing and crediting reader counts lines carrying the reference, so a refund line names
-      the Shopify line it refunds through source_line_id instead (spec 296).
   - module: services/down_payments.py
     function: record_down_payment_invoice
     record: DocumentLine

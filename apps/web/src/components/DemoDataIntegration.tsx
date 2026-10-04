@@ -36,6 +36,8 @@ const labels: Record<string, string> = {
   set_rate: "Change rate",
   stopped: "Stopped",
   running: "Running",
+  awaiting_reviewer: "Awaiting source review",
+  review_required: "Review required",
   paused: "Paused",
   disconnected: "Disconnected",
   throttled: "Paused: resolve failed imports",
@@ -229,7 +231,7 @@ function DemoDataIntegrationView({
           {!settingsOnly && <h2 id={`demo-data-${tenantId}`}>{t("Live simulation")}</h2>}
           <p className="demo-live-description">
             {t(
-              (state?.derived_state || state?.state) === "running"
+              state?.state === "running"
                 ? "New demo orders arrive automatically."
                 : state?.state === "paused"
                   ? "New arrivals are paused. Existing orders remain available."
@@ -243,6 +245,25 @@ function DemoDataIntegrationView({
           </span>
         )}
       </header>
+      {!!(state?.awaiting_decision || state?.review_required) && (
+        <p role="status" className="demo-live-warning" data-awaiting-reviewer>
+          {t(
+            "Original demo sources are retained. Their meaning must be reviewed before orders or payments are accepted.",
+          )}{" "}
+          <a
+            href={
+              state.awaiting_decision
+                ? `/app/decisions?tenant=${encodeURIComponent(tenantId)}`
+                : `/app/data-sources?tenant=${encodeURIComponent(tenantId)}&data_view=records`
+            }
+          >
+            {t(state.awaiting_decision ? "Review decisions" : "Source records")}
+          </a>{" "}
+          {t(
+            "An owner can separately authorize a named agent with explicit scope, limits and expiry.",
+          )}
+        </p>
+      )}
       {state?.stall?.kind === "overdue" && !runId && (
         <ReadinessNotice tenantId={tenantId} readiness={readiness} report={setReadiness} />
       )}
@@ -618,7 +639,11 @@ function DemoDataIntegrationView({
                                 ? "Demo order imported"
                                 : row.status === "failed"
                                   ? "Demo import failed"
-                                  : "Demo import pending",
+                                  : row.status === "awaiting_decision"
+                                    ? "Awaiting source review"
+                                    : row.status === "review_required" || row.status === "unmapped"
+                                      ? "Review required"
+                                      : "Demo import pending",
                             )}
                           </strong>
                           {row.document_number && (

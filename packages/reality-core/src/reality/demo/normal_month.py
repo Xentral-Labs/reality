@@ -21,7 +21,6 @@ from reality.services.core import (
     create_location,
     create_party,
     get_tenant,
-    ingest_shopify_order,
     open_invoice_amount,
     post_customer_payment,
     post_sales_credit_note,
@@ -31,6 +30,9 @@ from reality.services.core import (
     record_movement,
     reserve,
     stock_at,
+)
+from reality.services.core import (
+    _ingest_authored_setup_order as ingest_shopify_order,
 )
 
 FIXTURE = Path(__file__).parents[3] / "fixtures" / "shopify" / "order_10473.json"
@@ -55,6 +57,9 @@ def _summary(
 
 def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
     """Run the fixed September 2026 story once; reruns return the same derived result."""
+    from reality.services.tenant_policy import _require_fixed_setup
+
+    _require_fixed_setup(session, tenant_id, "normal_month")
     get_tenant(session, tenant_id)
     completed = session.scalar(
         select(ChangeProposal).where(
@@ -69,22 +74,28 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
     if session.scalar(select(Party.id).where(Party.tenant_id == tenant_id).limit(1)):
         raise InvalidOperation("Normal month requires an empty tenant.")
 
-    company = create_party(session, tenant_id, "Acme Bikes GmbH", "company")
-    customer = create_party(session, tenant_id, "Müller GmbH", "customer")
-    create_party(session, tenant_id, "Huber Handel GmbH", "customer")
-    create_party(session, tenant_id, "Velo Store GmbH", "customer")
-    supplier = create_party(session, tenant_id, "Bike Parts GmbH", "supplier")
-    create_party(session, tenant_id, "LightWorks AG", "supplier")
-    warehouse = create_location(session, tenant_id, "Augsburg Warehouse")
-    returns = create_location(session, tenant_id, "Returns Area")
-    item = create_item(session, tenant_id, "BIKE-LIGHT", "Bike Light")
+    company = create_party(
+        session, tenant_id, "Acme Bikes GmbH", "company", _commit=False
+    )
+    customer = create_party(
+        session, tenant_id, "Müller GmbH", "customer", _commit=False
+    )
+    create_party(session, tenant_id, "Huber Handel GmbH", "customer", _commit=False)
+    create_party(session, tenant_id, "Velo Store GmbH", "customer", _commit=False)
+    supplier = create_party(
+        session, tenant_id, "Bike Parts GmbH", "supplier", _commit=False
+    )
+    create_party(session, tenant_id, "LightWorks AG", "supplier", _commit=False)
+    warehouse = create_location(session, tenant_id, "Augsburg Warehouse", _commit=False)
+    returns = create_location(session, tenant_id, "Returns Area", _commit=False)
+    item = create_item(session, tenant_id, "BIKE-LIGHT", "Bike Light", _commit=False)
     for sku, name in [
         ("BIKE-BELL", "Bike Bell"),
         ("HELMET-M", "Helmet M"),
         ("HELMET-L", "Helmet L"),
         ("LOCK-01", "Bike Lock"),
     ]:
-        create_item(session, tenant_id, sku, name)
+        create_item(session, tenant_id, sku, name, _commit=False)
 
     record_movement(
         session,
@@ -94,6 +105,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         20,
         to_location_id=warehouse.id,
         occurred_at=at(1),
+        _commit=False,
     )
     normal = {
         "id": 5837291002,
@@ -116,7 +128,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
     _, _, _, normal_commitments = ingest_shopify_order(
         session, tenant_id, normal, company.id, customer.id, warehouse.id
     )
-    reserve(session, tenant_id, normal_commitments[0].id)
+    reserve(session, tenant_id, normal_commitments[0].id, _commit=False)
     record_movement(
         session,
         tenant_id,
@@ -126,6 +138,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         from_location_id=warehouse.id,
         commitment_id=normal_commitments[0].id,
         occurred_at=at(2, 14),
+        _commit=False,
     )
 
     large = json.loads(FIXTURE.read_text())
@@ -133,7 +146,9 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         session, tenant_id, large, company.id, customer.id, warehouse.id
     )
     customer_commitment = customer_commitments[0]
-    first_allocation = reserve(session, tenant_id, customer_commitment.id)
+    first_allocation = reserve(
+        session, tenant_id, customer_commitment.id, _commit=False
+    )
     assert first_allocation.shortage == Decimal("15.0000")
     purchase = create_commitment(
         session,
@@ -146,6 +161,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         20,
         "2026-09-10",
         amount=600,
+        _commit=False,
     )
     record_movement(
         session,
@@ -156,6 +172,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         to_location_id=warehouse.id,
         commitment_id=purchase.id,
         occurred_at=at(7),
+        _commit=False,
     )
     record_movement(
         session,
@@ -166,8 +183,9 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         to_location_id=warehouse.id,
         commitment_id=purchase.id,
         occurred_at=at(10),
+        _commit=False,
     )
-    reserve(session, tenant_id, customer_commitment.id)
+    reserve(session, tenant_id, customer_commitment.id, _commit=False)
     record_movement(
         session,
         tenant_id,
@@ -177,6 +195,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         from_location_id=warehouse.id,
         commitment_id=customer_commitment.id,
         occurred_at=at(11),
+        _commit=False,
     )
     record_movement(
         session,
@@ -187,6 +206,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         from_location_id=warehouse.id,
         commitment_id=customer_commitment.id,
         occurred_at=at(13),
+        _commit=False,
     )
     cancelled = create_commitment(
         session,
@@ -199,13 +219,15 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         4,
         "2026-09-18",
         amount=196,
+        _commit=False,
     )
-    reserve(session, tenant_id, cancelled.id)
+    reserve(session, tenant_id, cancelled.id, _commit=False)
     cancel_commitment(
         session,
         tenant_id,
         cancelled.id,
         reason="Customer cancelled before shipment",
+        _commit=False,
     )
     record_movement(
         session,
@@ -215,6 +237,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         2,
         to_location_id=returns.id,
         occurred_at=at(18),
+        _commit=False,
     )
     record_movement(
         session,
@@ -225,6 +248,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         from_location_id=returns.id,
         occurred_at=at(20),
         reason="Damaged return",
+        _commit=False,
     )
 
     invoice = create_document(
@@ -235,9 +259,14 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         customer.id,
         sales_order.gross_amount,
         document_date="2026-09-22",
+        _commit=False,
     )
-    post_sales_invoice(session, tenant_id, invoice.id, effective_at=at(22))
-    post_customer_payment(session, tenant_id, invoice.id, 500, effective_at=at(25))
+    post_sales_invoice(
+        session, tenant_id, invoice.id, effective_at=at(22), _commit=False
+    )
+    post_customer_payment(
+        session, tenant_id, invoice.id, 500, effective_at=at(25), _commit=False
+    )
     credit = create_document(
         session,
         tenant_id,
@@ -246,9 +275,12 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         customer.id,
         100,
         document_date="2026-09-27",
+        _commit=False,
     )
-    post_sales_credit_note(session, tenant_id, credit.id, effective_at=at(27))
-    allocate_credit_note(session, tenant_id, credit.id, invoice.id, 100)
+    post_sales_credit_note(
+        session, tenant_id, credit.id, effective_at=at(27), _commit=False
+    )
+    allocate_credit_note(session, tenant_id, credit.id, invoice.id, 100, _commit=False)
     supplier_invoice = create_document(
         session,
         tenant_id,
@@ -257,12 +289,18 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         supplier.id,
         600,
         document_date="2026-09-22",
+        _commit=False,
     )
     post_supplier_invoice(
-        session, tenant_id, supplier_invoice.id, effective_at=at(22, 11)
+        session, tenant_id, supplier_invoice.id, effective_at=at(22, 11), _commit=False
     )
     post_supplier_payment(
-        session, tenant_id, supplier_invoice.id, 250, effective_at=at(25, 11)
+        session,
+        tenant_id,
+        supplier_invoice.id,
+        250,
+        effective_at=at(25, 11),
+        _commit=False,
     )
 
     session.add(
@@ -277,5 +315,5 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
             created_at=at(30),
         )
     )
-    session.commit()
+    session.flush()
     return _summary(session, tenant_id, item.id, invoice.id)

@@ -5,13 +5,15 @@ dialog; the worker seeds it and the dialog shows data, calculation and ready bef
 company opens (specs 146, 199, 201).
 """
 
+import json
 import os
 from pathlib import Path
 
 from live_stack import PASSWORD, add_member, live_stack, migrate, run_browser_script
+from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 
-from reality.db.core import build_engine
+from reality.db.core import ChangeProposal, Document, SourceRecord, build_engine
 from reality.services import core
 
 
@@ -49,4 +51,31 @@ def test_live_demo_company_setup_reports_each_step(postgres_database, tmp_path):
             artifacts,
             timeout=300,
         )
+    result = json.loads((artifacts / "review-result.json").read_text())
+    try:
+        with sessionmaker(engine, expire_on_commit=False)() as session:
+            proposal = session.get(
+                ChangeProposal, (result["tenant"], result["proposal_id"])
+            )
+            source = session.get(
+                SourceRecord, (result["tenant"], result["source_record_id"])
+            )
+            assert proposal.status == "executed"
+            assert proposal.decided_by_user_id == admin.id
+            assert proposal.decided_at is not None
+            assert source.payload == result["original"]
+            assert json.loads(proposal.output)["digest"] == result["digest"]
+            assert (
+                session.scalar(
+                    select(func.count())
+                    .select_from(Document)
+                    .where(
+                        Document.tenant_id == result["tenant"],
+                        Document.source_record_id == source.id,
+                    )
+                )
+                == 1
+            )
+    finally:
+        engine.dispose()
     print(f"Live demo company setup verified; artifacts: {artifacts}")

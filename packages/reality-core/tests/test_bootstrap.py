@@ -4,7 +4,7 @@ from reality.db.core import Party, Tenant
 from reality.services.bootstrap import bootstrap_empty_database
 
 
-def test_configured_bootstrap_creates_demo_once(session, monkeypatch):
+def test_configured_bootstrap_creates_empty_company_once(session, monkeypatch):
     monkeypatch.setenv("REALITY_BOOTSTRAP_TENANT_NAME", "Acme Bikes GmbH")
 
     tenant = bootstrap_empty_database(session)
@@ -14,7 +14,7 @@ def test_configured_bootstrap_creates_demo_once(session, monkeypatch):
     assert tenant.name == "Acme Bikes GmbH"
     assert repeated is None
     assert session.scalar(select(func.count(Tenant.id))) == 1
-    assert session.scalar(select(func.count(Party.id))) == 3
+    assert session.scalar(select(func.count(Party.id))) == 0
 
 
 def test_bootstrap_is_disabled_without_configuration(session, monkeypatch):

@@ -60,3 +60,16 @@ The static writer inventory intentionally includes read/audit candidates and doe
 not prove every dynamically registered or nested writer is covered. Spec 361 owns
 final semantic closure. Automated agent verdict fixtures prove pipeline behavior,
 not independent model quality or live-provider cost.
+
+## Independent defect retained from closed PR #352
+
+FR-006 and spec 146 require Demo Data controls and shared worker transactions to
+remain correct. Production/settlement workers and Pause currently acquire the two
+schedules in opposite orders. Retain only the stable schedule/run/connection lock
+ordering correction, with the genuine two-connection regression in
+`tests/test_demo_schedule_lock_order.py`. It adds no decision layer, schema or
+canonical-writer gate. Existing cancellation/revision/replay rules remain intact.
+
+Plan Constitution Check: PASS; this restores existing source-control behavior.
+Proof order: observe the real lock inversion before the fix; apply the two service
+changes; verify the regression and existing scheduler/demo/import families.

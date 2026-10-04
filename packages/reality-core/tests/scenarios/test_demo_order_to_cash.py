@@ -8,6 +8,11 @@ import json
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from intake_review_support import (
+    accept_import_job,
+    accept_normalized_invoice,
+    accept_normalized_payment,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SourceRecord
@@ -81,28 +86,20 @@ def story(session, business, index, *, payments=None):
     external_id = f"{SCHEDULE}:run_{index}"
     order = synthetic.produce(SCHEDULE, f"run_{index}", SEED, AT, references(business))
     order_source = enqueue(session, tenant, "order", external_id, order)
-    core.create_manual_document_with_lines(
-        session,
-        tenant,
-        "sales_order",
-        order["number"],
-        order["customer_party_id"],
-        order["lines"],
-        order["gross_amount"],
-        currency=order["currency"],
-        ordered_at=order["ordered_at"],
-        document_date=order["ordered_at"][:10],
-        customer_reference=order["customer_reference"],
-        sales_channel="demo_data",
-        source_record_id=order_source.id,
-        _commit=False,
+    from reality.db.core import ImportJob
+
+    order_job = session.scalar(
+        select(ImportJob).where(
+            ImportJob.tenant_id == tenant, ImportJob.source_record_id == order_source.id
+        )
     )
+    accept_import_job(session, tenant, order_job.id)
     plan = synthetic.settlement_plan(SEED, SCHEDULE, external_id, order)
     invoice_payload = synthetic.produce_invoice(order, external_id, plan)
     invoice_source = enqueue(
         session, tenant, "invoice", f"{external_id}:invoice", invoice_payload
     )
-    _, invoice, _, _ = payment_intake.interpret_sales_invoice(
+    _, invoice, _, _ = accept_normalized_invoice(
         session, tenant, invoice_source, synthetic.normalise_invoice(invoice_payload)
     )
     results = []
@@ -116,7 +113,7 @@ def story(session, business, index, *, payments=None):
             payload,
         )
         results.append(
-            payment_intake.interpret_customer_payment(
+            accept_normalized_payment(
                 session, tenant, source, synthetic.normalise_payment(payload)
             )
         )

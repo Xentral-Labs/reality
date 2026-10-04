@@ -25,6 +25,8 @@ export type DemoDataStatus = {
   imported: number;
   failed: number;
   pending: number;
+  awaiting_decision?: number;
+  review_required?: number;
   settlement_schedule_id?: string | null;
   scheduler_error?: string | null;
   stall?: {
@@ -1292,9 +1294,9 @@ export type ProjectionSnapshot = {
 export type SpecializedProjectionRow = Record<string, unknown>;
 export type FulfillmentReadinessPayment = {
   currency: string;
-  required_amount: string;
+  required_amount: string | null;
   received_amount: string;
-  remaining_amount: string;
+  remaining_amount: string | null;
   requires_prepayment: boolean;
 };
 export type FulfillmentQueueLine = {

@@ -2,6 +2,7 @@ import json
 
 import pytest
 from conftest import record_by_id, seed_company
+from intake_review_support import accept_import_job
 from sqlalchemy import event, select
 
 from reality.db.core import SourceRecord
@@ -162,6 +163,37 @@ def test_ten_worker_occurrences_create_orders_without_business_execution(
         assert (
             scheduled_jobs.execute_claim(session, tenant, run_id, token) == "succeeded"
         )
+    from reality.db.core import ImportJob
+
+    waiting = demo_data.status(session, tenant, actor)
+    assert waiting["generated"] == waiting["awaiting_decision"] == 10
+    assert waiting["imported"] == 0 and waiting["derived_state"] == "awaiting_reviewer"
+    for model, count in baseline_counts.items():
+        assert (
+            session.scalar(
+                select(func.count()).select_from(model).where(model.tenant_id == tenant)
+            )
+            == count
+        )
+    if pending:
+        with pytest.raises(core.InvalidOperation):
+            accept_import_job(
+                session,
+                tenant,
+                session.scalar(
+                    select(ImportJob.id).where(
+                        ImportJob.tenant_id == tenant,
+                        ImportJob.status == "awaiting_decision",
+                    )
+                ),
+            )
+        return  # A pending account has no ordinary business review authority.
+    for job in session.scalars(
+        select(ImportJob).where(
+            ImportJob.tenant_id == tenant, ImportJob.status == "awaiting_decision"
+        )
+    ):
+        accept_import_job(session, tenant, job.id)
     result = demo_data.status(session, tenant, actor)
     assert result["generated"] == result["imported"] == 10 and result["failed"] == 0
     for model, count in (
@@ -271,12 +303,14 @@ def test_twenty_failed_imports_pause_and_retry_same_sources(
         confirmed=True,
     )
     schedule = record_by_id(session, ScheduledJob, started["schedule_id"])
-    interpreter = core.SOURCE_INTERPRETERS[("demo_data", "order")]
+    interpreter = __import__(
+        "reality.services.intake", fromlist=["_demo_order_plan"]
+    )._demo_order_plan
 
     def unavailable(*args):
         raise core.InvalidOperation("Synthetic validation failure")
 
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("demo_data", "order"), unavailable)
+    monkeypatch.setattr("reality.services.intake._demo_order_plan", unavailable)
     for index in range(20):
         schedule.next_run_at = now() - timedelta(seconds=21 - index)
         session.commit()
@@ -290,7 +324,7 @@ def test_twenty_failed_imports_pause_and_retry_same_sources(
     assert paused["next_arrival"] is None
     # Feature 168 FR-020: saturation pauses the settlement stream as well.
     assert paused["order_to_cash"]["next_settlement"] is None
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("demo_data", "order"), interpreter)
+    monkeypatch.setattr("reality.services.intake._demo_order_plan", interpreter)
     job = session.scalar(
         select(ImportJob).where(
             ImportJob.tenant_id == tenant, ImportJob.status == "failed"
@@ -299,7 +333,7 @@ def test_twenty_failed_imports_pause_and_retry_same_sources(
     source_id = job.source_record_id
     assert (
         demo_data.retry_import(session, tenant, actor, job.id, confirmed=True)["status"]
-        == "completed"
+        == "awaiting_decision"
     )
     assert job.source_record_id == source_id
     assert demo_data.status(session, tenant, actor)["generated"] == 20
@@ -343,12 +377,14 @@ def test_unexpected_interpreter_failure_rolls_back_source_and_retries_same_deliv
     claim = scheduled_jobs.claim_next(session, tenant)
     run_id, token = claim.id, claim.claim_token
     session.commit()
-    interpreter = core.SOURCE_INTERPRETERS[("demo_data", "order")]
+    interpreter = __import__(
+        "reality.services.intake", fromlist=["_demo_order_plan"]
+    )._demo_order_plan
 
     def failure(*args):
         raise RuntimeError("unexpected failure after intake")
 
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("demo_data", "order"), failure)
+    monkeypatch.setattr("reality.services.intake._demo_order_plan", failure)
     with pytest.raises(RuntimeError), session.begin_nested():
         scheduled_jobs.execute_claim(session, tenant, run_id, token)
     assert demo_data.status(session, tenant, actor)["generated"] == 0
@@ -357,7 +393,7 @@ def test_unexpected_interpreter_failure_rolls_back_source_and_retries_same_deliv
     )
     claim.next_attempt_at = now() - timedelta(seconds=1)
     session.commit()
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("demo_data", "order"), interpreter)
+    monkeypatch.setattr("reality.services.intake._demo_order_plan", interpreter)
     retried = scheduled_jobs.claim_next(session, tenant)
     assert retried.id == run_id
     scheduled_jobs.execute_claim(session, tenant, retried.id, retried.claim_token)
@@ -365,7 +401,7 @@ def test_unexpected_interpreter_failure_rolls_back_source_and_retries_same_deliv
     assert demo_data.status(session, tenant, actor)["generated"] == 1
 
 
-def _tick(session, tenant, schedule):
+def _tick(session, tenant, schedule, *, review=False):
     from datetime import timedelta
 
     from reality.db.core import now
@@ -381,6 +417,17 @@ def _tick(session, tenant, schedule):
     session.commit()
     assert scheduled_jobs.execute_claim(session, tenant, run_id, token) == "succeeded"
     session.commit()
+    if review:
+        from reality.db.core import ImportJob
+
+        for job in session.scalars(
+            select(ImportJob)
+            .where(
+                ImportJob.tenant_id == tenant, ImportJob.status == "awaiting_decision"
+            )
+            .order_by(ImportJob.created_at, ImportJob.id)
+        ):
+            accept_import_job(session, tenant, job.id)
     return run_id, token
 
 
@@ -434,7 +481,7 @@ def test_one_delivery_carries_none_one_or_two_orders_with_stable_identities(
     )
 
     monkeypatch.setattr(synthetic, "burst_size", lambda *args: 2)
-    run_id, token = _tick(session, tenant, schedule)
+    run_id, token = _tick(session, tenant, schedule, review=True)
     sources = list(
         session.scalars(
             select(SourceRecord)
@@ -465,7 +512,7 @@ def test_one_delivery_carries_none_one_or_two_orders_with_stable_identities(
     assert demo_data.status(session, tenant, actor)["generated"] == 2
 
     monkeypatch.setattr(synthetic, "burst_size", lambda *args: 0)
-    _tick(session, tenant, schedule)
+    _tick(session, tenant, schedule, review=True)
     state = demo_data.status(session, tenant, actor)
     assert state["generated"] == 2 and state["state"] == "running"
 
@@ -490,7 +537,7 @@ def test_growing_customer_pool_keeps_the_run_and_start_adds_the_newcomers(
 
     # A run started before the pool grew keeps delivering.
     monkeypatch.setattr(synthetic, "burst_size", lambda *args: 1)
-    _tick(session, tenant, schedule)
+    _tick(session, tenant, schedule, review=True)
     state = demo_data.status(session, tenant, actor)
     assert state["imported"] == 1 and state["scheduler_error"] is None
 
@@ -540,8 +587,8 @@ def test_bound_processing_accepts_all_synthetic_types(session, business, kind):
         )
     )
     assert outcome.classification == "failed"
-    assert outcome.interpreter_name == f"demo_data.{kind}"
-    assert kind in outcome.summary
+    assert outcome.interpreter_name == "intake.prepare"
+    assert "no business effects" in outcome.summary
     _foreign, foreign_job = core.enqueue_source(
         session,
         business.tenant.id,
@@ -578,7 +625,7 @@ def _settle_all(session, tenant, settlement, *, max_ticks=8):
 
     history, before = [], counts()
     for _ in range(max_ticks):
-        _tick(session, tenant, settlement)
+        _tick(session, tenant, settlement, review=True)
         session.refresh(settlement)
         after = counts()
         history.append({kind: after[kind] - before[kind] for kind in after})
@@ -615,7 +662,7 @@ def test_settlement_occurrence_emits_due_records_in_bounded_batches(
     actor = scheduled_owner.id
     tenant, order_schedule = _running_demo(session, monkeypatch, actor, "settle")
     for _ in range(12):
-        _tick(session, tenant, order_schedule)
+        _tick(session, tenant, order_schedule, review=True)
         session.refresh(order_schedule)
     orders = list(
         session.scalars(
@@ -744,7 +791,7 @@ def test_settlement_uses_each_order_schedule_seed_and_pause_never_bursts(
     actor = scheduled_owner.id
     tenant, first_schedule = _running_demo(session, monkeypatch, actor, "seeds")
     for _ in range(3):
-        _tick(session, tenant, first_schedule)
+        _tick(session, tenant, first_schedule, review=True)
         session.refresh(first_schedule)
     status = demo_data.status(session, tenant, actor)
     stopped = demo_data.control(
@@ -755,7 +802,7 @@ def test_settlement_uses_each_order_schedule_seed_and_pause_never_bursts(
     )
     second_schedule = record_by_id(session, ScheduledJob, restarted["schedule_id"])
     for _ in range(2):
-        _tick(session, tenant, second_schedule)
+        _tick(session, tenant, second_schedule, review=True)
         session.refresh(second_schedule)
     settlement = record_by_id(
         session, ScheduledJob, restarted["settlement_schedule_id"]
@@ -783,7 +830,7 @@ def test_settlement_uses_each_order_schedule_seed_and_pause_never_bursts(
     # Thirteen more orders arrive, then the owner pauses for a long time. Resume
     # never bursts: the backlog drains ten records per occurrence.
     for _ in range(13):
-        _tick(session, tenant, second_schedule)
+        _tick(session, tenant, second_schedule, review=True)
         session.refresh(second_schedule)
     current = demo_data.status(session, tenant, actor)
     paused = demo_data.control(

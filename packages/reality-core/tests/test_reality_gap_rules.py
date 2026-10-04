@@ -5,10 +5,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from intake_review_support import accept_shopify_order as ingest_shopify_order
 from sqlalchemy import select
 
 from reality.db.core import Fact, RuleInterpretationOutcome, SourceRecord, now, uid
-from reality.services.core import InvalidOperation, ingest_shopify_order
+from reality.services.core import InvalidOperation
 from reality.services.reality_gaps import (
     activate_rule,
     capture_gap,

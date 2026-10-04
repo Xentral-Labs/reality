@@ -341,51 +341,5 @@ def classify_order_version(
 def apply_order_version(
     session: Session, tenant_id: str, source: SourceRecord, order: Document
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[Commitment]]:
-    """Apply a later version's reductions, or raise to hold it with its codes.
-
-    Callers own the transaction: nothing here commits, and a held version raises
-    before anything was changed.
-    """
-    if already_applied(session, tenant_id, source) or not is_current_version(
-        session, tenant_id, source
-    ):
-        # Applied once already, or a newer version stands for the order and states
-        # all of it: a redelivery or retry must not undo what happened since.
-        return source, order, [], []
-    payload = json.loads(source.payload)
-    plan = classify_order_version(
-        session,
-        tenant_id,
-        order,
-        payload,
-        _previous_payload(session, tenant_id, source),
-    )
-    if plan.held:
-        raise core.ShopifyUpdateNeedsReview(
-            codes=[code for code, _ in plan.held],
-            reason_code=plan.reason_code,
-            summary=plan.summary,
-        )
-    changed: list[Commitment] = []
-    for commitment, quantity in plan.revisions:
-        core.revise_commitment(
-            session,
-            tenant_id,
-            commitment.id,
-            quantity=quantity,
-            note="Quantity lowered in Shopify",
-            source_record_id=source.id,
-            _commit=False,
-        )
-        changed.append(commitment)
-    for commitment in plan.cancellations:
-        core.cancel_commitment(
-            session,
-            tenant_id,
-            commitment.id,
-            reason=plan.cancel_reason,
-            source_record_id=source.id,
-            _commit=False,
-        )
-        changed.append(commitment)
-    return source, order, [], changed
+    """Retired writer: prepare and confirm the canonical intake proposal instead."""
+    raise core.InvalidOperation(code="intake_approval_required")

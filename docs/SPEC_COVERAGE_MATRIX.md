@@ -2587,3 +2587,16 @@ Automatic file-adapter cutover remains open until spec 361.
 - `packages/reality-core/tests/test_intake_agent_review.py` and `test_intake_agent_bulk.py`: spec 360 FR-005/FR-006; current scope, expiry, named token and active revision remain bound to the original executed owner grant; queued review cannot enlarge that authority.
 
 - `packages/reality-core/tests/test_intake_volume_benchmark.py`: spec 360 FR-012/SC-002; disposable database confirmation, complete median/budget checks and real single-unit/bulk worker trials with exact effect counts and actual owner attribution. The full 5,000-item/500-five-line-order measurements are separate qualification evidence.
+
+
+## 356 — Reviewed intake runtime cutover (in progress)
+
+- `packages/reality-core/tests/test_intake_rollout_coverage.py`: pending legacy jobs prepare without accepted effects; unavailable Demo Data reviewer leaves retained proposals; unconfirmed compact setup refuses; a confirmed fixed setup grants no later arbitrary intake authority; retired direct interpreters cannot use raw or an action ID as approval.
+- `packages/reality-core/tests/intake_review_support.py`: positive business stories explicitly review and confirm retained source proposals with a real tenant owner. This is test support, not a runtime authority exception.
+- `packages/reality-core/tests/test_bootstrap.py`: configured database bootstrap creates only the empty tenant; no unconfirmed business fixture is accepted.
+
+Universal canonical-writer coverage is outside the approved external-intake scope. Required source-rollout checks remain the completion gate.
+
+## Independent Demo Data lock-order correction — Specs 146 / 361 FR-006
+
+- `packages/reality-core/tests/test_demo_schedule_lock_order.py`: two genuine PostgreSQL connections prove that a settlement worker cannot hold its own schedule while waiting for production, so Pause cannot complete a lock cycle. Retained from closed #352 without any universal writer/decision gate.

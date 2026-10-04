@@ -290,6 +290,9 @@ FILE_INTERPRETER_TARGETS = {
     "external_stock",
     "bank_statement",
 }
+NORMALIZED_INTAKE_PROFILES = frozenset(
+    {"sales_invoice.v1", "customer_payment.v1", "supplier_payment.v1"}
+)
 
 
 class RealityError(RefusalMixin, Exception):
@@ -15604,7 +15607,7 @@ def enqueue_source(
     Store the lossless payload through the version-aware source service; retain its created/replayed/stale/conflict disposition.
 
     BUSINESS RULE core.enqueue_source.2:
-    Create one interpretation job per stored source. Use pending for a registered interpreter and unmapped otherwise; stale versions are completed without interpretation and conflicting versions fail. Record the corresponding unsupported/stale/conflict outcome.
+    Create one interpretation job per stored source. Use pending for a supported closed preparation profile and unmapped otherwise; stale versions are completed without interpretation and conflicting versions fail. Record the corresponding unsupported/stale/conflict outcome.
 
     BUSINESS RULE core.enqueue_source.3:
     For a newly received Shopify order, route embedded refund payloads through the shared refund splitter.
@@ -15650,7 +15653,10 @@ def enqueue_source(
         # source-specific object interpreter merely because its labels match.
         interpreter_available = (
             source_artifact_id is None
-            and (source_system, source_type) in SOURCE_INTERPRETERS
+            and (
+                (source_system, source_type) in SOURCE_INTERPRETERS
+                or (context or {}).get("profile") in NORMALIZED_INTAKE_PROFILES
+            )
         ) or (
             source_artifact_id is not None
             and (context or {}).get("expected_target") in FILE_INTERPRETER_TARGETS
@@ -16067,6 +16073,8 @@ def enqueue_shopify_order(
     company_party_id: str,
     customer_party_id: str,
     location_id: str,
+    *,
+    _commit: bool = True,
 ) -> tuple[SourceRecord, ImportJob]:
     _require_business_mutation(session, tenant_id, "enqueue_shopify_order")
     _tenant_record(session, Party, tenant_id, company_party_id)
@@ -16081,6 +16089,7 @@ def enqueue_shopify_order(
         external_id,
         payload,
         source_version_at=payload.get("updated_at"),
+        _commit=_commit,
         context={
             "company_party_id": company_party_id,
             "customer_party_id": customer_party_id,
@@ -16092,214 +16101,8 @@ def enqueue_shopify_order(
 def _shopify_interpretation(
     session: OrmSession, tenant_id: str, source: SourceRecord, context: dict[str, str]
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[Commitment]]:
-    existing_document = session.scalar(
-        select(Document).where(
-            Document.tenant_id == tenant_id,
-            Document.source_record_id == source.id,
-            Document.type == "sales_order",
-        )
-    )
-    if existing_document:
-        lines = list(
-            session.scalars(
-                select(DocumentLine).where(
-                    DocumentLine.tenant_id == tenant_id,
-                    DocumentLine.document_id == existing_document.id,
-                )
-            )
-        )
-        commitments_created = list(
-            session.scalars(
-                select(Commitment).where(
-                    Commitment.tenant_id == tenant_id,
-                    Commitment.document_id == existing_document.id,
-                )
-            )
-        )
-        return source, existing_document, lines, commitments_created
-
-    if source.version > 1:
-        from reality.services.shop_order_changes import (
-            apply_order_version,
-            order_for_source,
-        )
-
-        order = order_for_source(session, tenant_id, source)
-        if order is None:
-            raise ShopifyUpdateNeedsReview()
-        return apply_order_version(session, tenant_id, source, order)
-
-    company_party_id = context["company_party_id"]
-    customer_party_id = context["customer_party_id"]
-    location_id = context["location_id"]
-    _tenant_record(session, Party, tenant_id, company_party_id)
-    _tenant_record(session, Party, tenant_id, customer_party_id)
-    # Spec 339: an order for a merged partner lands on its survivor.
-    customer_party_id = _surviving_party_id(session, tenant_id, customer_party_id)
-    _tenant_record(session, Location, tenant_id, location_id)
-    payload = json.loads(source.payload)
-    # Spec 296: an unknown SKU no longer stops the order. Its line is kept
-    # without an item and without a promise, and reported until a person
-    # assigns one (`order_line_item_unknown`).
-    items_by_sku: dict[str, Item | None] = {}
-    for raw_line in payload.get("line_items", []):
-        sku = str(raw_line.get("sku") or "")
-        items_by_sku[sku] = (
-            session.scalar(
-                select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
-            )
-            if sku
-            else None
-        )
-
-    promised_at = next(
-        (
-            attribute.get("value", "")
-            for attribute in payload.get("note_attributes", [])
-            if attribute.get("name") == "requested_delivery"
-        ),
-        "",
-    )
-    document = Document(
-        id=uid("doc"),
-        tenant_id=tenant_id,
-        source_record_id=source.id,
-        type="sales_order",
-        number=str(
-            payload.get("name") or f"#{payload.get('order_number', source.external_id)}"
-        ),
-        party_id=customer_party_id,
-        currency=payload.get("currency", "EUR"),
-        gross_amount=decimal(payload.get("total_price", 0)),
-        status="recorded",
-        document_date=_source_document_day(
-            session, tenant_id, payload.get("created_at")
-        ),
-        ordered_at=utc_datetime(payload.get("created_at")),
-        requested_delivery_at=utc_datetime(promised_at),
-        sales_channel="shopify",
-    )
-    session.add(document)
-    session.flush()
-    lines: list[DocumentLine] = []
-    commitments_created: list[Commitment] = []
-    for raw_line in payload.get("line_items", []):
-        stated_sku = str(raw_line.get("sku") or "")
-        item = items_by_sku[stated_sku]
-        # A line the shop says does not ship (a tip, a service) is kept, not promised.
-        ships = raw_line.get("requires_shipping", True) is not False
-        if raw_line.get("quantity") is None or str(raw_line["quantity"]).strip() == "":
-            # Without a quantity there is no promise to make; the order fails in
-            # the reported path instead of stopping the batch (spec 314).
-            raise InvalidOperation(
-                code="source_line_quantity_missing",
-                values={"line": str(raw_line.get("id") or stated_sku or "?")},
-            )
-        quantity = positive(raw_line["quantity"])
-        # A price the shop did not state stays unstated, never a price of zero
-        # (spec 314); nothing is billed from it until someone states one.
-        stated_price = raw_line.get("price")
-        price = (
-            decimal(stated_price)
-            if stated_price is not None and str(stated_price).strip() != ""
-            else None
-        )
-        line_amount = quantity * price if price is not None else ZERO
-        raw_line_id = raw_line.get("id")
-        line = DocumentLine(
-            id=uid("lin"),
-            tenant_id=tenant_id,
-            document_id=document.id,
-            source_line_id=str(raw_line_id) if raw_line_id is not None else None,
-            item_id=item.id if item else None,
-            sku=item.sku if item else stated_sku,
-            description=str(
-                raw_line.get("name")
-                or raw_line.get("title")
-                or (item.name if item else stated_sku)
-            ),
-            quantity=quantity,
-            unit_price=price,
-            gross_amount=line_amount,
-            promised_at=promised_at,
-            unit=item.unit if item else "pcs",
-            requested_at=utc_datetime(promised_at),
-            line_type="item" if ships else "service",
-            payload=json.dumps(raw_line, ensure_ascii=False, separators=(",", ":")),
-        )
-        session.add(line)
-        session.flush()
-        lines.append(line)
-        if item is None or not ships:
-            continue
-        commitment = Commitment(
-            id=uid("com"),
-            tenant_id=tenant_id,
-            type="customer_delivery",
-            from_party_id=company_party_id,
-            to_party_id=customer_party_id,
-            item_id=item.id,
-            location_id=location_id,
-            quantity=quantity,
-            amount=line_amount,
-            currency=document.currency,
-            due_at=utc_datetime(promised_at),
-            status="open",
-            document_id=document.id,
-            document_line_id=line.id,
-        )
-        session.add(commitment)
-        commitments_created.append(commitment)
-
-    session.add(
-        ChangeProposal(
-            id=uid("act"),
-            tenant_id=tenant_id,
-            type="shopify_order_interpreted",
-            input=json.dumps({"source_record_id": source.id}),
-            output=json.dumps(
-                {
-                    "document_id": document.id,
-                    "commitment_ids": [item.id for item in commitments_created],
-                }
-            ),
-        )
-    )
-    emit_business_event(
-        session,
-        tenant_id,
-        "document.recorded",
-        "document",
-        document.id,
-        {
-            "type": document.type,
-            "number": document.number,
-            "party_id": customer_party_id,
-            "amount": document.gross_amount,
-            "currency": document.currency,
-        },
-        source_record_id=source.id,
-    )
-    for commitment in commitments_created:
-        emit_business_event(
-            session,
-            tenant_id,
-            "commitment.created",
-            "commitment",
-            commitment.id,
-            {
-                "type": commitment.type,
-                "item_id": commitment.item_id,
-                "quantity": commitment.quantity,
-                "document_id": document.id,
-            },
-            source_record_id=source.id,
-            correlation_id=source.id,
-        )
-    from reality.services.credit_exposure import hold_if_over_credit_limit
-
-    hold_if_over_credit_limit(session, tenant_id, document, commitments_created)
-    return source, document, lines, commitments_created
+    """Retired writer: prepare and confirm the canonical intake proposal instead."""
+    raise InvalidOperation(code="intake_approval_required")
 
 
 def _demo_interpretation(session, tenant_id, source, context):
@@ -16358,274 +16161,64 @@ def _import_review_outcome(
 
 def process_import_job_bound(
     session: OrmSession, tenant_id: str, job_id: str
-) -> Any | None:
-    """Interpret synthetic intake within the caller transaction and a business savepoint.
-
-    Expected validation failures retain their intake and safe outcome. Database,
-    timeout and programming failures propagate so the worker can retry atomically.
-    """
+) -> ChangeProposal | None:
+    """Prepare synthetic intake within its caller transaction; never accept it."""
     from pydantic import ValidationError
 
+    from reality.services.intake import prepare_intake
+
     _require_business_mutation(session, tenant_id, "process_import_job")
-    job = session.scalar(
-        select(ImportJob)
-        .where(ImportJob.tenant_id == tenant_id, ImportJob.id == job_id)
-        .with_for_update()
-    )
-    if job is None:
-        raise NotFound("ImportJob not found.")
-    source = _tenant_record(session, SourceRecord, tenant_id, job.source_record_id)
-    pair = (source.source_system, source.source_type)
-    if pair not in SYNTHETIC_SOURCES:
-        raise InvalidOperation(
-            "Bound interpretation requires the registered Demo Data source."
-        )
-    kind = source.source_type
-    interpreter = SOURCE_INTERPRETERS[pair]
-    if job.status == "completed":
-        return interpreter(session, tenant_id, source, json.loads(job.input))
-    job.attempts += 1
-    job.status, job.error = "processing", ""
-    session.flush()
+    job = _tenant_record_read(session, ImportJob, tenant_id, job_id)
+    source = _tenant_record_read(session, SourceRecord, tenant_id, job.source_record_id)
+    if (source.source_system, source.source_type) not in SYNTHETIC_SOURCES:
+        raise InvalidOperation(code="intake_demo_source_required")
+    if job.status == "completed" and not json.loads(job.input).get(
+        "intake_proposal_id"
+    ):
+        return None  # Historical acceptance has no fabricated proposal or new effect.
     try:
-        with session.begin_nested():
-            result = interpreter(session, tenant_id, source, json.loads(job.input))
-            session.flush()
-    except (InvalidOperation, ValidationError):
-        job.status, job.error = "failed", f"Demo {kind} could not be interpreted."
-        job.next_attempt_at = None
-        _append_interpretation_outcome(
-            session,
-            tenant_id,
-            source,
-            job,
-            job.attempts,
-            "failed",
-            interpreter_name=f"demo_data.{kind}",
-            reason_code="interpreter_error",
-            summary=f"The synthetic {kind} failed validation; its business changes were rolled back.",
-        )
-        session.flush()
-        return None
-    job.status, job.completed_at, job.next_attempt_at = "completed", now(), None
-    _append_interpretation_outcome(
-        session,
-        tenant_id,
-        source,
-        job,
-        job.attempts,
-        "interpreted",
-        interpreter_name=f"demo_data.{kind}",
-        reason_code="interpretation_completed",
-        summary=f"The synthetic {kind} was interpreted successfully.",
-        references=_interpretation_references(result),
-    )
-    emit_business_event(
-        session,
-        tenant_id,
-        "source_record.interpreted",
-        "source_record",
-        source.id,
-        {"source_system": "demo_data", "source_type": kind, "import_job_id": job.id},
-        source_record_id=source.id,
-    )
-    session.flush()
-    return result
+        return prepare_intake(session, tenant_id, job_id, _commit=False)
+    except (RealityError, ValidationError):
+        if job.status in {"failed", "review_required"}:
+            return None  # Preparation already retained its safe no-effect failure.
+        raise
 
 
-def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any | None:
+def process_import_job(
+    session: OrmSession, tenant_id: str, job_id: str
+) -> ChangeProposal | None:
     """
     BUSINESS PURPOSE:
-    Interpret a stored source through its registered interpreter and retain the outcome without partial business writes.
+    Prepare a retained source for an exact decision without accepting business effects.
 
     BUSINESS RULE core.process_import_job.1:
-    IF no interpreter is available, mark the job unmapped and record an unsupported outcome; create no Reality.
+    Preserve raw and retain a preparation-phase refusal when no reviewed profile is available.
 
     BUSINESS RULE core.process_import_job.2:
-    Handle completed jobs through the explicit replay branches: retain completed file-item identities, skip stale/review outcomes, or use the registered interpreter's replay behavior.
+    Replay the retained proposal without reinterpretation; historical completed jobs keep unknown decision attribution.
 
     BUSINESS RULE core.process_import_job.3:
-    Run the registered interpreter and record completed/interpreted outcome and returned Reality references. If meaning needs review, roll back business changes and retain a needs-review outcome; other failures roll back business changes, retain a failed outcome and set a bounded exponential retry time.
+    Delegate preparation to the canonical service; only separate exact authorized decisions may apply its effects.
     """
+    from reality.services.intake import prepare_intake
+
     _require_business_mutation(session, tenant_id, "process_import_job")
-    job = session.scalar(
-        select(ImportJob)
-        .where(ImportJob.tenant_id == tenant_id, ImportJob.id == job_id)
-        .with_for_update()
-    )
-    if job is None:
-        raise NotFound("ImportJob not found.")
-    source = _tenant_record(session, SourceRecord, tenant_id, job.source_record_id)
-    if (source.source_system, source.source_type) == ("demo_data", "order"):
-        result = process_import_job_bound(session, tenant_id, job_id)
-        failed = job.status == "failed"
-        session.commit()
-        if failed:
-            raise InvalidOperation("Demo order could not be interpreted.")
-        return result
-    context = json.loads(job.input)
-    if (
-        source.source_artifact_id
-        and context.get("expected_target") in FILE_INTERPRETER_TARGETS
-    ):
-        from reality.services.file_interpreters import interpret_artifact
-
-        interpreter = interpret_artifact
-    elif source.source_artifact_id:
-        interpreter = None
-    else:
-        interpreter = SOURCE_INTERPRETERS.get(
-            (source.source_system, source.source_type)
-        )
     # reality-rule: core.process_import_job.1
-    if interpreter is None:
-        job.status = "unmapped"
-        job.error = "No interpreter registered for this source system and type."
-        _append_interpretation_outcome(
-            session,
-            tenant_id,
-            source,
-            job,
-            0,
-            "unsupported",
-            reason_code="interpreter_unavailable",
-            summary="No interpreter is registered for this source type.",
-        )
-        session.commit()
-        return None
+    job = _tenant_record_read(session, ImportJob, tenant_id, job_id)
     # reality-rule: core.process_import_job.2
-    if job.status == "completed":
-        if source.source_artifact_id and context.get("expected_target") == "item":
-            identities = list(
-                session.scalars(
-                    select(BusinessEvent.subject_id)
-                    .where(
-                        BusinessEvent.tenant_id == tenant_id,
-                        BusinessEvent.source_record_id == source.id,
-                        BusinessEvent.event_type == "item.created",
-                    )
-                    .order_by(BusinessEvent.subject_id)
-                )
-            )
-            return {
-                "target": "item",
-                "rows": len(identities),
-                "created_ids": identities,
-            }
-        if context.get("disposition") == "stale":
-            return None
-        if _import_review_outcome(session, tenant_id, job):
-            return None
-        return interpreter(session, tenant_id, source, context)
-    if context.get("disposition") == "conflict":
-        raise InvalidOperation(job.error)
-
-    attempt = job.attempts + 1
-    job.status = "processing"
-    job.attempts = attempt
-    job.error = ""
-    # reality-rule: core.process_import_job.3
-    try:
-        result = interpreter(session, tenant_id, source, context)
-        job.status = "completed"
-        job.completed_at = now()
-        job.next_attempt_at = None
-        interpreter_name = (
-            f"{source.source_system}.{source.source_type}"
-            if not source.source_artifact_id
-            else f"file.{context.get('expected_target', 'unknown')}"
-        )
-        _append_interpretation_outcome(
-            session,
-            tenant_id,
-            source,
-            job,
-            attempt,
-            "interpreted",
-            interpreter_name=interpreter_name,
-            reason_code="interpretation_completed",
-            summary="The source was interpreted successfully.",
-            references=_interpretation_references(result),
-        )
-        emit_business_event(
-            session,
-            tenant_id,
-            "source_record.interpreted",
-            "source_record",
-            source.id,
-            {
-                "source_system": source.source_system,
-                "source_type": source.source_type,
-                "import_job_id": job.id,
-            },
-            source_record_id=source.id,
-        )
-        session.commit()
-        from reality.services.reality_gaps import evaluate_active_rules
-
-        evaluate_active_rules(session, tenant_id, source.id)
-        return result
-    except InterpretationNeedsReview as error:
-        session.rollback()
-        stated_summary = getattr(error, "summary", None)
-        summary = (
-            stated_summary
-            if isinstance(stated_summary, str) and stated_summary
-            else "The source requires human review before Reality can be created."
-        )
-        review_job = _tenant_record(session, ImportJob, tenant_id, job_id)
-        review_job.status = "completed"
-        review_job.attempts = attempt
-        review_job.error = (
-            summary if stated_summary else "Business meaning requires review."
-        )
-        review_job.completed_at = now()
-        review_job.next_attempt_at = None
-        review_source = _tenant_record(
-            session, SourceRecord, tenant_id, review_job.source_record_id
-        )
-        _append_interpretation_outcome(
-            session,
-            tenant_id,
-            review_source,
-            review_job,
-            attempt,
-            "needs_review",
-            interpreter_name=f"{review_source.source_system}.{review_source.source_type}",
-            reason_code=getattr(error, "reason_code", None)
-            or "ambiguous_business_meaning",
-            summary=summary,
-        )
-        session.commit()
+    if job.status in {"review_required", "unmapped"}:
+        return None  # Retained unsupported meaning requires an explicit retry.
+    if job.status == "completed" and not json.loads(job.input).get(
+        "intake_proposal_id"
+    ):
         return None
-    except Exception as error:
-        session.rollback()
-        failed_job = _tenant_record(session, ImportJob, tenant_id, job_id)
-        failed_job.status = "failed"
-        failed_job.attempts = attempt
-        failed_job.error = str(error)
-        failed_job.next_attempt_at = now() + timedelta(seconds=min(2**attempt, 300))
-        failed_source = _tenant_record(
-            session, SourceRecord, tenant_id, failed_job.source_record_id
-        )
-        _append_interpretation_outcome(
-            session,
-            tenant_id,
-            failed_source,
-            failed_job,
-            attempt,
-            "failed",
-            interpreter_name=f"{failed_source.source_system}.{failed_source.source_type}",
-            reason_code="interpreter_error",
-            summary="The interpreter failed; its business changes were rolled back.",
-        )
-        session.commit()
-        raise
+    # reality-rule: core.process_import_job.3
+    return prepare_intake(session, tenant_id, job_id)
 
 
 def process_shopify_import_job(
     session: OrmSession, tenant_id: str, job_id: str
-) -> tuple[SourceRecord, Document, list[DocumentLine], list[Commitment]] | None:
+) -> ChangeProposal | None:
     _require_business_mutation(session, tenant_id, "process_shopify_import_job")
     job = _tenant_record(session, ImportJob, tenant_id, job_id)
     source = _tenant_record(session, SourceRecord, tenant_id, job.source_record_id)
@@ -16659,6 +16252,8 @@ def process_pending_import_jobs(
         try:
             if process_import_job(session, tenant_id, job_id):
                 completed += 1
+        except InterpretationNeedsReview:
+            continue  # Retained refusal needs a reviewer, not a retry.
         except RealityError:
             failed += 1
     return completed, failed
@@ -16813,6 +16408,7 @@ def retry_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Import
     # reality-rule: core.retry_import_job.2
     if (
         not supported_file
+        and context.get("profile") not in NORMALIZED_INTAKE_PROFILES
         and (source.source_system, source.source_type) not in SOURCE_INTERPRETERS
     ):
         job.status = "unmapped"
@@ -16832,7 +16428,7 @@ def ingest_shopify_order(
     company_party_id: str,
     customer_party_id: str,
     location_id: str,
-) -> tuple[SourceRecord, Document, list[DocumentLine], list[Commitment]]:
+) -> ChangeProposal:
     _require_business_mutation(session, tenant_id, "ingest_shopify_order")
     _source, job = enqueue_shopify_order(
         session,
@@ -18284,19 +17880,123 @@ def timeline_activity(
     }
 
 
+def _ingest_authored_setup_order(
+    session, tenant_id, payload, company_party_id, customer_party_id, location_id
+):
+    """Apply one authored source only inside its confirmed fixed setup definition."""
+    from reality.services.intake import (
+        _apply_effects,
+        _effect_scope,
+        _freeze_effect_defaults,
+    )
+    from reality.services.shopify_intake import prepare_order
+    from reality.services.tenant_policy import (
+        _application_authority,
+        _require_fixed_setup,
+    )
+
+    authority = _application_authority.get()
+    if authority is None or authority.tool not in {"demo_seed", "normal_month"}:
+        raise InvalidOperation(code="intake_approval_required")
+    proposal, _ = _require_fixed_setup(session, tenant_id, authority.tool)
+    permitted = (
+        {5837291038} if authority.tool == "demo_seed" else {5837291038, 5837291002}
+    )
+    if payload.get("id") not in permitted:
+        raise InvalidOperation(code="intake_approval_required")
+    source, job = enqueue_shopify_order(
+        session,
+        tenant_id,
+        payload,
+        company_party_id,
+        customer_party_id,
+        location_id,
+        _commit=False,
+    )
+    plan = _freeze_effect_defaults(prepare_order(session, tenant_id, source, job))
+    with _effect_scope(session, tenant_id, proposal.id, plan.review_digest()):
+        records = _apply_effects(session, tenant_id, proposal, plan)
+    job.status, job.completed_at, job.next_attempt_at = "completed", now(), None
+    job.attempts += 1
+    job.input = json.dumps(
+        {**json.loads(job.input), "setup_decision_id": proposal.id}, sort_keys=True
+    )
+    _append_interpretation_outcome(
+        session,
+        tenant_id,
+        source,
+        job,
+        job.attempts,
+        "interpreted",
+        interpreter_name="confirmed_setup.apply",
+        reason_code="intake_applied",
+        summary="An authored source was accepted by its exact fixed setup decision.",
+        references=records,
+    )
+    emit_business_event(
+        session,
+        tenant_id,
+        "source_record.interpreted",
+        "source_record",
+        source.id,
+        {
+            "source_system": source.source_system,
+            "source_type": source.source_type,
+            "import_job_id": job.id,
+        },
+        source_record_id=source.id,
+    )
+    document = session.scalar(
+        select(Document).where(
+            Document.tenant_id == tenant_id, Document.source_record_id == source.id
+        )
+    )
+    lines = list(
+        session.scalars(
+            select(DocumentLine).where(
+                DocumentLine.tenant_id == tenant_id,
+                DocumentLine.document_id == document.id,
+            )
+        )
+    )
+    commitments = list(
+        session.scalars(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id, Commitment.document_id == document.id
+            )
+        )
+    )
+    return source, document, lines, commitments
+
+
 def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
+    from reality.services.tenant_policy import _require_fixed_setup
+
+    _, definition = _require_fixed_setup(session, tenant.id, "demo_seed")
     _require_business_mutation(session, tenant.id, "ensure_demo")
     if session.scalar(select(func.count(Party.id)).where(Party.tenant_id == tenant.id)):
         return
-    company = create_party(session, tenant.id, "Acme Bikes GmbH", "company")
-    customer = create_party(session, tenant.id, "Müller GmbH", "customer")
-    supplier = create_party(session, tenant.id, "Bike Parts GmbH", "supplier")
-    location = create_location(session, tenant.id, "Augsburg Warehouse")
-    item = create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light")
-    record_movement(
-        session, tenant.id, "opening_stock", item.id, 20, to_location_id=location.id
+    company = create_party(
+        session, tenant.id, "Acme Bikes GmbH", "company", _commit=False
     )
-    today = datetime.now(UTC).date()
+    customer = create_party(
+        session, tenant.id, "Müller GmbH", "customer", _commit=False
+    )
+    supplier = create_party(
+        session, tenant.id, "Bike Parts GmbH", "supplier", _commit=False
+    )
+    location = create_location(session, tenant.id, "Augsburg Warehouse", _commit=False)
+    item = create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light", _commit=False)
+    record_movement(
+        session,
+        tenant.id,
+        "opening_stock",
+        item.id,
+        20,
+        to_location_id=location.id,
+        _commit=False,
+    )
+    today = date.fromisoformat(definition["as_of"])
     raw = {
         "id": 5837291038,
         "order_number": 10473,
@@ -18312,6 +18012,7 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
                 "name": "Bike Light",
                 "quantity": 30,
                 "price": "49.00",
+                "total_price": "1470.00",
             }
         ],
         "note_attributes": [
@@ -18322,10 +18023,10 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
         ],
         "tags": "web-demo",
     }
-    _, _, _, outgoing = ingest_shopify_order(
+    _, _, _, outgoing = _ingest_authored_setup_order(
         session, tenant.id, raw, company.id, customer.id, location.id
     )
-    reserve(session, tenant.id, outgoing[0].id)
+    reserve(session, tenant.id, outgoing[0].id, _commit=False)
     create_commitment(
         session,
         tenant.id,
@@ -18337,6 +18038,7 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
         20,
         str(today + timedelta(days=2)),
         amount=600,
+        _commit=False,
     )
     chat_session = ChatSession(
         id=uid("cht"), tenant_id=tenant.id, title="Why can’t Müller ship?"
@@ -18361,7 +18063,7 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
             ),
         ]
     )
-    session.commit()
+    session.flush()
 
 
 def _record_copilot_turn(

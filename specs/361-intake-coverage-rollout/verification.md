@@ -1,0 +1,120 @@
+# Runtime cutover verification
+
+Status: reduced external-source rollout under final qualification. Universal
+writer enforcement is outside the approved scope. Historical measurements below
+are from the original runtime-cutover checkpoint, not reruns of the reduced stack.
+Current-head CI remains required before integration.
+
+## Verified focused behavior
+
+- Legacy Shopify/file/financial interpreters refuse direct invocation, including
+  an arbitrary executing-action tag: `test_retired_interpreters_cannot_reuse_raw_or_action_id_as_approval`.
+- The shared queue prepares a retained proposal without Documents or Commitments:
+  `test_pending_job_cutover_is_safe`.
+- Continuous synthetic preparation waits without an implicit reviewer:
+  `test_unavailable_reviewer_does_not_turn_intake_into_business_effects`.
+- A retained named-agent grant can approve the exact synthetic order within its
+  actual source, capability, profile, currency and finite limits:
+  `test_live_demo_uses_real_decisions`. Evidence is supplied by a controlled client
+  fixture; this does not measure a live model's judgment, latency or cost.
+- Fixed compact/month definitions require explicit confirmation. A completed
+  fixed receipt replays without new effects or confirmation. Unconfirmed setup
+  and subsequent unrelated intake remain refused.
+- A safe ambiguous Demo Data preparation is separately review-required, rather
+  than a failed execution. The actual worker, retained job and status agree.
+- Historical completed jobs without a retained proposal preserve their source,
+  input, timestamp, attempts and events without inventing decisions or outcomes:
+  `test_historical_provenance_is_honest`.
+- Explicit supported normalized financial profiles retain the original source
+  system; an unknown declared profile remains raw and unmapped. Preparation
+  grants no effect authority.
+- Unstated order totals remain null in delivery readiness. Prepayment waits for
+  a stated required amount instead of recomputing one from price and quantity.
+
+## Executed checks
+
+- Frozen backend regression: 6,178 passed, 10 skipped, one outdated benchmark
+  fixture failed (18m34s). The sole failure omitted the newly required named
+  reviewer ID in `Company`; the corrected Black Friday scenario passed separately.
+  No runtime source was changed after this full run. Final committed-head CI
+  must pass all backend shards before this slice is marked complete.
+- Focused source/file/rollout regression: 49 passed. Historical and financial
+  regression: 70 passed. Demo/security/startup/parity regression: 47 passed.
+- Peak benchmark: two passed; its 50 applied orders carry actual executed
+  proposal receipts attributed to the fixture's named Owner.
+- Final frontend contracts: 462 passed. Final presentation browser: all 16
+  language/theme/width combinations passed, including awaiting-decision and
+  review-required states without implicit acceptance or reviewer enrollment.
+- Actual PostgreSQL company-setup/worker/browser proof passed (93.35s): the
+  creation receipt selects the new owned Sandbox, a generated source remains
+  unapplied, its complete original and canonical digest are checked, the user
+  confirms in the actual review dialog, and exactly one source becomes applied.
+  The database proof checks original payload equality and actual decider identity.
+  This proves pipeline behavior, not live-model judgment or provider cost.
+- Actual bulk browser proof passed (83.56s), including lost-response replay and
+  retained exact source receipts. The business, file-import and finance browser
+  journeys passed. History/engine-room business assertions passed locally; their
+  strict console-error checks failed on blocked Google Fonts and a default
+  favicon request in the local system Chromium. The committed-head CI must
+  run both journeys with its installed Playwright browser.
+- Final language audit: 2,738 keys in all four languages, zero missing or invalid
+  entries. Final frontend build passed. Standardized refusal gates: 29 passed.
+- Specification policy, business annotations, Ruff and generated references
+  passed. Final contracts passed again after translating the dedicated bound-source
+  refusal into German, Dutch and Spanish; the final build passed.
+
+## Remaining completion gates
+
+Complete the final browser runs and committed-head CI, including all backend
+shards, generated documentation and frontend/browser gates. The local full-run
+fixture failure is recorded above rather than represented as a passing full run.
+The required final CI verifies the corrected committed test.
+
+The baseline AST candidates remain discovery material. Direct authenticated human
+operations and unrelated internal canonical writers require no additional intake
+approval cycle. Only the retained external-source paths are rollout gates.
+
+## Worker/control concurrency regression
+
+The live company-setup proof reloads the current Demo Data revision before its
+explicit pause request. It retries only the documented `unfinished_run` refusal,
+with the same request key, refreshed revision, a 500 ms polling interval and a
+60-second deadline. An already claimed worker run must finish before its queue
+can be cancelled; five immediate retries did not establish that condition.
+Other refusals still fail the proof. The actual PostgreSQL/worker/browser journey
+passed again under concurrent backend-suite load (109.86s),
+including exact original payload, digest, decider and one applied document.
+
+## Disposable CI database capacity
+
+Quality run 37168058421 exhausted PostgreSQL's default shared lock table in
+parallel full-schema migration tests (`test_all_migrations_on_disposable_postgresql`
+and `test_target_migration_preserves_ledger_and_refuses_history_loss`). The
+backend-test job now explicitly sets and verifies `max_locks_per_transaction=1024`
+in its own disposable service container before testing. Deployment configuration
+is unchanged. Both affected migration proofs passed concurrently against the
+local disposable database configured at that capacity (13.60s). Required
+committed-head CI remains the completion gate.
+
+## Retained independent defect
+
+The two-connection Demo Data regression failed before the correction with PostgreSQL
+`LockNotAvailable`, demonstrating settlement/production lock inversion. After the
+correction it passed (1 test, 3.76 seconds). Both workers and controls now acquire
+schedule rows, unfinished run rows and the connection in the same stable order.
+This restores spec 146 controls without adding a decision layer.
+
+## Reduced-stack qualification (2026-10-04)
+
+The retained runtime, Demo Data security/startup/parity, shared scheduler, bootstrap,
+and document-total/mandate migration family passed: 61 tests in 75.48 seconds.
+Both existing credit blueprint journey tests also passed locally (28.26 seconds);
+the original #339 CI proof ignored an explicitly named omission at the existing
+128-function analysis boundary. Its test now requires each reference symbol either
+to be captured or to have an explicit omission; unknown coverage stays unknown.
+The business guard and public analysis limits remain unchanged.
+Lint, specification policy, generated catalogs and whitespace checks passed before
+this qualification; final committed-head CI is still required.
+
+The reduced-stack source/file/Shopify/payment/change/refund/external-stock and peak
+benchmark regression passed: 108 tests in 48.69 seconds.

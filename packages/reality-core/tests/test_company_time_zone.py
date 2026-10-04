@@ -1,9 +1,9 @@
 """Spec 349: the company time zone business days are counted in."""
-
 from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
 import pytest
+from intake_review_support import accept_import_job
 from sqlalchemy import select
 
 from reality.db.core import Document, SourceRecord
@@ -57,7 +57,7 @@ def _order_day(session, business, order_id, created_at):
         business.customer.id,
         business.location.id,
     )
-    _, document, _, _ = core.process_import_job(session, tenant, job.id)
+    _, document, _, _ = accept_import_job(session, tenant, job.id)
     return document.document_date
 
 

@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from intake_review_support import accept_import_job as process_import_job
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -15,15 +16,14 @@ from reality.db.core import (
     Reservation,
     SourceStream,
 )
+from reality.services import core
 from reality.services.core import (
     InvalidOperation,
     NotFound,
     create_tenant,
     enqueue_shopify_order,
-    ingest_shopify_order,
     interpretation_coverage,
     open_quantity,
-    process_import_job,
     process_pending_import_jobs,
     record_movement,
     reserve,
@@ -208,24 +208,29 @@ def test_consecutive_updates_duplicates_and_retries_cannot_bypass_guard(
     )
 
 
-def test_update_after_pending_first_version_is_held(session, business):
-    enqueue(session, business, payload())
+def test_latest_pending_version_prepares_without_accepting_either_version(
+    session, business
+):
+    _, first_job = enqueue(session, business, payload())
     source, job = enqueue(session, business, changed_payload())
-    assert process_import_job(session, business.tenant.id, job.id) is None
+    proposal = core.process_import_job(session, business.tenant.id, job.id)
+    assert proposal.status == "proposed" and job.status == "awaiting_decision"
     assert (
         interpretation_coverage(session, business.tenant.id, source.id)[0][
             "current_classification"
         ]
-        == "needs_review"
+        == "prepared"
     )
     assert snapshot(session, business.tenant.id)["commitment"] == []
+    with pytest.raises(InvalidOperation, match="reviewed intake state"):
+        core.process_import_job(session, business.tenant.id, first_job.id)
 
 
 def test_synchronous_review_explains_the_actual_outcome(session, business):
     _, job = enqueue(session, business, payload())
     process_import_job(session, business.tenant.id, job.id)
-    with pytest.raises(InvalidOperation, match="address_changed"):
-        ingest_shopify_order(
+    with pytest.raises(core.ShopifyUpdateNeedsReview, match="address_changed"):
+        core.ingest_shopify_order(
             session,
             business.tenant.id,
             changed_payload(),
@@ -241,7 +246,7 @@ def test_review_does_not_stop_batch_and_is_tenant_scoped(session, business):
     source, job = enqueue(session, business, changed_payload())
     _, unrelated_job = enqueue(session, business, {**payload(), "id": 4712})
     assert process_pending_import_jobs(session, business.tenant.id) == (1, 0)
-    assert unrelated_job.status == "completed"
+    assert unrelated_job.status == "awaiting_decision"
     other = create_tenant(session, "Other")
     with pytest.raises(NotFound):
         process_import_job(session, other.id, job.id)
@@ -281,7 +286,7 @@ def test_http_processing_exposes_review_reason_and_retry_preserves_state(
             for attempt in (1, 2):
                 response = client.post(f"{prefix}/import-jobs/work")
                 assert response.status_code == 200
-                assert response.json() == {"completed": 0, "failed": 0}
+                assert response.json() == {"prepared": 0, "completed": 0, "failed": 0}
                 jobs = client.get(f"{prefix}/import-jobs")
                 assert jobs.status_code == 200
                 row = next(row for row in jobs.json() if row["id"] == updated_job.id)

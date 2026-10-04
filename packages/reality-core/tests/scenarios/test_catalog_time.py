@@ -1,8 +1,8 @@
 """Business journeys about time that are not accounting periods (specs 340, 349)."""
-
 from datetime import UTC, date, datetime
 
 from conftest import record_by_id
+from intake_review_support import accept_import_job
 
 from reality.db.core import Commitment
 from reality.services import core
@@ -129,7 +129,7 @@ def _shop_order_day(session, business, order_id, created_at):
         business.customer.id,
         business.location.id,
     )
-    _, document, _, _ = core.process_import_job(session, tenant, job.id)
+    _, document, _, _ = accept_import_job(session, tenant, job.id)
     return document
 
 

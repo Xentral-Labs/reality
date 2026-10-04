@@ -123,6 +123,109 @@ _decision_authority: ContextVar[_DecisionAuthority | None] = ContextVar(
 )
 
 
+@dataclass(frozen=True)
+class _ApplicationAuthority:
+    session: Session
+    transaction: object
+    tenant_id: str
+    proposal_id: str
+    tool: str
+    intent: str
+
+
+_application_authority: ContextVar[_ApplicationAuthority | None] = ContextVar(
+    "confirmed_application_execution", default=None
+)
+
+
+@contextmanager
+def _confirmed_application_scope(session, tenant_id, proposal):
+    current = session.scalar(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == proposal.id
+        )
+    )
+    if current is None or current.status != "executing" or current.decided_at is None:
+        raise InvalidOperation(code="intake_approval_required")
+    authority = _ApplicationAuthority(
+        session,
+        session.get_transaction(),
+        tenant_id,
+        current.id,
+        current.type.removeprefix("tool:"),
+        current.input,
+    )
+    token = _application_authority.set(authority)
+
+    def deny_setup_commit(db):
+        if not db.in_nested_transaction():
+            raise InvalidOperation(code="intake_partial_commit_forbidden")
+
+    fixed = authority.tool in {"demo_seed", "normal_month"}
+    if fixed:
+        event.listen(session, "before_commit", deny_setup_commit)
+    try:
+        yield
+    except BaseException:
+        if fixed:
+            session.rollback()
+        raise
+    finally:
+        if fixed:
+            event.remove(session, "before_commit", deny_setup_commit)
+        _application_authority.reset(token)
+
+
+_FIXED_DEFINITIONS = {"demo_seed": "compact-demo.v2", "normal_month": "normal-month.v2"}
+
+
+def _fixed_definition_input(tool, *, day=None):
+    if tool not in _FIXED_DEFINITIONS:
+        raise InvalidOperation(code="intake_approval_required")
+    if tool == "demo_seed":
+        from reality.services import core
+
+        return {
+            "profile": _FIXED_DEFINITIONS[tool],
+            "as_of": day or core.now().date().isoformat(),
+        }
+    return {"profile": _FIXED_DEFINITIONS[tool]}
+
+
+def _require_fixed_setup(session, tenant_id, tool):
+    authority = _application_authority.get()
+    if (
+        authority is None
+        or authority.session is not session
+        or authority.transaction is not session.get_transaction()
+        or authority.tenant_id != tenant_id
+        or authority.tool != tool
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    from reality.services.business_locks import lock_delivery_state
+    from reality.services.finance.accounts import lock_finance
+
+    lock_delivery_state(session, tenant_id)
+    lock_finance(session, tenant_id)
+    proposal = session.scalar(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.id == authority.proposal_id,
+        )
+    )
+    if (
+        proposal is None
+        or proposal.status != "executing"
+        or proposal.input != authority.intent
+        or proposal.decided_at is None
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    arguments = json.loads(authority.intent)
+    if arguments != _fixed_definition_input(tool, day=arguments.get("as_of")):
+        raise InvalidOperation(code="intake_review_stale")
+    return proposal, arguments
+
+
 @contextmanager
 def _decision_scope(
     session: Session, run_id: str, user_id: str, proposal_id: str, operation: str
@@ -1237,28 +1340,17 @@ _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(
         "clear_deposit",
     }
 )
+# Continuous source authority admits raw capture and preparation only.
+# Exact business acceptance belongs to the retained human/agent decision.
 _INTAKE_OPERATIONS = frozenset(
     {
         "store_source_record",
         "enqueue_source",
         "process_import_job",
-        "create_manual_document_with_lines",
-        "create_commitment",
         "emit_business_event",
     }
 )
-# Feature 168: the settlement stream may post the invoice a synthetic source
-# states, record payments and allocate unambiguous references, and nothing else.
-# Orders keep the narrower intake set, so an order can never book money.
-_SETTLEMENT_OPERATIONS = _INTAKE_OPERATIONS | frozenset(
-    {
-        "create_document",
-        "post_ledger",
-        "post_sales_invoice",
-        "record_customer_payment",
-        "allocate_settlement",
-    }
-)
+_SETTLEMENT_OPERATIONS = _INTAKE_OPERATIONS
 _profile_authority: ContextVar[tuple | None] = ContextVar(
     "company_profile_authority", default=None
 )
@@ -1474,16 +1566,5 @@ def _bound_profile_scope(
 def require_demo_intake(
     session: Session, tenant_id: str, *, settlement: bool = False
 ) -> None:
-    """Admit the synthetic interpreter only under its own bounded authority.
-
-    Orders require exactly the intake set; invoices and payments require exactly
-    the settlement set. Neither accepts the other, so an order interpreter can
-    never run with money-posting rights.
-    """
-    expected = _SETTLEMENT_OPERATIONS if settlement else _INTAKE_OPERATIONS
-    authority = _profile_authority.get()
-    if authority is None or authority[5] != expected:
-        raise PlaygroundOperationDenied(
-            "Demo intake requires its current connection authority."
-        )
-    require_core_operation(session, tenant_id, "process_import_job")
+    """Retired mutating interpreters cannot reuse raw source connection authority."""
+    raise InvalidOperation(code="intake_approval_required")

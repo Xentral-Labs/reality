@@ -99,7 +99,7 @@ def test_empty_tenant_demo_idea_uses_confirmation_and_shared_demo_service(sessio
         == 0
     )
 
-    confirm_tool(session, tenant.id, proposal.id)
+    confirm_tool(session, tenant.id, proposal.id, confirmed=True)
 
     assert (
         session.scalar(
@@ -150,7 +150,7 @@ def test_normal_month_can_be_proposed_and_run_from_chat(session):
         == 0
     )
 
-    executed = confirm_tool(session, tenant.id, proposal.id)
+    executed = confirm_tool(session, tenant.id, proposal.id, confirmed=True)
     result = json.loads(executed.output)
 
     assert executed.status == "executed"

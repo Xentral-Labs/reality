@@ -246,36 +246,8 @@ def _invoice_fields(session, tenant_id, source, invoice):
 def interpret_sales_invoice(
     session: Session, tenant_id: str, source: SourceRecord, invoice: NormalisedInvoice
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[LedgerEntry]]:
-    """Record the stated invoice with lines billing the order lines, then post it."""
-    existing = _existing(session, tenant_id, source, "sales_invoice")
-    if existing:
-        return (
-            source,
-            existing,
-            _lines_of(session, tenant_id, existing.id),
-            _entries_of(session, tenant_id, existing.id),
-        )
-    _order, lines, _term = _invoice_fields(session, tenant_id, source, invoice)
-    document, document_lines = core.create_manual_document_with_lines(
-        session,
-        tenant_id,
-        "sales_invoice",
-        invoice.number,
-        invoice.party_id,
-        lines,
-        invoice.gross_amount,
-        currency=invoice.currency,
-        document_date=core._company_day(
-            session, tenant_id, invoice.issued_at
-        ).isoformat(),
-        payment_term_code=invoice.payment_term_code,
-        source_record_id=source.id,
-        _commit=False,
-    )
-    entries = core.post_sales_invoice(
-        session, tenant_id, document.id, effective_at=invoice.issued_at, _commit=False
-    )
-    return source, document, document_lines, entries
+    """Retired writer: prepare and confirm the canonical intake proposal instead."""
+    raise core.InvalidOperation(code="intake_approval_required")
 
 
 # ---------------------------------------------------------------------------
@@ -589,78 +561,8 @@ def interpret_customer_payment(
 ) -> tuple[
     SourceRecord, Document, list[LedgerEntry], SettlementAllocation | None, Resolution
 ]:
-    """Record the payment; allocate only an unambiguous stated reference, never more than open."""
-    existing = _existing(session, tenant_id, source, "customer_payment")
-    if existing:
-        entries = _entries_of(session, tenant_id, existing.id)
-        allocations = _allocations_touching(
-            session, tenant_id, _receivable_entry(entries).id
-        )
-        return (
-            source,
-            existing,
-            entries,
-            allocations[0] if allocations else None,
-            Resolution(()),
-        )
-    resolution = resolve_references(
-        session,
-        tenant_id,
-        payment.party_id,
-        payment.currency,
-        payment.references,
-        source_system=source.source_system,
-    )
-    invoice = resolution.unambiguous
-    control = _posted_control(session, tenant_id, invoice) if invoice else None
-    control_account_id = None
-    if control is not None:
-        try:
-            resolve_account(
-                session, tenant_id, "accounts_receivable", control.account_id
-            )
-            control_account_id = control.account_id
-        except core.InvalidOperation:
-            # The invoice's account is blocked: still record the money to an allowed
-            # account, but leave matching to a reviewed correction.
-            control = None
-            resolution = Resolution(
-                (),
-                resolution.reasons
-                + (f"invoice {invoice.number} uses a blocked account",),
-            )
-    entries = core.record_customer_payment(
-        session,
-        tenant_id,
-        payment.party_id,
-        payment.amount,
-        currency=payment.currency,
-        payment_number=payment.payment_number or None,
-        source_record_id=source.id,
-        effective_at=payment.effective_at,
-        _control_account_id=control_account_id,
-        _commit=False,
-    )
-    document = core._tenant_record(session, Document, tenant_id, entries[0].document_id)
-    allocation = None
-    if control is not None:
-        open_amount = core.open_invoice_amount(session, tenant_id, invoice.id)
-        allocatable = min(payment.amount, open_amount)
-        if allocatable > 0:
-            allocation = core.allocate_settlement(
-                session,
-                tenant_id,
-                _receivable_entry(entries).id,
-                control.id,
-                allocatable,
-                _commit=False,
-            )
-        else:
-            resolution = Resolution(
-                resolution.invoices,
-                resolution.reasons + (f"invoice {invoice.number} is already settled",),
-            )
-    return source, document, entries, allocation, resolution
+    """Retired writer: prepare and confirm the canonical intake proposal instead."""
+    raise core.InvalidOperation(code="intake_approval_required")
 
 
 def unallocated_amount(

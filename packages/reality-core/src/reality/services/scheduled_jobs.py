@@ -698,12 +698,16 @@ def claim_next(
 def _locked_claim(session: Session, tenant_id: str, run_id: str):
     # Resolve identity before acquiring locks; re-read under locks below.
     identity = session.execute(
-        select(ScheduledJobRun.schedule_id).where(
+        select(ScheduledJobRun.schedule_id, ScheduledJobRun.job_type).where(
             ScheduledJobRun.tenant_id == tenant_id, ScheduledJobRun.id == run_id
         )
     ).first()
     if identity is None:
         raise JobError("not_found")
+    if identity[1] in {"demo.generate_orders", "demo.settle_orders"}:
+        from reality.services.demo_data import _locked
+
+        _locked(session, tenant_id)
     schedule = (
         _schedule(session, tenant_id, identity[0], lock=True) if identity[0] else None
     )

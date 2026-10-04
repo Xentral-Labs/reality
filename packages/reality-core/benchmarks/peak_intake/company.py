@@ -1,13 +1,14 @@
 """The disposable company and the shop orders a peak-intake run feeds it.
 
-Plain service calls, the same as a company that connected a shop: items with
-opening stock, one customer standing in for the shop's buyers, and Shopify
+Confirmed catalog proposals by the disposable company's named Owner create items
+with opening stock and one customer standing in for the shop's buyers. Shopify
 order payloads that sell somewhat more than is stocked, so the reservation
 pass and the oversold finding have something real to decide.
 """
 
 from __future__ import annotations
 
+import json
 import random
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -25,6 +26,7 @@ OVERSELL = Decimal("1.25")
 @dataclass(frozen=True)
 class Company:
     tenant_id: str
+    reviewer_user_id: str
     company_party_id: str
     customer_party_id: str
     location_id: str
@@ -41,10 +43,59 @@ def _plan(orders: int, items: int, seed: int) -> list[list[tuple[int, int]]]:
 
 
 def build(session: Session, *, orders: int, items: int, seed: int) -> Company:
+    from reality.db.core import AppUser, Item, Location, Party, TenantMembership
+    from reality.services.memberships import Principal
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
     tenant = core.create_tenant(session, "Peak Intake GmbH")
-    company = core.create_party(session, tenant.id, "Peak Intake GmbH", "company")
-    customer = core.create_party(session, tenant.id, "Shop customers", "customer")
-    location = core.create_location(session, tenant.id, "Peak warehouse")
+    reviewer = AppUser(
+        id=core.uid("usr"),
+        email=f"{core.uid('benchmark')}@example.test",
+        password_hash="unused",
+        status="active",
+        email_verified_at=core.now(),
+    )
+    session.add(reviewer)
+    session.flush()
+    session.add(
+        TenantMembership(
+            id=core.uid("tmb"),
+            tenant_id=tenant.id,
+            user_id=reviewer.id,
+            role="owner",
+            status="active",
+        )
+    )
+    session.commit()
+
+    def confirmed(tool, arguments):
+        proposal = create_change_proposal(session, tenant.id, tool, arguments)
+        receipt = approve_and_execute_proposal(
+            session,
+            tenant.id,
+            proposal.id,
+            confirmed=True,
+            confirming_principal=Principal(reviewer.id),
+        )
+        return json.loads(receipt.output)
+
+    parties = confirmed(
+        "party_create",
+        {
+            "records": [
+                {"name": "Peak Intake GmbH", "type": "company", "roles": ["company"]},
+                {"name": "Shop customers", "type": "customer", "roles": ["customer"]},
+            ]
+        },
+    )["records"]
+    company, customer = [session.get(Party, (tenant.id, row["id"])) for row in parties]
+    location_id = confirmed(
+        "location_create", {"records": [{"name": "Peak warehouse"}]}
+    )["records"][0]["id"]
+    location = session.get(Location, (tenant.id, location_id))
     demand = [0] * items
     for lines in _plan(orders, items, seed):
         for index, quantity in lines:
@@ -52,20 +103,26 @@ def build(session: Session, *, orders: int, items: int, seed: int) -> Company:
     skus = []
     for index in range(items):
         sku = f"PEAK-{index:04d}"
-        item = core.create_item(session, tenant.id, sku, f"Peak article {index}")
+        item_id = confirmed(
+            "item_create", {"records": [{"sku": sku, "name": f"Peak article {index}"}]}
+        )["records"][0]["id"]
+        item = session.get(Item, (tenant.id, item_id))
         stock = int(Decimal(demand[index]) / OVERSELL)
         if stock:
-            core.record_movement(
-                session,
-                tenant.id,
-                "opening_stock",
-                item.id,
-                str(stock),
-                to_location_id=location.id,
+            confirmed(
+                "movement_create",
+                {
+                    "movement_type": "opening_stock",
+                    "item_id": item.id,
+                    "quantity": str(stock),
+                    "to_location_id": location.id,
+                },
             )
         skus.append(sku)
     session.commit()
-    return Company(tenant.id, company.id, customer.id, location.id, tuple(skus))
+    return Company(
+        tenant.id, reviewer.id, company.id, customer.id, location.id, tuple(skus)
+    )
 
 
 def payloads(

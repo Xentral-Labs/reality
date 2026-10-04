@@ -1,4 +1,5 @@
 import pytest
+from intake_review_support import accept_import_job
 
 from reality.db.core import InterpretationOutcome, InterpretationRecordReference
 from reality.mcp.catalog import MCP_TOOL_NAMES, model_tool_schemas
@@ -47,7 +48,7 @@ def enqueue_order(session, business):
 
 def test_shopify_attempt_records_all_produced_reality_atomically(session, business):
     _source, job = enqueue_order(session, business)
-    _, document, lines, commitments = process_import_job(
+    _, document, lines, commitments = accept_import_job(
         session, business.tenant.id, job.id
     )
 
@@ -58,10 +59,10 @@ def test_shopify_attempt_records_all_produced_reality_atomically(session, busine
     )
     assert [
         (row.attempt, row.classification, row.interpreter_name) for row in outcomes
-    ] == [(1, "interpreted", "shopify.order")]
+    ] == [(1, "prepared", "intake.prepare"), (2, "interpreted", "intake.apply")]
     references = (
         session.query(InterpretationRecordReference)
-        .filter_by(outcome_id=outcomes[0].id)
+        .filter_by(outcome_id=outcomes[1].id)
         .all()
     )
     assert {(row.record_type, row.record_id) for row in references} == {
@@ -71,7 +72,7 @@ def test_shopify_attempt_records_all_produced_reality_atomically(session, busine
     }
 
     process_import_job(session, business.tenant.id, job.id)
-    assert session.query(InterpretationOutcome).count() == 1
+    assert session.query(InterpretationOutcome).count() == 2
 
 
 def test_unsupported_and_historical_sources_have_explicit_coverage(session, business):
@@ -152,8 +153,9 @@ def test_intake_version_dispositions_and_review_are_explicit(
     def review(*args, **kwargs):
         raise core.InterpretationNeedsReview("raw private detail")
 
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("shopify", "order"), review)
-    assert process_import_job(session, business.tenant.id, job.id) is None
+    monkeypatch.setattr("reality.services.shopify_intake.prepare_order", review)
+    with pytest.raises(core.InterpretationNeedsReview):
+        process_import_job(session, business.tenant.id, job.id)
     outcome = interpretation_coverage(session, business.tenant.id, source.id)[0][
         "outcomes"
     ][0]
@@ -165,27 +167,30 @@ def test_failed_attempt_is_preserved_before_successful_retry(
     session, business, monkeypatch
 ):
     source, job = enqueue_order(session, business)
-    interpreter = core.SOURCE_INTERPRETERS[("shopify", "order")]
+    from reality.services import shopify_intake
+
+    interpreter = shopify_intake.prepare_order
 
     def fail(*args, **kwargs):
-        raise RuntimeError("payload contained private customer data")
+        raise core.InvalidOperation("payload contained private customer data")
 
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("shopify", "order"), fail)
-    with pytest.raises(RuntimeError):
+    monkeypatch.setattr(shopify_intake, "prepare_order", fail)
+    with pytest.raises(core.InvalidOperation):
         process_import_job(session, business.tenant.id, job.id)
     failed = interpretation_coverage(session, business.tenant.id, source.id)[0]
     assert failed["outcomes"][0]["classification"] == "failed"
     assert "private customer data" not in failed["outcomes"][0]["summary"]
 
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("shopify", "order"), interpreter)
+    monkeypatch.setattr(shopify_intake, "prepare_order", interpreter)
     retry_import_job(session, business.tenant.id, job.id)
-    process_import_job(session, business.tenant.id, job.id)
+    accept_import_job(session, business.tenant.id, job.id)
     attempts = interpretation_coverage(session, business.tenant.id, source.id)[0][
         "outcomes"
     ]
     assert [(row["attempt"], row["classification"]) for row in attempts] == [
         (1, "failed"),
-        (2, "interpreted"),
+        (2, "prepared"),
+        (3, "interpreted"),
     ]
 
 

@@ -117,30 +117,33 @@ def _locked(session: Session, tenant_id: str):
     if connection is None:
         raise core.NotFound("Demo Data is not connected.")
     schedule_id = connection.current_schedule_id
-    schedule = None
-    if schedule_id:
-        schedule = session.scalar(
+    settlement_id = connection.settlement_schedule_id
+    schedule_ids = {identity for identity in (schedule_id, settlement_id) if identity}
+    schedules = {}
+    if schedule_ids:
+        schedules = {row.id: row for row in session.scalars(
             select(ScheduledJob)
-            .where(ScheduledJob.tenant_id == tenant_id, ScheduledJob.id == schedule_id)
+            .where(ScheduledJob.tenant_id == tenant_id, ScheduledJob.id.in_(schedule_ids))
+            .order_by(ScheduledJob.id)
             .with_for_update()
             .execution_options(populate_existing=True)
-        )
-        session.scalar(
+        )}
+        list(session.scalars(
             select(ScheduledJobRun)
             .where(
                 ScheduledJobRun.tenant_id == tenant_id,
-                ScheduledJobRun.schedule_id == schedule_id,
+                ScheduledJobRun.schedule_id.in_(schedule_ids),
                 ScheduledJobRun.status.in_(
                     {"pending", "retry", "running", "unresolved"}
                 ),
             )
+            .order_by(ScheduledJobRun.id)
             .with_for_update()
-        )
+        ))
     connection = _connection(session, tenant_id, lock=True)
-    if connection.current_schedule_id != schedule_id:
+    if connection.current_schedule_id != schedule_id or connection.settlement_schedule_id != settlement_id:
         raise core.Conflict("Demo Data changed; reload its current state.")
-    _settlement_schedule(session, tenant_id, connection, lock=True)
-    return connection, schedule
+    return connection, schedules.get(schedule_id)
 
 
 def _settlement_schedule(
@@ -635,6 +638,8 @@ def _import_classification(tenant_id: str, source_types: tuple[str, ...] = ("ord
     return case(
         (and_(ImportJob.status == "completed", interpreted, documented), "imported"),
         (ImportJob.status == "failed", "failed"),
+        (ImportJob.status == "awaiting_decision", "awaiting_decision"),
+        (ImportJob.status == "review_required", "review_required"),
         else_="pending",
     )
 
@@ -653,7 +658,11 @@ def _counts(
         "generated": sum(values.values()),
         "imported": values.get("imported", 0),
         "failed": values.get("failed", 0),
-        "pending": values.get("pending", 0),
+        "pending": values.get("pending", 0)
+        + values.get("awaiting_decision", 0)
+        + values.get("review_required", 0),
+        "awaiting_decision": values.get("awaiting_decision", 0),
+        "review_required": values.get("review_required", 0),
     }
 
 
@@ -756,7 +765,13 @@ def status(session: Session, tenant_id: str, actor_id: str) -> dict:
     return {
         "id": connection.id,
         "state": connection.state,
-        "derived_state": derived,
+        "derived_state": (
+            "review_required" if counts["review_required"] else "awaiting_reviewer"
+        )
+        if not stall
+        and (counts["awaiting_decision"] or counts["review_required"])
+        and connection.state == "running"
+        else derived,
         "last_success": last_success,
         "scheduler_error": latest.last_error_code if latest else None,
         "stall": stall,

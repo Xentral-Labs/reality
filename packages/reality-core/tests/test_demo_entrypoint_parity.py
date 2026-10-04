@@ -3,6 +3,7 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import accept_demo_setup as ensure_demo
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -10,6 +11,7 @@ from typer.testing import CliRunner
 from reality.cli import app as cli_module
 from reality.db.core import (
     BusinessEvent,
+    ChangeProposal,
     ChatMessage,
     ChatSession,
     Commitment,
@@ -30,7 +32,6 @@ from reality.db.core import (
 from reality.services.core import (
     create_party,
     create_tenant,
-    ensure_demo,
     inventory_rows,
 )
 from reality.web import api as api_module
@@ -78,7 +79,9 @@ NOISE = {
 
 
 def clients_for(session, monkeypatch):
-    factory = sessionmaker(session.bind, expire_on_commit=False)
+    factory = sessionmaker(
+        session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint"
+    )
     monkeypatch.setattr(cli_module, "Session", factory)
     monkeypatch.setattr(cli_module, "init_db", lambda: None)
 
@@ -111,6 +114,8 @@ def aliases_for(session, tenant_id):
         (Movement, lambda row: f"movement:{row.type}"),
         (ChatSession, lambda row: f"chat:{row.title}"),
     )
+    for proposal in rows(session, ChangeProposal, tenant_id):
+        aliases[proposal.id] = f"decision:{proposal.type}"
     for model, label in rules:
         for row in rows(session, model, tenant_id):
             aliases[row.id] = label(row)
@@ -342,10 +347,14 @@ def test_confirmed_web_population_failure_is_truthful_and_not_destructive(
     _, _ = clients_for(session, monkeypatch)
 
     def fail_after_one_record(api_session, tenant):
-        create_party(api_session, tenant.id, "Partial Demo Company", "company")
+        create_party(
+            api_session, tenant.id, "Partial Demo Company", "company", _commit=False
+        )
         raise RuntimeError("injected demo population failure")
 
-    monkeypatch.setattr(api_module, "ensure_demo", fail_after_one_record)
+    from reality.tools import application as core_module
+
+    monkeypatch.setattr(core_module, "ensure_demo", fail_after_one_record)
     client = TestClient(app, raise_server_exceptions=False)
     try:
         response = client.post(
@@ -355,8 +364,6 @@ def test_confirmed_web_population_failure_is_truthful_and_not_destructive(
         assert response.status_code == 500
         tenant = session.scalar(select(Tenant).where(Tenant.name == "Partial Web Demo"))
         assert tenant is not None
-        assert [party.name for party in rows(session, Party, tenant.id)] == [
-            "Partial Demo Company"
-        ]
+        assert rows(session, Party, tenant.id) == []
     finally:
         app.dependency_overrides.clear()

@@ -66,6 +66,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Die geprüfte Grundlage der Datenübernahme hat sich geändert. Bereite eine neue Prüfung vor.",
     "The retained intake review is invalid.":
       "Die gespeicherte Prüfung der Datenübernahme ist ungültig.",
+    "Bound preparation requires a registered Demo Data source.":
+      "Die gebundene Vorbereitung erfordert eine registrierte Demo-Data-Quelle.",
     "This source profile has no reviewed intake adapter.":
       "Dieses Quellprofil unterstützt noch keine geprüfte Datenübernahme.",
     "The coherent intake package exceeds its review limits.":
@@ -1081,6 +1083,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Open practice company": "Übungsunternehmen öffnen",
     "Original source": "Ursprünglicher Source Record",
     "Pending decisions": "Ausstehende Entscheidungen",
+    "Awaiting source review": "Quelldaten warten auf Prüfung",
+    "Original demo sources are retained. Their meaning must be reviewed before orders or payments are accepted.":
+      "Die Demo-Quelldaten sind gespeichert. Ihre Bedeutung muss geprüft werden, bevor Aufträge oder Zahlungen übernommen werden.",
+    "An owner can separately authorize a named agent with explicit scope, limits and expiry.":
+      "Ein Besitzer kann einen benannten Agenten gesondert mit festem Umfang, Grenzen und Ablaufdatum freigeben.",
     "Review decisions": "Entscheidungen prüfen",
     "Review commitments": "Commitments prüfen",
     "Review each proposed change before it is recorded.":
@@ -2250,6 +2257,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "De beoordeelde basis voor de gegevensovername is gewijzigd. Bereid een nieuwe beoordeling voor.",
     "The retained intake review is invalid.":
       "De opgeslagen beoordeling van de gegevensovername is ongeldig.",
+    "Bound preparation requires a registered Demo Data source.":
+      "Gebonden voorbereiding vereist een geregistreerde Demo Data-bron.",
     "This source profile has no reviewed intake adapter.":
       "Dit bronprofiel ondersteunt nog geen beoordeelde gegevensovername.",
     "The coherent intake package exceeds its review limits.":
@@ -3269,6 +3278,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Open practice company": "Oefenbedrijf openen",
     "Original source": "Oorspronkelijk Source Record",
     "Pending decisions": "Open beslissingen",
+    "Awaiting source review": "Brongegevens wachten op beoordeling",
+    "Original demo sources are retained. Their meaning must be reviewed before orders or payments are accepted.":
+      "De oorspronkelijke demogegevens zijn opgeslagen. Hun betekenis moet worden beoordeeld voordat orders of betalingen worden geaccepteerd.",
+    "An owner can separately authorize a named agent with explicit scope, limits and expiry.":
+      "Een eigenaar kan een benoemde agent afzonderlijk machtigen met een expliciet bereik, limieten en vervaldatum.",
     "Review decisions": "Beslissingen beoordelen",
     "Review commitments": "Commitments beoordelen",
     "Review each proposed change before it is recorded.":
@@ -4129,6 +4143,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "La base revisada para la incorporación de datos ha cambiado. Prepara una nueva revisión.",
     "The retained intake review is invalid.":
       "La revisión guardada de la incorporación de datos no es válida.",
+    "Bound preparation requires a registered Demo Data source.":
+      "La preparación vinculada requiere una fuente de Demo Data registrada.",
     "This source profile has no reviewed intake adapter.":
       "Este perfil de origen aún no admite una incorporación de datos revisada.",
     "The coherent intake package exceeds its review limits.":
@@ -5152,6 +5168,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Open practice company": "Abrir empresa de práctica",
     "Original source": "Source Record original",
     "Pending decisions": "Decisiones pendientes",
+    "Awaiting source review": "Fuentes pendientes de revisión",
+    "Original demo sources are retained. Their meaning must be reviewed before orders or payments are accepted.":
+      "Las fuentes originales de demostración están guardadas. Su significado debe revisarse antes de aceptar pedidos o pagos.",
+    "An owner can separately authorize a named agent with explicit scope, limits and expiry.":
+      "Un propietario puede autorizar por separado a un agente identificado con alcance, límites y vencimiento explícitos.",
     "Review decisions": "Revisar decisiones",
     "Review commitments": "Revisar Commitments",
     "Review each proposed change before it is recorded.":

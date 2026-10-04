@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import accept_import_job
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -56,7 +57,7 @@ def _intake(session, business, payload):
         business.customer.id,
         business.location.id,
     )
-    return source, core.process_import_job(session, business.tenant.id, job.id)
+    return source, accept_import_job(session, business.tenant.id, job.id)
 
 
 _versions = iter(range(2, 1000))
@@ -249,7 +250,7 @@ def test_replaying_an_applied_version_changes_nothing(session, business):
         select(core.ImportJob).where(core.ImportJob.source_record_id == source.id)
     ).one()
 
-    core.process_import_job(session, business.tenant.id, job.id)
+    accept_import_job(session, business.tenant.id, job.id)
 
     assert (
         session.scalar(
@@ -304,10 +305,12 @@ def test_a_superseded_version_processed_late_applies_nothing(session, business):
         business.location.id,
     )
 
-    core.process_import_job(session, business.tenant.id, job3.id)
-    core.process_import_job(session, business.tenant.id, job2.id)
+    accept_import_job(session, business.tenant.id, job3.id)
+    with pytest.raises(core.InvalidOperation, match="reviewed intake state"):
+        accept_import_job(session, business.tenant.id, job2.id)
 
-    assert _outcome(session, business, v2).classification == "interpreted"
+    assert _outcome(session, business, v2).classification == "failed"
+    assert _outcome(session, business, v2).reason_code == "intake_review_stale"
     assert _quantity(session, business, first) == 6
 
 
@@ -500,7 +503,7 @@ def test_a_redelivered_version_never_undoes_a_persons_later_revision(session, bu
             select(core.ImportJob).where(core.ImportJob.source_record_id == source.id)
         ).one()
         core.retry_import_job(session, business.tenant.id, job.id)
-        core.process_import_job(session, business.tenant.id, job.id)
+        accept_import_job(session, business.tenant.id, job.id)
         assert _quantity(session, business, first) == quantity
 
 

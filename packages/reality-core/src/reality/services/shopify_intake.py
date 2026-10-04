@@ -67,7 +67,13 @@ def prepare_order(
             if sku
             else None
         )
-        quantity = str(core.positive(raw.get("quantity", 0)))
+        received_quantity = raw.get("quantity")
+        if received_quantity is None or str(received_quantity).strip() == "":
+            raise core.InvalidOperation(
+                code="source_line_quantity_missing",
+                values={"line": str(raw.get("id") or index + 1)},
+            )
+        quantity = str(core.positive(received_quantity))
         price = raw.get("price")
         if price is None or str(price).strip() == "":
             price = None

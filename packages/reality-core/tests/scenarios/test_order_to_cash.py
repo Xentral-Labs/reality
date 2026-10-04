@@ -2,11 +2,12 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
+from intake_review_support import accept_shopify_order as ingest_shopify_order
+
 from reality.services.core import (
     allocate_credit_note,
     create_document,
     explain_commitment,
-    ingest_shopify_order,
     open_invoice_amount,
     open_quantity,
     post_customer_payment,

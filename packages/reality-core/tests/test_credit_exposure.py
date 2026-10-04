@@ -8,6 +8,8 @@ are named; payables are never subtracted.
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from intake_review_support import accept_import_job
+
 from reality.services import core
 from reality.services.credit_exposure import credit_exposure
 
@@ -208,7 +210,13 @@ def test_an_unpriced_shop_line_counts_nothing_and_is_named(session, business):
             "created_at": "2026-09-20T10:00:00Z",
             "updated_at": "2026-09-20T10:00:00Z",
             "line_items": [
-                {"id": 1, "sku": business.item.sku, "quantity": 2, "price": "10.00"},
+                {
+                    "id": 1,
+                    "sku": business.item.sku,
+                    "quantity": 2,
+                    "price": "10.00",
+                    "total_price": "20.00",
+                },
                 {"id": 2, "sku": business.item.sku, "quantity": 1},
             ],
         },
@@ -216,7 +224,7 @@ def test_an_unpriced_shop_line_counts_nothing_and_is_named(session, business):
         party.id,
         business.location.id,
     )
-    core.process_import_job(session, tenant, job.id)
+    accept_import_job(session, tenant, job.id)
 
     orders = credit_exposure(session, tenant, party.id, as_of=AS_OF)["open_orders"]
 

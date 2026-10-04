@@ -36,6 +36,31 @@ def test_a_small_run_interprets_every_order_once_and_never_over_reserves(
     assert result["intake"]["processes"] == 2
     assert result["intake"]["failed"] == 0
     assert result["intake"]["orders_per_second"] > 0
+    assert result["reviewer"]["kind"] == "explicit_owner_fixture"
+    from sqlalchemy import func, select
+    from sqlalchemy.orm import Session
+
+    from reality.db.core import ChangeProposal, build_engine
+
+    engine = build_engine(postgres_database)
+    try:
+        with Session(engine) as session:
+            assert (
+                session.scalar(
+                    select(func.count())
+                    .select_from(ChangeProposal)
+                    .where(
+                        ChangeProposal.type == "tool:intake_apply",
+                        ChangeProposal.status == "executed",
+                        ChangeProposal.decided_by_user_id
+                        == result["reviewer"]["user_id"],
+                        ChangeProposal.decided_at.is_not(None),
+                    )
+                )
+                == 50
+            )
+    finally:
+        engine.dispose()
     checks = result["checks"]
     assert checks["sales_orders"] == 50
     assert checks["orders_interpreted_more_than_once"] == 0

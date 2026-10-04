@@ -5,10 +5,10 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import accept_shopify_order as ingest_shopify_order
 
 from reality.db.core import Party
 from reality.services import core
-from reality.services.core import ingest_shopify_order
 from reality.services.credit_exposure import credit_exposure
 from reality.services.finance.balances import party_balances
 from reality.services.party_merges import merge_party, party_merges

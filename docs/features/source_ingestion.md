@@ -5,18 +5,21 @@ The tenant-scoped identity is `(source_system, source_type, external_id)`; canon
 payload hashing makes identical delivery idempotent and changed payloads immutable
 versions in one SourceStream.
 
-Storage and interpretation are separate. Every accepted version receives one
-ImportJob. `SOURCE_INTERPRETERS` maps known `(system, type)` pairs to application
-interpreters. Unknown pairs are stored with status `unmapped`, never guessed or
-discarded. Registering an interpreter later allows an unmapped job to be retried.
+Storage and accepted interpretation are separate. Each retained version receives an
+ImportJob. The application supports a closed set of pure intake planners; unknown
+formats remain stored and `unmapped`. A registry entry alone grants no write authority.
 
-The transactional outbox emits `source_record.received` once for a new version,
-`source_record.unmapped` for unknown formats, and `source_record.interpreted` after
-a successful interpretation. An interpreter creates Evidence and Reality in its
-job transaction and emits their normal business events.
+`process_import_job`, `process_shopify_import_job` and the synthetic bound worker
+entrypoint prepare a retained ChangeProposal. A returned proposal means awaiting a
+Decision, never accepted business effects. The caller must inspect its exact review
+and confirm through the shared intake application service with current authority.
+A package is atomic; a bulk manifest retains independent child outcomes.
 
-The initial registry contains `("shopify", "order")`. Stripe, CRM, PIM, and custom
-formats use the same ingestion service and add only their explicit interpreter.
+The transactional outbox records source arrival and unmapped evidence. Accepted
+Evidence and Reality events acquire the actual executing Decision reference only
+when a reviewed unit applies. Retired mutating interpreter functions refuse direct
+calls, including calls supplied with an arbitrary action ID. Historical completed
+jobs without a retained review return no new proposal and are not replayed.
 
 ## Interpretation coverage
 
@@ -27,7 +30,9 @@ On failure, attempted business changes roll back before a safe `failed` outcome 
 stored.
 
 Non-executed sources receive attempt-zero outcomes: `unsupported`, `stale`, or
-`conflict`. `pending` and `processing` are non-terminal job states. `not_recorded` is a
+`conflict`. `pending`, `awaiting_decision` and `review_required` distinguish
+preparation, a retained decision, and meaning that requires further review.
+`failed` preparation is retained without business effects. `not_recorded` is a
 computed label for historical sources without outcome evidence, never a fabricated
 outcome. Agents use the read-only `interpretation_coverage` capability through Chat or
 MCP; it excludes payloads, job inputs, credentials, and stack traces.
@@ -81,12 +86,12 @@ SHA-256, byte size, media type, filename, and lifecycle state. A confirmed
 `source_ingest` application-tool proposal creates a SourceRecord with a stable
 artifact envelope and queues its ImportJob.
 
-Preview is bounded. Full parsing and operational interpretation belong to a
-worker reading the stored artifact. Unknown formats remain `unmapped`. An
-inventory snapshot must eventually produce append-only adjustment Movements
-from a calculated delta; a bank statement must eventually produce payment
-Evidence and balanced journal entries. Neither upload directly overwrites a
-balance.
+Preview is bounded. Full parsing and preparation belong to a worker reading the
+stored artifact. Accepted effects require a separate exact reviewed decision.
+Unknown formats remain `unmapped`. An inventory snapshot prepares append-only
+adjustment Movements from its difference against reviewed book stock; a bank
+statement prepares payment Evidence and balanced journal entries. Both show those
+effects before approval. Neither upload directly overwrites a balance.
 
 ## Explicit file mapping profiles
 
@@ -101,9 +106,9 @@ profiles create typed operational records:
 | `party` | `name` | `party_type`/`type`, `roles`, `accounting_code`, `payment_term_code`, `default_currency`, `credit_limit`, `tax_identifier` | payment term by code |
 | `location` | `name` | `location_type`, `allows_stock` | none |
 | `sales_order` | `order_id` or `order_number`, `sku`, `quantity`, `location`, and `party_accounting_code` or `party_name` | `line_id`, `name`, `unit_price`/`price`, `currency`, `ordered_at`, `requested_delivery_at`, `customer_reference` | company party, customer party, item by SKU, location by exact name |
-| `inventory_snapshot` | `sku`, `location`, `quantity` | none | item by SKU, location by exact name; **takes the file's stock over**: each difference is posted as an adjustment (for opening stock) |
+| `inventory_snapshot` | `sku`, `location`, `quantity` | none | item by SKU, location by exact name; prepares each difference as an adjustment against reviewed book stock, applied only after exact approval |
 | `external_stock` | `sku`, `location`, `quantity` | `stated_at`/`as_of`/`reported_at`/`snapshot_at`, `party_accounting_code` or `party_name` for who reported it | item by SKU, location by exact name; **compares only**: each row is an external stock statement, nothing moves, and a difference becomes `external_stock_differs` (spec 344); a row without a time is stated as of the file's arrival |
-| `bank_statement` | `amount`, and `party_accounting_code` or `party_name` | `direction`, `currency`, `effective_at`, `payment_number`/`external_id` | party by accounting code or exact name |
+| `bank_statement` | `amount`, and `party_accounting_code` or `party_name` | `direction`, `currency`, `effective_at`, `payment_number`/`external_id` | party by accounting code or exact name; payment and posting require current financial decision authority |
 
 Stable aliases are intentionally small: `article_number`/`item_number` for
 `sku`, `title`/`description` for `name`, `qty`/`stock` for `quantity`,

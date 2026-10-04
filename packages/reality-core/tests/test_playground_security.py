@@ -166,7 +166,7 @@ def test_generic_company_lifecycle_cannot_rewrite_or_delete_runs(
 
     tenant, _ = sandbox
     original_archive = tenant.archived_at
-    with pytest.raises(InvalidOperation, match="Playground"):
+    with pytest.raises(InvalidOperation) as refusal:
         if operation == "ensure_demo":
             core.ensure_demo(session, tenant)
         elif operation == "permanently_delete_tenant":
@@ -178,6 +178,11 @@ def test_generic_company_lifecycle_cannot_rewrite_or_delete_runs(
             )
         else:
             getattr(core, operation)(session, tenant.id)
+    assert refusal.value.code == (
+        "intake_approval_required"
+        if operation == "ensure_demo"
+        else "playground_operation_unsupported"
+    )
     assert tenant.archived_at == original_archive
     assert tenant not in session.deleted
 

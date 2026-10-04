@@ -39,9 +39,9 @@ class FulfillmentReadiness:
     ship_ready: bool
     blocker_codes: tuple[str, ...]
     currency: str
-    required_amount: Decimal
+    required_amount: Decimal | None
     received_amount: Decimal
-    remaining_amount: Decimal
+    remaining_amount: Decimal | None
     payment_term_id: str | None
     requires_prepayment: bool
     invoice_ids: tuple[str, ...]
@@ -90,18 +90,26 @@ class FulfillmentReadiness:
             "blocking_reasons": list(self.blocker_codes),
             "blockers": blockers,
             "currency": self.currency,
-            "required_amount": str(self.required_amount),
+            "required_amount": str(self.required_amount)
+            if self.required_amount is not None
+            else None,
             "received_amount": str(self.received_amount),
-            "remaining_amount": str(self.remaining_amount),
+            "remaining_amount": str(self.remaining_amount)
+            if self.remaining_amount is not None
+            else None,
             "payment_term_id": self.payment_term_id,
             "requires_prepayment": self.requires_prepayment,
             "invoice_ids": list(self.invoice_ids),
             "allocation_ids": list(self.allocation_ids),
             "payment": {
                 "policy": payment_policy,
-                "required": str(self.required_amount),
+                "required": str(self.required_amount)
+                if self.required_amount is not None
+                else None,
                 "received": str(self.received_amount),
-                "remaining": str(self.remaining_amount),
+                "remaining": str(self.remaining_amount)
+                if self.remaining_amount is not None
+                else None,
                 "payment_term_id": self.payment_term_id,
                 "invoice_ids": list(self.invoice_ids),
                 "allocation_ids": list(self.allocation_ids),
@@ -154,6 +162,7 @@ def _blocker_detail(code: str, result: FulfillmentReadiness) -> str:
             for _, number, amount in result.consolidated_open
         )
     return {
+        "prepayment_amount_unstated": "The source states no order total; prepayment readiness needs a reviewed stated amount.",
         "prepayment_invoice_missing": "No posted order-backed customer receivable proves the payment basis.",
         "prepayment_attribution_ambiguous": "Invoice evidence covers more than this order and cannot be attributed automatically.",
         "insufficient_reservation": "The open delivery quantity is not fully reserved.",
@@ -347,6 +356,9 @@ def fulfillment_readiness(
     BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-532:
     IF required prepayment remains positive, report prepayment_required.
 
+    BUSINESS RULE readiness.unstated_prepayment:
+    IF prepayment is required and the order source states no gross amount, retain unknown required and remaining amounts and block shipment; never infer an amount from quantity and price.
+
     BUSINESS RULE readiness.prepayment_release:
     IF the order is not (fully) paid and a company owner released its prepayment for at least the order's stated gross amount, drop prepayment_required and prepayment_invoice_missing and name the release. An invoice shared with other orders still blocks. An order raised past the released amount is blocked again.
 
@@ -497,7 +509,7 @@ def fulfillment_readiness(
         if order.payment_term_id
         else None
     )
-    required = Decimal(order.gross_amount)
+    required = Decimal(order.gross_amount) if order.gross_amount is not None else None
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-354
     if term is None or not term.requires_prepayment:
         return FulfillmentReadiness(
@@ -511,6 +523,28 @@ def fulfillment_readiness(
             ZERO,
             order.payment_term_id,
             False,
+            (),
+            (),
+            open_quantity,
+            reserved_quantity,
+            physical_quantity,
+            commitment_hold_ids,
+            party_hold_ids,
+        )
+
+    # reality-rule: readiness.unstated_prepayment
+    if required is None:
+        return FulfillmentReadiness(
+            commitment.id,
+            order.id,
+            False,
+            (*operational_blockers, "prepayment_amount_unstated"),
+            order.currency,
+            None,
+            ZERO,
+            None,
+            order.payment_term_id,
+            True,
             (),
             (),
             open_quantity,

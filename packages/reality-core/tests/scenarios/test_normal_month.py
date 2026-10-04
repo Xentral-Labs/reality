@@ -1,10 +1,11 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from intake_review_support import accept_normal_month as run_normal_month
 from sqlalchemy import func, select
 
 from reality.db.core import ChangeProposal, Commitment, Item, Movement, Party
-from reality.demo.normal_month import SCENARIO_ACTION, run_normal_month
+from reality.demo.normal_month import SCENARIO_ACTION
 from reality.services.core import aging_register, create_tenant
 from reality.services.exceptions import operational_exceptions
 

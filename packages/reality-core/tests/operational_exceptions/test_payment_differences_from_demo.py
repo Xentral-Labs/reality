@@ -3,9 +3,15 @@
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
+from intake_review_support import (
+    accept_import_job,
+    accept_normalized_invoice,
+    accept_normalized_payment,
+)
+
 from reality.demo.international import DEMO_DATA_CUSTOMERS, DEMO_DATA_PAYMENT_TERM
 from reality.integrations import demo_data as synthetic
-from reality.services import core, payment_intake
+from reality.services import core
 from reality.services.exceptions import operational_exceptions
 
 AT = datetime(2026, 9, 10, 8, 0, tzinfo=UTC)
@@ -54,23 +60,10 @@ def _story(session, business, index, *, payments=None):
         )
     external_id = f"{SCHEDULE}:run_{index}"
     order = synthetic.produce(SCHEDULE, f"run_{index}", SEED, AT, _references(business))
-    source, _ = core.enqueue_source(
+    _, job = core.enqueue_source(
         session, tenant, "demo_data", "order", external_id, order, _commit=False
     )
-    core.create_manual_document_with_lines(
-        session,
-        tenant,
-        "sales_order",
-        order["number"],
-        order["customer_party_id"],
-        order["lines"],
-        order["gross_amount"],
-        currency=order["currency"],
-        document_date=order["ordered_at"][:10],
-        customer_reference=order["customer_reference"],
-        source_record_id=source.id,
-        _commit=False,
-    )
+    accept_import_job(session, tenant, job.id)
     plan = synthetic.settlement_plan(SEED, SCHEDULE, external_id, order)
     invoice_payload = synthetic.produce_invoice(order, external_id, plan)
     invoice_source, _ = core.enqueue_source(
@@ -82,7 +75,7 @@ def _story(session, business, index, *, payments=None):
         invoice_payload,
         _commit=False,
     )
-    _, invoice, _, _ = payment_intake.interpret_sales_invoice(
+    _, invoice, _, _ = accept_normalized_invoice(
         session, tenant, invoice_source, synthetic.normalise_invoice(invoice_payload)
     )
     results = []
@@ -98,7 +91,7 @@ def _story(session, business, index, *, payments=None):
             _commit=False,
         )
         results.append(
-            payment_intake.interpret_customer_payment(
+            accept_normalized_payment(
                 session, tenant, payment_source, synthetic.normalise_payment(payload)
             )
         )
@@ -171,7 +164,7 @@ def _story_payment(session, business, index, plan, invoice):
         payload,
         _commit=False,
     )
-    return payment_intake.interpret_customer_payment(
+    return accept_normalized_payment(
         session, tenant, source, synthetic.normalise_payment(payload)
     )
 

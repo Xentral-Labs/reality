@@ -8,6 +8,7 @@ and the rest of the batch goes on.
 import json
 
 import pytest
+from intake_review_support import accept_import_job
 from sqlalchemy import select
 
 from reality.db.core import DocumentLine, ImportJob, InterpretationOutcome
@@ -43,7 +44,7 @@ def _enqueue(session, business, payload):
 
 def _intake(session, business, payload):
     source, job = _enqueue(session, business, payload)
-    return source, core.process_import_job(session, business.tenant.id, job.id)
+    return source, accept_import_job(session, business.tenant.id, job.id)
 
 
 def _findings(session, business, class_id):
@@ -120,8 +121,10 @@ def test_a_line_without_a_quantity_fails_with_a_code_and_the_batch_goes_on(
     assert outcome.classification == "failed"
     assert failed.id in _findings(session, business, "source_interpretation_failure")
     with pytest.raises(core.InvalidOperation) as refused:
-        core.process_import_job(session, tenant, broken_job.id)
+        accept_import_job(session, tenant, broken_job.id)
     assert refused.value.code == "source_line_quantity_missing"
+    assert session.get(ImportJob, (tenant, good_job.id)).status == "awaiting_decision"
+    accept_import_job(session, tenant, good_job.id)
     assert session.get(ImportJob, (tenant, good_job.id)).status == "completed"
 
 
@@ -294,7 +297,7 @@ def test_a_blank_price_is_no_price_and_a_blank_quantity_no_quantity(
         _payload(13002, {"id": 133, "sku": "BIKE-LIGHT", "quantity": stated}),
     )
     with pytest.raises(core.InvalidOperation) as refused:
-        core.process_import_job(session, tenant, job.id)
+        accept_import_job(session, tenant, job.id)
     assert refused.value.code == "source_line_quantity_missing"
 
 

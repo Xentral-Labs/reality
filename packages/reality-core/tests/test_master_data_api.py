@@ -4,6 +4,8 @@ from decimal import Decimal
 import pytest
 from conftest import record_by_id
 from fastapi.testclient import TestClient
+from intake_review_support import accept_demo_setup as ensure_demo
+from intake_review_support import accept_shopify_order as ingest_shopify_order
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -33,8 +35,6 @@ from reality.services.core import (
     create_source_capability,
     create_source_system,
     create_tenant,
-    ensure_demo,
-    ingest_shopify_order,
     observe_fact,
     open_invoice_amount,
     post_customer_payment,
@@ -285,7 +285,11 @@ def test_a_decision_records_when_and_by_whom_it_was_settled(session):
     unattended = propose_tool(session, tenant.id, "demo_seed", {})
 
     approve_and_execute_proposal(
-        session, tenant.id, approved.id, confirming_principal=Principal(approver.id)
+        session,
+        tenant.id,
+        approved.id,
+        confirming_principal=Principal(approver.id),
+        confirmed=True,
     )
     reject_proposal(
         session, tenant.id, rejected.id, confirming_principal=Principal(approver.id)
@@ -357,8 +361,8 @@ def test_decision_history_is_paged_and_searchable_in_the_database(session):
             proposal = propose_tool(
                 session,
                 tenant.id,
-                "demo_seed" if index % 2 else "location_create",
-                {"index": index},
+                "item_create" if index % 2 else "location_create",
+                {"sku": f"HISTORY-{index}", "name": f"History {index}"},
             )
             client.post(
                 f"/api/tenants/{tenant.id}/change-proposals/{proposal.id}/reject",

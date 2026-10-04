@@ -142,3 +142,26 @@ external-I/O scheduler contract is proposed: provider inference stays client-sid
 Follow spec 356's common lock hierarchy and immutable phase/outcome attempt
 allocation; do not acquire business/finance locks after proposal/source locks.
 Replay never appends a new phase outcome or re-invokes interpretation.
+
+### Fixed compact and month setup compatibility
+
+Legacy compact/month seeds become actual confirmed fixed-definition proposals,
+with retained profile version and frozen day. A private session/transaction-bound
+application execution scope authorizes their authored definitions only. Their
+Shopify-shaped examples use the shared pure planner and exact scoped effect
+dispatch; no retired interpreter or derived line total is reused. Setup effects
+and its receipt commit together. Raw-only source scopes cannot enter this setup
+scope. Configuration-only empty-database bootstrap creates no business demo data.
+
+## Independent defect retained from closed PR #352
+
+FR-006 and spec 146 require Demo Data controls and shared worker transactions to
+remain correct. Production/settlement workers and Pause currently acquire the two
+schedules in opposite orders. Retain only the stable schedule/run/connection lock
+ordering correction, with the genuine two-connection regression in
+`tests/test_demo_schedule_lock_order.py`. It adds no decision layer, schema or
+canonical-writer gate. Existing cancellation/revision/replay rules remain intact.
+
+Plan Constitution Check: PASS; this restores existing source-control behavior.
+Proof order: observe the real lock inversion before the fix; apply the two service
+changes; verify the regression and existing scheduler/demo/import families.

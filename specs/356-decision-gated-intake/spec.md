@@ -34,6 +34,9 @@ A prepared interpretation, exact-review confirmation, transaction-bound applicat
 
 ### Non-Goals
 
+Universal canonical-writer enforcement and another proposal/confirmation cycle for
+direct authenticated human actions are outside this rollout.
+
 No provisional business documents, inferred source amounts, provider integration, printed document production, retrospective approvals or new general workflow engine.
 
 ### Existing Contracts

@@ -17,22 +17,22 @@ and universal-writer tasks are superseded by this clarification.
 
 ## Implementation status
 
-Specs 356–361 describe the complete rollout. The initial implementation offers an
-explicit preparation path through `intake_prepare_propose` / application
-`create_change_proposal("intake_apply", {"job_id": ...})`, retained reads through
-`intake_review`, and exact confirmation through the existing proposal executor.
+Specs 356–361 define reviewed external intake across Shopify, supported file/master/
+stock profiles, normalized invoice/payment statements and live Demo Data. Import
+workers prepare exact proposals; they do not accept business evidence automatically.
+Unsupported profiles preserve raw sources and report a review issue.
 
-Supported explicit inputs are Shopify first orders, supported later reductions and
-cancellations, refund transaction evidence and supported return announcements,
-normalized customer payments with job profile `customer_payment.v1`, and normalized
-synthetic payment payloads. Shopify credit checks appear as exact proposed holds.
-Missing source line amounts remain null, and unknown prices stay visible; no line
-total is computed from quantity and price. Each stated refund transaction gets its
-own evidence amount, with goods lines recorded once. Raw payloads survive failures.
+The shared preparation/review/confirmation services support one coherent unit,
+fixed packages and manifests of up to 500 independent units. Web and CLI expose
+exact selection, original evidence, retained progress, stopping and renewed review.
+Named agents require explicit finite owner mandates; workers never call providers.
+Without an authorized reviewer, new demo sources and their prepared proposals wait.
 
-Legacy automatic import processing is not yet switched over. Invoice/bank-file
-adapters, master/stock application, bulk continuation, mandates, demo source cutover remain pending. The explicit reviewed services are an
-implementation checkpoint, not completed cross-path admission coverage.
+Source-unstated line amounts and order totals remain unknown. Stated zero and
+inconsistent received values are preserved. Direct authenticated human operations
+retain existing authorization and audit without another intake proposal cycle.
+Historical missing attribution remains unknown. Required committed-head CI is the
+completion gate; verification links and implementation history live in the specs.
 
 ## Acceptance transaction
 
@@ -85,9 +85,9 @@ manifest confirmation queues database-only shared-worker continuations of at mos
 membership/token and each child's stronger permission/state are checked again.
 Known no-effect refusals and stops are retained separately from accepted children;
 unknown infrastructure failure rolls back the entire provisional chunk. Paginated
-status reads return child receipts without running work. This checkpoint still
-leaves external AgentMandates, selection/recovery UI and the universal adapter
-cutover unfinished (spec 360).
+status reads return child receipts without running work. The retained rollout adds finite AgentMandates and selection/recovery UI (spec 360),
+plus the external-source runtime cutover (spec 361). Universal writer gating is
+outside the approved scope.
 
 ## Explicit financial statement profiles
 

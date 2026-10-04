@@ -1,5 +1,18 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+
+const canonicalSource = (value) =>
+  Array.isArray(value)
+    ? value.map(canonicalSource)
+    : value !== null && typeof value === "object"
+      ? Object.fromEntries(
+          Object.keys(value)
+            .sort()
+            .map((key) => [key, canonicalSource(value[key])]),
+        )
+      : value;
+
 import { pathToFileURL } from "node:url";
 
 const modulePath =
@@ -41,7 +54,7 @@ try {
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.locator('form button[type="submit"], form button').first().click();
-  await page.waitForURL(/\/app/);
+  await page.waitForURL(/\/app/, { waitUntil: "commit" });
   await page.evaluate(() => sessionStorage.clear());
   const recovery = process.env.RECOVER_REQUEST_KEY
     ? {
@@ -66,6 +79,13 @@ try {
   const dialog = page.locator("dialog.company-setup-dialog");
   await dialog.waitFor({ state: "visible" });
   const name = recovery?.name || `Reality Demo Cost Ready ${Date.now()}`;
+  let setupTenant;
+  page.on("response", async (response) => {
+    if (response.url().includes("/api/company-setup") && response.status() < 300) {
+      const receipt = await response.json().catch(() => null);
+      if (receipt?.tenant_id) setupTenant = receipt.tenant_id;
+    }
+  });
   if (!recovery) {
     await dialog.locator("#setup-company-name").fill(name);
     await dialog.locator('input[value="demo"]').check();
@@ -100,7 +120,118 @@ try {
   if (!recovery) assert.ok(observed.has("data:current"), "Data preparation was not visible");
   assert.ok(observed.has("calculation:current"), "Calculation completion was not visible");
   assert.ok(observed.has("ready:current"), "Ready completion was not visible");
-  await page.waitForURL(new RegExp(`/app.*tenant=`), { timeout: 30_000 });
+  await page.waitForURL(
+    (url) => Boolean(setupTenant) && url.searchParams.get("tenant") === setupTenant,
+    { timeout: 30_000 },
+  );
+  const tenant = new URL(page.url()).searchParams.get("tenant");
+  assert.ok(tenant, "The confirmed setup must open its actual company");
+  const demo = `${base}/api/tenants/${encodeURIComponent(tenant)}/demo-data`;
+  const get = async (url) => {
+    const response = await page.request.get(url);
+    assert.equal(response.status(), 200, await response.text());
+    return response.json();
+  };
+  let waiting;
+  const sourceDeadline = Date.now() + 60_000;
+  while (Date.now() < sourceDeadline) {
+    waiting = await get(demo);
+    if (waiting.awaiting_decision >= 1) break;
+    await page.waitForTimeout(500);
+  }
+  assert.ok(
+    waiting.awaiting_decision >= 1,
+    `Initial sources must await actual decisions: ${JSON.stringify(waiting)}`,
+  );
+  assert.equal(waiting.imported, 0, "Starting a source must not approve its business effects");
+  await page.goto(`${base}/app/demo-data?tenant=${encodeURIComponent(tenant)}`);
+  await page.locator("[data-awaiting-reviewer]").waitFor();
+  await page.screenshot({ path: `${output}/04-awaiting-review.png`, fullPage: true });
+  const pauseRequestKey = `review-proof-pause-${Date.now()}`;
+  let paused;
+  const pauseDeadline = Date.now() + 60_000;
+  while (Date.now() < pauseDeadline) {
+    const current = await get(demo);
+    paused = await page.request.post(`${demo}/control`, {
+      data: {
+        action: "pause",
+        expected_revision: current.revision,
+        request_key: pauseRequestKey,
+        confirmed: true,
+      },
+    });
+    if (paused.status() !== 409) break;
+    assert.equal((await paused.json()).code, "unfinished_run");
+    // A claimed worker run must finish before a source control can cancel its queue.
+    await page.waitForTimeout(500);
+  }
+  assert.equal(paused.status(), 200, await paused.text());
+  const beforeReview = await get(demo);
+  const pending = await get(
+    `${base}/api/tenants/${encodeURIComponent(tenant)}/change-proposals?tool=intake_apply&size=100`,
+  );
+  const proposal = pending.items[0];
+  assert.ok(proposal, "A retained prepared source must be reviewable");
+  const review = await get(
+    `${base}/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${proposal.id}/review`,
+  );
+  assert.equal(review.status, "proposed");
+  assert.equal(review.input.plan.profile, "demo.order");
+  const original = await page.request.get(
+    `${base}/api/tenants/${encodeURIComponent(tenant)}/intake-units/${proposal.id}/original`,
+  );
+  assert.equal(original.status(), 200);
+  const originalText = await original.text();
+  assert.equal(original.headers()["x-source-digest"], review.input.plan.source_hash);
+  assert.equal(
+    createHash("sha256")
+      .update(JSON.stringify(canonicalSource(JSON.parse(originalText))))
+      .digest("hex"),
+    review.input.plan.source_hash,
+  );
+  assert.equal(JSON.parse(originalText).synthetic, true);
+  await page.goto(
+    `${base}/app/decisions?tenant=${encodeURIComponent(tenant)}&proposal=${proposal.id}`,
+  );
+  const sourceReview = page
+    .getByRole("dialog")
+    .filter({ has: page.locator("#proposal-review-title") });
+  await sourceReview.waitFor();
+  await sourceReview.getByRole("button", { name: /Confirm change|Änderung bestätigen/ }).click();
+  let decided;
+  const decisionDeadline = Date.now() + 15_000;
+  while (Date.now() < decisionDeadline) {
+    decided = await get(
+      `${base}/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${proposal.id}/review`,
+    );
+    if (decided.status === "executed") break;
+    await page.waitForTimeout(200);
+  }
+  assert.equal(decided.status, "executed", JSON.stringify(decided));
+  assert.equal(decided.decider.kind, "person");
+  assert.equal(decided.receipt.source_record_id, review.input.plan.source_record_id);
+  const after = await get(demo);
+  assert.equal(after.imported, 1);
+  assert.equal(
+    after.awaiting_decision,
+    beforeReview.awaiting_decision - 1,
+    "Confirming one source must leave every other source pending",
+  );
+  await page.screenshot({ path: `${output}/05-exact-source-confirmed.png`, fullPage: true });
+  await writeFile(
+    `${output}/review-result.json`,
+    JSON.stringify(
+      {
+        tenant,
+        proposal_id: proposal.id,
+        source_record_id: decided.receipt.source_record_id,
+        digest: decided.receipt.digest,
+        original: originalText,
+      },
+      null,
+      2,
+    ),
+  );
   assert.equal(errors.length, 0, errors.join("\n"));
   console.log(
     JSON.stringify({ name, observed: [...observed].sort(), completionRect, output }, null, 2),

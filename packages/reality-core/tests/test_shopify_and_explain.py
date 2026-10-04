@@ -3,6 +3,8 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from intake_review_support import accept_import_job as process_shopify_import_job
+from intake_review_support import accept_shopify_order as ingest_shopify_order
 from sqlalchemy import func, select
 
 from reality.db.core import Commitment, Document, ImportJob, SourceRecord
@@ -12,8 +14,6 @@ from reality.services.core import (
     create_item,
     enqueue_shopify_order,
     explain_commitment,
-    ingest_shopify_order,
-    process_shopify_import_job,
 )
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "shopify" / "order_10473.json"
@@ -125,12 +125,13 @@ def test_source_survives_interpretation_failure(session, business):
 def test_first_version_failure_retries_but_changed_version_requires_review(
     session, business, monkeypatch
 ):
-    from reality.services import core as core_services
 
     payload = json.loads(FIXTURE.read_text())
     create_item(session, business.tenant.id, "LATER", "Later item")
     payload["line_items"][0]["sku"] = "LATER"
-    interpret = core_services.SOURCE_INTERPRETERS[("shopify", "order")]
+    from reality.services import shopify_intake
+
+    interpret = shopify_intake.prepare_order
     failures = iter([True])
 
     def fails_once(*args, **kwargs):
@@ -138,9 +139,7 @@ def test_first_version_failure_retries_but_changed_version_requires_review(
             raise InvalidOperation("Unknown SKU: LATER")
         return interpret(*args, **kwargs)
 
-    monkeypatch.setitem(
-        core_services.SOURCE_INTERPRETERS, ("shopify", "order"), fails_once
-    )
+    monkeypatch.setattr(shopify_intake, "prepare_order", fails_once)
 
     source, job = enqueue_shopify_order(
         session,
@@ -164,18 +163,13 @@ def test_first_version_failure_retries_but_changed_version_requires_review(
         business.customer.id,
         business.location.id,
     )
-    assert (
-        process_shopify_import_job(session, business.tenant.id, changed_job.id) is None
-    )
+    accepted = process_shopify_import_job(session, business.tenant.id, changed_job.id)
     assert changed_source.version == 2
-
-    retried = process_shopify_import_job(session, business.tenant.id, job.id)
-    assert retried is not None
-    assert retried[1].source_record_id == source.id
-    assert job.status == "completed"
-    assert job.attempts == 2
-    assert retried[1].status == "recorded"
-    assert retried[3][0].status == "open"
+    assert accepted[1].source_record_id == changed_source.id
+    with pytest.raises(InvalidOperation, match="reviewed intake state"):
+        process_shopify_import_job(session, business.tenant.id, job.id)
+    assert job.status == "failed"
+    assert changed_job.status == "completed"
 
 
 def test_stale_and_conflicting_webhooks_are_stored_but_not_interpreted(
@@ -219,7 +213,7 @@ def test_stale_and_conflicting_webhooks_are_stored_but_not_interpreted(
     )
     assert conflict_source.supersedes_source_record_id is None
     assert conflict_job.status == "failed"
-    with pytest.raises(InvalidOperation, match="Conflicting payloads"):
+    with pytest.raises(InvalidOperation, match="reviewed intake state"):
         process_shopify_import_job(session, business.tenant.id, conflict_job.id)
 
     assert current[1].status == "recorded"
