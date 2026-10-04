@@ -149,7 +149,8 @@ try {
   await page.screenshot({ path: `${output}/04-awaiting-review.png`, fullPage: true });
   const pauseRequestKey = `review-proof-pause-${Date.now()}`;
   let paused;
-  for (let attempt = 0; attempt < 5; attempt++) {
+  const pauseDeadline = Date.now() + 60_000;
+  while (Date.now() < pauseDeadline) {
     const current = await get(demo);
     paused = await page.request.post(`${demo}/control`, {
       data: {
@@ -161,6 +162,8 @@ try {
     });
     if (paused.status() !== 409) break;
     assert.equal((await paused.json()).code, "unfinished_run");
+    // A claimed worker run must finish before a source control can cancel its queue.
+    await page.waitForTimeout(500);
   }
   assert.equal(paused.status(), 200, await paused.text());
   const beforeReview = await get(demo);

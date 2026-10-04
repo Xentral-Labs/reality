@@ -76,9 +76,12 @@ proofs. No task requiring that universal boundary is marked complete here.
 ## Worker/control concurrency regression
 
 The live company-setup proof reloads the current Demo Data revision before its
-explicit pause request. It retries only the documented `unfinished_run` conflict,
-with the same request key and a bounded five attempts; other refusals still fail
-the proof. The actual PostgreSQL/worker/browser journey passed again (89.32s),
+explicit pause request. It retries only the documented `unfinished_run` refusal,
+with the same request key, refreshed revision, a 500 ms polling interval and a
+60-second deadline. An already claimed worker run must finish before its queue
+can be cancelled; five immediate retries did not establish that condition.
+Other refusals still fail the proof. The actual PostgreSQL/worker/browser journey
+passed again under concurrent backend-suite load (109.86s),
 including exact original payload, digest, decider and one applied document.
 
 ## Disposable CI database capacity
