@@ -15,8 +15,18 @@ Initial actual Anthropic daily round correctly reports four customer return and 
 supplier-return records and marks five shipment movements as a sample with more data.
 It also adds unrequested mixed-item quantity totals and produces a truncated final
 answer. These are recorded as model-output limitations, not concealed as acceptance.
-Concise full-stage guidance was added; a final full mission and ready-order cause case
-are being observed separately. Pending proposal identity sets remained unchanged.
+Concise full-stage guidance was added. The final real round includes every stage without
+truncation, keeps the return counts 4/3, and reads the complete retained shipment set of
+27 movements (independently verified, has_more=false). A separate actual SO-005 query
+correctly says 5 pcs open, 0 fulfilled, no current blockers and unknown nonexecution cause.
+Pending proposal identity sets remained unchanged in all runs.
+
+The final broad free-form report is still NOT accepted as wholly accurate: it invents
+return item names/quantities (Cove Glass Set becomes Summit Bottle; Beacon Desk Organizer
+becomes Lamp Item), mixes current blockers across orders, and assumes UTC/workflow setup
+without verified external agent controls. These model errors are not repaired by the
+new service fields and are explicitly remaining work. The deterministic tools and the
+focused cause answer pass; arbitrary broad provider prose is outside this feature's guarantee.
 
 ## Required completion gate
 Full Quality workflow is pending at PR preparation. No full-CI completion claim yet.
