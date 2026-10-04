@@ -55,3 +55,10 @@ Bei verweigertem Zugriff prüfst du Verbindung und Werkzeugberechtigungen anhand
 
 Nutze den integrierten **Chat**, wenn KI für dein Unternehmen konfiguriert ist. Er verwendet
 dieselben Anwendungswerkzeuge; du kannst ohne externe Verbindung mit deinem Rezept weitermachen.
+
+## MCP-Prüfwerkzeuge
+
+Verwende `company_context` für gespeicherte Firmen-ID, Name und Zweck und danach
+`capability_catalog` für tatsächliche Toolrechte. `proposal_review` liefert die konkrete
+Entscheidungsvorschau; `proposal_execution_status` prüft den Ausführungsnachweis. Browserlinks sind
+optional; Leserechte erteilen keine Bestätigungsrechte.

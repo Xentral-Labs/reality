@@ -181,6 +181,23 @@ AGENT_DISCOVERY_MODELS: dict[str, tuple[type[Base], tuple[str, ...]]] = {
             "currency",
             "gross_amount",
             "document_date",
+            "source_record_id",
+        ),
+    ),
+    "document_line": (
+        DocumentLine,
+        (
+            "id",
+            "document_id",
+            "source_line_id",
+            "item_id",
+            "sku",
+            "description",
+            "quantity",
+            "unit",
+            "unit_price",
+            "gross_amount",
+            "billed_document_line_id",
         ),
     ),
     "commitment": (
@@ -368,6 +385,7 @@ def business_discovery_statement(
     *,
     query: str = "",
     record_id: str | None = None,
+    document_id: str | None = None,
 ) -> tuple[Select, type[Base], tuple[str, ...]]:
     """Build the same scoped selection for legacy discovery and cursor pages."""
     _tenant_record(session, Tenant, tenant_id, tenant_id)
@@ -376,6 +394,13 @@ def business_discovery_statement(
         raise InvalidOperation("Unsupported discovery family.")
     model, fields = definition
     statement = select(model).where(model.tenant_id == tenant_id)
+    if document_id is not None:
+        if model is not DocumentLine:
+            raise InvalidOperation(
+                "Document scope is only supported for document_line discovery."
+            )
+        _tenant_record(session, Document, tenant_id, document_id)
+        statement = statement.where(DocumentLine.document_id == document_id)
     if record_id:
         statement = statement.where(model.id == record_id)
     elif query.strip():
@@ -475,12 +500,18 @@ def discover_business_records(
     query: str = "",
     limit: int = 25,
     record_id: str | None = None,
+    document_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """Legacy bounded lookup; complete traversal uses the shared page contract."""
     if type(limit) is not int or not 1 <= limit <= 100:
         raise InvalidOperation("Discovery limit must be between 1 and 100.")
     statement, _, fields = business_discovery_statement(
-        session, tenant_id, family, query=query, record_id=record_id
+        session,
+        tenant_id,
+        family,
+        query=query,
+        record_id=record_id,
+        document_id=document_id,
     )
     rows = list(session.scalars(statement.limit(limit)))
     if record_id and not rows:

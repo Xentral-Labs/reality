@@ -140,7 +140,9 @@ nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
 
 **Dein Erfolg:** Du siehst einen konkreten Bedarf oder Lieferantenfall. In aktuellen Demo-Grunddaten
 hat `PO-001` zwei von fünf Stück erhalten, der Rest ist überfällig. `PO-003` hat keinen zugesagten
-Termin; `PO-006` zeigt einen Wareneingang ohne Rechnung. Ältere Firmen können andere Fälle
+Termin; `PO-006` hat nach der Einrichtung der rechnungsbasierten Wareneingangskosten fünf erhaltene
+und berechnete Stück. Prüfe die aktuellen Rechnungs- und Positionsreferenzen; die ursprüngliche
+Einkaufstabelle allein beschreibt nicht das fertige Profil. Ältere Firmen können andere Fälle
 enthalten.
 
 Neue Verkaufsaufträge verändern Nachfrage. **Neue Einkaufsbestellungen und Lieferantenwareneingänge
@@ -296,3 +298,43 @@ Vertiefe [Einkauf und Nachschub](/de/agent-playbooks/purchasing-and-replenishmen
 
 **Anderer Einstieg:** [Von null aufbauen](./start-business) ·
 [Bestehende Firma nutzen](./existing-business).
+
+## Nachweise und Entscheidungen per MCP
+
+Beginne mit `company_context` und prüfe über `capability_catalog`, welche Tools diese Verbindung
+aufrufen darf. Lies `proposals_awaiting_approval` seitenweise über Cursor (höchstens 100
+Zusammenfassungen pro Seite); der Tool-Filter verwendet den gespeicherten Anwendungstoolnamen, etwa
+`reserve`. Prüfe passende offene Vorschläge, bevor du einen weiteren anlegst. Lies die konkrete ID
+mit `proposal_review`.
+
+Erkläre vor einer Entscheidung: Firma, betroffene Auftrags- und Commitment-IDs samt Belegnummern,
+Artikel, Lager und Menge; aktuellen Zustand und vorgeschlagene Wirkung; Voraussetzungen, Blocker und
+passende offene Vorschläge. Verwende den gespeicherten Prüfnachweis und benenne fehlende
+Informationen. Ein Vorschlag reserviert oder bewegt noch keinen Bestand. Erst nach ausdrücklicher,
+berechtigter Freigabe rufst du `proposal_approve_and_execute` mit `approved: true`, der konkreten
+Vorschlags-ID und, falls vorhanden, `confirmation.review_token` auf. Prüfe die Ausführung über
+`proposal_execution_status` und danach die genannten operativen Datensätze. Eine Verbindung mit
+Lese- und Vorschlagsrechten darf nicht bestätigen; Lesen erweitert keine Rechte. Ein Browserlink zur
+Prüfung ist optional; der Entscheidungsablauf funktioniert per MCP.
+
+`shipments_list` enthält Sendungen und Pakete. Eine leere Liste schließt erfasste Versandbewegungen
+nicht aus: Prüfe `order_explain` und die Discovery-Familie `movement`. Für Rechnungspositionen
+verwende `document_line` mit der konkreten `document_id`; übernimm erfasste Beträge und unterscheide
+fehlende Informationen von null. Das ist noch keine vollständige Erklärung aller Zuordnungen.
+
+Neue Demo-Data-Quelldatensätze können auf Interpretation und Freigabe warten. Ihr Eingang erzeugt
+allein noch keinen angenommenen Auftrag, keine Rechnung und keine Zahlung. Prüfe Quelle und offene
+Interpretation und beachte die bestehende Freigabegrenze, bevor du eine Geschäftswirkung behauptest.
+
+Belege einen Supportfall mit aktuellen Datensätzen. Erfinde keine Ursache, garantiere keinen
+Liefertermin und behaupte keine später versendete Kundennachricht. Neue Zusagen und ausgehende
+Nachrichten brauchen einen eigenen konkreten Vorschlag und ausdrückliche Freigabe.
+
+Wiederholungen gehören ins externe Agentensystem. Eine funktionierende MCP-Chatverbindung belegt
+noch keine geplante Ausführung: Prüfe tatsächliche Zeitplanfunktionen und gespeicherten
+Arbeitsstand. Prüfe Claude Chat und Cowork getrennt; übertrage keine Zeitplanaussage zwischen
+beiden. Prüfe Firmenzeitzone und Routinenzeitzone getrennt (etwa UTC und Europe/Berlin),
+Arbeitstage, tatsächlichen nächsten Lauf, angezeigte Verzögerung/Jitter, Geräteverfügbarkeit und
+Pausieren. Ein Prompt deaktiviert keine anderen Connectoren: Prüfe die aktivierten Verbindungen des
+externen Agenten gesondert. Wenn diese Einstellungen nicht geprüft werden können, benenne die
+fehlende Einrichtung.

@@ -170,3 +170,23 @@ def _grant_of(
             MCPClientGrant.id == principal.grant_id,
         )
     )
+
+
+def company_context(session: Session, tenant_id: str) -> dict[str, Any]:
+    """Stored company identity; capability_catalog remains the rights authority."""
+    from reality.services.core import NotFound, get_tenant
+
+    principal = current_mcp_principal()
+    if principal is not None and principal.tenant_id != tenant_id:
+        raise NotFound("Company not found.")
+    with session.no_autoflush:
+        tenant = get_tenant(session, tenant_id)
+        return {
+            "company": {
+                "id": tenant.id,
+                "name": tenant.name,
+                "purpose": tenant.purpose,
+            },
+            "credential": topic_index(session, tenant_id)["credential"],
+            "rights_read": "capability_catalog",
+        }

@@ -98,6 +98,7 @@ def _read(application_name: str) -> ToolHandler:
         """
         if application_name in {
             "business_discover",
+            "proposals_awaiting_approval",
             "inventory",
             "commitments",
             "fulfillment_queue",
@@ -986,6 +987,7 @@ MCP_TOOL_CATALOG = (
                         "item",
                         "location",
                         "document",
+                        "document_line",
                         "commitment",
                         "movement",
                         "reservation",
@@ -1010,6 +1012,7 @@ MCP_TOOL_CATALOG = (
                     "default": 25,
                 },
                 "record_id": OPTIONAL_STRING,
+                "document_id": OPTIONAL_STRING,
             },
             required=("family",),
         ),
@@ -1074,7 +1077,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "shipments_list",
         "List physical shipments",
-        "List real incoming or outgoing consignments and packages; these are distinct from delivery commitments.",
+        "List real incoming or outgoing consignments and packages. An empty list does not mean no shipping: retained shipment Movements are separate evidence; inspect order_explain and business_records_discover family movement.",
         "read",
         "Operations",
         _object_schema(
@@ -1371,11 +1374,29 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "proposals_awaiting_approval",
         "List proposals awaiting approval",
-        "Auditable changes that have been prepared but not executed.",
+        "Read bounded, payload-free pending summaries; use proposal_review for exact contents. The tool filter uses the stored application tool name.",
         "read",
         "Exceptions & proposals",
-        _object_schema(),
+        _object_schema({**PAGE_PROPERTIES, "tool": OPTIONAL_STRING}),
         _read("proposals_awaiting_approval"),
+    ),
+    MCPToolDefinition(
+        "company_context",
+        "Read authorized company context",
+        "Read stored company ID, name and purpose and discover the credential's rights through capability_catalog.",
+        "read",
+        "Discovery",
+        _object_schema(),
+        _read("company_context"),
+    ),
+    MCPToolDefinition(
+        "proposal_review",
+        "Review an exact proposal",
+        "Read the company's exact safe proposal, retained preview or receipt, decision policy and confirmation inputs without executing or refreshing it. Review does not grant confirmation rights.",
+        "read",
+        "Exceptions & proposals",
+        _object_schema({"proposal_id": STRING}, required=("proposal_id",)),
+        _read("proposal_review"),
     ),
     MCPToolDefinition(
         "proposal_execution_status",

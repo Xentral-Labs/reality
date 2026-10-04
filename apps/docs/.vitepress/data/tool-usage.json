@@ -1427,7 +1427,7 @@
       ],
       "reads": ["command:company_time_zone_state"],
       "exceptions": [],
-      "tools": [],
+      "tools": ["tool:company_context"],
       "events": ["event:company_time_zone.set"],
       "workspace_actions": []
     },
@@ -1470,6 +1470,7 @@
         "tool:exceptions_list",
         "tool:exception_explain",
         "tool:proposals_awaiting_approval",
+        "tool:proposal_review",
         "tool:proposal_execution_status",
         "tool:proposal_reject",
         "tool:reality_gaps",
@@ -2916,7 +2917,7 @@
       "summary": "Read tenant-scoped business records as complete cursor pages with metadata; explicit legacy mode is a bounded lookup.",
       "access": "read",
       "group": "Discovery",
-      "synopsis": "business_records_discover [response_format] [limit] [cursor] family [query] [record_id]",
+      "synopsis": "business_records_discover [response_format] [limit] [cursor] family [query] [record_id] [document_id]",
       "parameters": [
         {
           "name": "response_format",
@@ -2954,6 +2955,7 @@
             "item",
             "location",
             "document",
+            "document_line",
             "commitment",
             "movement",
             "reservation",
@@ -2983,6 +2985,13 @@
           "type": "string",
           "required": false,
           "description": "Opaque identity of the master-data record whose lifecycle is being changed.",
+          "depth": 0
+        },
+        {
+          "name": "document_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the evidence document to inspect or correct.",
           "depth": 0
         }
       ],
@@ -3275,7 +3284,7 @@
       "key": "shipments_list",
       "label": "List physical shipments",
       "area": "warehouse",
-      "summary": "List real incoming or outgoing consignments and packages; these are distinct from delivery commitments.",
+      "summary": "List real incoming or outgoing consignments and packages. An empty list does not mean no shipping: retained shipment Movements are separate evidence; inspect order_explain and business_records_discover family movement.",
       "access": "read",
       "group": "Operations",
       "synopsis": "shipments_list [page] [size] [query] [direction] [purpose] [counterparty_id] [carrier] [tracking] [created_from] [created_to] [observation]",
@@ -4687,11 +4696,44 @@
       "key": "proposals_awaiting_approval",
       "label": "List proposals awaiting approval",
       "area": "agent_governance",
-      "summary": "Auditable changes that have been prepared but not executed.",
+      "summary": "Read bounded, payload-free pending summaries; use proposal_review for exact contents. The tool filter uses the stored application tool name.",
       "access": "read",
       "group": "Exceptions & proposals",
-      "synopsis": "proposals_awaiting_approval",
-      "parameters": [],
+      "synopsis": "proposals_awaiting_approval [response_format] [limit] [cursor] [tool]",
+      "parameters": [
+        {
+          "name": "response_format",
+          "type": "string",
+          "required": false,
+          "description": "Page returns records, continuation and metadata; legacy preserves the old list shape.",
+          "depth": 0,
+          "default": "page",
+          "enum": ["page", "legacy"]
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum records per page; legacy operational lists retain their full-list behavior.",
+          "depth": 0,
+          "default": 25
+        },
+        {
+          "name": "cursor",
+          "type": "string",
+          "required": false,
+          "description": "Continuation for the same tenant, read and filters. Live pages are not a snapshot.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "tool",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        }
+      ],
       "guidance": {
         "purpose": "List tenant change proposals that still await an explicit authorized decision.",
         "use_when": ["The current governed review queue is needed before approval or rejection."],
@@ -4720,6 +4762,82 @@
       "projections": [],
       "links": [],
       "label_de": "List proposals awaiting approval",
+      "resources": ["governance"]
+    },
+    {
+      "id": "tool:company_context",
+      "kind": "tool",
+      "key": "company_context",
+      "label": "Read authorized company context",
+      "area": "cross_functional",
+      "summary": "Read stored company ID, name and purpose and discover the credential's rights through capability_catalog.",
+      "access": "read",
+      "group": "Discovery",
+      "synopsis": "company_context",
+      "parameters": [],
+      "guidance": {
+        "purpose": "Read the stored identity and purpose of the company authorized for this connection.",
+        "use_when": ["The exact company context or retained decision evidence is needed."],
+        "do_not_use_when": ["Execution or new approval authority is required."],
+        "limitations": [
+          "Company identity does not grant access or prove external-agent connector isolation."
+        ],
+        "empty_result": "Unknown or foreign identities are not found.",
+        "freshness": "Reflects retained company-scoped state at read time without refreshing proposals."
+      },
+      "read_modes": [
+        {
+          "query": "MCP company_context",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Verbundenes Unternehmen prüfen",
+      "resources": ["company"]
+    },
+    {
+      "id": "tool:proposal_review",
+      "kind": "tool",
+      "key": "proposal_review",
+      "label": "Review an exact proposal",
+      "area": "agent_governance",
+      "summary": "Read the company's exact safe proposal, retained preview or receipt, decision policy and confirmation inputs without executing or refreshing it. Review does not grant confirmation rights.",
+      "access": "read",
+      "group": "Exceptions & proposals",
+      "synopsis": "proposal_review proposal_id",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read the exact safe retained proposal and company context before an explicit decision.",
+        "use_when": ["The exact company context or retained decision evidence is needed."],
+        "do_not_use_when": ["Execution or new approval authority is required."],
+        "limitations": [
+          "A retained preview is not execution or a guarantee that its context is still current; the confirmation boundary checks staleness and authority."
+        ],
+        "empty_result": "Unknown or foreign identities are not found.",
+        "freshness": "Reflects retained company-scoped state at read time without refreshing proposals."
+      },
+      "read_modes": [
+        {
+          "query": "MCP proposal_review",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Konkreten Vorschlag prüfen",
       "resources": ["governance"]
     },
     {

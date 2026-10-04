@@ -730,7 +730,7 @@ function DeliveryActionCard({
                                 : key === "received"
                                   ? "Received"
                                   : key === "applied"
-                                    ? "Reserved"
+                                    ? "Reserved after confirming"
                                     : key === "shipped"
                                       ? "Shipped"
                                       : key === "transferred"

@@ -2,7 +2,7 @@
 
 **Feature Branch**: `codex/363-mcp-demo-workflow`
 **Created**: 2026-10-04
-**Status**: Draft for scope review; no behavior implemented
+**Status**: Clear-scope implementation authorized by the owner on 2026-10-04
 **Language**: English
 **Input**: Prepare a PR from the complete demo walkthrough and the owner's corrected
 16-item follow-up list. The operational agent has no browser. MCP review and explicit
@@ -40,7 +40,7 @@ missing execution tool. Review links are optional conveniences for humans.
   transport, actual payment, shipment or purchase during this development effort.
 - No automatic acceptance of live sources to make the demo appear active.
 - No duplicate implementation of open PR #367 / spec 362.
-- This preparation PR does not claim production fixes or green runtime acceptance.
+- No runtime acceptance is claimed until its required checks pass.
 
 ### Existing Contracts
 
@@ -218,9 +218,10 @@ are read or acted on through their existing boundaries; no new business entity i
 
 ## Assumptions and Dependencies
 
-- The owner approved the follow-up list and requested PR preparation. This specification
-  is the concrete scope-review artifact, not an implementation or merge authorization.
-- Code planning follows human scope acceptance as required by the repository workflow.
+- The owner approved the follow-up list, then explicitly authorized autonomous
+  implementation of every clear item and requested a green PR. Merge remains excluded.
+- Human scope acceptance is recorded above; implementation is limited to the clear
+  slice below and preserves the original requirements as a follow-up inventory.
 - Test data is synthetic; original live tenant IDs, credentials, local connection files
   and full source payloads are intentionally excluded from this PR.
 - Open PR #367 provides stored company purpose. Additional identity and authorization
@@ -248,3 +249,19 @@ are read or acted on through their existing boundaries; no new business entity i
 | FR-016 | US1, US2 | Schema choices/discovery/follow-up tests and generated-catalog check |
 | DR-001, DR-003 | All | Read-only service/tenant review, no migrations or scheduler added |
 | SC-001–SC-005 | All | Required gates and evidence recorded after implementation, not in this draft |
+
+## Clear implementation slice (owner authorization, 2026-10-04)
+
+Implement shared exact proposal review through MCP, bounded pending summaries with
+legacy compatibility, scoped company identity without changing spec 362, operational
+Chat routing, signup language retention, proposed-effect labels, supported discovery
+schemas/line navigation, and evidence-correct EN/DE demo/agent guidance. No new domain
+policy, database schema, technical external-agent permission management or timer.
+
+FR-007 is delivered only for deterministic retained document/line discovery in this
+slice. A comprehensive invoice/settlement explanation remains a separately reviewed
+follow-up: the walkthrough did not establish every existing allocation navigation path.
+FR-004 is addressed through truthful shared tool guidance and the existing retained-order
+Movement read; no separate shipping authority or automatic agent guarantee is introduced.
+FR-010–FR-013 constrain guidance; Reality cannot enforce an external model's output,
+connector isolation or scheduling precision. Do not claim external-runtime enforcement.

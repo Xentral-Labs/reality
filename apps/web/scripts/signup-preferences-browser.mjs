@@ -24,7 +24,18 @@ async function register(url, contextOptions) {
     }
     return reply({});
   });
-  await page.goto(url);
+  if (new URL(url).searchParams.has("lang")) {
+    const login = new URL("/login", base);
+    login.search = new URL(url).search;
+    await page.goto(login.href);
+    const signup = page.locator('a[href*="/signup"]');
+    const target = new URL(await signup.first().getAttribute("href"), base);
+    assert.equal(target.searchParams.get("lang"), "de", "login retains language in signup link");
+    await signup.first().click();
+    await page.waitForURL("**/signup?lang=de");
+  } else {
+    await page.goto(url);
+  }
   await page.locator("input[name=email]").fill("registrant@example.test");
   await page.locator("input[name=password]").fill("Synthetic-password-only");
   await page.locator("input[type=checkbox]").check();

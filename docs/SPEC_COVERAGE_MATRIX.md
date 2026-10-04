@@ -2616,3 +2616,13 @@ Universal canonical-writer coverage is outside the approved external-intake scop
 - `apps/web/scripts/proposal-review-browser.mjs`: spec 357 FR-002, 359 FR-002 and
   360 FR-002/011; single source meaning appears once with original downloads,
   readable missing amount notice and unchanged exact confirmation digest.
+
+
+## Feature 363 — Browser-free MCP demo workflow
+
+Contract: `specs/363-mcp-demo-workflow/spec.md`. Clear authorized slice only; full invoice-allocation explanation and third-party agent qualification remain deferred as described in the plan.
+
+- `packages/reality-core/tests/test_demo_mcp_workflow.py`: stored company identity, bounded pending summary traversal and scoped cursors, exact safe review, separate authorized decision, receipt/replay, stale-state refusal, document-line discovery and closed schemas.
+- `packages/reality-core/tests/test_chat_tools.py`: operational company mission mentioning Reality versus product advice.
+- `apps/web/scripts/demo-workflow-contract.test.mjs` and `apps/web/scripts/signup-preferences-browser.mjs`: proposed reservation effect and retained signup language.
+- Existing proposal privacy, MCP read, product advisor and canonical demo-costing tests remain required; published guidance does not claim external schedules or connector isolation were qualified.
