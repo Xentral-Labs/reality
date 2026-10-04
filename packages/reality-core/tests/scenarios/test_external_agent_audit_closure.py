@@ -133,7 +133,9 @@ def test_source_evidence_reality_paths_do_not_invent_cross_domain_authority():
     credit = inspect.getsource(credit_actions._record_invoice_credit)
     assert "create_master_source_record" in credit
     assert "_record_normalized_document(" in credit
-    assert "post_sales_credit_note" in credit
+    assert "_post_reviewed_invoice(" in credit
+    assert 'credit=True' in credit
+    assert "post_sales_credit_note" in inspect.getsource(_post_reviewed_invoice)
     assert "billed_document_line_id" in inspect.getsource(credit_actions._preview_credit)
     assert "record_movement" not in credit
 

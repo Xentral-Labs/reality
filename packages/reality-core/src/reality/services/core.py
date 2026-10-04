@@ -1126,7 +1126,7 @@ def _require_business_mutation(
     from reality.services.intake import _require_scoped_operation
 
     intake_approved = _require_scoped_operation(session, tenant_id, operation)
-    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines", "create_manual_order", "record_sales_invoice", "record_supplier_invoice", "record_free_supplier_invoice"} and not (
+    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines", "create_manual_order", "record_sales_invoice", "record_supplier_invoice", "record_free_supplier_invoice", "record_sales_credit"} and not (
         fixed_setup or intake_approved
     ):
         from reality.services.tenant_policy import _require_application_decision
@@ -12793,6 +12793,7 @@ def record_sales_credit(
     allocation_amount: Decimal | str | None = None,
     effective_at: datetime | None = None,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     Record an invoice-linked financial credit or a legacy return credit.
@@ -12810,6 +12811,9 @@ def record_sales_credit(
     Otherwise delegate the legacy order-line credit to the shared invoice recorder with credit mode enabled.
     """
     _require_business_mutation(session, tenant_id, "record_sales_credit")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("record_sales_credit", locals())
     # reality-rule: core.record_sales_credit.1
     if invoice_id is not None or lines is not None:
         from reality.services.credit_actions import _record_invoice_credit
@@ -12829,6 +12833,7 @@ def record_sales_credit(
                 "effective_at": effective_at,
             },
             action_id,
+            _commit=_commit,
         )
     # reality-rule: core.record_sales_credit.2
     if reason is not None or allocation_amount is not None:
@@ -12845,6 +12850,7 @@ def record_sales_credit(
         effective_at=effective_at,
         action_id=action_id,
         credit=True,
+        _commit=_commit,
     )
 
 
@@ -13280,6 +13286,9 @@ def post_sales_credit_note(
     Debit sales revenue and credit accounts receivable for the positive stated credit-note total. Preserve the document currency and source provenance; the ledger service validates the posting.
     """
     _require_business_mutation(session, tenant_id, "post_sales_credit_note")
+    from reality.services.intake import _post_reviewed_ledger, require_scoped_intent
+
+    require_scoped_intent("post_sales_credit_note", locals())
     document = _tenant_record(session, Document, tenant_id, credit_note_id)
     # reality-rule: core.post_sales_credit_note.1
     if document.type != "credit_note":
@@ -13289,7 +13298,7 @@ def post_sales_credit_note(
         raise InvalidOperation(code="credit_note_already_posted")
     amount = positive(document.gross_amount, "credit note total")
     # reality-rule: core.post_sales_credit_note.3
-    return post_ledger(
+    return _post_reviewed_ledger(
         session,
         tenant_id,
         document.id,

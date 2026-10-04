@@ -104,3 +104,8 @@ by all required checks and honest unresolved-outcome reporting.
 
 - [ ] T046 Correct the real production/settlement worker and Pause schedule cycle.
 - [ ] T047 Qualify shared scheduling/demo semantics, PostgreSQL lock order and real company setup browser.
+## Atomic customer credit boundary qualification
+
+- [ ] T040 Prove changed/repeated parent and ledger/allocation calls, early commit, post-write failure and unrelated effects.
+- [ ] T041 Freeze both existing credit recorders and their posting/allocation inside actual retained confirmation.
+- [ ] T042 Qualify modern/legacy source values, replay, adapters and complete committed-head CI.

@@ -228,3 +228,11 @@ claim execution enters the same schedule boundary before its own run lock;
 other registered job families keep their existing execution path. Preserve
 ownership, claim validation, cancellation refusal and request replay. Qualify
 shared job/demo regressions and the actual company-setup browser before CI.
+## Atomic customer credit implementation
+
+Constitution Check: PASS. No schema changes or derived authority. Reuse the actual
+retained application decision and current principal; freeze sales-credit parent,
+credit posting, ledger and explicit allocation through the existing invocation
+mechanism. Carry _commit=False into both actual recorders and deny root commits
+until receipt settlement. Test valid callbacks before implementation, then the
+modern/legacy credit, invoice, settlement and source attribution regressions.

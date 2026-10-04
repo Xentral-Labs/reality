@@ -271,3 +271,14 @@ connection locks. A settlement worker must not retain its own schedule before
 waiting for the production schedule. Pause keeps the existing unfinished-run
 409/retry behavior and never returns a deadlock-induced 500 or cancels dispatched
 work. Keep actual current revisions and request-key replay intact.
+## Atomic customer credit qualification (FR-001–FR-003)
+
+The existing sales_credit_record confirmation must own the invoice-linked and
+legacy return-credit parent, normalized evidence, exact credit posting and optional
+explicit settlement allocation in one root transaction. Freeze each canonical
+invocation before callbacks. Changed or repeated calls, early root commits,
+post-write failures and unrelated header/stock effects refuse without partial
+business records. Preserve stated totals, position values, reason and netting;
+confirmation grants neither refund nor inventory authority. Existing historical
+records receive no manufactured approval. Supplier credit posting remains a
+separate writer qualification, not coverage claimed by this family.

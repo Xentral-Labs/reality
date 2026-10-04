@@ -89,3 +89,9 @@ browser provides concrete server-side DeadlockDetected evidence: Pause owns the
 production schedule and waits for settlement; settlement execution owns its
 schedule and enters the production boundary. Scheduling is reused and no claim,
 status or approval is manufactured. Both paths need one consistent lock order.
+## Customer credit analysis
+
+No unresolved clarification or critical design finding. Existing invoice-linked
+and return-credit commands retain their source and receipt contracts; only their
+effect boundary changes. Ledger and allocation callbacks need independent frozen
+invocations. Supplier credit posting and other writers remain explicitly pending.

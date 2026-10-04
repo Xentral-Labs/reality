@@ -248,6 +248,7 @@ _INTENT_DEFAULTS = {
         "create_manual_order",
         "record_sales_invoice",
         "record_supplier_invoice",
+        "record_sales_credit",
         "post_sales_invoice",
         "post_supplier_invoice",
         "post_sales_credit_note",

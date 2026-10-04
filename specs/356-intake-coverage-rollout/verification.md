@@ -346,3 +346,16 @@ adapter/dynamic-alias/annotation/Decimal fixture failures were repaired in the
 later c6cfe4b0 head. The complete c6cfe4b0 document, 268822b1 order and a3a0c26c
 invoice CI jobs are all green; the frozen earlier run is not represented as a
 successful local full test of those corrected heads.
+## Atomic customer credit qualification in progress
+
+All nine new meaningful parent/ledger/allocation callback cases failed on the
+unchanged parent: changed values and sibling effects were accepted, repeated
+balanced postings/allocations were accepted, and post-write failure retained
+partial records. After the atomic/frozen invocation change, all 74 customer
+credit, existing credit-note and canonical invoice tests passed in 22.22 seconds.
+Full source attribution, legacy credit and committed-head CI remain required.
+Final positive statement/position/reason preservation and actual-person receipt
+replay, repeated parent, modern/legacy credit atomicity, catalog Finance/returns,
+source attribution, annotations and fixed-profile checks all passed: 117 tests
+in 96.58 seconds. Ruff, annotation audit, spec policy and catalog generation pass.
+Full committed-head CI remains required; unrelated writers remain pending.

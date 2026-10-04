@@ -105,3 +105,7 @@ header/stock effects refuse. Source values remain as stated.
 These command families do not establish universal writer coverage. Credits,
 header-only evidence, corrections and remaining configuration/operational
 writers retain separate spec 356 tasks and require final coverage/CI evidence.
+Customer credit qualification now freezes both existing sales_credit_record
+variants and their exact credit posting and explicit netting. Receipt settlement
+owns the root transaction; a credit confirmation grants no refund or stock effect.
+Full committed-head qualification and remaining writer closure are still pending.

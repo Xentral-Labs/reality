@@ -348,7 +348,7 @@ def _snapshot(record):
 
 
 def _record_invoice_credit(
-    session: Session, tenant: str, arguments: dict, action_id: str | None
+    session: Session, tenant: str, arguments: dict, action_id: str | None, *, _commit: bool = True
 ) -> dict:
     from reality.services.tenant_policy import require_decision_finance
 
@@ -369,7 +369,11 @@ def _record_invoice_credit(
             action_id=action_id,
             _commit=False,
         )
-        from reality.services.intake import _record_normalized_document
+        from reality.services.intake import (
+            _invoke,
+            _post_reviewed_invoice,
+            _record_normalized_document,
+        )
 
         note, lines = _record_normalized_document(
             session,
@@ -386,24 +390,27 @@ def _record_invoice_credit(
             action_id=action_id,
             _commit=False,
         )
-        entries = core.post_sales_credit_note(
+        entries = _post_reviewed_invoice(
             session,
             tenant,
             note.id,
+            direction="sales",
+            credit=True,
             effective_at=effective,
             action_id=action_id,
             _commit=False,
         )
         allocation = None
         if creation["allocation_amount"]:
-            allocation = core.allocate_settlement(
+            allocation = _invoke(
+                "allocate_settlement", core.allocate_settlement,
                 session,
                 tenant,
-                core._control_entry(entries, "accounts_receivable").id,
-                core._settlement_control_entry(
+                payment_ledger_entry_id=core._control_entry(entries, "accounts_receivable").id,
+                invoice_ledger_entry_id=core._settlement_control_entry(
                     session, tenant, creation["invoice_id"]
                 ).id,
-                creation["allocation_amount"],
+                amount=creation["allocation_amount"],
                 action_id=action_id,
                 _commit=False,
             )
@@ -437,7 +444,10 @@ def _record_invoice_credit(
             action_id=action_id,
             correlation_id=action_id,
         )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return receipt
 
 

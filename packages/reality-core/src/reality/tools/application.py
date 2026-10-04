@@ -3340,8 +3340,10 @@ def _sales_credit_record(
     arguments["action_id"] = arguments.pop("_action_id", None)
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
     # reality-rule: application.sales_credit_record.1
-    return record_sales_credit(session, tenant_id, **arguments)
+    return _invoke("record_sales_credit", record_sales_credit, session, tenant_id, **arguments, _commit=False)
 
 
 def _invoice_credit_context(

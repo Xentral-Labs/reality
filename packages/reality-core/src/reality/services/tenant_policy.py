@@ -179,6 +179,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
         "sales_invoice_record",
         "supplier_invoice_record",
         "supplier_invoice_free_record",
+        "sales_credit_record",
         "demo_seed",
         "normal_month",
         "party_create",
@@ -1660,6 +1661,7 @@ def require_demo_intake(
 
 
 _CANONICAL_MUTATION_TOOLS = {
+    "record_sales_credit": frozenset({"sales_credit_record"}),
     "record_sales_invoice": frozenset({"sales_invoice_record"}),
     "record_supplier_invoice": frozenset({"supplier_invoice_record"}),
     "record_free_supplier_invoice": frozenset({"supplier_invoice_free_record"}),
@@ -1763,6 +1765,11 @@ def _master_application_active(operation=None):
     }:
         return True
     authority = _application_authority.get()
+    if authority is not None and authority.tool == "sales_credit_record":
+        return operation in {
+            "record_sales_credit", "create_manual_document_with_lines",
+            "post_sales_credit_note", "post_ledger", "allocate_settlement",
+        }
     if authority is not None and authority.tool in {
         "sales_invoice_record", "supplier_invoice_record", "supplier_invoice_free_record",
     }:
@@ -1800,6 +1807,7 @@ def require_document_operation(session, tenant_id, operation):
     if authority is None or authority.tool not in {
         "document_create", "order_create", "sales_invoice_record",
         "supplier_invoice_record", "supplier_invoice_free_record",
+        "sales_credit_record",
     }:
         return
     permitted = {
@@ -1810,6 +1818,8 @@ def require_document_operation(session, tenant_id, operation):
         permitted.update({"create_manual_order", "create_commitment"})
     if authority.tool == "sales_invoice_record":
         permitted.update({"record_sales_invoice", "post_sales_invoice", "post_ledger"})
+    if authority.tool == "sales_credit_record":
+        permitted.update({"record_sales_credit", "post_sales_credit_note", "post_ledger", "allocate_settlement"})
     if authority.tool in {"supplier_invoice_record", "supplier_invoice_free_record"}:
         permitted.update({"record_supplier_invoice", "record_free_supplier_invoice", "post_supplier_invoice", "post_ledger"})
     if (
