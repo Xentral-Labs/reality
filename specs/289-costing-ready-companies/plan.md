@@ -232,6 +232,27 @@ artifacts:
 
 ## Complexity Tracking
 
+### Normal-month setup regression (2026-10-04, FR-009)
+
+Owner-approved scope: explicitly confirmed example execution may reuse the sole
+setup-created company partner. Installation, onboarding, admission, automatic demo
+creation, sandbox policy and later company renaming are unchanged.
+
+The shared `demo/normal_month.py` service reads at most two tenant-scoped partners.
+Only a sole company partner whose same-tenant SourceRecord identifies the company
+setup request is reused; every other populated tenant is refused before example
+writes. The original party and source remain unchanged. No schema, adapter,
+authority, transaction or confirmation changes are needed; existing fixed-setup
+locks and exact reviewed-intent checks remain in place. Rollback is a code revert.
+
+Constitution check: PASS for tenant scope, unchanged source evidence, shared
+service execution, unchanged confirmation and no schema expansion. Analysis found
+no critical inconsistencies between FR-009, the implementation and the tests.
+Tests cover the original ID/name/source, all commitment counterparties, import
+selection, cost-draft owner selection, replay, an extra customer/company partner,
+an unrelated company partner and the original empty-tenant story. Validation uses
+the focused backend suites, Ruff, spec policy and the complete CI gates before merge.
+
 | Constitution exception | Why needed | Simpler alternative rejected | Approval |
 |---|---|---|---|
 | None | — | — | — |

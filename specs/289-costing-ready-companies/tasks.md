@@ -86,6 +86,13 @@ description: "Requirement-traceable Business Reality implementation tasks"
 
 ## Requirement Coverage
 
+### Normal-month regression extension (2026-10-04)
+
+- [x] T907 [FR-009] Record the owner-approved boundary in the spec and durable company-setup contract.
+- [x] T908 [FR-009] Add regression coverage in `tests/scenarios/test_normal_month.py` for setup identity, downstream selection, replay and refusal.
+- [x] T909 [FR-009] Reuse the sole setup-created partner in the shared normal-month service without changing fixed-setup authority or transactions.
+- [ ] T910 [FR-009] Verify focused tests, Ruff, spec policy and complete CI; review the final diff before merge.
+
 | Requirement | Test task(s) | Implementation task(s) | Status |
 |---|---|---|---|
 | FR-001 | T004 | T005 | Done |

@@ -51,6 +51,11 @@ transaction. Its SourceRecord (`source_system="reality"`,
 `external_id="company-setup:<request_key>"`) states the requested name, and replaying the
 request keeps exactly one partner.
 
+The separately confirmed `normal_month` example reuses this partner when it is
+the tenant's only partner. It preserves the partner's identity, name and source;
+other partners still prevent the example from running. Installation, onboarding
+and ordinary company creation never start this example automatically.
+
 Empty sandboxes, demo, practice and Storyline companies are unchanged. Demo Data still connects
 only to a sandbox without business partners and adds Harbor Supply itself.
 
