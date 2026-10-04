@@ -19,6 +19,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Die geprüfte Grundlage der Datenübernahme hat sich geändert. Bereite eine neue Prüfung vor.",
     "The retained intake review is invalid.":
       "Die gespeicherte Prüfung der Datenübernahme ist ungültig.",
+    "Bound preparation requires a registered Demo Data source.":
+      "Die gebundene Vorbereitung erfordert eine registrierte Demo-Data-Quelle.",
     "This source profile has no reviewed intake adapter.":
       "Dieses Quellprofil unterstützt noch keine geprüfte Datenübernahme.",
     "The coherent intake package exceeds its review limits.":
@@ -2161,6 +2163,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "De beoordeelde basis voor de gegevensovername is gewijzigd. Bereid een nieuwe beoordeling voor.",
     "The retained intake review is invalid.":
       "De opgeslagen beoordeling van de gegevensovername is ongeldig.",
+    "Bound preparation requires a registered Demo Data source.":
+      "Gebonden voorbereiding vereist een geregistreerde Demo Data-bron.",
     "This source profile has no reviewed intake adapter.":
       "Dit bronprofiel ondersteunt nog geen beoordeelde gegevensovername.",
     "The coherent intake package exceeds its review limits.":
@@ -3998,6 +4002,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "La base revisada para la incorporación de datos ha cambiado. Prepara una nueva revisión.",
     "The retained intake review is invalid.":
       "La revisión guardada de la incorporación de datos no es válida.",
+    "Bound preparation requires a registered Demo Data source.":
+      "La preparación vinculada requiere una fuente de Demo Data registrada.",
     "This source profile has no reviewed intake adapter.":
       "Este perfil de origen aún no admite una incorporación de datos revisada.",
     "The coherent intake package exceeds its review limits.":

@@ -51,11 +51,15 @@ writer enforcement, completed rollout, or a production release.
   This proves pipeline behavior, not live-model judgment or provider cost.
 - Actual bulk browser proof passed (83.56s), including lost-response replay and
   retained exact source receipts. The business, file-import and finance browser
-  journeys passed; final history/engine-room runs remain to be recorded.
+  journeys passed. History/engine-room business assertions passed locally; their
+  strict console-error checks failed on blocked Google Fonts and a default
+  favicon request in the local system Chromium. The committed-head CI must
+  run both journeys with its installed Playwright browser.
 - Final language audit: 2,738 keys in all four languages, zero missing or invalid
   entries. Final frontend build passed. Standardized refusal gates: 29 passed.
 - Specification policy, business annotations, Ruff and generated references
-  passed; repeat relevant final metadata checks before publication.
+  passed. Final contracts passed again after translating the dedicated bound-source
+  refusal into German, Dutch and Spanish; the final build passed.
 
 ## Remaining completion gates
 
