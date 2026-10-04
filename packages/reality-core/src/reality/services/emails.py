@@ -775,6 +775,10 @@ def email_history(session: Session, tenant_id: str, arguments: dict[str, Any]):
                 result["related_decisions"].append(
                     {
                         "proposal_id": candidate.id,
+                        "next_read": {
+                            "tool": "email_history",
+                            "arguments": {"proposal_id": candidate.id},
+                        },
                         "status": candidate.status,
                         "review_url": f"/app/decisions?tenant={tenant_id}&proposal={candidate.id}",
                     }
@@ -848,12 +852,16 @@ def email_history(session: Session, tenant_id: str, arguments: dict[str, Any]):
             }
             for part in data["message"]["attachments"]
         ]
+        from reality.services.decision_attribution import UNKNOWN, decision_attributions
+
+        attribution = decision_attributions(session, tenant_id, [proposal.id])
         result["decision"] = {
             "proposal_id": proposal.id,
             "status": proposal.status,
             "decided_at": proposal.decided_at.isoformat()
             if proposal.decided_at
             else None,
+            "decider": attribution.get(proposal.id, {}).get("decider", dict(UNKNOWN)),
             "fingerprint": data["fingerprint"],
             "message": data["message"],
             "review_url": f"/api/tenants/{tenant_id}/change-proposals/{proposal.id}/review",
@@ -922,6 +930,10 @@ def _object_email_history(session: Session, tenant_id: str, request: EmailHistor
         items.append(
             {
                 "source_id": source.id,
+                "next_read": {
+                    "tool": "email_history",
+                    "arguments": {"source_id": source.id},
+                },
                 "version": source.version,
                 "direction": payload["direction"],
                 "subject": message.get("subject", ""),
@@ -957,6 +969,10 @@ def _object_email_history(session: Session, tenant_id: str, request: EmailHistor
         "related_decisions": [
             {
                 "proposal_id": p.id,
+                "next_read": {
+                    "tool": "email_history",
+                    "arguments": {"proposal_id": p.id},
+                },
                 "status": p.status,
                 "subject": json.loads(p.input)["message"]["subject"],
                 "review_url": f"/app/decisions?tenant={tenant_id}&proposal={p.id}",
@@ -977,10 +993,10 @@ def email_workflow():
     """
     # reality-rule: emails.email_workflow.boundary
     return {
-        "version": 2,
+        "version": 3,
         "business_reference_kinds": sorted(_BUSINESS_MODELS),
         "context_rule": "Every capture and proposal requires one or more explicit existing same-company business references. Include all relevant known objects, including suppliers and other partner roles. Never guess IDs or derive identity from addresses. Resolve context before capture. Actual send evidence inherits approved context.",
-        "history_rule": "Use email_history with business_reference to page correspondence and decisions for any supported object; source/proposal/execution reads retain original evidence navigation. Context does not create Facts or modify business state.",
+        "history_rule": "Use email_history with business_reference for bounded summaries and independently paged decisions. Follow each item or decision next_read tool and arguments in the same company to fetch the full original message, attachment manifest and applicable decision/execution evidence. Detail decision.decider reuses authoritative approval attribution; unknown stays unknown and the executor is not the approver. Context does not create Facts or modify business state.",
         "chunk_bytes": CHUNK_BYTES,
         "max_file_bytes": int(
             os.environ.get("REALITY_MAX_UPLOAD_BYTES", DEFAULT_MAX_UPLOAD_BYTES)

@@ -121,7 +121,12 @@ class ReportDispatch(EmailInput):
 
 
 class EmailHistory(EmailInput):
-    business_reference: BusinessReference | None = None
+    """Object reads return bounded summaries with next_read; source/proposal/execution reads return original evidence and authoritative decision.decider."""
+
+    business_reference: BusinessReference | None = Field(
+        default=None,
+        description="Page explicit object correspondence summaries. Follow each next_read tool and arguments in the same company for original messages, attachments and applicable decision/execution evidence.",
+    )
     decision_page: int = Field(default=1, ge=1)
     page: int = Field(default=1, ge=1)
     size: int = Field(default=25, ge=1, le=100)

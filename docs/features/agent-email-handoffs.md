@@ -192,3 +192,23 @@ show named **Business context** links back to the Inspector. Email Source record
 also expose the email evidence panel from Inspector → Business Facts → Source
 records. This is a shared-service read on opening the detail; unrelated operational
 read responses do not silently add full personal correspondence.
+
+## Object summaries and full evidence
+
+Object `email_history` reads are bounded correspondence summaries, not embedded
+original messages. Each `items` entry includes an explicit detail handoff:
+
+```json
+{"next_read": {"tool": "email_history", "arguments": {"source_id": "RETURNED_SOURCE_ID"}}}
+```
+
+Call that tool with those arguments in the same company. The detail read returns
+the original message, attachment manifest and applicable decision/execution chain.
+Each `related_decisions` summary also provides `next_read`, using its `proposal_id`.
+A source may support multiple decisions; follow its related decision links for each.
+
+Detail `decision.decider` comes from the shared decision-attribution authority,
+the same reader used for proposal execution status. It preserves `person`,
+`mcp_token`, `chat_agent` and `unknown` distinctions and existing name-disclosure
+rules. A token issuer is not asserted to be the acting person. Pending or legacy
+unattributed decisions stay unknown; an executor is never inferred as the approver.

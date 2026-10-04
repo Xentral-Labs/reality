@@ -21609,7 +21609,7 @@
       "key": "email_history",
       "label": "Email evidence and decision history",
       "area": "cross_functional",
-      "summary": "Read one source/proposal/execution or independently page explicitly linked correspondence and decisions by existing business reference. All partner roles, including suppliers, are supported. Provider acceptance is not recipient delivery.",
+      "summary": "Read one source/proposal/execution or independently page explicitly linked correspondence and decisions by existing business reference. All partner roles, including suppliers, are supported. Object listings are bounded summaries: follow each next_read tool/arguments in the same company for full originals, attachment manifests and applicable decision/execution evidence. Detail decision.decider names approval through the existing attribution authority, independently of the executor. Provider acceptance is not recipient delivery.",
       "access": "read",
       "group": "Email",
       "synopsis": "email_history [business_reference] [decision_page] [page] [size] [source_id] [proposal_id] [execution_id]",
@@ -21618,7 +21618,7 @@
           "name": "business_reference",
           "type": "object",
           "required": false,
-          "description": "",
+          "description": "Page explicit object correspondence summaries. Follow each next_read tool and arguments in the same company for original messages, attachments and applicable decision/execution evidence.",
           "depth": 0,
           "default": null
         },

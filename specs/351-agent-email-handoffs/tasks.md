@@ -32,3 +32,9 @@ Each FR/DR maps to the story/test tasks above and the specification traceability
 - [x] T016 Implement validation, immutable memberships, approved context inheritance and paged object history in shared services (FR-013–015).
 - [x] T017 Extend existing MCP/API history and Inspector/email review UI; verify object/source/file/decision navigation (FR-015–016).
 - [x] T018 Update canonical contracts, discoverable examples, catalogs and verification; complete full PR checks on the final linear branch (FR-013–016).
+
+## Local-test contract follow-up
+
+- [x] T019 Prove shared approval attribution and explicit summary/detail handoffs with tenant-scoped regression tests (FR-017/018).
+- [x] T020 Reuse shared attribution, expose next-read selectors and update workflow/schema/canonical documentation (FR-017/018).
+- T021 Completion gate: regenerate catalogs, verify locally and pass full checks on the final rebased PR head (FR-017/018). The live PR verification section records the current head and the final completion evidence; a pending or failed run is not completion.

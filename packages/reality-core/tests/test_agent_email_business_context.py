@@ -308,3 +308,99 @@ def test_attachment_context_uses_its_linked_original_message(session, business):
     )
     assert attachment["business_references"][0]["id"] == business.supplier.id
     assert attachment["context_missing"] is False
+
+
+def test_object_summaries_explicitly_handoff_to_original_and_dispatch(
+    session, business
+):
+    reference = refs(business)[0]
+    incoming = capture(session, business.tenant.id, business_references=[reference])
+    p = proposal(
+        session,
+        business.tenant.id,
+        business_references=[reference],
+        supporting_source_ids=[incoming["source_id"]],
+    )
+    listing = email_history(
+        session, business.tenant.id, {"business_reference": reference}
+    )
+    for summary, selector in [
+        (listing["items"][0], {"source_id": incoming["source_id"]}),
+        (listing["related_decisions"][0], {"proposal_id": p.id}),
+    ]:
+        assert summary["next_read"] == {"tool": "email_history", "arguments": selector}
+        detail = email_history(
+            session, business.tenant.id, summary["next_read"]["arguments"]
+        )
+        if "source_id" in selector:
+            assert detail["source"]["payload"]["message"] == message()
+            assert "attachments" in detail
+            assert detail["related_decisions"][0]["next_read"] == {
+                "tool": "email_history",
+                "arguments": {"proposal_id": p.id},
+            }
+        else:
+            assert detail["decision"]["message"]["subject"] == message()["subject"]
+        assert "message" not in summary
+        other = create_tenant(session, "Foreign detail reader")
+        with pytest.raises(NotFound):
+            email_history(session, other.id, summary["next_read"]["arguments"])
+    approve_and_execute_proposal(session, business.tenant.id, p.id, confirmed=True)
+    sent = report(session, business.tenant.id, claim(session, business.tenant.id, p))
+    listing = email_history(
+        session, business.tenant.id, {"business_reference": reference}
+    )
+    outgoing = next(
+        x for x in listing["items"] if x["source_id"] == sent["actual_source_id"]
+    )
+    detail = email_history(
+        session, business.tenant.id, outgoing["next_read"]["arguments"]
+    )
+    assert detail["decision"]["proposal_id"] == p.id
+    assert detail["reports"]
+
+
+@pytest.mark.parametrize(
+    "identity", ["pending", "unknown", "person", "chat_agent", "mcp_token"]
+)
+def test_email_decider_reuses_shared_authority(session, business, identity):
+    from test_decision_attribution import _person
+
+    from reality.db.core import now
+    from reality.mcp.auth import create_mcp_access_token
+    from reality.services.decision_attribution import decision_attributions
+
+    p = proposal(session, business.tenant.id)
+    if identity != "pending":
+        approve_and_execute_proposal(session, business.tenant.id, p.id, confirmed=True)
+        p.decided_at = now()
+    if identity == "person":
+        p.decided_by_user_id = _person(
+            session, "email-approver@example.test", "Email approver"
+        ).id
+    elif identity == "chat_agent":
+        p.decided_via_channel = "chat"
+    elif identity == "mcp_token":
+        owner = _person(session, "email-issuer@example.test", "Email token issuer")
+        token, _ = create_mcp_access_token(
+            session,
+            business.tenant.id,
+            "Email approval token",
+            issued_by_user_id=owner.id,
+        )
+        p.decided_via_token_id = token.id
+    session.flush()
+    expected = decision_attributions(session, business.tenant.id, [p.id])[p.id][
+        "decider"
+    ]
+    assert expected["kind"] == ("unknown" if identity == "pending" else identity)
+    detail = email_history(session, business.tenant.id, {"proposal_id": p.id})
+    assert detail["decision"]["decider"] == expected
+    if identity != "pending":
+        execution = claim(session, business.tenant.id, p)
+        assert (
+            email_history(
+                session, business.tenant.id, {"execution_id": execution["execution_id"]}
+            )["decision"]["decider"]
+            == expected
+        )

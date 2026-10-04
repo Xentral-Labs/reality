@@ -9960,7 +9960,10 @@ email_history [business_reference] [decision_page] [page] [size] [source_id] [pr
 
 Read one source/proposal/execution or independently page explicitly linked correspondence and
 decisions by existing business reference. All partner roles, including suppliers, are supported.
-Provider acceptance is not recipient delivery.
+Object listings are bounded summaries: follow each next_read tool/arguments in the same company for
+full originals, attachment manifests and applicable decision/execution evidence. Detail
+decision.decider names approval through the existing attribution authority, independently of the
+executor. Provider acceptance is not recipient delivery.
 
 **Synopsis**
 
@@ -9993,7 +9996,7 @@ business object.
 
 | Name                      | Type      | Required | Description                                                                                                                                                                                                                                                        | Default |
 | ------------------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| `business_reference`      | `object`  | no       | —                                                                                                                                                                                                                                                                  | `None`  |
+| `business_reference`      | `object`  | no       | Page explicit object correspondence summaries. Follow each next_read tool and arguments in the same company for original messages, attachments and applicable decision/execution evidence.                                                                         | `None`  |
 | `business_reference.kind` | `string`  | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. `party`, `item`, `location`, `document`, `document_line`, `commitment`, `reservation`, `movement`, `ledger_entry`, `lot`, `shipment`, `shipment_package`, `fact`, `business_event` | —       |
 | `business_reference.id`   | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —       |
 | `decision_page`           | `integer` | no       | —                                                                                                                                                                                                                                                                  | `1`     |
