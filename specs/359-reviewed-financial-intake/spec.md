@@ -176,3 +176,11 @@ The same closed profiles can prepare a custom received origin through the legacy
 queue entrypoint without a mutating interpreter registration. Unknown declared
 profiles stay raw and unmapped. Explicit retry can reset an older unmapped job only
 when its retained context names a supported profile; it does not approve effects.
+
+### User audit regression clarification (2026-10-04)
+
+FR-001/FR-008 controlled validation proof: missing and explicit zero amounts remain
+retained exactly. Preparation records `intake_review_invalid` as a terminal
+no-effect failure, not an HTTP 500 or inferred amount. The HTTP queue worker reports
+both failed units and still prepares a valid independent sibling. A subsequent
+worker call does not silently retry those terminal failures.
