@@ -5646,6 +5646,7 @@ def operational_exception_rows(
     *,
     as_of: datetime | None = None,
     classes: list[str] | None = None,
+    include_interpretation: bool = True,
 ) -> list[dict[str, Any]]:
     """
     BUSINESS PURPOSE:
@@ -5654,9 +5655,13 @@ def operational_exception_rows(
     BUSINESS RULE services.exceptions.operational_exception_rows.result:
     Return current attention conditions from reality.services.exceptions.operational_exceptions, preserving the requested evaluation time and selected classes. Each condition is serialized as an evidence row. The selected class's registered evaluator owns its trigger; this adapter adds no alternative rule. An empty result alone does not prove every possible business problem is absent.
     """
+    from reality.services.read_interpretation import exception_interpretation
+
     # reality-rule: services.exceptions.operational_exception_rows.result
     return [
-        row.to_dict()
+        exception_interpretation(row.to_dict())
+        if include_interpretation
+        else row.to_dict()
         for row in operational_exceptions(
             session, tenant_id, as_of=as_of, classes=classes
         )
@@ -5681,7 +5686,9 @@ def explain_operational_exception(
     row = next((item for item in current if item.id == exception_id), None)
     if row is None:
         raise NotFound("Current operational exception not found.")
-    result = row.to_dict()
+    from reality.services.read_interpretation import exception_interpretation
+
+    result = exception_interpretation(row.to_dict())
     if row.record_type == "import_job":
         source_id = row.trace["source_record_id"]
         source = session.scalar(

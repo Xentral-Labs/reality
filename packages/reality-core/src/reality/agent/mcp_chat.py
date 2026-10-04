@@ -13,7 +13,9 @@ from sqlalchemy.orm import Session
 
 from reality.agent.streaming import (
     ChatEventSink,
+    ProviderOutputLimit,
     raise_for_status,
+    require_complete_output,
     streamed_message,
 )
 from reality.mcp.catalog import (
@@ -244,6 +246,22 @@ def _tool_result_content(name: str, value: Any) -> str:
     return _compact(view)
 
 
+def _output_limit_notice(language: str, emit: ChatEventSink | None) -> str:
+    text = (
+        "Die Antwort ist unvollständig: Der Anbieter hat das Ausgabelimit erreicht. "
+        "Toolaufrufe aus dieser unvollständigen Antwort wurden nicht ausgeführt. "
+        "Bitte frage einen kleineren Teil der Aufgabe ab."
+        if language == "de"
+        else "The answer is incomplete: the provider reached its output limit. "
+        "Tool calls from this incomplete response were not executed. "
+        "Please ask for a smaller part of the task."
+    )
+    if emit is not None:
+        emit({"type": "reset"})
+        emit({"type": "delta", "text": text})
+    return text
+
+
 def _with_blueprint_evidence(text: str, evidence: list[dict], language: str) -> str:
     """Cite retrieved evidence independently of whether model prose adds citations."""
     if not evidence:
@@ -365,6 +383,13 @@ Use order_explain fulfillment lines and unfulfilled_cause to distinguish current
 from an unknown historical cause. Never invent outbound-delivery conversion requirements
 from an open quantity or missing objects. State unknown causes explicitly.
 Answer concisely and include relevant opaque record IDs when they help traceability.
+
+Use blocker_kind to distinguish recorded holds from derived readiness conditions. Counts of
+blocker conditions are not counts of unique holds. Use unfulfilled_cause consistently;
+current readiness does not establish past nonexecution. Preserve each exception's own
+evaluator evidence and object references without inventing cross-condition causes.
+External agent scheduling and saved mission/checkpoint state are outside Reality
+visibility: unknown is not absent. Verify those through the external client's own tools.
 """
 
 
@@ -511,16 +536,20 @@ async def reply_via_tools(
             }
             url = f"{base_url.rstrip('/')}/chat/completions"
             headers = {"Authorization": f"Bearer {api_key}"}
-            if on_event:
-                assistant, usage = await streamed_message(
-                    client, url, headers, payload, "openai", on_event
-                )
-            else:
-                response = await client.post(url, headers=headers, json=payload)
-                await raise_for_status(response, "openai")
-                data = response.json()
-                assistant = data["choices"][0]["message"]
-                usage = data.get("usage", {})
+            try:
+                if on_event:
+                    assistant, usage = await streamed_message(
+                        client, url, headers, payload, "openai", on_event
+                    )
+                else:
+                    response = await client.post(url, headers=headers, json=payload)
+                    await raise_for_status(response, "openai")
+                    data = response.json()
+                    require_complete_output(data["choices"][0].get("finish_reason"))
+                    assistant = data["choices"][0]["message"]
+                    usage = data.get("usage", {})
+            except ProviderOutputLimit:
+                return _output_limit_notice(language, on_event)
             _timing(
                 "provider_round",
                 started,
@@ -731,16 +760,20 @@ async def reply_via_anthropic_tools(
                 "tools": tools,
             }
             url = f"{ANTHROPIC_BASE_URL}/v1/messages"
-            if on_event:
-                content, usage = await streamed_message(
-                    client, url, headers, payload, "anthropic", on_event
-                )
-            else:
-                response = await client.post(url, headers=headers, json=payload)
-                await raise_for_status(response, "anthropic")
-                data = response.json()
-                content = data.get("content") or []
-                usage = data.get("usage", {})
+            try:
+                if on_event:
+                    content, usage = await streamed_message(
+                        client, url, headers, payload, "anthropic", on_event
+                    )
+                else:
+                    response = await client.post(url, headers=headers, json=payload)
+                    await raise_for_status(response, "anthropic")
+                    data = response.json()
+                    require_complete_output(data.get("stop_reason"))
+                    content = data.get("content") or []
+                    usage = data.get("usage", {})
+            except ProviderOutputLimit:
+                return _output_limit_notice(language, on_event)
             _timing(
                 "provider_round",
                 started,

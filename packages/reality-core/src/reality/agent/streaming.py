@@ -11,6 +11,15 @@ import httpx
 ChatEventSink = Callable[[dict[str, Any]], None]
 
 
+class ProviderOutputLimit(ValueError):
+    """Transport completed, but the provider stopped before completing its output."""
+
+
+def require_complete_output(stop_reason: str | None) -> None:
+    if stop_reason in {"max_tokens", "length"}:
+        raise ProviderOutputLimit("Provider output limit reached")
+
+
 async def _events(response: httpx.Response) -> AsyncIterator[str]:
     data: list[str] = []
     async for line in response.aiter_lines():
@@ -56,6 +65,7 @@ async def streamed_message(
     text = ""
     usage: dict[str, Any] = {}
     complete = False
+    stop_reason = None
     async with client.stream(
         "POST", url, headers=headers, json={**payload, "stream": True}
     ) as response:
@@ -88,6 +98,7 @@ async def streamed_message(
                             arguments.get(index, "") + delta["partial_json"]
                         )
                 elif kind == "message_delta":
+                    stop_reason = event.get("delta", {}).get("stop_reason")
                     usage.update(event.get("usage", {}))
                 elif kind == "message_stop":
                     complete = True
@@ -97,6 +108,7 @@ async def streamed_message(
                 choices = event.get("choices") or []
                 if not choices:
                     continue
+                stop_reason = choices[0].get("finish_reason") or stop_reason
                 delta = choices[0].get("delta") or {}
                 value = delta.get("content") or ""
                 if value:
@@ -118,6 +130,7 @@ async def streamed_message(
                         call["function"][key] += function.get(key) or ""
     if not complete:
         raise ValueError("Provider stream is incomplete")
+    require_complete_output(stop_reason)
     if provider == "anthropic":
         for index, value in arguments.items():
             blocks[index]["input"] = json.loads(value) if value.strip() else {}

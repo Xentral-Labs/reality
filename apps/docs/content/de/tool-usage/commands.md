@@ -12296,7 +12296,8 @@ Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informat
 
 Start here. Without arguments it lists the business areas this company's Reality covers; with one
 topic it lists that area's capabilities, the tools behind each, and whether this credential may call
-them.
+them. External agent schedule, mission and checkpoint configuration is outside Reality visibility
+and remains unknown.
 
 **Aufruf**
 
@@ -12581,7 +12582,8 @@ Explain one physical Shipment through Packages, current events, effective Moveme
 
 ### `fulfillment_queue` — Read fulfillment queue {#tool-fulfillment_queue}
 
-Orders with ship readiness, lines, shortages, holds, and source identity.
+Orders with current ship readiness, lines, shortages, holds, and source identity. Each line
+distinguishes unknown historical nonexecution cause from current readiness.
 
 **Aufruf**
 
@@ -12622,7 +12624,9 @@ Read the derived open-order work queue with readiness, shortages, holds, and sou
 
 ### `fulfillment_readiness` — Read fulfillment readiness {#tool-fulfillment_readiness}
 
-Canonical blockers, payment amounts, and evidence for one delivery commitment.
+Canonical current blockers, payment amounts, and evidence for one delivery commitment. Blocker kind
+distinguishes recorded holds from derived readiness conditions; historical nonexecution cause
+remains unknown for open quantities.
 
 **Aufruf**
 
@@ -12660,7 +12664,9 @@ Read the canonical current fulfillment decision for one customer-delivery commit
 
 ### `fulfillment_blockers` — Read fulfillment blockers {#tool-fulfillment_blockers}
 
-Current order and item blockers with their affected operational records.
+Current order and item blocker conditions with their affected operational records and explicit
+blocker kind. A derived condition key is not a hold ID; multiple promises may share one recorded
+hold. Condition counts are not distinct-hold counts or proof of historical causes.
 
 **Aufruf**
 
@@ -12782,7 +12788,9 @@ movements, and derived fulfillment.
 
 ### `exceptions_list` — List operational exceptions {#tool-exceptions_list}
 
-Current tenant-scoped derived conditions that require attention; these are not tickets.
+Current tenant-scoped derived conditions that require attention; these are not tickets. Own
+evaluator evidence and actual references describe each condition, without proving causal
+relationships between conditions.
 
 **Aufruf**
 

@@ -974,7 +974,7 @@ MCP_TOOL_CATALOG = (
         (
             "Start here. Without arguments it lists the business areas this company's "
             "Reality covers; with one topic it lists that area's capabilities, the "
-            "tools behind each, and whether this credential may call them."
+            "tools behind each, and whether this credential may call them. External agent schedule, mission and checkpoint configuration is outside Reality visibility and remains unknown."
         ),
         "read",
         "Discovery",
@@ -1269,7 +1269,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "fulfillment_queue",
         "Read fulfillment queue",
-        "Orders with ship readiness, lines, shortages, holds, and source identity.",
+        "Orders with current ship readiness, lines, shortages, holds, and source identity. Each line distinguishes unknown historical nonexecution cause from current readiness.",
         "read",
         "Operations",
         _object_schema(PAGE_PROPERTIES),
@@ -1278,7 +1278,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "fulfillment_readiness",
         "Read fulfillment readiness",
-        "Canonical blockers, payment amounts, and evidence for one delivery commitment.",
+        "Canonical current blockers, payment amounts, and evidence for one delivery commitment. Blocker kind distinguishes recorded holds from derived readiness conditions; historical nonexecution cause remains unknown for open quantities.",
         "read",
         "Operations",
         _object_schema({"commitment_id": STRING}, required=("commitment_id",)),
@@ -1287,7 +1287,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "fulfillment_blockers",
         "Read fulfillment blockers",
-        "Current order and item blockers with their affected operational records.",
+        "Current order and item blocker conditions with their affected operational records and explicit blocker kind. A derived condition key is not a hold ID; multiple promises may share one recorded hold. Condition counts are not distinct-hold counts or proof of historical causes.",
         "read",
         "Operations",
         _object_schema(PAGE_PROPERTIES),
@@ -1314,7 +1314,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "exceptions_list",
         "List operational exceptions",
-        "Current tenant-scoped derived conditions that require attention; these are not tickets.",
+        "Current tenant-scoped derived conditions that require attention; these are not tickets. Own evaluator evidence and actual references describe each condition, without proving causal relationships between conditions.",
         "read",
         "Exceptions & proposals",
         _object_schema(),

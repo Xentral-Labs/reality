@@ -22,6 +22,7 @@ from reality.catalogs import runtime_tool_catalog
 from reality.db.mcp_authorization import MCPClientGrant
 from reality.mcp.principal import MCPPrincipal, current_mcp_principal
 from reality.services.core import InvalidOperation
+from reality.services.read_interpretation import external_agent_runtime
 
 #: Given a tool's name and access class, whether the caller may call it and why not.
 GrantState = Callable[[str, str], tuple[bool, str | None]]
@@ -43,6 +44,7 @@ def topic_index(session: Session, tenant_id: str) -> dict[str, Any]:
         )
     return {
         "credential": _credential(limited),
+        "external_agent_runtime": external_agent_runtime(),
         "topics": [
             {
                 "topic": topic["key"],
@@ -96,6 +98,7 @@ def topic_capabilities(session: Session, tenant_id: str, topic: str) -> dict[str
         "topic": topic,
         "label": labels[topic],
         "credential": _credential(limited),
+        "external_agent_runtime": external_agent_runtime(),
         "capabilities": capabilities,
     }
 

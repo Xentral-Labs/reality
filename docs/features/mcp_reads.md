@@ -141,3 +141,39 @@ Issuer precedence is explicit MCP_AUTHORIZATION_ISSUER, canonical API_URL (spec2
 FR-023), then the local development default. Production issuer HTTPS and origin checks
 remain mandatory; unrelated runtime-only settings cannot break the owner's public
 endpoint display.
+
+
+## Existing-tool interpretation boundaries — Spec 367
+
+The existing fulfillment queue, readiness and order explanation share the same
+`unfulfilled_cause`: positive open quantity means `unknown`, while no remaining
+quantity means `not_applicable`. Current blockers do not establish why past execution
+did not happen. Readiness blocker objects and fulfillment blocker rows expose
+`blocker_kind`: `recorded_hold` for commitment/customer holds, otherwise
+`derived_readiness_condition`. A recorded hold may be system-created. A blocker row's
+key identifies a condition for one promise; several promises can share one hold.
+Counting conditions does not count distinct holds.
+
+Exception list/explanation preserve each evaluator's own `cause_ids`, values and trace.
+Their read-time `interpretation_scope` states that a relationship causing another
+condition is not established by this result. Shared references or co-occurrence alone
+do not prove cross-condition causality. These fields are added after cached derivation;
+they are not persisted as business authority or projection payloads.
+
+Capability index and topic reads expose `external_agent_runtime`, with configuration
+states `unknown` and visibility `outside_reality`. Reality tool availability and grants
+cannot verify an external client's schedule, mission, checkpoint, next run or pause
+state. Use that client's own tools for such verification. This adds no scheduler.
+
+Native OpenAI `length` and Anthropic `max_tokens` stops are handled before tool
+argument decoding/dispatch, in streamed and ordinary responses. The adapter replaces
+partial output with a localized incomplete-response notice; streaming emits reset
+then the same notice used for the durable answer. It executes no calls from that
+incomplete response and never automatically retries or replays business proposals.
+The bounded output budget remains unchanged. Calls from earlier completed rounds may
+already have run; the notice does not claim those were undone.
+
+Verification: [spec 367](../../specs/367-tool-evidence-boundaries/verification.md).
+Normal completions, genuine transport failures, tenant scope, grant boundaries and
+confirmation semantics retain their existing behavior. Deterministic tool boundaries
+do not guarantee every free-form external model answer.
