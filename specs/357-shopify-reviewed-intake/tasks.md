@@ -74,3 +74,9 @@ Deliver one independently tested story at a time. The first foundation/Shopify s
 proves the mechanism, not all-path coverage. Do not deploy a migrated adapter while
 old write-capable workers can still bypass its boundary. Completion remains gated
 by all required checks and honest unresolved-outcome reporting.
+
+## Implementation refinement: absent source amounts
+
+- [ ] T015 Add failure-first proofs for DR-001/FR-002/FR-003 when source line totals are absent, zero or inconsistent; retain manual entry refusal.
+- [ ] T016 Make existing evidence/promise amount columns nullable, add the additive migration and safe rollback test, and preserve source-only absence through canonical no-commit services.
+- [ ] T017 Update credit/billing/inspection consumers so unknown received amounts remain unknown and cannot pass a monetary safety check as zero.

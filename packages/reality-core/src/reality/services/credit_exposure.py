@@ -222,7 +222,7 @@ def _order_rows(
         if order.currency != party.default_currency:
             other.append(row)
         # reality-rule: credit_exposure._order_rows.guard-172
-        elif line.unit_price is None:
+        elif line.unit_price is None or line.gross_amount is None:
             unpriced.append({**row, "value": ZERO})
         else:
             stated = Decimal(line.gross_amount)

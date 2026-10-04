@@ -36,6 +36,8 @@ def display_text(*values: Any) -> DisplayText:
 def money(
     value: Any, currency: str | None, *, precision: int | None = None
 ) -> DisplayText:
+    if value is None:
+        return DisplayText("—", [{"type": "text", "value": "—"}])
     if not currency:
         return display_text(value)
     return DisplayText(

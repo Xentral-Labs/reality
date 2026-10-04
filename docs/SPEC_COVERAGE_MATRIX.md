@@ -2514,3 +2514,14 @@ FR-001–006 / US1–3: `packages/reality-core/tests/test_external_email_approva
   remain pending.
 
 Contract: `docs/features/decision-gated-intake.md` records the explicit initial profiles and pending rollout.
+
+
+## Reviewed Shopify interpretation — Spec 357
+
+- `packages/reality-core/tests/test_shopify_intake_admission.py`: source-unstated
+  amounts, received zero/inconsistent amounts, manual refusal, credit exclusion,
+  reviewed credit holds, prepared reductions, refund evidence and zero postings.
+- `packages/reality-core/tests/test_migrations.py::test_unstated_source_amount_migration_roundtrip_and_safe_refusal`:
+  nullable evidence migration, empty roundtrip and refusal without rewriting nulls.
+- Shared scope proofs additionally refuse unplanned writers and changed invocation
+  arguments. Adapter cutover and its legacy story/transport regression remain pending.

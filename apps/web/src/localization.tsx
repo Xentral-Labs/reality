@@ -70,8 +70,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Dieses Quellprofil unterstützt noch keine geprüfte Datenübernahme.",
     "The coherent intake package exceeds its review limits.":
       "Das zusammenhängende Datenpaket überschreitet die Prüfgrenzen.",
-    "The source states no line amount. Supply explicit evidence before acceptance.":
-      "Die Quelle nennt keinen Positionsbetrag. Ergänze einen ausdrücklichen Nachweis vor der Übernahme.",
     "Intake effects and their decision receipt must commit together.":
       "Die Auswirkungen der Datenübernahme und ihr Entscheidungsnachweis müssen gemeinsam gespeichert werden.",
     "This source already has accepted evidence; reconcile its existing decision trail.":
@@ -2256,8 +2254,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Dit bronprofiel ondersteunt nog geen beoordeelde gegevensovername.",
     "The coherent intake package exceeds its review limits.":
       "Het samenhangende gegevenspakket overschrijdt de beoordelingsgrenzen.",
-    "The source states no line amount. Supply explicit evidence before acceptance.":
-      "De bron vermeldt geen regelbedrag. Voeg expliciet bewijs toe vóór acceptatie.",
     "Intake effects and their decision receipt must commit together.":
       "De effecten van de gegevensovername en het beslissingsbewijs moeten samen worden opgeslagen.",
     "This source already has accepted evidence; reconcile its existing decision trail.":
@@ -4137,8 +4133,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Este perfil de origen aún no admite una incorporación de datos revisada.",
     "The coherent intake package exceeds its review limits.":
       "El paquete coherente de datos supera los límites de revisión.",
-    "The source states no line amount. Supply explicit evidence before acceptance.":
-      "El origen no indica un importe de línea. Añade evidencia explícita antes de aceptarlo.",
     "Intake effects and their decision receipt must commit together.":
       "Los efectos de la incorporación de datos y su comprobante de decisión deben guardarse juntos.",
     "This source already has accepted evidence; reconcile its existing decision trail.":

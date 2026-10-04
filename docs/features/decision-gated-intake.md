@@ -22,18 +22,17 @@ explicit preparation path through `intake_prepare_propose` / application
 `create_change_proposal("intake_apply", {"job_id": ...})`, retained reads through
 `intake_review`, and exact confirmation through the existing proposal executor.
 
-Supported initial inputs are first Shopify orders with source-stated line amounts
-and no credit policy, normalized customer payments with job profile
-`customer_payment.v1`, and normalized synthetic payment payloads. Unsupported
-inputs refuse; an approval does not broaden existing domain support. Missing
-Shopify line amounts are not computed from quantity and price. Source bytes and
-payloads survive preparation failures.
+Supported explicit inputs are Shopify first orders, supported later reductions and
+cancellations, refund transaction evidence and supported return announcements,
+normalized customer payments with job profile `customer_payment.v1`, and normalized
+synthetic payment payloads. Shopify credit checks appear as exact proposed holds.
+Missing source line amounts remain null, and unknown prices stay visible; no line
+total is computed from quantity and price. Each stated refund transaction gets its
+own evidence amount, with goods lines recorded once. Raw payloads survive failures.
 
-Legacy automatic import processing is not yet switched over. Shopify changes,
-refunds and credit holds, invoice/bank-file adapters, master/stock application,
-bulk continuation, mandates, demo cutover remain
-pending. This initial explicit path must not be represented as completed admission
-coverage or deployed as the full cutover.
+Legacy automatic import processing is not yet switched over. Invoice/bank-file
+adapters, master/stock application, bulk continuation, mandates, demo source cutover remain pending. The explicit reviewed services are an
+implementation checkpoint, not completed cross-path admission coverage.
 
 ## Acceptance transaction
 
@@ -47,7 +46,9 @@ finance, proposal, source identity/stream, job, and ordered reference rows. Cano
 no-commit services apply the frozen intent; they never rerun source interpretation
 or rematch a payment. Effects, decision attribution, immutable outcome and receipt
 commit together. Inner service savepoints remain legal; a premature transaction
-commit refuses. An executed proposal replays its retained receipt without effects
+commit refuses. Canonical entrypoints also verify the currently authorized
+operation and frozen invocation arguments; an approved commitment cannot authorize
+an unrelated master write or silently change the reviewed quantity. An executed proposal replays its retained receipt without effects
 or another outcome.
 
 Raw admission acquires the Tenant serialization row before source identity locks.
@@ -70,3 +71,10 @@ The existing one-package item CSV path retains its 500-row / 2 MiB limits.
 Executable initial proofs are in `test_intake_admission.py`,
 `test_file_intake_admission.py` and `test_financial_intake_admission.py`.
 Full CI and the remaining rollout acceptance proofs are required before completion.
+
+Shop changes and refunds freeze collection membership and relevant current order,
+reservation, shipment, revision, hold, announcement and prior-refund state. A new
+member or changed row invalidates review. Credit proposals freeze the current
+exposure at the reviewed observation time; new exposure requires a fresh review.
+The nullable amount migration never rewrites historical records and refuses an
+unsafe rollback while source-unstated amounts remain.

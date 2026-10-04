@@ -134,6 +134,9 @@ INTERPRETATION_CLASSIFICATIONS = {
     "failed",
 }
 INTERPRETATION_RECORD_TYPES = {
+    "return_announcement",
+    "commitment_hold",
+    "commitment_revision",
     "document",
     "document_line",
     "commitment",
@@ -1106,6 +1109,9 @@ def _require_business_mutation(
     from reality.services.tenant_policy import require_core_operation
 
     require_core_operation(session, tenant_id, operation)
+    from reality.services.intake import _require_scoped_operation
+
+    _require_scoped_operation(session, tenant_id, operation)
     from reality.services.business_locks import DELIVERY_WRITERS, lock_delivery_state
 
     finance_operations = {
@@ -3744,7 +3750,7 @@ def create_commitment(
     due_at: datetime | str | None,
     *,
     action_id: str | None = None,
-    amount: Decimal | float | str = ZERO,
+    amount: Decimal | float | str | None = ZERO,
     currency: str = "EUR",
     document_id: str | None = None,
     document_line_id: str | None = None,
@@ -3753,6 +3759,9 @@ def create_commitment(
     _unit: str | None = None,
 ) -> Commitment:
     _require_business_mutation(session, tenant_id, "create_commitment")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_commitment", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if commitment_type not in {"customer_delivery", "supplier_delivery"}:
@@ -3772,6 +3781,10 @@ def create_commitment(
         line = _tenant_record(session, DocumentLine, tenant_id, document_line_id)
         if document_id and line.document_id != document_id:
             raise InvalidOperation(code="commitment_document_line_mismatch")
+    if amount is None:
+        from reality.services.intake import _require_intake_scope
+
+        _require_intake_scope(session, tenant_id, action_id or "")
     commitment = Commitment(
         id=uid("com"),
         tenant_id=tenant_id,
@@ -3781,7 +3794,7 @@ def create_commitment(
         item_id=item_id,
         location_id=location_id,
         quantity=positive(quantity),
-        amount=decimal(amount),
+        amount=decimal(amount) if amount is not None else None,
         currency=currency,
         due_at=utc_datetime(due_at),
         status="open",
@@ -4392,6 +4405,9 @@ def revise_commitment(
     IF the revised quantity leaves no open quantity, mark the promise fulfilled and release all its holds, including credit-check holds.
     """
     _require_business_mutation(session, tenant_id, "revise_commitment")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("revise_commitment", locals())
     commitment = session.scalar(
         select(Commitment)
         .where(
@@ -6004,6 +6020,9 @@ def announce_customer_return(
     Preserve the stated quantity, reference, reason, expected date and source as an open announcement.
     """
     _require_business_mutation(session, tenant_id, "announce_customer_return")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("announce_customer_return", locals())
     commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
     # reality-rule: core.announce_customer_return.1
     if commitment.type != "customer_delivery":
@@ -7458,6 +7477,9 @@ def cancel_commitment(
     Release all holds, including protected credit-check holds, because the promise is being cancelled.
     """
     _require_business_mutation(session, tenant_id, "cancel_commitment")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("cancel_commitment", locals())
     stated_reason = reason.strip()
     # reality-rule: core.cancel_commitment.1
     if not stated_reason:
@@ -9250,6 +9272,9 @@ def create_document(
     _commit: bool = True,
 ) -> Document:
     _require_business_mutation(session, tenant_id, "create_document")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_document", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Party, tenant_id, party_id)
@@ -9312,6 +9337,7 @@ def _preview_manual_document_input(
     gross_amount: Decimal | float | str,
     *,
     _carry_unstated_price: bool = False,
+    _carry_unstated_amount: bool = False,
     currency: str = "EUR",
     document_date: str = "",
     ordered_at: datetime | str | None = None,
@@ -9353,6 +9379,7 @@ def _preview_manual_document_input(
                 raw,
                 index,
                 _carry_unstated_price=_carry_unstated_price,
+                _carry_unstated_amount=_carry_unstated_amount,
                 _party_id=party_id,
             )
         )
@@ -9415,6 +9442,8 @@ def create_manual_document_with_lines(
     ship_to_party_id: str | None = None,
     source_record_id: str | None = None,
     _carry_unstated_price: bool = False,
+    _carry_unstated_amount: bool = False,
+    _source_line_payloads: list[dict[str, Any]] | None = None,
     _commit: bool = True,
 ) -> tuple[Document, list[DocumentLine]]:
     """
@@ -9437,6 +9466,17 @@ def create_manual_document_with_lines(
     Emit document-recorded evidence identifying the document and created lines; no commitment is created here.
     """
     _require_business_mutation(session, tenant_id, "create_manual_document_with_lines")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_manual_document_with_lines", locals())
+    if _carry_unstated_amount or _source_line_payloads is not None:
+        from reality.services.intake import _require_intake_scope
+
+        _require_intake_scope(session, tenant_id, action_id or "")
+        if _source_line_payloads is not None and len(_source_line_payloads) != len(
+            lines
+        ):
+            raise InvalidOperation(code="intake_review_invalid")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     # reality-rule: core.create_manual_document_with_lines.1
@@ -9449,6 +9489,7 @@ def create_manual_document_with_lines(
         lines,
         gross_amount,
         _carry_unstated_price=_carry_unstated_price,
+        _carry_unstated_amount=_carry_unstated_amount,
         currency=currency,
         document_date=document_date,
         ordered_at=ordered_at,
@@ -9478,14 +9519,18 @@ def create_manual_document_with_lines(
             unit_price=row["unit_price"],
             gross_amount=row["gross_amount"],
             promised_at=row["promised_at"],
-            payload=_manual_line_payload(row),
+            payload=json.dumps(
+                _source_line_payloads[index], ensure_ascii=False, separators=(",", ":")
+            )
+            if _source_line_payloads is not None
+            else _manual_line_payload(row),
             unit=row["unit"],
             requested_at=utc_datetime(row["promised_at"]),
             line_type=row["line_type"],
             price_list_entry_id=row["price_list_entry_id"],
             billed_document_line_id=row["billed_document_line_id"],
         )
-        for row in normalized
+        for index, row in enumerate(normalized)
     ]
     session.add_all(created_lines)
     # reality-rule: core.create_manual_document_with_lines.3
@@ -9503,7 +9548,7 @@ def create_manual_document_with_lines(
             "currency": document.currency,
             "line_count": len(created_lines),
             "document_line_ids": [line.id for line in created_lines],
-            "origin": "manual",
+            "origin": "source" if _source_line_payloads is not None else "manual",
         },
         source_record_id=source_record_id,
         action_id=action_id,
@@ -9973,6 +10018,7 @@ def _normalize_manual_line_input(
     index: int,
     *,
     _carry_unstated_price: bool = False,
+    _carry_unstated_amount: bool = False,
     _party_id: str | None = None,
 ) -> dict[str, Any]:
     item_id = str(raw.get("item_id") or "").strip() or None
@@ -10019,13 +10065,15 @@ def _normalize_manual_line_input(
     else:
         unit_price = decimal(raw.get("unit_price", 0))
     raw_total = raw.get("gross_amount")
-    if raw_total is None or str(raw_total).strip() == "":
+    if (
+        raw_total is None or str(raw_total).strip() == ""
+    ) and not _carry_unstated_amount:
         # Never quantity times unit price: a rebate or the source's own rounding
         # makes that product wrong, and recomputing it would hide the difference.
         raise InvalidOperation(
             code="manual_line_amount_required", values={"index": index}
         )
-    gross_amount = decimal(raw_total)
+    gross_amount = decimal(raw_total) if raw_total not in (None, "") else None
     unit = str(raw.get("unit") or (item.unit if item else "pcs")).strip()
     line_type = str(raw.get("line_type") or "item").strip()
     if not unit or not line_type:
@@ -10187,7 +10235,9 @@ def _line_wire_value(row: dict[str, Any]) -> dict[str, Any]:
         "unit_price": _line_decimal_text(row["unit_price"])
         if row["unit_price"] is not None
         else None,
-        "gross_amount": _line_decimal_text(row["gross_amount"]),
+        "gross_amount": _line_decimal_text(row["gross_amount"])
+        if row["gross_amount"] is not None
+        else None,
     }
 
 
@@ -10760,6 +10810,9 @@ def post_ledger(
     Retain each resolved account, party, stated posting amount, currency, side, document/source and any validated company amount/rate in a new common posting-group identity.
     """
     _require_business_mutation(session, tenant_id, "post_ledger")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("post_ledger", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     document = _tenant_record(session, Document, tenant_id, document_id)
@@ -13087,6 +13140,9 @@ def record_customer_payment(
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     _require_business_mutation(session, tenant_id, "record_customer_payment")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("record_customer_payment", locals())
     amount = positive(amount, "amount")
     with _atomic(session):
         payment = create_document(
@@ -14044,6 +14100,9 @@ def allocate_settlement(
     _commit: bool = True,
 ) -> SettlementAllocation:
     _require_business_mutation(session, tenant_id, "allocate_settlement")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("allocate_settlement", locals())
     from reality.services.business_locks import lock_delivery_state
 
     lock_delivery_state(session, tenant_id)

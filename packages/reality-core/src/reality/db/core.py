@@ -1795,7 +1795,9 @@ class DocumentLine(Base):
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     # Null states that the source gave no price (spec 314); nothing is invented.
     unit_price: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
-    gross_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
+    gross_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(18, 4).evaluates_none(), default=0
+    )
     promised_at: Mapped[str] = mapped_column(String, default="")
     payload: Mapped[str] = mapped_column(Text, default="{}")
     unit: Mapped[str] = mapped_column(String, default="pcs")
@@ -1876,7 +1878,9 @@ class DunningScheduleLevel(Base):
             ["source_record.tenant_id", "source_record.id"],
         ),
         UniqueConstraint("tenant_id", "level", name="uq_dunning_schedule_level_level"),
-        CheckConstraint("level BETWEEN 1 AND 3", name="ck_dunning_schedule_level_level"),
+        CheckConstraint(
+            "level BETWEEN 1 AND 3", name="ck_dunning_schedule_level_level"
+        ),
         CheckConstraint("wait_days >= 0", name="ck_dunning_schedule_level_wait_days"),
         CheckConstraint("fee_amount >= 0", name="ck_dunning_schedule_level_fee"),
     )
@@ -1968,7 +1972,8 @@ class PaymentReturn(Base):
             "tenant_id", "payment_document_id", name="uq_payment_return_payment"
         ),
         CheckConstraint(
-            "kind IN ('direct_debit_return', 'chargeback')", name="ck_payment_return_kind"
+            "kind IN ('direct_debit_return', 'chargeback')",
+            name="ck_payment_return_kind",
         ),
         CheckConstraint("fee_amount >= 0", name="ck_payment_return_fee"),
         CheckConstraint(
@@ -2059,9 +2064,7 @@ class PaymentCapture(Base):
             ["source_record.tenant_id", "source_record.id"],
         ),
         CheckConstraint("amount > 0", name="ck_payment_capture_amount"),
-        Index(
-            "ix_payment_capture_authorization_id", "tenant_id", "authorization_id"
-        ),
+        Index("ix_payment_capture_authorization_id", "tenant_id", "authorization_id"),
         Index("ix_payment_capture_source_record_id", "tenant_id", "source_record_id"),
     )
     id: Mapped[str] = mapped_column(String)
@@ -2117,7 +2120,9 @@ class Commitment(Base):
     item_id: Mapped[str | None] = mapped_column()
     location_id: Mapped[str | None] = mapped_column()
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
-    amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
+    amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(18, 4).evaluates_none(), default=0
+    )
     currency: Mapped[str] = mapped_column(String, default="EUR")
     due_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     status: Mapped[str] = mapped_column(String, default="open")
@@ -2191,7 +2196,9 @@ class SupplierItemTerms(Base):
     __tablename__ = "supplier_item_terms"
     __table_args__ = (
         PrimaryKeyConstraint("tenant_id", "id"),
-        ForeignKeyConstraint(["tenant_id", "party_id"], ["party.tenant_id", "party.id"]),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"], ["party.tenant_id", "party.id"]
+        ),
         ForeignKeyConstraint(["tenant_id", "item_id"], ["item.tenant_id", "item.id"]),
         ForeignKeyConstraint(
             ["tenant_id", "source_record_id"],
@@ -2210,7 +2217,9 @@ class SupplierItemTerms(Base):
             name="ck_supplier_item_terms_positive",
         ),
         Index("ix_supplier_item_terms_item_id", "tenant_id", "item_id"),
-        Index("ix_supplier_item_terms_source_record_id", "tenant_id", "source_record_id"),
+        Index(
+            "ix_supplier_item_terms_source_record_id", "tenant_id", "source_record_id"
+        ),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
@@ -2586,7 +2595,9 @@ class DeliveryFailure(Base):
             ["tenant_id", "source_record_id"],
             ["source_record.tenant_id", "source_record.id"],
         ),
-        UniqueConstraint("tenant_id", "shipment_id", name="uq_delivery_failure_shipment"),
+        UniqueConstraint(
+            "tenant_id", "shipment_id", name="uq_delivery_failure_shipment"
+        ),
         CheckConstraint(
             "kind IN ('undeliverable', 'refused', 'lost')",
             name="ck_delivery_failure_kind",
@@ -2900,7 +2911,10 @@ class OutboundDeliveryPick(Base):
             "outbound_delivery_line_id",
         ),
         Index(
-            "uq_outbound_delivery_pick_movement", "tenant_id", "movement_id", unique=True
+            "uq_outbound_delivery_pick_movement",
+            "tenant_id",
+            "movement_id",
+            unique=True,
         ),
     )
     id: Mapped[str] = mapped_column(String)

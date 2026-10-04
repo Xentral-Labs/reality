@@ -44,7 +44,15 @@ class Effect(IntakeModel):
     """A closed operation vocabulary; never a caller-selected Python callable."""
 
     operation: Literal[
-        "document", "commitment", "customer_payment", "payment_allocation"
+        "document",
+        "commitment",
+        "customer_payment",
+        "payment_allocation",
+        "source_document",
+        "return_announcement",
+        "credit_hold",
+        "commitment_revision",
+        "commitment_cancellation",
     ]
     arguments: dict[str, Any]
 
@@ -62,6 +70,12 @@ class CalendarState(IntakeModel):
     source_record_id: str | None = None
 
 
+class ObservationState(IntakeModel):
+    kind: Literal["credit_exposure", "shop_order_state"]
+    arguments: dict[str, str]
+    digest: str
+
+
 class PreparedIntake(IntakeModel):
     schema_version: Literal[1] = 1
     tenant_id: str
@@ -75,6 +89,7 @@ class PreparedIntake(IntakeModel):
     interpreter_version: Literal["1"] = "1"
     mapping: dict[str, Any]
     references: tuple[ReferenceState, ...] = ()
+    observations: tuple[ObservationState, ...] = ()
     effects: tuple[Effect, ...]
     issues: tuple[str, ...] = ()
     row_count: int = Field(ge=1, le=PACKAGE_ROWS)

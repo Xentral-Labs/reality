@@ -465,7 +465,7 @@ export type DocumentLineCorrection = {
     quantity: string;
     unit: string;
     unit_price: string;
-    gross_amount: string;
+    gross_amount: string | null;
     promised_at: string;
     line_type: string;
     billed_document_line_id?: string | null;
@@ -1042,7 +1042,7 @@ export type InspectorData = {
     id: string;
     label: string;
     quantity: string;
-    gross_amount: string;
+    gross_amount: string | null;
     unit: string;
   }>;
   kind: string;

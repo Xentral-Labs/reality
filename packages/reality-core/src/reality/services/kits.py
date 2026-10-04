@@ -831,7 +831,9 @@ def _assembly_result(
 
 def _stated_parts(line: DocumentLine) -> dict[str, Decimal]:
     """The amounts the line states: gross always, net and tax where stated (spec 284)."""
-    stated = {"gross": Decimal(line.gross_amount)}
+    stated = (
+        {"gross": Decimal(line.gross_amount)} if line.gross_amount is not None else {}
+    )
     try:
         finance = (json.loads(line.payload or "{}") or {}).get(
             "reality_finance_v1"
@@ -896,7 +898,7 @@ def kit_split(
         "source_record_id": components[0].source_record_id,
     }
     stated = _stated_parts(line)
-    if components[0].share is None:
+    if components[0].share is None or "gross" not in stated:
         return {
             **base,
             "split": None,

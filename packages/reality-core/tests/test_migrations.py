@@ -647,3 +647,63 @@ def test_storyline_migration_backfills_fact_recording_order_and_guards_downgrade
             command.downgrade(config, "0057_projection_jobs")
     finally:
         engine.dispose()
+
+
+def test_unstated_source_amount_migration_roundtrip_and_safe_refusal(
+    postgres_database, monkeypatch
+):
+    """Spec 357 preserves missing source amounts and refuses to invent rollback values."""
+    from sqlalchemy.orm import Session
+
+    from reality.db.core import DocumentLine
+    from reality.services import core
+
+    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", postgres_database)
+    command.upgrade(config, "head")
+    command.downgrade(config, "0140_external_email_grants")
+    engine = create_engine(postgres_database)
+    try:
+        assert not next(
+            c
+            for c in inspect(engine).get_columns("document_line")
+            if c["name"] == "gross_amount"
+        )["nullable"]
+        command.upgrade(config, "head")
+        with Session(engine) as session:
+            tenant = core.create_tenant(session, "Migration proof")
+            party = core.create_party(session, tenant.id, "Customer", "customer")
+            document = core.create_document(
+                session, tenant.id, "sales_order", "M1", party.id, "1"
+            )
+            session.add(
+                DocumentLine(
+                    id=core.uid("lin"),
+                    tenant_id=tenant.id,
+                    document_id=document.id,
+                    source_line_id="1",
+                    sku="missing",
+                    description="Source absence",
+                    quantity=1,
+                    gross_amount=None,
+                )
+            )
+            session.commit()
+        with pytest.raises(RuntimeError, match="source-unstated amounts"):
+            command.downgrade(config, "0140_external_email_grants")
+        with engine.connect() as connection:
+            assert (
+                connection.scalar(
+                    text(
+                        "SELECT count(*) FROM document_line WHERE gross_amount IS NULL"
+                    )
+                )
+                == 1
+            )
+            assert (
+                connection.scalar(text("SELECT version_num FROM alembic_version"))
+                == "0141_unstated_source_amounts"
+            )
+    finally:
+        engine.dispose()
