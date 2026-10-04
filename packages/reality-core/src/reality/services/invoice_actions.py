@@ -159,9 +159,9 @@ def record_free_supplier_invoice(
             action_id=action_id,
             _commit=False,
         )
-        # reality-rule: services.invoice_actions.record_free_supplier_invoice.effect-49
         from reality.services.intake import _record_normalized_document
 
+        # reality-rule: services.invoice_actions.record_free_supplier_invoice.effect-49
         document, created_lines = _record_normalized_document(
             session,
             tenant_id,
