@@ -12,7 +12,8 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 let proposal,
   prepared,
   language = "en",
-  confirmations = 0;
+  confirmations = 0,
+  invoiceAvailable = false;
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 const pager = { number: 1, size: 50, total: 1, pages: 1, has_previous: false, has_next: false };
@@ -35,19 +36,27 @@ await page.route("**/api/**", async (route) => {
   if (p.endsWith("/application-reference")) return reply(discoveryReference);
   if (p.endsWith("/finance/open-items"))
     return reply({
-      items: [
-        {
-          document_id: "invoice-doc",
-          document_type: "sales_invoice",
-          number: "INV-121",
-          party: "Müller",
-          currency: "USD",
-          gross: "300",
-          settled: "0",
-          open: "300",
-          status: "open",
-        },
-      ],
+      metadata: {
+        state: "ready",
+        completed_at: invoiceAvailable ? "2026-10-04T12:01:00Z" : "2026-10-04T12:00:00Z",
+        processed_event_sequence: invoiceAvailable ? 2 : 1,
+        target_event_sequence: invoiceAvailable ? 2 : 1,
+      },
+      items: invoiceAvailable
+        ? [
+            {
+              document_id: "invoice-doc",
+              document_type: "sales_invoice",
+              number: "INV-121",
+              party: "Müller",
+              currency: "USD",
+              gross: "300",
+              settled: "0",
+              open: "300",
+              status: "open",
+            },
+          ]
+        : [],
       totals: [],
       page: pager,
     });
@@ -141,7 +150,7 @@ await page.route("**/api/**", async (route) => {
   return reply({ items: [], totals: [], page: pager });
 });
 try {
-  await mkdir("/private/tmp/reality-121-browser", { recursive: true });
+  await mkdir("/tmp/reality-121-browser", { recursive: true });
   await page.goto("http://localhost:5177/app/finance?tenant=company");
   await page.locator(".register-actions > summary").waitFor();
   if (
@@ -150,10 +159,18 @@ try {
   )
     await page.locator(".register-actions > summary").click();
   await page.getByRole("button", { name: "Record customer payment", exact: true }).click();
-  await page.getByLabel("Invoice", { exact: true }).selectOption("invoice-doc");
+  const dialog = page.getByRole("dialog");
+  await dialog.getByText("No matching open invoices", { exact: true }).waitFor();
+  invoiceAvailable = true; // Another client has accepted and projected the invoice.
+  await dialog.getByRole("button", { name: "Refresh", exact: true }).click();
+  await dialog
+    .getByLabel("Invoice", { exact: true })
+    .locator('option[value="invoice-doc"]')
+    .waitFor({ state: "attached" });
+  await dialog.getByLabel("Invoice", { exact: true }).selectOption("invoice-doc");
   await page.getByLabel("Payment amount", { exact: true }).fill("125.1234");
   await page.getByLabel("Payment reference", { exact: true }).fill("PAY-121");
-  await page.screenshot({ path: "/private/tmp/reality-121-browser/entry-1440.png" });
+  await page.screenshot({ path: "/tmp/reality-121-browser/entry-1440.png" });
   await page.getByRole("button", { name: "Review change", exact: true }).click();
   await page.getByRole("button", { name: "Confirm change", exact: true }).waitFor();
   assert.equal(prepared.arguments.amount, "125.1234");
@@ -183,7 +200,7 @@ try {
           theme,
         );
         await page.screenshot({
-          path: `/private/tmp/reality-121-browser/${lang}-${width}-${theme}.png`,
+          path: `/tmp/reality-121-browser/${lang}-${width}-${theme}.png`,
         });
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -246,7 +263,7 @@ try {
   );
 } catch (error) {
   console.error(errors);
-  await page.screenshot({ path: "/private/tmp/reality-121-browser/error.png" });
+  await page.screenshot({ path: "/tmp/reality-121-browser/error.png" });
   throw error;
 } finally {
   await browser.close();

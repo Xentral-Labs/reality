@@ -73,6 +73,32 @@ const proposals = new Map(
     ],
   ),
 );
+const intake = structuredClone(proposals.get("proposal-0"));
+Object.assign(intake, {
+  id: "intake-source",
+  tool: "intake_apply",
+  label: "Review source meaning",
+  input: {
+    digest: "exact-source-digest",
+    plan: {
+      profile: "shopify.order",
+      references: [{ record_type: "source_artifact", record_id: "file-1" }],
+      effects: [
+        {
+          operation: "document",
+          arguments: {
+            number: "SHOP-17",
+            currency: "EUR",
+            lines: [{ sku: "SKU-1", quantity: "2", gross_amount: null }],
+          },
+        },
+      ],
+      issues: ["line:0:amount_unstated"],
+    },
+  },
+  preview: { digest: "exact-source-digest" },
+});
+proposals.set(intake.id, intake);
 const deliveryProposals = new Map(
   ["credit_hold_release", "shipment_dispatch"].map((tool, index) => {
     const authority = index === 0 ? "company_owner" : "company_member";
@@ -168,6 +194,8 @@ await page.route("**/api/**", async (route) => {
   if (id && path.endsWith("/approve")) {
     const proposal = proposals.get(id);
     assert.equal(request.postDataJSON().confirmed, true);
+    if (proposal.tool === "intake_apply")
+      assert.equal(request.postDataJSON().review_token, "exact-source-digest");
     approvals++;
     Object.assign(proposal, {
       status: "executed",
@@ -215,9 +243,25 @@ try {
           : "An authenticated company owner must approve this proposal.";
     await dialog.getByText(authorityMessage, { exact: false }).waitFor();
     assert.equal(await dialog.getByText("must approve or reject", { exact: false }).count(), 0);
-    await dialog
-      .getByText(proposal.private_review ? "Proposed change" : "Stated input", { exact: true })
-      .waitFor();
+    if (proposal.tool === "intake_apply") {
+      await dialog.getByText("SHOP-17", { exact: true }).waitFor();
+      await dialog.getByText("1: Line amount was not stated.", { exact: true }).waitFor();
+      assert.equal(await dialog.getByText("Stated input", { exact: true }).count(), 0);
+      assert.equal(await dialog.getByText("Prepared preview", { exact: true }).count(), 1);
+      assert.equal(
+        await dialog
+          .getByRole("link", { name: "Download original source", exact: true })
+          .getAttribute("href"),
+        "/api/tenants/company/intake-units/intake-source/original",
+      );
+      assert.equal(
+        await dialog.getByRole("link", { name: "Download original file", exact: true }).count(),
+        1,
+      );
+    } else
+      await dialog
+        .getByText(proposal.private_review ? "Proposed change" : "Stated input", { exact: true })
+        .waitFor();
     assert.equal(await dialog.locator("details[open]").count(), 0);
     await dialog.getByText("Technical details", { exact: true }).click();
     assert.equal(await dialog.locator("details[open]").count(), 1);

@@ -826,6 +826,8 @@ def prepare_intake(
             session.commit()
         else:
             session.flush()
+        if isinstance(error, ValidationError):
+            raise core.InvalidOperation(code=code) from error
         raise
     if _commit:
         session.commit()

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "../api";
+import { api, intakeBatches, itemImports } from "../api";
 import { formatDateTime, t } from "../localization";
 import { DecisionLine } from "./DecisionLine";
 import { EmailEvidencePanel, emailReviewInput } from "./EmailEvidencePanel";
@@ -13,7 +13,7 @@ import {
   ProposalApprovalRequirement,
   TechnicalDetails,
 } from "./DecisionReview";
-import { IntakeBatchReview } from "./IntakeBatchReview";
+import { IntakeBatchReview, IntakeMeaning } from "./IntakeBatchReview";
 import { proposalBusinessLabel } from "./proposalPresentation";
 
 export function ProposalReviewCard({
@@ -160,7 +160,7 @@ export function ProposalReviewCard({
           {t(data.message)}
         </p>
       )}
-      {data.tool !== "intake_batch_apply" && (
+      {!["intake_apply", "intake_batch_apply"].includes(data.tool) && (
         <section className="mt-5">
           <h3 className="font-semibold">{t(privateChange ? "Proposed change" : "Stated input")}</h3>
           <div className="mt-2 rounded-xl bg-surface-muted p-4">
@@ -204,6 +204,39 @@ export function ProposalReviewCard({
           </div>
         </section>
       )}
+      {data.tool === "intake_apply" && (
+        <section className="mt-5 space-y-3" data-single-intake-review>
+          <IntakeMeaning
+            plan={data.input.plan as Record<string, unknown> | undefined}
+            fallback={data.input}
+          />
+          <a className="br-btn" href={intakeBatches.original(tenant, proposalId)}>
+            {t("Download original source")}
+          </a>
+          {(
+            ((data.input.plan as Record<string, unknown> | undefined)?.references ?? []) as Array<{
+              record_type: string;
+              record_id: string;
+            }>
+          )
+            .filter((reference) => reference.record_type === "source_artifact")
+            .map((reference) => (
+              <a
+                key={reference.record_id}
+                className="br-btn"
+                href={itemImports.original(tenant, reference.record_id)}
+              >
+                {t("Download original file")}
+              </a>
+            ))}
+          {data.status !== "proposed" && (
+            <>
+              <h3 className="font-semibold">{t("Stored receipt")}</h3>
+              <BusinessFieldList record={data.receipt} />
+            </>
+          )}
+        </section>
+      )}
       {data.tool === "intake_batch_apply" && (
         <IntakeBatchReview
           tenant={tenant}
@@ -225,7 +258,7 @@ export function ProposalReviewCard({
           </p>
         )}
       {(!privateChange || readablePrivate) &&
-        !["email_dispatch_authorize", "intake_batch_apply"].includes(data.tool) && (
+        !["email_dispatch_authorize", "intake_apply", "intake_batch_apply"].includes(data.tool) && (
           <section className="mt-5">
             <h3 className="font-semibold">
               {t(data.status === "proposed" ? "Prepared preview" : "Stored receipt")}

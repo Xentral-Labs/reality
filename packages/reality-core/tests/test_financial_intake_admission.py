@@ -10,6 +10,83 @@ from reality.services import core
 from reality.services.intake import apply_prepared_intake, prepare_intake, review_intake
 
 
+def test_http_worker_retains_invalid_payments_and_prepares_valid_sibling(
+    session, business
+):
+    """Spec 359 FR-001/008: invalid received values are controlled refusals."""
+    from test_unified_source_api import client_for
+
+    from reality.db.core import ChangeProposal, ImportJob, SourceRecord
+
+    invalid = []
+    for external_id, amount in (("missing", None), ("zero", "0")):
+        payload = {
+            "party_id": business.customer.id,
+            "currency": "EUR",
+            "effective_at": "2026-09-12T10:00:00Z",
+            "external_payment_id": external_id,
+        }
+        if amount is not None:
+            payload["amount"] = amount
+        source, job = core.enqueue_source(
+            session,
+            business.tenant.id,
+            "bank",
+            "customer_payment",
+            external_id,
+            payload,
+            context={"profile": "customer_payment.v1"},
+        )
+        invalid.append((source.id, job.id, payload))
+    _, valid = core.enqueue_source(
+        session,
+        business.tenant.id,
+        "bank",
+        "customer_payment",
+        "valid",
+        {
+            "party_id": business.customer.id,
+            "currency": "EUR",
+            "amount": "5",
+            "effective_at": "2026-09-12T10:00:00Z",
+            "external_payment_id": "valid",
+        },
+        context={"profile": "customer_payment.v1"},
+    )
+    with client_for(session) as client:
+        endpoint = f"/api/tenants/{business.tenant.id}/import-jobs/work"
+        response = client.post(endpoint)
+        assert response.status_code == 200, response.text
+        assert response.json() == {"prepared": 1, "completed": 0, "failed": 2}
+        assert client.post(endpoint).json() == {
+            "prepared": 0,
+            "completed": 0,
+            "failed": 0,
+        }
+    session.expire_all()
+    for source_id, job_id, payload in invalid:
+        assert (
+            json.loads(
+                session.get(SourceRecord, (business.tenant.id, source_id)).payload
+            )
+            == payload
+        )
+        job = session.get(ImportJob, (business.tenant.id, job_id))
+        assert job.status == "failed" and job.next_attempt_at is None
+        assert json.loads(job.error) == {
+            "phase": "prepare",
+            "reason_code": "intake_review_invalid",
+        }
+        assert job.attempts == 1
+    assert (
+        session.get(ImportJob, (business.tenant.id, valid.id)).status
+        == "awaiting_decision"
+    )
+    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == 1
+    assert session.scalar(select(func.count()).select_from(Document)) == 0
+    assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 0
+
+
 def prepared_payment(session, business, external_id="payment-1"):
     source, job = core.enqueue_source(
         session,

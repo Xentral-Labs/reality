@@ -275,6 +275,8 @@ jobs:
         include:
           - journey: business-journey
             test: tests/browser/unified_business_journey.py
+          - journey: payment-refresh
+            test: tests/browser/unified_payment_refresh.py
           - journey: bulk-intake
             test: tests/browser/unified_bulk_intake.py
           - journey: item-csv-import
