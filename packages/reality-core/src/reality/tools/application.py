@@ -6877,12 +6877,6 @@ def approve_and_execute_proposal(
         and not confirmed
     ):
         raise InvalidOperation(code="review_confirmation_required")
-    if (
-        candidate.type.removeprefix("tool:") in FINANCE_COMMANDS
-        and candidate.status != "executed"
-        and not confirmed
-    ):
-        raise InvalidOperation(code="review_confirmation_required")
     authority_policy = resolve_decision_policy(
         candidate.type.removeprefix("tool:"), json.loads(candidate.input)
     )
@@ -6895,6 +6889,12 @@ def approve_and_execute_proposal(
         phase="preflight",
         confirmed=confirmed,
     )
+    if (
+        candidate.type.removeprefix("tool:") in FINANCE_COMMANDS
+        and candidate.status != "executed"
+        and not confirmed
+    ):
+        raise InvalidOperation(code="review_confirmation_required")
     if candidate.type == "tool:intake_batch_apply":
         from reality.services.intake_batches import approve_batch
 
