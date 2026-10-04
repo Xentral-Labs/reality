@@ -4810,6 +4810,42 @@ capability_guidance:
     examples:
       use: [{scenario: An accountable operator or agent approves the exact pending reservation proposal., reason: An explicit authorized decision permits the single-use confirmation boundary.}]
       do_not_use: [{scenario: An agent believes a similar proposal would usually be approved., reason: Learned behavior and model output are not confirmation authority.}]
+  company_context:
+    kind: read
+    application_tool: company_context
+    purpose: Read the stored identity and purpose of the company authorized for this connection.
+    use_when: [The exact company context or retained decision evidence is needed.]
+    do_not_use_when: [Execution or new approval authority is required.]
+    required_context: [tenant]
+    data_basis: [tenant]
+    limitations: [Company identity does not grant access or prove external-agent connector isolation.]
+    freshness: Reflects retained company-scoped state at read time without refreshing proposals.
+    empty_result: Unknown or foreign identities are not found.
+    refusal_behavior: Tenant scope and existing private-review authority are enforced.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The returned retained context.], does_not_prove: [Execution or approval authority.]}
+    unknown_when: [Underlying state changes after the read.]
+    next_steps: [Use capability_catalog to inspect actual callable tools and permission refusal reasons.]
+    examples: {use: [{scenario: Inspect exact context before an explicit decision., reason: Shared reads preserve the confirmation boundary.}], do_not_use: [{scenario: Infer approval from a read., reason: Reading grants no decision authority.}]}
+  proposal_review:
+    kind: read
+    application_tool: proposal_review
+    purpose: Read the exact safe retained proposal and company context before an explicit decision.
+    use_when: [The exact company context or retained decision evidence is needed.]
+    do_not_use_when: [Execution or new approval authority is required.]
+    required_context: [change_proposal]
+    data_basis: [change_proposal]
+    limitations: [A retained preview is not execution or a guarantee that its context is still current; the confirmation boundary checks staleness and authority.]
+    freshness: Reflects retained company-scoped state at read time without refreshing proposals.
+    empty_result: Unknown or foreign identities are not found.
+    refusal_behavior: Tenant scope and existing private-review authority are enforced.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The returned retained context.], does_not_prove: [Execution or approval authority.]}
+    unknown_when: [Underlying state changes after the read.]
+    next_steps: [After explicit authorized approval use proposal_approve_and_execute with this proposal ID and retained review_token when present; reconcile using proposal_execution_status.]
+    examples: {use: [{scenario: Inspect exact context before an explicit decision., reason: Shared reads preserve the confirmation boundary.}], do_not_use: [{scenario: Infer approval from a read., reason: Reading grants no decision authority.}]}
   proposal_execution_status:
     kind: read
     application_tool: proposal_execution_status
@@ -5524,9 +5560,9 @@ capability_guidance:
     refusal_behavior: Only tenant-owned pending proposals are returned.
     confirmation: none
     side_effects: none
-    verification: {role: context, proves: [Returned proposals await approval with the displayed arguments.], does_not_prove: [Correctness, authority, execution, or verified outcome.]}
+    verification: {role: context, proves: [Returned proposal summaries await approval; exact contents require proposal_review.], does_not_prove: [Correctness, authority, execution, or verified outcome.]}
     unknown_when: [Proposal status or underlying context changes concurrently.]
-    next_steps: [Re-read Reality and use explicit confirmation only when justified.]
+    next_steps: [Read proposal_review for the exact selected proposal; re-read Reality and use explicit confirmation only when justified.]
     examples: {use: [{scenario: Present exact changes requiring review., reason: This is the governed intent queue.}], do_not_use: [{scenario: Claim stock changed from a proposal., reason: Proposal state is not execution.}]}
   finance_balances:
     kind: read

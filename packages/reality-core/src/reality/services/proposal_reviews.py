@@ -259,3 +259,75 @@ def _private_review(
             "message": "The private change cannot be read. It may be rejected, but cannot be approved here.",
         }
     return {"state": "readable", "details": _safe(details)}
+
+
+def proposal_mcp_review(
+    session: Session, tenant_id: str, proposal_id: str
+) -> dict[str, Any]:
+    """Read exact shared review without changing or refreshing the stored proposal."""
+    from reality.mcp.principal import current_mcp_principal
+    from reality.services.core import get_tenant
+    from reality.services.delivery_actions import REVIEW_KEY
+
+    actor = current_mcp_principal()
+    if actor is not None and actor.tenant_id != tenant_id:
+        raise NotFound("Proposal not found.")
+    principal = Principal(actor.user_id) if actor and actor.user_id else None
+    with session.no_autoflush:
+        result = proposal_review(session, tenant_id, proposal_id, principal=principal)
+        tenant = get_tenant(session, tenant_id)
+        result["company"] = {
+            "id": tenant.id,
+            "name": tenant.name,
+            "purpose": tenant.purpose,
+        }
+        proposal = session.scalar(
+            select(ChangeProposal).where(
+                ChangeProposal.tenant_id == tenant_id,
+                ChangeProposal.id == proposal_id,
+            )
+        )
+        arguments = _stored_object(proposal.input) or {}
+        retained = arguments.get(REVIEW_KEY)
+        # This fingerprint proves the retained business review; it is not a credential.
+        # All other token fields and private carriers remain redacted by the shared reader.
+        review_token = (
+            retained.get("token")
+            if isinstance(retained, dict)
+            and result["review_kind"] == "delivery"
+            and result["confirmable"]
+            else None
+        )
+        from reality.catalogs import runtime_tool_catalog
+        from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+        basis = result["next_step"]["verification_reads"]
+        callable_reads: set[str] = set()
+        unavailable: list[str] = []
+        catalog = runtime_tool_catalog()
+        for name in basis:
+            candidates = {name}
+            for entry in catalog["entries"]:
+                if any(
+                    name in entry[key] for key in ("commands", "views", "projections")
+                ):
+                    candidates.update(entry["mcp"])
+            matches = {
+                candidate
+                for candidate in candidates
+                if candidate in MCP_TOOL_REGISTRY
+                and MCP_TOOL_REGISTRY[candidate].access == "read"
+            }
+            callable_reads.update(matches)
+            if not matches:
+                unavailable.append(name)
+        result["next_step"]["verification_basis"] = basis
+        result["next_step"]["verification_reads"] = sorted(callable_reads)
+        result["next_step"]["unavailable_verification_reads"] = unavailable
+        result["confirmation"] = {
+            "tool": "proposal_approve_and_execute",
+            "proposal_id": proposal_id,
+            "explicit_approval_required": True,
+            "review_token": review_token if isinstance(review_token, str) else None,
+        }
+        return result

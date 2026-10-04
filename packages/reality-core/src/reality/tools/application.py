@@ -1376,6 +1376,7 @@ def _discover(session: Session, tenant_id: str, arguments: dict[str, Any]) -> An
         query=str(arguments.get("query", "")),
         limit=arguments.get("limit", 25),
         record_id=arguments.get("record_id"),
+        document_id=arguments.get("document_id"),
     )
 
 
@@ -3932,6 +3933,38 @@ def _capability_catalog(
     return topic_capabilities(session, tenant_id, topic)
 
 
+def _company_context(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Identify the company authorized for this connection and discover its tool rights.
+
+    BUSINESS RULE application.company_context.1:
+    Return the shared company-context read; its stored identity and existing rights catalog remain authoritative.
+    """
+    from reality.services.capability_catalog import company_context
+
+    # reality-rule: application.company_context.1
+    return company_context(session, tenant_id)
+
+
+def _proposal_review(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Read the exact safe proposal and confirmation inputs without executing a decision.
+
+    BUSINESS RULE application.proposal_review.1:
+    Return the shared tenant-scoped proposal review; preserve privacy, explicit confirmation and the retained review state.
+    """
+    from reality.services.proposal_reviews import proposal_mcp_review
+
+    # reality-rule: application.proposal_review.1
+    return proposal_mcp_review(session, tenant_id, str(arguments["proposal_id"]))
+
+
 def _proposals_awaiting_approval(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -3942,7 +3975,10 @@ def _proposals_awaiting_approval(
     BUSINESS RULE application.proposals_awaiting_approval.1:
     Route this company-scoped request to proposals_awaiting_approval. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
-    del arguments
+    if _read_format(arguments) == "page":
+        from reality.services.read_contracts import pending_proposals_page
+
+        return pending_proposals_page(session, tenant_id, arguments)
     # reality-rule: application.proposals_awaiting_approval.1
     return [
         {
@@ -4619,6 +4655,18 @@ TOOLS = {
         "Describe the safe use and verification path of one public agent capability.",
         False,
         _capability_describe,
+    ),
+    "company_context": Tool(
+        "company_context",
+        "Read stored company identity and the capability rights discovery path.",
+        False,
+        _company_context,
+    ),
+    "proposal_review": Tool(
+        "proposal_review",
+        "Read one exact safe proposal, company, review evidence and confirmation inputs.",
+        False,
+        _proposal_review,
     ),
     "capability_catalog": Tool(
         "capability_catalog",

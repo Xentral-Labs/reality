@@ -358,7 +358,7 @@ resources:
         nicht vorhanden.
     synonyms: [tenant, member, invitation, access, time zone, Mandant, Mitglied, Einladung, Zugang, Zeitzone]
     tables: [company_invitation, invitation_delivery, tenant_membership, company_time_zone]
-    match: "invitation|member|tenant|time_zone"
+    match: "invitation|member|tenant|time_zone|^company_context$"
     views: []
     projections: [tenant_usage]
     exceptions: []
@@ -585,6 +585,8 @@ processes:
 labels:
   de:
     tools:
+      company_context: Verbundenes Unternehmen prüfen
+      proposal_review: Konkreten Vorschlag prüfen
       email_workflow: E-Mail-Ablauf lesen
       email_history: E-Mail-Belege und Entscheidungen lesen
       email_dispatch_accept_grant: Externe E-Mail-Freigabe prüfen

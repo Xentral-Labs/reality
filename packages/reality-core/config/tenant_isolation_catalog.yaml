@@ -666,6 +666,8 @@ families:
       - tool:invoice_billable_positions
       - tool:interpretation_coverage
       - tool:proposals_awaiting_approval
+      - tool:company_context
+      - tool:proposal_review
       - tool:proposal_execution_status
       - tool:document_correct
       - tool:document_hold

@@ -12,7 +12,15 @@ from typing import Any
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
-from reality.db.core import BusinessEvent, Commitment, Item, LedgerEntry, Location, now
+from reality.db.core import (
+    BusinessEvent,
+    ChangeProposal,
+    Commitment,
+    Item,
+    LedgerEntry,
+    Location,
+    now,
+)
 from reality.services.core import (
     InvalidOperation,
     NotFound,
@@ -124,6 +132,8 @@ def discovery_page(
         "query": (arguments.get("query") or "").strip(),
         "record_id": arguments.get("record_id"),
     }
+    if arguments.get("document_id") is not None:
+        filters["document_id"] = arguments["document_id"]
     limit, scope, after = page_options(
         tenant_id, "business_discover", filters, arguments
     )
@@ -316,4 +326,51 @@ def operational_page(
                 projection_version=PROJECTION_VERSION,
                 paged=True,
             ),
+        )
+
+
+def pending_proposals_page(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
+    """Bounded metadata summaries; exact contents belong to proposal_review."""
+    filters = {"tool": arguments.get("tool") or None, "status": "proposed"}
+    limit, scope, after = page_options(
+        tenant_id, "pending_proposals", filters, arguments
+    )
+    with session.no_autoflush:
+        get_tenant(session, tenant_id)
+        statement = select(
+            ChangeProposal.id,
+            ChangeProposal.type,
+            ChangeProposal.created_at,
+            ChangeProposal.status,
+        ).where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.status == "proposed",
+        )
+        if filters["tool"]:
+            statement = statement.where(
+                ChangeProposal.type == f"tool:{filters['tool']}"
+            )
+        if after:
+            statement = statement.where(ChangeProposal.id > after)
+        rows = list(
+            session.execute(statement.order_by(ChangeProposal.id).limit(limit + 1))
+        )
+        records = [
+            {
+                "proposal_id": row.id,
+                "tool": row.type.removeprefix("tool:"),
+                "created_at": row.created_at.isoformat(),
+                "status": row.status,
+                "review_read": "proposal_review",
+            }
+            for row in rows
+        ]
+        return page_result(
+            records,
+            [row.id for row in rows],
+            limit,
+            scope,
+            read_metadata(session, tenant_id, filters, paged=True),
         )

@@ -12240,6 +12240,8 @@ Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informat
 | [`interpretation_coverage`](#tool-interpretation_coverage)                                       | Read interpretation coverage                   | `read`    | —                      |
 | [`exception_explain`](#tool-exception_explain)                                                   | Explain an operational exception               | `read`    | —                      |
 | [`proposals_awaiting_approval`](#tool-proposals_awaiting_approval)                               | List proposals awaiting approval               | `read`    | —                      |
+| [`company_context`](#tool-company_context)                                                       | Read authorized company context                | `read`    | —                      |
+| [`proposal_review`](#tool-proposal_review)                                                       | Review an exact proposal                       | `read`    | —                      |
 | [`proposal_execution_status`](#tool-proposal_execution_status)                                   | Reconcile proposal execution                   | `read`    | —                      |
 | [`proposal_reject`](#tool-proposal_reject)                                                       | Reject a proposal                              | `confirm` | —                      |
 | [`finance_balances`](#tool-finance_balances)                                                     | Read finance balances                          | `read`    | —                      |
@@ -12351,7 +12353,7 @@ a bounded lookup.
 **Aufruf**
 
 ```text
-business_records_discover [response_format] [limit] [cursor] family [query] [record_id]
+business_records_discover [response_format] [limit] [cursor] family [query] [record_id] [document_id]
 ```
 
 **Zugriff:** `read`
@@ -12377,14 +12379,15 @@ proposal.
 
 **Parameter**
 
-| Name              | Typ       | Pflicht | Beschreibung                                                                                                                                                                                                                                                    | Standard |
-| ----------------- | --------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `response_format` | `string`  | nein    | Page returns records, continuation and metadata; legacy preserves the old list shape. `page`, `legacy`                                                                                                                                                          | `page`   |
-| `limit`           | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                                                                                                                                                                 | `25`     |
-| `cursor`          | `string`  | nein    | Continuation for the same tenant, read and filters. Live pages are not a snapshot.                                                                                                                                                                              | `None`   |
-| `family`          | `string`  | ja      | `party`, `item`, `location`, `document`, `commitment`, `movement`, `reservation`, `handling_unit`, `lot`, `serial_unit`, `payment_term`, `price_list`, `price_list_entry`, `party_group`, `ledger_entry`, `source_system`, `source_capability`, `source_record` | —        |
-| `query`           | `string`  | nein    | Optional invoice-number search within matching same-party credit targets.                                                                                                                                                                                       | —        |
-| `record_id`       | `string`  | nein    | Opaque identity of the master-data record whose lifecycle is being changed.                                                                                                                                                                                     | —        |
+| Name              | Typ       | Pflicht | Beschreibung                                                                                                                                                                                                                                                                     | Standard |
+| ----------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `response_format` | `string`  | nein    | Page returns records, continuation and metadata; legacy preserves the old list shape. `page`, `legacy`                                                                                                                                                                           | `page`   |
+| `limit`           | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                                                                                                                                                                                  | `25`     |
+| `cursor`          | `string`  | nein    | Continuation for the same tenant, read and filters. Live pages are not a snapshot.                                                                                                                                                                                               | `None`   |
+| `family`          | `string`  | ja      | `party`, `item`, `location`, `document`, `document_line`, `commitment`, `movement`, `reservation`, `handling_unit`, `lot`, `serial_unit`, `payment_term`, `price_list`, `price_list_entry`, `party_group`, `ledger_entry`, `source_system`, `source_capability`, `source_record` | —        |
+| `query`           | `string`  | nein    | Optional invoice-number search within matching same-party credit targets.                                                                                                                                                                                                        | —        |
+| `record_id`       | `string`  | nein    | Opaque identity of the master-data record whose lifecycle is being changed.                                                                                                                                                                                                      | —        |
+| `document_id`     | `string`  | nein    | Opaque identity of the evidence document to inspect or correct.                                                                                                                                                                                                                  | —        |
 
 ### `inventory_read` — Read inventory {#tool-inventory_read}
 
@@ -12482,8 +12485,9 @@ Read current customer and supplier obligations and their derived fulfillment sta
 
 ### `shipments_list` — List physical shipments {#tool-shipments_list}
 
-List real incoming or outgoing consignments and packages; these are distinct from delivery
-commitments.
+List real incoming or outgoing consignments and packages. An empty list does not mean no shipping:
+retained shipment Movements are separate evidence; inspect order_explain and
+business_records_discover family movement.
 
 **Aufruf**
 
@@ -12880,12 +12884,13 @@ Explain one selected current exception through the Reality context from which it
 
 ### `proposals_awaiting_approval` — List proposals awaiting approval {#tool-proposals_awaiting_approval}
 
-Auditable changes that have been prepared but not executed.
+Read bounded, payload-free pending summaries; use proposal_review for exact contents. The tool
+filter uses the stored application tool name.
 
 **Aufruf**
 
 ```text
-proposals_awaiting_approval
+proposals_awaiting_approval [response_format] [limit] [cursor] [tool]
 ```
 
 **Zugriff:** `read`
@@ -12912,7 +12917,84 @@ List tenant change proposals that still await an explicit authorized decision.
 
 **Parameter**
 
+| Name              | Typ       | Pflicht | Beschreibung                                                                                           | Standard |
+| ----------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------ | -------- |
+| `response_format` | `string`  | nein    | Page returns records, continuation and metadata; legacy preserves the old list shape. `page`, `legacy` | `page`   |
+| `limit`           | `integer` | nein    | Maximum records per page; legacy operational lists retain their full-list behavior.                    | `25`     |
+| `cursor`          | `string`  | nein    | Continuation for the same tenant, read and filters. Live pages are not a snapshot.                     | `None`   |
+| `tool`            | `string`  | nein    | —                                                                                                      | —        |
+
+### `company_context` — Read authorized company context {#tool-company_context}
+
+Read stored company ID, name and purpose and discover the credential's rights through
+capability_catalog.
+
+**Aufruf**
+
+```text
+company_context
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage      | Art                        | Standard |
+| --------------------- | -------------------------- | -------- |
+| `MCP company_context` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read the stored identity and purpose of the company authorized for this connection.
+
+**Verwenden, wenn**
+
+- The exact company context or retained decision evidence is needed.
+
+**Nicht verwenden, wenn**
+
+- Execution or new approval authority is required.
+
+**Parameter**
+
 Keine Parameter.
+
+### `proposal_review` — Review an exact proposal {#tool-proposal_review}
+
+Read the company's exact safe proposal, retained preview or receipt, decision policy and
+confirmation inputs without executing or refreshing it. Review does not grant confirmation rights.
+
+**Aufruf**
+
+```text
+proposal_review proposal_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage      | Art                        | Standard |
+| --------------------- | -------------------------- | -------- |
+| `MCP proposal_review` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read the exact safe retained proposal and company context before an explicit decision.
+
+**Verwenden, wenn**
+
+- The exact company context or retained decision evidence is needed.
+
+**Nicht verwenden, wenn**
+
+- Execution or new approval authority is required.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                   | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id` | `string` | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
 
 ### `proposal_execution_status` — Reconcile proposal execution {#tool-proposal_execution_status}
 

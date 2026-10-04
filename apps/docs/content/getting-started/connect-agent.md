@@ -52,3 +52,10 @@ If access is refused, check the connection and selected tool permissions using t
 
 Use the built-in **Chat** if AI is configured for your company. It uses the same application tools;
 you can continue your recipe without setting up an external connection.
+
+## MCP verification reads
+
+Use `company_context` for the stored company ID, name and purpose, then `capability_catalog` for
+actual tool permissions. Use `proposal_review` for an exact decision preview and
+`proposal_execution_status` for the execution receipt. Browser review links are optional; read
+access never grants confirmation rights.

@@ -1047,7 +1047,8 @@ Zugang, Zeitzone
   (`company_time_zone_state`)
 
 **Underneath:** Tables: `company_invitation`, `invitation_delivery`, `tenant_membership`,
-`company_time_zone` · Events: [`company_time_zone.set`](./events#event-company_time_zone-set)
+`company_time_zone` · Events: [`company_time_zone.set`](./events#event-company_time_zone-set) ·
+Agent Tools without a command: [`company_context`](./commands#tool-company_context)
 
 ## Approvals, exceptions and open questions {#resource-governance}
 
@@ -1085,6 +1086,7 @@ Abweichung, Klärfall, Timeline, Verlauf
 [`exceptions_list`](./commands#tool-exceptions_list),
 [`exception_explain`](./commands#tool-exception_explain),
 [`proposals_awaiting_approval`](./commands#tool-proposals_awaiting_approval),
+[`proposal_review`](./commands#tool-proposal_review),
 [`proposal_execution_status`](./commands#tool-proposal_execution_status),
 [`proposal_reject`](./commands#tool-proposal_reject),
 [`reality_gaps`](./commands#tool-reality_gaps),

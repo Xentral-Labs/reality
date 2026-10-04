@@ -131,8 +131,10 @@ routines. Show the verified next run and how to pause. Report missing setup clea
 ```
 
 **Your success:** You see a concrete need or supplier case. In current demo baselines, `PO-001` has
-received two of five units and its remainder is overdue. `PO-003` has no promised date; `PO-006`
-shows a receipt without an invoice. Older companies may contain different cases.
+received two of five units and its remainder is overdue. `PO-003` has no promised date; `PO-006` has
+five received and billed units after the invoice-backed receipt-cost setup. Inspect the current
+invoice and line references; the initial purchase tuple alone does not describe the completed
+profile. Older companies may contain different cases.
 
 New sales orders change demand. **Live Demo does not generate new purchase orders or supplier
 receipts.** If a supplier case remains unchanged, the agent can report that.
@@ -274,3 +276,40 @@ Explore [Purchasing and replenishment](/agent-playbooks/purchasing-and-replenish
 
 **Choose another path:** [Build from scratch](./start-business) ·
 [Use an existing company](./existing-business).
+
+## Evidence and decisions through MCP
+
+Start with `company_context`, then use `capability_catalog` for the tools this connection may call.
+Read `proposals_awaiting_approval` as cursor pages (up to 100 summaries per page); filter by the
+stored application tool name, such as `reserve`. An agent must inspect matching pending proposals
+before preparing another change. Read the exact ID with `proposal_review`.
+
+Before requesting a decision, explain the company, affected order/commitment IDs and human numbers,
+item, location and quantity; current state versus proposed effect; prerequisites, blockers and any
+matching pending proposal. Use the retained review evidence and state missing evidence explicitly. A
+proposal does not reserve or move stock. Only after explicit authorized approval call
+`proposal_approve_and_execute` with `approved: true`, the exact proposal ID and the returned
+`confirmation.review_token` when present. Use `proposal_execution_status` to reconcile execution,
+then read the named operational records. A read/propose-only connection cannot confirm; review does
+not elevate its rights. A browser review link is optional; the decision cycle works through MCP.
+
+`shipments_list` holds consignments and packages. An empty list does not exclude shipment Movements;
+use `order_explain` and discovery family `movement` to inspect held shipping evidence. For invoice
+lines, discover `document_line` with the exact `document_id`; preserve stated amounts and
+distinguish missing information from zero. This does not provide a complete allocation explanation.
+
+New Demo Data source records can await interpretation/admission approval. Their arrival alone does
+not create an accepted order, invoice or payment. Inspect the source and pending interpretation, and
+follow its existing review boundary before claiming a business effect.
+
+For a support case, cite the current stored evidence. Do not invent a cause, guarantee a delivery
+date or claim that a future customer message was sent. New promises or outgoing payloads require
+their own exact proposal and explicit approval.
+
+Recurring work belongs to the external agent system. A working MCP chat connection does not prove
+scheduled execution; inspect the client's actual scheduling controls and saved task state. Qualify
+Claude Chat and Cowork separately rather than transferring a scheduling claim between them. Check
+company time zone separately from the routine's time zone (for example UTC versus Europe/Berlin),
+workdays, actual next run, any displayed scheduling delay/jitter, device availability and how to
+pause. A prompt restricting tools does not disable other connectors: verify the external agent's
+enabled connections separately. If those controls cannot be verified, report the missing setup.

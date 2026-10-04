@@ -257,15 +257,35 @@ def is_product_advisor_question(question: str) -> bool:
     """
     folded = _fold(question)
     padded = f" {folded} "
-    tenant_referents = (" my ", " our ", " meine ", " mein ", " unsere ", " unser ")
+    tenant_referents = (
+        " my ",
+        " our ",
+        " meine ",
+        " mein ",
+        " meiner ",
+        " meinem ",
+        " unsere ",
+        " unser ",
+        " unserer ",
+        " unserem ",
+    )
     hypothetical = any(
         phrase in folded
         for phrase in ("what happens", "what if", "was passiert", "wat gebeurt")
     )
+    operational = any(
+        phrase in folded
+        for phrase in (
+            "use reality tools", "nutze die reality-tools", "operative agent",
+            "show my", "show our", "read my", "read our", "inspect my", "inspect our",
+            "zeige meine", "zeige unsere", "prufe meine", "prufe unsere",
+            "priorisiere offene", "lies zunachst",
+        )
+    )
     if (
-        "reality" not in folded
-        and not hypothetical
+        not hypothetical
         and any(term in padded for term in tenant_referents)
+        and ("reality" not in folded or operational)
     ):
         return False
     if any(term in folded for term in _PRODUCT_TERMS):
