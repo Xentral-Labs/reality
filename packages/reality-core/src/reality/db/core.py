@@ -3641,6 +3641,30 @@ class ChangeProposal(Base):
     )
 
 
+class EmailBusinessLink(Base):
+    """Validated explicit object membership; original email evidence is immutable."""
+
+    __tablename__ = "email_business_link"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "source_record_id", "kind", "record_id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        Index(
+            "ix_email_business_link_object",
+            "tenant_id",
+            "kind",
+            "record_id",
+            "source_record_id",
+        ),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
+    source_record_id: Mapped[str] = mapped_column(String)
+    kind: Mapped[str] = mapped_column(String)
+    record_id: Mapped[str] = mapped_column(String)
+
+
 class EmailDispatch(Base):
     """One authorized external execution; a claim is never automatically released."""
 

@@ -207,3 +207,15 @@ execution and its immutable reported result SourceRecord. Only the claiming
 executor's report service writes it. Outcome derivation and reverse navigation use
 this relation, never caller-selected source origin/type labels; arbitrary imported
 receipts cannot close a dispatch claim. It stores no duplicated payload or status.
+
+## Explicit email business context (spec 351 FR-013–016)
+
+`email_business_link` holds immutable, tenant-scoped source-to-business memberships:
+source ID, canonical business kind and opaque business record ID. A composite source
+FK and unique membership preserve the source boundary; an object index supports
+repeated correspondence reads. Polymorphic targets use the same service-validated
+same-company object pattern as Fact subjects, with a closed model map. Context is
+not a Fact or original message content. Suppliers and every other Party role are
+valid targets; other supported operational/evidence objects use their own opaque IDs.
+Actual send Sources inherit the approved proposal context. Historical unlinked
+sources remain unchanged; correcting context captures a new immutable version.

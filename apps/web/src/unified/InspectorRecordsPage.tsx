@@ -16,6 +16,7 @@ const families = [
   ["party", "Parties"],
   ["item", "Items"],
   ["location", "Locations"],
+  ["lot", "Lots"],
   ["source_record", "Source records"],
   ["document", "Documents"],
   ["document_line", "Document lines"],
@@ -48,7 +49,7 @@ export function InspectorRecordsPage({
   const language = currentLanguage();
   const [target, setTarget] = useState<Target | null>(null);
   useEffect(() => {
-    const allowed = [...families.map(([kind]) => kind), "payment", "shipment"];
+    const allowed = [...families.map(([kind]) => kind), "payment", "shipment", "shipment_package"];
     setTarget(
       selection.inspectorTargetId &&
         (allowed.includes(selection.inspectorTargetKind || "") ||

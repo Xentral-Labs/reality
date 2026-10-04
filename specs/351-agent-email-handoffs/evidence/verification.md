@@ -70,3 +70,20 @@ and rejection refresh without reopening the dialog, alongside original evidence
 navigation and safe HTML. Ruff, spec policy, business-description audit,
 Prettier and the production web build pass. The current correction head and final full-suite status are recorded in the
 [PR verification section](https://github.com/Xentral-Labs/reality/pull/332).
+
+
+## Mandatory context extension verification
+
+Owner scope approval on 2026-10-04 requires explicit correspondence links in this
+same PR. Missing-context capture and missing object-history tests were observed
+failing before shared-service implementation. No guessed historical backfill or
+business Fact conversion is introduced.
+
+Focused PostgreSQL email/context/migration/Inspector/graph suite: 43 passed.
+Supplier, service supplier, item, purchase commitment and supplier invoice contexts
+are queryable; foreign and duplicate references fail, generic imports cannot fake
+memberships, context changes version original evidence, and actual reports inherit
+approved context. Legacy evidence is preserved and populated-link downgrade refused.
+Browser proof covers supplier object history, pagination, original files, Decisions
+and decision-status refresh. Four-language audits and 145 documentation contracts
+pass. The PR verification section records full-suite status for the final head.

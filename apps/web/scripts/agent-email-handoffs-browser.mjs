@@ -9,6 +9,7 @@ const browser = await chromium.launch({
   executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
 });
 const page = await browser.newPage();
+page.setDefaultTimeout(15000);
 const base = process.env.UNIFIED_BASE_URL || "http://localhost:5177";
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
@@ -25,6 +26,15 @@ const message = {
     { part_id: "part1", filename: "Quote.pdf", artifact_id: "art-1", sha256: "a".repeat(64) },
   ],
 };
+const businessReferences = [{ kind: "party", id: "supplier-1", label: "Bike Parts GmbH" }];
+const fixturePage = (number = 1, total = 1, size = 25) => ({
+  number,
+  size,
+  total,
+  pages: Math.max(1, Math.ceil(total / size)),
+  has_next: number * size < total,
+  has_previous: number > 1,
+});
 const proposal = {
   id: "email-proposal",
   tool: "email_dispatch_authorize",
@@ -36,6 +46,7 @@ const proposal = {
   created_at: "2026-10-03T10:00:00Z",
   input: {
     message,
+    business_references: businessReferences.map(({ kind, id }) => ({ kind, id })),
     rationale: "Acknowledge the question",
     supporting_source_ids: ["incoming-source"],
     fingerprint: "b".repeat(64),
@@ -77,9 +88,57 @@ await page.route("**/api/**", async (route) => {
   if (path === "/api/v1/bootstrap")
     return reply({ tenants: [{ id: "company", name: "Northstar" }], default_tenant_id: "company" });
   if (path.endsWith("/application-reference")) return reply(reference);
+  if (path.endsWith("/inspector-records")) return reply({ items: [], page: fixturePage(1, 0) });
+  if (path.endsWith("/inspector/party/supplier-1"))
+    return reply({
+      kind: "party",
+      id: "supplier-1",
+      title: "Bike Parts GmbH",
+      subtitle: "Supplier",
+      sections: [],
+      events: [],
+      email_history_identity: { business_kind: "party", business_id: "supplier-1" },
+    });
   if (path.endsWith("/email/history")) {
+    if (url.searchParams.has("business_kind")) {
+      assert.equal(url.searchParams.get("business_kind"), "party");
+      assert.equal(url.searchParams.get("business_id"), "supplier-1");
+      const number = Number(url.searchParams.get("page") || 1);
+      return reply({
+        business_references: businessReferences,
+        items:
+          number === 1
+            ? Array.from({ length: 25 }, (_, index) => ({
+                source_id: index === 0 ? "incoming-source" : `mail-${index}`,
+                subject: index === 0 ? "Supplier delivery question" : `Supplier email ${index}`,
+                sender: "supplier@example.test",
+                direction: "inbound",
+                received_at: "2026-10-03T10:00:00Z",
+              }))
+            : [
+                {
+                  source_id: "older-source",
+                  subject: "Earlier supplier question",
+                  sender: "supplier@example.test",
+                  direction: "inbound",
+                  received_at: "2026-10-02T10:00:00Z",
+                },
+              ],
+        page: fixturePage(number, 26),
+        related_decisions: [
+          {
+            proposal_id: proposal.id,
+            subject: "Delivery question",
+            status: proposal.status,
+            review_url: "/app/decisions?tenant=company&proposal=email-proposal",
+          },
+        ],
+        decision_page: fixturePage(),
+      });
+    }
     if (url.searchParams.has("source_id"))
       return reply({
+        business_references: businessReferences,
         source: {
           id: "incoming-source",
           payload: {
@@ -100,6 +159,7 @@ await page.route("**/api/**", async (route) => {
         reports: [],
       });
     return reply({
+      business_references: businessReferences,
       state: {
         proposed: "decision_pending",
         executed: "dispatch_authorized",
@@ -172,9 +232,30 @@ try {
     .locator("[data-email-outcome]")
     .getByText("Email decision rejected", { exact: true })
     .waitFor();
+  await history.getByRole("link", { name: "Bike Parts GmbH", exact: true }).click();
+  const supplier = page.getByRole("dialog");
+  await supplier.getByRole("heading", { name: "Bike Parts GmbH", exact: true }).waitFor();
+  const correspondence = supplier.locator("[data-object-correspondence]");
+  await correspondence.getByRole("button", { name: /Supplier delivery question/ }).click();
+  await correspondence.getByText("Email evidence history", { exact: true }).waitFor();
+  await correspondence.getByText("incoming-source", { exact: true }).click();
+  await correspondence.getByText("Quote.pdf", { exact: true }).waitFor();
+  assert.equal(
+    await correspondence.getByRole("link", { name: "Download original file" }).getAttribute("href"),
+    "/api/tenants/company/email/files/art-1/download",
+  );
+  await correspondence.getByRole("button", { name: "Back to linked correspondence" }).click();
+  await correspondence.getByRole("button", { name: "Next", exact: true }).first().click();
+  await correspondence.getByRole("button", { name: /Earlier supplier question/ }).waitFor();
+  await correspondence.getByRole("link", { name: "Delivery question", exact: true }).click();
+  await page
+    .getByRole("dialog")
+    .locator("[data-email-outcome]")
+    .getByText("Email decision rejected", { exact: true })
+    .waitFor();
   assert.deepEqual(errors, []);
   console.log(
-    "Email review, BCC, full text, safe HTML and original-file navigation and decision status refresh passed.",
+    "Email review, BCC, full text, safe HTML and original-file navigation, decision status refresh and paged supplier correspondence passed.",
   );
 } finally {
   await browser.close();

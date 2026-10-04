@@ -8167,7 +8167,7 @@ Authorize the exact approved email snapshot without sending it.
 **Synopsis**
 
 ```text
-email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]
+email_dispatch_propose business_references message rationale [supporting_source_ids] [fingerprint]
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
@@ -8179,13 +8179,14 @@ email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]
 #### `email_dispatch_propose` — Propose an outgoing email {#tool-email_dispatch_propose}
 
 Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with
-supporting sources. An authorized person reviews this exact version in Decisions; this operation
+supporting sources and mandatory existing same-company business_references. Include every relevant
+known business object. An authorized person reviews this exact version in Decisions; this operation
 cannot approve or send it.
 
 **Synopsis**
 
 ```text
-email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]
+email_dispatch_propose business_references message rationale [supporting_source_ids] [fingerprint]
 ```
 
 **Access:** `propose`
@@ -8211,38 +8212,41 @@ Review the exact outgoing message before authorizing external execution.
 
 **Parameters**
 
-| Name                                   | Type      | Required | Description                                                   | Default                    |
-| -------------------------------------- | --------- | -------- | ------------------------------------------------------------- | -------------------------- |
-| `message`                              | `object`  | yes      | —                                                             | —                          |
-| `message.account`                      | `string`  | yes      | —                                                             | —                          |
-| `message.sender`                       | `string`  | yes      | —                                                             | —                          |
-| `message.to`                           | `array`   | no       | —                                                             | —                          |
-| `message.cc`                           | `array`   | no       | —                                                             | —                          |
-| `message.bcc`                          | `array`   | no       | —                                                             | —                          |
-| `message.subject`                      | `string`  | yes      | —                                                             | —                          |
-| `message.text`                         | `string`  | no       | —                                                             | —                          |
-| `message.html`                         | `string`  | no       | —                                                             | —                          |
-| `message.message_id`                   | `string`  | no       | —                                                             | `None`                     |
-| `message.thread_id`                    | `string`  | no       | —                                                             | `None`                     |
-| `message.in_reply_to`                  | `string`  | no       | —                                                             | `None`                     |
-| `message.references`                   | `array`   | no       | —                                                             | —                          |
-| `message.stated_at`                    | `string`  | no       | When the counterparty stated the new date, defaulting to now. | `None`                     |
-| `message.headers`                      | `object`  | no       | —                                                             | —                          |
-| `message.external_payload`             | `object`  | no       | —                                                             | —                          |
-| `message.original_artifact_id`         | `string`  | no       | —                                                             | `None`                     |
-| `message.original_filename`            | `string`  | no       | —                                                             | `None`                     |
-| `message.attachments`                  | `array`   | no       | —                                                             | —                          |
-| `message.attachments[].part_id`        | `string`  | yes      | —                                                             | —                          |
-| `message.attachments[].filename`       | `string`  | yes      | —                                                             | —                          |
-| `message.attachments[].content_type`   | `string`  | no       | —                                                             | `application/octet-stream` |
-| `message.attachments[].artifact_id`    | `string`  | no       | —                                                             | `None`                     |
-| `message.attachments[].sha256`         | `string`  | no       | —                                                             | `None`                     |
-| `message.attachments[].inline`         | `boolean` | no       | —                                                             | `False`                    |
-| `message.attachments[].content_id`     | `string`  | no       | —                                                             | `None`                     |
-| `message.attachments[].missing_reason` | `string`  | no       | —                                                             | `None`                     |
-| `rationale`                            | `string`  | yes      | —                                                             | —                          |
-| `supporting_source_ids`                | `array`   | no       | —                                                             | —                          |
-| `fingerprint`                          | `string`  | no       | —                                                             | `None`                     |
+| Name                                   | Type      | Required | Description                                                                                                                                                                                                                                                        | Default                    |
+| -------------------------------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
+| `business_references`                  | `array`   | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `business_references[].kind`           | `string`  | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. `party`, `item`, `location`, `document`, `document_line`, `commitment`, `reservation`, `movement`, `ledger_entry`, `lot`, `shipment`, `shipment_package`, `fact`, `business_event` | —                          |
+| `business_references[].id`             | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message`                              | `object`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.account`                      | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.sender`                       | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.to`                           | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.cc`                           | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.bcc`                          | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.subject`                      | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.text`                         | `string`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.html`                         | `string`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.message_id`                   | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.thread_id`                    | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.in_reply_to`                  | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.references`                   | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.stated_at`                    | `string`  | no       | When the counterparty stated the new date, defaulting to now.                                                                                                                                                                                                      | `None`                     |
+| `message.headers`                      | `object`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.external_payload`             | `object`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.original_artifact_id`         | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.original_filename`            | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments`                  | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].part_id`        | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].filename`       | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].content_type`   | `string`  | no       | —                                                                                                                                                                                                                                                                  | `application/octet-stream` |
+| `message.attachments[].artifact_id`    | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].sha256`         | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].inline`         | `boolean` | no       | —                                                                                                                                                                                                                                                                  | `False`                    |
+| `message.attachments[].content_id`     | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].missing_reason` | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `rationale`                            | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `supporting_source_ids`                | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `fingerprint`                          | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
 
 **Verify with:** `email_history` — Approved payload and separately reported external execution.
 
@@ -9942,7 +9946,7 @@ Read original messages and files, decisions and reported external execution.
 **Synopsis**
 
 ```text
-email_history [source_id] [proposal_id] [execution_id]
+email_history [business_reference] [decision_page] [page] [size] [source_id] [proposal_id] [execution_id]
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat
@@ -9954,13 +9958,14 @@ email_history [source_id] [proposal_id] [execution_id]
 
 #### `email_history` — Email evidence and decision history {#tool-email_history}
 
-Read one source, proposal or execution and its original evidence, attachment download links and
-reported outcome. Provider acceptance is not recipient delivery.
+Read one source/proposal/execution or independently page explicitly linked correspondence and
+decisions by existing business reference. All partner roles, including suppliers, are supported.
+Provider acceptance is not recipient delivery.
 
 **Synopsis**
 
 ```text
-email_history [source_id] [proposal_id] [execution_id]
+email_history [business_reference] [decision_page] [page] [size] [source_id] [proposal_id] [execution_id]
 ```
 
 **Access:** `read`
@@ -9973,7 +9978,8 @@ email_history [source_id] [proposal_id] [execution_id]
 
 [How this query runs](./views#read-execution)
 
-Read the canonical email evidence, decision and external execution contract.
+Read email evidence by source or decision, or page correspondence explicitly linked to any supported
+business object.
 
 **Use when**
 
@@ -9985,11 +9991,17 @@ Read the canonical email evidence, decision and external execution contract.
 
 **Parameters**
 
-| Name           | Type     | Required | Description                                                | Default |
-| -------------- | -------- | -------- | ---------------------------------------------------------- | ------- |
-| `source_id`    | `string` | no       | Opaque identity of the immutable source record to inspect. | `None`  |
-| `proposal_id`  | `string` | no       | —                                                          | `None`  |
-| `execution_id` | `string` | no       | —                                                          | `None`  |
+| Name                      | Type      | Required | Description                                                                                                                                                                                                                                                        | Default |
+| ------------------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `business_reference`      | `object`  | no       | —                                                                                                                                                                                                                                                                  | `None`  |
+| `business_reference.kind` | `string`  | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. `party`, `item`, `location`, `document`, `document_line`, `commitment`, `reservation`, `movement`, `ledger_entry`, `lot`, `shipment`, `shipment_package`, `fact`, `business_event` | —       |
+| `business_reference.id`   | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —       |
+| `decision_page`           | `integer` | no       | —                                                                                                                                                                                                                                                                  | `1`     |
+| `page`                    | `integer` | no       | One-based page of retained membership, bounded to 25 records per page.                                                                                                                                                                                             | `1`     |
+| `size`                    | `integer` | no       | —                                                                                                                                                                                                                                                                  | `25`    |
+| `source_id`               | `string`  | no       | Opaque identity of the immutable source record to inspect.                                                                                                                                                                                                         | `None`  |
+| `proposal_id`             | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`  |
+| `execution_id`            | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`  |
 
 **See also:** Command [`email_history`](./commands#command-email_history)
 
@@ -10030,7 +10042,8 @@ email_workflow
 
 [How this query runs](./views#read-execution)
 
-Read the canonical email evidence, decision and external execution contract.
+Read email evidence by source or decision, or page correspondence explicitly linked to any supported
+business object.
 
 **Use when**
 
@@ -13889,50 +13902,55 @@ email_file_complete part_artifact_ids filename [content_type] sha256
 
 Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external
 metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace
-original contents. Use stable origin/account/message identity or retry key.
+original contents. Use stable origin/account/message identity or retry key. business_references is
+mandatory: resolve existing same-company business objects first, including supplier/other partner
+roles. Never guess a link from an address or number.
 
 **Synopsis**
 
 ```text
-email_capture origin retry_key direction message
+email_capture business_references origin retry_key direction message
 ```
 
 **Access:** `confirm`
 
 **Parameters**
 
-| Name                                   | Type      | Required | Description                                                                                     | Default                    |
-| -------------------------------------- | --------- | -------- | ----------------------------------------------------------------------------------------------- | -------------------------- |
-| `origin`                               | `string`  | yes      | —                                                                                               | —                          |
-| `retry_key`                            | `string`  | yes      | —                                                                                               | —                          |
-| `direction`                            | `string`  | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `inbound`, `outbound` | —                          |
-| `message`                              | `object`  | yes      | —                                                                                               | —                          |
-| `message.account`                      | `string`  | yes      | —                                                                                               | —                          |
-| `message.sender`                       | `string`  | yes      | —                                                                                               | —                          |
-| `message.to`                           | `array`   | no       | —                                                                                               | —                          |
-| `message.cc`                           | `array`   | no       | —                                                                                               | —                          |
-| `message.bcc`                          | `array`   | no       | —                                                                                               | —                          |
-| `message.subject`                      | `string`  | yes      | —                                                                                               | —                          |
-| `message.text`                         | `string`  | no       | —                                                                                               | —                          |
-| `message.html`                         | `string`  | no       | —                                                                                               | —                          |
-| `message.message_id`                   | `string`  | no       | —                                                                                               | `None`                     |
-| `message.thread_id`                    | `string`  | no       | —                                                                                               | `None`                     |
-| `message.in_reply_to`                  | `string`  | no       | —                                                                                               | `None`                     |
-| `message.references`                   | `array`   | no       | —                                                                                               | —                          |
-| `message.stated_at`                    | `string`  | no       | When the counterparty stated the new date, defaulting to now.                                   | `None`                     |
-| `message.headers`                      | `object`  | no       | —                                                                                               | —                          |
-| `message.external_payload`             | `object`  | no       | —                                                                                               | —                          |
-| `message.original_artifact_id`         | `string`  | no       | —                                                                                               | `None`                     |
-| `message.original_filename`            | `string`  | no       | —                                                                                               | `None`                     |
-| `message.attachments`                  | `array`   | no       | —                                                                                               | —                          |
-| `message.attachments[].part_id`        | `string`  | yes      | —                                                                                               | —                          |
-| `message.attachments[].filename`       | `string`  | yes      | —                                                                                               | —                          |
-| `message.attachments[].content_type`   | `string`  | no       | —                                                                                               | `application/octet-stream` |
-| `message.attachments[].artifact_id`    | `string`  | no       | —                                                                                               | `None`                     |
-| `message.attachments[].sha256`         | `string`  | no       | —                                                                                               | `None`                     |
-| `message.attachments[].inline`         | `boolean` | no       | —                                                                                               | `False`                    |
-| `message.attachments[].content_id`     | `string`  | no       | —                                                                                               | `None`                     |
-| `message.attachments[].missing_reason` | `string`  | no       | —                                                                                               | `None`                     |
+| Name                                   | Type      | Required | Description                                                                                                                                                                                                                                                        | Default                    |
+| -------------------------------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
+| `business_references`                  | `array`   | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `business_references[].kind`           | `string`  | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. `party`, `item`, `location`, `document`, `document_line`, `commitment`, `reservation`, `movement`, `ledger_entry`, `lot`, `shipment`, `shipment_package`, `fact`, `business_event` | —                          |
+| `business_references[].id`             | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `origin`                               | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `retry_key`                            | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `direction`                            | `string`  | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `inbound`, `outbound`                                                                                                                                                                    | —                          |
+| `message`                              | `object`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.account`                      | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.sender`                       | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.to`                           | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.cc`                           | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.bcc`                          | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.subject`                      | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.text`                         | `string`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.html`                         | `string`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.message_id`                   | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.thread_id`                    | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.in_reply_to`                  | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.references`                   | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.stated_at`                    | `string`  | no       | When the counterparty stated the new date, defaulting to now.                                                                                                                                                                                                      | `None`                     |
+| `message.headers`                      | `object`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.external_payload`             | `object`  | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.original_artifact_id`         | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.original_filename`            | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments`                  | `array`   | no       | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].part_id`        | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].filename`       | `string`  | yes      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].content_type`   | `string`  | no       | —                                                                                                                                                                                                                                                                  | `application/octet-stream` |
+| `message.attachments[].artifact_id`    | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].sha256`         | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].inline`         | `boolean` | no       | —                                                                                                                                                                                                                                                                  | `False`                    |
+| `message.attachments[].content_id`     | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].missing_reason` | `string`  | no       | —                                                                                                                                                                                                                                                                  | `None`                     |
 
 ### `email_dispatch_claim` — Claim an approved external email dispatch {#tool-email_dispatch_claim}
 

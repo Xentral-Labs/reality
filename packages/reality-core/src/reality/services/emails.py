@@ -17,18 +17,35 @@ from typing import Any
 from urllib.parse import quote
 
 from pydantic import BaseModel, ValidationError
-from sqlalchemy import select
+from sqlalchemy import cast, func, select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
+    BusinessEvent,
     ChangeProposal,
+    Commitment,
+    Document,
+    DocumentLine,
+    EmailBusinessLink,
     EmailDispatch,
     EmailDispatchReceipt,
+    Fact,
+    Item,
+    LedgerEntry,
+    Location,
+    Lot,
+    Movement,
+    Party,
+    Reservation,
+    Shipment,
+    ShipmentPackage,
     SourceRecord,
     now,
     uid,
 )
 from reality.domain.emails import (
+    BusinessReference,
     CaptureEmail,
     ClaimDispatch,
     DispatchProposal,
@@ -75,6 +92,109 @@ def _source(session: Session, tenant_id: str, source_id: str) -> SourceRecord:
     if source is None:
         raise NotFound(code="email_evidence_not_found")
     return source
+
+
+_BUSINESS_MODELS = {
+    model.__tablename__: model
+    for model in (
+        Party,
+        Item,
+        Location,
+        Document,
+        DocumentLine,
+        Commitment,
+        Reservation,
+        Movement,
+        LedgerEntry,
+        Lot,
+        Shipment,
+        ShipmentPackage,
+        Fact,
+        BusinessEvent,
+    )
+}
+
+
+def _business_references(session: Session, tenant_id: str, references):
+    """Validate all explicit targets without disclosing foreign-company records."""
+    result = []
+    for reference in sorted(references, key=lambda ref: (ref.kind, ref.id)):
+        model = _BUSINESS_MODELS[reference.kind]
+        record = session.scalar(
+            select(model).where(model.tenant_id == tenant_id, model.id == reference.id)
+        )
+        if record is None:
+            raise NotFound(code="email_evidence_not_found")
+        label = next(
+            (
+                str(getattr(record, key))
+                for key in ("name", "number", "sku", "lot_number", "predicate", "type")
+                if getattr(record, key, None)
+            ),
+            record.id,
+        )
+        result.append({"kind": reference.kind, "id": reference.id, "label": label})
+    return result
+
+
+def _inspector_email_reference(
+    session: Session, tenant_id: str, kind: str, record_id: str
+):
+    """Return a validated read selector for correspondence-capable detail views."""
+    if kind == "source_record":
+        source = _source(session, tenant_id, record_id)
+        return (
+            {"source_id": source.id}
+            if source.source_type
+            in {"email_message", "email_send_result", "email_attachment"}
+            else None
+        )
+    canonical_kind = "ledger_entry" if kind == "payment" else kind
+    if canonical_kind not in _BUSINESS_MODELS:
+        return None
+    model = _BUSINESS_MODELS[canonical_kind]
+    if (
+        session.scalar(
+            select(model.id).where(model.tenant_id == tenant_id, model.id == record_id)
+        )
+        is None
+    ):
+        return None
+    return {"business_kind": canonical_kind, "business_id": record_id}
+
+
+def _source_context(session: Session, tenant_id: str, source_id: str):
+    links = session.scalars(
+        select(EmailBusinessLink).where(
+            EmailBusinessLink.tenant_id == tenant_id,
+            EmailBusinessLink.source_record_id == source_id,
+        )
+    )
+    return _business_references(
+        session,
+        tenant_id,
+        [BusinessReference(kind=link.kind, id=link.record_id) for link in links],
+    )
+
+
+def _context_data(session: Session, tenant_id: str, data):
+    return _business_references(
+        session, tenant_id, [BusinessReference.model_validate(ref) for ref in data]
+    )
+
+
+def _link_business_context(
+    session: Session, tenant_id: str, source_id: str, references
+):
+    for ref in references:
+        identity = {
+            "tenant_id": tenant_id,
+            "source_record_id": source_id,
+            "kind": ref["kind"],
+            "record_id": ref["id"],
+        }
+        if session.get(EmailBusinessLink, identity) is None:
+            session.add(EmailBusinessLink(**identity))
 
 
 def _files(
@@ -182,14 +302,16 @@ def capture_email(
 ) -> dict[str, Any]:
     """
     BUSINESS PURPOSE:
-    Retain supplied original correspondence and attachment occurrence evidence.
+    Retain original correspondence and attachment evidence with validated explicit business context.
 
     BUSINESS RULE emails.capture_email.boundary:
-    Require the shared business-operation boundary before storing any email source.
+    Require the shared business-operation boundary and validate existing same-company business references before any email source write.
     """
     # reality-rule: emails.capture_email.boundary
     require_business_operation(session, tenant_id, "email_capture")
     request = _validate(CaptureEmail, arguments)
+    context = _business_references(session, tenant_id, request.business_references)
+    references = [{"kind": ref["kind"], "id": ref["id"]} for ref in context]
     missing = _files(session, tenant_id, request.message)
     external_id = _hash(
         [
@@ -217,6 +339,7 @@ def capture_email(
             mark_artifact_attached(get_artifact(session, tenant_id, part.artifact_id))
     payload = {
         "direction": request.direction,
+        "business_references": references,
         "message": arguments["message"],
         "attachment_source_ids": attachment_ids,
         "missing_parts": missing,
@@ -231,6 +354,7 @@ def capture_email(
         source_artifact_id=request.message.original_artifact_id,
         _commit=False,
     )
+    _link_business_context(session, tenant_id, source.id, references)
     if request.message.original_artifact_id:
         mark_artifact_attached(
             get_artifact(session, tenant_id, request.message.original_artifact_id)
@@ -239,6 +363,7 @@ def capture_email(
         session.commit()
     return {
         "source_id": source.id,
+        "business_references": context,
         "version": source.version,
         "attachment_source_ids": attachment_ids,
         "missing_parts": missing,
@@ -291,6 +416,8 @@ def prepare_dispatch(
     exclude_proposal_id: str | None = None,
 ):
     request = _validate(DispatchProposal, arguments)
+    _business_references(session, tenant_id, request.business_references)
+    request.business_references.sort(key=lambda ref: (ref.kind, ref.id))
     _files(session, tenant_id, request.message, complete=True)
     if not (request.message.to or request.message.cc or request.message.bcc):
         raise InvalidOperation(code="email_recipients_required")
@@ -433,6 +560,7 @@ def claim_dispatch(
         "execution_id": dispatch.id,
         "fingerprint": dispatch.fingerprint,
         "message": normalized["message"],
+        "business_references": normalized["business_references"],
         "state": "dispatch_claimed",
         "next_operation": "email_dispatch_report",
         "retry_rule": "A repeated claim returns the same instruction, not permission to send twice. Reconcile unknown outcomes; never redispatch automatically.",
@@ -502,10 +630,11 @@ def report_dispatch(
     )
     if not dispatch.executor or dispatch.executor != executor:
         raise InvalidOperation(code="email_executor_mismatch")
-    approved = _validate(
+    approved_request = _validate(
         DispatchProposal,
         json.loads(_proposal(session, tenant_id, dispatch.proposal_id).input),
-    ).message
+    )
+    approved = approved_request.message
     deviation = False
     actual_source_id = None
     if request.actual_message:
@@ -521,6 +650,9 @@ def report_dispatch(
                 "origin": "reality_email_execution",
                 "retry_key": dispatch.id + ":" + request.retry_key,
                 "direction": "outbound",
+                "business_references": [
+                    ref.model_dump() for ref in approved_request.business_references
+                ],
                 "message": arguments["actual_message"],
             },
             _commit=False,
@@ -580,10 +712,12 @@ def email_history(session: Session, tenant_id: str, arguments: dict[str, Any]):
     Read the original evidence, exact decision and separately reported execution chain.
 
     BUSINESS RULE emails.email_history.boundary:
-    Validate that the caller requests exactly one source, proposal or execution identity.
+    Validate exactly one source, proposal, execution or existing business reference before tenant-scoped history reads.
     """
     # reality-rule: emails.email_history.boundary
     request = _validate(EmailHistory, arguments)
+    if request.business_reference:
+        return _object_email_history(session, tenant_id, request)
     result: dict[str, Any] = {
         "source": None,
         "attachments": [],
@@ -592,11 +726,15 @@ def email_history(session: Session, tenant_id: str, arguments: dict[str, Any]):
         "supporting_sources": [],
         "related_decisions": [],
         "outgoing_files": [],
+        "business_references": [],
+        "context_missing": True,
     }
     if request.source_id:
         source = _source(session, tenant_id, request.source_id)
         result["source"] = _source_data(source)
         payload = result["source"]["payload"]
+        result["business_references"] = _source_context(session, tenant_id, source.id)
+        result["context_missing"] = not result["business_references"]
         candidates = session.scalars(
             select(ChangeProposal).where(
                 ChangeProposal.tenant_id == tenant_id,
@@ -672,6 +810,10 @@ def email_history(session: Session, tenant_id: str, arguments: dict[str, Any]):
         elif proposal.status == "executed":
             dispatch = _dispatch(session, tenant_id, proposal_id=proposal.id)
         data = json.loads(proposal.input)
+        result["business_references"] = _context_data(
+            session, tenant_id, data.get("business_references", [])
+        )
+        result["context_missing"] = not result["business_references"]
         result["outgoing_files"] = [
             {
                 "part_id": part["part_id"],
@@ -711,6 +853,94 @@ def email_history(session: Session, tenant_id: str, arguments: dict[str, Any]):
     return result
 
 
+def _page(total: int, number: int, size: int):
+    pages = max(1, (total + size - 1) // size)
+    return {
+        "number": number,
+        "size": size,
+        "total": total,
+        "pages": pages,
+        "has_next": number < pages,
+        "has_previous": number > 1,
+    }
+
+
+def _object_email_history(session: Session, tenant_id: str, request: EmailHistory):
+    """Page indexed explicit memberships and exact-context proposals independently."""
+    reference = request.business_reference
+    context = _business_references(session, tenant_id, [reference])
+    query = (
+        select(SourceRecord)
+        .join(
+            EmailBusinessLink,
+            (EmailBusinessLink.tenant_id == SourceRecord.tenant_id)
+            & (EmailBusinessLink.source_record_id == SourceRecord.id),
+        )
+        .where(
+            SourceRecord.tenant_id == tenant_id,
+            EmailBusinessLink.tenant_id == tenant_id,
+            EmailBusinessLink.kind == reference.kind,
+            EmailBusinessLink.record_id == reference.id,
+        )
+    )
+    total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    sources = session.scalars(
+        query.order_by(SourceRecord.received_at.desc(), SourceRecord.id.desc())
+        .offset((request.page - 1) * request.size)
+        .limit(request.size)
+    )
+    items = []
+    for source in sources:
+        payload = json.loads(source.payload)
+        message = payload["message"]
+        items.append(
+            {
+                "source_id": source.id,
+                "version": source.version,
+                "direction": payload["direction"],
+                "subject": message.get("subject", ""),
+                "sender": message.get("sender", ""),
+                "received_at": source.received_at.isoformat(),
+                "business_references": _context_data(
+                    session, tenant_id, payload["business_references"]
+                ),
+            }
+        )
+    proposals_query = select(ChangeProposal).where(
+        ChangeProposal.tenant_id == tenant_id,
+        ChangeProposal.type == "tool:email_dispatch_authorize",
+        cast(ChangeProposal.input, JSONB)["business_references"].contains(
+            [reference.model_dump()]
+        ),
+    )
+    decision_total = (
+        session.scalar(select(func.count()).select_from(proposals_query.subquery()))
+        or 0
+    )
+    proposals = session.scalars(
+        proposals_query.order_by(
+            ChangeProposal.created_at.desc(), ChangeProposal.id.desc()
+        )
+        .offset((request.decision_page - 1) * request.size)
+        .limit(request.size)
+    )
+    return {
+        "business_references": context,
+        "items": items,
+        "page": _page(total, request.page, request.size),
+        "related_decisions": [
+            {
+                "proposal_id": p.id,
+                "status": p.status,
+                "subject": json.loads(p.input)["message"]["subject"],
+                "review_url": f"/app/decisions?tenant={tenant_id}&proposal={p.id}",
+            }
+            for p in proposals
+        ],
+        "decision_page": _page(decision_total, request.decision_page, request.size),
+    }
+
+
 def email_workflow():
     """
     BUSINESS PURPOSE:
@@ -721,7 +951,10 @@ def email_workflow():
     """
     # reality-rule: emails.email_workflow.boundary
     return {
-        "version": 1,
+        "version": 2,
+        "business_reference_kinds": sorted(_BUSINESS_MODELS),
+        "context_rule": "Every capture and proposal requires one or more explicit existing same-company business references. Include all relevant known objects, including suppliers and other partner roles. Never guess IDs or derive identity from addresses. Resolve context before capture. Actual send evidence inherits approved context.",
+        "history_rule": "Use email_history with business_reference to page correspondence and decisions for any supported object; source/proposal/execution reads retain original evidence navigation. Context does not create Facts or modify business state.",
         "chunk_bytes": CHUNK_BYTES,
         "max_file_bytes": int(
             os.environ.get("REALITY_MAX_UPLOAD_BYTES", DEFAULT_MAX_UPLOAD_BYTES)
@@ -746,7 +979,19 @@ def email_workflow():
         "send_rule": "Reality does not send mail. Provider acceptance is reported evidence, not verified recipient delivery.",
         "documentation": "docs/features/agent-email-handoffs.md",
         "examples": {
+            "email_history": {
+                "business_reference": {
+                    "kind": "party",
+                    "id": "USE_EXISTING_BUSINESS_PARTNER_ID",
+                },
+                "page": 1,
+                "decision_page": 1,
+                "size": 25,
+            },
             "email_capture": {
+                "business_references": [
+                    {"kind": "party", "id": "USE_EXISTING_BUSINESS_PARTNER_ID"}
+                ],
                 "origin": "support_agent",
                 "retry_key": "provider-123",
                 "direction": "inbound",
@@ -759,6 +1004,9 @@ def email_workflow():
                 },
             },
             "email_dispatch_propose": {
+                "business_references": [
+                    {"kind": "party", "id": "USE_EXISTING_BUSINESS_PARTNER_ID"}
+                ],
                 "message": {
                     "account": "support@example.test",
                     "sender": "support@example.test",

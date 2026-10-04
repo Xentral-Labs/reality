@@ -7,6 +7,8 @@ import { currentLanguage, t } from "../localization";
 import { RegisterPager } from "./WarehousePage";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
+import { EmailEvidencePanel } from "./EmailEvidencePanel";
+import { ObjectCorrespondencePanel } from "./ObjectCorrespondencePanel";
 import { DecisionLine } from "./DecisionLine";
 
 const compactGrid = "grid gap-4 md:grid-cols-2";
@@ -300,6 +302,24 @@ export function InspectorContent({
             )}
           </section>
         ),
+      )}
+      {!compact &&
+        tenant &&
+        data.email_history_identity?.business_kind &&
+        data.email_history_identity.business_id && (
+          <ObjectCorrespondencePanel
+            key={`${tenant}:${data.email_history_identity.business_kind}:${data.email_history_identity.business_id}`}
+            tenant={tenant}
+            kind={data.email_history_identity.business_kind}
+            id={data.email_history_identity.business_id}
+          />
+        )}
+      {!compact && tenant && data.email_history_identity?.source_id && (
+        <EmailEvidencePanel
+          key={data.email_history_identity.source_id}
+          tenant={tenant}
+          initialSourceId={data.email_history_identity.source_id}
+        />
       )}
       {!compact && data.source_payload && (
         <details className="mt-5" data-source-payload>

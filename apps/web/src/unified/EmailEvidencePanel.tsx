@@ -50,16 +50,18 @@ export function EmailEvidencePanel({
   tenant,
   proposalId,
   decisionStatus,
+  initialSourceId,
 }: {
   tenant: string;
-  proposalId: string;
-  decisionStatus: string;
+  proposalId?: string;
+  decisionStatus?: string;
+  initialSourceId?: string;
 }) {
-  const [sourceId, setSourceId] = useState<string>();
+  const [sourceId, setSourceId] = useState<string | undefined>(initialSourceId);
   const history = useRead(
     () =>
-      api.emailHistory(tenant, sourceId ? { source_id: sourceId } : { proposal_id: proposalId }),
-    [tenant, proposalId, sourceId, decisionStatus],
+      api.emailHistory(tenant, sourceId ? { source_id: sourceId } : { proposal_id: proposalId! }),
+    [tenant, proposalId, sourceId, decisionStatus, initialSourceId],
   );
   const data = history.data;
   if (!data)
@@ -76,7 +78,38 @@ export function EmailEvidencePanel({
           "The external agent sends the email after approval. Provider acceptance does not verify recipient delivery.",
         )}
       </p>
-      {sourceId && (
+      {(data.business_references || []).length > 0 && (
+        <div data-email-business-context>
+          <h5 className="font-medium">{t("Business context")}</h5>
+          {(data.business_references || []).map((reference) => (
+            <a
+              key={`${reference.kind}:${reference.id}`}
+              className="block text-accent underline"
+              data-original-content
+              href={`/app/inspector?${new URLSearchParams({ tenant, inspector_view: "facts", inspector_target_kind: reference.kind, inspector_target_id: reference.id })}`}
+            >
+              {reference.label}
+            </a>
+          ))}
+        </div>
+      )}
+      {data.context_missing && (
+        <p className="text-sm text-fg-muted">
+          {t(
+            "This historical email has no verified business context. Capture a new version with existing business references.",
+          )}
+        </p>
+      )}
+      {(data.related_decisions || []).map((decision) => (
+        <a
+          key={decision.proposal_id}
+          className="block text-accent underline"
+          href={`/app/decisions?${new URLSearchParams({ tenant, proposal: decision.proposal_id })}`}
+        >
+          {t("Open decision")}
+        </a>
+      ))}
+      {sourceId && proposalId && (
         <button className="br-btn" onClick={() => setSourceId(undefined)}>
           {t("Return to email decision")}
         </button>

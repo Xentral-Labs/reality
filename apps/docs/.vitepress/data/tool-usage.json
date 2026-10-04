@@ -234,7 +234,7 @@
         "de": "Agenten übergeben Originalnachrichten und Dateien, schlagen genaue ausgehende Nachrichten vor und melden den externen Versand."
       },
       "synonyms": ["email", "mail", "correspondence", "E-Mail", "Korrespondenz"],
-      "tables": ["email_dispatch", "email_dispatch_receipt"],
+      "tables": ["email_dispatch", "email_dispatch_receipt", "email_business_link"],
       "lists": [],
       "actions": ["command:email_dispatch_authorize"],
       "reads": ["command:email_history", "command:email_workflow"],
@@ -21583,7 +21583,7 @@
       "synopsis": "email_workflow",
       "parameters": [],
       "guidance": {
-        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "purpose": "Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.",
         "use_when": ["An agent handles correspondence or needs its evidence trail."],
         "do_not_use_when": ["The request requires sending mail or approving a proposal."],
         "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
@@ -21609,11 +21609,73 @@
       "key": "email_history",
       "label": "Email evidence and decision history",
       "area": "cross_functional",
-      "summary": "Read one source, proposal or execution and its original evidence, attachment download links and reported outcome. Provider acceptance is not recipient delivery.",
+      "summary": "Read one source/proposal/execution or independently page explicitly linked correspondence and decisions by existing business reference. All partner roles, including suppliers, are supported. Provider acceptance is not recipient delivery.",
       "access": "read",
       "group": "Email",
-      "synopsis": "email_history [source_id] [proposal_id] [execution_id]",
+      "synopsis": "email_history [business_reference] [decision_page] [page] [size] [source_id] [proposal_id] [execution_id]",
       "parameters": [
+        {
+          "name": "business_reference",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "business_reference.kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 1,
+          "enum": [
+            "party",
+            "item",
+            "location",
+            "document",
+            "document_line",
+            "commitment",
+            "reservation",
+            "movement",
+            "ledger_entry",
+            "lot",
+            "shipment",
+            "shipment_package",
+            "fact",
+            "business_event"
+          ]
+        },
+        {
+          "name": "business_reference.id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "decision_page",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": 1
+        },
+        {
+          "name": "page",
+          "type": "integer",
+          "required": false,
+          "description": "One-based page of retained membership, bounded to 25 records per page.",
+          "depth": 0,
+          "default": 1
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": 25
+        },
         {
           "name": "source_id",
           "type": "string",
@@ -21640,7 +21702,7 @@
         }
       ],
       "guidance": {
-        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "purpose": "Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.",
         "use_when": ["An agent handles correspondence or needs its evidence trail."],
         "do_not_use_when": ["The request requires sending mail or approving a proposal."],
         "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
@@ -21666,11 +21728,48 @@
       "key": "email_dispatch_propose",
       "label": "Propose an outgoing email",
       "area": "cross_functional",
-      "summary": "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
+      "summary": "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
       "access": "propose",
       "group": "Email",
-      "synopsis": "email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]",
+      "synopsis": "email_dispatch_propose business_references message rationale [supporting_source_ids] [fingerprint]",
       "parameters": [
+        {
+          "name": "business_references",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "business_references[].kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 1,
+          "enum": [
+            "party",
+            "item",
+            "location",
+            "document",
+            "document_line",
+            "commitment",
+            "reservation",
+            "movement",
+            "ledger_entry",
+            "lot",
+            "shipment",
+            "shipment_package",
+            "fact",
+            "business_event"
+          ]
+        },
+        {
+          "name": "business_references[].id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
         {
           "name": "message",
           "type": "object",
@@ -22014,11 +22113,48 @@
       "key": "email_capture",
       "label": "Capture original email evidence",
       "area": "cross_functional",
-      "summary": "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key.",
+      "summary": "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key. business_references is mandatory: resolve existing same-company business objects first, including supplier/other partner roles. Never guess a link from an address or number.",
       "access": "confirm",
       "group": "Email",
-      "synopsis": "email_capture origin retry_key direction message",
+      "synopsis": "email_capture business_references origin retry_key direction message",
       "parameters": [
+        {
+          "name": "business_references",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "business_references[].kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 1,
+          "enum": [
+            "party",
+            "item",
+            "location",
+            "document",
+            "document_line",
+            "commitment",
+            "reservation",
+            "movement",
+            "ledger_entry",
+            "lot",
+            "shipment",
+            "shipment_package",
+            "fact",
+            "business_event"
+          ]
+        },
+        {
+          "name": "business_references[].id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
         {
           "name": "origin",
           "type": "string",
@@ -22569,7 +22705,7 @@
       "related_services": [],
       "tools": ["email_dispatch_propose"],
       "synopses": [
-        "email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]"
+        "email_dispatch_propose business_references message rationale [supporting_source_ids] [fingerprint]"
       ],
       "events": [],
       "actions": [],
@@ -22625,11 +22761,13 @@
       "confirmation": null,
       "related_services": [],
       "tools": ["email_history"],
-      "synopses": ["email_history [source_id] [proposal_id] [execution_id]"],
+      "synopses": [
+        "email_history [business_reference] [decision_page] [page] [size] [source_id] [proposal_id] [execution_id]"
+      ],
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "purpose": "Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.",
         "use_when": ["An agent handles correspondence or needs its evidence trail."],
         "do_not_use_when": ["The request requires sending mail or approving a proposal."],
         "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
@@ -22658,7 +22796,7 @@
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "purpose": "Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.",
         "use_when": ["An agent handles correspondence or needs its evidence trail."],
         "do_not_use_when": ["The request requires sending mail or approving a proposal."],
         "limitations": ["Provider acceptance is reported evidence, not verified delivery."],

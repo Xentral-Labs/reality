@@ -45,8 +45,8 @@ execution.
 - [Read email history](./commands#command-email_history) (`email_history`)
 - [Read email workflow](./commands#command-email_workflow) (`email_workflow`)
 
-**Underneath:** Tables: `email_dispatch`, `email_dispatch_receipt` · Agent Tools without a command:
-[`email_file_chunk`](./commands#tool-email_file_chunk),
+**Underneath:** Tables: `email_dispatch`, `email_dispatch_receipt`, `email_business_link` · Agent
+Tools without a command: [`email_file_chunk`](./commands#tool-email_file_chunk),
 [`email_file_complete`](./commands#tool-email_file_complete),
 [`email_capture`](./commands#tool-email_capture),
 [`email_dispatch_claim`](./commands#tool-email_dispatch_claim),

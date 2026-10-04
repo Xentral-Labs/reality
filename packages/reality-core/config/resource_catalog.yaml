@@ -20,7 +20,7 @@ resources:
       en: "Agents hand over original messages and files, propose exact outgoing messages and report external execution."
       de: "Agenten übergeben Originalnachrichten und Dateien, schlagen genaue ausgehende Nachrichten vor und melden den externen Versand."
     synonyms: [email, mail, correspondence, E-Mail, Korrespondenz]
-    tables: [email_dispatch, email_dispatch_receipt]
+    tables: [email_dispatch, email_dispatch_receipt, email_business_link]
     match: "email_"
     views: []
     projections: []

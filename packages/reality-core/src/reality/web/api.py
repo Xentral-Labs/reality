@@ -7610,11 +7610,15 @@ def get_inspector(
     if not isinstance(payload, dict):
         return payload
     from reality.services.decision_attribution import record_decisions
+    from reality.services.emails import _inspector_email_reference
 
     # Every detail view names the decisions behind its record (spec 263 FR-013).
     return {
         **payload,
         "decisions": record_decisions(session, tenant_id, kind, record_id),
+        "email_history_identity": _inspector_email_reference(
+            session, tenant_id, kind, record_id
+        ),
     }
 
 
@@ -7645,7 +7649,7 @@ def _inspector(
                     },
                 )
             )
-        if kind in {"document_line", "source_record", "business_event"}:
+        if kind in {"document_line", "source_record", "business_event", "lot"}:
             from reality.services.delivery_reads import delivery_evidence
 
             return complete_inspector(
@@ -9467,6 +9471,11 @@ def get_email_history(
     source_id: str | None = None,
     proposal_id: str | None = None,
     execution_id: str | None = None,
+    business_kind: str | None = None,
+    business_id: str | None = None,
+    page: int = 1,
+    decision_page: int = 1,
+    size: int = 25,
 ):
     from reality.tools.application import run_read_tool
 
@@ -9479,6 +9488,12 @@ def get_email_history(
                 "source_id": source_id,
                 "proposal_id": proposal_id,
                 "execution_id": execution_id,
+                "business_reference": {"kind": business_kind, "id": business_id}
+                if business_kind is not None or business_id is not None
+                else None,
+                "page": page,
+                "decision_page": decision_page,
+                "size": size,
             },
         )
     except (InvalidOperation, NotFound) as error:

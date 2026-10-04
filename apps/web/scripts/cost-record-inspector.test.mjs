@@ -54,6 +54,9 @@ function harness() {
         if (name === "./WarehousePage") return { RegisterPager: Pager };
         if (name === "./ReadState") return { ReadState };
         if (name === "./DecisionLine") return { DecisionLine: () => null };
+        if (name === "./EmailEvidencePanel") return { EmailEvidencePanel: () => null };
+        if (name === "./ObjectCorrespondencePanel")
+          return { ObjectCorrespondencePanel: () => null };
         if (name === "./inspectorFormat")
           return {
             inspectorValue: (v) => (v == null ? "—" : String(v)),

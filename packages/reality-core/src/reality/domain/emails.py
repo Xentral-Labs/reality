@@ -10,6 +10,37 @@ class EmailInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class BusinessReference(EmailInput):
+    kind: Literal[
+        "party",
+        "item",
+        "location",
+        "document",
+        "document_line",
+        "commitment",
+        "reservation",
+        "movement",
+        "ledger_entry",
+        "lot",
+        "shipment",
+        "shipment_package",
+        "fact",
+        "business_event",
+    ]
+    id: str = Field(min_length=1, max_length=200)
+
+
+class BusinessContext(EmailInput):
+    business_references: list[BusinessReference] = Field(min_length=1, max_length=50)
+
+    @model_validator(mode="after")
+    def unique_references(self):
+        keys = {(ref.kind, ref.id) for ref in self.business_references}
+        if len(keys) != len(self.business_references):
+            raise ValueError("Business references must be distinct.")
+        return self
+
+
 class Attachment(EmailInput):
     part_id: str = Field(min_length=1, max_length=200)
     filename: str = Field(min_length=1, max_length=255)
@@ -48,14 +79,14 @@ class EmailMessage(EmailInput):
         return self
 
 
-class CaptureEmail(EmailInput):
+class CaptureEmail(BusinessContext):
     origin: str = Field(min_length=1, max_length=200)
     retry_key: str = Field(min_length=1, max_length=200)
     direction: Literal["inbound", "outbound"]
     message: EmailMessage
 
 
-class DispatchProposal(EmailInput):
+class DispatchProposal(BusinessContext):
     message: EmailMessage
     rationale: str = Field(min_length=1, max_length=10000)
     supporting_source_ids: list[str] = Field(default_factory=list, max_length=1000)
@@ -90,6 +121,10 @@ class ReportDispatch(EmailInput):
 
 
 class EmailHistory(EmailInput):
+    business_reference: BusinessReference | None = None
+    decision_page: int = Field(default=1, ge=1)
+    page: int = Field(default=1, ge=1)
+    size: int = Field(default=25, ge=1, le=100)
     source_id: str | None = None
     proposal_id: str | None = None
     execution_id: str | None = None
@@ -99,11 +134,18 @@ class EmailHistory(EmailInput):
         if (
             sum(
                 bool(value)
-                for value in (self.source_id, self.proposal_id, self.execution_id)
+                for value in (
+                    self.source_id,
+                    self.proposal_id,
+                    self.execution_id,
+                    self.business_reference,
+                )
             )
             != 1
         ):
-            raise ValueError("Provide exactly one source, proposal or execution ID.")
+            raise ValueError(
+                "Provide exactly one source, proposal, execution or business reference."
+            )
         return self
 
 

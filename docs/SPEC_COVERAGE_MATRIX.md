@@ -2419,10 +2419,13 @@ Exception class `reservation_awaiting_prepayment`, derived at read time: an open
 Specification: `specs/351-agent-email-handoffs/spec.md`.
 Contract: `docs/features/agent-email-handoffs.md`.
 Evidence: `packages/reality-core/tests/test_agent_email_handoffs.py` and
-`packages/reality-core/tests/test_agent_email_migration.py` cover lossless messages,
+`packages/reality-core/tests/test_agent_email_migration.py` and
+`packages/reality-core/tests/test_agent_email_business_context.py` cover lossless messages,
 attachment provenance, bounded chunk retries/checksums, exact Decisions,
 actor/tenant boundaries, concurrent claims, truthful outcomes, API/MCP parity and
-migration rollback guards. Browser proof covers review and original-file navigation.
+migration rollback guards, mandatory supplier/non-order context, immutable context
+versions, explicit memberships and independently paged object/decision history.
+Browser proof covers review, original-file navigation and supplier correspondence.
 Implementation/verification status is recorded in the feature tasks and evidence;
 this entry does not assert a completed release gate.
 ## Unconfirmed purchase orders — Spec 346
