@@ -147,14 +147,21 @@ try {
   await page.goto(`${base}/app/demo-data?tenant=${encodeURIComponent(tenant)}`);
   await page.locator("[data-awaiting-reviewer]").waitFor();
   await page.screenshot({ path: `${output}/04-awaiting-review.png`, fullPage: true });
-  const paused = await page.request.post(`${demo}/control`, {
-    data: {
-      action: "pause",
-      expected_revision: waiting.revision,
-      request_key: `review-proof-pause-${Date.now()}`,
-      confirmed: true,
-    },
-  });
+  const pauseRequestKey = `review-proof-pause-${Date.now()}`;
+  let paused;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const current = await get(demo);
+    paused = await page.request.post(`${demo}/control`, {
+      data: {
+        action: "pause",
+        expected_revision: current.revision,
+        request_key: pauseRequestKey,
+        confirmed: true,
+      },
+    });
+    if (paused.status() !== 409) break;
+    assert.equal((await paused.json()).code, "unfinished_run");
+  }
   assert.equal(paused.status(), 200, await paused.text());
   const beforeReview = await get(demo);
   const pending = await get(

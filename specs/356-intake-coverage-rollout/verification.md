@@ -72,3 +72,11 @@ The 507 baseline AST candidates remain an inventory, not semantic coverage. Publ
 canonical writers outside intake/setup authority and their non-core callees still
 require the US1 guard, explicit exception classification and direct-call refusal
 proofs. No task requiring that universal boundary is marked complete here.
+
+## Worker/control concurrency regression
+
+The live company-setup proof reloads the current Demo Data revision before its
+explicit pause request. It retries only the documented `unfinished_run` conflict,
+with the same request key and a bounded five attempts; other refusals still fail
+the proof. The actual PostgreSQL/worker/browser journey passed again (89.32s),
+including exact original payload, digest, decider and one applied document.
