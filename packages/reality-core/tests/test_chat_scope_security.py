@@ -446,3 +446,76 @@ def test_unrelated_turn_does_not_prefetch_shipping_context(monkeypatch):
     assert (
         mcp_chat._shipping_context(None, "tenant_exact", "Read company time zone") == ""
     )
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+async def test_daily_mission_keeps_filtered_shipping_evidence_across_tool_rounds(
+    provider,
+    harness,
+    session,
+    business,
+    padded_shipping,
+):
+    from reality.db.core import ChangeProposal, Shipment
+
+    commitment, movements = padded_shipping
+    assert session.query(Shipment).filter_by(tenant_id=business.tenant.id).count() == 0
+    before = (
+        session.query(ChangeProposal).filter_by(tenant_id=business.tenant.id).count()
+    )
+    requests, replies = harness
+    replies.extend(
+        [
+            tool_reply(provider, "inventory_read", {}),
+            tool_reply(
+                provider,
+                "business_records_discover",
+                {"family": "commitment", "record_id": commitment.id},
+            ),
+            text_reply(provider),
+        ]
+    )
+    await invoke_business(
+        provider,
+        session,
+        business.tenant.id,
+        "Priorisiere offene Aufträge: 09:00 Stornos; 11:00 und 12:00 Lieferzusagen; "
+        "13:00 erfassten Versand; 14:00 Retouren. Lies zunächst nur; Änderungen "
+        "brauchen Decisions und meine Freigabe. Prüfe Wiederholung und nächsten Lauf.",
+    )
+    assert len(requests) == 3
+    for request in requests:
+        prompt = str(request.get("system") or request["messages"][0]["content"])
+        assert all(movement.id in prompt for movement in movements)
+        assert "opening_stock" not in prompt
+        assert "matching_retained_records_only" in prompt
+        assert "not a shipment total" in prompt
+    assert (
+        session.query(ChangeProposal).filter_by(tenant_id=business.tenant.id).count()
+        == before
+    )
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+async def test_daily_round_recovers_from_undeclared_shipment_argument(
+    provider,
+    harness,
+    session,
+    business,
+):
+    requests, replies = harness
+    replies.extend(
+        [
+            tool_reply(provider, "shipments_list", {"limit": 5}),
+            tool_reply(provider, "shipments_list", {"size": 5}),
+            text_reply(provider),
+        ]
+    )
+    await invoke_business(
+        provider, session, business.tenant.id, "Check recorded shipping; read only."
+    )
+    assert len(requests) == 3
+    assert "limit" in str(requests[1])
+    assert "Unknown" in str(requests[1])

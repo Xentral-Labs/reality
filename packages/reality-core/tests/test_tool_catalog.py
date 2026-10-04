@@ -86,3 +86,18 @@ def test_contribution_capabilities_share_one_business_topic():
         "mcp:graph_contribution_reviews_list",
     }
     assert {row["id"] for row in entries if row["topic"] == "contribution"} == expected
+
+
+def test_unknown_standalone_tool_configuration_is_rejected(monkeypatch):
+    import json
+
+    import pytest
+
+    import reality.tool_catalog as catalog_module
+
+    source = load_application_catalog()
+    config = json.loads(catalog_module.config_text("tool_catalog.json"))
+    config["standalone_tools"] = ["nonexistent_confirmation_tool"]
+    monkeypatch.setattr(catalog_module, "config_text", lambda _: json.dumps(config))
+    with pytest.raises(ValueError, match="standalone"):
+        build_tool_catalog(source)

@@ -507,3 +507,32 @@ def test_legacy_delivery_handoff_requires_preparation_without_read_writes(
     )
     assert executed["status"] == "executed"
     assert active_reserved(session, business.tenant.id, business.item.id) == 2
+
+
+def test_read_only_mcp_connection_receives_filtered_shipping_page(
+    session,
+    business,
+    padded_shipping,
+):
+    _, movements = padded_shipping
+    principal = MCPPrincipal(
+        "manual",
+        "shipping_read",
+        None,
+        None,
+        business.tenant.id,
+        "shipping_read",
+        frozenset({"reality:read", "reality:tool:business_records_discover"}),
+        frozenset({"business_records_discover"}),
+    )
+    result = dispatch_mcp_tool(
+        session,
+        principal,
+        "business_records_discover",
+        {"family": "movement", "query": "shipment", "limit": 5},
+    )
+    assert [row["id"] for row in result["records"]] == [
+        movement.id for movement in movements
+    ]
+    assert result["has_more"] is False
+    assert {row["type"] for row in result["records"]} == {"shipment"}

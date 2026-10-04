@@ -1,4 +1,5 @@
 {
+  "standalone_tools": ["proposal_approve_and_execute"],
   "version": 1,
   "topics": [
     {

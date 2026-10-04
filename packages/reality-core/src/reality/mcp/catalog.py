@@ -1023,7 +1023,11 @@ MCP_TOOL_CATALOG = (
                         "source_record",
                     ],
                 },
-                "query": {"type": "string", "default": ""},
+                "query": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Case-insensitive substring search over available labels, codes and human numbers; movement searches match the retained movement type (for example shipment). Filtering precedes pagination. An exact record_id takes precedence.",
+                },
                 "limit": {
                     "type": "integer",
                     "minimum": 1,
@@ -4869,6 +4873,22 @@ def dispatch_tool(
             )
         if not principal.permits(tool_name):
             raise PermissionError(f"MCP principal does not allow tool: {tool_name}")
+    schema = definition.input_schema
+    if (
+        schema.get("additionalProperties") is False
+        and isinstance(schema.get("properties"), dict)
+        and not any(
+            key in schema
+            for key in ("oneOf", "anyOf", "allOf", "$ref", "patternProperties")
+        )
+    ):
+        unknown = set(arguments or {}) - schema["properties"].keys()
+        if unknown:
+            raise InvalidOperation(
+                f"Unknown arguments for {tool_name}: {', '.join(sorted(unknown))}. "
+                f"Declared arguments: {', '.join(schema['properties'])}."
+            )
+    if principal is not None:
         with mcp_principal_context(principal):
             return definition.handler(session, tenant_id, arguments or {})
     return definition.handler(session, tenant_id, arguments or {})

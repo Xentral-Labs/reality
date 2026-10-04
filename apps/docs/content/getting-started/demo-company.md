@@ -294,6 +294,10 @@ proposal does not reserve or move stock. Only after explicit authorized approval
 then read the named operational records. A read/propose-only connection cannot confirm; review does
 not elevate its rights. A browser review link is optional; the decision cycle works through MCP.
 
+Discover the generic confirmation tool independently through `capability_catalog` with topic
+`review`. Its `callable` and `reason` report the current connection rights; intake-specific
+capabilities remain available separately.
+
 Use the complete `confirmation.arguments` only after that decision; it includes the required
 `approved: true`. Fresh demo reservations already retain their full review. If an older proposal
 reports `confirmation.review_preparation_required`, the first approved call only prepares the
@@ -311,7 +315,10 @@ follow its completeness and `has_more`, and use `order_explain` for the exact or
 does not guarantee every model answer or establish a company shipment total.
 
 `shipments_list` holds consignments and packages. An empty list does not exclude shipment Movements;
-use `order_explain` and discovery family `movement` to inspect held shipping evidence. For invoice
+use `order_explain` and discovery family `movement`, `query: "shipment"`, to inspect held shipping
+evidence. The movement query matches the retained type before the page limit; traverse
+`next_cursor` while `has_more` is true. The company-wide sample does not establish an exact order
+or total without those additional reads. For invoice
 lines, discover `document_line` with the exact `document_id`; preserve stated amounts and
 distinguish missing information from zero. This does not provide a complete allocation explanation.
 

@@ -2976,7 +2976,7 @@
           "name": "query",
           "type": "string",
           "required": false,
-          "description": "Optional invoice-number search within matching same-party credit targets.",
+          "description": "Case-insensitive substring search over available labels, codes and human numbers; movement searches match the retained movement type (for example shipment). Filtering precedes pagination. An exact record_id takes precedence.",
           "depth": 0,
           "default": ""
         },

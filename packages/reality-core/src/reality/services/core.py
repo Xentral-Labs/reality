@@ -420,6 +420,8 @@ def business_discovery_statement(
             )
             if hasattr(model, name)
         ]
+        if model is Movement:
+            searchable.append(Movement.type)
         if searchable:
             predicates = [column.ilike(needle) for column in searchable]
             if model is Party and "@" in raw_query:
