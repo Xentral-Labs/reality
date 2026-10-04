@@ -20,6 +20,7 @@ from reality.db.core import (
     LedgerEntry,
     Location,
     Party,
+    SourceArtifact,
     SourceRecord,
     SourceStream,
     SubledgerAccount,
@@ -41,6 +42,7 @@ from reality.services.memberships import Principal, require_owner
 
 INTAKE_TYPE = "tool:intake_apply"
 _MODELS = {
+    "source_artifact": SourceArtifact,
     "party": Party,
     "item": Item,
     "location": Location,
@@ -109,6 +111,7 @@ def _require_intake_scope(session: Session, tenant_id: str, proposal_id: str) ->
 
 
 _EFFECT_OPERATIONS = {
+    "item_package": frozenset({"create_item", "emit_business_event"}),
     "document": frozenset({"create_manual_document_with_lines", "emit_business_event"}),
     "commitment": frozenset({"create_commitment", "emit_business_event"}),
     "customer_payment": frozenset(
@@ -183,6 +186,7 @@ _INTENT_DEFAULTS = {
         if parameter.default is not Parameter.empty
     }
     for name in (
+        "create_item",
         "create_manual_document_with_lines",
         "create_commitment",
         "record_customer_payment",
@@ -403,9 +407,13 @@ def prepare_intake(
             session, ChangeProposal, tenant_id, context["intake_proposal_id"]
         )
     calendar = _calendar_state(session, tenant_id)
-    if source.source_artifact_id:
+    if source.source_artifact_id and context.get("profile") == "item_csv.v1":
+        from reality.services.reviewed_item_imports import prepare_item_package
+
+        plan = prepare_item_package(session, tenant_id, source, job)
+    elif source.source_artifact_id:
         raise core.InvalidOperation(code="intake_profile_unsupported")
-    if (source.source_system, source.source_type) == ("shopify", "order"):
+    elif (source.source_system, source.source_type) == ("shopify", "order"):
         from reality.services.shopify_intake import prepare_order
 
         plan = prepare_order(session, tenant_id, source, job)
@@ -489,7 +497,25 @@ def _apply_effects(
     for effect in plan.effects:
         with _dispatch_effect(effect.operation):
             arguments = dict(effect.arguments)
-            if effect.operation == "document":
+            if effect.operation == "item_package":
+                from reality.services.item_imports import _validate_new_rows
+
+                _validate_new_rows(session, tenant_id, arguments["rows"])
+                with core._batch_reads(session):
+                    for row in arguments["rows"]:
+                        item = _invoke(
+                            "create_item",
+                            core.create_item,
+                            session,
+                            tenant_id,
+                            **arguments["defaults"],
+                            **row,
+                            source_record_id=plan.source_record_id,
+                            action_id=proposal.id,
+                            _commit=False,
+                        )
+                        records.append(("item", item.id))
+            elif effect.operation == "document":
                 document, lines = _invoke(
                     "create_manual_document_with_lines",
                     core.create_manual_document_with_lines,

@@ -45,6 +45,13 @@
     {
       "name": "Prepare source interpretation",
       "service": "prepare_intake",
+      "related_services": [
+        "stage_reviewed_item_csv",
+        "capture_reviewed_item_artifact",
+        "prepare_reviewed_item_file",
+        "prepare_reviewed_item_import",
+        "prepare_item_package"
+      ],
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "effect": "Retain a non-authoritative exact interpretation and review digest; create no accepted business records."
@@ -52,6 +59,7 @@
     {
       "name": "Review source interpretation",
       "service": "review_intake",
+      "related_services": ["reviewed_item_file_detail"],
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "effect": "Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it."

@@ -6,6 +6,15 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  artifact_id: Opaque identity of the retained original upload within this company.
+  config: Explicit artifact, source code, column mapping and default unit to freeze in review.
+  content: Original CSV bytes before normalized rows or business interpretation.
+  default_unit: Stated item unit used only where the mapped unit cell is empty.
+  filename: Original upload filename retained for inspection.
+  job: Tenant-owned retained source interpretation job; not decision authority.
+  mapping: Exact original CSV columns selected for SKU, name and unit.
+  source: Tenant-owned immutable package source supported by the retained original artifact.
+  package_index: Zero-based selected file package to inspect without executing it.
   cursor: Zero-based retained manifest or result position for this bounded page.
   token_id: Server-owned access-token attribution of the original decision.
   channel: Server-observed original decision channel.
@@ -391,6 +400,7 @@ commands:
     effect: Explain applied, replayed, refused and stopped units separately through bounded pagination.
   - name: Prepare source interpretation
     service: prepare_intake
+    related_services: [stage_reviewed_item_csv, capture_reviewed_item_artifact, prepare_reviewed_item_file, prepare_reviewed_item_import, prepare_item_package]
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
     reads: [source_record, source_stream, import_job, party, item, location]
@@ -398,6 +408,7 @@ commands:
     effect: Retain a non-authoritative exact interpretation and review digest; create no accepted business records.
   - name: Review source interpretation
     service: review_intake
+    related_services: [reviewed_item_file_detail]
     mode: read
     adapters: [CLI, Web, API, MCP, Chat]
     reads: [action]

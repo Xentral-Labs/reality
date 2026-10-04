@@ -53,6 +53,7 @@ export function ItemImportPanel({
   const [source, setSource] = useState("manual_upload");
   const [unit, setUnit] = useState("pcs");
   const [proposal, setProposal] = useState<ItemImportProposal | null>(null);
+  const [packageIndex, setPackageIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [error, setError] = useState("");
@@ -76,7 +77,7 @@ export function ItemImportPanel({
     if (!proposalId) return;
     let current = true;
     itemImports
-      .detail(tenant, proposalId)
+      .detail(tenant, proposalId, packageIndex)
       .then((value) => {
         if (current) {
           setProposal(value);
@@ -89,7 +90,7 @@ export function ItemImportPanel({
     return () => {
       current = false;
     };
-  }, [tenant, proposalId]);
+  }, [tenant, proposalId, packageIndex]);
   useEffect(() => {
     if (proposal) reviewRef.current?.focus();
   }, [proposal?.id]);
@@ -110,7 +111,7 @@ export function ItemImportPanel({
   const stage = () =>
     run(async () => {
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) throw new Error("CSV must be at most 2 MiB.");
+      if (file.size > 20 * 1024 * 1024) throw new Error("CSV must be at most 20 MiB.");
       const value = await itemImports.stage(tenant, file);
       if (active.current) {
         setArtifact(value);
@@ -148,7 +149,7 @@ export function ItemImportPanel({
     });
   const check = () =>
     run(async () => {
-      const value = await itemImports.detail(tenant, proposal?.id || proposalId);
+      const value = await itemImports.detail(tenant, proposal?.id || proposalId, packageIndex);
       if (active.current) {
         setProposal(value);
         setUncertain(value.status === "executing");
@@ -160,7 +161,7 @@ export function ItemImportPanel({
       setUncertain(true);
       try {
         await deliveryActions.confirm(tenant, proposal.id, proposal.review.token);
-        const value = await itemImports.detail(tenant, proposal.id);
+        const value = await itemImports.detail(tenant, proposal.id, packageIndex);
         if (active.current) {
           setProposal(value);
           setUncertain(value.status === "executing");
@@ -175,7 +176,7 @@ export function ItemImportPanel({
       if (!proposal || uncertain) return;
       setUncertain(true);
       await api.rejectProposal(tenant, proposal.id, null);
-      const value = await itemImports.detail(tenant, proposal.id);
+      const value = await itemImports.detail(tenant, proposal.id, packageIndex);
       if (active.current) {
         setProposal(value);
         setUncertain(false);
@@ -185,11 +186,40 @@ export function ItemImportPanel({
     run(async () => {
       if (!proposal) return;
       await deliveryActions.reconcile(tenant, proposal.id);
-      const value = await itemImports.detail(tenant, proposal.id);
+      const value = await itemImports.detail(tenant, proposal.id, packageIndex);
       if (active.current) {
         setProposal(value);
         setUncertain(value.status === "executing");
       }
+    });
+  useEffect(() => {
+    if (proposal?.status !== "executing" || proposal.tool !== "intake_batch_apply") return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = async () => {
+      try {
+        const value = await itemImports.detail(tenant, proposal.id, packageIndex);
+        if (cancelled) return;
+        setProposal(value);
+        setUncertain(value.status === "executing");
+        if (value.status === "executing") timer = setTimeout(refresh, 3000);
+        else window.dispatchEvent(new Event("reality:delivery-settled"));
+      } catch {
+        if (!cancelled) timer = setTimeout(refresh, 3000);
+      }
+    };
+    timer = setTimeout(refresh, 1000);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [tenant, proposal?.id, proposal?.status, proposal?.tool, packageIndex]);
+  const stop = () =>
+    run(async () => {
+      if (!proposal) return;
+      await itemImports.stop(tenant, proposal.id);
+      const value = await itemImports.detail(tenant, proposal.id, packageIndex);
+      if (active.current) setProposal(value);
     });
   const creation = proposal?.review.state.creation;
   return (
@@ -212,7 +242,9 @@ export function ItemImportPanel({
         </button>
       </header>
       <p className="text-sm text-fg-muted">
-        {t("New items only. Maximum 500 rows and 2 MiB. Existing items are never overwritten.")}
+        {t(
+          "New items only. Maximum 5,000 rows and 20 MiB, reviewed in packages of up to 500 rows. Existing items are never overwritten.",
+        )}
       </p>
       {error && (
         <p role="alert" className="break-words rounded-lg bg-surface-muted p-4 text-sm">
@@ -348,6 +380,51 @@ export function ItemImportPanel({
           <p className="text-sm text-fg-muted">
             {t("Default unit")}: {creation.default_unit}
           </p>
+          {creation.package_count !== undefined && (
+            <label className="block text-sm">
+              {t("Package")}
+              <select
+                className="br-control ml-3"
+                value={packageIndex}
+                disabled={busy}
+                onChange={(event) => setPackageIndex(Number(event.target.value))}
+              >
+                {Array.from({ length: creation.package_count }, (_, index) => (
+                  <option key={index} value={index}>
+                    {index + 1} / {creation.package_count}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {creation.original_rows !== undefined && (
+            <p className="text-sm">
+              {t("Rows")}: {formatNumber(creation.original_rows)} · {t("Excluded rows")}:{" "}
+              {formatNumber(creation.excluded_rows?.length || 0)}
+            </p>
+          )}
+          {!!creation.excluded_rows?.length && (
+            <details className="text-sm">
+              <summary>{t("Excluded rows")}</summary>
+              <ul className="max-h-48 overflow-auto">
+                {creation.excluded_rows.map((row) => (
+                  <li key={row.row}>
+                    {t("Row")} {row.row} · {row.sku || row.field} ·{" "}
+                    {t(
+                      row.reason_code === "item_import_row_sku_exists"
+                        ? "This SKU already exists in this company."
+                        : "Required field is empty or too long.",
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {creation.defaults && (
+            <p className="text-sm text-fg-muted">
+              {t("Item type")}: {t("Stocked")} · {t("Tracking")}: {t("None")}
+            </p>
+          )}
           <a className="br-btn" href={itemImports.original(tenant, creation.artifact.id)}>
             {t("Download original CSV")}
           </a>
@@ -366,7 +443,7 @@ export function ItemImportPanel({
                 {creation.rows.map((row, index) => (
                   <tr key={row.sku} className="h-11 border-t border-border-default">
                     <td className="max-w-40 truncate px-3" title={row.sku}>
-                      {proposal.verification === "verified" && proposal.receipt ? (
+                      {proposal.receipt?.item_ids[index] ? (
                         <button
                           className="text-accent underline"
                           onClick={() =>
@@ -421,6 +498,22 @@ export function ItemImportPanel({
           )}
           {proposal.status === "rejected" && (
             <p role="status">{t("Import cancelled. No items were created.")}</p>
+          )}
+          {proposal.progress && (
+            <p role="status" className="text-sm">
+              {t("Settled packages")}: {formatNumber(proposal.progress.settled)} /{" "}
+              {formatNumber(proposal.progress.total)} · {t("Applied")}:{" "}
+              {formatNumber(
+                (proposal.progress.counts.applied || 0) + (proposal.progress.counts.replayed || 0),
+              )}{" "}
+              · {t("Review required")}:{" "}
+              {formatNumber(proposal.progress.counts.review_required || 0)}
+            </p>
+          )}
+          {proposal.status === "executing" && proposal.progress && !proposal.progress.stopped && (
+            <button className="br-btn" disabled={busy} onClick={() => void stop()}>
+              {t("Stop remaining packages")}
+            </button>
           )}
           {(uncertain ||
             proposal.status === "executing" ||

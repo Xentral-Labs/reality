@@ -63,6 +63,22 @@ explicit_operations:
   - reality.services.playground:confirm_step
   - reality.services.playground:reject_step
 families:
+  - key: reviewed_item_file
+    description: Uploaded item bytes and package selection remain inside the owning company.
+    classification: boundary
+    reason: Every artifact, raw source, package source and batch resolves through the same tenant.
+    authority: 353/FR-001
+    operations: &reviewed_item_file_operations
+      - reality.services.reviewed_item_imports:stage_reviewed_item_csv
+      - reality.services.reviewed_item_imports:capture_reviewed_item_artifact
+      - reality.services.reviewed_item_imports:prepare_reviewed_item_file
+      - reality.services.reviewed_item_imports:prepare_reviewed_item_import
+      - reality.services.reviewed_item_imports:prepare_item_package
+      - reality.services.reviewed_item_imports:reviewed_item_file_detail
+    evidence:
+      - id: tests/test_file_intake_admission.py::test_foreign_company_cannot_prepare_or_read_item_file
+        assertion: boundary
+        operations: *reviewed_item_file_operations
   - key: reviewed_intake_batch
     description: A fixed selected manifest never delegates decisions across companies.
     classification: boundary

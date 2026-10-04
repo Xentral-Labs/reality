@@ -7630,7 +7630,7 @@ source_ingest_propose artifact_id [source_system] [source_type] [external_id] [e
 
 | Name              | Typ      | Pflicht | Beschreibung                                                                      | Standard        |
 | ----------------- | -------- | ------- | --------------------------------------------------------------------------------- | --------------- |
-| `artifact_id`     | `string` | ja      | —                                                                                 | —               |
+| `artifact_id`     | `string` | ja      | Opaque identity of the retained original upload within this company.              | —               |
 | `source_system`   | `string` | nein    | Tenant-scoped code naming the external origin of a record.                        | `manual_upload` |
 | `source_type`     | `string` | nein    | Upstream record kind as named by its source, before operational interpretation.   | `data_drop`     |
 | `external_id`     | `string` | nein    | Identifier assigned by the named external source system; never internal identity. | —               |
@@ -8342,9 +8342,9 @@ Review the exact outgoing message before authorizing external execution.
 | `message.original_filename`                           | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
 | `message.attachments`                                 | `array`   | nein    | —                                                                                                                                                                                                                                                                  | —                          |
 | `message.attachments[].part_id`                       | `string`  | ja      | —                                                                                                                                                                                                                                                                  | —                          |
-| `message.attachments[].filename`                      | `string`  | ja      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].filename`                      | `string`  | ja      | Original upload filename retained for inspection.                                                                                                                                                                                                                  | —                          |
 | `message.attachments[].content_type`                  | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `application/octet-stream` |
-| `message.attachments[].artifact_id`                   | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].artifact_id`                   | `string`  | nein    | Opaque identity of the retained original upload within this company.                                                                                                                                                                                               | `None`                     |
 | `message.attachments[].sha256`                        | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
 | `message.attachments[].inline`                        | `boolean` | nein    | —                                                                                                                                                                                                                                                                  | `False`                    |
 | `message.attachments[].content_id`                    | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
@@ -14201,12 +14201,12 @@ email_file_complete part_artifact_ids filename [content_type] sha256
 
 **Parameter**
 
-| Name                | Typ      | Pflicht | Beschreibung | Standard                   |
-| ------------------- | -------- | ------- | ------------ | -------------------------- |
-| `part_artifact_ids` | `array`  | ja      | —            | —                          |
-| `filename`          | `string` | ja      | —            | —                          |
-| `content_type`      | `string` | nein    | —            | `application/octet-stream` |
-| `sha256`            | `string` | ja      | —            | —                          |
+| Name                | Typ      | Pflicht | Beschreibung                                      | Standard                   |
+| ------------------- | -------- | ------- | ------------------------------------------------- | -------------------------- |
+| `part_artifact_ids` | `array`  | ja      | —                                                 | —                          |
+| `filename`          | `string` | ja      | Original upload filename retained for inspection. | —                          |
+| `content_type`      | `string` | nein    | —                                                 | `application/octet-stream` |
+| `sha256`            | `string` | ja      | —                                                 | —                          |
 
 ### `email_capture` — Capture original email evidence {#tool-email_capture}
 
@@ -14257,9 +14257,9 @@ email_capture business_references origin retry_key direction message
 | `message.original_filename`            | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
 | `message.attachments`                  | `array`   | nein    | —                                                                                                                                                                                                                                                                  | —                          |
 | `message.attachments[].part_id`        | `string`  | ja      | —                                                                                                                                                                                                                                                                  | —                          |
-| `message.attachments[].filename`       | `string`  | ja      | —                                                                                                                                                                                                                                                                  | —                          |
+| `message.attachments[].filename`       | `string`  | ja      | Original upload filename retained for inspection.                                                                                                                                                                                                                  | —                          |
 | `message.attachments[].content_type`   | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `application/octet-stream` |
-| `message.attachments[].artifact_id`    | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
+| `message.attachments[].artifact_id`    | `string`  | nein    | Opaque identity of the retained original upload within this company.                                                                                                                                                                                               | `None`                     |
 | `message.attachments[].sha256`         | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
 | `message.attachments[].inline`         | `boolean` | nein    | —                                                                                                                                                                                                                                                                  | `False`                    |
 | `message.attachments[].content_id`     | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
@@ -14329,37 +14329,37 @@ email_dispatch_report execution_id retry_key outcome observed_at [actual_message
 
 **Parameter**
 
-| Name                                          | Typ       | Pflicht | Beschreibung                                                  | Standard                   |
-| --------------------------------------------- | --------- | ------- | ------------------------------------------------------------- | -------------------------- |
-| `execution_id`                                | `string`  | ja      | —                                                             | —                          |
-| `retry_key`                                   | `string`  | ja      | —                                                             | —                          |
-| `outcome`                                     | `string`  | ja      | `accepted`, `failed`, `unknown`                               | —                          |
-| `observed_at`                                 | `string`  | ja      | UTC instant at which a source-supported Fact was observed.    | —                          |
-| `actual_message`                              | `object`  | nein    | —                                                             | `None`                     |
-| `actual_message.account`                      | `string`  | ja      | —                                                             | —                          |
-| `actual_message.sender`                       | `string`  | ja      | —                                                             | —                          |
-| `actual_message.to`                           | `array`   | nein    | —                                                             | —                          |
-| `actual_message.cc`                           | `array`   | nein    | —                                                             | —                          |
-| `actual_message.bcc`                          | `array`   | nein    | —                                                             | —                          |
-| `actual_message.subject`                      | `string`  | ja      | —                                                             | —                          |
-| `actual_message.text`                         | `string`  | nein    | —                                                             | —                          |
-| `actual_message.html`                         | `string`  | nein    | —                                                             | —                          |
-| `actual_message.message_id`                   | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.thread_id`                    | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.in_reply_to`                  | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.references`                   | `array`   | nein    | —                                                             | —                          |
-| `actual_message.stated_at`                    | `string`  | nein    | When the counterparty stated the new date, defaulting to now. | `None`                     |
-| `actual_message.headers`                      | `object`  | nein    | —                                                             | —                          |
-| `actual_message.external_payload`             | `object`  | nein    | —                                                             | —                          |
-| `actual_message.original_artifact_id`         | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.original_filename`            | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.attachments`                  | `array`   | nein    | —                                                             | —                          |
-| `actual_message.attachments[].part_id`        | `string`  | ja      | —                                                             | —                          |
-| `actual_message.attachments[].filename`       | `string`  | ja      | —                                                             | —                          |
-| `actual_message.attachments[].content_type`   | `string`  | nein    | —                                                             | `application/octet-stream` |
-| `actual_message.attachments[].artifact_id`    | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.attachments[].sha256`         | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.attachments[].inline`         | `boolean` | nein    | —                                                             | `False`                    |
-| `actual_message.attachments[].content_id`     | `string`  | nein    | —                                                             | `None`                     |
-| `actual_message.attachments[].missing_reason` | `string`  | nein    | —                                                             | `None`                     |
-| `provider_evidence`                           | `object`  | ja      | —                                                             | —                          |
+| Name                                          | Typ       | Pflicht | Beschreibung                                                         | Standard                   |
+| --------------------------------------------- | --------- | ------- | -------------------------------------------------------------------- | -------------------------- |
+| `execution_id`                                | `string`  | ja      | —                                                                    | —                          |
+| `retry_key`                                   | `string`  | ja      | —                                                                    | —                          |
+| `outcome`                                     | `string`  | ja      | `accepted`, `failed`, `unknown`                                      | —                          |
+| `observed_at`                                 | `string`  | ja      | UTC instant at which a source-supported Fact was observed.           | —                          |
+| `actual_message`                              | `object`  | nein    | —                                                                    | `None`                     |
+| `actual_message.account`                      | `string`  | ja      | —                                                                    | —                          |
+| `actual_message.sender`                       | `string`  | ja      | —                                                                    | —                          |
+| `actual_message.to`                           | `array`   | nein    | —                                                                    | —                          |
+| `actual_message.cc`                           | `array`   | nein    | —                                                                    | —                          |
+| `actual_message.bcc`                          | `array`   | nein    | —                                                                    | —                          |
+| `actual_message.subject`                      | `string`  | ja      | —                                                                    | —                          |
+| `actual_message.text`                         | `string`  | nein    | —                                                                    | —                          |
+| `actual_message.html`                         | `string`  | nein    | —                                                                    | —                          |
+| `actual_message.message_id`                   | `string`  | nein    | —                                                                    | `None`                     |
+| `actual_message.thread_id`                    | `string`  | nein    | —                                                                    | `None`                     |
+| `actual_message.in_reply_to`                  | `string`  | nein    | —                                                                    | `None`                     |
+| `actual_message.references`                   | `array`   | nein    | —                                                                    | —                          |
+| `actual_message.stated_at`                    | `string`  | nein    | When the counterparty stated the new date, defaulting to now.        | `None`                     |
+| `actual_message.headers`                      | `object`  | nein    | —                                                                    | —                          |
+| `actual_message.external_payload`             | `object`  | nein    | —                                                                    | —                          |
+| `actual_message.original_artifact_id`         | `string`  | nein    | —                                                                    | `None`                     |
+| `actual_message.original_filename`            | `string`  | nein    | —                                                                    | `None`                     |
+| `actual_message.attachments`                  | `array`   | nein    | —                                                                    | —                          |
+| `actual_message.attachments[].part_id`        | `string`  | ja      | —                                                                    | —                          |
+| `actual_message.attachments[].filename`       | `string`  | ja      | Original upload filename retained for inspection.                    | —                          |
+| `actual_message.attachments[].content_type`   | `string`  | nein    | —                                                                    | `application/octet-stream` |
+| `actual_message.attachments[].artifact_id`    | `string`  | nein    | Opaque identity of the retained original upload within this company. | `None`                     |
+| `actual_message.attachments[].sha256`         | `string`  | nein    | —                                                                    | `None`                     |
+| `actual_message.attachments[].inline`         | `boolean` | nein    | —                                                                    | `False`                    |
+| `actual_message.attachments[].content_id`     | `string`  | nein    | —                                                                    | `None`                     |
+| `actual_message.attachments[].missing_reason` | `string`  | nein    | —                                                                    | `None`                     |
+| `provider_evidence`                           | `object`  | ja      | —                                                                    | —                          |

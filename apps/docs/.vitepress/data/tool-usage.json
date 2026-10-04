@@ -5235,7 +5235,7 @@
           "name": "artifact_id",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Opaque identity of the retained original upload within this company.",
           "depth": 0
         },
         {
@@ -22197,7 +22197,7 @@
           "name": "message.attachments[].filename",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Original upload filename retained for inspection.",
           "depth": 2
         },
         {
@@ -22212,7 +22212,7 @@
           "name": "message.attachments[].artifact_id",
           "type": "string",
           "required": false,
-          "description": "",
+          "description": "Opaque identity of the retained original upload within this company.",
           "depth": 2,
           "default": null
         },
@@ -22355,7 +22355,7 @@
           "name": "filename",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Original upload filename retained for inspection.",
           "depth": 0
         },
         {
@@ -22604,7 +22604,7 @@
           "name": "message.attachments[].filename",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Original upload filename retained for inspection.",
           "depth": 2
         },
         {
@@ -22619,7 +22619,7 @@
           "name": "message.attachments[].artifact_id",
           "type": "string",
           "required": false,
-          "description": "",
+          "description": "Opaque identity of the retained original upload within this company.",
           "depth": 2,
           "default": null
         },
@@ -22932,7 +22932,7 @@
           "name": "actual_message.attachments[].filename",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Original upload filename retained for inspection.",
           "depth": 2
         },
         {
@@ -22947,7 +22947,7 @@
           "name": "actual_message.attachments[].artifact_id",
           "type": "string",
           "required": false,
-          "description": "",
+          "description": "Opaque identity of the retained original upload within this company.",
           "depth": 2,
           "default": null
         },
@@ -23212,7 +23212,13 @@
       "reads": ["source_record", "source_stream", "import_job", "party", "item", "location"],
       "writes": ["action", "import_job", "interpretation_outcome"],
       "confirmation": null,
-      "related_services": [],
+      "related_services": [
+        "stage_reviewed_item_csv",
+        "capture_reviewed_item_artifact",
+        "prepare_reviewed_item_file",
+        "prepare_reviewed_item_import",
+        "prepare_item_package"
+      ],
       "tools": ["intake_prepare_propose"],
       "synopses": ["intake_prepare_propose job_id"],
       "events": [],
@@ -23234,7 +23240,7 @@
       "reads": ["action"],
       "writes": [],
       "confirmation": null,
-      "related_services": [],
+      "related_services": ["reviewed_item_file_detail"],
       "tools": ["intake_review"],
       "synopses": ["intake_review proposal_id"],
       "events": [],

@@ -44,6 +44,7 @@ class Effect(IntakeModel):
     """A closed operation vocabulary; never a caller-selected Python callable."""
 
     operation: Literal[
+        "item_package",
         "document",
         "commitment",
         "customer_payment",
@@ -59,7 +60,13 @@ class Effect(IntakeModel):
 
 class ReferenceState(IntakeModel):
     record_type: Literal[
-        "party", "item", "location", "document", "ledger_entry", "account"
+        "party",
+        "item",
+        "location",
+        "document",
+        "ledger_entry",
+        "account",
+        "source_artifact",
     ]
     record_id: str
     digest: str
@@ -103,9 +110,26 @@ class ManifestEntry(IntakeModel):
     digest: str = Field(min_length=64, max_length=64, pattern=r"^[0-9a-f]{64}$")
 
 
+class FileExclusion(IntakeModel):
+    row: int = Field(ge=2, le=5001)
+    reason_code: Literal["item_import_row_field_invalid", "item_import_row_sku_exists"]
+    field: Literal["sku", "name", "unit"] | None = None
+    sku: str | None = None
+
+
+class FileSelection(IntakeModel):
+    source_record_id: str
+    artifact_id: str
+    original_rows: int = Field(ge=1, le=5000)
+    mapping: dict[str, str]
+    default_unit: str = Field(min_length=1, max_length=500)
+    excluded_rows: tuple[FileExclusion, ...] = Field(default=(), max_length=5000)
+
+
 class IntakeManifest(IntakeModel):
     """An aggregate selection, distinct from one atomic effect package."""
 
+    file_selection: FileSelection | None = None
     mode: Literal["independent_units"] = "independent_units"
     revision: int = Field(ge=1)
     entries: tuple[ManifestEntry, ...] = Field(min_length=1, max_length=MANIFEST_UNITS)

@@ -16,7 +16,7 @@ References below to governed writes mean external intake only; broader earlier p
 and universal-writer tasks are superseded by this clarification.
 
 **Created**: 2026-10-03
-**Status**: Specified; implementation pending
+**Status**: Item-file admission implementation in progress; remaining profiles pending
 **Language**: English
 **Input**: Owner approved reviewed external intake, including imported master data,
 payments, changes and bulk processing. Direct authenticated human actions are decisions
@@ -110,6 +110,7 @@ Distinguish a received statement from the accepted promises or stock corrections
 - **FR-004**: Accepted package records, events, source links and receipt MUST commit together; replay MUST return retained identities and never re-read a file to create records again.
 - **FR-005**: Large-file intake MUST support 5,000 item rows and a 20 MiB raw CSV bound while retaining the existing 500-row/2 MiB single-package profile limits. Limits MUST be checked before business writes and shown in review.
 - **FR-006**: Package membership and excluded-row reasons MUST be fixed before review; whole-input structural validation and cross-package duplicate detection MUST precede settlement. Partitioning MUST respect both row and exact serialized-byte limits, preserve complete coherent units, and explicitly report oversized units. Invalid content MUST NOT be silently dropped.
+- **FR-006a**: The item-file review MUST expose the fixed whole-file row selection and excluded-row reasons, allow read-only navigation across all packages, show confirmed queue progress and support stopping remaining units through the shared batch service. Status reads MUST NOT settle work. Historical single-package receipts MUST remain readable.
 - **FR-007**: A changed file, mapping, defaults or partition MUST require a fresh prepared review; completed packages MUST remain unchanged on interruption, retry or response loss.
 - **FR-008**: Sales-order file profiles MUST group complete orders as semantic units and preserve customer-item mapping and unstated-price rules.
 - **FR-009**: Inventory snapshot correction MUST be a separately visible authorized effect bound to current book stock; no movement may be created before approval.

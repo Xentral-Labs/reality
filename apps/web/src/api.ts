@@ -4205,6 +4205,9 @@ export type ItemImportArtifact = {
 };
 export type ItemImportProposal = {
   id: string;
+  tool?: string;
+  progress?: { total: number; settled: number; stopped: boolean; counts: Record<string, number> };
+  member?: { proposal_id: string; digest: string; status: string };
   status: string;
   verification: string;
   review: {
@@ -4215,6 +4218,12 @@ export type ItemImportProposal = {
         artifact: { id: string; filename: string };
         source_system: string;
         default_unit: string;
+        original_rows?: number;
+        excluded_rows?: Array<{ row: number; reason_code: string; field?: string; sku?: string }>;
+        row_numbers?: number[];
+        defaults?: Record<string, unknown>;
+        package_index?: number;
+        package_count?: number;
         rows: Array<{ sku: string; name: string; unit: string }>;
       };
     };
@@ -4228,13 +4237,21 @@ export const itemImports = {
       { method: "POST", headers: { "Content-Type": "text/csv" }, body: file },
     ),
   prepare: (tenant: string, requestId: string, config: ItemImportConfig) =>
-    request<ItemImportProposal>(`/api/tenants/${encodeURIComponent(tenant)}/item-imports/prepare`, {
-      method: "POST",
-      body: JSON.stringify({ request_id: requestId, config }),
-    }),
-  detail: (tenant: string, id: string) =>
     request<ItemImportProposal>(
-      `/api/tenants/${encodeURIComponent(tenant)}/delivery-actions/${encodeURIComponent(id)}`,
+      `/api/tenants/${encodeURIComponent(tenant)}/item-imports/reviewed/prepare`,
+      {
+        method: "POST",
+        body: JSON.stringify({ request_id: requestId, config }),
+      },
+    ),
+  detail: (tenant: string, id: string, packageIndex = 0) =>
+    request<ItemImportProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/item-imports/reviewed/${encodeURIComponent(id)}?package_index=${packageIndex}`,
+    ),
+  stop: (tenant: string, id: string) =>
+    request(
+      `/api/tenants/${encodeURIComponent(tenant)}/intake-batches/${encodeURIComponent(id)}/stop`,
+      { method: "POST" },
     ),
   original: (tenant: string, artifact: string) =>
     `/api/tenants/${encodeURIComponent(tenant)}/item-imports/artifacts/${encodeURIComponent(artifact)}/download`,

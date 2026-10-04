@@ -134,6 +134,7 @@ INTERPRETATION_CLASSIFICATIONS = {
     "failed",
 }
 INTERPRETATION_RECORD_TYPES = {
+    "item",
     "return_announcement",
     "commitment_hold",
     "commitment_revision",
@@ -2691,6 +2692,9 @@ def create_item(
     BUSINESS RULE core.create_item.5:
     Refuse a negative lead time.
     """
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_item", locals())
     _require_business_mutation(session, tenant_id, "create_item")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)

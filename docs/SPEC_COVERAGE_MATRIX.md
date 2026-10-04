@@ -2536,3 +2536,10 @@ Contract: `docs/features/decision-gated-intake.md` records the explicit initial 
   and foreign-tenant refusal.
 - This checkpoint does not certify AgentMandates, Web selection/recovery flows,
   demo cutover or the required full workload measurements; those remain pending.
+
+## Reviewed item-file admission checkpoint — Spec 358
+
+- `packages/reality-core/tests/test_file_intake_admission.py`: lossless artifact and raw-source capture; fixed whole-file exclusions and mappings; 5,000 items through the actual shared queue; atomic stale-SKU refusal, exact default intent, replay without file reads and foreign source/job/artifact/batch refusal.
+- `packages/reality-core/tests/browser/unified_item_csv_import.py`: authenticated upload/review/confirmation, dropped responses, queue-worker completion, read-only reopening, original CSV bytes, accepted item links and four-language mobile/desktop rendering.
+
+Remaining file profiles and performance acceptance remain open in the feature tasks.

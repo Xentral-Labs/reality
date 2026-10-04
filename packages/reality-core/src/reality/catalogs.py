@@ -57,6 +57,7 @@ from reality.services import purchase_match as purchase_match_service_module
 from reality.services import receipt_deviations as receipt_deviation_service_module
 from reality.services import reorder_points as reorder_point_service_module
 from reality.services import return_dispositions as return_disposition_service_module
+from reality.services import reviewed_item_imports as item_import_service_module
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
 from reality.services import stock_blocks as stock_block_service_module
@@ -222,6 +223,7 @@ from reality.services import costing as costing_service_module
 TENANT_SERVICE_MODULES = {
     "reality.services.intake": intake_service_module,
     "reality.services.intake_batches": intake_batch_service_module,
+    "reality.services.reviewed_item_imports": item_import_service_module,
     "reality.services.costing": costing_service_module,
     "reality.services.projection_jobs": projection_job_service_module,
     "reality.services.finance.source_mappings": finance_source_mapping_module,
@@ -1144,6 +1146,7 @@ def _service(name: str) -> Any:
     for module in (
         intake_service_module,
         intake_batch_service_module,
+        item_import_service_module,
         scheduled_job_service_module,
         down_payment_service_module,
         month_end_billing_service_module,

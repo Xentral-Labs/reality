@@ -30,7 +30,9 @@ class FilePackage:
     digest: str
 
 
-def partition_rows(rows: list[dict[str, Any]]) -> tuple[FilePackage, ...]:
+def partition_rows(
+    rows: list[dict[str, Any]], *, byte_limit=PACKAGE_BYTES
+) -> tuple[FilePackage, ...]:
     """Keep each row intact; constrain both canonical UTF-8 bytes and row count."""
     if not 1 <= len(rows) <= RAW_ROWS:
         raise InvalidOperation(code="intake_file_rows_invalid")
@@ -52,11 +54,11 @@ def partition_rows(rows: list[dict[str, Any]]) -> tuple[FilePackage, ...]:
 
     for number, row in enumerate(rows, 2):
         row_size = len(canonical_json(row).encode("utf-8"))
-        if row_size + 2 > PACKAGE_BYTES:
+        if row_size + 2 > byte_limit:
             raise InvalidOperation(code="intake_package_too_large")
         added = row_size + (1 if current else 0)
         if current and (
-            len(current) == PACKAGE_ROWS or current_size + added > PACKAGE_BYTES
+            len(current) == PACKAGE_ROWS or current_size + added > byte_limit
         ):
             retain()
             current = []
@@ -69,14 +71,8 @@ def partition_rows(rows: list[dict[str, Any]]) -> tuple[FilePackage, ...]:
     return tuple(packages)
 
 
-def package_item_csv(
-    content: bytes, mapping: dict[str, str], *, default_unit: str = "pcs"
-) -> tuple[FilePackage, ...]:
-    """Validate the complete structure and duplicate set before returning packages.
-
-    This produces proposed content only. Database conflicts and semantic field
-    validation must still be checked by the reviewed master-data adapter.
-    """
+def parse_item_csv(content: bytes) -> tuple[list[str], list[dict[str, str]]]:
+    """Read the full bounded input, preserving each original field value."""
     if not content or len(content) > RAW_BYTES:
         raise InvalidOperation(code="intake_file_size_invalid")
     try:
@@ -104,48 +100,65 @@ def package_item_csv(
                     != len(columns)
                 ):
                     raise InvalidOperation(code="item_import_csv_columns_invalid")
-                if (
-                    set(mapping) - {"sku", "name", "unit"}
-                    or not mapping.get("sku")
-                    or not mapping.get("name")
-                    or any(column not in columns for column in mapping.values())
-                    or len(set(mapping.values())) != len(mapping)
-                ):
-                    raise InvalidOperation(code="item_import_mapping_columns_invalid")
-                if (
-                    not isinstance(default_unit, str)
-                    or not default_unit.strip()
-                    or len(default_unit) > 500
-                ):
-                    raise InvalidOperation(code="item_import_default_unit_invalid")
                 rows = []
-                seen = set()
                 for number, values in enumerate(reader, 2):
                     if len(values) != len(columns):
                         raise InvalidOperation(
                             code="item_import_row_field_count_mismatch",
                             values={"row": number},
                         )
-                    raw = dict(zip(columns, values, strict=True))
-                    row = {
-                        "sku": raw[mapping["sku"]].strip(),
-                        "name": raw[mapping["name"]].strip(),
-                        "unit": (
-                            raw[mapping["unit"]].strip() if mapping.get("unit") else ""
-                        )
-                        or default_unit.strip(),
-                    }
-                    if row["sku"] in seen:
-                        raise InvalidOperation(
-                            code="item_import_row_duplicate_sku",
-                            values={"row": number, "sku": row["sku"]},
-                        )
-                    seen.add(row["sku"])
-                    rows.append(row)
+                    rows.append(dict(zip(columns, values, strict=True)))
                     if len(rows) > RAW_ROWS:
                         raise InvalidOperation(code="intake_file_rows_invalid")
+                if not rows:
+                    raise InvalidOperation(code="item_import_csv_no_rows")
+                return columns, rows
             finally:
                 csv.field_size_limit(previous_limit)
     except (UnicodeError, csv.Error, StopIteration) as error:
         raise InvalidOperation(code="item_import_csv_not_utf8") from error
-    return partition_rows(rows)
+
+
+def mapped_item_rows(
+    content: bytes, mapping: dict[str, str], *, default_unit="pcs"
+) -> list[dict[str, str]]:
+    columns, raw_rows = parse_item_csv(content)
+    if (
+        not isinstance(mapping, dict)
+        or set(mapping) - {"sku", "name", "unit"}
+        or not mapping.get("sku")
+        or not mapping.get("name")
+        or any(column not in columns for column in mapping.values())
+        or len(set(mapping.values())) != len(mapping)
+    ):
+        raise InvalidOperation(code="item_import_mapping_columns_invalid")
+    if (
+        not isinstance(default_unit, str)
+        or not default_unit.strip()
+        or len(default_unit) > 500
+    ):
+        raise InvalidOperation(code="item_import_default_unit_invalid")
+    rows = []
+    seen = set()
+    for number, raw in enumerate(raw_rows, 2):
+        row = {
+            "sku": raw[mapping["sku"]].strip(),
+            "name": raw[mapping["name"]].strip(),
+            "unit": (raw[mapping["unit"]].strip() if mapping.get("unit") else "")
+            or default_unit.strip(),
+        }
+        if row["sku"] in seen:
+            raise InvalidOperation(
+                code="item_import_row_duplicate_sku",
+                values={"row": number, "sku": row["sku"]},
+            )
+        seen.add(row["sku"])
+        rows.append(row)
+    return rows
+
+
+def package_item_csv(
+    content: bytes, mapping: dict[str, str], *, default_unit="pcs"
+) -> tuple[FilePackage, ...]:
+    """Validate the whole input before forming proposed, non-authoritative packages."""
+    return partition_rows(mapped_item_rows(content, mapping, default_unit=default_unit))
