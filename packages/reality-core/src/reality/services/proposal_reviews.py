@@ -271,6 +271,12 @@ def mcp_verification_guidance(basis: list[str]) -> dict[str, Any]:
     catalog = runtime_tool_catalog()
     for name in basis:
         candidates = {name}
+        candidates.update(
+            tool_name
+            for tool_name, definition in MCP_TOOL_REGISTRY.items()
+            if getattr(definition.handler, "application_name", None) == name
+            and definition.access == "read"
+        )
         for entry in catalog["entries"]:
             if any(name in entry[key] for key in ("commands", "views", "projections")):
                 candidates.update(entry["mcp"])

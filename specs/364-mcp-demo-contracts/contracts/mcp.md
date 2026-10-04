@@ -11,3 +11,6 @@ a preparation response must never be reported as execution.
 Execution and reconciliation responses provide current callable verification guidance
 beside the original receipt. Recorded `receipt.verification_reads` remains unchanged;
 its internal projection basis is not an API tool name.
+
+HTTP schemas reuse the existing local-reference expansion so nested flat client contracts
+remain valid while enum, nullable, required and bounds constraints stay authoritative.

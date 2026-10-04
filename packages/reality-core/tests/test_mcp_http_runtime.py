@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
@@ -148,6 +150,17 @@ def test_http_tools_list_serializes_complete_shipment_execution_contracts(
 
     for name in ("business_records_discover", "inventory_read", "reservation_propose"):
         assert tools[name] == MCP_TOOL_REGISTRY[name].input_schema
+    settlement = tools["finance_settlement_propose"]
+    assert "$ref" not in json.dumps(settlement)
+    reduction = settlement["properties"]["reduction"]["anyOf"][0]
+    assert reduction["required"] == ["amount", "reason_category", "reason"]
+    assert reduction["properties"]["reason_category"]["enum"] == [
+        "early_payment_discount",
+        "agreed_deduction",
+        "accepted_small_remainder",
+        "bad_debt",
+        "payment_fee",
+    ]
 
     for name, purposes in {
         "shipment_dispatch_propose": {"customer_delivery", "supplier_return"},

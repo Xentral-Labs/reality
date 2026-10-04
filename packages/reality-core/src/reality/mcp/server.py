@@ -292,7 +292,9 @@ def build_server(
         registered = server._tool_manager.get_tool(definition.name)
         if registered is None:  # pragma: no cover - registration invariant
             raise RuntimeError(f"MCP tool registration failed: {definition.name}")
-        registered.parameters = definition.input_schema
+        registered.parameters = _inline_refs(
+            definition.input_schema, definition.input_schema.get("$defs", {})
+        )
     return server
 
 

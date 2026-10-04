@@ -120,6 +120,7 @@ def _read(application_name: str) -> ToolHandler:
             }
         return result
 
+    handler.application_name = application_name  # type: ignore[attr-defined]
     return handler
 
 

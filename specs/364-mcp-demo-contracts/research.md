@@ -16,3 +16,6 @@
   model instructions alone allowed a timezone proposal and a false global shipping
   claim. Reuse canonical reads; no new shipping total, authority or domain rule.
 - No unresolved technology or product question requires delegated research.
+
+HTTP schemas reuse the existing local-reference expansion so nested flat client contracts
+remain valid while enum, nullable, required and bounds constraints stay authoritative.
