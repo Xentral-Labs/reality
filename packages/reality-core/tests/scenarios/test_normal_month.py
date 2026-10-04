@@ -1,12 +1,14 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import pytest
 from intake_review_support import accept_normal_month as run_normal_month
 from sqlalchemy import func, select
 
 from reality.db.core import ChangeProposal, Commitment, Item, Movement, Party
 from reality.demo.normal_month import SCENARIO_ACTION
-from reality.services.core import aging_register, create_tenant
+from reality.services import company_setup
+from reality.services.core import InvalidOperation, aging_register, create_party, create_tenant
 from reality.services.exceptions import operational_exceptions
 
 
@@ -105,3 +107,39 @@ def test_the_month_ends_with_exactly_these_exceptions(session):
         # can only be recorded orphaned — which is what this class reports.
         "unexplained_movement": 1,
     }, explain()
+
+
+def test_normal_month_runs_on_a_freshly_set_up_business_company(
+    session, scheduled_owner
+):
+    tenant_id = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        "normal-month-after-setup",
+        "Lampenhaus Berg GmbH",
+        "business",
+        "empty",
+        confirmed=True,
+    )["tenant_id"]
+
+    result = run_normal_month(session, tenant_id)
+
+    assert result["physical"] > 0
+
+
+def test_normal_month_refuses_a_business_company_with_another_party(
+    session, scheduled_owner
+):
+    tenant_id = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        "normal-month-other-party",
+        "Lampenhaus Berg GmbH",
+        "business",
+        "empty",
+        confirmed=True,
+    )["tenant_id"]
+    create_party(session, tenant_id, "Existing Customer GmbH", "customer")
+
+    with pytest.raises(InvalidOperation, match="requires an empty tenant"):
+        run_normal_month(session, tenant_id)
