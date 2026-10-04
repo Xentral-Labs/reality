@@ -2004,12 +2004,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  postCustomerPayment: (tenant: string, body: Record<string, unknown>) =>
+  postCustomerPayment: (tenant: string, body: Record<string, unknown> & { confirmed: boolean }) =>
     request<{ ledger_entry_ids: string[] }>(`/api/tenants/${tenant}/finance/customer-payments`, {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  postSupplierPayment: (tenant: string, body: Record<string, unknown>) =>
+  postSupplierPayment: (tenant: string, body: Record<string, unknown> & { confirmed: boolean }) =>
     request<{ ledger_entry_ids: string[] }>(`/api/tenants/${tenant}/finance/supplier-payments`, {
       method: "POST",
       body: JSON.stringify(body),

@@ -5,6 +5,10 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import (
+    _reviewed_payment_fixture,
+    reviewed_post_customer_payment,
+)
 from legacy_finance import create_legacy_tenant
 from sqlalchemy import func, select
 
@@ -38,7 +42,7 @@ def prepare(session, business, side, amount="20", **changes):
     getattr(core, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice")(
         session, tenant, invoice.id
     )
-    payment = getattr(core, f"post_{side}_payment")(session, tenant, invoice.id, "80")
+    payment = _reviewed_payment_fixture(session, tenant, f"post_{side}_payment", invoice.id, "80")
     context = adjustment_context(session, tenant, invoice.id)
     args = {
         "invoice_id": invoice.id,
@@ -112,7 +116,7 @@ def test_supplier_rejects_unsupported_reduction(session, business, changes):
 
 def test_stale_confirmation_has_no_partial_effect(session, business):
     invoice, _, proposal = prepare(session, business, "customer")
-    core.post_customer_payment(session, business.tenant.id, invoice.id, "1")
+    reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "1")
     count = session.scalar(select(func.count()).select_from(LedgerEntry))
     with pytest.raises(core.Conflict):
         approve_and_execute_proposal(

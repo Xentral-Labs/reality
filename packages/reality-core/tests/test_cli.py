@@ -149,6 +149,7 @@ def test_cli_posts_customer_payment_and_reports_derived_open_amount(
         [
             "finance",
             "pay-customer",
+            "--yes",
             invoice.id,
             "40",
             "--number",

@@ -7,6 +7,7 @@ from conftest import record_by_id
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
 )
 from sqlalchemy import func, select
@@ -142,7 +143,7 @@ def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business)
     net_invoice = _invoice(session, tenant_id, net_line, "INV-NET")
     assert core.open_invoice_amount(session, tenant_id, net_invoice.id) == Decimal(100)
     _dispatch(session, business, net_commitment)
-    core.post_customer_payment(session, tenant_id, net_invoice.id, "100")
+    reviewed_post_customer_payment(session, tenant_id, net_invoice.id, "100")
 
     prepay_invoice = _invoice(session, tenant_id, prepay_line, "INV-PREPAY")
     before = fulfillment_readiness(session, tenant_id, prepay_commitment.id)
@@ -206,12 +207,12 @@ def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business)
             movements=[{"commitment_id": prepay_commitment.id}],
         )
 
-    core.post_customer_payment(session, tenant_id, prepay_invoice.id, "40")
+    reviewed_post_customer_payment(session, tenant_id, prepay_invoice.id, "40")
     partial = fulfillment_readiness(session, tenant_id, prepay_commitment.id)
     assert partial.received_amount == Decimal(40)
     assert partial.remaining_amount == Decimal(60)
     assert partial.ship_ready is False
-    core.post_customer_payment(session, tenant_id, prepay_invoice.id, "60")
+    reviewed_post_customer_payment(session, tenant_id, prepay_invoice.id, "60")
     reviewed = create_change_proposal(
         session,
         tenant_id,
@@ -413,7 +414,7 @@ def test_agent_proposes_future_prepayment_and_partial_shipment_without_self_exec
         )
     )
     assert invoice is not None
-    core.post_customer_payment(session, tenant_id, invoice.id, "100")
+    reviewed_post_customer_payment(session, tenant_id, invoice.id, "100")
     movement_count = session.scalar(select(func.count()).select_from(Movement))
     shipment_proposal = dispatch_tool(
         session,

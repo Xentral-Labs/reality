@@ -17,6 +17,7 @@ from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
+    reviewed_post_customer_payment,
     reviewed_record_sales_credit,
     reviewed_record_sales_invoice,
 )
@@ -1036,7 +1037,7 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
     invoice_id, _ = _invoice_line(
         session, business, lines[0].id, "10", "100.00", "RE-R01"
     )
-    core.post_customer_payment(session, tenant, invoice_id, "80.00")
+    reviewed_post_customer_payment(session, tenant, invoice_id, "80.00")
 
     readiness = fulfillment_readiness(
         session, tenant, commitment.id, proposed_quantity=4
@@ -1357,7 +1358,7 @@ def test_three_levels_of_dunning_then_collection(session, business):
     assert all(notice["fee_document_id"] is None for notice in receipt["notices"])
 
     # Klein pays; before its waiting period nothing else is due.
-    core.post_customer_payment(session, tenant, klein_invoice.id, "400.00")
+    reviewed_post_customer_payment(session, tenant, klein_invoice.id, "400.00")
     assert _proposed_levels(_run_preview(session, business, "2026-06-20")) == {}
 
     # Run 2: the second level with its fee. Weber pays after the review.
@@ -1372,7 +1373,7 @@ def test_three_levels_of_dunning_then_collection(session, business):
             Document.tenant_id == tenant, Document.number == "RE-N04-W"
         )
     )
-    core.post_customer_payment(session, tenant, weber_invoice.id, "400.00")
+    reviewed_post_customer_payment(session, tenant, weber_invoice.id, "400.00")
     receipt = _confirm(session, business, proposal)
     assert [notice["invoice_ids"] for notice in receipt["notices"]] == [[mueller.id]]
     assert receipt["skipped"] == [
@@ -2052,7 +2053,7 @@ def test_the_final_invoice_states_the_down_payment_it_deducts(session, business)
     reviewed_initialize_accounts(session, tenant)
     order, line, _ = _stocked_order(session, business, "SO-E11")
     down_payment = _down_payment_invoice(session, business, order, "300.00", "AR-E11")
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, down_payment, "300.00", payment_number="PAY-E11"
     )
 
@@ -2114,7 +2115,7 @@ def test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid(
     assert "prepayment_invoice_missing" in readiness.blocker_codes
 
     down_payment = _down_payment_invoice(session, business, order, "300.00", "AR-C14")
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, down_payment, "300.00", payment_number="PAY-C14-1"
     )
     readiness = fulfillment_readiness(session, tenant, commitment.id)
@@ -2144,7 +2145,7 @@ def test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid(
     assert fulfillment_readiness(session, tenant, commitment.id).remaining_amount == (
         Decimal("700.0000")
     )
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, final, "700.00", payment_number="PAY-C14-2"
     )
 

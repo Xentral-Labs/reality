@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_post_customer_refund
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -459,7 +460,7 @@ def test_refund_allocation_failure_rolls_back_document_and_postings(
 
     monkeypatch.setattr(core, "allocate_settlement", fail)
     with pytest.raises(InvalidOperation, match="Allocation unavailable"):
-        core.post_customer_refund(session, business.tenant.id, credit.id, "20")
+        reviewed_post_customer_refund(session, business.tenant.id, credit.id, "20")
     session.commit()
     assert session.scalar(select(func.count()).select_from(Document)) == 1
     assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 2
@@ -469,16 +470,14 @@ def test_refund_allocation_failure_rolls_back_document_and_postings(
     "amount", ["garbage", "Infinity", "-1", "100000000000000", "0.00001"]
 )
 def test_direct_refund_uses_same_precision_guard(session, business, amount):
-    from reality.services.core import post_customer_refund
 
     credit = obligation(session, business)
     with pytest.raises(InvalidOperation):
-        post_customer_refund(session, business.tenant.id, credit.id, amount)
+        reviewed_post_customer_refund(session, business.tenant.id, credit.id, amount)
     assert session.scalar(select(func.count()).select_from(Document)) == 1
 
 
 def test_credit_register_filters_and_totals(session, business):
-    from reality.services.core import post_customer_refund
     from reality.services.payment_actions import _customer_credit_items
 
     credit = obligation(session, business)
@@ -490,7 +489,7 @@ def test_credit_register_filters_and_totals(session, business):
         business.customer.id,
         "10",
     )
-    post_customer_refund(session, business.tenant.id, credit.id, "20")
+    reviewed_post_customer_refund(session, business.tenant.id, credit.id, "20")
     rows = _customer_credit_items(
         session, business.tenant.id, status="outstanding", size=25
     )
@@ -554,7 +553,6 @@ def test_credit_cannot_be_netted_again_after_refund_consumes_capacity(
 ):
     from reality.services.core import (
         allocate_credit_note,
-        post_customer_refund,
         post_sales_invoice,
     )
 
@@ -569,7 +567,7 @@ def test_credit_cannot_be_netted_again_after_refund_consumes_capacity(
         currency="USD",
     )
     post_sales_invoice(session, business.tenant.id, invoice.id)
-    post_customer_refund(session, business.tenant.id, credit.id, "250")
+    reviewed_post_customer_refund(session, business.tenant.id, credit.id, "250")
     with pytest.raises(InvalidOperation, match="exceeds"):
         allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100")
     assert open_invoice_amount(session, business.tenant.id, credit.id) == 50
@@ -584,7 +582,6 @@ def test_direct_refund_and_netting_serialize_shared_credit_capacity(postgres_dat
     from reality.db.core import Base, build_engine
     from reality.services.core import (
         allocate_credit_note,
-        post_customer_refund,
         post_sales_invoice,
     )
 
@@ -615,7 +612,7 @@ def test_direct_refund_and_netting_serialize_shared_credit_capacity(postgres_dat
                 gate.wait(timeout=10)
                 try:
                     if refund:
-                        post_customer_refund(connection, tenant_id, credit_id, "200")
+                        reviewed_post_customer_refund(connection, tenant_id, credit_id, "200")
                     else:
                         allocate_credit_note(
                             connection, tenant_id, credit_id, invoice_id, "200"

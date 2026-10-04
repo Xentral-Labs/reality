@@ -11,6 +11,7 @@ import pytest
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_order,
+    reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
 )
 from sqlalchemy import select
@@ -232,7 +233,7 @@ def test_a_paid_down_payment_counts_towards_prepayment(session, business):
     )
 
     _, receipt = _down_payment(session, business, order)
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, receipt["document_id"], "300.00", payment_number="PAY-DP-1"
     )
 
@@ -262,7 +263,7 @@ def test_a_reversed_down_payment_no_longer_counts(session, business):
     reviewed_initialize_accounts(session, tenant)
     order, _, commitment = _order(session, business, prepay=True)
     _, receipt = _down_payment(session, business, order)
-    payment = core.post_customer_payment(
+    payment = reviewed_post_customer_payment(
         session, tenant, receipt["document_id"], "300.00", payment_number="PAY-DP-R"
     )
     assert fulfillment_readiness(session, tenant, commitment.id).received_amount == 300
@@ -413,7 +414,7 @@ def test_the_migration_upgrades_downgrades_and_keeps_recorded_down_payments(
 
 def _paid_down_payment(session, business, order, amount="300.00", number="AR-299-1"):
     _, receipt = _down_payment(session, business, order, amount, number)
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session,
         business.tenant.id,
         receipt["document_id"],
@@ -673,7 +674,7 @@ def test_the_rest_paid_makes_the_prepayment_order_ready(session, business):
         Decimal("700.0000")
     )
 
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, _invoice_document(receipt), "700.00", payment_number="PAY-R"
     )
 
@@ -831,7 +832,7 @@ def test_an_offset_of_a_reversed_down_payment_is_refused(session, business):
     order, line, _ = _order(session, business)
     _, receipt = _down_payment(session, business, order)
     down_payment = receipt["document_id"]
-    payment = core.post_customer_payment(
+    payment = reviewed_post_customer_payment(
         session, tenant, down_payment, "300.00", payment_number="PAY-REV"
     )
     core.reverse_ledger_posting_group(
@@ -986,7 +987,7 @@ def test_an_offset_down_payment_and_its_payment_cannot_be_reversed(session, busi
     order, line, _ = _order(session, business)
     _, receipt = _down_payment(session, business, order)
     down_payment = receipt["document_id"]
-    payment = core.post_customer_payment(
+    payment = reviewed_post_customer_payment(
         session, tenant, down_payment, "300.00", payment_number="PAY-OFF"
     )
     final = _offset_final(session, business, line, down_payment)
@@ -1100,7 +1101,7 @@ def test_a_consolidated_invoice_offsetting_the_down_payment_counts_it_once(
         "consolidated",
     )
     invoice = _invoice_document(receipt)
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, invoice, "700.00", payment_number="PAY-C"
     )
     assert core.open_invoice_amount(session, tenant, invoice) == 0
@@ -1134,7 +1135,7 @@ def test_a_received_down_payment_lowers_the_credit_exposure(session, business):
         Decimal("1000.0000")
     )
 
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, receipt["document_id"], "400.00", payment_number="PAY-EXP"
     )
     exposure = credit_exposure(session, tenant, business.customer.id)
@@ -1192,7 +1193,7 @@ def test_the_narrowed_queue_follows_an_invoice_and_its_payment(
             session, tenant, line.id, "10", "1000.00", "RE-Q"
         )
         document, amount = _invoice_document(invoice), "1000.00"
-    payment = core.post_customer_payment(
+    payment = reviewed_post_customer_payment(
         session, tenant, document, amount, payment_number="PAY-Q"
     )
     with projections.narrowing_report() as report:

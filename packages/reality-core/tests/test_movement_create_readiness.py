@@ -13,6 +13,7 @@ import pytest
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_order,
+    reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
 )
 from sqlalchemy import func, select
@@ -112,7 +113,7 @@ def test_record_shipment_refuses_at_confirmation_when_payment_is_reversed(
     invoice_id = next(
         row["id"] for row in receipt["records"] if row["family"] == "document"
     )
-    entries = core.post_customer_payment(session, tenant, invoice_id, "100.00")
+    entries = reviewed_post_customer_payment(session, tenant, invoice_id, "100.00")
     proposal = _prepare_shipment(session, business, commitment, "ship-reversed")
 
     core.reverse_ledger_posting_group(
@@ -133,7 +134,7 @@ def test_record_shipment_ships_a_paid_prepayment_order(session, business):
     invoice_id = next(
         row["id"] for row in receipt["records"] if row["family"] == "document"
     )
-    core.post_customer_payment(session, tenant, invoice_id, "100.00")
+    reviewed_post_customer_payment(session, tenant, invoice_id, "100.00")
 
     executed = _confirm(
         session, business, _prepare_shipment(session, business, commitment, "ship-paid")

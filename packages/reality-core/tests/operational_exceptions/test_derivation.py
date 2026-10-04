@@ -12,6 +12,9 @@ from intake_review_support import (
     reviewed_create_price_list_entry,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
+    reviewed_post_customer_payment,
+    reviewed_post_customer_refund,
+    reviewed_post_supplier_payment,
 )
 from sqlalchemy import select
 
@@ -36,14 +39,11 @@ from reality.services.core import (
     inventory_rows,
     open_invoice_amount,
     payment_terms,
-    post_customer_payment,
-    post_customer_refund,
     post_ledger,
     post_sales_credit_note,
     post_sales_invoice,
     post_supplier_credit_note,
     post_supplier_invoice,
-    post_supplier_payment,
     post_supplier_refund,
     record_movement,
     release_reservation,
@@ -830,7 +830,7 @@ def test_overdue_receivable_boundaries(session, business):
     ):
         post_sales_invoice(session, tenant_id, document.id)
     post_supplier_invoice(session, tenant_id, supplier.id)
-    post_customer_payment(session, tenant_id, settled.id, "1000.00")
+    reviewed_post_customer_payment(session, tenant_id, settled.id, "1000.00")
     group = session.scalar(
         select(LedgerEntry.posting_group_id).where(
             LedgerEntry.tenant_id == tenant_id,
@@ -846,7 +846,7 @@ def test_overdue_receivable_boundaries(session, business):
 
 def test_overdue_receivable_reports_the_outstanding_amount(session, business):
     invoice, _ = overdue_invoice(session, business, amount="1470.00")
-    post_customer_payment(session, business.tenant.id, invoice.id, "500.00")
+    reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "500.00")
     credit = create_document(
         session,
         business.tenant.id,
@@ -902,7 +902,7 @@ def test_overdue_receivable_clears_through_settlement(session, business):
     invoice, _ = overdue_invoice(session, business)
     assert "overdue_receivable" in by_class(session, tenant_id)
 
-    post_customer_payment(session, tenant_id, invoice.id, "1000.00")
+    reviewed_post_customer_payment(session, tenant_id, invoice.id, "1000.00")
 
     assert "overdue_receivable" not in by_class(session, tenant_id)
 
@@ -1362,7 +1362,7 @@ def test_overdue_payable_boundaries(session, business):
     for document in (overdue, not_yet_due, no_date, settled, reversed_invoice):
         post_supplier_invoice(session, tenant_id, document.id)
     post_sales_invoice(session, tenant_id, receivable.id)
-    post_supplier_payment(session, tenant_id, settled.id, "600.00")
+    reviewed_post_supplier_payment(session, tenant_id, settled.id, "600.00")
     group = session.scalar(
         select(LedgerEntry.posting_group_id).where(
             LedgerEntry.tenant_id == tenant_id,
@@ -1429,7 +1429,7 @@ def test_overdue_payable_clears_through_payment(session, business):
     invoice, _ = overdue_supplier_invoice(session, business)
     assert "overdue_payable" in by_class(session, tenant_id)
 
-    post_supplier_payment(session, tenant_id, invoice.id, "600.00")
+    reviewed_post_supplier_payment(session, tenant_id, invoice.id, "600.00")
 
     assert "overdue_payable" not in by_class(session, tenant_id)
 
@@ -2086,7 +2086,7 @@ def test_a_settled_invoice_clears_the_exposure(session, business):
     document = invoice(session, business, party, "RE-CL-PAY", "1500.00")
     assert "credit_limit_exceeded" in by_class(session, business.tenant.id)
 
-    post_customer_payment(session, business.tenant.id, document.id, "600.00")
+    reviewed_post_customer_payment(session, business.tenant.id, document.id, "600.00")
 
     assert "credit_limit_exceeded" not in by_class(session, business.tenant.id)
 
@@ -3494,7 +3494,7 @@ def posting_history(session, business, *, lag_days=2, cases=6, prefix="A"):
             credit.id,
             effective_at=recorded + timedelta(days=lag_days),
         )
-        post_customer_refund(session, business.tenant.id, credit.id, "10.00")
+        reviewed_post_customer_refund(session, business.tenant.id, credit.id, "10.00")
 
 
 def test_the_posting_norm_describes_this_tenant(session, business):
@@ -3550,7 +3550,7 @@ def test_credit_note_unsettled(session, business):
     ] == Decimal("40.0000")
 
     # Refunding the rest clears it.
-    post_customer_refund(session, business.tenant.id, owed.id, "40.00")
+    reviewed_post_customer_refund(session, business.tenant.id, owed.id, "40.00")
     assert "credit_note_unsettled" not in by_class(session, business.tenant.id)
 
 
@@ -4290,7 +4290,7 @@ def test_the_discount_entry_ends_both_ways(session, business):
     assert "purchase_discount_available" in by_class(session, business.tenant.id)
 
     # Settling it ends the entry, with nothing persisted and no manual step.
-    post_supplier_payment(
+    reviewed_post_supplier_payment(
         session,
         business.tenant.id,
         taken.id,
@@ -4342,7 +4342,7 @@ def test_a_discount_taken_explains_the_remainder(session, business):
     tenant_id = business.tenant.id
     invoice = discounted_receivable(session, business)
     # Paid on the fourth day for exactly what the agreed rate allows.
-    post_customer_payment(
+    reviewed_post_customer_payment(
         session,
         tenant_id,
         invoice.id,
@@ -4361,7 +4361,7 @@ def test_a_discount_taken_explains_the_remainder(session, business):
 
     # Beyond what the rate allows is not a discount, whenever it arrived.
     short = discounted_receivable(session, business, number="RE-088-SHORT")
-    post_customer_payment(
+    reviewed_post_customer_payment(
         session,
         tenant_id,
         short.id,
@@ -4370,7 +4370,7 @@ def test_a_discount_taken_explains_the_remainder(session, business):
     )
     # Inside the rate but after the window had closed is not one either.
     late = discounted_receivable(session, business, number="RE-088-LATE")
-    post_customer_payment(
+    reviewed_post_customer_payment(
         session,
         tenant_id,
         late.id,
@@ -4399,7 +4399,7 @@ def test_the_discount_reason_works_on_both_sides(session, business):
     payable = supplier_invoice_under(
         session, business, "ER-088-BOTH", "2026-07-01", "SK2_10"
     )
-    post_supplier_payment(
+    reviewed_post_supplier_payment(
         session,
         tenant_id,
         payable.id,
@@ -4407,7 +4407,7 @@ def test_the_discount_reason_works_on_both_sides(session, business):
         effective_at=datetime(2026, 7, 5, 9, tzinfo=UTC),
     )
     receivable = discounted_receivable(session, business, number="RE-088-BOTH")
-    post_customer_payment(
+    reviewed_post_customer_payment(
         session,
         tenant_id,
         receivable.id,

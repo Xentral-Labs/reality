@@ -13217,6 +13217,10 @@ def post_customer_payment(
     Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
     """
     _require_business_mutation(session, tenant_id, "post_customer_payment")
+    from reality.services.finance.accounts import resolve_account
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("post_customer_payment", locals())
     from reality.services.tenant_policy import require_decision_finance
 
     require_decision_finance(
@@ -13258,14 +13262,14 @@ def post_customer_payment(
         # reality-rule: core.post_customer_payment.1
         if amount > open_invoice_amount(session, tenant_id, invoice.id):
             raise InvalidOperation(code="payment_exceeds_open_receivable")
-        entries = record_customer_payment(
-            session,
-            tenant_id,
-            invoice.party_id,
-            amount,
+        entries = _invoke(
+            "record_customer_payment", record_customer_payment, session, tenant_id,
+            party_id=invoice.party_id,
+            amount=amount,
             _control_account_id=_settlement_control_entry(
                 session, tenant_id, invoice.id
             ).account_id,
+            _cash_account_id=resolve_account(session, tenant_id, "cash").id,
             currency=invoice.currency,
             payment_number=payment_number,
             source_record_id=source_record_id,
@@ -13274,12 +13278,11 @@ def post_customer_payment(
             _commit=False,
         )
         # reality-rule: core.post_customer_payment.2
-        allocate_settlement(
-            session,
-            tenant_id,
-            _control_entry(entries, "accounts_receivable").id,
-            _settlement_control_entry(session, tenant_id, invoice.id).id,
-            amount,
+        _invoke(
+            "allocate_settlement", allocate_settlement, session, tenant_id,
+            payment_ledger_entry_id=_control_entry(entries, "accounts_receivable").id,
+            invoice_ledger_entry_id=_settlement_control_entry(session, tenant_id, invoice.id).id,
+            amount=amount,
             action_id=action_id,
             _commit=False,
         )
@@ -13304,18 +13307,17 @@ def record_customer_payment(
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     _require_business_mutation(session, tenant_id, "record_customer_payment")
-    from reality.services.intake import require_scoped_intent
+    from reality.services.intake import _invoke, require_scoped_intent
 
     require_scoped_intent("record_customer_payment", locals())
     amount = positive(amount, "amount")
     with _atomic(session):
-        payment = create_document(
-            session,
-            tenant_id,
-            "customer_payment",
-            payment_number or uid("pay"),
-            party_id,
-            amount,
+        payment = _invoke(
+            "create_document", create_document, session, tenant_id,
+            document_type="customer_payment",
+            number=payment_number or uid("pay"),
+            party_id=party_id,
+            amount=amount,
             currency=currency,
             document_date=_company_day(
                 session, tenant_id, effective_at or now()
@@ -13327,12 +13329,11 @@ def record_customer_payment(
         from reality.services.intake import _bind_payment_document
 
         _bind_payment_document(session, tenant_id, payment.id)
-        entries = post_ledger(
-            session,
-            tenant_id,
-            payment.id,
-            party_id,
-            [("cash", "debit", amount), ("accounts_receivable", "credit", amount)],
+        entries = _invoke(
+            "post_ledger", post_ledger, session, tenant_id,
+            document_id=payment.id,
+            party_id=party_id,
+            postings=[("cash", "debit", amount), ("accounts_receivable", "credit", amount)],
             account_ids={
                 role: account
                 for role, account in (
@@ -13440,18 +13441,20 @@ def record_customer_refund(
     Create refund evidence, debit accounts receivable and credit cash for the stated positive amount. Keep document recording and posting within the shared atomic transaction boundary.
     """
     _require_business_mutation(session, tenant_id, "record_customer_refund")
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("record_customer_refund", locals())
     # reality-rule: core.record_customer_refund.1
     amount = positive(amount, "amount")
     effective_at = utc_datetime(effective_at)
     # reality-rule: core.record_customer_refund.2
     with _atomic(session):
-        refund = create_document(
-            session,
-            tenant_id,
-            "customer_refund",
-            refund_number or uid("ref"),
-            party_id,
-            amount,
+        refund = _invoke(
+            "create_document", create_document, session, tenant_id,
+            document_type="customer_refund",
+            number=refund_number or uid("ref"),
+            party_id=party_id,
+            amount=amount,
             currency=currency,
             document_date=_company_day(
                 session, tenant_id, effective_at or now()
@@ -13460,12 +13463,11 @@ def record_customer_refund(
             action_id=action_id,
             _commit=False,
         )
-        entries = post_ledger(
-            session,
-            tenant_id,
-            refund.id,
-            party_id,
-            [("accounts_receivable", "debit", amount), ("cash", "credit", amount)],
+        entries = _invoke(
+            "post_ledger", post_ledger, session, tenant_id,
+            document_id=refund.id,
+            party_id=party_id,
+            postings=[("accounts_receivable", "debit", amount), ("cash", "credit", amount)],
             account_ids={
                 role: account
                 for role, account in (
@@ -13535,6 +13537,10 @@ def post_customer_refund(
     Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
     """
     _require_business_mutation(session, tenant_id, "post_customer_refund")
+    from reality.services.finance.accounts import resolve_account
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("post_customer_refund", locals())
     from reality.services.tenant_policy import require_decision_finance
 
     require_decision_finance(
@@ -13576,14 +13582,14 @@ def post_customer_refund(
         # reality-rule: core.post_customer_refund.1
         if amount > open_invoice_amount(session, tenant_id, note.id):
             raise InvalidOperation(code="refund_exceeds_credit_note_owed")
-        entries = record_customer_refund(
-            session,
-            tenant_id,
-            note.party_id,
-            amount,
+        entries = _invoke(
+            "record_customer_refund", record_customer_refund, session, tenant_id,
+            party_id=note.party_id,
+            amount=amount,
             _control_account_id=_settlement_control_entry(
                 session, tenant_id, note.id
             ).account_id,
+            _cash_account_id=resolve_account(session, tenant_id, "cash").id,
             currency=note.currency,
             refund_number=refund_number,
             source_record_id=source_record_id,
@@ -13592,12 +13598,11 @@ def post_customer_refund(
             _commit=False,
         )
         # reality-rule: core.post_customer_refund.2
-        allocate_settlement(
-            session,
-            tenant_id,
-            _control_entry(entries, "accounts_receivable").id,
-            _settlement_control_entry(session, tenant_id, note.id).id,
-            amount,
+        _invoke(
+            "allocate_settlement", allocate_settlement, session, tenant_id,
+            payment_ledger_entry_id=_control_entry(entries, "accounts_receivable").id,
+            invoice_ledger_entry_id=_settlement_control_entry(session, tenant_id, note.id).id,
+            amount=amount,
             action_id=action_id,
             _commit=False,
         )
@@ -13731,6 +13736,10 @@ def post_supplier_payment(
     Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
     """
     _require_business_mutation(session, tenant_id, "post_supplier_payment")
+    from reality.services.finance.accounts import resolve_account
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("post_supplier_payment", locals())
     from reality.services.tenant_policy import require_decision_finance
 
     require_decision_finance(
@@ -13777,14 +13786,14 @@ def post_supplier_payment(
         # reality-rule: core.post_supplier_payment.1
         if amount > open_payable:
             raise InvalidOperation(code="payment_exceeds_open_payable")
-        entries = record_supplier_payment(
-            session,
-            tenant_id,
-            invoice.party_id,
-            amount,
+        entries = _invoke(
+            "record_supplier_payment", record_supplier_payment, session, tenant_id,
+            party_id=invoice.party_id,
+            amount=amount,
             _control_account_id=_settlement_control_entry(
                 session, tenant_id, invoice.id
             ).account_id,
+            _cash_account_id=resolve_account(session, tenant_id, "cash").id,
             currency=invoice.currency,
             payment_number=payment_number,
             source_record_id=source_record_id,
@@ -13794,12 +13803,11 @@ def post_supplier_payment(
             _commit=False,
         )
         # reality-rule: core.post_supplier_payment.2
-        allocate_settlement(
-            session,
-            tenant_id,
-            _control_entry(entries, "accounts_payable").id,
-            _settlement_control_entry(session, tenant_id, invoice.id).id,
-            amount,
+        _invoke(
+            "allocate_settlement", allocate_settlement, session, tenant_id,
+            payment_ledger_entry_id=_control_entry(entries, "accounts_payable").id,
+            invoice_ledger_entry_id=_settlement_control_entry(session, tenant_id, invoice.id).id,
+            amount=amount,
             action_id=action_id,
             _commit=False,
         )
@@ -13835,20 +13843,19 @@ def record_supplier_payment(
     Create payment evidence, debit accounts payable and credit cash for the stated positive amount. When exchange information is supplied, retain its company amounts and record its stated gain/loss treatment. Keep document recording and posting within the shared atomic transaction boundary.
     """
     _require_business_mutation(session, tenant_id, "record_supplier_payment")
-    from reality.services.intake import require_scoped_intent
+    from reality.services.intake import _invoke, require_scoped_intent
 
     require_scoped_intent("record_supplier_payment", locals())
     # reality-rule: core.record_supplier_payment.1
     amount = positive(amount, "amount")
     # reality-rule: core.record_supplier_payment.2
     with session.begin_nested():
-        payment = create_document(
-            session,
-            tenant_id,
-            "supplier_payment",
-            payment_number or uid("pay"),
-            party_id,
-            amount,
+        payment = _invoke(
+            "create_document", create_document, session, tenant_id,
+            document_type="supplier_payment",
+            number=payment_number or uid("pay"),
+            party_id=party_id,
+            amount=amount,
             currency=currency,
             document_date=_company_day(
                 session, tenant_id, effective_at or now()
@@ -13860,12 +13867,11 @@ def record_supplier_payment(
         from reality.services.intake import _bind_payment_document
 
         _bind_payment_document(session, tenant_id, payment.id)
-        entries = post_ledger(
-            session,
-            tenant_id,
-            payment.id,
-            party_id,
-            [
+        entries = _invoke(
+            "post_ledger", post_ledger, session, tenant_id,
+            document_id=payment.id,
+            party_id=party_id,
+            postings=[
                 ("accounts_payable", "debit", amount),
                 ("cash", "credit", amount),
                 # Spec 309: the realised difference, in the company currency alone.
@@ -17274,6 +17280,72 @@ def preview_payment_run(
     }
 
 
+def _preview_payment_run_input(session, tenant_id, *, payments, currency, expected_total, reason):
+    """Validate the existing stated run without accepting business effects.
+
+    BUSINESS PURPOSE:
+    Validate selected supplier obligations and the stated total once for preparation and execution.
+
+    BUSINESS RULE core.preview_payment_run_input.1:
+    Require each selected invoice once and every stated amount positive.
+
+    BUSINESS RULE core.preview_payment_run_input.2:
+    Require the stated payment amounts to match the explicit confirmed total.
+
+    BUSINESS RULE core.preview_payment_run_input.3:
+    Require current eligible supplier invoices in the run currency with sufficient open value.
+    """
+    get_tenant(session, tenant_id)
+    stated_reason = (reason or "").strip()
+    if not stated_reason:
+        raise InvalidOperation("A payment run requires a reason.")
+    if not payments:
+        raise InvalidOperation("A payment run needs at least one payment.")
+    run_currency = (currency or "").strip()
+    if not run_currency:
+        raise InvalidOperation("A payment run needs the currency it is paid in.")
+    confirmed_total = decimal(expected_total)
+    stated: list[tuple[str, Decimal, str | None]] = []
+    seen: set[str] = set()
+    # reality-rule: core.preview_payment_run_input.1
+    for item in payments:
+        invoice_id = item["invoice_id"]
+        if invoice_id in seen:
+            raise InvalidOperation("A payment run names each invoice once.")
+        seen.add(invoice_id)
+        stated.append(
+            (invoice_id, positive(item["amount"], "amount"), item.get("payment_number"))
+        )
+    total = sum((amount for _, amount, _ in stated), ZERO)
+    # reality-rule: core.preview_payment_run_input.2
+    if total != confirmed_total:
+        raise InvalidOperation(
+            "The payment run no longer matches the confirmed total: "
+            f"{total} stated, {confirmed_total} confirmed."
+        )
+    payable, withheld = payable_supplier_invoices(session, tenant_id)
+    rows = {row["document"].id: row for row in payable}
+    refusals = {row["document"].id: row["withheld_because"] for row in withheld}
+    # reality-rule: core.preview_payment_run_input.3
+    for invoice_id, amount, _ in stated:
+        row = rows.get(invoice_id)
+        if row is None:
+            withheld_because = refusals.get(invoice_id)
+            raise InvalidOperation(
+                PAYMENT_RUN_WITHHELD_REASONS[withheld_because]
+                if withheld_because
+                else "A payment run pays open supplier invoices of this tenant only."
+            )
+        if row["document"].currency.strip().upper() != run_currency.upper():
+            raise InvalidOperation(
+                "A payment run pays in one currency: "
+                f"{row['document'].currency} does not match {run_currency}."
+            )
+        if amount > decimal(row["open"]):
+            raise InvalidOperation("Payment exceeds the open supplier payable.")
+    return {"stated": stated, "total": confirmed_total, "currency": run_currency, "reason": stated_reason}
+
+
 def execute_payment_run(
     session: OrmSession,
     tenant_id: str,
@@ -17285,6 +17357,7 @@ def execute_payment_run(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     actor_context: dict[str, Any] | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     Pay what somebody confirmed, all of it or none of it.
@@ -17306,75 +17379,27 @@ def execute_payment_run(
     Record the reviewed supplier payments atomically, with an exact confirmed total and reason.
 
     BUSINESS RULE core.execute_payment_run.1:
-    Require each invoice identity only once and a positive stated payment amount.
-
-    BUSINESS RULE core.execute_payment_run.2:
-    Refuse when the sum of stated amounts differs from the confirmed total.
-
-    BUSINESS RULE core.execute_payment_run.3:
-    Before writing, require each invoice to remain payable, match the single run currency, and have an open amount at least as large as the stated payment.
+    Delegate the unchanged invoice selection, positive amounts, exact confirmed total, current eligibility, currency and open-value validation to the shared pure preview before writing.
 
     BUSINESS RULE core.execute_payment_run.4:
     Record and allocate every supplier payment without intermediate commits, emit one run event and commit once; roll back the complete run on failure.
     """
     _require_business_mutation(session, tenant_id, "execute_payment_run")
-    get_tenant(session, tenant_id)
-    stated_reason = (reason or "").strip()
-    if not stated_reason:
-        raise InvalidOperation("A payment run requires a reason.")
-    if not payments:
-        raise InvalidOperation("A payment run needs at least one payment.")
-    run_currency = (currency or "").strip()
-    if not run_currency:
-        raise InvalidOperation("A payment run needs the currency it is paid in.")
-    confirmed_total = decimal(expected_total)
-    stated: list[tuple[str, Decimal, str | None]] = []
-    seen: set[str] = set()
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("execute_payment_run", locals())
     # reality-rule: core.execute_payment_run.1
-    for item in payments:
-        invoice_id = item["invoice_id"]
-        if invoice_id in seen:
-            raise InvalidOperation("A payment run names each invoice once.")
-        seen.add(invoice_id)
-        stated.append(
-            (invoice_id, positive(item["amount"], "amount"), item.get("payment_number"))
-        )
-    total = sum((amount for _, amount, _ in stated), ZERO)
-    # reality-rule: core.execute_payment_run.2
-    if total != confirmed_total:
-        raise InvalidOperation(
-            "The payment run no longer matches the confirmed total: "
-            f"{total} stated, {confirmed_total} confirmed."
-        )
-    payable, withheld = payable_supplier_invoices(session, tenant_id)
-    rows = {row["document"].id: row for row in payable}
-    refusals = {row["document"].id: row["withheld_because"] for row in withheld}
-    # reality-rule: core.execute_payment_run.3
-    for invoice_id, amount, _ in stated:
-        row = rows.get(invoice_id)
-        if row is None:
-            withheld_because = refusals.get(invoice_id)
-            raise InvalidOperation(
-                PAYMENT_RUN_WITHHELD_REASONS[withheld_because]
-                if withheld_because
-                else "A payment run pays open supplier invoices of this tenant only."
-            )
-        if row["document"].currency.strip().upper() != run_currency.upper():
-            raise InvalidOperation(
-                "A payment run pays in one currency: "
-                f"{row['document'].currency} does not match {run_currency}."
-            )
-        if amount > decimal(row["open"]):
-            raise InvalidOperation("Payment exceeds the open supplier payable.")
+    preview = _preview_payment_run_input(session, tenant_id, payments=payments, currency=currency, expected_total=expected_total, reason=reason)
+    stated, total = preview["stated"], preview["total"]
+    run_currency, stated_reason = preview["currency"], preview["reason"]
     paid: list[dict[str, Any]] = []
     # reality-rule: core.execute_payment_run.4
     try:
         for invoice_id, amount, payment_number in stated:
-            entries = post_supplier_payment(
-                session,
-                tenant_id,
-                invoice_id,
-                amount,
+            entries = _invoke(
+                "post_supplier_payment", post_supplier_payment, session, tenant_id,
+                invoice_id=invoice_id,
+                amount=amount,
                 payment_number=payment_number,
                 effective_at=effective_at,
                 action_id=action_id,
@@ -17405,7 +17430,10 @@ def execute_payment_run(
             },
             action_id=action_id,
         )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise

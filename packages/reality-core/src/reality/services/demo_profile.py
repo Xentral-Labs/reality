@@ -28,6 +28,10 @@ from reality.demo.international import (
 )
 from reality.integrations.demo_data import demo_invoice_number
 from reality.services import core
+from reality.services.intake import (
+    _post_frozen_customer_payment,
+    _post_frozen_supplier_payment,
+)
 
 
 def _cost_action(session: Session, run: PlaygroundRun, arguments: dict) -> dict:
@@ -520,7 +524,7 @@ def seed_profile(
             cases[key] = {**ref, "supplier_invoice_id": supplier_invoice.id}
             if paid is None:
                 continue
-            core.post_supplier_payment(
+            _post_frozen_supplier_payment(
                 session,
                 tenant,
                 supplier_invoice.id,
@@ -573,7 +577,7 @@ def seed_profile(
                 "invoice_external_reference": "SINV-002",
             },
         )
-        core.post_supplier_payment(
+        _post_frozen_supplier_payment(
             session,
             tenant,
             supplier_discount["supplier_invoice_id"],
@@ -949,7 +953,7 @@ def seed_profile(
                         "invoice_external_reference": invoice.number,
                     },
                 )
-                core.post_customer_payment(
+                _post_frozen_customer_payment(
                     session,
                     tenant,
                     invoice.id,
@@ -1013,7 +1017,7 @@ def seed_profile(
             elif settlement != "open":
                 outstanding = core.open_invoice_amount(session, tenant, invoice.id)
                 paid = outstanding if settlement == "paid" else outstanding / 2
-                core.post_customer_payment(
+                _post_frozen_customer_payment(
                     session,
                     tenant,
                     invoice.id,
@@ -2515,7 +2519,7 @@ def seed_profile(
                 "invoice_external_reference": prepayment_invoice.number,
             },
         )
-        core.post_customer_payment(
+        _post_frozen_customer_payment(
             session,
             tenant,
             prepayment_invoice.id,
@@ -2585,7 +2589,7 @@ def seed_profile(
             "BAD-DEBT", "P10", "C10", "2", "100", (("2", "100"),)
         )
         bad_debt_invoice = bad_debt_invoices[0][0]
-        core.post_customer_payment(
+        _post_frozen_customer_payment(
             session,
             tenant,
             bad_debt_invoice.id,

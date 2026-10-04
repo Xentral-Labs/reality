@@ -8,6 +8,7 @@ import pytest
 from conftest import record_by_id
 from intake_review_support import (
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
     reviewed_record_sales_credit,
     reviewed_record_sales_invoice,
 )
@@ -182,7 +183,7 @@ def test_partial_multi_credit_without_return_and_exact_recovery(session, busines
 def test_paid_invoice_zero_netting_and_capacity(session, business):
     b = business
     doc, lines = fixture(session, b)
-    core.post_customer_payment(session, b.tenant.id, doc.id, doc.gross_amount)
+    reviewed_post_customer_payment(session, b.tenant.id, doc.id, doc.gross_amount)
     p = prepare(session, b, arguments(doc, lines, allocation_amount="0"))
     confirm(session, b, p)
     p2 = prepare(session, b, arguments(doc, lines, allocation_amount="0"))
@@ -236,7 +237,7 @@ def test_stale_credit_review(session, business, change):
     doc, lines = fixture(session, b)
     p = prepare(session, b, arguments(doc, lines, allocation_amount="0"))
     if change == "payment":
-        core.post_customer_payment(session, b.tenant.id, doc.id, "1")
+        reviewed_post_customer_payment(session, b.tenant.id, doc.id, "1")
     elif change == "credit":
         reviewed_record_sales_credit(
             session, b.tenant.id, **arguments(doc, lines, allocation_amount="0")

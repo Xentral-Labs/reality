@@ -4,7 +4,11 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_post_customer_payment,
+    reviewed_post_supplier_payment,
+)
 
 from reality.db.core import Document, SettlementAllocation
 from reality.services.core import (
@@ -22,12 +26,10 @@ from reality.services.core import (
     open_invoice_amount,
     open_item_control_accounts,
     payment_rows,
-    post_customer_payment,
     post_ledger,
     post_sales_credit_note,
     post_sales_invoice,
     post_supplier_invoice,
-    post_supplier_payment,
     record_customer_payment,
 )
 
@@ -43,7 +45,7 @@ def test_sales_invoice_partial_payment_and_credit_are_balanced(session, business
         document_date="2026-09-22",
     )
     invoice_entries = post_sales_invoice(session, business.tenant.id, invoice.id)
-    payment_entries = post_customer_payment(
+    payment_entries = reviewed_post_customer_payment(
         session, business.tenant.id, invoice.id, "500.00"
     )
     credit = create_document(
@@ -112,7 +114,7 @@ def test_supplier_invoice_and_partial_payment_leave_open_payable(session, busine
         document_date="2026-09-22",
     )
     post_supplier_invoice(session, business.tenant.id, invoice.id)
-    post_supplier_payment(session, business.tenant.id, invoice.id, "250.00")
+    reviewed_post_supplier_payment(session, business.tenant.id, invoice.id, "250.00")
 
     assert open_invoice_amount(session, business.tenant.id, invoice.id) == Decimal(
         "350.0000"
@@ -152,7 +154,7 @@ def test_duplicate_invoice_posting_and_overpayment_are_rejected(session, busines
     with pytest.raises(InvalidOperation, match="already posted"):
         post_sales_invoice(session, business.tenant.id, invoice.id)
     with pytest.raises(InvalidOperation, match="exceeds"):
-        post_customer_payment(session, business.tenant.id, invoice.id, 11)
+        reviewed_post_customer_payment(session, business.tenant.id, invoice.id, 11)
 
 
 def test_one_payment_can_settle_multiple_invoices_tenant_safely(session, business):
@@ -219,7 +221,7 @@ def test_finance_registers_share_ledger_and_allocation_truth(session, business):
         100,
     )
     post_sales_invoice(session, business.tenant.id, invoice.id)
-    post_customer_payment(
+    reviewed_post_customer_payment(
         session,
         business.tenant.id,
         invoice.id,

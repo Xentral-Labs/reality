@@ -132,3 +132,9 @@ No unresolved clarification or critical finding. Existing correction services ha
 ## Retained input/reference integrity review
 
 No unresolved clarification or critical finding. Defaults must be captured at preparation, not reconstructed at execution. Separately stored partner roles are actual semantic references and need explicit current witnessing. Tests will prove role-only changes without altering main partner identity/state; received actor metadata cannot replace confirming authority. Scope remains the existing retained commercial/correction commands.
+
+## Selected payment/refund boundary review
+
+No unresolved clarification or critical finding. Existing sandbox finance policy is not ordinary-company canonical Decision enforcement. Existing payment review owns selected obligations and current financial state, but canonical callbacks and inner evidence/posting/allocation need exact frozen invocation ownership and application-root settlement. No bank execution, schema, status fabrication or historical approval rewrite is permitted. Remaining standalone financial/operational writers are separate closure work.
+
+Caller review identifies authored fixed/profile payment calls, two direct CLI payment routes, the direct refund HTTP route and the explicit-list payment-run parent/HTTP route. These are necessary integration work for the three canonical gates. The payment run already owns a stated list and total; its retained review must cover selected current financial state, not recalculate an unspecified batch. No fictional reviewer, generic fixed-family permission or bank transfer is introduced.

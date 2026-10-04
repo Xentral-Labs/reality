@@ -6,6 +6,9 @@ import pytest
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
+    reviewed_post_customer_refund,
+    reviewed_post_supplier_payment,
 )
 
 from reality.services.core import (
@@ -17,13 +20,10 @@ from reality.services.core import (
     create_document,
     create_tenant,
     open_invoice_amount,
-    post_customer_payment,
-    post_customer_refund,
     post_sales_credit_note,
     post_sales_invoice,
     post_supplier_credit_note,
     post_supplier_invoice,
-    post_supplier_payment,
     post_supplier_refund,
 )
 from reality.services.exceptions import operational_exceptions
@@ -85,7 +85,7 @@ def test_a_credit_note_posts_the_reverse_of_an_invoice(session, business):
 def test_a_paid_invoice_can_still_be_credited(session, business):
     tenant = business.tenant.id
     paid = invoice(session, business, "RE-CN-PAID", "100.00")
-    post_customer_payment(session, tenant, paid.id, "100.00")
+    reviewed_post_customer_payment(session, tenant, paid.id, "100.00")
     assert open_invoice_amount(session, tenant, paid.id) == Decimal(0)
 
     note = credit_note(session, business, "GS-PAID", "30.00")
@@ -153,12 +153,12 @@ def test_a_credit_may_be_netted_against_an_open_invoice(session, business):
 def test_a_credit_may_be_refunded(session, business):
     tenant = business.tenant.id
     paid = invoice(session, business, "RE-CN-5", "100.00")
-    post_customer_payment(session, tenant, paid.id, "100.00")
+    reviewed_post_customer_payment(session, tenant, paid.id, "100.00")
     note = credit_note(session, business, "GS-5", "30.00")
     post_sales_credit_note(session, tenant, note.id)
     cash_before = account_balance(session, tenant, "cash")
 
-    post_customer_refund(session, tenant, note.id, "30.00")
+    reviewed_post_customer_refund(session, tenant, note.id, "30.00")
 
     # Money leaves and the obligation is settled.
     assert account_balance(session, tenant, "cash") == cash_before - Decimal("30.0000")
@@ -172,11 +172,11 @@ def test_settling_is_refused_beyond_what_is_owed(session, business):
     post_sales_credit_note(session, tenant, note.id)
 
     # Everything owed may be refunded.
-    post_customer_refund(session, tenant, note.id, "30.00")
+    reviewed_post_customer_refund(session, tenant, note.id, "30.00")
 
     # Nothing beyond it, which is what makes the acceptance above a rule.
     with pytest.raises(InvalidOperation):
-        post_customer_refund(session, tenant, note.id, "0.01")
+        reviewed_post_customer_refund(session, tenant, note.id, "0.01")
 
 
 # --- The credit that comes the other way (spec 089) ------------------------
@@ -313,7 +313,7 @@ def test_netting_leaves_the_remainder_open(session, business):
 def test_a_supplier_refund_settles_the_credit(session, business):
     tenant_id = business.tenant.id
     paid = supplier_invoice(session, business, "ER-089-PAID", "400.00")
-    post_supplier_payment(session, tenant_id, paid.id, "400.00")
+    reviewed_post_supplier_payment(session, tenant_id, paid.id, "400.00")
     assert open_invoice_amount(session, tenant_id, paid.id) == Decimal(0)
 
     # The credit arrives after the invoice was paid: nothing is open to net it

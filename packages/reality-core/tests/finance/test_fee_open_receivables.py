@@ -5,7 +5,10 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_post_customer_payment,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SourceRecord
@@ -87,7 +90,7 @@ def fee_story(session, business, kind):
             )
         )
     else:
-        payment = core.post_customer_payment(session, tenant, invoice.id, "100")[0]
+        payment = reviewed_post_customer_payment(session, tenant, invoice.id, "100")[0]
         receipt = execute(
             session,
             tenant,
@@ -198,7 +201,7 @@ def test_fee_payment_is_reviewed_partial_replayable_and_reversible(
 ):
     tenant = business.tenant.id
     invoice, fee = fee_story(session, business, kind)
-    core.post_customer_payment(session, tenant, invoice.id, "100")
+    reviewed_post_customer_payment(session, tenant, invoice.id, "100")
     assert settlement_context(session, tenant, fee.id)["side"] == "customer"
     assert settlement_context(session, tenant, fee.id)["reduction_allowed"] is False
     proposal = create_change_proposal(
@@ -326,7 +329,7 @@ def test_company_borne_and_zero_fees_create_no_customer_claim(
         session, tenant, "sales_invoice", core.uid("inv"), business.customer.id, "100"
     )
     core.post_sales_invoice(session, tenant, invoice.id)
-    payment = core.post_customer_payment(session, tenant, invoice.id, "100")[0]
+    payment = reviewed_post_customer_payment(session, tenant, invoice.id, "100")[0]
     receipt = execute(
         session,
         tenant,

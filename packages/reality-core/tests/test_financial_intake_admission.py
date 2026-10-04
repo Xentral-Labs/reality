@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from intake_review_support import reviewed_post_customer_payment
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, Document, LedgerEntry
@@ -293,7 +294,7 @@ def test_selected_invoice_allocation_change_refuses_combined_payment(
     proposal = prepare_intake(session, business.tenant.id, job.id)
     review = review_intake(session, business.tenant.id, proposal.id)
     assert len(review["plan"]["effects"]) == 2
-    core.post_customer_payment(session, business.tenant.id, invoice.id, "10")
+    reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "10")
     before = session.scalar(select(func.count()).select_from(LedgerEntry))
     with pytest.raises(core.InvalidOperation):
         apply_prepared_intake(

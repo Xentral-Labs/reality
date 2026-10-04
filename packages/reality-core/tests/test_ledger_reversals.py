@@ -1,7 +1,9 @@
+
 from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_post_customer_payment
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry, LedgerReversal, SettlementAllocation
@@ -15,7 +17,6 @@ from reality.services.core import (
     ledger_reversal_snapshot,
     open_invoice_amount,
     payment_rows,
-    post_customer_payment,
     post_sales_invoice,
     preview_ledger_reversal,
     reverse_ledger_posting_group,
@@ -92,7 +93,7 @@ def test_payment_reversal_preserves_allocation_history_and_reopens_invoice(
     session, business
 ):
     invoice, _ = _sales_invoice(session, business)
-    payment = post_customer_payment(
+    payment = reviewed_post_customer_payment(
         session, business.tenant.id, invoice.id, Decimal(40)
     )
     allocation = session.scalar(select(SettlementAllocation))

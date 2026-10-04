@@ -8,7 +8,11 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_execute_payment_run,
+    reviewed_post_supplier_payment,
+)
 
 from reality.services.core import (
     PAYMENT_RUN_WITHHELD_REASONS,
@@ -19,14 +23,12 @@ from reality.services.core import (
     create_document,
     create_tenant,
     duplicate_supplier_invoices,
-    execute_payment_run,
     financial_open_items,
     open_invoice_amount,
     payable_supplier_invoices,
     payment_terms,
     post_sales_invoice,
     post_supplier_invoice,
-    post_supplier_payment,
     preview_payment_run,
     reverse_ledger_posting_group,
 )
@@ -188,7 +190,7 @@ def test_what_is_not_payable_and_why(session, business):
 
     # Settled: nothing open.
     settled = supplier_invoice(session, business, "ER-098-PAID", "2026-08-01")
-    post_supplier_payment(session, business.tenant.id, settled.id, "1000.00")
+    reviewed_post_supplier_payment(session, business.tenant.id, settled.id, "1000.00")
 
     # Not a supplier invoice at all.
     customer_invoice = create_document(
@@ -234,7 +236,7 @@ def test_what_is_not_payable_and_why(session, business):
     # And the run refuses each of them, naming the reason.
     for invoice_id, reason in reasons.items():
         with pytest.raises(InvalidOperation) as refused:
-            execute_payment_run(
+            reviewed_execute_payment_run(
                 session,
                 business.tenant.id,
                 payments=[{"invoice_id": invoice_id, "amount": "10.00"}],
@@ -247,7 +249,7 @@ def test_what_is_not_payable_and_why(session, business):
 
     # Positive control: the payable one goes through with the same shape of call.
     assert (
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             business.tenant.id,
             payments=[{"invoice_id": payable_invoice.id, "amount": "10.00"}],
@@ -340,7 +342,7 @@ def test_the_discount_is_named_never_applied(session, business):
 
     # The operator states 980, and 20 stays open on the invoice — exactly what a
     # single payment does. Spec 088 decided the residue is reported, not cleared.
-    execute_payment_run(
+    reviewed_execute_payment_run(
         session,
         business.tenant.id,
         payments=[{"invoice_id": invoice.id, "amount": "980.00"}],
@@ -387,7 +389,7 @@ def test_the_preview_reads_the_register(session, business):
     """Every figure comes from the aging register, so they cannot disagree."""
     skonto(session, business)
     invoice = supplier_invoice(session, business, "ER-098-REG", "2026-08-25", "SK2_10")
-    post_supplier_payment(session, business.tenant.id, invoice.id, "400.00")
+    reviewed_post_supplier_payment(session, business.tenant.id, invoice.id, "400.00")
 
     (row,) = [
         row
@@ -412,7 +414,7 @@ def test_a_run_pays_exactly_what_it_was_given(session, business):
     )
     untouched = supplier_invoice(session, business, "ER-098-P3", "2026-08-03")
 
-    result = execute_payment_run(
+    result = reviewed_execute_payment_run(
         session,
         business.tenant.id,
         payments=[
@@ -443,7 +445,7 @@ def test_a_run_refuses(session, business):
     line = [{"invoice_id": invoice.id, "amount": "100.00"}]
 
     with pytest.raises(InvalidOperation, match="reason"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=line,
@@ -452,7 +454,7 @@ def test_a_run_refuses(session, business):
             reason="   ",
         )
     with pytest.raises(InvalidOperation, match="at least one payment"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=[],
@@ -461,7 +463,7 @@ def test_a_run_refuses(session, business):
             reason="Friday",
         )
     with pytest.raises(InvalidOperation, match="each invoice once"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=[*line, {"invoice_id": invoice.id, "amount": "50.00"}],
@@ -470,7 +472,7 @@ def test_a_run_refuses(session, business):
             reason="Friday",
         )
     with pytest.raises(InvalidOperation, match="confirmed total"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=line,
@@ -479,7 +481,7 @@ def test_a_run_refuses(session, business):
             reason="Friday",
         )
     with pytest.raises(InvalidOperation, match="greater than zero"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=[{"invoice_id": invoice.id, "amount": "0"}],
@@ -488,7 +490,7 @@ def test_a_run_refuses(session, business):
             reason="Friday",
         )
     with pytest.raises(InvalidOperation, match="exceeds the open"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=[{"invoice_id": invoice.id, "amount": "1000.01"}],
@@ -497,7 +499,7 @@ def test_a_run_refuses(session, business):
             reason="Friday",
         )
     with pytest.raises(InvalidOperation, match="currency it is paid in"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=line,
@@ -511,7 +513,7 @@ def test_a_run_refuses(session, business):
 
     # The positive control: the same invoice, the same shape, correctly stated.
     assert (
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=line,
@@ -531,7 +533,7 @@ def test_a_run_is_one_currency(session, business):
     )
 
     with pytest.raises(InvalidOperation, match="one currency"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             business.tenant.id,
             payments=[
@@ -547,7 +549,7 @@ def test_a_run_is_one_currency(session, business):
     # Positive control: two runs, one currency each, both go through.
     for invoice, currency in ((euros, "EUR"), (dollars, "USD")):
         assert (
-            execute_payment_run(
+            reviewed_execute_payment_run(
                 session,
                 business.tenant.id,
                 payments=[{"invoice_id": invoice.id, "amount": "10.00"}],
@@ -568,11 +570,11 @@ def test_a_failed_run_leaves_nothing_behind(session, business):
     tenant_id = business.tenant.id
 
     # Somebody else settles the second invoice between the preview and the run.
-    post_supplier_payment(session, tenant_id, second.id, "1000.00")
+    reviewed_post_supplier_payment(session, tenant_id, second.id, "1000.00")
     events_before = len(business_events(session, tenant_id))
 
     with pytest.raises(InvalidOperation):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             tenant_id,
             payments=[
@@ -591,7 +593,7 @@ def test_a_failed_run_leaves_nothing_behind(session, business):
     assert len(business_events(session, tenant_id)) == events_before
 
     # Positive control: the same run without the settled invoice pays both.
-    result = execute_payment_run(
+    result = reviewed_execute_payment_run(
         session,
         tenant_id,
         payments=[
@@ -613,7 +615,7 @@ def test_a_run_is_recorded_as_one_decision(session, business):
         session, business, "ER-098-E2", "2026-08-02", amount="250.00"
     )
 
-    execute_payment_run(
+    reviewed_execute_payment_run(
         session,
         business.tenant.id,
         payments=[
@@ -654,10 +656,10 @@ def test_a_payment_in_a_run_is_an_ordinary_payment(session, business):
     in_run = supplier_invoice(session, business, "ER-098-INRUN", "2026-08-01")
     effective = datetime(2026, 8, 31, 9, tzinfo=UTC)
 
-    single = post_supplier_payment(
+    single = reviewed_post_supplier_payment(
         session, business.tenant.id, alone.id, "400.00", effective_at=effective
     )
-    execute_payment_run(
+    reviewed_execute_payment_run(
         session,
         business.tenant.id,
         payments=[{"invoice_id": in_run.id, "amount": "400.00"}],
@@ -700,7 +702,7 @@ def test_a_run_is_tenant_scoped(session, business):
         == []
     )
     with pytest.raises(InvalidOperation, match="this tenant only"):
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             other.id,
             payments=[{"invoice_id": invoice.id, "amount": "10.00"}],
@@ -713,7 +715,7 @@ def test_a_run_is_tenant_scoped(session, business):
 
     # Positive control: its own tenant pays it.
     assert (
-        execute_payment_run(
+        reviewed_execute_payment_run(
             session,
             business.tenant.id,
             payments=[{"invoice_id": invoice.id, "amount": "10.00"}],

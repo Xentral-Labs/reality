@@ -3,6 +3,11 @@
 import json
 
 import pytest
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_customer_refund,
+    reviewed_post_supplier_payment,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import FinanceState, LedgerEntry, SubledgerAccount
@@ -27,8 +32,8 @@ def test_matrix_matches_actual_invoice_credit_payment_refund(session, business, 
     post_credit = (
         core.post_sales_credit_note if customer else core.post_supplier_credit_note
     )
-    payment = core.post_customer_payment if customer else core.post_supplier_payment
-    refund = core.post_customer_refund if customer else core.post_supplier_refund
+    payment = reviewed_post_customer_payment if customer else reviewed_post_supplier_payment
+    refund = reviewed_post_customer_refund if customer else core.post_supplier_refund
     actual = {
         invoice_kind: post_invoice(session, tenant, invoice.id),
         credit_kind: post_credit(session, tenant, credit.id),
@@ -114,7 +119,7 @@ def test_default_changes_do_not_rewrite_original_settlement_accounts(session, bu
         == replacement["id"]
     )
     assert row["control_policy"] == "original_when_linked"
-    payment = core.post_customer_payment(session, tenant, doc.id, "10")
+    payment = reviewed_post_customer_payment(session, tenant, doc.id, "10")
     assert (
         next(e for e in payment if e.account == "accounts_receivable").account_id
         == original

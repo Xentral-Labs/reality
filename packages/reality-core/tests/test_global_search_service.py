@@ -1,6 +1,7 @@
 """The palette searches complete scoped sets before limiting results."""
 
 import pytest
+from intake_review_support import reviewed_post_customer_payment
 
 from reality.domain.search import RecordTarget, SearchRequest
 from reality.services.core import NotFound, create_tenant
@@ -145,7 +146,6 @@ def test_document_payment_shipment_canonical_authorities(session, business):
     from reality.db.core import LedgerEntry, Shipment, ShipmentPackage, SourceRecord
     from reality.services.core import (
         create_document,
-        post_customer_payment,
         post_sales_invoice,
     )
 
@@ -154,7 +154,7 @@ def test_document_payment_shipment_canonical_authorities(session, business):
         session, tenant, "sales_invoice", "INV-EXACT", business.customer.id, 100
     )
     post_sales_invoice(session, tenant, invoice.id)
-    post_customer_payment(session, tenant, invoice.id, 40, payment_number="PAY-EXACT")
+    reviewed_post_customer_payment(session, tenant, invoice.id, 40, payment_number="PAY-EXACT")
     cash = session.scalar(
         select(LedgerEntry).where(
             LedgerEntry.tenant_id == tenant, LedgerEntry.account == "cash"

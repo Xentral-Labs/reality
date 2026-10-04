@@ -6,7 +6,11 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
+from intake_review_support import (
+    reviewed_manual_order,
+    reviewed_post_customer_payment,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -116,7 +120,7 @@ def test_an_agent_proposes_then_a_person_confirms(session, business):
     _confirm(session, tenant, proposed["proposal_id"])
     (down_payment,) = _documents(session, tenant, "down_payment_invoice")
 
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, down_payment.id, "300.00", payment_number="PAY-AD"
     )
     final = MCP_TOOL_REGISTRY["sales_invoice_record_propose"].handler(

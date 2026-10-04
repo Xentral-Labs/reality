@@ -6,6 +6,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_post_customer_payment
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -42,7 +43,7 @@ def _paid_invoice(session, business, number="RE-297", amount="100.00", paid=None
         document_date="2026-09-01",
     )
     core.post_sales_invoice(session, tenant, invoice.id)
-    entries = core.post_customer_payment(
+    entries = reviewed_post_customer_payment(
         session, tenant, invoice.id, paid or amount, payment_number=f"PAY-{number}"
     )
     return invoice, entries[0]
@@ -428,7 +429,7 @@ def test_a_reopened_invoice_is_reported_until_it_is_paid_again(session, business
     assert finding.causal_values["kind"] == "direct_debit_return"
     assert finding.causal_values["reference"] == "RTN-4711"
 
-    core.post_customer_payment(
+    reviewed_post_customer_payment(
         session, tenant, invoice.id, "100", payment_number="PAY-AGAIN"
     )
 
@@ -679,7 +680,7 @@ def test_an_invoice_whose_payments_came_back_twice_is_reported_once(session, bus
     tenant = business.tenant.id
     invoice, entry = _paid_invoice(session, business)
     _return(session, tenant, entry.document_id)
-    again = core.post_customer_payment(
+    again = reviewed_post_customer_payment(
         session, tenant, invoice.id, "100", payment_number="PAY-AGAIN"
     )
     _return(session, tenant, again[0].document_id, reason="AM04 insufficient funds")

@@ -7,6 +7,9 @@ import pytest
 from conftest import record_by_id
 from intake_review_support import (
     reviewed_manual_order,
+    reviewed_post_customer_payment,
+    reviewed_post_customer_refund,
+    reviewed_post_supplier_payment,
     reviewed_record_sales_credit,
     reviewed_record_sales_invoice,
     reviewed_record_supplier_invoice,
@@ -73,7 +76,7 @@ def test_outgoing_payment_rolls_back_all_records(
 
     monkeypatch.setattr(core, "allocate_settlement", fail)
     service = (
-        core.post_supplier_payment if kind == "supplier" else core.post_customer_refund
+        reviewed_post_supplier_payment if kind == "supplier" else reviewed_post_customer_refund
     )
     with Session(engine) as session:
         before_events = session.scalar(select(func.count()).select_from(BusinessEvent))
@@ -157,14 +160,14 @@ def test_outgoing_payment_is_attributed_and_preserves_currency(outgoing_obligati
         )
 
 
-def test_outgoing_payment_joins_caller_transaction(outgoing_obligation):
+def test_outgoing_payment_private_commit_flag_grants_no_decision(outgoing_obligation):
     engine, tenant_id, document_id, kind = outgoing_obligation
-    service = (
-        core.post_supplier_payment if kind == "supplier" else core.post_customer_refund
-    )
+    service = core.post_supplier_payment if kind == "supplier" else core.post_customer_refund
     with Session(engine) as session:
-        service(session, tenant_id, document_id, "125", _commit=False)
-        assert core.open_invoice_amount(session, tenant_id, document_id) == 175
+        with pytest.raises(core.InvalidOperation) as refused:
+            service(session, tenant_id, document_id, "125", _commit=False)
+        assert refused.value.code == "intake_approval_required"
+        assert core.open_invoice_amount(session, tenant_id, document_id) == 300
         with Session(engine) as observer:
             assert core.open_invoice_amount(observer, tenant_id, document_id) == 300
         session.rollback()
@@ -278,7 +281,7 @@ def test_failed_payment_leaves_no_durable_partial_records(
     with Session(engine) as session:
         before_events = session.scalar(select(func.count()).select_from(BusinessEvent))
         with pytest.raises(RuntimeError, match="allocation failure"):
-            core.post_customer_payment(
+            reviewed_post_customer_payment(
                 session, tenant_id, invoice_id, "125", payment_number="PAY-1"
             )
         # Even a later caller commit must not persist a half-finished command.
@@ -356,11 +359,13 @@ def test_confirmed_payment_has_one_causal_event_chain(posted_invoice):
         )
 
 
-def test_payment_can_join_a_callers_transaction(posted_invoice):
+def test_customer_payment_private_commit_flag_grants_no_decision(posted_invoice):
     engine, tenant_id, invoice_id = posted_invoice
     with Session(engine) as session:
-        core.post_customer_payment(session, tenant_id, invoice_id, "125", _commit=False)
-        assert core.open_invoice_amount(session, tenant_id, invoice_id) == Decimal(175)
+        with pytest.raises(core.InvalidOperation) as refused:
+            core.post_customer_payment(session, tenant_id, invoice_id, "125", _commit=False)
+        assert refused.value.code == "intake_approval_required"
+        assert core.open_invoice_amount(session, tenant_id, invoice_id) == Decimal(300)
         with Session(engine) as observer:
             assert core.open_invoice_amount(observer, tenant_id, invoice_id) == Decimal(
                 300

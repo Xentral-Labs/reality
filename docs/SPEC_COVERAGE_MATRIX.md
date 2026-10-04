@@ -2600,3 +2600,7 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/test_document_correction_decisions.py`: spec 356 FR-001–FR-003; manual header/line corrections require exact atomic retained confirmation, preserve stated values/current source/actor/replay and refuse sibling effects. Full qualification pending.
 
 Retained commercial defaults and partner-role reference integrity: `packages/reality-core/tests/test_retained_commercial_input.py` (spec 356 FR-001–FR-003; qualification pending).
+
+Atomic selected payment/refund boundary: `packages/reality-core/tests/test_canonical_payment_boundary.py` (spec 356 FR-001–FR-003; qualification pending).
+
+Atomic explicit-list payment run: `packages/reality-core/tests/test_canonical_payment_run_boundary.py` (spec 356 FR-001–FR-003; qualification pending).

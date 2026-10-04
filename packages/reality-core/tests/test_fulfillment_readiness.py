@@ -6,6 +6,7 @@ from conftest import record_by_id
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
 )
 
@@ -15,7 +16,6 @@ from reality.services.core import (
     create_commitment,
     create_tenant,
     hold_commitment,
-    post_customer_payment,
     record_movement,
     reserve,
     reverse_ledger_posting_group,
@@ -115,7 +115,7 @@ def test_prepayment_readiness_uses_stated_order_and_active_allocation(
     assert invoiced.blocker_codes == ("prepayment_required",)
     assert invoiced.invoice_ids == (invoice.id,)
 
-    post_customer_payment(session, tenant_id, invoice.id, "100")
+    reviewed_post_customer_payment(session, tenant_id, invoice.id, "100")
     paid = fulfillment_readiness(session, tenant_id, commitment.id)
     assert paid.ship_ready is True
     assert paid.blocker_codes == ()
@@ -147,7 +147,7 @@ def test_reversed_and_foreign_payment_evidence_does_not_satisfy_prepayment(
         Document,
         next(row["id"] for row in receipt["records"] if row["family"] == "document"),
     )
-    payment_entries = post_customer_payment(session, tenant_id, invoice.id, "100")
+    payment_entries = reviewed_post_customer_payment(session, tenant_id, invoice.id, "100")
     assert fulfillment_readiness(session, tenant_id, commitment.id).ship_ready is True
 
     other_customer = reviewed_create_party(session, tenant_id, "Other customer", "customer")
@@ -294,13 +294,13 @@ def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
     assert "110" in blocker["detail"]
     assert {"kind": "invoice", "id": invoice.id} in blocker["links"]
 
-    post_customer_payment(session, tenant_id, invoice.id, "50")
+    reviewed_post_customer_payment(session, tenant_id, invoice.id, "50")
     part_paid = fulfillment_readiness(session, tenant_id, commitment.id)
     assert part_paid.ship_ready is False
     assert "prepayment_consolidated_invoice_open" in part_paid.blocker_codes
     assert part_paid.received_amount == 0
 
-    post_customer_payment(session, tenant_id, invoice.id, "60")
+    reviewed_post_customer_payment(session, tenant_id, invoice.id, "60")
     settled = fulfillment_readiness(session, tenant_id, commitment.id)
     assert settled.blocker_codes == ()
     assert settled.ship_ready is True

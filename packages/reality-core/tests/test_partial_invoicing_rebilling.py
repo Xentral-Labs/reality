@@ -8,6 +8,7 @@ import pytest
 from conftest import record_by_id
 from intake_review_support import (
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
     reviewed_record_supplier_invoice,
 )
@@ -139,7 +140,7 @@ def test_payment_reversal_credit_and_excess_evidence(session, business):
     b = business
     line = order(session, b)[0]
     doc, _ = invoice(session, b, line, "2")
-    payment = core.post_customer_payment(session, b.tenant.id, doc.id, "1")
+    payment = reviewed_post_customer_payment(session, b.tenant.id, doc.id, "1")
     core.reverse_ledger_posting_group(
         session, b.tenant.id, payment[0].posting_group_id, reason="Payment correction"
     )

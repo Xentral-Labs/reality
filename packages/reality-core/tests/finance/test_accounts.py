@@ -1,6 +1,11 @@
+
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_customer_refund,
+)
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry
@@ -53,7 +58,7 @@ def test_default_change_preserves_invoice_account_and_blocked_inverse(
     reviewed_set_default_account(
         session, business.tenant.id, role="accounts_receivable", account_id=new["id"]
     )
-    paid = core.post_customer_payment(session, business.tenant.id, doc.id, "40")
+    paid = reviewed_post_customer_payment(session, business.tenant.id, doc.id, "40")
     assert (
         next(e for e in paid if e.account == "accounts_receivable").account_id
         == original.account_id
@@ -63,7 +68,7 @@ def test_default_change_preserves_invoice_account_and_blocked_inverse(
         session, business.tenant.id, original.account_id, state="blocked"
     )
     with pytest.raises(core.InvalidOperation, match="blocked"):
-        core.post_customer_payment(session, business.tenant.id, doc.id, "10")
+        reviewed_post_customer_payment(session, business.tenant.id, doc.id, "10")
     core.reverse_ledger_posting_group(
         session, business.tenant.id, entries[0].posting_group_id, reason="Correction"
     )
@@ -103,7 +108,7 @@ def test_credit_cannot_be_consumed_again_after_refund(session, business):
         session, business.tenant.id, "credit_note", "CN", business.customer.id, "100"
     )
     core.post_sales_credit_note(session, business.tenant.id, note.id)
-    core.post_customer_refund(session, business.tenant.id, note.id, "80")
+    reviewed_post_customer_refund(session, business.tenant.id, note.id, "80")
     doc = invoice(session, business)
     core.post_sales_invoice(session, business.tenant.id, doc.id)
     with pytest.raises(core.InvalidOperation, match="unallocated"):

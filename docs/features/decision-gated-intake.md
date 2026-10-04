@@ -15,10 +15,29 @@ Missing source line amounts remain null, and unknown prices stay visible; no lin
 total is computed from quantity and price. Each stated refund transaction gets its
 own evidence amount, with goods lines recorded once. Raw payloads survive failures.
 
-Legacy automatic import processing is not yet switched over. Invoice/bank-file
-adapters, master/stock application, bulk continuation, mandates, demo cutover and
-universal writer coverage remain pending. The explicit reviewed services are an
-implementation checkpoint, not completed cross-path admission coverage.
+The implementation stack also covers reviewed Shopify/file/bank/master/stock intake,
+bounded bulk execution and continuation, agent mandates, runtime cutover, canonical
+master and commercial data, lifecycle/party merge and manual document corrections.
+These slices have individual retained verification evidence in specs 351–356.
+Universal operational and financial writer closure and final volume qualification
+remain in progress; the stack is not yet a completed release.
+
+Selected customer/supplier payment and customer refund commands retain their exact
+current payment review, including defaults, actual cash/control/FX account identities
+and partner references. The explicit-list supplier payment run retains each selected
+obligation, stated payment and exact confirmed total. Its canonical parent and each
+child settle with the execution receipt in one business transaction. Confirmation
+records bookkeeping; it never initiates an external transfer.
+
+Existing customer/supplier payment, refund and payment-run HTTP endpoints require
+`confirmed: true` from the actual request and retain the current request person.
+Customer/supplier payment CLI commands show the retained review and require an
+explicit prompt answer or `--yes`; decline leaves the proposal undecided. Local CLI
+confirmation retains unknown person/channel rather than fabricating attribution.
+Authored fixed setup includes only its two existing customer/supplier payment parent
+families, with exact frozen child calls. This does not authorize refund, lifecycle,
+merge or newly registered families. Standalone supplier refund/credit/posting and
+header-only evidence remain separate closure tasks.
 
 ## Acceptance transaction
 

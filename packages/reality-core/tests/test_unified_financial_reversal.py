@@ -4,6 +4,10 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_supplier_payment,
+)
 from sqlalchemy import func, select
 from test_unified_invoice_entry import confirm
 from test_unified_payment_entry import obligation
@@ -21,9 +25,9 @@ from reality.services.delivery_actions import (
 def fixture(session, b, direction="customer"):
     invoice = obligation(session, b, direction)
     payment = (
-        core.post_customer_payment
+        reviewed_post_customer_payment
         if direction == "customer"
-        else core.post_supplier_payment
+        else reviewed_post_supplier_payment
     )(session, b.tenant.id, invoice.id, "125")
     group = core._settlement_control_entry(
         session, b.tenant.id, invoice.id

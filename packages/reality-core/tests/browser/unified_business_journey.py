@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 from conftest import record_by_id
+from intake_review_support import _reviewed_payment_fixture
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -123,8 +124,8 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                     core,
                     f"post_{'sales' if side == 'customer' else 'supplier'}_invoice",
                 )(session, tenant.id, invoice.id)
-                getattr(core, f"post_{side}_payment")(
-                    session, tenant.id, invoice.id, "80"
+                _reviewed_payment_fixture(
+                    session, tenant.id, f"post_{side}_payment", invoice.id, "80"
                 )
                 for suffix, amount in (
                     ("COMBINED", "100"),

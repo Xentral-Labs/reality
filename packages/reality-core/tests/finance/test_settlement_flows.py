@@ -4,7 +4,10 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import accept_normalized_payment
+from intake_review_support import (
+    accept_normalized_payment,
+    reviewed_post_customer_payment,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -192,7 +195,7 @@ def test_stale_and_failed_confirmation_leave_no_partial_cash(
     proposal = propose(
         session, tenant, invoice.id, amount="102", allocation_amount="100"
     )
-    core.post_customer_payment(session, tenant, invoice.id, "1")
+    reviewed_post_customer_payment(session, tenant, invoice.id, "1")
     with pytest.raises(core.Conflict):
         execute(session, tenant, proposal)
     proposal = propose(

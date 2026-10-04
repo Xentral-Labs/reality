@@ -4,7 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_post_customer_payment
 from sqlalchemy import select
 
 from reality.db.core import DunningNotice, LedgerEntry
@@ -246,7 +246,7 @@ def test_bad_debt_uses_dedicated_expense_and_never_creates_credit(session, busin
     tenant = business.tenant.id
     _account(session, tenant, "bad_debt_expense")
     invoice = _invoice(session, business, amount="100", number="INV-BAD-DEBT-001")
-    core.post_customer_payment(session, tenant, invoice.id, "60")
+    reviewed_post_customer_payment(session, tenant, invoice.id, "60")
     result = _execute(
         session,
         tenant,

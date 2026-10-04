@@ -3,6 +3,10 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_supplier_payment,
+)
 from sqlalchemy import select
 
 from reality.db.core import ProjectionCheckpoint
@@ -11,7 +15,6 @@ from reality.services.core import (
     create_document,
     create_tenant,
     payment_rows,
-    post_customer_payment,
     post_sales_invoice,
     reverse_ledger_posting_group,
 )
@@ -49,7 +52,7 @@ def test_payment_refresh_avoids_unrelated_views_and_preserves_totals(
 ):
     tenant = business.tenant.id
     invoice = payment_history(session, business)
-    payment = post_customer_payment(session, tenant, invoice.id, Decimal(40))
+    payment = reviewed_post_customer_payment(session, tenant, invoice.id, Decimal(40))
 
     def unrelated(*args):
         pytest.fail("Payment totals rebuilt unrelated projections")
@@ -71,7 +74,7 @@ def test_payment_refresh_avoids_unrelated_views_and_preserves_totals(
             select(ProjectionCheckpoint).where(ProjectionCheckpoint.tenant_id == tenant)
         )
     } == {projections.PAYMENTS}
-    post_customer_payment(session, tenant, invoice.id, Decimal(20))
+    reviewed_post_customer_payment(session, tenant, invoice.id, Decimal(20))
     result = read_payments(session, tenant)
     assert len(result["items"]) == 1 and result["page"]["total"] == 2
     assert Decimal(result["totals"][0]["amount"]) == Decimal(60)
@@ -104,7 +107,7 @@ def test_payment_refresh_keeps_other_checkpoints_and_read_only_derivation(
         }
 
     before = other_checkpoints()
-    post_customer_payment(session, tenant, invoice.id, Decimal(40))
+    reviewed_post_customer_payment(session, tenant, invoice.id, Decimal(40))
     monkeypatch.setattr(
         projections,
         "_build_operational_rows",
@@ -121,7 +124,7 @@ def test_payment_refresh_keeps_other_checkpoints_and_read_only_derivation(
 def test_payment_totals_keep_currencies_separate_and_apply_direction_filter(
     session, business
 ):
-    from reality.services.core import post_supplier_invoice, post_supplier_payment
+    from reality.services.core import post_supplier_invoice
 
     tenant = business.tenant.id
     for number, kind, party, currency, amount in [
@@ -134,10 +137,10 @@ def test_payment_totals_keep_currencies_separate_and_apply_direction_filter(
         )
         if kind == "sales_invoice":
             post_sales_invoice(session, tenant, invoice.id)
-            post_customer_payment(session, tenant, invoice.id, Decimal(amount))
+            reviewed_post_customer_payment(session, tenant, invoice.id, Decimal(amount))
         else:
             post_supplier_invoice(session, tenant, invoice.id)
-            post_supplier_payment(session, tenant, invoice.id, Decimal(amount))
+            reviewed_post_supplier_payment(session, tenant, invoice.id, Decimal(amount))
     result = tenant_payments(
         tenant,
         session,

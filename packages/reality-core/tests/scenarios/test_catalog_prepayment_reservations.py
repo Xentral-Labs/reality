@@ -7,6 +7,7 @@ from conftest import record_by_id
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
 )
 from sqlalchemy import select
@@ -90,7 +91,7 @@ def test_a_reservation_waiting_for_an_unpaid_prepayment_is_put_to_a_person(
     unpaid, _ = _order(session, business, "SO-B12-A")
     paid, paid_invoice = _order(session, business, "SO-B12-B")
     # The paid order is the positive control: it is ready, and nothing waits.
-    core.post_customer_payment(session, tenant, paid_invoice, "150")
+    reviewed_post_customer_payment(session, tenant, paid_invoice, "150")
     assert fulfillment_readiness(session, tenant, paid.id).ship_ready
 
     # A week later the unpaid order still holds its six; the queue says so.

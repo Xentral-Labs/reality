@@ -11,6 +11,7 @@ from intake_review_support import (
     reviewed_create_price_list,
     reviewed_create_price_list_entry,
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
 )
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -39,7 +40,6 @@ from reality.services.core import (
     create_tenant,
     observe_fact,
     open_invoice_amount,
-    post_customer_payment,
     post_sales_invoice,
     record_movement,
     store_source_record,
@@ -1369,7 +1369,7 @@ def test_frontend_finance_endpoints_are_tenant_scoped_and_currency_safe(
         document_date="2026-08-30",
     )
     post_sales_invoice(session, business.tenant.id, invoice.id)
-    post_customer_payment(session, business.tenant.id, invoice.id, "500.00")
+    reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "500.00")
     rebuild_projections(session, business.tenant.id, (OPEN_FINANCIAL_ITEMS,))
     other = create_tenant(session, "Other Finance API")
     client = api_client(session)
@@ -1389,7 +1389,7 @@ def test_frontend_finance_endpoints_are_tenant_scoped_and_currency_safe(
         assert outstanding["page"]["total"] == 1
         assert outstanding["items"][0]["status"] == "partial"
         assert outstanding["totals"][0]["open"] == "970.0000"
-        post_customer_payment(session, business.tenant.id, invoice.id, "970.00")
+        reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "970.00")
         rebuild_projections(session, business.tenant.id, (OPEN_FINANCIAL_ITEMS,))
         settled = client.get(
             f"/api/tenants/{business.tenant.id}/finance/open-items"
@@ -1422,9 +1422,9 @@ def test_outstanding_items_filter_before_paging_and_totals(session, business):
         )
         post_sales_invoice(session, tenant, invoice.id)
         if index == 1:
-            post_customer_payment(session, tenant, invoice.id, "40.00")
+            reviewed_post_customer_payment(session, tenant, invoice.id, "40.00")
         if index == 2:
-            post_customer_payment(session, tenant, invoice.id, "100.00")
+            reviewed_post_customer_payment(session, tenant, invoice.id, "100.00")
     supplier = create_document(
         session,
         tenant,

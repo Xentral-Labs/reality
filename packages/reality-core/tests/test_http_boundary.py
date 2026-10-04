@@ -129,8 +129,13 @@ def test_specialized_projection_views_are_allowlisted_and_bounded(
 def test_missing_business_web_adapters_delegate_to_shared_services(
     session, business, monkeypatch
 ):
+    from test_canonical_payment_boundary import case
+
     from reality.tools import application
     from reality.web import api as api_module
+
+    customer_values = case(session, business, "customer_payment_post")
+    supplier_values = case(session, business, "supplier_payment_post")
 
     calls = []
     monkeypatch.setattr(
@@ -155,22 +160,6 @@ def test_missing_business_web_adapters_delegate_to_shared_services(
         ),
         raising=False,
     )
-    for name in ("post_customer_payment", "post_supplier_payment"):
-        monkeypatch.setattr(
-            api_module,
-            name,
-            lambda _session, tenant_id, invoice_id, amount, **values: (
-                calls.append(
-                    (
-                        "payment",
-                        tenant_id,
-                        {"invoice_id": invoice_id, "amount": amount, **values},
-                    )
-                )
-                or [SimpleNamespace(id="led_1")]
-            ),
-            raising=False,
-        )
     client = client_for(session, monkeypatch)
     tenant = business.tenant.id
 
@@ -207,11 +196,11 @@ def test_missing_business_web_adapters_delegate_to_shared_services(
     )
     customer = client.post(
         f"/api/tenants/{tenant}/finance/customer-payments",
-        json={"invoice_id": "doc_1", "amount": "10"},
+        json={"confirmed": True, **customer_values},
     )
     supplier = client.post(
         f"/api/tenants/{tenant}/finance/supplier-payments",
-        json={"invoice_id": "doc_2", "amount": "5"},
+        json={"confirmed": True, **supplier_values},
     )
 
     assert [response.status_code for response in (order, fact, customer, supplier)] == [
@@ -220,7 +209,8 @@ def test_missing_business_web_adapters_delegate_to_shared_services(
         201,
         201,
     ]
-    assert [call[0] for call in calls] == ["order", "fact", "payment", "payment"]
+    assert [call[0] for call in calls] == ["order", "fact"]
+    assert len(customer.json()["ledger_entry_ids"]) == len(supplier.json()["ledger_entry_ids"]) == 2
 
 
 def test_backend_redirects_retired_browser_routes_once(session, monkeypatch):

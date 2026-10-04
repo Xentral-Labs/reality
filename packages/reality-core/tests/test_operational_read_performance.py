@@ -8,6 +8,7 @@ import pytest
 from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
+    reviewed_post_customer_payment,
 )
 from sqlalchemy import event, select
 
@@ -205,7 +206,6 @@ def test_finance_partial_refresh_preserves_other_checkpoints_and_tracks_settleme
 ):
     from reality.services.core import (
         NotFound,
-        post_customer_payment,
         reverse_ledger_posting_group,
     )
 
@@ -224,7 +224,7 @@ def test_finance_partial_refresh_preserves_other_checkpoints_and_tracks_settleme
         }
 
     original = checkpoints()
-    payment = post_customer_payment(session, tenant, doc.id, Decimal(40))
+    payment = reviewed_post_customer_payment(session, tenant, doc.id, Decimal(40))
     projections.rebuild_projections(session, tenant, [projections.OPEN_FINANCIAL_ITEMS])
     rows = projections.projection_rows(
         session, tenant, projections.OPEN_FINANCIAL_ITEMS

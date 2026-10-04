@@ -1,8 +1,10 @@
+
 import json
 from decimal import Decimal
 from pathlib import Path
 
 from intake_review_support import accept_shopify_order as ingest_shopify_order
+from intake_review_support import reviewed_post_customer_payment
 
 from reality.services.core import (
     allocate_credit_note,
@@ -10,7 +12,6 @@ from reality.services.core import (
     explain_commitment,
     open_invoice_amount,
     open_quantity,
-    post_customer_payment,
     post_sales_credit_note,
     post_sales_invoice,
     record_movement,
@@ -68,7 +69,7 @@ def test_order_to_cash_business_story(session, business):
         document_date="2026-09-22",
     )
     post_sales_invoice(session, business.tenant.id, invoice.id)
-    post_customer_payment(session, business.tenant.id, invoice.id, "500")
+    reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "500")
     credit = create_document(
         session,
         business.tenant.id,

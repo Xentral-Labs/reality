@@ -1,4 +1,7 @@
+
 from decimal import Decimal
+
+from intake_review_support import reviewed_post_supplier_payment
 
 from reality.services.core import (
     create_commitment,
@@ -6,7 +9,6 @@ from reality.services.core import (
     fulfilled_quantity,
     open_invoice_amount,
     post_supplier_invoice,
-    post_supplier_payment,
     record_movement,
     stock_at,
 )
@@ -53,7 +55,7 @@ def test_procure_to_pay_business_story(session, business):
         document_date="2026-09-22",
     )
     post_supplier_invoice(session, business.tenant.id, invoice.id)
-    post_supplier_payment(session, business.tenant.id, invoice.id, 250)
+    reviewed_post_supplier_payment(session, business.tenant.id, invoice.id, 250)
 
     assert fulfilled_quantity(session, business.tenant.id, commitment.id) == Decimal(
         "20.0000"

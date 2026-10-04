@@ -43,8 +43,6 @@ from reality.services.core import (
     lots,
     open_invoice_amount,
     payment_terms,
-    post_customer_payment,
-    post_supplier_payment,
     preview_ledger_reversal,
     preview_movement_correction,
     price_lists,
@@ -2576,19 +2574,35 @@ def finance_open(invoice_id: str, tenant: str | None = None):
     con.print(f"{invoice_id} · open {amount:g}")
 
 
+def _confirmed_payment_cli(session, tenant_id, tool, arguments, *, yes):
+    """Show the retained payment and confirm through the actual local decision."""
+    from reality.db.core import LedgerEntry
+    from reality.services.core import _tenant_record_read
+    from reality.services.delivery_actions import REVIEW_KEY
+    from reality.tools.application import create_change_proposal
+
+    proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="human")
+    review = json.loads(proposal.input)[REVIEW_KEY]
+    con.print_json(data={"tool": tool, "input": review["intent"], "review": json.loads(proposal.output)})
+    if not yes and not typer.confirm("Confirm this exact payment?"):
+        con.print("Stopped; the proposal remains pending and no payment was posted.")
+        raise typer.Exit()
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirmed=True, review_token=review["token"])
+    return [_tenant_record_read(session, LedgerEntry, tenant_id, row["id"]) for row in json.loads(receipt.output)["records"] if row["family"] == "ledger_entry"]
+
+
 @finance_app.command("pay-customer")
 def finance_pay_customer(
     invoice_id: str,
     amount: str,
     number: str | None = typer.Option(None, "--number"),
     tenant: str | None = None,
+    yes: bool = typer.Option(False, "--yes"),
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            entries = post_customer_payment(
-                s, selected.id, invoice_id, amount, payment_number=number
-            )
+            entries = _confirmed_payment_cli(s, selected.id, "customer_payment_post", {"invoice_id": invoice_id, "amount": amount, "payment_number": number}, yes=yes)
             open_amount = open_invoice_amount(s, selected.id, invoice_id)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
@@ -2606,18 +2620,12 @@ def finance_pay_supplier(
         None, "--paid", help="What was paid in the company currency (spec 309)"
     ),
     tenant: str | None = None,
+    yes: bool = typer.Option(False, "--yes"),
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            entries = post_supplier_payment(
-                s,
-                selected.id,
-                invoice_id,
-                amount,
-                payment_number=number,
-                paid_amount=paid,
-            )
+            entries = _confirmed_payment_cli(s, selected.id, "supplier_payment_post", {"invoice_id": invoice_id, "amount": amount, "payment_number": number, "paid_amount": paid}, yes=yes)
             open_amount = open_invoice_amount(s, selected.id, invoice_id)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error

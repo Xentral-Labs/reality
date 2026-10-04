@@ -787,3 +787,45 @@ def reviewed_correct_manual_document(session, tenant_id, document_id, **argument
 
 def reviewed_correct_manual_document_lines(session, tenant_id, document_id, **arguments):
     return _reviewed_document_correction(session, tenant_id, document_id, "document_lines_correct", arguments)
+
+
+
+def _reviewed_payment_fixture(session, tenant_id, operation, *positional, **arguments):
+    """Create current settlement fixture data through its actual retained decision."""
+    import inspect
+
+    from reality.db.core import LedgerEntry
+    from reality.services.intake import _invoke
+    from reality.services.tenant_policy import (
+        PAYMENT_APPLICATION_OPERATIONS,
+        _profile_authority,
+    )
+
+    bound = inspect.signature(getattr(core, operation)).bind(session, tenant_id, *positional, **arguments)
+    values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id"}}
+    if _profile_authority.get() is not None:
+        return _invoke(operation, getattr(core, operation), session, tenant_id, **values)
+    tool = next(tool for tool, canonical in PAYMENT_APPLICATION_OPERATIONS.items() if canonical == operation)
+    result = _confirm_document_fixture(session, tenant_id, tool, values)
+    if tool == "payment_run":
+        result["total"] = core.decimal(result["total"])
+        for payment in result["payments"]:
+            payment["amount"] = core.decimal(payment["amount"])
+        return result
+    return [core._tenant_record_read(session, LedgerEntry, tenant_id, row["id"]) for row in result["records"] if row["family"] == "ledger_entry"]
+
+
+def reviewed_post_customer_payment(session, tenant_id, *args, **kwargs):
+    return _reviewed_payment_fixture(session, tenant_id, "post_customer_payment", *args, **kwargs)
+
+
+def reviewed_post_supplier_payment(session, tenant_id, *args, **kwargs):
+    return _reviewed_payment_fixture(session, tenant_id, "post_supplier_payment", *args, **kwargs)
+
+
+def reviewed_post_customer_refund(session, tenant_id, *args, **kwargs):
+    return _reviewed_payment_fixture(session, tenant_id, "post_customer_refund", *args, **kwargs)
+
+
+def reviewed_execute_payment_run(session, tenant_id, *args, **kwargs):
+    return _reviewed_payment_fixture(session, tenant_id, "execute_payment_run", *args, **kwargs)

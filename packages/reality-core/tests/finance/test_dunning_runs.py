@@ -6,6 +6,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_post_customer_payment
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
@@ -516,9 +517,9 @@ def test_unapplied_customer_credit_leaves_the_customer_out(session, business):
 def test_paid_and_supplier_items_are_not_dunned(session, business):
     tenant = _scheduled(session, business)
     paid = _dated_invoice(session, business, "INV-T012-PAID", "2026-08-01")
-    core.post_customer_payment(session, tenant, paid.id, "100")
+    reviewed_post_customer_payment(session, tenant, paid.id, "100")
     partly = _dated_invoice(session, business, "INV-T012-PART", "2026-08-01")
-    core.post_customer_payment(session, tenant, partly.id, "40")
+    reviewed_post_customer_payment(session, tenant, partly.id, "40")
     supplier = core.create_document(
         session,
         tenant,
@@ -660,7 +661,7 @@ def test_an_item_paid_after_preparation_is_skipped(session, business):
             "items": _all_items(context),
         },
     )
-    core.post_customer_payment(session, tenant, paid.id, "100")
+    reviewed_post_customer_payment(session, tenant, paid.id, "100")
 
     receipt = json.loads(
         approve_and_execute_proposal(
@@ -864,7 +865,7 @@ def test_collection_refusals_name_their_reason(session, business):
     mine = _at_level_three(session, business, "INV-T016-MINE")
     theirs = _at_level_three(session, business, "INV-T016-THEIRS", party=other)
     paid = _at_level_three(session, business, "INV-T016-PAID")
-    core.post_customer_payment(session, tenant, paid.id, "100")
+    reviewed_post_customer_payment(session, tenant, paid.id, "100")
 
     for invoices, reason, code in (
         ([mine, theirs], "Unpaid", "collection_mixed_customers"),
@@ -1090,7 +1091,7 @@ def test_an_open_item_outside_the_run_is_not_due_rather_than_paid(session, busin
         session, business, "INV-T027-THEIRS", "2026-08-01", party=other
     )
     paid = _dated_invoice(session, business, "INV-T027-PAID", "2026-08-01", party=other)
-    core.post_customer_payment(session, tenant, paid.id, "100")
+    reviewed_post_customer_payment(session, tenant, paid.id, "100")
 
     receipt = _run(
         session,

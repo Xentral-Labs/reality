@@ -4,7 +4,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_create_payment_term, reviewed_manual_order
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_manual_order,
+    reviewed_post_customer_payment,
+)
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -115,7 +119,7 @@ def _order(session, business, number, *, prepaid=True, paid="80.00"):
         ),
     )
     if Decimal(paid):
-        core.post_customer_payment(session, tenant, invoice.id, paid)
+        reviewed_post_customer_payment(session, tenant, invoice.id, paid)
     return order, promise, invoice
 
 

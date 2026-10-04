@@ -49,6 +49,14 @@ def _values(row):
 def _review_payment(
     session: Session, tenant_id: str, tool: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
+    from reality.services.intake import _INTENT_DEFAULTS
+    from reality.services.tenant_policy import PAYMENT_APPLICATION_OPERATIONS
+
+    defaults = {
+        key: value for key, value in _INTENT_DEFAULTS[PAYMENT_APPLICATION_OPERATIONS[tool]].items()
+        if not key.startswith("_") and key != "action_id"
+    }
+    arguments = {**defaults, **arguments}
     session.expire_all()
     state = (
         _preview_customer_refund(session, tenant_id, arguments)
@@ -93,6 +101,20 @@ def _review_payment(
             key=lambda row: row["id"],
         ),
     )
+    from reality.services.finance.accounts import resolve_account
+    from reality.services.review_references import party_role_reference
+
+    control_role = "accounts_payable" if tool == "supplier_payment_post" else "accounts_receivable"
+    state["accounts"] = {
+        "cash": _values(resolve_account(session, tenant_id, "cash")),
+        "control": _values(resolve_account(session, tenant_id, control_role, control.account_id)),
+    }
+    if state.get("exchange", {}).get("kind") not in {None, "none"}:
+        state["accounts"]["exchange_difference"] = _values(resolve_account(session, tenant_id, "exchange_difference"))
+    state["party_reference"] = {
+        "state_hash": hashlib.sha256(_json(_values(party)).encode()).hexdigest(),
+        "roles_hash": party_role_reference(session, tenant_id, party.id),
+    }
     state = json.loads(_json(state))
     intent = json.loads(_json(arguments))
     return {

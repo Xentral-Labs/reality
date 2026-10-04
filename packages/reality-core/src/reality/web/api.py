@@ -1,6 +1,5 @@
 import json
 import os
-from collections.abc import Callable
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Any, Literal
@@ -91,7 +90,6 @@ from reality.services.core import (
     delete_chat_session,
     document_detail,
     enqueue_source,
-    execute_payment_run,
     expired_lots,
     get_tenant,
     handling_units,
@@ -117,13 +115,10 @@ from reality.services.core import (
     payment_terms,
     pending_proposals_elsewhere,
     permanently_delete_tenant,
-    post_customer_payment,
-    post_customer_refund,
     post_sales_credit_note,
     post_sales_invoice,
     post_supplier_credit_note,
     post_supplier_invoice,
-    post_supplier_payment,
     post_supplier_refund,
     preview_ledger_reversal,
     preview_movement_correction,
@@ -3577,6 +3572,7 @@ class RealityGapReplayWrite(ApiModel):
 
 
 class PaymentPostingWrite(ApiModel):
+    confirmed: bool = False
     invoice_id: str
     amount: str
     payment_number: str | None = None
@@ -3615,6 +3611,7 @@ class PaymentRunLineWrite(ApiModel):
 
 
 class PaymentRunWrite(ApiModel):
+    confirmed: bool = False
     # The total is the confirmation figure rather than a count: a person approves
     # an amount of money, and a list assembled from a preview can be right in
     # every line and wrong in sum.
@@ -3673,6 +3670,7 @@ class CreditNoteNettingWrite(ApiModel):
 
 
 class CustomerRefundWrite(ApiModel):
+    confirmed: bool = False
     credit_note_id: str
     amount: str
     refund_number: str | None = None
@@ -5525,31 +5523,44 @@ def post_reality_gap_rule_replay(
         raise api_error(error) from error
 
 
-def _post_payment(
-    service: Callable[..., list[LedgerEntry]],
-    tenant_id: str,
-    body: PaymentPostingWrite,
-    session: OrmSession,
-):
-    try:
-        entries = service(session, tenant_id, **body.model_dump())
-        return {"ledger_entry_ids": [entry.id for entry in entries]}
-    except (NotFound, InvalidOperation) as error:
-        raise api_error(error) from error
+def _confirmed_payment_request(session, tenant_id, request, tool, arguments, *, confirmed):
+    """Settle the actual request through its current retained payment review."""
+    from reality.services.delivery_actions import REVIEW_KEY
+    from reality.tools.application import create_change_proposal
+
+    if not confirmed:
+        raise InvalidOperation(code="review_confirmation_required")
+    proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="user")
+    review = json.loads(proposal.input).get(REVIEW_KEY)
+    receipt = approve_and_execute_proposal(
+        session, tenant_id, proposal.id,
+        confirming_principal=optional_request_principal(request),
+        confirmed=confirmed, review_token=review["token"] if review else None,
+    )
+    output = json.loads(receipt.output)
+    if tool == "payment_run":
+        return output
+    return {"ledger_entry_ids": [row["id"] for row in output["records"] if row["family"] == "ledger_entry"]}
 
 
 @router.post("/finance/customer-payments", status_code=status.HTTP_201_CREATED)
 def post_customer_payment_web(
-    tenant_id: str, body: PaymentPostingWrite, session: DatabaseSession
+    tenant_id: str, body: PaymentPostingWrite, session: DatabaseSession, request: Request
 ):
-    return _post_payment(post_customer_payment, tenant_id, body, session)
+    try:
+        return _confirmed_payment_request(session, tenant_id, request, "customer_payment_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
 
 
 @router.post("/finance/supplier-payments", status_code=status.HTTP_201_CREATED)
 def post_supplier_payment_web(
-    tenant_id: str, body: SupplierPaymentPostingWrite, session: DatabaseSession
+    tenant_id: str, body: SupplierPaymentPostingWrite, session: DatabaseSession, request: Request
 ):
-    return _post_payment(post_supplier_payment, tenant_id, body, session)
+    try:
+        return _confirmed_payment_request(session, tenant_id, request, "supplier_payment_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
 
 
 @router.post("/returns/announcements", status_code=status.HTTP_201_CREATED)
@@ -5611,11 +5622,10 @@ def preview_payment_run_web(
 
 @router.post("/finance/payment-runs", status_code=status.HTTP_201_CREATED)
 def execute_payment_run_web(
-    tenant_id: str, body: PaymentRunWrite, session: DatabaseSession
+    tenant_id: str, body: PaymentRunWrite, session: DatabaseSession, request: Request
 ):
-    payload = body.model_dump()
     try:
-        return execute_payment_run(session, tenant_id, **payload)
+        return _confirmed_payment_request(session, tenant_id, request, "payment_run", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -5686,11 +5696,10 @@ def allocate_credit_note_web(
 
 @router.post("/finance/customer-refunds", status_code=status.HTTP_201_CREATED)
 def post_customer_refund_web(
-    tenant_id: str, body: CustomerRefundWrite, session: DatabaseSession
+    tenant_id: str, body: CustomerRefundWrite, session: DatabaseSession, request: Request
 ):
     try:
-        entries = post_customer_refund(session, tenant_id, **body.model_dump())
-        return {"ledger_entry_ids": [entry.id for entry in entries]}
+        return _confirmed_payment_request(session, tenant_id, request, "customer_refund_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

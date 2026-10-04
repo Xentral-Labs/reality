@@ -3,7 +3,12 @@
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
+    reviewed_post_customer_refund,
+    reviewed_post_supplier_payment,
+)
 
 from reality.services import core
 
@@ -13,11 +18,11 @@ def run_story(session, tenant_id, party_id, item_id, side, prefix):
     invoice_kind = "sales_invoice" if customer else "supplier_invoice"
     credit_kind = "credit_note" if customer else "supplier_credit_note"
     post_invoice = core.post_sales_invoice if customer else core.post_supplier_invoice
-    pay = core.post_customer_payment if customer else core.post_supplier_payment
+    pay = reviewed_post_customer_payment if customer else reviewed_post_supplier_payment
     post_credit = (
         core.post_sales_credit_note if customer else core.post_supplier_credit_note
     )
-    refund = core.post_customer_refund if customer else core.post_supplier_refund
+    refund = reviewed_post_customer_refund if customer else core.post_supplier_refund
     allocate = (
         core.allocate_credit_note if customer else core.allocate_supplier_credit_note
     )

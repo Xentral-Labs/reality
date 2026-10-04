@@ -128,22 +128,32 @@ by all required checks and honest unresolved-outcome reporting.
 - [x] T054 Qualify successful fixed-profile source values/receipt replay, setup compatibility and full committed-head CI.
 ## Master-data lifecycle qualification
 
-- [ ] T055 Observe meaningful direct/unconfirmed/callback and complete update-rollback refusal tests for four actual families.
-- [ ] T056 Freeze current model/record/active flag and settle the existing lifecycle command atomically; route REST/CLI explicit confirmation.
-- [ ] T057 Qualify current reference changes, source/event values, receipt replay, adapters and full committed-head CI.
+- [x] T055 Observe meaningful direct/unconfirmed/callback and complete update-rollback refusal tests for four actual families.
+- [x] T056 Freeze current model/record/active flag and settle the existing lifecycle command atomically; route REST/CLI explicit confirmation.
+- [x] T057 Qualify current reference changes, source/event values, receipt replay, adapters and full committed-head CI.
 
-- [ ] T058 Prove and freeze the existing party-merge parent and its exact duplicate lifecycle effect, preserving eligibility/source history and atomic receipt.
+- [x] T058 Prove and freeze the existing party-merge parent and its exact duplicate lifecycle effect, preserving eligibility/source history and atomic receipt.
 
-- [ ] T059 Prove fixed application profiles cannot borrow lifecycle/merge authority and restrict direct canonical families to their actual authored definitions.
+- [x] T059 Prove fixed application profiles cannot borrow lifecycle/merge authority and restrict direct canonical families to their actual authored definitions.
 
 ## Manual document correction qualification
 
-- [ ] T060 Observe valid direct/unconfirmed/changed/repeated/early-commit/post-write/sibling refusal proofs for existing header and line corrections.
-- [ ] T061 Retain current review basis, freeze both canonical correction parents and route REST through actual explicit confirmation/root settlement.
-- [ ] T062 Qualify stated values, unchanged revisions/downstream restrictions, current references, actual person/replay, raw-only source-version exception, adapters and full committed-head CI.
+- [x] T060 Observe valid direct/unconfirmed/changed/repeated/early-commit/post-write/sibling refusal proofs for existing header and line corrections.
+- [x] T061 Retain current review basis, freeze both canonical correction parents and route REST through actual explicit confirmation/root settlement.
+- [x] T062 Qualify stated values, unchanged revisions/downstream restrictions, current references, actual person/replay, raw-only source-version exception, adapters and full committed-head CI.
 
 ## Retained input/reference integrity qualification
 
-- [ ] T063 Prove omitted public defaults and Decimal/date statements are retained before commercial execution.
-- [ ] T064 Prove actual separately confirmed partner-role changes require renewed commercial/correction review with unchanged main rows.
-- [ ] T065 Qualify frozen exact values, current references/receipts, domain/adapters/source audits and full committed-head CI.
+- [x] T063 Prove omitted public defaults and Decimal/date statements are retained before commercial execution.
+- [x] T064 Prove actual separately confirmed partner-role changes require renewed commercial/correction review with unchanged main rows.
+- [x] T065 Qualify frozen exact values, current references/receipts, domain/adapters/source audits and full committed-head CI.
+
+## Selected payment/refund boundary qualification
+
+- [ ] T066 Prove valid direct/unconfirmed/changed/repeated/early-commit/post-write/sibling and changed-inner-effect refusal for three existing commands.
+- [ ] T067 Freeze selected canonical payment/refund parents and exact evidence/posting/allocation children under real current retained consent and root settlement.
+- [ ] T068 Qualify exact stated values, current context/authority, receipt replay, foreign-currency/partial settlement/intake/adapters/source audits and full committed-head CI.
+
+- [ ] T069 Prove and retain the existing explicit-list payment-run parent, exact selected current obligations, frozen supplier-payment children and complete run/receipt atomicity.
+- [ ] T070 Route existing payment CLI and customer/supplier payment, refund and payment-run HTTP through actual reviewed confirmation and prove real person/decline/tenant parity.
+- [ ] T071 Freeze existing authored fixed/profile payment calls and qualify the literal two-parent integration without lending lifecycle/merge/refund/future-family authority.

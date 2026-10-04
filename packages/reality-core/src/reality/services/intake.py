@@ -221,6 +221,9 @@ _call_intent: ContextVar[tuple[str, str] | None] = ContextVar(
 )
 
 
+_payment_invocation: ContextVar[bool] = ContextVar("canonical_payment_invocation", default=False)
+
+
 _call_nonce: ContextVar[object | None] = ContextVar(
     "canonical_call_nonce", default=None
 )
@@ -235,6 +238,8 @@ _INTENT_DEFAULTS = {
         if parameter.default is not Parameter.empty
     }
     for name in (
+        "execute_payment_run",
+        "post_customer_payment", "post_supplier_payment", "post_customer_refund", "record_customer_refund",
         "correct_manual_document", "correct_manual_document_lines",
         "set_master_data_active",
         "create_payment_term", "update_payment_term", "create_price_list", "update_price_list",
@@ -318,9 +323,13 @@ def _invoke(
     )
     nonce_token = _call_nonce.set(object())
     document_token = _payment_document.set(None)
+    payment_token = _payment_invocation.set(_payment_invocation.get() or operation in {
+        "post_customer_payment", "post_supplier_payment", "post_customer_refund", "execute_payment_run",
+    })
     try:
         return handler(session, tenant_id, **arguments)
     finally:
+        _payment_invocation.reset(payment_token)
         _payment_document.reset(document_token)
         _call_nonce.reset(nonce_token)
         _call_intent.reset(token)
@@ -341,6 +350,18 @@ def _post_reviewed_invoice(session, tenant_id, document_id, *, direction, credit
     operation = "post_sales_credit_note" if credit else "post_sales_invoice" if direction == "sales" else "post_supplier_invoice"
     identity = {"credit_note_id": document_id} if credit else {"document_id": document_id}
     return _invoke(operation, getattr(core, operation), session, tenant_id, **identity, **arguments)
+
+
+def _post_frozen_customer_payment(session, tenant_id, invoice_id, amount, **arguments):
+    """Freeze an existing authored payment call; its real scope owns admission."""
+    return _invoke("post_customer_payment", core.post_customer_payment, session, tenant_id,
+        invoice_id=invoice_id, amount=amount, **arguments)
+
+
+def _post_frozen_supplier_payment(session, tenant_id, invoice_id, amount, **arguments):
+    """Freeze an existing authored payment call; its real scope owns admission."""
+    return _invoke("post_supplier_payment", core.post_supplier_payment, session, tenant_id,
+        invoice_id=invoice_id, amount=amount, **arguments)
 
 
 def _post_reviewed_ledger(session, tenant_id, document_id, party_id, postings, **arguments):

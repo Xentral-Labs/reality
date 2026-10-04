@@ -4,7 +4,10 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_record_free_supplier_invoice
+from intake_review_support import (
+    reviewed_post_supplier_payment,
+    reviewed_record_free_supplier_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry
@@ -67,7 +70,7 @@ def _entries(session, tenant, document_id):
 
 
 def _pay(session, business, invoice, amount, paid, number):
-    return core.post_supplier_payment(
+    return reviewed_post_supplier_payment(
         session,
         business.tenant.id,
         invoice,

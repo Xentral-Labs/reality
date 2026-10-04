@@ -7,6 +7,9 @@ from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
+    reviewed_post_customer_payment,
+    reviewed_post_customer_refund,
+    reviewed_post_supplier_payment,
 )
 
 from reality.db.core import now
@@ -16,10 +19,8 @@ from reality.services.core import (
     create_commitment,
     create_document,
     create_tenant,
-    post_customer_payment,
     post_sales_invoice,
     post_supplier_invoice,
-    post_supplier_payment,
     record_movement,
     reserve,
     reverse_ledger_posting_group,
@@ -343,7 +344,7 @@ def test_overdue_receivable_explanation_and_not_found_parity(session, business):
             session, tenant_id, "exc__overdue_receivable__doc_missing", as_of=as_of
         )
 
-    post_customer_payment(session, tenant_id, invoice.id, "1000.00")
+    reviewed_post_customer_payment(session, tenant_id, invoice.id, "1000.00")
 
     with pytest.raises(NotFound, match="Current operational exception not found"):
         explain_operational_exception(session, tenant_id, exception_id, as_of=as_of)
@@ -739,7 +740,6 @@ def promised_and_owed(session, business):
 
 
 def test_credit_note_classes_explanation_and_not_found_parity(session, business):
-    from reality.services.core import post_customer_refund
     from tests.operational_exceptions.test_derivation import AS_OF
 
     tenant_id = business.tenant.id
@@ -774,7 +774,7 @@ def test_credit_note_classes_explanation_and_not_found_parity(session, business)
 
     # Giving the money back clears it, and its identity stops explaining.
     cleared_id = current["credit_note_unsettled"].id
-    post_customer_refund(session, tenant_id, owed.id, "60.00")
+    reviewed_post_customer_refund(session, tenant_id, owed.id, "60.00")
     with pytest.raises(NotFound):
         explain_operational_exception(session, tenant_id, cleared_id, as_of=AS_OF)
 
@@ -961,7 +961,7 @@ def test_discount_class_explanation_and_not_found_parity(session, business):
         explain_operational_exception(session, foreign.id, row.id)
 
     # Paying it takes the discount and the identity stops explaining.
-    post_supplier_payment(session, tenant_id, invoice.id, "1000.00")
+    reviewed_post_supplier_payment(session, tenant_id, invoice.id, "1000.00")
     with pytest.raises(NotFound):
         explain_operational_exception(session, tenant_id, row.id)
 

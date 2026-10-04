@@ -6,6 +6,7 @@ from decimal import Decimal
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
+    reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
 )
 from sqlalchemy import select
@@ -130,7 +131,7 @@ def test_payment_release_or_cancellation_clears_it(session, business):
     _invoice(session, business, cancelled_line, "INV-PRE-CAN")
     assert {paid.id, released.id, cancelled.id} <= set(_findings(session, business))
 
-    core.post_customer_payment(session, tenant, paid_invoice, "100")
+    reviewed_post_customer_payment(session, tenant, paid_invoice, "100")
     reservation = session.scalar(
         select(Reservation).where(Reservation.commitment_id == released.id)
     )
@@ -146,7 +147,7 @@ def test_a_part_payment_still_waits_and_names_what_is_unpaid(session, business):
     _, line, waiting = _order(session, business, "SO-PRE-PART", "PREPAY")
     invoice = _invoice(session, business, line, "INV-PRE-PART")
 
-    core.post_customer_payment(session, tenant, invoice, "80")
+    reviewed_post_customer_payment(session, tenant, invoice, "80")
 
     finding = _findings(session, business)[waiting.id]
     assert finding.causal_values["unpaid_amount"] == Decimal(20)

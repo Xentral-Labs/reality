@@ -3438,12 +3438,15 @@ def _payment(kind: str) -> ToolHandler:
         BUSINESS RULE application.payment.handler.2:
         Delegate invoice-payment recording and allocation to the captured customer/supplier payment service and return ledger-entry identities.
         """
+        from reality.services.intake import _invoke
+
         arguments["action_id"] = arguments.pop("_action_id", None)
         # reality-rule: application.payment.handler.1
         if arguments.get("effective_at") is not None:
             arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+        operation = "post_customer_payment" if kind == "customer" else "post_supplier_payment"
         # reality-rule: application.payment.handler.2
-        return _entity_result("ledger_entry", service(session, tenant_id, **arguments))
+        return _entity_result("ledger_entry", _invoke(operation, service, session, tenant_id, **arguments, _commit=False))
 
     return handler
 
@@ -3537,17 +3540,15 @@ def _payment_run(session: Session, tenant_id: str, arguments: dict[str, Any]) ->
     BUSINESS RULE application.payment_run.1:
     Route this company-scoped request to execute_payment_run. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     arguments["action_id"] = arguments.pop("_action_id", None)
+    if arguments.get("effective_at") is not None:
+        arguments["effective_at"] = utc_datetime(arguments["effective_at"])
     # reality-rule: application.payment_run.1
-    return execute_payment_run(
-        session,
-        tenant_id,
-        payments=list(arguments["payments"]),
-        currency=arguments["currency"],
-        expected_total=arguments["expected_total"],
-        reason=arguments["reason"],
-        action_id=arguments["action_id"],
-    )
+    return _invoke("execute_payment_run", execute_payment_run, session, tenant_id,
+                   **arguments, _commit=False)
+
 
 
 def _stale_closure_preview(
@@ -3691,12 +3692,14 @@ def _customer_refund_post(
     BUSINESS RULE application.customer_refund_post.1:
     Route this company-scoped request to post_customer_refund. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     arguments["action_id"] = arguments.pop("_action_id", None)
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
     # reality-rule: application.customer_refund_post.1
     return _entity_result(
-        "ledger_entry", post_customer_refund(session, tenant_id, **arguments)
+        "ledger_entry", _invoke("post_customer_refund", post_customer_refund, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -6217,6 +6220,10 @@ def create_change_proposal(
         DOCUMENT_CORRECTION_OPERATIONS,
     )
 
+    if tool_name == "payment_run":
+        from reality.services.payment_run_decisions import prepare_payment_run
+
+        arguments = prepare_payment_run(session, tenant_id, arguments)
     if tool_name in COMMERCIAL_MASTER_OPERATIONS:
         from reality.services.commercial_master import prepare_commercial_master
 
@@ -6934,7 +6941,7 @@ def approve_and_execute_proposal(
         (candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
         in {
             "tool:document_correct", "tool:document_lines_correct",
-            "tool:party_merge",
+            "tool:party_merge", "tool:payment_run",
             "tool:demo_seed",
             "tool:normal_month",
             "tool:party_create",
@@ -7025,6 +7032,10 @@ def approve_and_execute_proposal(
     if tool is None or not tool.mutating:
         raise InvalidOperation(code="proposal_mutation_tool_invalid")
     arguments = json.loads(candidate.input)
+    if tool_name == "payment_run":
+        from reality.services.payment_run_decisions import REVIEW_KEY as RUN_REVIEW_KEY
+
+        arguments.pop(RUN_REVIEW_KEY, None)
     if tool_name in COMMERCIAL_MASTER_OPERATIONS:
         from reality.services.commercial_master import (
             REVIEW_KEY as COMMERCIAL_REVIEW_KEY,

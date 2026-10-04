@@ -139,7 +139,7 @@ def test_the_web_pays_a_usd_invoice_in_eur(session, business, monkeypatch):
 
     paid = client.post(
         f"/api/tenants/{tenant}/finance/supplier-payments",
-        json={"invoice_id": invoice, "amount": "100", "paid_amount": "91.00"},
+        json={"confirmed": True, "invoice_id": invoice, "amount": "100", "paid_amount": "91.00"},
     )
 
     assert paid.status_code == 201, paid.text
