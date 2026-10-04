@@ -188,3 +188,14 @@ manual/source lineage and existing billing/refund/order stories. Port legitimate
 fixtures through retained commands; historical fixtures remain historical.
 Constitution check: PASS (lossless source, stated values, tenant scope, existing
 shared tools, no fulfillment status or schema expansion).
+
+## Atomic manual order implementation slice
+
+First qualify valid changed/repeated/early-commit and post-write failure callbacks.
+Freeze the existing canonical create_manual_order entry, recheck its actual
+retained order_create confirmation, and make the existing command executor own
+the root commit. Add a private commit option for nested orchestration; public
+proposal fields cannot set it. Preserve real delivery review tokens, source
+values, existing locks, credit-hold rules and receipt shapes. Test both directions,
+then the affected order/catalog/credit/profile/transport scenarios and full CI.
+Constitution: PASS; no schema, new command, fabricated source or authority.

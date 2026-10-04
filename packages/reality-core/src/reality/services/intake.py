@@ -245,6 +245,7 @@ _INTENT_DEFAULTS = {
         "record_supplier_payment",
         "post_ledger",
         "create_manual_document_with_lines",
+        "create_manual_order",
         "create_commitment",
         "record_customer_payment",
         "allocate_settlement",

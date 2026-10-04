@@ -1451,8 +1451,12 @@ def _manual_order(session: Session, tenant_id: str, arguments: dict[str, Any]) -
     """
     arguments = dict(arguments)
     arguments["action_id"] = arguments.pop("_action_id", None)
+    arguments["_commit"] = False
+    from reality.services.intake import _invoke
+
     # reality-rule: application.manual_order.1
-    source, document, lines, commitments = create_manual_order(
+    source, document, lines, commitments = _invoke(
+        "create_manual_order", create_manual_order,
         session, tenant_id, **arguments
     )
     return {

@@ -1126,7 +1126,7 @@ def _require_business_mutation(
     from reality.services.intake import _require_scoped_operation
 
     intake_approved = _require_scoped_operation(session, tenant_id, operation)
-    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines"} and not (
+    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines", "create_manual_order"} and not (
         fixed_setup or intake_approved
     ):
         from reality.services.tenant_policy import _require_application_decision
@@ -9729,6 +9729,7 @@ def create_manual_order(
     sales_channel: str = "",
     payment_term_code: str = "",
     ship_to_party_id: str | None = None,
+    _commit: bool = True,
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[Commitment]]:
     """
     Atomically turn one manual order payload into Evidence and Reality.
@@ -9749,6 +9750,9 @@ def create_manual_order(
     Roll back source, evidence and promise changes if recording the order fails.
     """
     _require_business_mutation(session, tenant_id, "create_manual_order")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_manual_order", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Party, tenant_id, company_party_id)
@@ -9793,7 +9797,7 @@ def create_manual_order(
         )
         if source is None:  # pragma: no cover - manual source identity is complete
             raise InvalidOperation(code="manual_order_source_not_recorded")
-        from reality.services.intake import _record_normalized_document
+        from reality.services.intake import _invoke, _record_normalized_document
 
         document, document_lines = _record_normalized_document(
             session,
@@ -9824,20 +9828,22 @@ def create_manual_order(
                 else None
             )
             commitments.append(
-                create_commitment(
+                _invoke(
+                    "create_commitment",
+                    create_commitment,
                     session,
                     tenant_id,
-                    "customer_delivery"
+                    commitment_type="customer_delivery"
                     if direction == "sales"
                     else "supplier_delivery",
-                    company_party_id if direction == "sales" else counterparty_id,
-                    counterparty_id if direction == "sales" else company_party_id,
-                    line.item_id,
-                    location_id,
-                    _purchase_promise_quantity(purchased, line.quantity, line.unit)
+                    from_party_id=company_party_id if direction == "sales" else counterparty_id,
+                    to_party_id=counterparty_id if direction == "sales" else company_party_id,
+                    item_id=line.item_id,
+                    location_id=location_id,
+                    quantity=_purchase_promise_quantity(purchased, line.quantity, line.unit)
                     if purchased is not None
                     else line.quantity,
-                    line.requested_at or requested_delivery_at,
+                    due_at=line.requested_at or requested_delivery_at,
                     amount=line.gross_amount,
                     currency=currency,
                     document_id=document.id,
@@ -9895,7 +9901,10 @@ def create_manual_order(
             hold_if_over_credit_limit(
                 session, tenant_id, document, commitments, action_id=action_id
             )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
         return source, document, document_lines, commitments
     except Exception:
         session.rollback()

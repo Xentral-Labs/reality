@@ -54,3 +54,13 @@ Normalized evidence slice: reviewed finite existing command family, root ownersh
 exact frozen children and adapter consent are mandatory. Header-only evidence is
 not silently converted into a made-up line. No critical clarification remains for
 this slice; low-level header and correction qualification remains pending.
+
+## Atomic manual order analysis
+
+The normalized child scope protects its own input but cannot prevent a parent
+callback from changing the order before freezing that child. The existing
+create_manual_order root commit can leave accepted evidence after handler failure.
+The smallest correction is exact parent invocation plus executor-owned settlement,
+not a new tool, decision or invented confirmation. Existing fixed profile callers
+must retain their actual setup authority. Critical findings resolved in this plan;
+implementation and qualification are pending.

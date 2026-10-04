@@ -83,3 +83,9 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T028 Enforce current finite command/root authority, frozen single-use child calls and atomic receipt/evidence settlement.
 - [ ] T029 Route the manual-document Web adapter and legitimate fixtures through actual confirmed existing commands; preserve historical evidence without backfilled consent.
 - [ ] T030 Qualify document/order/invoice/credit scenarios, browser and full committed-head CI; keep header/correction writer closure pending.
+
+## Atomic order boundary qualification (FR-001–FR-003)
+
+- [ ] T031 Observe meaningful changed/repeated/early-commit/post-write-failure proofs on valid orders.
+- [ ] T032 Freeze and consume the actual canonical order invocation and settle source/evidence/promises with its receipt atomically.
+- [ ] T033 Qualify both directions, current authority, replay, catalog/browser and committed-head CI.

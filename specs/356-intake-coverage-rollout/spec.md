@@ -236,3 +236,11 @@ the existing exact intake/fixed preset authority. An arbitrary action identity
 never supplies this authority. Manual document creation records supplied lines
 and amounts only; it does not fabricate a line for header-only evidence. Header
 writers and document corrections remain separately tracked until qualified.
+
+## Atomic manual order qualification (FR-001–FR-003)
+
+The existing order_create confirmation covers the exact retained manual payload,
+its immutable source, normalized evidence, line-linked promises and applicable
+credit holds. Its handler cannot change the payload, repeat the invocation, add
+unrelated effects or commit before the executed receipt is ready. A callback
+failure rolls back all new source/evidence/promises. No source value is derived.

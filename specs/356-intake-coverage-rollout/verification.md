@@ -260,3 +260,21 @@ checks compare exact Decimal values and preserve their shape/unit assertions.
 All 71 affected backend/application checks and all 29 stated-line/canonical
 confirmation checks passed. Production authorization is unchanged by these test
 corrections; final committed-head CI is still required.
+## Atomic order qualification in progress
+
+All eight valid sales/purchase changed/repeated/early-commit/post-write-failure
+proofs failed before enforcement: changed/early-commit calls were accepted, while
+repeat/failure left a committed Document behind. The first parent invocation and
+root ownership correction passed all 79 canonical/order/unit/credit checks. Four
+additional unrelated header/stock callbacks still produced DID NOT RAISE; the
+order operation scope is being narrowed. Existing public order validation already
+refused all three private fields with manual_order_fields_invalid; that refusal
+is preserved rather than renamed. Full regression and CI remain required.
+
+Final atomic order/source/value/replay and actual fixed-profile checks: 18 passed.
+The broader order/catalog/purchasing/credit/HTTP run had 145 passed and five
+failures inherited from the normalized document parent: positive document
+confirmations and the obsolete Web adapter spy. Those are being corrected in
+the parent PR; this is not a passing complete qualification.
+
+Final order integration on the corrected document production source passed all 152 order/catalog/purchasing/credit/HTTP checks in 72.28 seconds. Parent test corrections leave that production source unchanged; final-head CI remains required.

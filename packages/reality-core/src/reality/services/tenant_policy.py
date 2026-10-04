@@ -171,6 +171,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
 
     fixed = authority.tool in {
         "document_create",
+        "order_create",
         "demo_seed",
         "normal_month",
         "party_create",
@@ -1652,6 +1653,7 @@ def require_demo_intake(
 
 
 _CANONICAL_MUTATION_TOOLS = {
+    "create_manual_order": frozenset({"order_create"}),
     "create_manual_document_with_lines": frozenset({
         "document_create", "order_create", "sales_invoice_record",
         "supplier_invoice_record", "sales_credit_record", "supplier_invoice_free_record",
@@ -1746,6 +1748,8 @@ def _master_application_active(operation=None):
     }:
         return True
     authority = _application_authority.get()
+    if authority is not None and authority.tool == "order_create":
+        return operation in {"create_manual_order", "create_manual_document_with_lines", "create_commitment"}
     if authority is not None and authority.tool == "document_create":
         return operation == "create_manual_document_with_lines"
     if authority is not None and authority.tool in {
@@ -1770,16 +1774,19 @@ def _consume_master_invocation(nonce):
 def require_document_operation(session, tenant_id, operation):
     """A manual evidence confirmation grants no unrelated business effect."""
     authority = _application_authority.get()
-    if authority is None or authority.tool != "document_create":
+    if authority is None or authority.tool not in {"document_create", "order_create"}:
         return
+    permitted = {
+        "create_manual_document_with_lines", "emit_business_event",
+        "store_source_record", "create_master_source_record",
+    }
+    if authority.tool == "order_create":
+        permitted.update({"create_manual_order", "create_commitment"})
     if (
         authority.session is not session
         or authority.transaction is not session.get_transaction()
         or authority.tenant_id != tenant_id
-        or operation not in {
-            "create_manual_document_with_lines", "emit_business_event",
-            "store_source_record", "create_master_source_record",
-        }
+        or operation not in permitted
     ):
         raise InvalidOperation(code="intake_approval_required")
 
