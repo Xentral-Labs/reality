@@ -34,6 +34,9 @@ Existing customer/supplier payment, refund and payment-run HTTP endpoints requir
 Customer/supplier payment CLI commands show the retained review and require an
 explicit prompt answer or `--yes`; decline leaves the proposal undecided. Local CLI
 confirmation retains unknown person/channel rather than fabricating attribution.
+Ordinary practice/Storyline payments retain the same current payment review. The
+existing actual guided-lesson proposal scope preserves its exact step preview and
+real confirmation; company purpose alone grants no payment admission.
 Authored fixed setup includes only its two existing customer/supplier payment parent
 families, with exact frozen child calls. This does not authorize refund, lifecycle,
 merge or newly registered families. Standalone supplier refund/credit/posting and

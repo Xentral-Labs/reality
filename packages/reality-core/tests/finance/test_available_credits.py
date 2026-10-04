@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_post_customer_refund
 
 from reality.services import core
 from reality.services.finance.credits import available_credit_items
@@ -99,7 +100,7 @@ def test_note_credit_target_endpoint_blocked_account_and_http(session, business,
     entries = getattr(
         core, f"post_{'sales' if side == 'customer' else 'supplier'}_credit_note"
     )(session, tenant, note.id)
-    getattr(core, f"post_{side}_refund")(session, tenant, note.id, "8")
+    (reviewed_post_customer_refund if side == "customer" else core.post_supplier_refund)(session, tenant, note.id, "8")
     role = "accounts_receivable" if side == "customer" else "accounts_payable"
     control = next(e for e in entries if e.account == role)
     reviewed_update_account(

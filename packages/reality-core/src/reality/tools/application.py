@@ -6300,9 +6300,22 @@ def create_change_proposal(
         from reality.services.opening_stock_actions import review_opening
 
         review_opening(session, tenant_id, arguments)
+    from reality.services.payment_actions import PAYMENT_TOOLS
+    from reality.services.tenant_policy import _proposal_authority
+
+    guided = _proposal_authority.get()
+    actual_guided_proposal = (
+        guided is not None
+        and guided.session is session
+        and guided.transaction is session.get_transaction()
+        and guided.tenant_id == tenant_id
+        and guided.tool_name == tool_name
+    )
+    # Ordinary practice payments retain the same current review as business
+    # payments. Guided lessons retain their existing exact step preview contract.
     if (
         tenant
-        and tenant.purpose != "playground"
+        and (tenant.purpose != "playground" or tool_name in PAYMENT_TOOLS and not actual_guided_proposal)
         and eligible(tool_name, arguments)
         and not raw_opening
         and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}

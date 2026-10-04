@@ -174,3 +174,29 @@ def test_the_credit_branch_pays_less_and_keeps_the_quantity_finding(session, own
     assert [entry["key"] for entry in state["chapters"]] == (
         DEFAULT_PATH[: DEFAULT_PATH.index("reverse") + 1] + CREDIT_PATH
     )
+
+
+
+def test_ordinary_practice_payment_retains_current_review_before_confirmation(session, owner):
+    import json
+
+    from test_canonical_payment_boundary import state
+
+    from reality.db.core import ChangeProposal
+    from reality.services.delivery_actions import REVIEW_KEY
+
+    tenant = started(session, owner, "retained-practice-payment")["tenant_id"]
+    play_path(session, owner, tenant, DEFAULT_PATH[:11])
+    before = state(session, tenant)
+    prepared = storyline.prepare(session.get_bind(), owner.id, tenant, "pay-full", "actual-payment-review", db_session=session)
+    assert prepared["status"] == "pending" and not prepared["refused"]
+    proposal = session.scalar(select(ChangeProposal).where(ChangeProposal.tenant_id == tenant, ChangeProposal.type == "tool:supplier_payment_post"))
+    assert proposal is not None and proposal.status == "proposed"
+    retained = json.loads(proposal.input)
+    assert retained[REVIEW_KEY]["token"]
+    assert retained["source_record_id"] is None
+    assert state(session, tenant) == before
+    result = storyline.confirm(session.get_bind(), owner.id, tenant, "pay-full", prepared["step_id"], prepared["preview_revision"], confirmed=True, db_session=session)
+    assert result["status"] == "done", result
+    session.refresh(proposal)
+    assert proposal.status == "executed" and proposal.decided_by_user_id == owner.id

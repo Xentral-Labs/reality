@@ -806,49 +806,49 @@
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "A payment run requires a reason.",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "A payment run needs at least one payment.",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "A payment run needs the currency it is paid in.",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "A payment run names each invoice once.",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "\"The payment run no longer matches the confirmed total: \" f\"{total} stated, {confirmed_total} confirmed.\"",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "PAYMENT_RUN_WITHHELD_REASONS[withheld_because] if withheld_because else \"A payment run pays open supplier invoices of this tenant only.\"",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "\"A payment run pays in one currency: \" f\"{row['document'].currency} does not match {run_currency}.\"",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
-      "function": "execute_payment_run",
+      "function": "_preview_payment_run_input",
       "message": "Payment exceeds the open supplier payable.",
       "scope": "later"
     },

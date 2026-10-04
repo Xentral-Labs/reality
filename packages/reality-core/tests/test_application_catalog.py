@@ -1,3 +1,4 @@
+import ast
 import pathlib
 import re
 import time
@@ -543,6 +544,49 @@ def _surface_source() -> str:
     )
 
 
+def _frozen_invocation_targets(source: str) -> set[str]:
+    """Follow actual callable arguments and lexical factory bindings."""
+    result = set()
+
+    def targets(expression, bindings):
+        if isinstance(expression, ast.Name):
+            return bindings.get(expression.id, {expression.id})
+        if isinstance(expression, ast.Attribute):
+            return {expression.attr}
+        if isinstance(expression, ast.IfExp):
+            return targets(expression.body, bindings) | targets(expression.orelse, bindings)
+        return set()
+
+    def visit(node, bindings):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef)):
+            bindings = dict(bindings)
+            for statement in node.body:
+                if isinstance(statement, ast.Assign):
+                    for target in statement.targets:
+                        if isinstance(target, ast.Name):
+                            bindings[target.id] = targets(statement.value, bindings)
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                and node.func.id == "_invoke" and len(node.args) >= 2):
+            result.update(targets(node.args[1], bindings))
+        for child in ast.iter_child_nodes(node):
+            visit(child, bindings)
+
+    visit(ast.parse(source), {})
+    return result
+
+
+def test_command_reach_follows_frozen_callables_and_factory_choices():
+    source = """
+def factory(customer):
+    service = customer_writer if customer else supplier_writer
+    def handler(session):
+        return _invoke("a_label_is_not_the_callable", service, session)
+def direct(session):
+    return _invoke("another_label", core.actual_writer, session)
+"""
+    assert _frozen_invocation_targets(source) == {"customer_writer", "supplier_writer", "actual_writer"}
+
+
 def _reachable_mutations() -> set[str]:
     """Mutating services a person or an agent can actually invoke.
 
@@ -561,6 +605,7 @@ def _reachable_mutations() -> set[str]:
         if operation.startswith("reality.services.core:")
     }
     called = set(re.findall(r"\b([a-z_][a-z_0-9]{3,})\(", _surface_source()))
+    called.update(_frozen_invocation_targets(_surface_source()))
     return mutating & called
 
 
