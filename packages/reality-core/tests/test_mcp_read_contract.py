@@ -803,6 +803,8 @@ def test_return_summary_counts_shown_records_without_swapping_roles(
         limit=100,
     )
     assert {r["id"] for r in result["records"]} == {r.id for r in mixed_return_records}
+    assert all(row["item_name"] == business.item.name for row in result["records"])
+    assert all(row["item_sku"] == business.item.sku for row in result["records"])
     assert result["summary"]["shown_record_count"] == 7
     assert result["summary"]["counts_by_type"] == {"return": 4, "supplier_return": 3}
     assert "customer return (return): 4 records" in result["summary"]["observation"]
@@ -938,3 +940,67 @@ def test_order_cause_is_distinct_from_current_readiness(session, business, state
         assert not line["blocking_reasons"]
         assert result["fulfillment"]["ship_ready"] is True
     assert not session.new and not session.dirty and not session.deleted
+
+
+def test_discovery_quantity_labels_follow_exact_scoped_item_reference(
+    session, business
+):
+    from reality.db.core import Commitment
+    from reality.services.core import business_discovery_record
+
+    other = create_item(
+        session, business.tenant.id, "LABEL-OTHER", "Actual Other", unit="kg"
+    )
+    for item in [business.item, other]:
+        record_movement(
+            session,
+            business.tenant.id,
+            "return",
+            item.id,
+            "1",
+            to_location_id=business.location.id,
+        )
+    rows = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query="return",
+    )["records"]
+    assert {r["item_id"]: (r["item_name"], r["item_sku"], r["unit"]) for r in rows} == {
+        business.item.id: (business.item.name, business.item.sku, business.item.unit),
+        other.id: (other.name, other.sku, other.unit),
+    }
+    _, _, _, commitments = order(session, business)
+    commitment = next(c for c in commitments if c.type == "customer_delivery")
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        "2",
+        to_location_id=business.location.id,
+    )
+    reservation = reserve(session, business.tenant.id, commitment.id).reservation
+    for family, record_id in [
+        ("commitment", commitment.id),
+        ("reservation", reservation.id),
+    ]:
+        row = read(
+            session,
+            business,
+            "business_records_discover",
+            family=family,
+            record_id=record_id,
+        )["records"][0]
+        assert row["item_name"] == business.item.name
+        assert row["item_sku"] == business.item.sku
+        assert row["unit"] == business.item.unit
+    missing = business_discovery_record(Commitment(item_id=None), (), session)
+    assert missing["item_name"] is None and missing["item_sku"] is None
+    assert missing["unit_status"] == "unknown"
+    foreign = create_tenant(session, "Foreign labels")
+    create_item(session, foreign.id, business.item.sku, "Foreign label")
+    assert not dispatch_tool(
+        session, foreign.id, "business_records_discover", {"family": "movement"}
+    )["records"]

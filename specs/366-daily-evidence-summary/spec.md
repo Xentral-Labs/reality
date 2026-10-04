@@ -32,7 +32,8 @@ An operational agent receives the count of each returned movement type directly.
 **Independent Test**: Read seven mixed return records and compare the summary to identities.
 **Acceptance Scenarios**:
 1. **Given** four return and three supplier_return records, **When** a page is read,
-   **Then** its summary reports four customer-return records and three supplier-return records.
+   **Then** its summary reports four customer-return records and three supplier-return records,
+   and each record exposes its canonical item name and SKU with the original opaque identity.
 2. **Given** a page limit below seven, **When** read, **Then** only shown records are counted;
    the lookahead record is not included and the result states incomplete coverage.
 
@@ -77,6 +78,8 @@ The agent explains open quantities and current blockers without inventing past e
   It MUST NOT claim upstream completeness or snapshot stability.
 - **FR-003**: Movement pages MUST provide a deterministic readable observation with
   customer-return and supplier-return counts unambiguously assigned and labelled as records.
+  Returned quantity references MUST include available canonical item name and SKU alongside
+  opaque identity; absent labels remain unknown rather than guessed.
 - **FR-004**: Order explanations MUST distinguish current canonical blockers/readiness
   from the unknown historical cause of remaining fulfillment; a closed/fully fulfilled
   line MUST mark such a cause not applicable. No missing record establishes a cause.

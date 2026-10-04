@@ -12,3 +12,6 @@ not invented from document/object absence. Source payloads stay lossless.
 
 Tools are read-only. Both native and external MCP clients receive service-owned output.
 No scheduling, confirmation or external transport changes.
+
+Quantity-reference records also expose available item_name/item_sku with canonical opaque
+identity; clients never need to invent names from IDs. This is shared with legacy reads.

@@ -13,3 +13,7 @@ upstream freshness unknown. Legacy list output unchanged.
 with positive open quantity; otherwise not_applicable. Notice states current blockers
 are readiness observations, not evidence of historical nonexecution cause. The shortest
 links remain commitment_id to existing order/movement/reservation evidence.
+
+Quantity-reference records (Movement/Commitment/Reservation) include item_name and item_sku
+from the same scoped Item reference used for unit. They are transient reference labels,
+not identity; absent labels remain null. Source quantities are unchanged.

@@ -423,6 +423,8 @@ def test_http_read_returns_deterministic_evidence_summary(
     assert not result.get("isError", False)
     value = json.loads(result["content"][0]["text"])
     assert value["records"][0]["id"] == movement.id
+    assert value["records"][0]["item_name"] == business.item.name
+    assert value["records"][0]["item_sku"] == business.item.sku
     assert value["summary"]["counts_by_type"] == {"return": 1}
     assert "customer return (return): 1 records" in value["summary"]["observation"]
     assert value["summary"]["complete_matching_selection"] is True

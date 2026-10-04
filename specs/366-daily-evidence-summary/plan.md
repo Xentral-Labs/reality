@@ -26,6 +26,8 @@ Native provider adapters use the same result. External agents read the same MCP 
 ## Project Structure
 - `packages/reality-core/src/reality/services/read_contracts.py`: page summary,
   count only `page["records"]`; preserve opaque IDs and existing metadata.
+- `packages/reality-core/src/reality/services/core.py`: the existing scoped Item lookup
+  for unit also supplies name/SKU to quantity references; no extra query or guessed label.
 - `packages/reality-core/src/reality/services/projections.py`: per-line
   `unfulfilled_cause` status unknown/not_applicable and readiness boundary notice.
 - `packages/reality-core/src/reality/agent/mcp_chat.py`: native guidance and canonical

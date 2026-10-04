@@ -14,3 +14,9 @@ provider loops on merged main e2c48e15.
 - Decision: native return context uses public discovery. No adapter arithmetic.
   Prompt guidance helps use the ready observations but cannot guarantee arbitrary prose.
 - Rejected regex output rewrite and second model judge: neither proves business truth.
+
+## Live-result refinement
+Movement discovery exposed item_id/unit but no label. The real model guessed return
+item names. Reuse the existing tenant-scoped Item lookup for unit to supply its canonical
+name/SKU beside opaque identity, with no extra query or authority. This also applies to
+existing commitment/reservation quantity references sharing that serializer.
