@@ -321,6 +321,9 @@ def proposal_mcp_review(
             callable_reads.update(matches)
             if not matches:
                 unavailable.append(name)
+        result["next_step"]["decision_handoff"] = result["next_step"][
+            "confirmation_tool"
+        ]
         result["next_step"]["verification_basis"] = basis
         result["next_step"]["verification_reads"] = sorted(callable_reads)
         result["next_step"]["unavailable_verification_reads"] = unavailable

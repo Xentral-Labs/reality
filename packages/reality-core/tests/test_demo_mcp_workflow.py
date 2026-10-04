@@ -109,6 +109,7 @@ def test_exact_review_separate_decision_receipt_and_replay(
     assert review["company"]["id"] == business.tenant.id
     assert review["status"] == "proposed"
     assert review["next_step"]["confirmation_tool"] == "proposal_approve_and_execute"
+    assert review["next_step"]["decision_handoff"] == "proposal_approve_and_execute"
     assert (
         session.query(Party).filter_by(tenant_id=business.tenant.id).count() == before
     )

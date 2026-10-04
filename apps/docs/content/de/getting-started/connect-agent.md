@@ -58,6 +58,12 @@ dieselben Anwendungswerkzeuge; du kannst ohne externe Verbindung mit deinem Reze
 
 ## MCP-Prüfwerkzeuge
 
+Erlaube für diesen Ablauf gezielt die Lesewerkzeuge `company_context`, `capability_catalog`,
+`proposal_review`, `proposals_awaiting_approval` und `proposal_execution_status` zusätzlich zu den
+benötigten Geschäftsdaten-Lesewerkzeugen. Bestehende Verbindungen behalten ihre Toolliste; wird ein
+neues Lesewerkzeug verweigert, fehlt möglicherweise seine Berechtigung und nicht das Tool.
+Vorschlags- und Bestätigungswerkzeuge brauchen getrennte, gezielte Berechtigungen.
+
 Verwende `company_context` für gespeicherte Firmen-ID, Name und Zweck und danach
 `capability_catalog` für tatsächliche Toolrechte. `proposal_review` liefert die konkrete
 Entscheidungsvorschau; `proposal_execution_status` prüft den Ausführungsnachweis. Browserlinks sind
