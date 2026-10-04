@@ -21,7 +21,6 @@ from reality.db.core import (
     Document,
     DocumentLine,
     SourceRecord,
-    uid,
 )
 from reality.services import core
 
@@ -104,120 +103,8 @@ def interpret_shop_refund(
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[Any]]:
     # One refund is recorded once, whichever version of it arrives: a later
     # payload of the same refund id is not a second refund.
-    versions = select(SourceRecord.id).where(
-        SourceRecord.tenant_id == tenant_id,
-        SourceRecord.source_system == SOURCE[0],
-        SourceRecord.source_type == SOURCE[1],
-        SourceRecord.external_id == source.external_id,
-    )
-    existing = session.scalar(
-        select(Document).where(
-            Document.tenant_id == tenant_id,
-            Document.source_record_id.in_(versions),
-            Document.type == DOCUMENT_TYPE,
-        )
-    )
-    if existing:
-        lines = list(
-            session.scalars(
-                select(DocumentLine).where(
-                    DocumentLine.tenant_id == tenant_id,
-                    DocumentLine.document_id == existing.id,
-                )
-            )
-        )
-        return source, existing, lines, []
-    refund = json.loads(source.payload)
-    order = _order_for_refund(session, tenant_id, refund.get("order_id"))
-    order_lines = {
-        line.source_line_id: line
-        for line in session.scalars(
-            select(DocumentLine).where(
-                DocumentLine.tenant_id == tenant_id,
-                DocumentLine.document_id == order.id,
-            )
-        )
-    }
-    stated = refund.get("refund_line_items") or []
-    unknown = [
-        str(entry.get("line_item_id"))
-        for entry in stated
-        if str(entry.get("line_item_id")) not in order_lines
-    ]
-    if unknown:
-        raise ShopRefundNeedsReview(
-            "shop_refund_line_unknown",
-            f"Refund {source.external_id} names order lines {', '.join(unknown)} that "
-            f"order {order.number} does not have; nothing was recorded.",
-        )
-    amount, currency = _refunded_amount(refund)
-    if refund.get("transactions") and not amount:
-        raise ShopRefundNeedsReview(
-            "shop_refund_pending",
-            f"Refund {source.external_id} has no successful refund transaction yet; "
-            "it is recorded when the shop reports the money returned.",
-        )
-    document = Document(
-        id=uid("doc"),
-        tenant_id=tenant_id,
-        source_record_id=source.id,
-        type=DOCUMENT_TYPE,
-        number=f"Refund {source.external_id}",
-        party_id=order.party_id,
-        currency=currency or order.currency,
-        gross_amount=amount,
-        status="recorded",
-        document_date=core._source_document_day(
-            session, tenant_id, refund.get("created_at")
-        ),
-        sales_channel=order.sales_channel,
-    )
-    session.add(document)
-    session.flush()
-    lines = []
-    for entry in stated:
-        order_line = order_lines[str(entry.get("line_item_id"))]
-        line = DocumentLine(
-            id=uid("lin"),
-            tenant_id=tenant_id,
-            document_id=document.id,
-            # The Shopify line it refunds; not `billed_document_line_id`, which
-            # every billing and crediting reader counts.
-            source_line_id=order_line.source_line_id,
-            item_id=order_line.item_id,
-            sku=order_line.sku,
-            description=order_line.description,
-            quantity=core.decimal(entry.get("quantity") or 0),
-            unit_price=order_line.unit_price,
-            gross_amount=core.decimal(entry.get("subtotal") or 0),
-            unit=order_line.unit,
-            line_type=order_line.line_type,
-            payload=json.dumps(entry, ensure_ascii=False, separators=(",", ":")),
-        )
-        session.add(line)
-        lines.append(line)
-    session.flush()
-    core.emit_business_event(
-        session,
-        tenant_id,
-        "document.recorded",
-        "document",
-        document.id,
-        {
-            "type": document.type,
-            "number": document.number,
-            "party_id": document.party_id,
-            "amount": document.gross_amount,
-            "currency": document.currency,
-            "order_id": order.id,
-        },
-        source_record_id=source.id,
-    )
-    reduced = _reduce_cancelled(session, tenant_id, source, order, stated, order_lines)
-    announcements = _announce_returns(
-        session, tenant_id, source, order, stated, order_lines
-    )
-    return source, document, lines, [*reduced, *announcements]
+    """Retired writer: prepare and confirm the canonical intake proposal instead."""
+    raise core.InvalidOperation(code="intake_approval_required")
 
 
 def _reduce_cancelled(session, tenant_id, source, order, stated, order_lines) -> list:

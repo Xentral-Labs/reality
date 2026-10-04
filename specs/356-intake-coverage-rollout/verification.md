@@ -1,0 +1,70 @@
+# Runtime cutover verification
+
+Status: implementation in progress. This evidence does not certify US1 universal
+writer enforcement, completed rollout, or a production release.
+
+## Verified focused behavior
+
+- Legacy Shopify/file/financial interpreters refuse direct invocation, including
+  an arbitrary executing-action tag: `test_retired_interpreters_cannot_reuse_raw_or_action_id_as_approval`.
+- The shared queue prepares a retained proposal without Documents or Commitments:
+  `test_pending_job_cutover_is_safe`.
+- Continuous synthetic preparation waits without an implicit reviewer:
+  `test_unavailable_reviewer_does_not_turn_intake_into_business_effects`.
+- A retained named-agent grant can approve the exact synthetic order within its
+  actual source, capability, profile, currency and finite limits:
+  `test_live_demo_uses_real_decisions`. Evidence is supplied by a controlled client
+  fixture; this does not measure a live model's judgment, latency or cost.
+- Fixed compact/month definitions require explicit confirmation. A completed
+  fixed receipt replays without new effects or confirmation. Unconfirmed setup
+  and subsequent unrelated intake remain refused.
+- A safe ambiguous Demo Data preparation is separately review-required, rather
+  than a failed execution. The actual worker, retained job and status agree.
+- Historical completed jobs without a retained proposal preserve their source,
+  input, timestamp, attempts and events without inventing decisions or outcomes:
+  `test_historical_provenance_is_honest`.
+- Explicit supported normalized financial profiles retain the original source
+  system; an unknown declared profile remains raw and unmapped. Preparation
+  grants no effect authority.
+- Unstated order totals remain null in delivery readiness. Prepayment waits for
+  a stated required amount instead of recomputing one from price and quantity.
+
+## Executed checks
+
+- Frozen backend regression: 6,178 passed, 10 skipped, one outdated benchmark
+  fixture failed (18m34s). The sole failure omitted the newly required named
+  reviewer ID in `Company`; the corrected Black Friday scenario passed separately.
+  No runtime source was changed after this full run. Final committed-head CI
+  must pass all backend shards before this slice is marked complete.
+- Focused source/file/rollout regression: 49 passed. Historical and financial
+  regression: 70 passed. Demo/security/startup/parity regression: 47 passed.
+- Peak benchmark: two passed; its 50 applied orders carry actual executed
+  proposal receipts attributed to the fixture's named Owner.
+- Final frontend contracts: 462 passed. Final presentation browser: all 16
+  language/theme/width combinations passed, including awaiting-decision and
+  review-required states without implicit acceptance or reviewer enrollment.
+- Actual PostgreSQL company-setup/worker/browser proof passed (93.35s): the
+  creation receipt selects the new owned Sandbox, a generated source remains
+  unapplied, its complete original and canonical digest are checked, the user
+  confirms in the actual review dialog, and exactly one source becomes applied.
+  The database proof checks original payload equality and actual decider identity.
+  This proves pipeline behavior, not live-model judgment or provider cost.
+- Actual bulk browser proof passed (83.56s), including lost-response replay and
+  retained exact source receipts. The business, file-import and finance browser
+  journeys passed; final history/engine-room runs remain to be recorded.
+- Final language audit: 2,738 keys in all four languages, zero missing or invalid
+  entries. Final frontend build passed. Standardized refusal gates: 29 passed.
+- Specification policy, business annotations, Ruff and generated references
+  passed; repeat relevant final metadata checks before publication.
+
+## Remaining completion gates
+
+Complete the final browser runs and committed-head CI, including all backend
+shards, generated documentation and frontend/browser gates. The local full-run
+fixture failure is recorded above rather than represented as a passing full run.
+The required final CI verifies the corrected committed test.
+
+The 507 baseline AST candidates remain an inventory, not semantic coverage. Public
+canonical writers outside intake/setup authority and their non-core callees still
+require the US1 guard, explicit exception classification and direct-call refusal
+proofs. No task requiring that universal boundary is marked complete here.

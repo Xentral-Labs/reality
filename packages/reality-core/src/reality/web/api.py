@@ -105,7 +105,6 @@ from reality.services.core import (
     delete_chat_session,
     document_detail,
     enqueue_source,
-    ensure_demo,
     execute_payment_run,
     expired_lots,
     get_tenant,
@@ -551,7 +550,22 @@ def create_company(body: CompanyCreate, request: Request, session: DatabaseSessi
             )
             session.commit()
         if body.guided_demo:
-            ensure_demo(session, tenant)
+            from reality.services.memberships import Principal
+            from reality.tools.application import (
+                approve_and_execute_proposal,
+                create_change_proposal,
+            )
+
+            proposal = create_change_proposal(
+                session, tenant.id, "demo_seed", {}, actor_type="human"
+            )
+            approve_and_execute_proposal(
+                session,
+                tenant.id,
+                proposal.id,
+                confirmed=True,
+                confirming_principal=Principal(user.id) if user else None,
+            )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
     return {"id": tenant.id, "name": tenant.name}
@@ -4180,8 +4194,8 @@ def post_import_retry(tenant_id: str, job_id: str, session: DatabaseSession):
 
 @router.post("/import-jobs/work")
 def post_import_work(tenant_id: str, session: DatabaseSession, limit: int = 100):
-    completed, failed = process_pending_import_jobs(session, tenant_id, limit=limit)
-    return {"completed": completed, "failed": failed}
+    prepared, failed = process_pending_import_jobs(session, tenant_id, limit=limit)
+    return {"prepared": prepared, "completed": 0, "failed": failed}
 
 
 @router.get("/payment-terms", response_model=list[PaymentTermRead])

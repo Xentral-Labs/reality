@@ -635,6 +635,8 @@ def _import_classification(tenant_id: str, source_types: tuple[str, ...] = ("ord
     return case(
         (and_(ImportJob.status == "completed", interpreted, documented), "imported"),
         (ImportJob.status == "failed", "failed"),
+        (ImportJob.status == "awaiting_decision", "awaiting_decision"),
+        (ImportJob.status == "review_required", "review_required"),
         else_="pending",
     )
 
@@ -653,7 +655,11 @@ def _counts(
         "generated": sum(values.values()),
         "imported": values.get("imported", 0),
         "failed": values.get("failed", 0),
-        "pending": values.get("pending", 0),
+        "pending": values.get("pending", 0)
+        + values.get("awaiting_decision", 0)
+        + values.get("review_required", 0),
+        "awaiting_decision": values.get("awaiting_decision", 0),
+        "review_required": values.get("review_required", 0),
     }
 
 
@@ -756,7 +762,13 @@ def status(session: Session, tenant_id: str, actor_id: str) -> dict:
     return {
         "id": connection.id,
         "state": connection.state,
-        "derived_state": derived,
+        "derived_state": (
+            "review_required" if counts["review_required"] else "awaiting_reviewer"
+        )
+        if not stall
+        and (counts["awaiting_decision"] or counts["review_required"])
+        and connection.state == "running"
+        else derived,
         "last_success": last_success,
         "scheduler_error": latest.last_error_code if latest else None,
         "stall": stall,

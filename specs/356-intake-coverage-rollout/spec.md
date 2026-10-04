@@ -165,3 +165,30 @@ profile setup and its completion marker remain unchanged.
 
 This fallback is part of FR-004/FR-006/FR-010. A running raw-data source must not be
 displayed as successful order-to-cash acceptance when the reviewer is absent.
+
+## Preparation-only legacy entrypoint result
+
+FR-008/FR-010 change `process_import_job`, `process_shopify_import_job` and
+`ingest_shopify_order` to return the retained prepared proposal for pending intake,
+without accepted effects. The bound synthetic entrypoint has the same meaning and
+preserves its caller transaction. Historical completed jobs lacking a retained
+proposal return no new interpretation; their evidence and unknown attribution stay
+unchanged. Import work reports prepared counts separately from completed acceptance.
+Demo uses the `demo.order` pure profile plus the existing invoice/payment profiles.
+Raw source connection scopes admit no document, commitment or financial effects.
+
+FR-003/FR-005 fixed setup also covers legacy compact/month examples: their real
+confirmed proposal freezes the authored profile version and date; private scope
+binds its session/root transaction and cannot be reused by continuous intake.
+Examples use source-stated values and shared pure plan/scoped effects. Anonymous
+configuration-only first-workspace bootstrap never seeds business effects.
+
+
+### Unstated commercial values during cutover
+
+DR-001 also applies to delivery readiness. An accepted file order without a
+source-stated gross total keeps that amount unknown. Standard delivery readiness
+continues to derive operational stock/reservation conditions; a prepayment policy
+blocks with `prepayment_amount_unstated` until reviewed stated evidence exists.
+Required and remaining amounts remain null, never reconstructed from line prices.
+The regression proof is `test_unstated_order_total_stays_unknown_in_delivery_readiness`.

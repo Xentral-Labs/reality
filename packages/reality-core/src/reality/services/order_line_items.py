@@ -123,7 +123,9 @@ def _interpretation_context(
         )
     )
     if job and job.input:
-        return json.loads(job.input)
+        context = json.loads(job.input)
+        if context.get("company_party_id") and context.get("location_id"):
+            return context
     return _file_order_context(session, tenant_id, order)
 
 
@@ -147,6 +149,48 @@ def _file_order_context(
         if order.source_record_id
         else None
     )
+    if source and source.source_artifact_id:
+        job = session.scalar(
+            select(ImportJob).where(
+                ImportJob.tenant_id == tenant_id,
+                ImportJob.source_record_id == source.id,
+            )
+        )
+        context = json.loads(job.input) if job and job.input else {}
+        proposal_id = context.get("intake_proposal_id")
+        proposal = (
+            session.get(ChangeProposal, (tenant_id, proposal_id))
+            if proposal_id
+            else None
+        )
+        if (
+            proposal
+            and proposal.status == "executed"
+            and proposal.type == "tool:intake_apply"
+        ):
+            receipt = json.loads(proposal.output)
+            plan = json.loads(proposal.input)["plan"]
+            if receipt.get("source_record_id") == source.id and {
+                "type": "document",
+                "id": order.id,
+            } in receipt.get("records", []):
+                company_ids = {
+                    ref["record_id"]
+                    for ref in plan["references"]
+                    if ref["record_type"] == "party"
+                    and ref["record_id"] != order.party_id
+                }
+                locations = {
+                    ref["record_id"]
+                    for ref in plan["references"]
+                    if ref["record_type"] == "location"
+                }
+                if len(company_ids) == len(locations) == 1:
+                    return {
+                        "company_party_id": next(iter(company_ids)),
+                        "location_id": next(iter(locations)),
+                    }
+        return {}
     try:
         rows = json.loads(source.payload).get("rows") if source else None
     except ValueError:

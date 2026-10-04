@@ -207,8 +207,14 @@ def test_legacy_item_file_atomic_replay_and_retry(
     job = json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)[
         "import_job_id"
     ]
-    first = core.process_import_job(session, business.tenant.id, job)
-    second = core.process_import_job(session, business.tenant.id, job)
+    from intake_review_support import accept_import_job
+
+    before = items(session, business)
+    prepared = core.process_import_job(session, business.tenant.id, job)
+    assert prepared.status == "proposed"
+    assert items(session, business) == before
+    first = accept_import_job(session, business.tenant.id, job)
+    second = accept_import_job(session, business.tenant.id, job)
     assert set(first["created_ids"]) == set(second["created_ids"])
     assert len(first["created_ids"]) == 2
     assert core.retry_import_job(session, business.tenant.id, job).status == "completed"

@@ -1,9 +1,9 @@
 """Spec 296: an order with an unknown SKU keeps its known lines; a person assigns the rest."""
-
 import json
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import accept_import_job
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -52,7 +52,7 @@ def _intake(session, business, payload):
         business.customer.id,
         business.location.id,
     )
-    return source, job, core.process_import_job(session, business.tenant.id, job.id)
+    return source, job, accept_import_job(session, business.tenant.id, job.id)
 
 
 def _unknown_line(session, business):

@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import accept_normalized_invoice, accept_normalized_payment
 from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SettlementAllocation
@@ -110,7 +111,7 @@ def _invoice(
     _term(session, tenant)
     _order(session, business, external_id, amount, customer=extra.pop("customer", None))
     source = _source(session, tenant, "invoice", f"{external_id}:invoice")
-    return payment_intake.interpret_sales_invoice(
+    return accept_normalized_invoice(
         session,
         tenant,
         source,
@@ -138,9 +139,7 @@ def _pay(
         remittance_text=payload["remittance_text"],
         **extra,
     )
-    return payment_intake.interpret_customer_payment(
-        session, tenant, source, normalised
-    )
+    return accept_normalized_payment(session, tenant, source, normalised)
 
 
 def _count(session, model, tenant):
@@ -167,7 +166,7 @@ def test_invoice_core_links_lines_posts_once_and_replays(session, business):
         ("sales_revenue", "credit", Decimal(100)),
     ]
     assert core.open_invoice_amount(session, tenant, invoice.id) == Decimal(100)
-    again = payment_intake.interpret_sales_invoice(
+    again = accept_normalized_invoice(
         session, tenant, source, _normalised_invoice(business, "sch:run", "INV-1")
     )
     assert again[1].id == invoice.id and len(again[3]) == 2
@@ -202,7 +201,7 @@ def test_invoice_core_refuses_unknown_order_line_or_term(
     _order(session, business)
     source = _source(session, tenant, "invoice", "sch:run:invoice")
     with pytest.raises(core.InvalidOperation, match=message), session.begin_nested():
-        payment_intake.interpret_sales_invoice(
+        accept_normalized_invoice(
             session,
             tenant,
             source,
@@ -218,7 +217,7 @@ def test_invoice_core_refuses_another_party_than_the_order(session, business):
     _order(session, business)
     source = _source(session, tenant, "invoice", "sch:run:invoice")
     with pytest.raises(core.InvalidOperation, match="another party"):
-        payment_intake.interpret_sales_invoice(
+        accept_normalized_invoice(
             session,
             tenant,
             source,
@@ -323,7 +322,7 @@ def test_replay_of_the_same_source_records_no_second_cash_entry(session, busines
     _invoice(session, business)
     ref = [Reference(type="invoice_number", value="INV-1")]
     source, payment, _entries, allocation, _ = _pay(session, business, "100", ref)
-    again = payment_intake.interpret_customer_payment(
+    again = accept_normalized_payment(
         session,
         tenant,
         source,
@@ -390,7 +389,7 @@ def test_blocked_control_account_records_the_money_without_allocating(
         session, business, "100", [Reference(type="invoice_number", value="INV-1")]
     )
     assert allocation is None
-    assert "blocked account" in " ".join(resolution.reasons)
+    assert "account is blocked" in " ".join(resolution.reasons)
     assert (
         next(e for e in entries if e.account == "accounts_receivable").account_id
         == created["id"]
@@ -471,7 +470,7 @@ def test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocati
     _order(session, business, "sch:split", "100")
     for number in ("INV-S1", "INV-S2"):
         source = _source(session, tenant, "invoice", f"sch:split:{number}")
-        payment_intake.interpret_sales_invoice(
+        accept_normalized_invoice(
             session,
             tenant,
             source,
@@ -537,7 +536,7 @@ def test_ambiguous_reference_produces_candidates_and_allocation_ends_them(
     _order(session, business, "sch:split", "100")
     for number in ("INV-S1", "INV-S2"):
         source = _source(session, tenant, "invoice", f"sch:split:{number}")
-        payment_intake.interpret_sales_invoice(
+        accept_normalized_invoice(
             session,
             tenant,
             source,

@@ -191,29 +191,24 @@ def test_order_scope_cannot_post_money_and_settlement_scope_is_bounded(
             _commit=False,
         ),
     )
-    with demo_data.intake_scope(session, tenant, actor):
-        require_demo_intake(session, tenant)
-        with pytest.raises(PlaygroundOperationDenied):
-            require_demo_intake(session, tenant, settlement=True)
-        for attempt in money:
+    for scope in (demo_data.intake_scope, demo_data.settlement_scope):
+        with scope(session, tenant, actor):
+            for settlement in (False, True):
+                with pytest.raises(core.InvalidOperation, match="approval"):
+                    require_demo_intake(session, tenant, settlement=settlement)
+            for attempt in money:
+                with pytest.raises(PlaygroundOperationDenied):
+                    attempt()
             with pytest.raises(PlaygroundOperationDenied):
-                attempt()
-    with demo_data.settlement_scope(session, tenant, actor):
-        require_demo_intake(session, tenant, settlement=True)
-        with pytest.raises(PlaygroundOperationDenied):
-            require_demo_intake(session, tenant)
-        entries = money[0]()
-        assert {entry.account for entry in entries} == {"cash", "accounts_receivable"}
-        # Nothing beyond recording and allocating: no reductions, credits, refunds,
-        # reservations or movements.
-        with pytest.raises(PlaygroundOperationDenied):
-            core.record_customer_refund(
-                session, tenant, customer.id, "1", _commit=False
-            )
-        with pytest.raises(PlaygroundOperationDenied):
-            core.create_party(session, tenant, "Intruder", "customer", _commit=False)
-        with pytest.raises(PlaygroundOperationDenied):
-            session.commit()
+                core.record_customer_refund(
+                    session, tenant, customer.id, "1", _commit=False
+                )
+            with pytest.raises(PlaygroundOperationDenied):
+                core.create_party(
+                    session, tenant, "Intruder", "customer", _commit=False
+                )
+            with pytest.raises(PlaygroundOperationDenied):
+                session.commit()
     session.rollback()
     # Ordinary tenants and non-owners never receive the settlement authority.
     with (

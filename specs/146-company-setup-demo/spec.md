@@ -358,3 +358,13 @@ format across seeded history, contribution examples and later live intake. Every
 demo sales-invoice line exposed for exploration has a retained reviewed contribution
 with non-zero acquisition cost and readable DB1/DB2; deliberately incomplete costing
 examples belong in isolated tests or guided storylines, not the general demo company.
+
+## Decision-gated continuous interpretation (spec 356)
+
+FR-021 still authorizes connecting and starting the raw synthetic source during
+confirmed live setup; fixed profile initialization and completion markers remain
+unchanged. Continuous orders, invoices and payments now prepare exact proposals
+and require separate matching human or owner-delegated agent decisions. Missing
+review leaves original sources pending and reports awaiting reviewer, preserving
+rate, pause/stop and saturation behavior. Starting or retrying the source never
+implicitly issues a review mandate or accepts business effects.

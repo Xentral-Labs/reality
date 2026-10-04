@@ -9,6 +9,11 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from conftest import record_by_id
+from intake_review_support import (
+    accept_import_job,
+    accept_normalized_payment,
+    accept_pending_import_jobs,
+)
 from sqlalchemy import func, select
 
 from reality.db import core as db_core
@@ -16,6 +21,7 @@ from reality.db.core import (
     BusinessEvent,
     Commitment,
     Document,
+    DocumentLine,
     LedgerEntry,
     ReturnAnnouncement,
     SourceRecord,
@@ -54,7 +60,7 @@ def _intake(session, business, payload):
         business.customer.id,
         business.location.id,
     )
-    return source, core.process_import_job(session, business.tenant.id, job.id)
+    return source, accept_import_job(session, business.tenant.id, job.id)
 
 
 def _count(session, business, model, *conditions):
@@ -469,7 +475,7 @@ def test_a_partial_shopify_refund_is_recorded_from_its_source(session, business)
             refunds=[_refund(9641, 9604, 96041, 1, "10.00", "no_restock")],
         ),
     )
-    core.process_pending_import_jobs(session, tenant)
+    accept_pending_import_jobs(session, tenant)
 
     (refund,) = session.scalars(
         select(Document).where(
@@ -514,7 +520,7 @@ def test_a_refund_before_the_goods_come_back_keeps_the_return_expected(
             refunds=[_refund(9651, 9605, 96051, 2, "20.00", "return")],
         ),
     )
-    core.process_pending_import_jobs(session, tenant)
+    accept_pending_import_jobs(session, tenant)
 
     (announcement,) = session.scalars(
         select(ReturnAnnouncement).where(ReturnAnnouncement.commitment_id == line_a.id)
@@ -623,7 +629,7 @@ def test_records_arriving_before_their_order_are_linked_once_it_is_in(
         _refund(97011, 9701, 97010, 1, "10.00", "no_restock"),
         context={},
     )
-    assert core.process_pending_import_jobs(session, tenant) == (0, 1)
+    assert accept_pending_import_jobs(session, tenant) == (0, 1)
     assert refund_job.id in _classes(session, business, "source_interpretation_failure")
 
     # The bank sends a payment naming order #9702, which is not in yet either.
@@ -637,7 +643,7 @@ def test_records_arriving_before_their_order_are_linked_once_it_is_in(
         "stmt-9702",
         {"references": [{"type": reference.type, "value": reference.value}]},
     )
-    _, payment, _, allocation, resolution = payment_intake.interpret_customer_payment(
+    _, payment, _, allocation, resolution = accept_normalized_payment(
         session,
         tenant,
         payment_source,
@@ -672,9 +678,10 @@ def test_records_arriving_before_their_order_are_linked_once_it_is_in(
         row["id"] for row in invoice["records"] if row["family"] == "document"
     )
 
-    # No person needed for the refund: its retry comes due and it links itself.
+    # The retained failed preparation is explicitly retried and reviewed by its owner.
     clock.instant = clock.instant + timedelta(minutes=10)
-    core.process_pending_import_jobs(session, tenant)
+    core.retry_import_job(session, tenant, refund_job.id)
+    accept_pending_import_jobs(session, tenant)
     assert session.get(ImportJob, (tenant, refund_job.id)).status == "completed"
     (refunded,) = session.scalars(
         select(Document).where(
@@ -757,9 +764,9 @@ def test_an_incomplete_shop_order_is_accepted_and_its_gap_reported(session, busi
         business.customer.id,
         business.location.id,
     )
-    assert core.process_pending_import_jobs(session, tenant) == (1, 1)
+    assert accept_pending_import_jobs(session, tenant) == (1, 1)
     failed = session.get(ImportJob, (tenant, broken.id))
-    assert "states no quantity" in failed.error
+    assert json.loads(failed.error)["reason_code"] == "source_line_quantity_missing"
     assert broken.id in _classes(session, business, "source_interpretation_failure")
     assert session.get(ImportJob, (tenant, following.id)).status == "completed"
 
@@ -829,7 +836,7 @@ def test_an_open_order_partly_delivered_before_go_live_is_traceable(
     job_id = json.loads(confirm_tool(session, tenant, proposal.id).output)[
         "import_job_id"
     ]
-    core.process_import_job(session, tenant, job_id)
+    accept_import_job(session, tenant, job_id)
 
     order = session.scalars(
         select(Document).where(
@@ -844,7 +851,13 @@ def test_an_open_order_partly_delivered_before_go_live_is_traceable(
         )
     ).one()
     assert commitment.quantity == 10
-    assert "delivered_quantity" in legacy_source.payload
+    assert legacy_source.source_artifact_id == artifact.id
+    legacy_line = session.scalars(
+        select(DocumentLine).where(
+            DocumentLine.tenant_id == tenant, DocumentLine.document_id == order.id
+        )
+    ).one()
+    assert json.loads(legacy_line.payload)["delivered_quantity"] == "4"
 
     # At go-live a person states the open rest, citing the legacy record.
     receipt = _reviewed_revision(session, business, commitment, legacy_source)

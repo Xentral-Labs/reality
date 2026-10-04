@@ -7992,12 +7992,14 @@ intake_agent_batch_review_and_queue [schema_version] batch_id manifest_digest ma
 
 **Effect:** Reads: `action`, `source_record`, `source_stream`, `import_job`, `party`, `item`,
 `location` · Writes: `document`, `document_line`, `commitment`, `action`, `import_job`,
-`interpretation_outcome`, `interpretation_record_reference`, `business_event`
+`interpretation_outcome`, `interpretation_record_reference`, `business_event` · Emits:
+`source_record.interpreted`
 
 **See also:** Agent Tool
 [`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute), Agent Tool
 [`intake_agent_review_and_execute`](./commands#tool-intake_agent_review_and_execute), Agent Tool
-[`intake_agent_batch_review_and_queue`](./commands#tool-intake_agent_batch_review_and_queue)
+[`intake_agent_batch_review_and_queue`](./commands#tool-intake_agent_batch_review_and_queue), event
+[`source_record.interpreted`](./events#event-source_record-interpreted)
 
 #### `proposal_approve_and_execute` — Approve and execute a proposal {#tool-proposal_approve_and_execute}
 

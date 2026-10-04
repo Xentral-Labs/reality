@@ -112,7 +112,8 @@ def test_revisions_and_corrections_agree_with_inspector(session, business):
 def test_multiline_evidence_keeps_source_payload_and_shortest_links(session, business):
     import json
 
-    from reality.services.core import ingest_shopify_order
+    from intake_review_support import accept_shopify_order as ingest_shopify_order
+
     from reality.services.delivery_reads import delivery_evidence
 
     payload = {

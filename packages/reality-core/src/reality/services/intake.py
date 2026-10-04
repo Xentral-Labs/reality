@@ -160,7 +160,12 @@ _EFFECT_OPERATIONS = {
     ),
     "credit_hold": frozenset({"emit_business_event"}),
     "commitment_revision": frozenset(
-        {"revise_commitment", "emit_business_event", "release_reservation"}
+        {
+            "revise_commitment",
+            "emit_business_event",
+            "release_reservation",
+            "release_commitment_hold",
+        }
     ),
     "commitment_cancellation": frozenset(
         {
@@ -455,6 +460,71 @@ def _calendar_state(session: Session, tenant_id: str) -> CalendarState:
     return calendar
 
 
+def _demo_order_plan(session, tenant_id, source, job):
+    """Prepare only the values stated by one complete synthetic order."""
+    from reality.integrations.demo_data import DemoOrder
+
+    order = DemoOrder.model_validate_json(source.payload)
+    references = [
+        _reference(session, tenant_id, "party", order.company_party_id),
+        _reference(session, tenant_id, "party", order.customer_party_id),
+        _reference(session, tenant_id, "location", order.location_id),
+    ]
+    lines = [line.model_dump(mode="json") for line in order.lines]
+    commitments = []
+    for index, line in enumerate(order.lines):
+        references.append(_reference(session, tenant_id, "item", line.item_id))
+        commitments.append(
+            Effect(
+                operation="commitment",
+                arguments={
+                    "commitment_type": "customer_delivery",
+                    "from_party_id": order.company_party_id,
+                    "to_party_id": order.customer_party_id,
+                    "item_id": line.item_id,
+                    "location_id": order.location_id,
+                    "quantity": str(line.quantity),
+                    "due_at": order.due_at.isoformat(),
+                    "amount": str(line.gross_amount),
+                    "currency": order.currency,
+                    "line_index": index,
+                },
+            )
+        )
+    document = {
+        "document_type": "sales_order",
+        "number": order.number,
+        "party_id": order.customer_party_id,
+        "lines": lines,
+        "gross_amount": str(order.gross_amount),
+        "currency": order.currency,
+        "ordered_at": order.ordered_at.isoformat(),
+        "requested_delivery_at": order.due_at.isoformat(),
+        "document_date": core._source_document_day(
+            session, tenant_id, order.ordered_at
+        ),
+        "customer_reference": order.customer_reference,
+        "sales_channel": "demo_data",
+        "source_record_id": source.id,
+    }
+    core._preview_manual_document_input(session, tenant_id, **document)
+    document["_source_line_payloads"] = json.loads(source.payload)["lines"]
+    return PreparedIntake(
+        tenant_id=tenant_id,
+        source_record_id=source.id,
+        source_hash=source.payload_hash,
+        source_version=source.version,
+        import_job_id=job.id,
+        profile="demo.order",
+        mapping=json.loads(job.input),
+        references=tuple(
+            {(row.record_type, row.record_id): row for row in references}.values()
+        ),
+        effects=(Effect(operation="document", arguments=document), *commitments),
+        row_count=len(lines),
+    )
+
+
 def _payment_plan(
     session: Session,
     tenant_id: str,
@@ -468,7 +538,13 @@ def _payment_plan(
     )
 
     payload = json.loads(source.payload)
-    if (source.source_system, source.source_type) == ("demo_data", "payment"):
+    if (source.source_system, source.source_type) == (
+        "demo_data",
+        "payment",
+    ) and json.loads(job.input).get("profile") not in {
+        "customer_payment.v1",
+        "supplier_payment.v1",
+    }:
         from reality.integrations.demo_data import normalise_payment
 
         payment = normalise_payment(payload)
@@ -547,7 +623,10 @@ def _invoice_plan(session, tenant_id, source, job):
     from reality.services.payment_intake import NormalisedInvoice, _invoice_fields
 
     payload = json.loads(source.payload)
-    if (source.source_system, source.source_type) == ("demo_data", "invoice"):
+    if (source.source_system, source.source_type) == (
+        "demo_data",
+        "invoice",
+    ) and json.loads(job.input).get("profile") != "sales_invoice.v1":
         from reality.integrations.demo_data import normalise_invoice
 
         invoice = normalise_invoice(payload)
@@ -718,8 +797,18 @@ def prepare_intake(
             if isinstance(error, core.RealityError) and error.coded
             else "intake_review_invalid"
         )
-        job.status = "failed"
-        job.error = canonical_json({"phase": "prepare", "reason_code": code})
+        needs_review = isinstance(error, core.InterpretationNeedsReview)
+        if needs_review:
+            code = getattr(error, "reason_code", "intake_meaning_requires_review")
+        job.status = "review_required" if needs_review else "failed"
+        summary = getattr(error, "summary", None) if needs_review else None
+        job.error = canonical_json(
+            {
+                "phase": "prepare",
+                "reason_code": code,
+                **({"summary": summary} if summary else {}),
+            }
+        )
         job.next_attempt_at = None
         job.completed_at = None
         _outcome(
@@ -727,10 +816,11 @@ def prepare_intake(
             tenant_id,
             source,
             job,
-            "failed",
+            "needs_review" if needs_review else "failed",
             interpreter_name="intake.prepare",
             reason_code=code,
-            summary="The source could not be prepared; no business effects were accepted.",
+            summary=summary
+            or "The source could not be prepared; no business effects were accepted.",
         )
         if _commit:
             session.commit()
@@ -853,6 +943,7 @@ def _prepare_intake(
                 source,
                 job,
                 "prepared",
+                interpreter_name="intake.prepare",
                 reason_code="intake_awaiting_decision",
                 summary="The exact artifact packages await a batch decision.",
             )
@@ -861,6 +952,8 @@ def _prepare_intake(
             else:
                 session.flush()
             return plan
+    elif (source.source_system, source.source_type) == ("demo_data", "order"):
+        plan = _demo_order_plan(session, tenant_id, source, job)
     elif (source.source_system, source.source_type) == ("shopify", "order"):
         from reality.services.shopify_intake import prepare_order
 
@@ -914,6 +1007,7 @@ def _prepare_intake(
         source,
         job,
         "prepared",
+        interpreter_name="intake.prepare",
         reason_code="intake_awaiting_decision",
         summary="The source meaning awaits an exact decision.",
     )
@@ -1453,6 +1547,20 @@ def _apply_prepared_intake(
                 "verification": "applied",
             }
         )
+        core.emit_business_event(
+            session,
+            tenant_id,
+            "source_record.interpreted",
+            "source_record",
+            source.id,
+            {
+                "source_system": source.source_system,
+                "source_type": source.source_type,
+                "import_job_id": job.id,
+            },
+            source_record_id=source.id,
+            action_id=proposal.id,
+        )
         job.status = "completed"
         job.completed_at = core.now()
         job.error = ""
@@ -1463,6 +1571,7 @@ def _apply_prepared_intake(
             source,
             job,
             "interpreted",
+            interpreter_name="intake.apply",
             reason_code="intake_applied",
             summary="The exact reviewed meaning was accepted.",
             references=records,

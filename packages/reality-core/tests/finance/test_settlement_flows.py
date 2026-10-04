@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import accept_normalized_payment
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -676,7 +677,6 @@ def test_payment_credit_context_carries_candidate_reasons(session, business):
     from reality.services.payment_intake import (
         NormalisedPayment,
         Reference,
-        interpret_customer_payment,
     )
     from reality.tools.application import run_read_tool
 
@@ -692,7 +692,7 @@ def test_payment_credit_context_carries_candidate_reasons(session, business):
         {"synthetic": True, "remittance_text": f"see {other.number}"},
         _commit=False,
     )
-    _, payment, _, allocation, _ = interpret_customer_payment(
+    _, payment, _, allocation, _ = accept_normalized_payment(
         session,
         tenant,
         source,

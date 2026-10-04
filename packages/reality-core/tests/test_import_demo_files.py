@@ -4,9 +4,11 @@ import csv
 import json
 from pathlib import Path
 
+from intake_review_support import accept_import_job as process_import_job
+
 from reality.db.core import Document, Item, Location, Movement, Party
 from reality.services.artifacts import stage_artifact
-from reality.services.core import create_tenant, process_import_job
+from reality.services.core import create_tenant
 from reality.services.file_interpreters import suggested_mapping, validate_mapping
 from reality.tools.application import confirm_tool, propose_tool
 

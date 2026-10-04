@@ -14,7 +14,7 @@ def test_pending_queue_filters_before_paging_and_orders_oldest_first(session):
             session,
             tenant.id,
             "demo_seed" if index % 2 else "location_create",
-            {"index": index},
+            {} if index % 2 else {"index": index},
         )
         row.created_at = start + timedelta(minutes=index)
         if index % 2:

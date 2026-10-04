@@ -4,12 +4,12 @@ import csv
 import json
 
 import pytest
+from intake_review_support import accept_import_job as process_import_job
 from sqlalchemy import select
 
 from reality.db.core import Commitment, Document, DocumentLine
 from reality.services import core
 from reality.services.artifacts import stage_artifact
-from reality.services.core import process_import_job
 from reality.services.customer_item_numbers import (
     resolve_customer_item,
     set_customer_item_number,

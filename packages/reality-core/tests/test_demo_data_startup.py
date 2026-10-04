@@ -38,12 +38,15 @@ def test_confirmed_live_setup_starts_three_orders_even_when_random_demand_is_zer
         assert (
             jobs.execute_claim(session, tenant, run.id, run.claim_token) == "succeeded"
         )
-        assert run.result["counts"]["imported"] == 1
+        assert run.result["counts"]["awaiting_decision"] == 1
         assert (
             jobs.execute_claim(session, tenant, run.id, run.claim_token or "expired")
             == "succeeded"
         )
-    assert demo_data.status(session, tenant, scheduled_owner.id)["imported"] == 3
+    assert (
+        demo_data.status(session, tenant, scheduled_owner.id)["awaiting_decision"] == 3
+    )
+    assert demo_data.status(session, tenant, scheduled_owner.id)["imported"] == 0
     assert schedule.next_run_at == anchor + timedelta(seconds=84)
     # The settlement stream becomes due at 60; drain it before the next order.
     clock[0] = anchor + timedelta(seconds=84)

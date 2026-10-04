@@ -782,36 +782,6 @@
     },
     {
       "path": "reality/services/core.py",
-      "function": "process_import_job_bound",
-      "message": "ImportJob not found.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "process_import_job_bound",
-      "message": "Bound interpretation requires the registered Demo Data source.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "process_import_job",
-      "message": "ImportJob not found.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "process_import_job",
-      "message": "Demo order could not be interpreted.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "process_import_job",
-      "message": "job.error",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
       "function": "process_shopify_import_job",
       "message": "Import job is not a Shopify order.",
       "scope": "later"
@@ -1012,7 +982,7 @@
     {
       "path": "reality/services/finance/components.py",
       "function": "_page",
-      "message": "Use limit 1\u2013200 and a nonnegative offset.",
+      "message": "Use limit 1–200 and a nonnegative offset.",
       "scope": "later"
     },
     {
@@ -1520,12 +1490,6 @@
       "path": "reality/services/tenant_policy.py",
       "function": "_bound_profile_scope.deny_commit",
       "message": "Profile operation must commit atomically.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/tenant_policy.py",
-      "function": "require_demo_intake",
-      "message": "Demo intake requires its current connection authority.",
       "scope": "later"
     },
     {

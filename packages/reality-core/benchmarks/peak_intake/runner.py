@@ -2,9 +2,9 @@
 
 What a Black Friday asks of Reality, measured on the path a shop order takes:
 1. each order arrives as a Shopify payload and is stored with its import job;
-2. the jobs are worked by `process_pending_import_jobs`, the service the Web
-   (`POST /import-jobs/work`) and the CLI call, from one or more processes;
-3. every promise is then reserved from four parallel connections.
+2. one or more processes prepare each exact source and obtain a retained
+   confirmation from the explicitly created benchmark-owner fixture;
+3. every promise is then reserved through reviewed decisions from four connections.
 
 The run then checks:
 - every order was interpreted exactly once;
@@ -65,24 +65,53 @@ def _child(target: str, *args) -> None:
         raise
 
 
-def _work_jobs(url: str, tenant_id: str, queue) -> None:
-    """One worker process: work pending import jobs until none are left."""
+def _work_jobs(url: str, tenant_id: str, reviewer_user_id: str, queue) -> None:
+    """Measure real preparation and finite exact owner confirmations, never inference."""
+    from reality.db.core import ImportJob
     from reality.services import core
+    from reality.services.business_locks import lock_delivery_state
+    from reality.services.intake import (
+        apply_prepared_intake,
+        prepare_intake,
+        review_intake,
+    )
+    from reality.services.memberships import Principal
 
     engine = _engine(url)
     calls = completed = failed = 0
     started = time.perf_counter()
     with Session(engine, expire_on_commit=False) as session:
         while True:
-            done, refused = core.process_pending_import_jobs(
-                session, tenant_id, limit=100
+            lock_delivery_state(session, tenant_id)
+            job = session.scalar(
+                select(ImportJob)
+                .where(ImportJob.tenant_id == tenant_id, ImportJob.status == "pending")
+                .order_by(ImportJob.created_at, ImportJob.id)
+                .limit(1)
+                .with_for_update()
             )
-            session.commit()
             calls += 1
-            completed += done
-            failed += refused
-            if done + refused == 0:
+            if job is None:
+                session.commit()
                 break
+            try:
+                proposal = prepare_intake(session, tenant_id, job.id, _commit=False)
+                held = review_intake(session, tenant_id, proposal.id)
+                receipt = apply_prepared_intake(
+                    session,
+                    tenant_id,
+                    proposal.id,
+                    held["digest"],
+                    confirmed=True,
+                    principal=Principal(reviewer_user_id),
+                    _commit=False,
+                )
+                assert receipt.status == "executed"
+            except core.RealityError:
+                failed += 1
+            else:
+                completed += 1
+            session.commit()
     elapsed = time.perf_counter() - started
     engine.dispose()
     queue.put(
@@ -90,9 +119,14 @@ def _work_jobs(url: str, tenant_id: str, queue) -> None:
     )
 
 
-def _reserve(url: str, tenant_id: str, commitment_ids: list[str], queue) -> None:
+def _reserve(
+    url: str, tenant_id: str, reviewer_user_id: str, commitment_ids: list[str], queue
+) -> None:
     """One connection reserving its share of the promises."""
     from reality.services import core
+    from reality.services.delivery_actions import REVIEW_KEY, prepare_delivery_action
+    from reality.services.memberships import Principal
+    from reality.tools.application import approve_and_execute_proposal
 
     engine = _engine(url)
     reserved = refused = 0
@@ -100,7 +134,22 @@ def _reserve(url: str, tenant_id: str, commitment_ids: list[str], queue) -> None
     with Session(engine, expire_on_commit=False) as session:
         for commitment_id in commitment_ids:
             try:
-                core.reserve(session, tenant_id, commitment_id)
+                proposal = prepare_delivery_action(
+                    session,
+                    tenant_id,
+                    "reserve",
+                    {"commitment_id": commitment_id},
+                    request_id=f"peak-reserve-{commitment_id}",
+                    actor_id=reviewer_user_id,
+                )
+                approve_and_execute_proposal(
+                    session,
+                    tenant_id,
+                    proposal.id,
+                    confirmed=True,
+                    confirming_principal=Principal(reviewer_user_id),
+                    review_token=json.loads(proposal.input)[REVIEW_KEY]["token"],
+                )
                 reserved += 1
             except core.InvalidOperation:
                 session.rollback()
@@ -255,7 +304,7 @@ def run(
         session.commit()
 
     worked_wall, workers = _parallel(
-        "_work_jobs", [(url, company.tenant_id)] * processes
+        "_work_jobs", [(url, company.tenant_id, company.reviewer_user_id)] * processes
     )
 
     with Session(engine, expire_on_commit=False) as session:
@@ -274,7 +323,12 @@ def run(
     reserving_wall, reservers = _parallel(
         "_reserve",
         [
-            (url, company.tenant_id, promises[index::connections])
+            (
+                url,
+                company.tenant_id,
+                company.reviewer_user_id,
+                promises[index::connections],
+            )
             for index in range(connections)
         ],
     )
@@ -290,6 +344,10 @@ def run(
     worked = max(row["seconds"] for row in workers)
     reserving = max(row["seconds"] for row in reservers)
     return {
+        "reviewer": {
+            "kind": "explicit_owner_fixture",
+            "user_id": company.reviewer_user_id,
+        },
         "orders": orders,
         "items": items,
         "seed": seed,

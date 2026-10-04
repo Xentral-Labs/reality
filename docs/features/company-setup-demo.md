@@ -34,8 +34,8 @@ Status and completion evidence belong in [quickstart](../../specs/146-company-se
 - `services/company_setup.py`: `options`, `create_company`, `read_request`, `retry_request`, `profile`, `create_execution`. Resolve the authenticated account first; retain one request key and identical choices across retries. The first committed Sandbox receipt includes its immutable intent, so explicit replay can recover an interrupted initializer. Reads never seed.
 - `services/demo_profile.py` and `demo/international.py`: the versioned canonical baseline. Initialize only through the company orchestrator; never invoke the private seed authority from adapters.
 - `services/demo_data.py`: `preview` → confirmed `connect` → confirmed `control`. These controls own a transaction; stale/error cases roll back atomically. `status`, `imports` and `read_import` are scoped, non-persisting observations. `retry_import` reuses the immutable source.
-- `jobs/handlers/demo_data.py`: registered `demo.generate_orders`, version 1. Its owner callback admits verified pending private owners only for eligible practice tenants. The handler enqueues and interprets the deterministic sources one delivery plans (`integrations.demo_data.plan`, zero to six orders) inside the scheduler-owned transaction, checking the backlog bound before each order. It never commits or performs business execution.
-- `core.process_import_job_bound`: only the registered synthetic interpreters (order, invoice, payment) are supported in this bound path. Expected validation failures retain an import failure outcome; unexpected errors propagate to roll back the worker transaction. Existing public source APIs keep their committing contract.
+- `jobs/handlers/demo_data.py`: registered `demo.generate_orders`, version 1. Its owner callback admits verified pending private owners only for eligible practice tenants. The handler enqueues and prepares exact decisions for the deterministic sources one delivery plans (`integrations.demo_data.plan`, zero to six orders) inside the scheduler-owned transaction, checking the backlog bound before each order. It never commits or performs business execution.
+- `core.process_import_job_bound`: only registered synthetic profiles (order, invoice, payment) are supported in this preparation-only bound path. Expected validation failures retain a preparation failure outcome; unexpected errors propagate to roll back the worker transaction. Existing public source APIs keep their committing contract.
 
 Both company setup and Demo Data have thin App/account HTTP adapters. First and later creation use `CompanySetup`/`CompanySetupForm`; the source uses `DemoDataIntegration` both in App and owned Playground. Use the shared source preview instead of installing an inert connector shell for `demo_data`.
 
@@ -90,7 +90,7 @@ lesson boundaries and existing write/credential policies remain unchanged.
 - `jobs/handlers/demo_data.py::SETTLE` (`demo.settle_orders`, version 1, every 60 seconds) calls `services/demo_data.py::settlement_work`, which scans the connection's orders of the last 30 days that can still owe a record, recomputes their plans and emits at most 25 due invoices or payments per occurrence, oldest first, under `settlement_scope`. Identities are `{order external id}:invoice` and `{order external id}:payment:{n}`; existing records are the only idempotency marker.
 - Connect creates or matches the payment term `DEMO-14-2` (14 days net, 2 % within 7 days). Start creates both schedules; pause, stop and disconnect cancel both; `set_rate` changes only the order schedule; saturation counts every synthetic type. A connection created before this feature receives its settlement schedule on its next start. Migration `0055_demo_settlement_schedule` adds the nullable `settlement_schedule_id`.
 - `status` carries `order_to_cash`: invoices issued, payments received and allocated, invoices settled, open residuals, customer credit created, unmatched payments, failures, last and next settlement, computed from source records and read services. The integration panel shows the block with links into Payments, Open items and Journal.
-- The settlement authority (`tenant_policy._SETTLEMENT_OPERATIONS`) may post the stated invoice, record payments and allocate an unambiguously stated reference; it may not reduce, refund, write off or reserve. The order scope keeps its narrower set, so an order can never book money.
+- Continuous source authority admits immutable raw capture and preparation only. Orders, invoices and payments require their exact retained decision before acceptance. Connecting or starting a source never creates an agent mandate.
 
 ## Initialization outside the request (feature 199)
 
@@ -197,3 +197,21 @@ simulation's state, the reason it is not producing, the rate and the controls
 times, order to cash and the list of arrivals are observations shared by every source
 and are not repeated per source. The source row in the integrations table states the live state in
 a single word and carries the full reason in its title.
+
+## Decision-gated continuous intake (spec 356)
+
+Existing confirmed profile initialization and its completion marker remain fixed.
+Live connection/start/rate/retry controls retain their original boundaries, while
+continuous jobs now capture raw and prepare exact proposals. Without a human or an
+explicit owner-granted named agent review, accepted effects wait. Status exposes
+`awaiting_decision` and `awaiting_reviewer`; successful raw production does not
+count as an imported order. Saturation still pauses an accumulating backlog.
+Sources whose meaning cannot yet be prepared are separately `review_required`;
+they count toward the unresolved backlog without being reported as execution
+failures. Prepared units link to Decisions; unresolved meaning links to the source
+register. Neither status implicitly enrolls an agent or accepts an order/payment.
+
+Legacy import work now reports prepared sources separately from completed business
+acceptance. Historical completed jobs are never reinterpreted to fabricate a
+proposal or decision. API, scheduler and workers must use the same fenced revision;
+rolling back to a direct-writing interpreter is unsupported.

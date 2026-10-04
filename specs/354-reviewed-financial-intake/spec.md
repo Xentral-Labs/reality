@@ -143,3 +143,18 @@ FinancialIntakePlan: received statement meaning plus explicit posting operations
 | FR-009 | US3 | `packages/reality-core/tests/test_financial_intake_admission.py::test_intake_is_not_external_payment_execution` | T009, T010, T011 |
 | DR-001, DR-002, DR-003, SC-001 | US1–US3, edge cases | `packages/reality-core/tests/test_financial_intake_admission.py` source/attribution, derived-state and tenant refusal matrix | T001, T002, T012, T013 |
 | SC-002 | All | Required gates and final evidence review | T014 |
+
+
+### Explicit normalized profile selection
+
+An explicit closed `sales_invoice.v1`, `customer_payment.v1` or
+`supplier_payment.v1` profile selects the received normalized shape independently
+of the textual source origin. A normal Demo Data worker without that explicit
+profile still uses its registered synthetic normalizer. Profile selection must not
+rewrite the source origin: stated shop references continue resolving against the
+actual received source system. Exact raw, profile and resolved references remain
+bound to the retained review.
+The same closed profiles can prepare a custom received origin through the legacy
+queue entrypoint without a mutating interpreter registration. Unknown declared
+profiles stay raw and unmapped. Explicit retry can reset an older unmapped job only
+when its retained context names a supported profile; it does not approve effects.

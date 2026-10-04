@@ -8,6 +8,8 @@ stays a person's decision.
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from intake_review_support import accept_normalized_payment
+
 from reality.services import core, payment_intake
 from reality.services.payment_intake import NormalisedPayment, Reference
 
@@ -62,7 +64,7 @@ def _payment(session, business, external_id, amount, order_number):
         external_id,
         {"references": [{"type": "shop_order_number", "value": order_number}]},
     )
-    _, payment, _, allocation, resolution = payment_intake.interpret_customer_payment(
+    _, payment, _, allocation, resolution = accept_normalized_payment(
         session,
         business.tenant.id,
         source,

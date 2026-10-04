@@ -169,10 +169,15 @@ def generate(session, context, config):
                 payload,
                 _commit=False,
             )
-            result = core.process_import_job_bound(session, context.tenant_id, job.id)
+            core.process_import_job_bound(session, context.tenant_id, job.id)
         counts["generated"] += 1
-        counts["imported"] += int(result is not None)
-        counts["failed"] += int(result is None)
+        counts["awaiting_decision"] = counts.get("awaiting_decision", 0) + int(
+            job.status == "awaiting_decision"
+        )
+        counts["review_required"] = counts.get("review_required", 0) + int(
+            job.status == "review_required"
+        )
+        counts["failed"] += int(job.status == "failed")
         references += [
             RecordReference(record_type="source_record", id=source.id),
             RecordReference(record_type="import_job", id=job.id),
@@ -303,10 +308,15 @@ def settle(session, context, config):
                 payload,
                 _commit=False,
             )
-            result = core.process_import_job_bound(session, context.tenant_id, job.id)
+            core.process_import_job_bound(session, context.tenant_id, job.id)
         counts["invoices" if item["source_type"] == "invoice" else "payments"] += 1
-        counts["imported"] += int(result is not None)
-        counts["failed"] += int(result is None)
+        counts["awaiting_decision"] = counts.get("awaiting_decision", 0) + int(
+            job.status == "awaiting_decision"
+        )
+        counts["review_required"] = counts.get("review_required", 0) + int(
+            job.status == "review_required"
+        )
+        counts["failed"] += int(job.status == "failed")
         references += [
             RecordReference(record_type="source_record", id=source.id),
             RecordReference(record_type="import_job", id=job.id),

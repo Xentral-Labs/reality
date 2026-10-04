@@ -152,6 +152,7 @@ from reality.services.shipments import (
 )
 from reality.services.supply_assignments import assign_supply, supply_coverage
 from reality.services.tenant_policy import (
+    _confirmed_application_scope,
     require_proposal_creation,
     require_proposal_decision,
 )
@@ -6158,6 +6159,12 @@ def create_change_proposal(
     # reality-rule: application.create_change_proposal.2
     if not tool.mutating:
         raise InvalidOperation(code="proposal_read_tool_not_needed")
+    if tool_name in {"demo_seed", "normal_month"}:
+        from reality.services.tenant_policy import _fixed_definition_input
+
+        if arguments:
+            raise InvalidOperation(code="intake_review_invalid")
+        arguments = _fixed_definition_input(tool_name)
     if tool_name == "intake_batch_apply":
         from reality.services.intake_batches import prepare_batch
 
@@ -6847,6 +6854,12 @@ def approve_and_execute_proposal(
     )
     if candidate is None:
         raise NotFound(code="proposal_not_found")
+    if (
+        candidate.type in {"tool:demo_seed", "tool:normal_month"}
+        and candidate.status != "executed"
+        and not confirmed
+    ):
+        raise InvalidOperation(code="review_confirmation_required")
     authority_policy = resolve_decision_policy(
         candidate.type.removeprefix("tool:"), json.loads(candidate.input)
     )
@@ -7165,7 +7178,10 @@ def approve_and_execute_proposal(
     if "request_author" in authority_policy.checks:
         from reality.services.analytics.proposals import execute_request
 
-        with executing_proposal(tenant_id, proposal.id):
+        with (
+            _confirmed_application_scope(session, tenant_id, proposal),
+            executing_proposal(tenant_id, proposal.id),
+        ):
             result = execute_request(
                 session, tenant_id, confirming_principal, arguments
             )
@@ -7173,7 +7189,10 @@ def approve_and_execute_proposal(
         from reality.services.analytics.proposals import execute_change
 
         try:
-            with executing_proposal(tenant_id, proposal.id):
+            with (
+                _confirmed_application_scope(session, tenant_id, proposal),
+                executing_proposal(tenant_id, proposal.id),
+            ):
                 result = execute_change(
                     session, tenant_id, confirming_principal, arguments
                 )
@@ -7197,6 +7216,7 @@ def approve_and_execute_proposal(
     elif tool_name in MASTER_TOOLS:
         with (
             master_tool_execution(session, tenant_id, tool_name, arguments),
+            _confirmed_application_scope(session, tenant_id, proposal),
             executing_proposal(tenant_id, proposal.id),
         ):
             result = tool.handler(session, tenant_id, arguments)
@@ -7209,11 +7229,15 @@ def approve_and_execute_proposal(
                     _mandate_change_scope(
                         session, tenant_id, proposal, confirming_principal, arguments
                     ),
+                    _confirmed_application_scope(session, tenant_id, proposal),
                     executing_proposal(tenant_id, proposal.id),
                 ):
                     result = tool.handler(session, tenant_id, arguments)
             else:
-                with executing_proposal(tenant_id, proposal.id):
+                with (
+                    _confirmed_application_scope(session, tenant_id, proposal),
+                    executing_proposal(tenant_id, proposal.id),
+                ):
                     result = tool.handler(session, tenant_id, arguments)
         except (InvalidOperation, NotFound) as error:
             # A synchronous domain refusal from a reviewed application handler is a

@@ -3,6 +3,7 @@
 import json
 from decimal import Decimal
 
+from intake_review_support import accept_import_job, accept_pending_import_jobs
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -74,7 +75,7 @@ def _enqueue(session, business, payload):
 
 
 def _process_all(session, business):
-    return core.process_pending_import_jobs(session, business.tenant.id)
+    return accept_pending_import_jobs(session, business.tenant.id)
 
 
 def _interpreted_order(session, business, *, shipped="0"):
@@ -87,7 +88,7 @@ def _interpreted_order(session, business, *, shipped="0"):
         to_location_id=business.location.id,
     )
     _, job = _enqueue(session, business, _order())
-    commitment = core.process_import_job(session, business.tenant.id, job.id)[3][0]
+    commitment = accept_import_job(session, business.tenant.id, job.id)[3][0]
     if shipped != "0":
         core.reserve(session, business.tenant.id, commitment.id)
         core.record_movement(
@@ -259,7 +260,7 @@ def test_a_refund_before_its_order_waits_and_is_recorded_on_retry(session, busin
         context={},
     )
     try:
-        core.process_import_job(session, business.tenant.id, job.id)
+        accept_import_job(session, business.tenant.id, job.id)
     except core.InvalidOperation as error:
         assert error.code == "shop_refund_order_missing"
     else:
@@ -269,7 +270,7 @@ def test_a_refund_before_its_order_waits_and_is_recorded_on_retry(session, busin
 
     _interpreted_order(session, business)
     core.retry_import_job(session, business.tenant.id, job.id)
-    core.process_import_job(session, business.tenant.id, job.id)
+    accept_import_job(session, business.tenant.id, job.id)
 
     assert len(_refund_documents(session, business)) == 1
     assert _outcome(session, refund).classification == "interpreted"
@@ -323,7 +324,7 @@ def test_replaying_a_refund_records_it_once(session, business):
         )
     ).one()
 
-    core.process_import_job(session, business.tenant.id, job.id)
+    accept_import_job(session, business.tenant.id, job.id)
 
     assert len(_refund_documents(session, business)) == 1
     assert len(_announcements(session, commitment)) == 1

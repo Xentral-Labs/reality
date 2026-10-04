@@ -19,7 +19,6 @@ from reality.db.core import (
     engine,
     init_db,
 )
-from reality.demo.normal_month import run_normal_month
 from reality.services.core import (
     InvalidOperation,
     NotFound,
@@ -41,8 +40,8 @@ from reality.services.core import (
     create_source_capability,
     create_source_system,
     create_tenant,
+    decimal,
     enqueue_source,
-    ensure_demo,
     find_tenant,
     get_tenant,
     handling_units,
@@ -670,12 +669,12 @@ def imports_work(tenant: str | None = None, limit: int = 100):
     with Session() as session:
         try:
             selected = selected_tenant(session, tenant)
-            completed, failed = process_pending_import_jobs(
+            prepared, failed = process_pending_import_jobs(
                 session, selected.id, limit=limit
             )
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
-    con.print(f"Import jobs: {completed} completed, {failed} failed")
+    con.print(f"Import jobs: {prepared} awaiting decision, {failed} failed")
 
 
 @source_app.command("ingest")
@@ -2583,7 +2582,10 @@ def demo(tenant: str | None = None, auto: bool = False):
         )
         if not auto:
             typer.confirm("Run the demo now?", abort=True)
-        ensure_demo(s, t)
+        from reality.tools.application import create_change_proposal
+
+        proposal = create_change_proposal(s, t.id, "demo_seed", {}, actor_type="human")
+        approve_and_execute_proposal(s, t.id, proposal.id, confirmed=True)
         con.print("✓ Demo company created. Try: reality stock")
 
 
@@ -2594,13 +2596,21 @@ def scenario_run(name: str, tenant: str = typer.Option(..., "--tenant")):
     with Session() as s:
         try:
             get_tenant(s, tenant)
-            result = run_normal_month(s, tenant)
+            from reality.tools.application import create_change_proposal
+
+            proposal = create_change_proposal(
+                s, tenant, "normal_month", {}, actor_type="human"
+            )
+            accepted = approve_and_execute_proposal(
+                s, tenant, proposal.id, confirmed=True
+            )
+            result = json.loads(accepted.output)
         except NotFound as error:
             raise typer.BadParameter(str(error), param_hint="--tenant") from error
     con.print(
         "✓ September 2026 complete · "
-        f"physical {result['physical']:g} · reserved {result['reserved']:g} · "
-        f"receivable EUR {result['receivable']:g}"
+        f"physical {decimal(result['physical']):g} · reserved {decimal(result['reserved']):g} · "
+        f"receivable EUR {decimal(result['receivable']):g}"
     )
 
 

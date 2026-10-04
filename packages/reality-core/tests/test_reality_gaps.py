@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import pytest
+from intake_review_support import accept_shopify_order as ingest_shopify_order
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from reality.db.core import Fact, InterpretationRule, RealityGap
-from reality.services.core import InvalidOperation, ingest_shopify_order
+from reality.services.core import InvalidOperation
 from reality.services.reality_gaps import (
     activate_rule,
     add_gap_entry,

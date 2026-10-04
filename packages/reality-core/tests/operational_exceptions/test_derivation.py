@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import accept_import_job as process_import_job
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -44,7 +45,6 @@ from reality.services.core import (
     post_supplier_invoice,
     post_supplier_payment,
     post_supplier_refund,
-    process_import_job,
     record_movement,
     release_reservation,
     reserve,
@@ -162,19 +162,21 @@ def test_source_interpretation_failure_disappears_after_successful_retry(
         business.customer.id,
         business.location.id,
     )
-    interpreter = core.SOURCE_INTERPRETERS[("shopify", "order")]
+    from reality.services import shopify_intake
+
+    interpreter = shopify_intake.prepare_order
 
     def fail(*args, **kwargs):
-        raise RuntimeError("transient parser failure")
+        raise core.InvalidOperation("transient parser failure")
 
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("shopify", "order"), fail)
-    with pytest.raises(RuntimeError, match="transient parser failure"):
+    monkeypatch.setattr(shopify_intake, "prepare_order", fail)
+    with pytest.raises(core.InvalidOperation, match="transient parser failure"):
         process_import_job(session, business.tenant.id, job.id)
     failed = by_class(session, business.tenant.id)["source_interpretation_failure"]
     assert failed.record_id == job.id
     assert failed.trace["source_record_id"] == source.id
 
-    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("shopify", "order"), interpreter)
+    monkeypatch.setattr(shopify_intake, "prepare_order", interpreter)
     retry_import_job(session, business.tenant.id, job.id)
     process_import_job(session, business.tenant.id, job.id)
 

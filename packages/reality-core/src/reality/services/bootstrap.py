@@ -6,7 +6,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session as OrmSession
 
 from reality.db.core import Tenant
-from reality.services.core import create_tenant, ensure_demo
+from reality.services.core import create_tenant
 
 
 def bootstrap_empty_database(session: OrmSession) -> Tenant | None:
@@ -21,5 +21,4 @@ def bootstrap_empty_database(session: OrmSession) -> Tenant | None:
         session.rollback()
         return None
     tenant = create_tenant(session, name)
-    ensure_demo(session, tenant)
     return tenant

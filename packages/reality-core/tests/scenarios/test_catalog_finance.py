@@ -12,6 +12,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import accept_normalized_payment
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -109,21 +110,19 @@ def test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded
     source, _ = core.enqueue_source(
         session, tenant, "bank_statement", "payment", "stmt-7:line-1", payload
     )
-    _, payment, entries, allocation, resolution = (
-        payment_intake.interpret_customer_payment(
-            session,
-            tenant,
-            source,
-            NormalisedPayment(
-                party_id=business.customer.id,
-                amount=Decimal("119.00"),
-                currency="EUR",
-                effective_at=at,
-                external_payment_id="stmt-7:line-1",
-                references=(Reference(type="shop_order_number", value="SO-PRE-1"),),
-                remittance_text=payload["remittance_text"],
-            ),
-        )
+    _, payment, entries, allocation, resolution = accept_normalized_payment(
+        session,
+        tenant,
+        source,
+        NormalisedPayment(
+            party_id=business.customer.id,
+            amount=Decimal("119.00"),
+            currency="EUR",
+            effective_at=at,
+            external_payment_id="stmt-7:line-1",
+            references=(Reference(type="shop_order_number", value="SO-PRE-1"),),
+            remittance_text=payload["remittance_text"],
+        ),
     )
 
     # The money is recorded, but nothing is invoiced, so nothing absorbs it.

@@ -127,3 +127,13 @@ external-I/O scheduler contract is proposed: provider inference stays client-sid
 Follow spec 351's common lock hierarchy and immutable phase/outcome attempt
 allocation; do not acquire business/finance locks after proposal/source locks.
 Replay never appends a new phase outcome or re-invokes interpretation.
+
+### Fixed compact and month setup compatibility
+
+Legacy compact/month seeds become actual confirmed fixed-definition proposals,
+with retained profile version and frozen day. A private session/transaction-bound
+application execution scope authorizes their authored definitions only. Their
+Shopify-shaped examples use the shared pure planner and exact scoped effect
+dispatch; no retired interpreter or derived line total is reused. Setup effects
+and its receipt commit together. Raw-only source scopes cannot enter this setup
+scope. Configuration-only empty-database bootstrap creates no business demo data.

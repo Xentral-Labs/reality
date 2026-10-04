@@ -11,6 +11,7 @@ from reality.domain.intake import Effect, IntakeModel
 PROFILES = frozenset(
     {
         "shopify.order",
+        "demo.order",
         "shopify.order_change",
         "shopify.refund",
         "item_csv.v1",
@@ -61,7 +62,7 @@ class MandateScope(IntakeModel):
     schema_version: Literal[1] = 1
     source_system_id: str = Field(min_length=1, max_length=128)
     capability_ids: tuple[str, ...] = Field(min_length=1, max_length=50)
-    profiles: tuple[str, ...] = Field(min_length=1, max_length=14)
+    profiles: tuple[str, ...] = Field(min_length=1, max_length=15)
     effects: tuple[str, ...] = Field(min_length=1, max_length=20)
     max_rows_per_unit: int = Field(ge=1, le=500, strict=True)
     max_units_per_day: int = Field(ge=1, le=100000, strict=True)

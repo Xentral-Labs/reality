@@ -1,11 +1,11 @@
 """Spec 344 FR-002: external stock through a file, MCP/Chat, Web and CLI."""
-
 import csv
 import json
 from datetime import timedelta
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import accept_import_job
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -193,7 +193,7 @@ def test_a_file_states_external_stock_and_moves_nothing(
     job_id = json.loads(confirm_tool(session, tenant, proposal.id).output)[
         "import_job_id"
     ]
-    core.process_import_job(session, tenant, job_id)
+    accept_import_job(session, tenant, job_id)
 
     (row,) = external_stock(session, tenant)
     assert (row["stated_quantity"], row["reality_quantity"], row["difference"]) == (

@@ -22606,7 +22606,7 @@
         "intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons",
         "intake_agent_batch_review_and_queue [schema_version] batch_id manifest_digest manifest_revision reviews"
       ],
-      "events": [],
+      "events": ["source_record.interpreted"],
       "actions": [],
       "guidance": {
         "purpose": "Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality execution boundary.",
@@ -22658,7 +22658,8 @@
       "links": [
         "tool:proposal_approve_and_execute",
         "tool:intake_agent_review_and_execute",
-        "tool:intake_agent_batch_review_and_queue"
+        "tool:intake_agent_batch_review_and_queue",
+        "event:source_record.interpreted"
       ],
       "label_de": "Geprüfte Quellinterpretation übernehmen",
       "resources": ["source"]
@@ -33288,9 +33289,9 @@
       "kind": "event",
       "key": "source_record.interpreted",
       "label": "source_record.interpreted",
-      "area": "sources",
+      "area": "cross_functional",
       "summary": "",
-      "producer": "process_import_job",
+      "producer": "apply_prepared_intake",
       "subject": "source_record",
       "invalidates": [
         "Operational Exceptions",
@@ -33300,7 +33301,7 @@
         "Fulfillment blockers",
         "Tenant usage"
       ],
-      "links": [],
+      "links": ["command:apply_prepared_intake"],
       "label_de": "source_record.interpreted",
       "resources": ["source"]
     },
