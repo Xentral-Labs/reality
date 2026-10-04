@@ -318,3 +318,31 @@ Final real positive OAuth person attribution and replay, current authority,
 manual token, OAuth HTTP/service and canonical document/order checks all passed:
 88 tests in 14.83 seconds. Complete final-parent and committed-head CI remain
 required. No grant authority is manufactured to repair a refused call.
+## Live source control lock-order and real MCP fixture follow-ups
+
+CI captured DeadlockDetected in the real company-setup Pause request: production
+and settlement schedule locks were inverted. After a shared stable schedule/run/
+connection order, all 40 scheduler/demo/intake/security/HTTP checks passed
+(70.60 seconds), and the actual failed company-setup browser passed (99.50 seconds).
+A two-connection actual pending-run proof reproduced LockNotAvailable on the
+unchanged parent; the fixture fixes only opaque generated IDs to make ordering
+deterministic and never fabricates a worker claim or person approval.
+
+Full CI also found the old interactive AI effect test fabricated credential/grant
+IDs in an MCPPrincipal. Its positive effect now uses actual OAuth interaction,
+consent, PKCE exchange and resolved persisted credential with both exact tools
+and scopes. Pure registry/dispatch unit doubles remain isolated from effects.
+Final authority/lock proof and committed-head CI remain required.
+Final current MCP/AI/OAuth/manual-token and deterministic PostgreSQL schedule
+lock-order checks passed: 86 tests and two existing skips (15.05 seconds).
+The actual pending settlement occurrence now waits before retaining its schedule;
+no fake executing status, worker claim, person or grant was added. Ruff, annotation
+audit, spec policy and formatted catalog generation passed. Final committed-head
+CI is required after the real browser and synthetic-principal fixture corrections.
+
+The frozen initial normalized-document local full run (3c19d4e9) completed with
+32 failures, 6206 passes and 10 skips in 3537.67 seconds. Its identified positive
+adapter/dynamic-alias/annotation/Decimal fixture failures were repaired in the
+later c6cfe4b0 head. The complete c6cfe4b0 document, 268822b1 order and a3a0c26c
+invoice CI jobs are all green; the frozen earlier run is not represented as a
+successful local full test of those corrected heads.

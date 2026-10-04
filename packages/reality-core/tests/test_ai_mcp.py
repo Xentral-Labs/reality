@@ -278,15 +278,12 @@ def test_manual_and_interactive_principals_share_dispatch_but_keep_attribution(
 def test_interactive_mcp_proposal_requires_separate_confirmation_and_records_actor(
     session, business, scheduled_owner
 ):
-    principal = MCPPrincipal(
-        "interactive",
-        "credential_1",
-        "grant_1",
-        scheduled_owner.id,
-        business.tenant.id,
-        "client_1",
-        frozenset({"reality:propose", "reality:confirm"}),
-        frozenset({"party_create_propose", "proposal_approve_and_execute"}),
+    from test_current_mcp_decision_authority import actual_confirmation_principal
+
+    _, _, principal = actual_confirmation_principal(
+        session, business, scheduled_owner,
+        scopes=["reality:propose", "reality:confirm"],
+        allowed_tools=["party_create_propose", "proposal_approve_and_execute"],
     )
     before = session.query(Party).filter_by(tenant_id=business.tenant.id).count()
 

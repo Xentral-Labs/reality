@@ -82,3 +82,10 @@ a snapshot; post-dispatch revocation/expiry must be observed before business
 effects. Existing rows and private scope capture suffice. Calling the OAuth
 resolver inside settlement would commit prematurely and is explicitly rejected.
 Critical design findings resolved; implementation and qualification pending.
+## Live source control lock-order analysis
+
+No unresolved clarification or critical design finding. The failed real CI
+browser provides concrete server-side DeadlockDetected evidence: Pause owns the
+production schedule and waits for settlement; settlement execution owns its
+schedule and enters the production boundary. Scheduling is reused and no claim,
+status or approval is manufactured. Both paths need one consistent lock order.

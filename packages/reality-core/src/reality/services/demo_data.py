@@ -117,30 +117,33 @@ def _locked(session: Session, tenant_id: str):
     if connection is None:
         raise core.NotFound("Demo Data is not connected.")
     schedule_id = connection.current_schedule_id
-    schedule = None
-    if schedule_id:
-        schedule = session.scalar(
+    settlement_id = connection.settlement_schedule_id
+    schedule_ids = {identity for identity in (schedule_id, settlement_id) if identity}
+    schedules = {}
+    if schedule_ids:
+        schedules = {row.id: row for row in session.scalars(
             select(ScheduledJob)
-            .where(ScheduledJob.tenant_id == tenant_id, ScheduledJob.id == schedule_id)
+            .where(ScheduledJob.tenant_id == tenant_id, ScheduledJob.id.in_(schedule_ids))
+            .order_by(ScheduledJob.id)
             .with_for_update()
             .execution_options(populate_existing=True)
-        )
-        session.scalar(
+        )}
+        list(session.scalars(
             select(ScheduledJobRun)
             .where(
                 ScheduledJobRun.tenant_id == tenant_id,
-                ScheduledJobRun.schedule_id == schedule_id,
+                ScheduledJobRun.schedule_id.in_(schedule_ids),
                 ScheduledJobRun.status.in_(
                     {"pending", "retry", "running", "unresolved"}
                 ),
             )
+            .order_by(ScheduledJobRun.id)
             .with_for_update()
-        )
+        ))
     connection = _connection(session, tenant_id, lock=True)
-    if connection.current_schedule_id != schedule_id:
+    if connection.current_schedule_id != schedule_id or connection.settlement_schedule_id != settlement_id:
         raise core.Conflict("Demo Data changed; reload its current state.")
-    _settlement_schedule(session, tenant_id, connection, lock=True)
-    return connection, schedule
+    return connection, schedules.get(schedule_id)
 
 
 def _settlement_schedule(

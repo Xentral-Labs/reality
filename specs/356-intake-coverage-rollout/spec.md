@@ -263,3 +263,11 @@ unexpired, belong to the same real user/company/client and permit the actual
 confirmation tool/scope. Dispatch-time authentication alone is insufficient.
 HTTP/CLI and existing manual-token decision behavior remains unchanged. No
 credential, grant, principal or consent is manufactured.
+## Live source control lock-order regression (FR-005)
+
+Production and settlement workers and source controls must acquire both actual
+Demo Data schedule locks in the same stable order before unfinished run and
+connection locks. A settlement worker must not retain its own schedule before
+waiting for the production schedule. Pause keeps the existing unfinished-run
+409/retry behavior and never returns a deadlock-induced 500 or cancels dispatched
+work. Keep actual current revisions and request-key replay intact.

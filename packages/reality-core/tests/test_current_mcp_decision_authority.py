@@ -21,7 +21,7 @@ from reality.tools.application import create_change_proposal
 from reality.tools.finance import ACCOUNT_COMMANDS
 
 
-def actual_confirmation_principal(session, business, owner):
+def actual_confirmation_principal(session, business, owner, *, scopes=None, allowed_tools=None):
     verifier = "v" * 64
     interaction = create_interaction(
         session,
@@ -29,7 +29,7 @@ def actual_confirmation_principal(session, business, owner):
         client_metadata={"client_name": "Current consent proof"},
         redirect_uri="https://client.example/callback",
         resource="https://mcp.example/",
-        requested_scopes=["reality:confirm"],
+        requested_scopes=scopes or ["reality:confirm"],
         code_challenge=_challenge(verifier),
         state="opaque",
     )
@@ -38,7 +38,7 @@ def actual_confirmation_principal(session, business, owner):
         interaction.id,
         user_id=owner.id,
         tenant_id=business.tenant.id,
-        allowed_tools=["proposal_approve_and_execute"],
+        allowed_tools=allowed_tools or ["proposal_approve_and_execute"],
     )
     issued = exchange_code(
         session,

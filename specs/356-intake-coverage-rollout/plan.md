@@ -219,3 +219,12 @@ proofs first. Capture the real request principal in existing application/Finance
 scopes and reread the exact credential/grant rows under settlement locks without
 calling the resolver that commits. Preserve current person/Owner and manual token
 checks. Constitution: PASS; no schema, fake actor, manufactured grant or consent.
+## Live source control lock-order regression plan
+
+Constitution Check: PASS. CI's real company-setup browser captured PostgreSQL's
+production/settlement schedule cycle during Pause. Lock both retained schedule
+rows in opaque-ID order, then unfinished runs, then the connection. Demo worker
+claim execution enters the same schedule boundary before its own run lock;
+other registered job families keep their existing execution path. Preserve
+ownership, claim validation, cancellation refusal and request replay. Qualify
+shared job/demo regressions and the actual company-setup browser before CI.

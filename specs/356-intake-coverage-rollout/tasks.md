@@ -100,3 +100,7 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T037 Prove real interactive grant/credential revocation, expiry and permission changes after dispatch refuse master/Finance effects.
 - [ ] T038 Bind the actual verified MCP principal to existing scopes and check its current persisted authority before effects.
 - [ ] T039 Qualify positive real OAuth confirmation, manual/interactive parity, adapters and full committed-head CI.
+## Live source control lock-order regression qualification
+
+- [ ] T046 Correct the real production/settlement worker and Pause schedule cycle.
+- [ ] T047 Qualify shared scheduling/demo semantics, PostgreSQL lock order and real company setup browser.
