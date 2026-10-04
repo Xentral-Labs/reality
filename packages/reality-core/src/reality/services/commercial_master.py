@@ -8,6 +8,7 @@ from sqlalchemy import select
 from reality.db.core import Item, Location, Party, PartyGroup, PaymentTerm, PriceList
 from reality.domain.intake import canonical_json
 from reality.services import core
+from reality.services.review_references import party_role_reference
 from reality.services.tenant_policy import COMMERCIAL_MASTER_OPERATIONS
 
 REVIEW_KEY = "_commercial_master_review"
@@ -56,6 +57,8 @@ def _reference_state(session, tenant_id, arguments):
             raise core.NotFound(code="record_not_found", values={"record": model.__name__})
         state = {column.name: getattr(row, column.name) for column in model.__table__.columns}
         result[field] = {"id": row.id, "state_hash": sha256(canonical_json(state).encode()).hexdigest()}
+        if model is Party:
+            result[field]["roles_hash"] = party_role_reference(session, tenant_id, row.id)
     return json.loads(canonical_json(result))
 
 
@@ -65,7 +68,11 @@ def prepare_commercial_master(session, tenant_id, tool, arguments):
     public_fields = _PUBLIC_FIELDS[operation]
     if set(arguments) - public_fields:
         raise core.InvalidOperation(code="intake_review_invalid")
-    return {**arguments, REVIEW_KEY: _reference_state(session, tenant_id, arguments)}
+    from reality.services.intake import _INTENT_DEFAULTS
+
+    defaults = {key: value for key, value in _INTENT_DEFAULTS[operation].items() if key in public_fields}
+    normalized = json.loads(canonical_json({**defaults, **arguments}))
+    return {**normalized, REVIEW_KEY: _reference_state(session, tenant_id, normalized)}
 
 
 def require_current_commercial_master(session, tenant_id, intent):

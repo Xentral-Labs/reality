@@ -278,3 +278,7 @@ Keep fixed application canonical admission literal: the two authored current def
 ## Manual document corrections plan
 
 Constitution Check: PASS. Reuse the two existing command meanings and canonical correction functions. Retain private hashes of the actual document/line snapshot and referenced partner/item/payment-term meaning before review; reject caller private fields and recheck current state under existing delivery/root locks. Freeze exact canonical invocation and carry private no-commit through correction functions; settle evidence/events with the actual retained receipt. Keep domain line revisions and downstream restrictions. REST flags require explicit actual request confirmation; SDK callers supply it explicitly. Prove meaningful direct/unconfirmed/callback rollback first, then current references, exact stated values, person/replay, adapters and complete committed-head CI. No schema or fabricated historical approval.
+
+## Retained input/reference integrity follow-up
+
+Constitution Check: PASS. Reuse existing canonical serialization and finite public signatures; add no schema, generic operational bypass or recomputed business values. Prove missing defaults, Decimal/date input preservation and actual confirmed role-only reference changes before implementing. Hash tenant-scoped current PartyRole records only within the existing retained reviews. Qualify actual settlement, unchanged domain behavior, adapter/source audits and full committed-head CI.

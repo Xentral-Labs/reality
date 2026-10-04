@@ -2598,3 +2598,5 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/test_fixed_profile_lifecycle_isolation.py`: spec 356 FR-003; actual confirmed fixed application profile cannot borrow new lifecycle or merge canonical authority even through a frozen invocation. Full qualification pending.
 
 - `packages/reality-core/tests/test_document_correction_decisions.py`: spec 356 FR-001–FR-003; manual header/line corrections require exact atomic retained confirmation, preserve stated values/current source/actor/replay and refuse sibling effects. Full qualification pending.
+
+Retained commercial defaults and partner-role reference integrity: `packages/reality-core/tests/test_retained_commercial_input.py` (spec 356 FR-001–FR-003; qualification pending).

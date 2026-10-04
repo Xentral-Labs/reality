@@ -141,3 +141,9 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T060 Observe valid direct/unconfirmed/changed/repeated/early-commit/post-write/sibling refusal proofs for existing header and line corrections.
 - [ ] T061 Retain current review basis, freeze both canonical correction parents and route REST through actual explicit confirmation/root settlement.
 - [ ] T062 Qualify stated values, unchanged revisions/downstream restrictions, current references, actual person/replay, raw-only source-version exception, adapters and full committed-head CI.
+
+## Retained input/reference integrity qualification
+
+- [ ] T063 Prove omitted public defaults and Decimal/date statements are retained before commercial execution.
+- [ ] T064 Prove actual separately confirmed partner-role changes require renewed commercial/correction review with unchanged main rows.
+- [ ] T065 Qualify frozen exact values, current references/receipts, domain/adapters/source audits and full committed-head CI.

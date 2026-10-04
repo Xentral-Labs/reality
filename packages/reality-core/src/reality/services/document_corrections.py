@@ -16,6 +16,7 @@ from reality.db.core import (
 )
 from reality.domain.intake import canonical_json
 from reality.services import core
+from reality.services.review_references import party_role_reference
 
 REVIEW_KEY = "_document_correction_review"
 _HEADER_FIELDS = {"document_id", "document_type", "number", "party_id", "amount", "currency", "document_date", "ordered_at", "requested_delivery_at", "customer_reference", "sales_channel", "payment_term_code", "ship_to_party_id"}
@@ -38,9 +39,16 @@ def _reference_state(session, tenant_id, arguments):
     result = {"document": _row_witness(document), "lines": [
         _row_witness(row) for row in session.scalars(select(DocumentLine).where(DocumentLine.tenant_id == tenant_id, DocumentLine.document_id == document.id).order_by(DocumentLine.id).execution_options(populate_existing=True))
     ], "references": {}}
-    for field in ("party_id", "ship_to_party_id"):
-        if arguments.get(field):
-            result["references"][field] = _row_witness(current(Party, arguments[field]))
+    for field, identity in {
+        "document_party": document.party_id,
+        "document_ship_to": document.ship_to_party_id,
+        "party_id": arguments.get("party_id"),
+        "ship_to_party_id": arguments.get("ship_to_party_id"),
+    }.items():
+        if identity:
+            witness = _row_witness(current(Party, identity))
+            witness["roles_hash"] = party_role_reference(session, tenant_id, identity)
+            result["references"][field] = witness
     if arguments.get("payment_term_code", "").strip():
         term = core.payment_term_by_code(session, tenant_id, arguments["payment_term_code"])
         result["references"]["payment_term"] = _row_witness(current(PaymentTerm, term.id))

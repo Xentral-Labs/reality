@@ -137,3 +137,10 @@ application-owned transaction. Appending an immutable upstream source version an
 preparing its interpretation records raw evidence only; it does not authorize
 canonical document or Reality changes. Header-only creation and other writer
 families still require their separate coverage qualification.
+
+Commercial preparation now retains all actual public defaults and serializes
+stated Decimal/date values before confirmation. Commercial and manual correction
+references also witness separately held partner roles, including the existing
+document's partner: changing those roles through a separate confirmed decision
+requires renewed review even when the main partner/document row stays unchanged.
+These witnesses grant no authority to create an unrelated business effect.

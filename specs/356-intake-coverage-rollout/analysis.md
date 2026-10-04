@@ -128,3 +128,7 @@ Caller review found fixed application authority inherited every entry of the can
 ## Manual document corrections analysis
 
 No unresolved clarification or critical finding. Existing correction services have internal commits and direct REST writers. The two existing commands already carry actual header/line meaning; no new business model or calculation is needed. record_corrected_document_source only appends immutable source and queues preparation, so it remains raw intake rather than being relabeled as accepted business evidence. Existing received amount, revision and downstream restrictions remain authoritative.
+
+## Retained input/reference integrity review
+
+No unresolved clarification or critical finding. Defaults must be captured at preparation, not reconstructed at execution. Separately stored partner roles are actual semantic references and need explicit current witnessing. Tests will prove role-only changes without altering main partner identity/state; received actor metadata cannot replace confirming authority. Scope remains the existing retained commercial/correction commands.
