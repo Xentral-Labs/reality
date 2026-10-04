@@ -340,9 +340,9 @@ Stichprobe erfasster Versandbewegungen. Beachte Vollständigkeit und `has_more`;
 konkreten Auftrag über `order_explain`. Dieser Kontext garantiert keine fehlerfreie Modellantwort
 und ergibt keine firmenweite Versandgesamtmenge.
 
-Die Discovery mit Familie `movement` und `query: "shipment"` filtert den gespeicherten
-Bewegungstyp vor dem Seitenlimit. Folge `next_cursor`, solange `has_more` wahr ist. Eine
-Firmenstichprobe belegt ohne weitere Abfragen keinen einzelnen Auftrag und keine Gesamtmenge.
+Die Discovery mit Familie `movement` und `query: "shipment"` filtert den gespeicherten Bewegungstyp
+vor dem Seitenlimit. Folge `next_cursor`, solange `has_more` wahr ist. Eine Firmenstichprobe belegt
+ohne weitere Abfragen keinen einzelnen Auftrag und keine Gesamtmenge.
 
 `shipments_list` enthält Sendungen und Pakete. Eine leere Liste schließt erfasste Versandbewegungen
 nicht aus: Prüfe `order_explain` und die Discovery-Familie `movement`. Für Rechnungspositionen
