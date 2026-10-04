@@ -767,3 +767,174 @@ def test_mutating_dispatch_preserves_business_admission_refusal(
     )
     with pytest.raises(InvalidOperation, match="Existing mutation admission refusal"):
         read(session, business, "shipments_list", limit=5)
+
+
+@pytest.fixture
+def mixed_return_records(session, business):
+    records = []
+    for movement_type, count in (("return", 4), ("supplier_return", 3)):
+        for _ in range(count):
+            records.append(
+                record_movement(
+                    session,
+                    business.tenant.id,
+                    movement_type,
+                    business.item.id,
+                    "1",
+                    **(
+                        {"to_location_id": business.location.id}
+                        if movement_type == "return"
+                        else {"from_location_id": business.location.id}
+                    ),
+                )
+            )
+    return records
+
+
+def test_return_summary_counts_shown_records_without_swapping_roles(
+    session, business, mixed_return_records
+):
+    result = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query="return",
+        limit=100,
+    )
+    assert {r["id"] for r in result["records"]} == {r.id for r in mixed_return_records}
+    assert result["summary"]["shown_record_count"] == 7
+    assert result["summary"]["counts_by_type"] == {"return": 4, "supplier_return": 3}
+    assert "customer return (return): 4 records" in result["summary"]["observation"]
+    assert (
+        "supplier return (supplier_return): 3 records"
+        in result["summary"]["observation"]
+    )
+    assert result["summary"]["complete_matching_selection"] is True
+    assert result["metadata"]["upstream_freshness"] == "unknown"
+    assert not session.new and not session.dirty and not session.deleted
+    legacy = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query="return",
+        response_format="legacy",
+        limit=100,
+    )
+    assert isinstance(legacy, list) and len(legacy) == 7
+    foreign = create_tenant(session, "Foreign return summary")
+    assert (
+        dispatch_tool(
+            session,
+            foreign.id,
+            "business_records_discover",
+            {"family": "movement", "query": "return"},
+        )["summary"]["shown_record_count"]
+        == 0
+    )
+
+
+def test_summary_excludes_lookahead_and_last_cursor_is_not_complete_selection(
+    session, business, mixed_return_records
+):
+    cursor = None
+    shown = set()
+    for index in range(7):
+        result = read(
+            session,
+            business,
+            "business_records_discover",
+            family="movement",
+            query="return",
+            limit=1,
+            **({"cursor": cursor} if cursor else {}),
+        )
+        record = result["records"][0]
+        summary = result["summary"]
+        assert summary["scope"] == "shown_records"
+        assert summary["shown_record_count"] == 1
+        assert summary["counts_by_type"] == {record["type"]: 1}
+        assert summary["omitted_before"] is (index > 0)
+        assert summary["omitted_after"] is (index < 6)
+        assert summary["complete_matching_selection"] is False
+        if index < 6:
+            assert "More matching retained records exist" in summary["observation"]
+        if index > 0:
+            assert "Earlier keys are outside this page" in summary["observation"]
+        shown.add(record["id"])
+        cursor = result["next_cursor"]
+    assert cursor is None
+    assert shown == {r.id for r in mixed_return_records}
+
+
+def test_summary_empty_exact_identity_and_nonmovement_scope(
+    session, business, mixed_return_records
+):
+    empty = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query="absent",
+    )
+    assert empty["summary"]["shown_record_count"] == 0
+    assert empty["summary"]["counts_by_type"] == {}
+    assert "No matching retained records" in empty["summary"]["observation"]
+    exact = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query="absent",
+        record_id=mixed_return_records[0].id,
+    )
+    assert exact["summary"]["counts_by_type"] == {"return": 1}
+    items = read(session, business, "business_records_discover", family="item")
+    assert items["summary"]["shown_record_count"] == len(items["records"])
+    assert "counts_by_type" not in items["summary"]
+
+
+@pytest.mark.parametrize(
+    "state", ["ready", "blocked", "partial", "fulfilled", "cancelled"]
+)
+def test_order_cause_is_distinct_from_current_readiness(session, business, state):
+    _, document, _, commitments = order(session, business)
+    commitment = next(c for c in commitments if c.type == "customer_delivery")
+    if state != "blocked":
+        record_movement(
+            session,
+            business.tenant.id,
+            "opening_stock",
+            business.item.id,
+            "2",
+            to_location_id=business.location.id,
+        )
+        reserve(session, business.tenant.id, commitment.id)
+    if state in {"partial", "fulfilled"}:
+        record_movement(
+            session,
+            business.tenant.id,
+            "shipment",
+            business.item.id,
+            "1" if state == "partial" else "2",
+            from_location_id=business.location.id,
+            commitment_id=commitment.id,
+        )
+    if state == "cancelled":
+        cancel_commitment(
+            session, business.tenant.id, commitment.id, reason="Test cancellation"
+        )
+    result = read(session, business, "order_explain", order_reference=document.id)
+    line = result["fulfillment"]["lines"][0]
+    assert line["unfulfilled_cause"]["status"] == (
+        "not_applicable" if state in {"fulfilled", "cancelled"} else "unknown"
+    )
+    assert "current readiness" in line["unfulfilled_cause"]["notice"]
+    assert "historical cause" in line["unfulfilled_cause"]["notice"]
+    if state == "blocked":
+        assert line["blocking_reasons"]
+    elif state in {"ready", "partial"}:
+        assert not line["blocking_reasons"]
+        assert result["fulfillment"]["ship_ready"] is True
+    assert not session.new and not session.dirty and not session.deleted

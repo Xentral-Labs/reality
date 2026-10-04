@@ -3389,6 +3389,18 @@ def _explain_retained_order(
                 "original_due_at": commitment.due_at,
                 "location_id": row["location_id"],
                 "blocking_reasons": reasons,
+                "unfulfilled_cause": {
+                    "status": "unknown" if open_value > 0 else "not_applicable",
+                    "notice": (
+                        "Blocker codes describe current readiness, not the historical cause "
+                        "of remaining fulfillment. This read does not establish why execution "
+                        "has not happened; missing outbound-delivery records do not prove a "
+                        "conversion requirement."
+                        if open_value > 0
+                        else "No open fulfillment remains. Blockers describe current readiness, "
+                        "not a historical cause."
+                    ),
+                },
                 "inventory": case["inventory"],
                 "readiness": readiness,
             }
