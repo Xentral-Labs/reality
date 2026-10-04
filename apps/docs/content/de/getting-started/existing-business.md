@@ -10,11 +10,11 @@ Nimm eine Aufgabe, die dein Team schon versteht und prüfen kann. Kläre, welche
 Aufträge hält, welche Bestands- und Versanddatensätze benötigt werden und wer die Antwort prüft.
 
 ```text
-Hilf mir, einen ersten Reality-Piloten für unser bestehendes Unternehmen abzugrenzen.
-Die Aufgabe ist, offene Kundenlieferungen zu erklären. Frage, welche Systeme Aufträge,
-Bestand und Versand halten, welchen Zeitraum und welches Unternehmen wir betrachten
-und wer die Antwort prüfen kann. Liste die benötigten Datensätze. Behaupte keine
-bestehende Quellenverbindung und verändere keine Daten.
+Hilf mir, einen lesenden Reality-Piloten für offene Kundenlieferungen abzugrenzen.
+Prüfe verfügbare Datensätze und frage, welches Unternehmen, welchen Zeitraum und
+welche Quellsysteme wir betrachten und wer das Ergebnis prüft. Liste fehlende
+Auftrags-, Bestands- und Versanddaten. Behaupte keine ungeprüfte Quellenverbindung
+und verändere keine Daten.
 ```
 
 **Prüfen:** Du hast eine begrenzte Frage und eine Liste benötigter Daten, kein Versprechen, alle
@@ -44,18 +44,17 @@ blockierten Auftrag. Lass den Piloten gegenüber dem Vorsystem lesend. Die
 Lesewerkzeugen. Sobald die Datensätze angekommen und interpretiert sind, nutze diesen Prompt:
 
 ```text
-Erkläre die offene Lieferarbeit in unserem Pilotumfang ausschließlich anhand der
-Datensätze in diesem Reality-Unternehmen. Zeige bestellte, erfüllte und offene Mengen
-sowie belegte Hindernisse. Nenne die zugrunde liegenden Datensätze und Lücken in
-Quellenabdeckung oder Aktualität. Verändere keine Daten und ersetze Lücken nicht durch
-Annahmen.
+Erkläre offene Lieferungen im vereinbarten Pilotumfang anhand der Reality-Datensätze.
+Zeige bestellte, erfüllte und offene Mengen, Zusagetermine und belegte Hindernisse.
+Priorisiere dringende Fälle und zeige die Datensätze, fehlende Quellen und veraltete
+Informationen. Ändere nichts und ersetze fehlende Daten nicht durch Annahmen.
 ```
 
 Vergleiche einen bekannten Auftrag mit dem Vorsystem. Prüfe Lieferzusage, zugehörige Bewegungen und
 vorhandene Herkunftsverweise in Reality. Fehlende oder nicht interpretierte Daten bleiben eine
 ausdrückliche Lücke; ein leeres Ergebnis beweist keine vollständige Erledigung im Vorsystem.
 
-## 5. Gib dem Agenten eine begrenzte Aktion
+## 5. Optional: Gib dem Agenten eine begrenzte Aktion
 
 Wenn die Abfrage zum Geschäftsfall passt, wähle eine Aktion, zum Beispiel einen
 Reservierungsvorschlag für zulässigen Bestand. Erlaube bewusst die benötigten Vorschlagswerkzeuge.
@@ -69,15 +68,21 @@ nutzen. Ein Vorschlag in Reality autorisiert kein Zurückschreiben in dein ERP.
 ## 6. Mache aus dem Piloten eine wiederholbare Aufgabe
 
 ```text
-Beschreibe unsere vereinbarte Prüfung offener Lieferungen als wiederholbare Aufgabe:
-Umfang, benötigte Quelldatensätze, Auslöser, erlaubte Abfragen und Vorschläge,
-Entscheidungen mit meiner Freigabe, Ergebnisprüfung und den Punkt, an dem du anhalten
-und Hilfe anfordern musst. Plane keine Ausführung und ändere keine Berechtigungen.
+Beobachte offene Lieferungen im vereinbarten Pilotumfang täglich um 09:00.
+Priorisiere mit Reality-Datensätzen Hindernisse und überfällige Zusagen. Berichte,
+was sich geändert hat, was Aufmerksamkeit braucht und welche Quelldaten fehlen
+oder veraltet sind. Lies nur; ändere weder Geschäftsdaten noch Berechtigungen
+und schreibe nichts ins Vorsystem zurück.
+Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
+wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
+Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
+nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
 ```
 
-**Prüfen:** Eine Person kann Aufgabe und Grenzen überprüfen. Führe sie bei geänderten Quelldaten
-erneut aus und prüfe das neue Ergebnis. Wiederkehrende Ausführung, Quellenüberwachung und externe
-Aktionen benötigen getrennte Einrichtung und Autorisierung. Erweitere eine Aufgabe nach der anderen
-anhand des [Arbeitsrhythmus](/de/agent-playbooks/operating-rhythm).
+**Prüfen:** Prüfe Aufgabe und Grenzen. Die tägliche Prüfung um 09:00 ist ein Beispiel. Beobachtung
+gilt erst nach geprüfter Einrichtung im Agentensystem; Quellenabdeckung und Aktualität werden weiter
+bei jedem Lauf geprüft. Ohne Wiederholungsfunktion führst du die Abfrage manuell erneut aus. Externe
+Aktionen brauchen separate Autorisierung. Erweitere eine Aufgabe nach der anderen anhand des
+[Arbeitsrhythmus](/de/agent-playbooks/operating-rhythm).
 
 **Andere Wege:** [Demo erleben](./demo-company) · [Von null aufbauen](./start-business).
