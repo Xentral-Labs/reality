@@ -100,6 +100,11 @@ await page.route("**/api/**", async (route) => {
         reports: [],
       });
     return reply({
+      state: {
+        proposed: "decision_pending",
+        executed: "dispatch_authorized",
+        rejected: "decision_rejected",
+      }[proposal.status],
       source: null,
       attachments: [],
       supporting_sources: [
@@ -107,6 +112,12 @@ await page.route("**/api/**", async (route) => {
       ],
       reports: [],
     });
+  }
+  if (path.endsWith("/approve") || path.endsWith("/reject")) {
+    proposal.status = path.endsWith("/approve") ? "executed" : "rejected";
+    proposal.confirmable = false;
+    proposal.rejectable = false;
+    return reply({ status: proposal.status });
   }
   if (path.endsWith("/review")) return reply(proposal);
   if (path.endsWith("/change-proposals"))
@@ -139,8 +150,32 @@ try {
   assert.equal(await link.getAttribute("href"), "/api/tenants/company/email/files/art-1/download");
   await history.getByRole("button", { name: "Return to email decision" }).click();
   await history.getByText("incoming-source", { exact: true }).waitFor();
+  await history
+    .locator("[data-email-outcome]")
+    .getByText("Email decision pending", { exact: true })
+    .waitFor();
+  await dialog.getByRole("button", { name: "Confirm change", exact: true }).click();
+  await history
+    .locator("[data-email-outcome]")
+    .getByText("Email dispatch authorized", { exact: true })
+    .waitFor();
+  proposal.status = "proposed";
+  proposal.confirmable = true;
+  proposal.rejectable = true;
+  await page.reload();
+  await history
+    .locator("[data-email-outcome]")
+    .getByText("Email decision pending", { exact: true })
+    .waitFor();
+  await dialog.getByRole("button", { name: "Do not approve", exact: true }).click();
+  await history
+    .locator("[data-email-outcome]")
+    .getByText("Email decision rejected", { exact: true })
+    .waitFor();
   assert.deepEqual(errors, []);
-  console.log("Email review, BCC, full text, safe HTML and original-file navigation passed.");
+  console.log(
+    "Email review, BCC, full text, safe HTML and original-file navigation and decision status refresh passed.",
+  );
 } finally {
   await browser.close();
 }

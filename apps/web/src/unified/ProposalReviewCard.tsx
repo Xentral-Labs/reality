@@ -172,7 +172,11 @@ export function ProposalReviewCard({
                 />
               </div>
               {data.tool === "email_dispatch_authorize" && (
-                <EmailEvidencePanel tenant={tenant} proposalId={proposalId} />
+                <EmailEvidencePanel
+                  tenant={tenant}
+                  proposalId={proposalId}
+                  decisionStatus={data.status}
+                />
               )}
             </>
           )}

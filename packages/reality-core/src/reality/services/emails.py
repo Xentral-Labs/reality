@@ -318,7 +318,7 @@ def prepare_dispatch(
         )
     )
     for held in unresolved:
-        if held.proposal_id != exclude_proposal_id and _outcome(
+        if held.proposal_id != exclude_proposal_id and _execution_outcome(
             _reports(session, tenant_id, held.id)
         ) in {"dispatch_claimed", "execution_uncertain", "conflicting_evidence"}:
             raise InvalidOperation(code="email_dispatch_reconcile_required")
@@ -462,6 +462,12 @@ def _outcome(reports):
     payloads = [json.loads(source.payload) for source in reports]
     if any(data["deviation"] for data in payloads):
         return "approval_deviation"
+    return _execution_outcome(reports)
+
+
+def _execution_outcome(reports):
+    """Determine reconciliation independently of approved-content deviations."""
+    payloads = [json.loads(source.payload) for source in reports]
     outcomes = {data["outcome"] for data in payloads} - {"unknown"}
     if len(outcomes) > 1:
         return "conflicting_evidence"
