@@ -55,6 +55,12 @@ you can continue your recipe without setting up an external connection.
 
 ## MCP verification reads
 
+For this recipe, deliberately authorize `company_context`, `capability_catalog`, `proposal_review`,
+`proposals_awaiting_approval` and `proposal_execution_status` as reads, alongside the business reads
+you need. Existing connections keep their allowlist; if a new read is refused, its absence from the
+grant is not proof that the tool is missing. Proposal and confirmation tools require separate
+deliberate permissions.
+
 Use `company_context` for the stored company ID, name and purpose, then `capability_catalog` for
 actual tool permissions. Use `proposal_review` for an exact decision preview and
 `proposal_execution_status` for the execution receipt. Browser review links are optional; read
