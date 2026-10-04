@@ -251,7 +251,7 @@ def test_the_movement_inspector_shows_what_a_receipt_stated(session, business):
             "metrics"
         ]
     }
-    assert labels["Quantity"] == "60"
+    assert Decimal(labels["Quantity"]) == Decimal(60)
     assert labels["As stated"] == "5 box"
     # Control: a movement in the stock unit states nothing else.
     assert "As stated" not in {

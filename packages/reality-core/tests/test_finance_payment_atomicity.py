@@ -5,7 +5,12 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_manual_order, reviewed_record_sales_credit
+from intake_review_support import (
+    reviewed_manual_order,
+    reviewed_record_sales_credit,
+    reviewed_record_sales_invoice,
+    reviewed_record_supplier_invoice,
+)
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
@@ -420,9 +425,9 @@ def test_shared_invoice_preserves_stated_amount_and_rolls_back(
     )
     before = session.scalar(select(func.count()).select_from(Document))
     service = (
-        core.record_sales_invoice
+        reviewed_record_sales_invoice
         if direction == "sales"
-        else core.record_supplier_invoice
+        else reviewed_record_supplier_invoice
     )
     if fail_posting:
 

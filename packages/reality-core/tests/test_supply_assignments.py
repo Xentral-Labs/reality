@@ -401,11 +401,11 @@ def test_supply_assignment_requires_current_review_and_replays(session, business
     )
     detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
     assert detail["status"] == "proposed"
-    assert detail["review"]["effect"] == {
-        "assigned": "5",
-        "purpose": "customer_demand",
-        "unassigned_after": "7",
-    }
+    effect = detail["review"]["effect"]
+    assert set(effect) == {"assigned", "purpose", "unassigned_after"}
+    assert effect["purpose"] == "customer_demand"
+    assert Decimal(effect["assigned"]) == Decimal(5)
+    assert Decimal(effect["unassigned_after"]) == Decimal(7)
     with pytest.raises(core.InvalidOperation, match="confirmation"):
         approve_and_execute_proposal(session, business.tenant.id, proposal.id)
     executed = approve_and_execute_proposal(

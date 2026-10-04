@@ -248,3 +248,15 @@ new canonical normalizer. Corrected catalog/drop-ship/finance/order/purchase/HTT
 cases passed all 104 checks; return and source-attribution cases passed all 21.
 These changes are test adaptation only; absent confirmation remains refused.
 Full regression and final committed-head CI remain required.
+
+Complete 25e71404 CI backend qualification found 17 failures: 13 dynamically
+selected direct invoice fixtures/concurrent refusal handling, one absent positive
+application confirmation, one absent confirmation before the intended missing
+price validation, and two Decimal representation assumptions after real database
+settlement. The fixtures now confirm the actual retained existing invoice commands;
+the concurrency proof accepts the exact invoice_execution_unresolved refusal and
+still requires exactly one accepted invoice/two postings. Numeric presentation
+checks compare exact Decimal values and preserve their shape/unit assertions.
+All 71 affected backend/application checks and all 29 stated-line/canonical
+confirmation checks passed. Production authorization is unchanged by these test
+corrections; final committed-head CI is still required.

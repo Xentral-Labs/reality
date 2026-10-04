@@ -9,6 +9,7 @@ from conftest import record_by_id
 from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_record_sales_invoice,
+    reviewed_record_supplier_invoice,
 )
 from sqlalchemy import func, select
 from test_multi_position_invoices import order, prepare
@@ -31,9 +32,9 @@ def args(line, quantity="1"):
 
 def invoice(session, b, line, quantity="1", direction="sales"):
     result = (
-        core.record_sales_invoice
+        reviewed_record_sales_invoice
         if direction == "sales"
-        else core.record_supplier_invoice
+        else reviewed_record_supplier_invoice
     )(session, b.tenant.id, **args(line, quantity))
     doc = record_by_id(
         session,
@@ -189,7 +190,7 @@ def test_inspector_exposes_tenant_scoped_billing(session, business):
     assert row["billing"]["evidence"][0]["invoice_id"] == doc.id
 
 
-def test_direct_and_reviewed_concurrent_invoices(postgres_database):
+def test_independent_reviewed_invoice_confirmations_serialize(postgres_database):
     from concurrent.futures import ThreadPoolExecutor
     from threading import Barrier
     from types import SimpleNamespace
@@ -237,7 +238,7 @@ def test_direct_and_reviewed_concurrent_invoices(postgres_database):
                         )
                     return True
                 except core.InvalidOperation as error:
-                    assert any(
+                    assert error.code == "invoice_execution_unresolved" or any(
                         word in str(error)
                         for word in ("remaining", "changed", "review")
                     )

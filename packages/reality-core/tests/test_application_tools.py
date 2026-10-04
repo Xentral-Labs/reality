@@ -861,7 +861,7 @@ def test_an_agent_can_record_a_document_and_book_the_invoice(session, business):
         },
     )
     assert recording.status == "proposed"
-    recorded = json.loads(confirm_tool(session, tenant_id, recording.id).output)
+    recorded = json.loads(confirm_tool(session, tenant_id, recording.id, confirmed=True).output)
     invoice_id = recorded["document_id"]
     assert len(recorded["document_line_ids"]) == 1
 

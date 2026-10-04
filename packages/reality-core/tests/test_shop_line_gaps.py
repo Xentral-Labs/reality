@@ -321,14 +321,14 @@ def test_a_person_entering_a_line_states_its_price(session, business):
     }
     proposal = propose_tool(session, business.tenant.id, "document_create", arguments)
     with pytest.raises(core.InvalidOperation) as refused:
-        confirm_tool(session, business.tenant.id, proposal.id)
+        confirm_tool(session, business.tenant.id, proposal.id, confirmed=True)
     assert refused.value.code == "manual_line_unit_price_missing"
 
     # Positive control: a stated 0 is a free line and is accepted.
     arguments["lines"][0]["unit_price"] = "0"
     arguments["number"] = "SO-MAN-2"
     proposal = propose_tool(session, business.tenant.id, "document_create", arguments)
-    assert json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)[
+    assert json.loads(confirm_tool(session, business.tenant.id, proposal.id, confirmed=True).output)[
         "document_id"
     ]
 
