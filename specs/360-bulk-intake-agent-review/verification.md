@@ -70,3 +70,28 @@ The corrections classify delegation as governance metadata, retain the existing
 schema indexing invariant and require all confirmation tools to stay outside the
 built-in Chat schema. All 18 affected catalog/reporting/index tests pass after
 the corrections (18.59 seconds). Final PR gates remain the completion authority.
+
+## Retained delegated batch slice
+
+Complete bounded external verdicts now bind one exact manifest and current named
+agent mandate. Uncertainty retains evidence without execution authority. The
+shared database-only worker rechecks token/tool permission, issuer/owner,
+mandate revision/expiry, source scope, exact evidence/current state and global
+quotas before each child. Parent/child decisions name the actual token. Late
+unknown failures roll back every provisional child effect and receipt.
+
+Observed PostgreSQL evidence:
+
+- Failure-first tests refused because the delegated batch service did not exist.
+- 36 single-unit/bulk regression tests passed in 58.51 seconds, including the
+  existing actual 500-order queue workload.
+- 68 delegated-batch, executable catalog, tenant isolation and action-discovery
+  tests passed in 68.34 seconds.
+- 10 final targeted delegated-batch cases passed in 5.91 seconds, including two
+  separately authorized batches sharing one daily quota, tampered authority,
+  private-scope refusal, tool-permission changes and late infrastructure rollback.
+- Catalog generation and full business annotation coverage pass (618 functions,
+  115 approved tests, no missing roots/bindings).
+
+Full repository/PR gates, actual competing transactions, Web/CLI controls and
+comparative volume measurements remain required before overall completion.

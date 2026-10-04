@@ -76,3 +76,19 @@ SHA-256 hashes and relevant original row/line positions. They are declaration an
 binding evidence, never a cognitive-understanding claim. Source pages are read
 adapters outside workers. Uncertain verdicts remain pending with bounded retained
 evidence; accepted/rejected receipts retain exact agent evidence and actual token.
+
+### Delegated batch authority
+
+`AgentBatchReviewEvidence` binds one exact manifest identity/revision/digest to
+one same-mandate/revision verdict per child in manifest order. Evidence is closed,
+limited to 500 children and at most 2 MiB of canonical UTF-8 JSON. It is retained
+inside the existing parent decision authorization; no additional table or queue
+payload is introduced. The actual token settles the parent, with no invented
+human approval. The retained owner identity names the grant authority and who may
+stop further processing, not a claim that they reviewed this source selection.
+
+Every worker child independently rechecks current delegation, exact evidence,
+source/capability and prepared state, global UTC-day unit/stated-amount limits and
+current token tool restrictions. Each accepted receipt binds its original external
+verdict to the actual token and mandate revision. Quota aggregation is a read-only
+derivation from receipts; it is not a stored commercial authority.

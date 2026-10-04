@@ -87,6 +87,7 @@
       "name": "Accept reviewed source interpretation",
       "service": "apply_prepared_intake",
       "related_services": [
+        "submit_agent_batch_review",
         "submit_agent_review",
         "reject_prepared_intake",
         "approve_batch",

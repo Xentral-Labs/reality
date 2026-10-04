@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:ddd70b59eb7c66037e8df452f8b4ef45b847b51c3d09d43841ca757229f717a7",
+  "knowledge_version": "advisor-v1:sha256:56aa94b1be9f97d97df417e4e8fae9d508effc447c98a877040ec704391eb3b3",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",

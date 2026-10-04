@@ -4362,6 +4362,25 @@ def _intake_apply(session: Session, tenant_id: str, arguments: dict[str, Any]) -
     raise InvalidOperation(code="intake_approval_required")
 
 
+def _intake_agent_batch_review_submit(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Queue exact complete child verdicts through current named-agent delegation.
+
+    BUSINESS RULE application.intake_agent_batch_review_submit:
+    Use the canonical fixed-manifest mandate service and return its retained parent decision.
+    """
+    from reality.services.intake_review import submit_agent_batch_review
+
+    # reality-rule: application.intake_agent_batch_review_submit
+    proposal = submit_agent_batch_review(session, tenant_id, arguments)
+    return {
+        "proposal_id": proposal.id,
+        "status": proposal.status,
+        "output": json.loads(proposal.output),
+    }
+
+
 def _intake_agent_review_submit(session, tenant_id, arguments):
     """
     BUSINESS PURPOSE:

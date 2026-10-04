@@ -131,3 +131,19 @@ class AgentReviewEvidence(IntakeModel):
         if any(not reason or len(reason) > 500 for reason in self.reasons):
             raise ValueError("Reasons must be bounded non-empty strings.")
         return self
+
+
+class AgentBatchReviewEvidence(IntakeModel):
+    schema_version: Literal[1] = 1
+    batch_id: str = Field(min_length=1, max_length=128)
+    manifest_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    manifest_revision: int = Field(ge=1, strict=True)
+    reviews: tuple[AgentReviewEvidence, ...] = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def exact_unique_mandate(self):
+        if len({review.proposal_id for review in self.reviews}) != len(self.reviews):
+            raise ValueError("Every selected child requires one unique verdict.")
+        if len({(review.mandate_id, review.revision) for review in self.reviews}) != 1:
+            raise ValueError("One fixed batch requires one exact mandate revision.")
+        return self

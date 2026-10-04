@@ -11,6 +11,7 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.intake_review:submit_agent_batch_review
   - reality.services.intake_review:grant_review_mandate
   - reality.services.intake_review:revoke_review_mandate
   - reality.services.intake_review:agent_review_material
@@ -75,6 +76,7 @@ families:
     reason: Actual authenticated token, owner decision and all proposal/source references bind the same tenant.
     authority: 355/FR-007
     operations:
+      - reality.services.intake_review:submit_agent_batch_review
       - reality.services.intake_review:grant_review_mandate
       - reality.services.intake_review:revoke_review_mandate
       - reality.services.intake_review:agent_review_material
@@ -100,6 +102,9 @@ families:
           - reality.services.intake_review:revoke_review_mandate
           - tool:intake_mandate_grant
           - tool:intake_mandate_revoke
+      - id: tests/test_intake_agent_bulk.py::test_foreign_company_cannot_submit_agent_batch
+        assertion: boundary
+        operations: [reality.services.intake_review:submit_agent_batch_review]
   - key: reviewed_item_file
     description: Uploaded item bytes and package selection remain inside the owning company.
     classification: boundary

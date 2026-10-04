@@ -229,7 +229,9 @@ def _authenticated_agent(tenant_id, tool_name):
     return actual.credential_id
 
 
-def _current_mandate(session, tenant_id, mandate_id, token_id, revision=None):
+def _current_mandate(
+    session, tenant_id, mandate_id, token_id, revision=None, *, required_tool=None
+):
     lock_delivery_state(session, tenant_id)
     lock_finance(session, tenant_id)
     row = _mandate_row(session, tenant_id, mandate_id)
@@ -258,7 +260,17 @@ def _current_mandate(session, tenant_id, mandate_id, token_id, revision=None):
     ):
         raise core.InvalidOperation(code="intake_approval_required")
     permissions = json.loads(token.allowed_tools)
-    if "*" not in permissions and "intake_agent_review_and_execute" not in permissions:
+    if not {
+        "*",
+        "intake_agent_review_and_execute",
+        "intake_agent_batch_review_and_queue",
+    } & set(permissions):
+        raise core.InvalidOperation(code="intake_approval_required")
+    if (
+        required_tool is not None
+        and "*" not in permissions
+        and required_tool not in permissions
+    ):
         raise core.InvalidOperation(code="intake_approval_required")
     principal = Principal(grant.decided_by_user_id)
     issuer = session.scalar(
@@ -553,7 +565,7 @@ def _stated_amount(plan, scope):
     return str(amount)
 
 
-def _quota(session, tenant_id, mandate, scope, stated_amount):
+def _quota(session, tenant_id, mandate, scope, stated_amount, *, units=1):
     day = core.now().astimezone(UTC).date().isoformat()
     receipt = cast(ChangeProposal.output, JSONB)["agent_review"]
     count, used = session.execute(
@@ -570,7 +582,7 @@ def _quota(session, tenant_id, mandate, scope, stated_amount):
             receipt["quota_day"].astext == day,
         )
     ).one()
-    if count >= scope.max_units_per_day:
+    if count + units > scope.max_units_per_day:
         raise core.InvalidOperation(code="intake_approval_required")
     if stated_amount is not None and used + core.decimal(stated_amount) > core.decimal(
         scope.amount_rule.max_amount_per_day
@@ -631,7 +643,12 @@ def submit_agent_review(session, tenant_id, evidence, *, _commit=True):
     except ValidationError as error:
         raise core.InvalidOperation(code="intake_review_invalid") from error
     mandate, scope, principal = _current_mandate(
-        session, tenant_id, evidence.mandate_id, token_id, evidence.revision
+        session,
+        tenant_id,
+        evidence.mandate_id,
+        token_id,
+        evidence.revision,
+        required_tool="intake_agent_review_and_execute",
     )
     proposal = core._tenant_record_read(
         session, ChangeProposal, tenant_id, evidence.proposal_id
@@ -712,3 +729,233 @@ def submit_agent_review(session, tenant_id, evidence, *, _commit=True):
             settling_token_id=token_id,
             _commit=_commit,
         )
+
+
+def _batch_evidence(session, tenant_id, evidence, scope):
+    from reality.services.intake import review_intake
+
+    review = review_intake(session, tenant_id, evidence.proposal_id)
+    plan = PreparedIntake.model_validate(review["plan"])
+    source = _source_scope(session, tenant_id, plan, scope)
+    if (
+        evidence.digest != review["digest"]
+        or evidence.source_digest != source.payload_hash
+        or tuple(sorted(evidence.reviewed_references))
+        != _coverage(session, tenant_id, source, plan)
+    ):
+        raise core.InvalidOperation(code="intake_review_invalid")
+    checks = _checks(
+        session,
+        tenant_id,
+        core._tenant_record_read(
+            session, ChangeProposal, tenant_id, evidence.proposal_id
+        ),
+        plan,
+    )
+    if sorted(
+        evidence.model_dump(mode="json")["checks"], key=lambda check: check["code"]
+    ) != sorted(checks, key=lambda check: check["code"]):
+        raise core.InvalidOperation(code="intake_review_invalid")
+    return plan, any(check["result"] != "pass" for check in checks)
+
+
+def submit_agent_batch_review(session, tenant_id, evidence, *, _commit=True):
+    """
+    BUSINESS PURPOSE:
+    Queue a fixed selection of complete external agent verdicts within current owner delegation.
+
+    BUSINESS RULE intake_agent.submit_batch_review:
+    Bind every child to the exact manifest and named token; uncertain evidence creates no execution authority.
+    """
+    from reality.domain.intake import content_digest
+    from reality.domain.intake_review import AgentBatchReviewEvidence
+    from reality.services import intake_batches
+    from reality.services.scheduled_jobs import enqueue_intake_batch_run
+    from reality.tools.application import _record_decision
+
+    # reality-rule: intake_agent.submit_batch_review
+    token_id = _authenticated_agent(tenant_id, "intake_agent_batch_review_and_queue")
+    try:
+        evidence = AgentBatchReviewEvidence.model_validate(evidence)
+    except ValidationError as error:
+        raise core.InvalidOperation(code="intake_review_invalid") from error
+    retained = evidence.model_dump(mode="json")
+    if len(canonical_json(retained).encode("utf-8")) > 2 * 1024 * 1024:
+        raise core.InvalidOperation(code="intake_package_too_large")
+    first = evidence.reviews[0]
+    mandate, scope, principal = _current_mandate(
+        session,
+        tenant_id,
+        first.mandate_id,
+        token_id,
+        first.revision,
+        required_tool="intake_agent_batch_review_and_queue",
+    )
+    batch = intake_batches._batch(session, tenant_id, evidence.batch_id, lock=True)
+    held, manifest = intake_batches._manifest(batch)
+    if (
+        evidence.manifest_digest != held["digest"]
+        or evidence.manifest_revision != manifest.revision
+        or [(review.proposal_id, review.digest) for review in evidence.reviews]
+        != [(entry.proposal_id, entry.digest) for entry in manifest.entries]
+    ):
+        raise core.InvalidOperation(code="intake_review_invalid")
+    if batch.status in {"executing", "executed"}:
+        previous = (
+            json.loads(batch.output).get("authorization", {}).get("agent_review", {})
+        )
+        if previous.get("evidence") != retained or previous.get("token_id") != token_id:
+            raise core.InvalidOperation(code="intake_review_stale")
+        return batch
+    if batch.status != "proposed":
+        raise core.InvalidOperation(code="proposal_no_longer_available")
+    intake_batches._validate_file_selection(session, tenant_id, manifest)
+    from reality.services.artifact_batches import _validate_selection
+
+    _validate_selection(session, tenant_id, manifest)
+    uncertain = False
+    amounts = []
+    for review in evidence.reviews:
+        child = core._tenant_record_read(
+            session, ChangeProposal, tenant_id, review.proposal_id
+        )
+        if child.status != "proposed":
+            raise core.InvalidOperation(code="intake_review_stale")
+        plan, failed = _batch_evidence(session, tenant_id, review, scope)
+        uncertain |= failed or review.verdict == "uncertain"
+        if review.verdict == "approve" and not failed:
+            amounts.append(_stated_amount(plan, scope))
+    if uncertain:
+        output = json.loads(batch.output)
+        reviews = output.get("agent_reviews", [])
+        if retained not in reviews:
+            if len(reviews) >= 5:
+                raise core.InvalidOperation(code="intake_package_too_large")
+            batch.output = canonical_json(
+                {**output, "agent_reviews": [*reviews, retained]}
+            )
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
+        return batch
+    stated = [core.decimal(amount) for amount in amounts if amount is not None]
+    if amounts:
+        _quota(
+            session,
+            tenant_id,
+            mandate,
+            scope,
+            str(sum(stated, core.ZERO)) if stated else None,
+            units=len(amounts),
+        )
+    authorization = {
+        "batch_id": batch.id,
+        "manifest_revision": manifest.revision,
+        "manifest_digest": held["digest"],
+        "reviewer_user_id": principal.user_id,
+        "token_id": token_id,
+        "channel": None,
+        "authorized_at": core.now().isoformat(),
+        "agent_review": {
+            "mandate_id": mandate.id,
+            "revision": mandate.revision,
+            "token_id": token_id,
+            "evidence": retained,
+        },
+    }
+    _record_decision(batch, None, token_id, None)
+    batch.status = "executing"
+    batch.output = canonical_json(
+        {
+            "authorization": authorization,
+            "authorization_digest": content_digest(authorization),
+            "next_index": 0,
+            "continuation_id": core.uid("cont"),
+            "results": [],
+            "stopped": False,
+        }
+    )
+    session.flush()
+    enqueue_intake_batch_run(session, tenant_id, batch.id)
+    if _commit:
+        session.commit()
+    return batch
+
+
+def _settle_agent_batch_child(session, tenant_id, proposal_id, authorization):
+    from reality.domain.intake_review import AgentBatchReviewEvidence
+    from reality.services.intake import apply_prepared_intake, reject_prepared_intake
+    from reality.services.intake_batches import _current_child_authorization
+
+    if (
+        _current_child_authorization(session, tenant_id, proposal_id)
+        is not authorization
+    ):
+        raise core.InvalidOperation(code="intake_approval_required")
+    retained = authorization["agent_review"]
+    evidence = AgentBatchReviewEvidence.model_validate(retained["evidence"])
+    review = next(
+        (review for review in evidence.reviews if review.proposal_id == proposal_id),
+        None,
+    )
+    if review is None or review.verdict not in {"approve", "reject"}:
+        raise core.InvalidOperation(code="intake_approval_required")
+    token_id = retained["token_id"]
+    mandate, scope, principal = _current_mandate(
+        session,
+        tenant_id,
+        review.mandate_id,
+        token_id,
+        review.revision,
+        required_tool="intake_agent_batch_review_and_queue",
+    )
+    child = core._tenant_record_read(session, ChangeProposal, tenant_id, proposal_id)
+    if child.status in {"executed", "rejected"}:
+        receipt = json.loads(child.output).get("agent_review", {})
+        if (
+            receipt.get("evidence") != review.model_dump(mode="json")
+            or receipt.get("token_id") != token_id
+        ):
+            raise core.InvalidOperation(code="intake_review_stale")
+        return "replayed" if child.status == "executed" else "rejected"
+    plan, failed = _batch_evidence(session, tenant_id, review, scope)
+    if failed:
+        raise core.InvalidOperation(code="intake_review_stale")
+    amount = _stated_amount(plan, scope) if review.verdict == "approve" else None
+    day = (
+        _quota(session, tenant_id, mandate, scope, amount)
+        if review.verdict == "approve"
+        else core.now().astimezone(UTC).date().isoformat()
+    )
+    authority = {
+        "mandate_id": mandate.id,
+        "revision": mandate.revision,
+        "token_id": token_id,
+        "evidence": review.model_dump(mode="json"),
+        "source_stated_amount": amount,
+        "currency": scope.amount_rule.currency if amount is not None else None,
+        "quota_day": day,
+    }
+    with _agent_execution_scope(session, tenant_id, proposal_id, authority):
+        if review.verdict == "approve":
+            apply_prepared_intake(
+                session,
+                tenant_id,
+                proposal_id,
+                review.digest,
+                confirmed=True,
+                principal=principal,
+                settling_token_id=token_id,
+                _commit=False,
+            )
+            return "applied"
+        reject_prepared_intake(
+            session,
+            tenant_id,
+            proposal_id,
+            principal=principal,
+            settling_token_id=token_id,
+            _commit=False,
+        )
+        return "rejected"

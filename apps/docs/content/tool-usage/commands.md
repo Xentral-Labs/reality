@@ -49,7 +49,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                    | Company & access           | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                    | Company & access           | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`accept_substitute`](#command-accept_substitute)                                 | Accept a substitute item                     | Cross-functional           | `commitment_substitute_accept_propose`                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
-| [`apply_prepared_intake`](#command-apply_prepared_intake)                         | Accept reviewed source interpretation        | Cross-functional           | `proposal_approve_and_execute`, `intake_agent_review_and_execute`                                                                                                                            | CLI · Web · API · MCP · Chat            |
+| [`apply_prepared_intake`](#command-apply_prepared_intake)                         | Accept reviewed source interpretation        | Cross-functional           | `proposal_approve_and_execute`, `intake_agent_review_and_execute`, `intake_agent_batch_review_and_queue`                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide               | Cross-functional           | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
 | [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Cross-functional           | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Cross-functional           | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
@@ -7988,6 +7988,7 @@ receipt in the same transaction.
 ```text
 proposal_approve_and_execute proposal_id [approved] [review_token]
 intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons
+intake_agent_batch_review_and_queue [schema_version] batch_id manifest_digest manifest_revision reviews
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
@@ -7998,7 +7999,8 @@ intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id
 
 **See also:** Agent Tool
 [`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute), Agent Tool
-[`intake_agent_review_and_execute`](./commands#tool-intake_agent_review_and_execute)
+[`intake_agent_review_and_execute`](./commands#tool-intake_agent_review_and_execute), Agent Tool
+[`intake_agent_batch_review_and_queue`](./commands#tool-intake_agent_batch_review_and_queue)
 
 #### `proposal_approve_and_execute` — Approve and execute a proposal {#tool-proposal_approve_and_execute}
 
@@ -8083,6 +8085,44 @@ intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id
 | `checks[].result`     | `string`  | yes      | `pass`, `fail`, `uncertain`                                                                                                                                                       | —       |
 | `verdict`             | `string`  | yes      | `approve`, `reject`, `uncertain`                                                                                                                                                  | —       |
 | `reasons`             | `array`   | yes      | —                                                                                                                                                                                 | —       |
+
+**See also:** Command [`apply_prepared_intake`](./commands#command-apply_prepared_intake)
+
+#### `intake_agent_batch_review_and_queue` — Submit exact delegated batch verdicts {#tool-intake_agent_batch_review_and_queue}
+
+Submit complete structured verdicts for every member of one fixed manifest. Current owner delegation
+and global quotas bind the actual named token; database-only workers recheck each child before
+acceptance. Uncertainty retains evidence without queuing acceptance.
+
+**Synopsis**
+
+```text
+intake_agent_batch_review_and_queue [schema_version] batch_id manifest_digest manifest_revision reviews
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name                            | Type      | Required | Description                                                                                                                                                                       | Default |
+| ------------------------------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `schema_version`                | `integer` | no       | —                                                                                                                                                                                 | `1`     |
+| `batch_id`                      | `string`  | yes      | Opaque same-tenant identity of the retained selected manifest.                                                                                                                    | —       |
+| `manifest_digest`               | `string`  | yes      | —                                                                                                                                                                                 | —       |
+| `manifest_revision`             | `integer` | yes      | —                                                                                                                                                                                 | —       |
+| `reviews`                       | `array`   | yes      | —                                                                                                                                                                                 | —       |
+| `reviews[].schema_version`      | `integer` | no       | —                                                                                                                                                                                 | `1`     |
+| `reviews[].mandate_id`          | `string`  | yes      | Opaque identity of the retained owner-granted review mandate.                                                                                                                     | —       |
+| `reviews[].revision`            | `integer` | yes      | —                                                                                                                                                                                 | —       |
+| `reviews[].proposal_id`         | `string`  | yes      | Opaque same-tenant identity of the retained decision proposal.                                                                                                                    | —       |
+| `reviews[].digest`              | `string`  | yes      | Exact content digest of the retained interpretation explicitly reviewed for this decision.                                                                                        | —       |
+| `reviews[].source_digest`       | `string`  | yes      | —                                                                                                                                                                                 | —       |
+| `reviews[].reviewed_references` | `array`   | yes      | —                                                                                                                                                                                 | —       |
+| `reviews[].checks`              | `array`   | yes      | —                                                                                                                                                                                 | —       |
+| `reviews[].checks[].code`       | `string`  | yes      | Short tenant-scoped business code used to find the record operationally. `exact_source`, `exact_plan`, `full_source_coverage`, `closed_effects`, `current_state`, `uncertainties` | —       |
+| `reviews[].checks[].result`     | `string`  | yes      | `pass`, `fail`, `uncertain`                                                                                                                                                       | —       |
+| `reviews[].verdict`             | `string`  | yes      | `approve`, `reject`, `uncertain`                                                                                                                                                  | —       |
+| `reviews[].reasons`             | `array`   | yes      | —                                                                                                                                                                                 | —       |
 
 **See also:** Command [`apply_prepared_intake`](./commands#command-apply_prepared_intake)
 
