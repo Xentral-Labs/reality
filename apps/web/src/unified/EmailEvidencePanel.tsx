@@ -61,10 +61,18 @@ export function EmailEvidencePanel({
   initialSourceId?: string;
 }) {
   const [sourceId, setSourceId] = useState<string | undefined>(initialSourceId);
+  const [executionId, setExecutionId] = useState<string>();
   const history = useRead(
     () =>
-      api.emailHistory(tenant, sourceId ? { source_id: sourceId } : { proposal_id: proposalId! }),
-    [tenant, proposalId, sourceId, decisionStatus, initialSourceId],
+      api.emailHistory(
+        tenant,
+        sourceId
+          ? { source_id: sourceId }
+          : executionId
+            ? { execution_id: executionId }
+            : { proposal_id: proposalId! },
+      ),
+    [tenant, proposalId, sourceId, executionId, decisionStatus, initialSourceId],
   );
   const data = history.data;
   if (!data)
@@ -91,6 +99,19 @@ export function EmailEvidencePanel({
           "The external agent sends the email after approval. Provider acceptance does not verify recipient delivery.",
         )}
       </p>
+      {(data.decision?.retry_acknowledgements || []).map((ack) => (
+        <button
+          key={ack.execution_id}
+          className="br-btn"
+          data-email-prior-execution
+          onClick={() => {
+            setSourceId(undefined);
+            setExecutionId(ack.execution_id);
+          }}
+        >
+          {t("Open previous execution evidence")}
+        </button>
+      ))}
       {(data.business_references || []).length > 0 && (
         <div data-email-business-context>
           <h5 className="font-medium">{t("Business context")}</h5>
@@ -122,8 +143,14 @@ export function EmailEvidencePanel({
           {t("Open decision")}
         </a>
       ))}
-      {sourceId && proposalId && (
-        <button className="br-btn" onClick={() => setSourceId(undefined)}>
+      {((sourceId && proposalId) || executionId) && (
+        <button
+          className="br-btn"
+          onClick={() => {
+            setSourceId(initialSourceId);
+            setExecutionId(undefined);
+          }}
+        >
           {t("Return to email decision")}
         </button>
       )}

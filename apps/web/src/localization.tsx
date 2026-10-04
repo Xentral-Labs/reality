@@ -13,6 +13,7 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Open previous execution evidence": "Nachweis des früheren Versandversuchs öffnen",
     "Externally sent; no Reality approval is documented.":
       "Extern versendet; keine Freigabe durch Reality dokumentiert.",
     "A previous send remains uncertain. Sending again may deliver this email twice.":
@@ -2178,6 +2179,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Open previous execution evidence": "Bewijs van de eerdere verzending openen",
     "Externally sent; no Reality approval is documented.":
       "Extern verzonden; er is geen goedkeuring door Reality vastgelegd.",
     "A previous send remains uncertain. Sending again may deliver this email twice.":
@@ -4038,6 +4040,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Open previous execution evidence": "Abrir evidencia del intento de envío anterior",
     "Externally sent; no Reality approval is documented.":
       "Enviado externamente; no hay aprobación de Reality documentada.",
     "A previous send remains uncertain. Sending again may deliver this email twice.":

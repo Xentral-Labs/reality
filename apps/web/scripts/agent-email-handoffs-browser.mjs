@@ -145,6 +145,14 @@ await page.route("**/api/**", async (route) => {
         decision_page: fixturePage(),
       });
     }
+    if (url.searchParams.has("execution_id"))
+      return reply({
+        source: null,
+        attachments: [],
+        supporting_sources: [],
+        reports: [{ id: "unknown-receipt", payload: { outcome: "unknown" } }],
+        state: "execution_uncertain",
+      });
     if (url.searchParams.has("source_id"))
       return reply({
         business_references: businessReferences,
@@ -173,7 +181,10 @@ await page.route("**/api/**", async (route) => {
       });
     return reply({
       business_references: businessReferences,
-      decision: { duplicate_send_risk: true },
+      decision: {
+        duplicate_send_risk: true,
+        retry_acknowledgements: proposal.input.retry_acknowledgements,
+      },
       state: {
         proposed: "decision_pending",
         executed: "dispatch_authorized",
@@ -282,6 +293,17 @@ try {
     .getByRole("dialog")
     .getByText("Person explicitly accepts duplicate delivery", { exact: true })
     .waitFor();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Open previous execution evidence", exact: true })
+    .click();
+  await page.getByRole("dialog").getByText("Email execution uncertain", { exact: true }).waitFor();
+  await page.getByRole("dialog").getByText("Stored receipt", { exact: true }).waitFor();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Return to email decision", exact: true })
+    .click();
+  await page.getByRole("dialog").locator("[data-email-retry-risk]").waitFor();
   assert.deepEqual(errors, []);
   console.log(
     "Email review, BCC, full text, safe HTML and original-file navigation, decision status refresh and paged supplier correspondence passed.",
