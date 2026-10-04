@@ -6,6 +6,7 @@ import base64
 import binascii
 import hashlib
 import json
+from collections import Counter
 from decimal import Decimal
 from typing import Any
 
@@ -124,6 +125,53 @@ def page_result(
     }
 
 
+def discovery_summary(
+    page: dict[str, Any], *, family: str, omitted_before: bool
+) -> dict[str, Any]:
+    """Summarize shown retained records, never quantities or upstream totals."""
+    records = page["records"]
+    complete = not omitted_before and not page["has_more"]
+    summary = {
+        "scope": "shown_records",
+        "shown_record_count": len(records),
+        "omitted_before": omitted_before,
+        "omitted_after": page["has_more"],
+        "complete_matching_selection": complete,
+    }
+    parts = [f"This page shows {len(records)} matching retained records."]
+    if family == "movement":
+        counts = dict(sorted(Counter(row["type"] for row in records).items()))
+        summary["counts_by_type"] = counts
+        labels = {
+            "return": "customer return (return)",
+            "supplier_return": "supplier return (supplier_return)",
+        }
+        parts.extend(
+            f"{labels.get(kind, kind)}: {count} records."
+            for kind, count in counts.items()
+        )
+        parts.append(
+            "These are Movement record counts, not quantities, orders or customers."
+        )
+    if omitted_before:
+        parts.append(
+            "Earlier keys are outside this page; live pagination is not a snapshot."
+        )
+    if page["has_more"]:
+        parts.append(
+            "More matching retained records exist; follow next_cursor to inspect them."
+        )
+    if complete:
+        parts.append(
+            "This response covers the matching retained selection at this read."
+        )
+        if not records:
+            parts.append("No matching retained records were found.")
+    parts.append("Upstream completeness and freshness are unknown.")
+    summary["observation"] = " ".join(parts)
+    return summary
+
+
 def discovery_page(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
@@ -146,13 +194,17 @@ def discovery_page(
         rows = list(session.scalars(statement.limit(limit + 1)))
         if filters["record_id"] and not rows and after is None:
             raise NotFound("Business record not found.")
-        return page_result(
+        page = page_result(
             [business_discovery_record(row, fields, session) for row in rows],
             [row.id for row in rows],
             limit,
             scope,
             read_metadata(session, tenant_id, filters, paged=True),
         )
+        page["summary"] = discovery_summary(
+            page, family=filters["family"], omitted_before=after is not None
+        )
+        return page
 
 
 def finance_balances(session: Session, tenant_id: str) -> dict[str, Any]:

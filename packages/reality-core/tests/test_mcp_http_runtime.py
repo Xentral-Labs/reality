@@ -368,3 +368,62 @@ def test_production_runtime_discovery_advertises_canonical_api_issuer():
         metadata = client.get("/.well-known/oauth-protected-resource").json()
     assert metadata["authorization_servers"] == ["https://api.example.test"]
     assert metadata["resource"] == "https://mcp.example.test/"
+
+
+def test_http_read_returns_deterministic_evidence_summary(
+    session, business, monkeypatch
+):
+    from reality.services.core import record_movement
+
+    movement = record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        business.item.id,
+        "2",
+        to_location_id=business.location.id,
+    )
+    factory = sessionmaker(
+        session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint"
+    )
+    from reality.mcp import server as server_module
+
+    monkeypatch.setattr(server_module, "Session", factory)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    _, clear_token = create_mcp_access_token(
+        session, business.tenant.id, "Read evidence test"
+    )
+    runtime = create_mcp_app(
+        settings=MCPRuntimeSettings(
+            public_url="http://localhost:8001/", bind_host="127.0.0.1", bind_port=8001
+        ),
+        session_factory=factory,
+    )
+    headers = {
+        "Authorization": f"Bearer {clear_token}",
+        "Accept": "application/json, text/event-stream",
+        "Host": "localhost:8001",
+    }
+    with TestClient(runtime) as client:
+        response = client.post(
+            "/",
+            headers=headers,
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "business_records_discover",
+                    "arguments": {"family": "movement", "query": "return"},
+                },
+            },
+        )
+    assert response.status_code == 200
+    result = response.json()["result"]
+    assert not result.get("isError", False)
+    value = json.loads(result["content"][0]["text"])
+    assert value["records"][0]["id"] == movement.id
+    assert value["summary"]["counts_by_type"] == {"return": 1}
+    assert "customer return (return): 1 records" in value["summary"]["observation"]
+    assert value["summary"]["complete_matching_selection"] is True
+    assert value["metadata"]["persistence"]["business_writes"] is False

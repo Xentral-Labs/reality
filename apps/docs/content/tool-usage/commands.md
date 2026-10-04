@@ -12330,8 +12330,11 @@ capability_describe tool_name
 
 ### `business_records_discover` — Discover business records {#tool-business_records_discover}
 
-Read tenant-scoped business records as complete cursor pages with metadata; explicit legacy mode is
-a bounded lookup.
+Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of
+shown records. Movement summary counts_by_type counts records, not quantities: return is customer
+return, supplier_return is supplier return. Preserve omitted_before/omitted_after and
+complete_matching_selection; a final cursor page is not a total. Explicit legacy mode is a bounded
+lookup.
 
 **Synopsis**
 
@@ -12721,7 +12724,9 @@ Read derived stock, incoming supply, demand, shortages, and affected orders by i
 ### `order_explain` — Explain an order {#tool-order_explain}
 
 Explain retained open, fulfilled or cancelled orders by opaque ID with Source, Evidence and Reality
-links; not a historical snapshot.
+links; not a historical snapshot. Current blocker codes describe readiness, not historical
+nonexecution causes. Preserve each line's unfulfilled_cause status; missing outbound-delivery
+objects do not prove a conversion requirement.
 
 **Synopsis**
 

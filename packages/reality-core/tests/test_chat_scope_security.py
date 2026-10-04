@@ -519,3 +519,56 @@ async def test_daily_round_recovers_from_undeclared_shipment_argument(
     assert len(requests) == 3
     assert "limit" in str(requests[1])
     assert "Unknown" in str(requests[1])
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+async def test_return_context_supplies_canonical_summary_across_rounds(
+    provider, harness, session, business
+):
+    from reality.services.core import record_movement
+
+    for movement_type, count in (("return", 4), ("supplier_return", 3)):
+        for _ in range(count):
+            record_movement(
+                session,
+                business.tenant.id,
+                movement_type,
+                business.item.id,
+                "1",
+                **(
+                    {"to_location_id": business.location.id}
+                    if movement_type == "return"
+                    else {"from_location_id": business.location.id}
+                ),
+            )
+    requests, replies = harness
+    replies.extend([tool_reply(provider, "inventory_read", {}), text_reply(provider)])
+    await invoke_business(
+        provider, session, business.tenant.id, "14:00 Retouren; lies zunächst nur."
+    )
+    for request in requests:
+        prompt = str(request.get("system") or request["messages"][0]["content"])
+        assert "customer return (return): 4 records" in prompt
+        assert "supplier return (supplier_return): 3 records" in prompt
+        assert "shown_records" in prompt
+        assert "unfulfilled_cause" in prompt
+
+
+def test_return_context_preserves_refusal_as_unknown(monkeypatch):
+    calls = []
+
+    def refused(session, tenant_id, name, arguments, access):
+        calls.append((name, arguments))
+        return {"code": "access_denied"}, True
+
+    monkeypatch.setattr(mcp_chat, "_call_tool", refused)
+    result = mcp_chat._shipping_context(None, "tenant_exact", "Read returns")
+    assert calls == [
+        (
+            "business_records_discover",
+            {"family": "movement", "query": "return", "limit": 25},
+        )
+    ]
+    assert "Evidence status: unknown; read refused" in result
+    assert "Evidence status: observed" not in result

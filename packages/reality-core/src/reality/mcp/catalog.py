@@ -993,7 +993,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "business_records_discover",
         "Discover business records",
-        "Read tenant-scoped business records as complete cursor pages with metadata; explicit legacy mode is a bounded lookup.",
+        "Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of shown records. Movement summary counts_by_type counts records, not quantities: return is customer return, supplier_return is supplier return. Preserve omitted_before/omitted_after and complete_matching_selection; a final cursor page is not a total. Explicit legacy mode is a bounded lookup.",
         "read",
         "Discovery",
         _object_schema(
@@ -1305,7 +1305,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "order_explain",
         "Explain an order",
-        "Explain retained open, fulfilled or cancelled orders by opaque ID with Source, Evidence and Reality links; not a historical snapshot.",
+        "Explain retained open, fulfilled or cancelled orders by opaque ID with Source, Evidence and Reality links; not a historical snapshot. Current blocker codes describe readiness, not historical nonexecution causes. Preserve each line's unfulfilled_cause status; missing outbound-delivery objects do not prove a conversion requirement.",
         "read",
         "Operations",
         _object_schema({"order_reference": STRING}, required=("order_reference",)),
