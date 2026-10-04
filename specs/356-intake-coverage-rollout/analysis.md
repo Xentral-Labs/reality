@@ -111,3 +111,11 @@ store or recomputing prices is unnecessary. Some core writers currently commit
 internally and legacy REST/CLI bypass proposals. Preserve actual fixed setup,
 normal receipt identities and caller authorization rather than requiring blanket
 Owner access or inventing approval for historical fixtures.
+
+## Current fixed application authority analysis
+
+No unresolved clarification or critical finding. Fixed authored meaning and
+current consent are separate requirements: the existing early fixed-definition
+return skips ordinary current confirming authority. Share its actual persisted
+checks without introducing a blanket interactive credential requirement on
+worker/company/lesson initializers or retroactively revoking settled receipts.

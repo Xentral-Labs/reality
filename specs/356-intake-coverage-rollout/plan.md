@@ -256,3 +256,14 @@ proposals, preserving response records and explicit human confirmation. Fixed
 profile/lesson callers freeze their authored input under existing setup authority.
 Test direct/confirmation/callback/refusal/rollback first, then positive stated
 values, replay, source attribution, setup, adapters and full committed-head CI.
+
+## Current fixed application authority plan
+
+Constitution Check: PASS. Factor the existing current confirming person/manual
+token/interactive MCP check into one private helper shared by ordinary canonical
+and fixed application decisions. Call it from the actual fixed-definition
+validator with current retained proposal state. Preserve fixed fingerprints,
+scope/root locks and separately bound initializer semantics. Prove actual OAuth
+revocation/expiry/permission and actual membership changes after dispatch before
+the first canonical fixed-profile write; qualify real positive confirmation,
+source values and receipt replay. No schema or invented identity is required.

@@ -307,3 +307,13 @@ qualifications, not claimed complete by this group.
 Commercial proposals also retain the exact current tenant-scoped referenced
 records as non-authoritative review basis. Changed references require renewed
 review before any effect; callers may not supply or overwrite that private basis.
+
+### Current authority for fixed confirmed application profiles (FR-003)
+
+The existing demo_seed and normal_month confirmed application profiles must
+recheck their actual current confirming person, manual token and interactive
+MCP consent before canonical writes. Fixed authored input does not exempt a
+revoked or expired confirmation credential or a removed confirming membership.
+Use existing transaction/root/fixed-definition checks; retain successful profile
+values and receipt replay. Separately bound company/lesson initialization remains
+its existing authority and does not acquire a synthetic interactive principal.

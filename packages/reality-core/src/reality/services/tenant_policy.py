@@ -229,6 +229,7 @@ def _require_fixed_setup(session, tenant_id, tool):
         or authority.transaction is not session.get_transaction()
         or authority.tenant_id != tenant_id
         or authority.tool != tool
+        or not authority.confirmed
     ):
         raise InvalidOperation(code="intake_approval_required")
     from reality.services.business_locks import lock_delivery_state
@@ -237,14 +238,17 @@ def _require_fixed_setup(session, tenant_id, tool):
     lock_delivery_state(session, tenant_id)
     lock_finance(session, tenant_id)
     proposal = session.scalar(
-        select(ChangeProposal).where(
+        select(ChangeProposal)
+        .where(
             ChangeProposal.tenant_id == tenant_id,
             ChangeProposal.id == authority.proposal_id,
         )
+        .execution_options(populate_existing=True)
     )
     if (
         proposal is None
         or proposal.status != "executing"
+        or proposal.type != f"tool:{tool}"
         or proposal.input != authority.intent
         or proposal.decided_at is None
     ):
@@ -252,6 +256,7 @@ def _require_fixed_setup(session, tenant_id, tool):
     arguments = json.loads(authority.intent)
     if arguments != _fixed_definition_input(tool, day=arguments.get("as_of")):
         raise InvalidOperation(code="intake_review_stale")
+    _require_current_application_decider(session, tenant_id, authority, proposal)
     return proposal, arguments
 
 
@@ -1725,7 +1730,19 @@ def _require_application_decision(session, tenant_id, operation):
         or proposal.decided_at is None
     ):
         raise InvalidOperation(code="intake_approval_required")
+    _require_current_application_decider(session, tenant_id, authority, proposal)
+    if authority.tool in COMMERCIAL_MASTER_OPERATIONS:
+        from reality.services.business_locks import lock_delivery_state
+        from reality.services.commercial_master import require_current_commercial_master
+
+        lock_delivery_state(session, tenant_id)
+        require_current_commercial_master(session, tenant_id, authority.intent)
+
+
+def _require_current_application_decider(session, tenant_id, authority, proposal):
+    """Fixed authored input never replaces the current actual confirming consent."""
     from reality.services.delivery_actions import require_delivery_principal
+    from reality.services.mcp_authorization import _require_current_mcp_decision
     from reality.services.memberships import Principal
 
     if proposal.decided_via_token_id is not None:
@@ -1734,17 +1751,9 @@ def _require_application_decision(session, tenant_id, operation):
         require_delivery_principal(
             session, tenant_id, Principal(proposal.decided_by_user_id)
         )
-    from reality.services.mcp_authorization import _require_current_mcp_decision
-
     _require_current_mcp_decision(
         session, tenant_id, authority.mcp_principal, proposal.decided_by_user_id
     )
-    if authority.tool in COMMERCIAL_MASTER_OPERATIONS:
-        from reality.services.business_locks import lock_delivery_state
-        from reality.services.commercial_master import require_current_commercial_master
-
-        lock_delivery_state(session, tenant_id)
-        require_current_commercial_master(session, tenant_id, authority.intent)
 
 
 def _require_confirming_token(session, tenant_id, token_id):

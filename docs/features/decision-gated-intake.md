@@ -122,3 +122,5 @@ changes that state. Price, quantity, discount and priority statements are record
 as received. Fixed declared setup calls retain their existing profile authority.
 Lifecycle/source-reference and other operational writers remain separate tasks;
 this finite command list is not universal writer certification.
+
+Fixed confirmed `demo_seed` and `normal_month` application profiles recheck their actual current confirming person, manual credential and interactive MCP consent before canonical writes. A fixed authored definition never replaces current consent. Separately bound company and lesson initializers retain their existing narrow authority. Successful settled receipt replay remains unchanged.

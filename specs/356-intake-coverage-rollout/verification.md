@@ -421,3 +421,10 @@ remain open.
 Committed-head commercial CI found two older positive signed-in payment-term decision-attribution tests omitted explicit confirmed=True. Their actual person/token precedence assertions remain unchanged; both now confirm the actual retained input. All 138 decision-attribution and commercial refusal/positive/replay checks passed in 21.99 seconds. Updated-head full CI remains required.
 
 The next commercial CI shard found four positive attribution-surface fixtures omitted confirmation and their actual named person lacked a membership; a review-parity fixture also prepared an invalid records envelope for a single payment-term command. Positive fixtures now confirm using the actual active member or actual token; review parity uses the actual single-command input. All 147 attribution surfaces/review parity/manual-token/commercial checks passed in 30.10 seconds. Updated-head CI remains required.
+## Current fixed-profile authority qualification in progress
+
+On the unchanged commercial parent, all fourteen valid post-dispatch OAuth grant/credential revocation, expiry/tool/scope changes, removed actual membership and revoked actual manual-token callbacks accepted the first fixed-profile canonical write and failed meaningfully. Both real OAuth positive receipt cases passed. After sharing current actual-decider validation with fixed definitions, all 28 fixed-profile and existing MCP authority checks passed in 4.67 seconds. Broader setup compatibility and full committed-head CI remain required.
+
+The broader actual authority/commercial/demo/profile history/company initialization/Playground/storyline/normal-month suite passed all 269 checks in 168.20 seconds. Business annotation audit and spec policy pass. Complete committed-head CI remains required.
+
+Final updated-parent authority/decision-attribution checks passed all 37 tests in 7.39 seconds. Generated documentation remains current without catalog changes. Full committed-head CI remains required.

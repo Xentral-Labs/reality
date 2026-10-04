@@ -120,3 +120,9 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T049 Freeze canonical commercial master services, preserve fixed setup and route REST/CLI through real confirmation.
 - [ ] T050 Qualify stated values, tenant/current authority, replay, commercial/setup/adapters and full committed-head CI.
 - [ ] T051 Prove changed retained commercial reference state requires renewed review, preserving current authority and exact source values.
+
+## Current fixed application authority qualification
+
+- [ ] T052 Prove real current authority changes after fixed-profile dispatch refuse the canonical write, without fabricated grants or decisions.
+- [ ] T053 Share actual current decider validation between fixed and ordinary application scopes.
+- [ ] T054 Qualify successful fixed-profile source values/receipt replay, setup compatibility and full committed-head CI.
