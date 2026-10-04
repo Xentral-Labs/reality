@@ -8,8 +8,82 @@ from sqlalchemy import func, select
 from reality.db.core import ChangeProposal, Commitment, Item, Movement, Party
 from reality.demo.normal_month import SCENARIO_ACTION
 from reality.services import company_setup
-from reality.services.core import InvalidOperation, aging_register, create_party, create_tenant
+from reality.services.core import (
+    InvalidOperation,
+    aging_register,
+    create_party,
+    create_tenant,
+)
 from reality.services.exceptions import operational_exceptions
+
+
+def test_normal_month_reuses_setup_company_identity(session, scheduled_owner):
+    from reality.services.company_party import company_party_ids
+    from reality.services.cost_review_draft import cost_review_draft
+    from reality.services.file_interpreters import _single_company
+
+    tenant_id = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        "normal-month-identity",
+        "Lampenhaus Berg GmbH",
+        "business",
+        "empty",
+        confirmed=True,
+    )["tenant_id"]
+    (company,) = session.scalars(
+        select(Party).where(Party.tenant_id == tenant_id)
+    ).all()
+    original = (company.id, company.name, company.source_record_id)
+    assert session.scalar(select(Item.id).where(Item.tenant_id == tenant_id)) is None
+
+    result = run_normal_month(session, tenant_id)
+    assert result["physical"] == Decimal("6.0000")
+    assert company_party_ids(session, tenant_id) == [company.id]
+    assert _single_company(session, tenant_id).id == company.id
+    assert (company.id, company.name, company.source_record_id) == original
+    commitments = session.scalars(
+        select(Commitment).where(Commitment.tenant_id == tenant_id)
+    ).all()
+    assert commitments
+    assert all(
+        company.id in (row.from_party_id, row.to_party_id) for row in commitments
+    )
+    review = cost_review_draft(
+        session, tenant_id, kind="inventory", scope_id=result["item_id"]
+    )
+    assert not any(
+        row["code"] == "company_party_missing" for row in review["open_inputs"]
+    )
+    assert run_normal_month(session, tenant_id) == result
+    assert company_party_ids(session, tenant_id) == [company.id]
+
+
+@pytest.mark.parametrize("role", ["customer", "company"])
+def test_normal_month_refuses_other_partners_after_setup(
+    session, scheduled_owner, role
+):
+    tenant_id = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        f"normal-month-other-{role}",
+        "Lampenhaus Berg GmbH",
+        "business",
+        "empty",
+        confirmed=True,
+    )["tenant_id"]
+    create_party(session, tenant_id, "Existing partner", role)
+    with pytest.raises(InvalidOperation, match="requires an empty tenant"):
+        run_normal_month(session, tenant_id)
+    assert session.scalar(select(Item.id).where(Item.tenant_id == tenant_id)) is None
+
+
+def test_normal_month_refuses_an_unrelated_company_partner(session):
+    tenant = create_tenant(session, "Existing business")
+    create_party(session, tenant.id, "Existing business", "company")
+    with pytest.raises(InvalidOperation, match="requires an empty tenant"):
+        run_normal_month(session, tenant.id)
+    assert session.scalar(select(Item.id).where(Item.tenant_id == tenant.id)) is None
 
 
 def test_normal_month_is_complete_deterministic_and_safe_to_rerun(session):

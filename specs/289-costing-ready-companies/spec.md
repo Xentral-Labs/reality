@@ -39,6 +39,15 @@ the tenant.").
 - **Guidance:** the resolution guidance for `company_party_missing` points to this action
   instead of a general instruction to open master data.
 
+The explicitly confirmed `normal_month` example may run when the only partner is
+the company partner recorded by company setup. It reuses that exact partner and
+its source unchanged; it must not create a second company identity. Any other
+partner still makes the tenant ineligible. Installation and company creation do
+not start this example or add sample transactions. Empty-tenant examples retain
+their existing Acme Bikes identity. Regression coverage lives in
+`tests/scenarios/test_normal_month.py` (identity, counterparties, costing/import
+selection, replay and refusal).
+
 ### Non-Goals
 
 - **Empty sandboxes and demo or practice companies.** They keep today's behaviour. Demo Data
@@ -90,6 +99,12 @@ request as its source. A cost review draft for one of its items does not report
    still exactly one company partner.
 3. **Given** an empty sandbox or a demo company being created, **When** it completes, **Then**
    its business partners are exactly as today.
+4. **Given** a fresh business company whose only partner is its setup-created company
+   partner, **When** the owner separately confirms `normal_month`, **Then** the example
+   uses that partner's unchanged identity, name and source for all company counterparties;
+   import and costing selection still see exactly one company partner, and replay adds none.
+5. **Given** any additional partner, or a sole company partner not created by company
+   setup, **When** `normal_month` is confirmed, **Then** it refuses without adding items.
 
 ---
 
@@ -177,6 +192,11 @@ confirmation. The guidance wording for `company_party_missing` names the action.
   same prefilled name in the web, in chat and through MCP, and the resolution guidance wording
   for `company_party_missing` MUST name that action.
 - **FR-008**: A company with two or more company partners MUST keep today's choice in the draft.
+- **FR-009**: A separately confirmed `normal_month` MAY reuse the sole company partner
+  recorded by company setup, and MUST preserve its identity, name and source instead of
+  creating another company partner. Other existing partners MUST still prevent the example.
+  Empty-tenant examples retain their existing identity. Installation and ordinary company
+  creation MUST NOT automatically start this example.
 
 ### Domain and Traceability Requirements
 
@@ -230,6 +250,7 @@ None. Decided by the owner on 2026-09-27:
 | FR-006 | US2 3, Edge cases | waiting proposal named; stale confirmation refused |
 | FR-007 | US3 1–2 | guidance catalog test; MCP parity test |
 | FR-008 | US2 4 | draft test with two company partners |
+| FR-009 | US1 4–5 | `tests/scenarios/test_normal_month.py`: identity, counterparties, import/cost owner selection, replay, other-party refusal and existing empty-tenant story |
 | DR-001 | US1 1 | SourceRecord of the company partner states the requested name |
 | DR-002 | — | plan schema review: no migration |
 | DR-003 | US3 | MCP and web parity |

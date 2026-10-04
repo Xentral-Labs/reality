@@ -71,28 +71,30 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
     if completed:
         output = json.loads(completed.output)
         return _summary(session, tenant_id, output["item_id"], output["invoice_id"])
-    if session.scalar(
-        select(Party.id)
-        .outerjoin(
-            SourceRecord,
-            (SourceRecord.tenant_id == Party.tenant_id)
-            & (SourceRecord.id == Party.source_record_id),
-        )
-        .where(
-            Party.tenant_id == tenant_id,
-            ~(
-                (SourceRecord.source_system == "reality")
-                & SourceRecord.external_id.like("company-setup:%")
+    parties = session.scalars(
+        select(Party).where(Party.tenant_id == tenant_id).limit(2)
+    ).all()
+    company = None
+    if parties:
+        if len(parties) == 1 and parties[0].type == "company":
+            candidate = parties[0]
+            source = session.scalar(
+                select(SourceRecord).where(
+                    SourceRecord.tenant_id == tenant_id,
+                    SourceRecord.id == candidate.source_record_id,
+                    SourceRecord.source_system == "reality",
+                    SourceRecord.external_id.like("company-setup:%"),
+                )
             )
-            | SourceRecord.id.is_(None),
-        )
-        .limit(1)
-    ):
-        raise InvalidOperation("Normal month requires an empty tenant.")
+            if source is not None:
+                company = candidate
+        if company is None:
+            raise InvalidOperation("Normal month requires an empty tenant.")
 
-    company = create_party(
-        session, tenant_id, "Acme Bikes GmbH", "company", _commit=False
-    )
+    if company is None:
+        company = create_party(
+            session, tenant_id, "Acme Bikes GmbH", "company", _commit=False
+        )
     customer = create_party(
         session, tenant_id, "Müller GmbH", "customer", _commit=False
     )
