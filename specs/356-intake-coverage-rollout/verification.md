@@ -428,3 +428,5 @@ On the unchanged commercial parent, all fourteen valid post-dispatch OAuth grant
 The broader actual authority/commercial/demo/profile history/company initialization/Playground/storyline/normal-month suite passed all 269 checks in 168.20 seconds. Business annotation audit and spec policy pass. Complete committed-head CI remains required.
 
 Final updated-parent authority/decision-attribution checks passed all 37 tests in 7.39 seconds. Generated documentation remains current without catalog changes. Full committed-head CI remains required.
+
+The lifecycle integration run exposed an older positive demo-attribution fixture whose named active user had no company membership. It now establishes the actual member relation before preparing the confirmed demo decision, preserving member access rather than imposing Owner. All 64 master API/current fixed-authority checks passed in 15.63 seconds. Updated-head CI remains required.

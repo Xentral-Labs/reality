@@ -282,6 +282,8 @@ def test_a_decision_records_when_and_by_whom_it_was_settled(session):
     """An approval boundary exists to record who crossed it."""
     tenant = create_tenant(session, "Attributed company")
     approver = _person(session, "approver@example.com", "Approver One")
+    session.add(TenantMembership(id=uid("mem"), tenant_id=tenant.id, user_id=approver.id, role="member", status="active"))
+    session.commit()
     approved = propose_tool(session, tenant.id, "demo_seed", {})
     rejected = propose_tool(session, tenant.id, "demo_seed", {})
     unattended = propose_tool(session, tenant.id, "demo_seed", {})
