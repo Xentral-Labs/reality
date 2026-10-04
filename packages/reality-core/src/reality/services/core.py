@@ -397,7 +397,7 @@ def business_discovery_statement(
     if document_id is not None:
         if model is not DocumentLine:
             raise InvalidOperation(
-                "Document scope is only supported for document_line discovery."
+                code="discovery_document_scope_unsupported"
             )
         _tenant_record(session, Document, tenant_id, document_id)
         statement = statement.where(DocumentLine.document_id == document_id)

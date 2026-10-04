@@ -178,7 +178,7 @@ def company_context(session: Session, tenant_id: str) -> dict[str, Any]:
 
     principal = current_mcp_principal()
     if principal is not None and principal.tenant_id != tenant_id:
-        raise NotFound("Company not found.")
+        raise NotFound(code="company_not_found")
     with session.no_autoflush:
         tenant = get_tenant(session, tenant_id)
         return {

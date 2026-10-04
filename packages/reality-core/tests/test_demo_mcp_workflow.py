@@ -198,6 +198,14 @@ def test_document_lines_use_exact_company_document_scope(session, business):
     assert page["records"][0]["id"] == line.id
     assert page["records"][0]["unit_price"] is None
     assert page["records"][0]["document_id"] == document.id
+    with pytest.raises(InvalidOperation) as refused:
+        dispatch_tool(
+            session,
+            business.tenant.id,
+            "business_records_discover",
+            {"family": "document", "document_id": document.id},
+        )
+    assert refused.value.code == "discovery_document_scope_unsupported"
     other = create_tenant(session, "Other lines company")
     with pytest.raises(NotFound):
         dispatch_tool(
