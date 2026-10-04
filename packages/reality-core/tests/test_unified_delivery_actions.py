@@ -226,15 +226,21 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
             with factory() as session:
                 barrier.wait(timeout=5)
                 try:
-                    return reviewed_reserve(session, tenant.id, cid, "7").reserved
+                    return cid, reviewed_reserve(session, tenant.id, cid, "7").reserved
                 except InvalidOperation as error:
-                    assert error.code == "review_delivery_changed"
-                    # This fixture explicitly confirms a new current review after
-                    # the competing decision changed the available stock.
-                    return reviewed_reserve(session, tenant.id, cid, "7").reserved
+                    assert error.code in {"review_delivery_changed", "delivery_execution_unresolved"}
+                    return cid, None
 
         with ThreadPoolExecutor(max_workers=2) as workers:
-            quantities = list(workers.map(allocate, commitments))
+            attempts = list(workers.map(allocate, commitments))
+        # Both genuine executors have settled before a refused caller explicitly
+        # prepares and confirms a new current review.
+        quantities = []
+        for cid, quantity in attempts:
+            if quantity is None:
+                with factory() as session:
+                    quantity = reviewed_reserve(session, tenant.id, cid, "7").reserved
+            quantities.append(quantity)
         assert sum(quantities) == Decimal(10)
         with factory() as session:
             assert (

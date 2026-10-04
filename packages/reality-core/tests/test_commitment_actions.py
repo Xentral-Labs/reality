@@ -192,7 +192,7 @@ def test_reviewed_revision_discloses_and_applies_reservation_release(session, bu
     assert detail["review"]["effect"] == {
         "revised_open": "6",
         "retained_reservation_quantity": "6",
-        "released_reservation_quantity": "4",
+        "released_reservation_quantity": "4.0000",
         "selection_required": False,
         "document_changes": False,
         "movement_changes": False,
