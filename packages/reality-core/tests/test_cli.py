@@ -100,7 +100,7 @@ def test_cli_updates_and_changes_master_data_lifecycle(session, business, monkey
         )
         deactivated = runner.invoke(
             cli_module.app,
-            [command, "deactivate", record_id, "--tenant", business.tenant.id],
+            [command, "deactivate", record_id, "--tenant", business.tenant.id, "--yes"],
         )
         record = session.scalar(select(model).where(model.id == record_id))
         assert updated.exit_code == deactivated.exit_code == 0
@@ -109,7 +109,7 @@ def test_cli_updates_and_changes_master_data_lifecycle(session, business, monkey
 
         activated = runner.invoke(
             cli_module.app,
-            [command, "activate", record_id, "--tenant", business.tenant.id],
+            [command, "activate", record_id, "--tenant", business.tenant.id, "--yes"],
         )
         session.refresh(record)
         assert activated.exit_code == 0

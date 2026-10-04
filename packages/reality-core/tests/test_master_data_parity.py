@@ -264,7 +264,7 @@ def test_cli_and_api_produce_equivalent_authoritative_lifecycle_state(
     def cli_call(operation, *arguments):
         result = runner.invoke(
             cli_module.app,
-            [family, operation, *arguments, "--tenant", cli_tenant.id, *(["--yes"] if operation in {"create", "update"} else [])],
+            [family, operation, *arguments, "--tenant", cli_tenant.id, *(["--yes"] if operation in {"create", "update", "activate", "deactivate"} else [])],
         )
         assert result.exit_code == 0, result.output
         return result
@@ -303,7 +303,7 @@ def test_cli_and_api_produce_equivalent_authoritative_lifecycle_state(
         cli_call("deactivate", cli_record_id)
         deactivated = client.patch(
             f"/api/tenants/{api_tenant.id}/{collection}/{api_record_id}/active",
-            json={"is_active": False},
+            json={"is_active": False, "confirmed": True},
         )
         assert deactivated.status_code == 200, deactivated.text
         assert snapshots()[0] == snapshots()[1]
@@ -311,7 +311,7 @@ def test_cli_and_api_produce_equivalent_authoritative_lifecycle_state(
         cli_call("activate", cli_record_id)
         activated = client.patch(
             f"/api/tenants/{api_tenant.id}/{collection}/{api_record_id}/active",
-            json={"is_active": True},
+            json={"is_active": True, "confirmed": True},
         )
         assert activated.status_code == 200, activated.text
         assert snapshots()[0] == snapshots()[1]
