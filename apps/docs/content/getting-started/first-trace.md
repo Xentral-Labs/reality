@@ -4,8 +4,8 @@ A useful result is not only visible; it is explainable. Start from an operationa
 backward through the shortest true links.
 
 Start in **Business Facts** with an individual record, follow its relationships and timeline in
-**Business Recorder**, and use **Tools** for relevant queries, calculations or confirmed actions. The
-three areas work with the same business reality.
+**Business Recorder**, and use **Tools** for relevant queries, calculations or confirmed actions.
+The three areas work with the same business reality.
 
 ## 1. Start with an operational question
 

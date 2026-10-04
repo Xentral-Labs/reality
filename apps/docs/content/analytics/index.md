@@ -1,8 +1,8 @@
 # Analytics on your business reality
 
-Reality connects operational records into a Business Recorder you can query. Explore orders, stock and
-payments, follow their relationships, and build reports over the data already held in Reality. Your
-agents use the same model and checks as the analysis editor.
+Reality connects operational records into a Business Recorder you can query. Explore orders, stock
+and payments, follow their relationships, and build reports over the data already held in Reality.
+Your agents use the same model and checks as the analysis editor.
 
 **No separate analytics database to keep in sync.** The graph describes existing records in
 PostgreSQL; it does not require exporting them into a second graph database. External sources still

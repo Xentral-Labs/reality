@@ -40,8 +40,8 @@ Open the selected order in **Sales → Orders**. Compare the answer with its qua
 underlying record in the Inspector. Follow its links to the supporting document and original source
 payload where available.
 
-**Business Facts** lets you inspect individual records. **Business Recorder** shows their relationships
-and recorded timeline. For a deeper explanation, [trace a result](./first-trace).
+**Business Facts** lets you inspect individual records. **Business Recorder** shows their
+relationships and recorded timeline. For a deeper explanation, [trace a result](./first-trace).
 
 An empty list is not proof that everything is complete. Check the selected company, source coverage
 and freshness before making a decision. Live simulation may add records between two reads.
