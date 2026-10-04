@@ -325,7 +325,8 @@ def _record_normalized_document(
 
 def _post_reviewed_invoice(session, tenant_id, document_id, *, direction, credit=False, **arguments):
     operation = "post_sales_credit_note" if credit else "post_sales_invoice" if direction == "sales" else "post_supplier_invoice"
-    return _invoke(operation, getattr(core, operation), session, tenant_id, document_id=document_id, **arguments)
+    identity = {"credit_note_id": document_id} if credit else {"document_id": document_id}
+    return _invoke(operation, getattr(core, operation), session, tenant_id, **identity, **arguments)
 
 
 def _post_reviewed_ledger(session, tenant_id, document_id, party_id, postings, **arguments):

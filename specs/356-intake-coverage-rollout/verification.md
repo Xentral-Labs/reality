@@ -294,3 +294,10 @@ Final invoice/source-value/receipt-replay, credit/foreign-currency/profile
 follow-ups passed all 108 checks. Source-attribution, business annotation and
 purchasing checks passed all 54. Ruff, annotation audit, spec policy and catalog
 generation passed. Full committed-head CI and browser qualification are pending.
+
+Final parent integration found the legacy return-credit posting uses
+credit_note_id rather than the invoice poster's document_id. The new frozen
+posting adapter now preserves that actual canonical parameter; the existing
+post-write failure/rollback proof exercises it. All 92 final invoice/rebilling/
+payment-atomicity/credit/return checks passed after correction (43.88 seconds).
+Committed-head CI is still required.
