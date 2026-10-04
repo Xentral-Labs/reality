@@ -46,12 +46,20 @@ const outcomeLabels: Record<string, string> = {
   conflicting_evidence: "Conflicting email execution evidence",
 };
 
-export function EmailEvidencePanel({ tenant, proposalId }: { tenant: string; proposalId: string }) {
+export function EmailEvidencePanel({
+  tenant,
+  proposalId,
+  decisionStatus,
+}: {
+  tenant: string;
+  proposalId: string;
+  decisionStatus: string;
+}) {
   const [sourceId, setSourceId] = useState<string>();
   const history = useRead(
     () =>
       api.emailHistory(tenant, sourceId ? { source_id: sourceId } : { proposal_id: proposalId }),
-    [tenant, proposalId, sourceId],
+    [tenant, proposalId, sourceId, decisionStatus],
   );
   const data = history.data;
   if (!data)

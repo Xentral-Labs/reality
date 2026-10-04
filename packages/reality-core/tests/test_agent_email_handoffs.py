@@ -638,3 +638,42 @@ def test_original_mime_file_is_retained_losslessly(session, business, files):
     assert source.source_artifact_id == artifact.id
     with materialize_artifact(artifact) as path:
         assert path.read_bytes() == content
+
+
+@pytest.mark.parametrize("conflict", [None, "failed", "provider_identity"])
+def test_deviation_does_not_bypass_dispatch_reconciliation(session, business, conflict):
+    """FR-009: uncertain/conflicting sends remain blocked despite content deviations."""
+    tenant_id = business.tenant.id
+    first = proposal(session, tenant_id)
+    second = proposal(session, tenant_id)
+    approve_and_execute_proposal(session, tenant_id, first.id, confirmed=True)
+    approve_and_execute_proposal(session, tenant_id, second.id, confirmed=True)
+    execution = claim(session, tenant_id, first)
+    actual = {**execution["message"], "text": "Different from the approved body"}
+    result = report(
+        session,
+        tenant_id,
+        execution,
+        outcome="unknown" if conflict is None else "accepted",
+        actual_message=actual,
+    )
+    assert result["state"] == "approval_deviation"
+    if conflict:
+        report(
+            session,
+            tenant_id,
+            execution,
+            retry_key="conflicting",
+            outcome="failed" if conflict == "failed" else "accepted",
+            provider_evidence={"message_id": "another-provider-id"},
+        )
+    with pytest.raises(InvalidOperation) as blocked:
+        proposal(session, tenant_id)
+    assert blocked.value.code == "email_dispatch_reconcile_required"
+    with pytest.raises(InvalidOperation) as blocked:
+        claim(session, tenant_id, second)
+    assert blocked.value.code == "email_dispatch_reconcile_required"
+    if conflict is None:
+        report(session, tenant_id, execution, retry_key="reconciled", outcome="failed")
+        assert proposal(session, tenant_id).status == "proposed"
+        assert claim(session, tenant_id, second)["state"] == "dispatch_claimed"

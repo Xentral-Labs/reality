@@ -18,3 +18,9 @@ mean dispatch occurred; capture/report permissions do not mean decision authorit
 claim ownership is authenticated, never a caller-supplied agent name. Original
 external metadata stays in payload. No provider-specific network execution is added.
 Each FR/DR maps to the story/test tasks above and the specification traceability table.
+
+## Review follow-up
+
+- [x] T011 Preserve the FR-009 reconciliation guard for uncertain or conflicting reports with approval deviations; cover proposals and claims.
+- [x] T012 Refresh FR-010 email history after approval and rejection without reopening the review; verify both browser journeys.
+- [ ] T013 Validate the review fixes and wait for green PR checks.

@@ -53,3 +53,20 @@ reproposed/claimed to bypass reconciliation. Outcome derivation uses only
 executor-bound receipt links, not arbitrary caller-selected source labels.
 New correspondence tables are explicitly deferred from graph analytics pending a
 separate privacy/grain design; the operational evidence trail remains available.
+
+
+## PR review corrections
+
+The P1 reconciliation bypass and P2 stale decision history from review
+5404048391 are corrected under FR-009 and FR-010. Execution uncertainty and
+conflicting receipts are evaluated independently of approval deviations, so
+identical proposals and claims remain blocked until the outcome is reconciled.
+The mounted email history read observes proposal status changes.
+
+Local validation: all 20 email integration tests pass, including unknown outcomes,
+accepted/failed conflicts and conflicting provider identities with deviating
+content, plus successful reconciliation. Browser acceptance verifies approval
+and rejection refresh without reopening the dialog, alongside original evidence
+navigation and safe HTML. Ruff, spec policy, business-description audit,
+Prettier and the production web build pass. Full PR checks are pending for this
+review correction commit.
