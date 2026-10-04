@@ -23,4 +23,4 @@ Each FR/DR maps to the story/test tasks above and the specification traceability
 
 - [x] T011 Preserve the FR-009 reconciliation guard for uncertain or conflicting reports with approval deviations; cover proposals and claims.
 - [x] T012 Refresh FR-010 email history after approval and rejection without reopening the review; verify both browser journeys.
-- [ ] T013 Validate the review fixes and wait for green PR checks.
+- [x] T013 Validate the review fixes locally and publish full-suite PR check links; the PR records the current head and final check status.

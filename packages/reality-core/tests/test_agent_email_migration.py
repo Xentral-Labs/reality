@@ -22,7 +22,7 @@ def test_dispatch_migration_round_trip_and_populated_guard(
     engine = create_engine(postgres_database)
     try:
         assert "email_dispatch" in inspect(engine).get_table_names()
-        command.downgrade(config, "0133_external_stock")
+        command.downgrade(config, "0138_company_time_zone")
         assert "email_dispatch" not in inspect(engine).get_table_names()
         command.upgrade(config, "0134_agent_email_handoffs")
         with Session(engine) as db:
@@ -45,7 +45,7 @@ def test_dispatch_migration_round_trip_and_populated_guard(
             )
             approve_and_execute_proposal(db, tenant.id, p.id, confirmed=True)
         with pytest.raises(RuntimeError, match="dispatch"):
-            command.downgrade(config, "0133_external_stock")
+            command.downgrade(config, "0138_company_time_zone")
         assert "email_dispatch" in inspect(engine).get_table_names()
     finally:
         engine.dispose()

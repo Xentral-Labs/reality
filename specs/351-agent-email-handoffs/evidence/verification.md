@@ -36,10 +36,10 @@ The complete required suite passed on commit
 - [Installer run 218](https://github.com/Xentral-Labs/reality/actions/runs/37147333749):
   script and end-to-end jobs passed.
 - [PR #332](https://github.com/Xentral-Labs/reality/pull/332) records the live
-  checks for the final documentation-only completion commit as well.
+  checks for the final pull-request head as well.
 
-Both merged main updates were incorporated, catalogs regenerated and the email
-migration placed after the latest supplier-item-number migration. The first CI
+Merged main updates were incorporated, catalogs regenerated and the email
+migration placed after the latest merged migration. The first CI
 attempt found three registry/fixture contract mismatches; those were corrected,
 verified locally and passed in the complete rerun. No unresolved review findings
 were present at completion.
@@ -68,5 +68,5 @@ accepted/failed conflicts and conflicting provider identities with deviating
 content, plus successful reconciliation. Browser acceptance verifies approval
 and rejection refresh without reopening the dialog, alongside original evidence
 navigation and safe HTML. Ruff, spec policy, business-description audit,
-Prettier and the production web build pass. Full PR checks are pending for this
-review correction commit.
+Prettier and the production web build pass. The current correction head and final full-suite status are recorded in the
+[PR verification section](https://github.com/Xentral-Labs/reality/pull/332).
