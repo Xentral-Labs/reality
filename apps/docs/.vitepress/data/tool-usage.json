@@ -17688,7 +17688,7 @@
       "id": "tool:graph_catalog",
       "kind": "tool",
       "key": "graph_catalog",
-      "label": "Discover the business graph",
+      "label": "Discover the Business Recorder",
       "area": "cross_functional",
       "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
       "access": "read",
@@ -17734,7 +17734,7 @@
       "command": null,
       "projections": [],
       "links": [],
-      "label_de": "Discover the business graph",
+      "label_de": "Discover the Business Recorder",
       "resources": ["analytics"]
     },
     {
@@ -17788,7 +17788,7 @@
       "id": "tool:graph_ask",
       "kind": "tool",
       "key": "graph_ask",
-      "label": "Ask the business graph",
+      "label": "Ask the Business Recorder",
       "area": "cross_functional",
       "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
       "access": "read",
@@ -18207,7 +18207,7 @@
       "command": null,
       "projections": [],
       "links": [],
-      "label_de": "Ask the business graph",
+      "label_de": "Ask the Business Recorder",
       "resources": ["analytics"]
     },
     {

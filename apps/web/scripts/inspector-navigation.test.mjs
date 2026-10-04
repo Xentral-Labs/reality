@@ -10,7 +10,7 @@ test("Inspector sections match their contents and default destinations", () => {
   assert.deepEqual(
     inspectorSections.map((s) => [s.label, s.tabs[0]]),
     [
-      ["Business Graph", "overview"],
+      ["Business Recorder", "overview"],
       ["Business Facts", "facts"],
       ["Activities", "history"],
       ["Tools", "commands"],

@@ -198,8 +198,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Diese Analyse überschreitet ihre Datengrenze. Nutze das zugehörige Register.",
 
     "My account": "Mein Konto",
-    "Discover the business graph": "Geschäftsgraph entdecken",
-    "Ask the business graph": "Geschäftsgraph befragen",
+    "Discover the Business Recorder": "Business Recorder entdecken",
+    "Ask the Business Recorder": "Business Recorder befragen",
     "List my graph reports": "Meine Graph-Berichte auflisten",
     "Read my graph report": "Meinen Graph-Bericht lesen",
 
@@ -2364,8 +2364,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Deze analyse overschrijdt de gegevenslimiet. Gebruik het bijbehorende register.",
 
     "My account": "Mijn account",
-    "Discover the business graph": "Bedrijfsgraaf ontdekken",
-    "Ask the business graph": "Bedrijfsgraaf bevragen",
+    "Discover the Business Recorder": "Business Recorder ontdekken",
+    "Ask the Business Recorder": "Business Recorder bevragen",
     "List my graph reports": "Mijn graafrapporten weergeven",
     "Read my graph report": "Mijn graafrapport lezen",
 
@@ -3646,7 +3646,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Every recorded change, in order": "Alle vastgelegde wijzigingen op volgorde",
     "Execution is unresolved or this step was rejected. Refresh to inspect the server state; no action will be repeated automatically.":
       "De uitvoering is onduidelijk of deze stap is afgewezen. Vernieuw om de serverstatus te bekijken; geen actie wordt automatisch herhaald.",
-    "Flight recorder": "Gebeurtenissenlogboek",
+    "Flight recorder": "Business Recorder",
     "Goods obligations": "Goederenverplichtingen",
     "Goods owed to us": "Goederen die we nog tegoed hebben",
     "Goods shipped": "Goederen verzonden",
@@ -4224,8 +4224,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Este análisis supera su límite de datos. Usa el registro correspondiente.",
 
     "My account": "Mi cuenta",
-    "Discover the business graph": "Explorar el grafo empresarial",
-    "Ask the business graph": "Consultar el grafo empresarial",
+    "Discover the Business Recorder": "Explorar el Business Recorder",
+    "Ask the Business Recorder": "Consultar el Business Recorder",
     "List my graph reports": "Listar mis informes de grafo",
     "Read my graph report": "Leer mi informe de grafo",
 
@@ -5516,7 +5516,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Every recorded change, in order": "Todos los cambios registrados, en orden",
     "Execution is unresolved or this step was rejected. Refresh to inspect the server state; no action will be repeated automatically.":
       "La ejecución no está resuelta o este paso fue rechazado. Actualiza para consultar el estado del servidor; ninguna acción se repetirá automáticamente.",
-    "Flight recorder": "Registro de eventos",
+    "Flight recorder": "Business Recorder",
     "Goods obligations": "Obligaciones de mercancía",
     "Goods owed to us": "Mercancía que nos deben",
     "Goods shipped": "Mercancía enviada",
@@ -6415,7 +6415,7 @@ Object.assign(dictionaries.de, {
   "Money positions are unavailable.": "Geldpositionen nicht verfügbar.",
   "No recorded money position yet.": "Noch keine gebuchte Geldposition.",
   "Needs attention": "Handlungsbedarf",
-  "Flight recorder": "Flugschreiber",
+  "Flight recorder": "Business Recorder",
   "Every recorded change, in order": "Alle Änderungen in ihrer Reihenfolge",
   "All events": "Alle Ereignisse",
   "Your first action will appear here. Select an event to inspect its evidence.":
@@ -13505,7 +13505,7 @@ Object.assign(dictionaries.es, {
 });
 
 Object.assign(dictionaries.de, {
-  "Flight recorder": "Flugschreiber",
+  "Flight recorder": "Business Recorder",
   "Latest recorded changes first. Scroll down to travel back in time.":
     "Neueste Aufzeichnungen zuerst. Scrolle nach unten, um zurückzugehen.",
   "Recorded events": "Aufgezeichnete Ereignisse",
@@ -13520,7 +13520,7 @@ Object.assign(dictionaries.de, {
 });
 
 Object.assign(dictionaries.nl, {
-  "Flight recorder": "Vluchtrecorder",
+  "Flight recorder": "Business Recorder",
   "Latest recorded changes first. Scroll down to travel back in time.":
     "Nieuwste registraties eerst. Scrol omlaag om terug te gaan in de tijd.",
   "Recorded events": "Geregistreerde gebeurtenissen",
@@ -13535,7 +13535,7 @@ Object.assign(dictionaries.nl, {
 });
 
 Object.assign(dictionaries.es, {
-  "Flight recorder": "Registrador de eventos",
+  "Flight recorder": "Business Recorder",
   "Latest recorded changes first. Scroll down to travel back in time.":
     "Los registros más recientes primero. Desplázate hacia abajo para retroceder en el tiempo.",
   "Recorded events": "Eventos registrados",
@@ -15316,17 +15316,17 @@ Object.assign(dictionaries.es, {
     "Las columnas son intervalos de registro de una semana.",
 });
 
-// Business Graph is a product term and reads the same in every language.
+// Business Recorder is a product term and reads the same in every language.
 Object.assign(dictionaries.de, {
-  "Business Graph": "Business Graph",
+  "Business Recorder": "Business Recorder",
   "Business Facts": "Business Facts",
 });
 Object.assign(dictionaries.nl, {
-  "Business Graph": "Business Graph",
+  "Business Recorder": "Business Recorder",
   "Business Facts": "Business Facts",
 });
 Object.assign(dictionaries.es, {
-  "Business Graph": "Business Graph",
+  "Business Recorder": "Business Recorder",
   "Business Facts": "Business Facts",
 });
 Object.assign(dictionaries.de, {
@@ -18052,7 +18052,7 @@ Object.assign(dictionaries.es, {
     "Descubre qué puede consultar, explicar o modificar Reality con sus herramientas web y MCP.",
 });
 
-// The business graph. German uses the App's own ERP words: a Kennzahl is measured,
+// The Business Recorder. German uses the App's own ERP words: a Kennzahl is measured,
 // a Beziehung is followed, and a refusal says what cannot be added rather than
 // that something went wrong.
 Object.assign(dictionaries.de, {
@@ -27704,3 +27704,18 @@ Object.assign(dictionaries.es, {
 Object.assign(dictionaries.de, { Lots: "Chargen" });
 Object.assign(dictionaries.nl, { Lots: "Partijen" });
 Object.assign(dictionaries.es, { Lots: "Lotes" });
+
+Object.assign(dictionaries.de, {
+  "The Business Recorder works like a flight recorder for your company: it shows what Reality has recorded, when it happened and how it connects to its sources.":
+    "Der Business Recorder funktioniert wie ein Flugschreiber für dein Unternehmen: Er zeigt, was Reality erfasst hat, wann es passiert ist und welche Quellen dahinterstehen.",
+});
+
+Object.assign(dictionaries.nl, {
+  "The Business Recorder works like a flight recorder for your company: it shows what Reality has recorded, when it happened and how it connects to its sources.":
+    "De Business Recorder werkt als een vluchtrecorder voor je bedrijf: hij toont wat Reality heeft vastgelegd, wanneer het gebeurde en welke bronnen erbij horen.",
+});
+
+Object.assign(dictionaries.es, {
+  "The Business Recorder works like a flight recorder for your company: it shows what Reality has recorded, when it happened and how it connects to its sources.":
+    "El Business Recorder funciona como un registrador de vuelo para tu empresa: muestra qué ha registrado Reality, cuándo ocurrió y cuáles son sus fuentes.",
+});

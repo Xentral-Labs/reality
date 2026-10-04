@@ -4255,7 +4255,7 @@ textarea.br-control.rule-draft-editor {
   outline-offset: -2px;
 }
 
-/* Business Graph: recorded changes with a bounded, readable order journey. */
+/* Business Recorder: recorded changes with a bounded, readable order journey. */
 :root {
   --journey-fact: #2874b8;
   --journey-commitment: #7960c9;

@@ -1,6 +1,6 @@
 # Analytics on your business reality
 
-Reality connects operational records into a business graph you can query. Explore orders, stock and
+Reality connects operational records into a Business Recorder you can query. Explore orders, stock and
 payments, follow their relationships, and build reports over the data already held in Reality. Your
 agents use the same model and checks as the analysis editor.
 
@@ -35,7 +35,7 @@ There are two connected paths: how business data enters Reality, and how an anal
 ```text
 SourceRecord → Document / DocumentLine → operational Reality records
                                             ↑
-Question → declared business graph → checked query → PostgreSQL / shared services
+Question → declared Business Recorder → checked query → PostgreSQL / shared services
                                             ↓
                               result + query explanation
 ```

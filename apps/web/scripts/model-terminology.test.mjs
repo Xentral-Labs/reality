@@ -25,7 +25,7 @@ const types = {
   "Ledger entries": "Ledger Entries",
   "Business event": "Business Event",
   "Business events": "Business Events",
-  "Business Graph": "Business Graph",
+  "Business Recorder": "Business Recorder",
   "Business Facts": "Business Facts",
 };
 

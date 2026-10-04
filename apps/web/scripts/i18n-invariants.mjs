@@ -23,7 +23,7 @@ export const invariantTerms = new Map([
   ["Business Events", "Canonical Reality model label (spec 208)"],
 
   ["Reality Inspector", "Stable technical workspace name"],
-  ["Business Graph", "Product name for the graph workspace (spec 216)"],
+  ["Business Recorder", "Product name for the graph workspace (spec 216)"],
   ["Business Facts", "Product name for the records workspace (spec 216)"],
   ["Reality", "Product and domain name"],
   ["Playground", "Stable name of the private learning workspace"],

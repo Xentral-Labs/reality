@@ -1,5 +1,5 @@
 export const inspectorSections = [
-  { label: "Business Graph", tabs: ["overview", "graph"] },
+  { label: "Business Recorder", tabs: ["overview", "graph"] },
   { label: "Business Facts", tabs: ["facts", "rules"] },
   { label: "Activities", tabs: ["history", "live"] },
   { label: "Tools", tabs: ["commands", "views"] },
