@@ -24,7 +24,7 @@ Date: 2026-10-04. Scope: spec 364 FR-001–006 / DR-001–003.
   enum/required constraints. Direct application-read names now resolve through the
   existing bound handler metadata, including Finance context; no Finance logic changes.
   Corrected focused suite including Finance/AI adapters: 100 passed, two existing skips
-  in 7.24s. Final required GitHub gates remain pending.
+  in 7.24s. Complete required implementation-head gates passed as recorded below.
 
 Fixtures create isolated PostgreSQL databases. No user company, credential, source control,
 local deployment, outbound message or real shipment is changed by these coding tests.
@@ -41,4 +41,21 @@ callable MCP guidance is an adapter observation. Human decision and credential p
 remain separate. Scope excludes Finance allocation, third-party scheduling/rights and
 storage diagnostics. PR is not merged or deployed by this work.
 
-Required workflow evidence and final-head review will be recorded after actual completion.
+## Complete required Quality workflow
+
+Implementation head: `5188a470fe0ff3ba798fc5a670b0879b14101b43`.
+Run: https://github.com/Xentral-Labs/reality/actions/runs/37225649462.
+All 24 configured checks completed successfully: four full PostgreSQL shards and their
+aggregate, eight actual live browser journeys, frontend, docs, specification and configured
+browser-script jobs. No failing test, gate, ratchet or permission was bypassed.
+
+A registry-only verification audit inspected 29 declared bases and returned 27 callable
+MCP reads. The two bases without a registered MCP equivalent (`document_register`,
+`timeline`) remain explicitly unavailable; they are not presented as tools.
+
+The documentation closeout changes only task, verification and self-review metadata;
+production and test code remain identical to the validated implementation head. Final
+closeout-head checks are authoritative on https://github.com/Xentral-Labs/reality/pull/370
+and must also complete successfully before the agent reports the PR green. No merge or
+deployment is part of this work.
+
