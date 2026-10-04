@@ -8201,7 +8201,8 @@ known business object. An authorized person reviews this exact version in Decisi
 cannot approve or send it. If prior execution is uncertain, retry_acknowledgements must bind every
 unresolved attempt and current report snapshot with an explicit duplicate-send risk acceptance; only
 signed-in member/trusted-local review may confirm that exception, never an MCP token or built-in
-Chat.
+Chat. Ordinary proposals return approval_digest for provider-independent signed external approval
+via email_dispatch_accept_grant.
 
 **Aufruf**
 
@@ -11672,6 +11673,7 @@ Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informat
 | [`email_file_chunk`](#tool-email_file_chunk)                                                     | Stage an email file chunk                      | `confirm` | —                      |
 | [`email_file_complete`](#tool-email_file_complete)                                               | Complete an original email file                | `confirm` | —                      |
 | [`email_capture`](#tool-email_capture)                                                           | Capture original email evidence                | `confirm` | —                      |
+| [`email_dispatch_accept_grant`](#tool-email_dispatch_accept_grant)                               | Recognize a signed external email approval     | `confirm` | —                      |
 | [`email_dispatch_claim`](#tool-email_dispatch_claim)                                             | Claim an approved external email dispatch      | `confirm` | —                      |
 | [`email_dispatch_report`](#tool-email_dispatch_report)                                           | Report or reconcile external email execution   | `confirm` | —                      |
 
@@ -13986,6 +13988,30 @@ email_capture business_references origin retry_key direction message
 | `message.attachments[].inline`         | `boolean` | nein    | —                                                                                                                                                                                                                                                                  | `False`                    |
 | `message.attachments[].content_id`     | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
 | `message.attachments[].missing_reason` | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`                     |
+
+### `email_dispatch_accept_grant` — Recognize a signed external email approval {#tool-email_dispatch_accept_grant}
+
+Recognize one human approval attested by a configured issuer for its expressly mandated external
+subject and this exact company/proposal approval_digest. Submit compact Ed25519 JWS v1 after showing
+the normalized preview. Separately permissioned submission never grants token approval rights.
+Reject expired/revoked proofs and replay onto another proposal; retain original Source and
+external_grant attribution. No retroactive approval or external risk exception. Follow with ordinary
+claim/report.
+
+**Aufruf**
+
+```text
+email_dispatch_accept_grant proposal_id grant
+```
+
+**Zugriff:** `confirm`
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                                                                                                                                     | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `proposal_id` | `string` | ja      | —                                                                                                                                                                                | —        |
+| `grant`       | `string` | ja      | Compact Ed25519 JWS for the exact returned approval_digest. Issuer and subject require server-configured company authority; this operation does not grant token approval rights. | —        |
 
 ### `email_dispatch_claim` — Claim an approved external email dispatch {#tool-email_dispatch_claim}
 

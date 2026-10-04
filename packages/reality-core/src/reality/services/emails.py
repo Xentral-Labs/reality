@@ -501,6 +501,8 @@ def prepare_dispatch(
     data = request.model_dump(mode="json")
     return data, {
         **data,
+        "approval_digest": _hash(data),
+        "approval_digest_format": "reality-email-proposal-v1",
         "state": "decision_pending",
         "duplicate_send_risk": bool(request.retry_acknowledgements),
         "next_operation": "proposal_approve_and_execute",
@@ -590,6 +592,9 @@ def claim_dispatch(
     proposal = _proposal(session, tenant_id, request.proposal_id)
     if proposal.status != "executed":
         raise InvalidOperation(code="email_decision_required")
+    from reality.services.email_approval_grants import _revalidate_claim
+
+    _revalidate_claim(session, tenant_id, proposal)
     dispatch = _dispatch(session, tenant_id, proposal_id=proposal.id, lock=True)
     if request.fingerprint != dispatch.fingerprint:
         raise InvalidOperation(code="email_fingerprint_mismatch")
@@ -918,6 +923,7 @@ def email_history(session: Session, tenant_id: str, arguments: dict[str, Any]):
             "decider": attribution.get(proposal.id, {}).get("decider", dict(UNKNOWN)),
             "retry_acknowledgements": data.get("retry_acknowledgements", []),
             "duplicate_send_risk": bool(data.get("retry_acknowledgements")),
+            "approval_digest": _hash(data),
             "fingerprint": data["fingerprint"],
             "message": data["message"],
             "review_url": f"/api/tenants/{tenant_id}/change-proposals/{proposal.id}/review",
@@ -1059,14 +1065,25 @@ def email_workflow():
     """
     # reality-rule: emails.email_workflow.boundary
     return {
-        "version": 4,
+        "version": 5,
         "business_reference_kinds": sorted(_BUSINESS_MODELS),
         "context_rule": "Every capture and proposal requires one or more explicit existing same-company business references. Include all relevant known objects, including suppliers and other partner roles. Never invent IDs or infer a partner from domain alignment alone. A unique recorded exact address may resolve an existing party ID. Resolve context before capture. Actual send evidence inherits approved context.",
         "history_rule": "Use email_history with business_reference for bounded summaries and independently paged decisions. Follow each item or decision next_read tool and arguments in the same company to fetch the full original message, attachment manifest and applicable decision/execution evidence. Detail decision.decider reuses authoritative approval attribution; unknown stays unknown and the executor is not the approver. Context does not create Facts or modify business state.",
         "integration_paths": {
             "reality_review": "Propose, review, approve, claim and report the exact email through Reality.",
             "external_archive": "An external application may archive a message already sent under its own approval using email_capture direction=outbound. This is external_unverified evidence, never retroactive Reality approval.",
-            "external_grant": "Provider-independent grant recognition is not implemented; see draft spec 353.",
+            "external_grant": "Propose and show normalized preview; have an authorized external person approve once, then submit an issuer-signed v1 JWS bound to proposal_id/approval_digest using email_dispatch_accept_grant. Requires server-configured issuer key and exact company/subject mandate. Claim rechecks validity; submitter token is not the approver. See spec 354 and the canonical contract.",
+        },
+        "external_grant_format": {
+            "version": 1,
+            "algorithm": "EdDSA",
+            "type": "reality-email-approval+jwt",
+            "audience": "reality:email_dispatch",
+            "maximum_validity_seconds": 600,
+            "future_issue_skew_seconds": 30,
+            "approval_digest_format": "reality-email-proposal-v1",
+            "trust_configuration": "REALITY_EMAIL_APPROVAL_TRUST_JSON",
+            "risk_exceptions": "signed-in member/trusted-local review only",
         },
         "party_link_rule": "Resolve a unique existing party ID through a recorded exact email address if available. A domain match alone does not prove party identity. Ask for clarification on ambiguity; independently resolve orders and invoices.",
         "uncertain_retry_rule": "Never automatically resend. Definitive observed evidence uses executor-bound reports. If no definitive outcome is available, read retry_snapshot and propose the exact message with retry_acknowledgements, reason and explicit duplicate-send risk acceptance. Only a signed-in member or the existing trusted local boundary may confirm; token and Chat confirmation are refused. New receipts invalidate the snapshot; original uncertainty remains.",

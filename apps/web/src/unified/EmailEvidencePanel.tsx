@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../api";
 import { t } from "../localization";
+import { DecisionLine } from "./DecisionLine";
 import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
 
@@ -85,6 +86,26 @@ export function EmailEvidencePanel({
         <p data-email-external-authorization>
           {t("Externally sent; no Reality approval is documented.")}
         </p>
+      )}
+      {data.decision?.decider?.kind === "external_grant" && (
+        <div data-email-external-grant>
+          <DecisionLine
+            tenant={tenant}
+            decision={{
+              id: data.decision.proposal_id,
+              outcome: data.decision.status,
+              decided_at: data.decision.decided_at,
+              decider: data.decision.decider,
+            }}
+          />
+          <a
+            className="block text-accent underline"
+            data-email-grant-source
+            href={`/app/inspector?${new URLSearchParams({ tenant, inspector_view: "facts", inspector_target_kind: "source_record", inspector_target_id: data.decision.decider.grant_source_id })}`}
+          >
+            {t("Open original approval proof")}
+          </a>
+        </div>
       )}
       {data.decision?.duplicate_send_risk && (
         <p role="alert" data-email-retry-risk>

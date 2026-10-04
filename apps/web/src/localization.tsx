@@ -19558,6 +19558,13 @@ Object.assign(dictionaries.de, {
   "Token revoked": "Token widerrufen",
   "Not decided yet": "Noch nicht entschieden",
   "Confirmed by {name}": "Bestätigt von {name}",
+  "External approval by {name}, verified through {issuer}":
+    "Externe Freigabe von {name}, geprüft über {issuer}",
+  "Open original approval proof": "Originalen Freigabenachweis öffnen",
+  "The external email approval proof is invalid, expired, revoked or not authorized for this exact company and proposal.":
+    "Der externe E-Mail-Freigabenachweis ist ungültig, abgelaufen, widerrufen oder für dieses Unternehmen und diesen exakten Vorschlag nicht berechtigt.",
+  "This external approval has already been used. Read its original decision instead of authorizing another proposal.":
+    "Diese externe Freigabe wurde bereits verwendet. Lies ihre ursprüngliche Entscheidung, statt einen weiteren Vorschlag freizugeben.",
   "Rejected by {name}": "Abgelehnt von {name}",
   "Confirmed by Chat agent": "Vom Chat-Agenten bestätigt",
   "Rejected by Chat agent": "Vom Chat-Agenten abgelehnt",
@@ -19580,6 +19587,13 @@ Object.assign(dictionaries.nl, {
   "Token revoked": "Token ingetrokken",
   "Not decided yet": "Nog niet beslist",
   "Confirmed by {name}": "Bevestigd door {name}",
+  "External approval by {name}, verified through {issuer}":
+    "Externe goedkeuring door {name}, geverifieerd via {issuer}",
+  "Open original approval proof": "Oorspronkelijk goedkeuringsbewijs openen",
+  "The external email approval proof is invalid, expired, revoked or not authorized for this exact company and proposal.":
+    "Het externe e-mailgoedkeuringsbewijs is ongeldig, verlopen, ingetrokken of niet bevoegd voor dit bedrijf en dit exacte voorstel.",
+  "This external approval has already been used. Read its original decision instead of authorizing another proposal.":
+    "Deze externe goedkeuring is al gebruikt. Lees de oorspronkelijke beslissing in plaats van een ander voorstel goed te keuren.",
   "Rejected by {name}": "Afgewezen door {name}",
   "Confirmed by Chat agent": "Bevestigd door de chatagent",
   "Rejected by Chat agent": "Afgewezen door de chatagent",
@@ -19602,6 +19616,13 @@ Object.assign(dictionaries.es, {
   "Token revoked": "Token revocado",
   "Not decided yet": "Aún sin decidir",
   "Confirmed by {name}": "Confirmado por {name}",
+  "External approval by {name}, verified through {issuer}":
+    "Aprobación externa de {name}, verificada mediante {issuer}",
+  "Open original approval proof": "Abrir prueba original de aprobación",
+  "The external email approval proof is invalid, expired, revoked or not authorized for this exact company and proposal.":
+    "La prueba externa de aprobación de correo no es válida, ha caducado, se ha revocado o no está autorizada para esta empresa y esta propuesta exacta.",
+  "This external approval has already been used. Read its original decision instead of authorizing another proposal.":
+    "Esta aprobación externa ya se ha utilizado. Consulta su decisión original en lugar de autorizar otra propuesta.",
   "Rejected by {name}": "Rechazado por {name}",
   "Confirmed by Chat agent": "Confirmado por el agente de chat",
   "Rejected by Chat agent": "Rechazado por el agente de chat",

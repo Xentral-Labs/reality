@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:b48a2a5a2544d2edbf68517f76b67d0add817011556b89a211148f4cdd6eae93",
+  "knowledge_version": "advisor-v1:sha256:a7b4e88de95043da933829f7b9e757956caf2e04ac10b6086fa07929c37f9257",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "54409c1531c7341fa73498c025b4d8ff1d76e11f26ee116e5d634cba1e5132a8"
+      "fingerprint": "31d6840f4c96fb85fd3d9111265dee99950f0cc7be107fa26e77d7b7419841cf"
     },
     {
       "id": "source_document_product_evaluation",

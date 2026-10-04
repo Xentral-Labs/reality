@@ -115,3 +115,37 @@ def test_business_link_migration_preserves_legacy_and_refuses_populated_downgrad
         assert "email_business_link" in inspect(engine).get_table_names()
     finally:
         engine.dispose()
+
+
+def test_external_grant_channel_upgrade_and_guarded_rollback(
+    postgres_database, monkeypatch
+):
+    from sqlalchemy import text
+
+    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+    config = Config("alembic.ini")
+    command.upgrade(config, "0140_external_email_grants")
+    engine = create_engine(postgres_database)
+    try:
+        command.downgrade(config, "0139_email_business_links")
+        command.upgrade(config, "0140_external_email_grants")
+        with Session(engine) as db:
+            tenant = create_tenant(db, "External approval migration")
+            db.execute(
+                text(
+                    "INSERT INTO action (tenant_id,id,type,actor_type,status,input,output,created_at,decided_via_channel) VALUES (:tenant,'test','tool:email_dispatch_authorize','agent','executed','{}','{}',now(),'external_grant')"
+                ),
+                {"tenant": tenant.id},
+            )
+            db.commit()
+        with pytest.raises(RuntimeError, match="external approval"):
+            command.downgrade(config, "0139_email_business_links")
+        with engine.connect() as connection:
+            assert (
+                connection.execute(
+                    text("SELECT decided_via_channel FROM action WHERE id='test'")
+                ).scalar()
+                == "external_grant"
+            )
+    finally:
+        engine.dispose()

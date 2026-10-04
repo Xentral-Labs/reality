@@ -587,6 +587,7 @@ labels:
     tools:
       email_workflow: E-Mail-Ablauf lesen
       email_history: E-Mail-Belege und Entscheidungen lesen
+      email_dispatch_accept_grant: Externe E-Mail-Freigabe prüfen
       email_dispatch_propose: E-Mail-Versand vorschlagen
       email_capture: E-Mail als Beleg ablegen
       email_file_chunk: E-Mail-Dateiteil ablegen

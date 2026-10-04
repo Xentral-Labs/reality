@@ -102,3 +102,18 @@ test("every detail view names the decisions behind its record, linked", () => {
   // The compact preview keeps its three business sections only.
   assert.match(inspector, /!compact && decisions\.length/);
 });
+
+test("external verified approval names the person and issuer without claiming direct observation", () => {
+  const external = deciderSentence("executed", {
+    kind: "external_grant",
+    name: "Anna",
+    issuer: "approval.example",
+    subject: "person-42",
+    approved_at: 1,
+    grant_source_id: "src_1",
+  });
+  assert.equal(
+    fillSentence(external.template, external.values),
+    "External approval by Anna, verified through approval.example",
+  );
+});

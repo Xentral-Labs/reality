@@ -130,7 +130,6 @@ existing signed-in company-member checks and trusted local behavior. Review UI
 shows prior execution, snapshot, reason and duplicate risk with the exact message.
 Tests precede service changes and cover missing context/receipt labels, actor and
 tenant restrictions, stale snapshots, pending decisions and competing retries.
-No unresolved clarification blocks these requirements. External grant verification
-remains draft until issuer trust, identity and evidence exchange are agreed.
+No unresolved clarification blocks these requirements. External grant verification now follows the owner-authorized v1 format and implementation plan in spec 354; it does not weaken this risk boundary.
 Manual artifact analysis found no critical conflict; FR-009 now has a narrow,
 explicitly reviewed exception rather than an implicit redispatch bypass.

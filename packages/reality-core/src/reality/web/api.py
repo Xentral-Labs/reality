@@ -9437,6 +9437,7 @@ def resolve_company_search(
 
 # Spec 351: external agents own mail transport; these routes only retain evidence
 # and hand over explicitly approved immutable dispatch instructions.
+from reality.domain.email_approval_grants import AcceptEmailGrant
 from reality.domain.emails import (
     CaptureEmail,
     ClaimDispatch,
@@ -9536,6 +9537,19 @@ def post_email_dispatch_proposal(
             "status": proposal.status,
             "preview": json.loads(proposal.output),
         }
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.post("/email/dispatch-grants")
+def post_email_dispatch_grant(
+    tenant_id: str, body: AcceptEmailGrant, request: Request, session: DatabaseSession
+):
+    from reality.services.email_approval_grants import accept_grant
+
+    try:
+        _email_executor(request, session, tenant_id)
+        return accept_grant(session, tenant_id, body.model_dump(mode="json"))
     except (InvalidOperation, NotFound) as error:
         raise api_error(error) from error
 

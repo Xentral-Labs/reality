@@ -2481,4 +2481,9 @@ Provider-independent email integration: spec 351 FR-019–021 maps to
 `test_agent_email_business_context.py` evidence labels and uncertain-retry
 actor/tenant/snapshot/competing-claim stories and
 `agent-email-handoffs-browser.mjs` external-evidence/risk-warning navigation.
-Spec 353 is a draft external-grant contract, with no implementation claims.
+Spec 354 is a draft external-grant contract, with no implementation claims.
+
+
+## Spec 354 — External email approval grants
+
+FR-001–006 / US1–3: `packages/reality-core/tests/test_external_email_approval_grants.py` proves signature and exact binding, company/subject mandates, lifetime/revocation, duplicate/rebound/concurrent replay, rollback, separate MCP submission permission, attribution and claim/report evidence. `packages/reality-core/tests/test_agent_email_migration.py` proves the channel constraint and lossless guarded downgrade. `apps/web/scripts/decision-trail.test.mjs` and `apps/web/scripts/agent-email-handoffs-browser.mjs` prove external attribution and original Source navigation. Existing email/decision-policy suites preserve generic approval and risk boundaries.

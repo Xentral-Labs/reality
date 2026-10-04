@@ -3574,3 +3574,8 @@ outgoing mail with no documented Reality approval. Typed dispatch receipts retai
 the distinct Reality Decision trail. Email reviews show risk acknowledgements
 and an explicit duplicate-delivery warning for a new send whose earlier outcome
 is unresolved. The browser never guesses authorization or resolves uncertainty.
+
+
+## Verified external email approval — Spec 354
+
+Shared Decision attribution adds external_grant with configured person label, opaque external subject, issuer, approval time and original grant Source. The sentence explicitly states external approval and verification through the issuer; it never presents the worker/token or issuer as the approving person. Email evidence links to the original proof in Source Inspector. Browser rendering performs no signature or authority calculations. Outbound archive warnings and member-only risk reviews retain their existing meaning.

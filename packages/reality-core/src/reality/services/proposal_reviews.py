@@ -119,6 +119,9 @@ def proposal_next_step(proposal: ChangeProposal) -> dict[str, Any]:
     policy = resolve_decision_policy(
         tool, arguments, available=stored_arguments is not None
     )
+    if tool == "email_dispatch_authorize":
+        from reality.services.emails import _hash
+
     return {
         "review_required": True,
         "review_read": "proposal_review",
@@ -129,6 +132,19 @@ def proposal_next_step(proposal: ChangeProposal) -> dict[str, Any]:
         "confirmation_tool": "proposal_approve_and_execute",
         "reconciliation_read": "proposal_execution_status",
         "verification_reads": verification_reads,
+        **(
+            {
+                "external_approval": {
+                    "tool": "email_dispatch_accept_grant",
+                    "proposal_id": proposal.id,
+                    "approval_digest": _hash(arguments),
+                    "requires": "issuer-signed v1 JWS; configured company/subject mandate; exact reviewed preview",
+                }
+            }
+            if tool == "email_dispatch_authorize"
+            and not arguments.get("retry_acknowledgements")
+            else {}
+        ),
     }
 
 

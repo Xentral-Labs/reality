@@ -6346,6 +6346,7 @@ agent_command_coverage:
   remove_member: {classification: eligible, tools: [member_remove_propose]}
 
 agent_additional_commands:
+  email_dispatch_accept_grant: {classification: eligible, tools: [email_dispatch_accept_grant]}
   email_capture: {classification: eligible, tools: [email_capture]}
   email_file_chunk: {classification: eligible, tools: [email_file_chunk]}
   email_file_complete: {classification: eligible, tools: [email_file_complete]}
