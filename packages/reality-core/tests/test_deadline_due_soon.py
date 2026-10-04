@@ -6,7 +6,12 @@ is reported whether or not it is reserved; once the date passes it is overdue.
 
 from datetime import timedelta
 
-from intake_review_support import reviewed_manual_order, reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 
 from reality.services import core
 from reality.services.exceptions import next_clock_moment, operational_exceptions
@@ -117,8 +122,8 @@ def test_shipping_cancelling_or_a_later_date_clears_it(session, business):
         from_location_id=business.location.id,
         commitment_id=shipped.id,
     )
-    core.cancel_commitment(session, tenant, cancelled.id, reason="Withdrawn")
-    core.revise_commitment(
+    reviewed_cancel_commitment(session, tenant, cancelled.id, reason="Withdrawn")
+    reviewed_revise_commitment(
         session, tenant, moved.id, now + timedelta(days=3), note="Agreed later"
     )
 
@@ -130,7 +135,7 @@ def test_a_revised_date_carries_its_revision(session, business):
     tenant = business.tenant.id
     now = core.now()
     promise = _promise(session, business, "SO-REV", now + timedelta(days=5))
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, promise.id, now + timedelta(hours=8), note="Customer asked"
     )
 

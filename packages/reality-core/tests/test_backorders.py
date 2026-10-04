@@ -4,8 +4,10 @@ from decimal import Decimal
 
 from intake_review_support import (
     explicit_owner,
+    reviewed_cancel_commitment,
     reviewed_manual_order,
     reviewed_reserve,
+    reviewed_revise_commitment,
     reviewed_serve_backorders,
 )
 
@@ -123,7 +125,7 @@ def test_a_cancelled_or_reversed_assignment_leaves_the_order(session, business):
         reason="Customer takes stock instead",
         request_id="order-reverse",
     )
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, business.tenant.id, second.id, reason="Customer withdrew"
     )
 
@@ -141,7 +143,7 @@ def test_a_reduced_purchase_leaves_nothing_more_to_come(session, business):
     # Positive control: while 2 are still open, they are still to come.
     assert _split(session, business, second) == (1, 2)
 
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, business.tenant.id, purchase.id, quantity="4", note="Short delivery"
     )
 
@@ -425,7 +427,7 @@ def test_a_cancelled_promise_leaves_the_answer(session, business):
     _assign(session, business, purchase, customer, "4", "atp-cancel")
     assert _atp(session, business)["purchases"][0]["adds"] == "6"
 
-    core.cancel_commitment(session, business.tenant.id, customer.id, reason="Withdrawn")
+    reviewed_cancel_commitment(session, business.tenant.id, customer.id, reason="Withdrawn")
 
     answer = _atp(session, business)
     assert (answer["now"]["waiting_uncovered"], answer["purchases"][0]["adds"]) == (
@@ -483,7 +485,7 @@ def test_a_revised_due_date_moves_the_promise_and_the_purchase(session, business
     # Positive control: by the original dates the other promise comes first.
     assert _lines(_review(session, business)[1])[0][0] == other.id
 
-    core.revise_commitment(session, business.tenant.id, later.id, "2026-10-05")
+    reviewed_revise_commitment(session, business.tenant.id, later.id, "2026-10-05")
 
     _, preview = _review(session, business)
     assert (preview["lines"][0]["commitment_id"], preview["lines"][0]["due_at"]) == (
@@ -491,7 +493,7 @@ def test_a_revised_due_date_moves_the_promise_and_the_purchase(session, business
         "2026-10-05",
     )
     purchase = _purchase(session, business, "4", due="2026-10-12")
-    core.revise_commitment(session, business.tenant.id, purchase.id, "2030-01-30")
+    reviewed_revise_commitment(session, business.tenant.id, purchase.id, "2030-01-30")
     (row,) = _atp(session, business)["purchases"]
     assert (row["due_at"], row["overdue"]) == ("2030-01-30", False)
 

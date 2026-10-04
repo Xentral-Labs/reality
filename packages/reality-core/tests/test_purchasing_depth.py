@@ -5,9 +5,11 @@ from decimal import Decimal
 
 import pytest
 from intake_review_support import (
+    reviewed_cancel_commitment,
     reviewed_manual_order,
     reviewed_record_free_supplier_invoice,
     reviewed_record_supplier_invoice,
+    reviewed_revise_commitment,
 )
 from sqlalchemy import select
 
@@ -86,7 +88,7 @@ def test_a_supplier_confirms_quantity_date_and_price(session, business):
     tenant = business.tenant.id
     document, line, promise = _purchase(session, business, "PO-310-1")
 
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session,
         tenant,
         promise.id,
@@ -130,7 +132,7 @@ def test_an_invoice_above_the_confirmed_price_is_reported_against_it(session, bu
 
     tenant = business.tenant.id
     _, line, promise = _purchase(session, business, "PO-310-2")
-    core.revise_commitment(session, tenant, promise.id, unit_price="10.50")
+    reviewed_revise_commitment(session, tenant, promise.id, unit_price="10.50")
     _receive(session, business, promise, "100")
     receipt = reviewed_record_free_supplier_invoice(
         session,
@@ -179,17 +181,17 @@ def test_a_price_is_confirmed_for_purchases_only(session, business):
     )
     _refused(
         "commitment_price_purchase_only",
-        lambda: core.revise_commitment(
+        lambda: reviewed_revise_commitment(
             session, tenant, customer_promise.id, unit_price="9"
         ),
     )
     _, _, promise = _purchase(session, business, "PO-310-3")
     _refused(
         "commitment_price_invalid",
-        lambda: core.revise_commitment(session, tenant, promise.id, unit_price="-1"),
+        lambda: reviewed_revise_commitment(session, tenant, promise.id, unit_price="-1"),
     )
     # Positive control: a purchase price alone is a revision.
-    assert core.revise_commitment(session, tenant, promise.id, unit_price="9.9")
+    assert reviewed_revise_commitment(session, tenant, promise.id, unit_price="9.9")
 
 
 def test_the_review_shows_the_ordered_and_the_confirmed_price(session, business):
@@ -357,7 +359,7 @@ def _charge(session, business, line, amount="40.00", number="CXL-310"):
 def test_a_cancellation_charge_raises_no_purchase_finding(session, business):
     tenant = business.tenant.id
     document, line, promise = _purchase(session, business, "PO-310-C", "20")
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, tenant, promise.id, reason="Supplier had produced; agreed charge"
     )
 
@@ -410,7 +412,7 @@ def test_a_line_received_short_or_billed_at_another_price_is_not_matched(
     row = purchase_match(session, tenant, document.id)["lines"][0]
     assert row["differences"] == ["received_short"]
     # Revising the promise to what arrived matches the line.
-    core.revise_commitment(session, tenant, promise.id, quantity="95")
+    reviewed_revise_commitment(session, tenant, promise.id, quantity="95")
     assert purchase_match(session, tenant, document.id)["matched"] is True
 
 
@@ -513,7 +515,7 @@ def test_a_partly_received_line_cancelled_for_the_rest_matches_what_arrived(
     tenant = business.tenant.id
     document, line, promise = _purchase(session, business, "PO-310-P", "100")
     _receive(session, business, promise, "60")
-    core.cancel_commitment(session, tenant, promise.id, reason="Rest not needed")
+    reviewed_cancel_commitment(session, tenant, promise.id, reason="Rest not needed")
     _invoice(session, business, line, "60", "600", "INV-310-P")
 
     row = purchase_match(session, tenant, document.id)["lines"][0]
@@ -550,17 +552,17 @@ def test_a_price_is_confirmed_after_everything_arrived(session, business):
     session.refresh(promise)
     assert promise.status == "fulfilled"
 
-    core.revise_commitment(session, tenant, promise.id, unit_price="9.5")
+    reviewed_revise_commitment(session, tenant, promise.id, unit_price="9.5")
 
     assert core._agreed_line_prices(session, tenant, [line])[line.id] == Decimal("9.5")
     # Positive control: a quantity is still not revised on a fulfilled promise.
     _refused(
         "commitment_revise_not_open",
-        lambda: core.revise_commitment(session, tenant, promise.id, quantity="9"),
+        lambda: reviewed_revise_commitment(session, tenant, promise.id, quantity="9"),
     )
     _refused(
         "commitment_price_invalid",
-        lambda: core.revise_commitment(session, tenant, promise.id, unit_price="1e15"),
+        lambda: reviewed_revise_commitment(session, tenant, promise.id, unit_price="1e15"),
     )
 
 

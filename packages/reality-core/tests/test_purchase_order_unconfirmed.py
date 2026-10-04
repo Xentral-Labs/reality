@@ -3,7 +3,11 @@
 from datetime import timedelta
 from decimal import Decimal
 
-from intake_review_support import reviewed_manual_order
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_revise_commitment,
+)
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -69,7 +73,7 @@ def test_a_confirmation_or_a_receipt_clears_it(session, business):
     before = core.now()
 
     # Confirmed exactly as ordered: the supplier restates the date.
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, confirmed.id, confirmed.due_at, note="Supplier confirmed"
     )
     core.record_movement(
@@ -81,7 +85,7 @@ def test_a_confirmation_or_a_receipt_clears_it(session, business):
         to_location_id=business.location.id,
         commitment_id=received.id,
     )
-    core.cancel_commitment(session, tenant, cancelled.id, reason="Not needed")
+    reviewed_cancel_commitment(session, tenant, cancelled.id, reason="Not needed")
 
     found = _unconfirmed(session, tenant)
     assert not {confirmed.id, received.id, cancelled.id} & set(found)

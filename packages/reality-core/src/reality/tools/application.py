@@ -3587,14 +3587,18 @@ def _stale_closure(session: Session, tenant_id: str, arguments: dict[str, Any]) 
     BUSINESS RULE application.stale_closure.1:
     Route this company-scoped request to close_stale_promises. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.stale_closure.1
-    return close_stale_promises(
-        session,
+    return _invoke(
+        "close_stale_promises", close_stale_promises, session,
         tenant_id,
         direction=arguments["direction"],
         due_before=utc_datetime(arguments["due_before"]),
         expected_count=int(arguments["expected_count"]),
         reason=arguments["reason"],
+        action_id=arguments.get("_action_id"),
+        _commit=False,
     )
 
 
@@ -3798,9 +3802,11 @@ def _commitment_revise(
     for field in ("due_at", "stated_at"):
         if arguments.get(field) is not None:
             arguments[field] = utc_datetime(arguments[field])
+    from reality.services.intake import _invoke
+
     # reality-rule: application.commitment_revise.1
     return _entity_result(
-        "commitment_revision", revise_commitment(session, tenant_id, **arguments)
+        "commitment_revision", _invoke("revise_commitment", revise_commitment, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -3818,8 +3824,10 @@ def _commitment_cancel(
     from reality.services.core import cancel_commitment
 
     action_id = arguments.pop("_action_id", None)
+    from reality.services.intake import _invoke
+
     # reality-rule: application.commitment_cancel.1
-    commitment = cancel_commitment(session, tenant_id, action_id=action_id, **arguments)
+    commitment = _invoke("cancel_commitment", cancel_commitment, session, tenant_id, action_id=action_id, **arguments, _commit=False)
     event = session.scalar(
         select(BusinessEvent).where(
             BusinessEvent.tenant_id == tenant_id,
@@ -6339,6 +6347,7 @@ def create_change_proposal(
         review_opening(session, tenant_id, arguments)
     from reality.services.payment_actions import PAYMENT_TOOLS
     from reality.services.tenant_policy import (
+        COMMITMENT_APPLICATION_OPERATIONS,
         RESERVATION_APPLICATION_OPERATIONS,
         _proposal_authority,
     )
@@ -6355,7 +6364,7 @@ def create_change_proposal(
     # Guided lessons retain their existing exact step preview contract.
     if (
         tenant
-        and (tenant.purpose != "playground" or tool_name in {*PAYMENT_TOOLS, *RESERVATION_APPLICATION_OPERATIONS} and not actual_guided_proposal)
+        and (tenant.purpose != "playground" or tool_name in {*PAYMENT_TOOLS, *RESERVATION_APPLICATION_OPERATIONS, *COMMITMENT_APPLICATION_OPERATIONS} and not actual_guided_proposal)
         and eligible(tool_name, arguments)
         and not raw_opening
         and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}
@@ -6372,6 +6381,12 @@ def create_change_proposal(
     # reality-rule: application.create_change_proposal.3
     if tool_name in FINANCE_COMMANDS:
         normalized_arguments = validate_finance_request(tool_name, arguments)
+    if tool_name == "stale_closure":
+        from reality.services.business_locks import lock_delivery_state
+        from reality.services.commitment_decisions import prepare_stale_closure
+
+        lock_delivery_state(session, tenant_id)
+        normalized_arguments = prepare_stale_closure(session, tenant_id, arguments)
     backorder_review = None
     if tool_name == "backorders_serve":
         from reality.services.backorders import review_backorder_serving
@@ -6990,12 +7005,13 @@ def approve_and_execute_proposal(
         raise NotFound(code="proposal_not_found")
     from reality.services.tenant_policy import (
         COMMERCIAL_MASTER_OPERATIONS,
+        COMMITMENT_APPLICATION_OPERATIONS,
         FINANCIAL_POSTING_OPERATIONS,
         RESERVATION_APPLICATION_OPERATIONS,
     )
 
     if (
-        (candidate.type.removeprefix("tool:") in RESERVATION_APPLICATION_OPERATIONS or candidate.type.removeprefix("tool:") in FINANCIAL_POSTING_OPERATIONS or candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
+        (candidate.type.removeprefix("tool:") in COMMITMENT_APPLICATION_OPERATIONS or candidate.type.removeprefix("tool:") in RESERVATION_APPLICATION_OPERATIONS or candidate.type.removeprefix("tool:") in FINANCIAL_POSTING_OPERATIONS or candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
         in {
             "tool:document_correct", "tool:document_lines_correct",
             "tool:party_merge", "tool:payment_run",
@@ -7095,6 +7111,12 @@ def approve_and_execute_proposal(
         )
 
         arguments.pop(POSTING_REVIEW_KEY, None)
+    if tool_name == "stale_closure":
+        from reality.services.commitment_decisions import (
+            REVIEW_KEY as CLOSURE_REVIEW_KEY,
+        )
+
+        arguments.pop(CLOSURE_REVIEW_KEY, None)
     if tool_name == "payment_run":
         from reality.services.payment_run_decisions import REVIEW_KEY as RUN_REVIEW_KEY
 
@@ -7360,6 +7382,7 @@ def approve_and_execute_proposal(
         "proforma_invoice_record",
         "commitment_revise",
         "commitment_cancel",
+        "stale_closure",
         "sales_credit_record",
         "customer_refund_post",
         "ledger_reverse",

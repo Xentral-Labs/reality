@@ -8,6 +8,7 @@ from intake_review_support import (
     reviewed_post_customer_payment,
     reviewed_post_sales_invoice,
     reviewed_reserve,
+    reviewed_revise_commitment,
 )
 from sqlalchemy import event
 from unified_fixtures import delivery_fixture
@@ -228,7 +229,6 @@ def test_revised_held_order_keeps_requested_and_effective_due_dates(session, bus
     from reality.services.core import (
         create_commitment,
         hold_commitment,
-        revise_commitment,
     )
 
     doc, lines = document(session, business)
@@ -245,7 +245,7 @@ def test_revised_held_order_keeps_requested_and_effective_due_dates(session, bus
         document_id=doc.id,
         document_line_id=lines[0].id,
     )
-    revise_commitment(
+    reviewed_revise_commitment(
         session,
         business.tenant.id,
         commitment.id,

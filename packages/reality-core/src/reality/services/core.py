@@ -4765,11 +4765,12 @@ def revise_commitment(
         # saying "only send what you already sent" would otherwise leave a hold
         # standing on a finished promise, refusing every return against it for
         # a reason that has nothing to do with returns.
-        release_commitment_hold(
-            session,
-            tenant_id,
-            commitment.id,
-            _keep_reason_codes=frozenset(),
+        from reality.services.intake import _invoke
+
+        _invoke(
+            "release_commitment_hold", release_commitment_hold, session, tenant_id,
+            commitment_id=commitment.id,
+            _keep_reason_codes=(),
             _commit=False,
         )
     if _commit:
@@ -7635,9 +7636,11 @@ def cancel_commitment(
     # Nothing anybody said is erased: a release sets one timestamp, and the
     # reason, the note, who raised it and when all stay. That is what makes
     # doing this automatically safe.
+    from reality.services.intake import _invoke
+
     # reality-rule: core.cancel_commitment.4
-    released_holds = release_commitment_hold(
-        session, tenant_id, commitment.id, _keep_reason_codes=frozenset(), _commit=False
+    released_holds = _invoke(
+        "release_commitment_hold", release_commitment_hold, session, tenant_id, commitment_id=commitment.id, _keep_reason_codes=(), _commit=False
     )
     emit_business_event(
         session,
@@ -7868,6 +7871,8 @@ def close_stale_promises(
     expected_count: int,
     reason: str,
     actor_context: dict[str, Any] | None = None,
+    action_id: str | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     Close the promises somebody previewed, counted and gave a reason for.
@@ -7889,6 +7894,9 @@ def close_stale_promises(
     Cancel each selected promise without intermediate commits, record the closure event and commit once; on failure roll back the complete closure.
     """
     _require_business_mutation(session, tenant_id, "close_stale_promises")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("close_stale_promises", locals())
     get_tenant(session, tenant_id)
     stated_reason = (reason or "").strip()
     # reality-rule: core.close_stale_promises.1
@@ -7906,11 +7914,13 @@ def close_stale_promises(
     # reality-rule: core.close_stale_promises.3
     try:
         for row in matches:
-            cancel_commitment(
-                session,
-                tenant_id,
-                row.id,
+            from reality.services.intake import _invoke
+
+            _invoke(
+                "cancel_commitment", cancel_commitment, session, tenant_id,
+                commitment_id=row.id,
                 reason=stated_reason,
+                action_id=action_id,
                 _commit=False,
             )
         emit_business_event(
@@ -7927,8 +7937,11 @@ def close_stale_promises(
                 "commitment_ids": [row.id for row in matches],
                 "actor_context": actor_context or {},
             },
+            action_id=action_id,
+            correlation_id=action_id,
         )
-        session.commit()
+        if _commit:
+            session.commit()
     except Exception:
         session.rollback()
         raise
@@ -7969,6 +7982,15 @@ def release_commitment_hold(
     Emit a release event only when holds were actually released.
     """
     _require_business_mutation(session, tenant_id, "release_commitment_hold")
+    from reality.services.intake import require_scoped_intent
+    from reality.services.tenant_policy import (
+        COMMITMENT_APPLICATION_OPERATIONS,
+        _application_authority,
+    )
+
+    authority = _application_authority.get()
+    if authority is not None and authority.tool in COMMITMENT_APPLICATION_OPERATIONS:
+        require_scoped_intent("release_commitment_hold", locals())
     _tenant_record(session, Commitment, tenant_id, commitment_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)

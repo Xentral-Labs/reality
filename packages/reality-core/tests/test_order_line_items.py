@@ -1,9 +1,10 @@
 """Spec 296: an order with an unknown SKU keeps its known lines; a person assigns the rest."""
+
 import json
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import accept_import_job
+from intake_review_support import accept_import_job, reviewed_cancel_commitment
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -226,7 +227,7 @@ def test_an_assignment_names_why_it_is_refused(session, business, case, code):
         line_id = line.id
     elif case == "closed":
         for commitment in result[3]:
-            core.cancel_commitment(session, tenant, commitment.id, reason="Test")
+            reviewed_cancel_commitment(session, tenant, commitment.id, reason="Test")
 
     with pytest.raises(core.InvalidOperation) as refused:
         assign_line_item(session, tenant, document_line_id=line_id, item_id=helmet.id)
@@ -238,7 +239,7 @@ def test_a_cancelled_order_no_longer_reports_its_unknown_line(session, business)
     assert _findings(session, business)
 
     for commitment in result[3]:
-        core.cancel_commitment(
+        reviewed_cancel_commitment(
             session, business.tenant.id, commitment.id, reason="Test"
         )
 

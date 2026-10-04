@@ -4,7 +4,7 @@ import json
 from datetime import timedelta
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_cancel_commitment, reviewed_manual_order
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -221,7 +221,7 @@ def test_nothing_left_to_ship_is_not_uncovered(session, business):
     _capture(session, tenant, authorization, "60")
     assert order.id in _expired(session, tenant)
 
-    core.cancel_commitment(session, tenant, promise.id, reason="Rest not wanted")
+    reviewed_cancel_commitment(session, tenant, promise.id, reason="Rest not wanted")
 
     assert order.id not in _expired(session, tenant)
     # Positive control: a live authorization is never reported.

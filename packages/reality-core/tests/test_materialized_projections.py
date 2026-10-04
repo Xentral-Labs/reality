@@ -1,10 +1,13 @@
 
-from intake_review_support import reviewed_release_reservation, reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_release_reservation,
+    reviewed_reserve,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, ProjectionCheckpoint, ProjectionRow
 from reality.services.core import (
-    cancel_commitment,
     create_commitment,
     record_movement,
 )
@@ -114,7 +117,7 @@ def test_materialized_projection_removes_stale_rows(session, business):
     )
     assert row_id
 
-    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     rebuild_projections(session, business.tenant.id, MATERIALIZED_PROJECTIONS)
 
     assert projection_rows(session, business.tenant.id, FULFILLMENT_QUEUE) == []

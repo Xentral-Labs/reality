@@ -1,12 +1,16 @@
 
 import pytest
-from intake_review_support import reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_close_stale_promises,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 
 from reality.services.core import (
     InvalidOperation,
     NotFound,
     active_commitment_hold,
-    cancel_commitment,
     create_commitment,
     create_document,
     hold_commitment,
@@ -14,7 +18,6 @@ from reality.services.core import (
     record_movement,
     release_commitment_hold,
     release_document_holds,
-    revise_commitment,
 )
 
 
@@ -136,7 +139,7 @@ def test_a_closed_promise_cannot_be_held(session, business):
     assert hold.released_at is None
     release_commitment_hold(session, business.tenant.id, commitment.id)
 
-    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="Only open commitments"):
         hold_commitment(session, business.tenant.id, commitment.id, "credit_check")
 
@@ -184,7 +187,7 @@ def test_cancelling_a_promise_releases_its_hold(session, business):
     )
     raised_at = hold.created_at
 
-    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
 
     assert hold.released_at is not None
     assert active_commitment_hold(session, business.tenant.id, commitment.id) is None
@@ -199,7 +202,7 @@ def test_cancelling_a_promise_releases_its_hold(session, business):
     # A promise with no hold behaves exactly as it did.
     other = commitment_for(session, business)
     assert (
-        cancel_commitment(
+        reviewed_cancel_commitment(
             session, business.tenant.id, other.id, reason="Test cancellation"
         ).status
         == "cancelled"
@@ -221,7 +224,7 @@ def test_goods_can_come_back_against_a_cancelled_held_promise(session, business)
         commitment_id=commitment.id,
     )
     hold_commitment(session, business.tenant.id, commitment.id, "credit_check")
-    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
 
     # Before this specification the hold stood and this was refused, with a
     # message about a credit check.
@@ -254,14 +257,14 @@ def test_settling_a_promise_by_revision_releases_its_hold(session, business):
 
     # A revision that leaves the promise open leaves the hold alone: there is
     # still a delivery to stop.
-    revise_commitment(session, business.tenant.id, commitment.id, quantity=2)
+    reviewed_revise_commitment(session, business.tenant.id, commitment.id, quantity=2)
     assert commitment.status == "open"
     assert active_commitment_hold(session, business.tenant.id, commitment.id) == hold
 
     # A held promise may still be revised, and a revision down to what already
     # shipped finishes it. Without this the hold would stand on a finished
     # promise and refuse every return against it.
-    revise_commitment(session, business.tenant.id, commitment.id, quantity=1)
+    reviewed_revise_commitment(session, business.tenant.id, commitment.id, quantity=1)
     assert commitment.status == "fulfilled"
     assert hold.released_at is not None
     assert active_commitment_hold(session, business.tenant.id, commitment.id) is None
@@ -275,7 +278,7 @@ def test_the_release_is_recorded_by_the_release_operation(session, business):
 
     commitment = commitment_for(session, business)
     hold = hold_commitment(session, business.tenant.id, commitment.id, "compliance")
-    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
 
     events = [
         (entry.event_type, json.loads(entry.payload))
@@ -302,36 +305,46 @@ def test_the_release_is_recorded_by_the_release_operation(session, business):
     ]
 
 
-def test_the_release_joins_the_caller_s_transaction(session, business):
-    """A cancellation that is rolled back releases nothing.
+def test_the_release_joins_the_caller_s_transaction(session, business, monkeypatch):
+    """A genuine cancellation failure rolls back its hold release with its receipt."""
+    import json
 
-    The stale-promise closure cannot exercise this: `_stale_promises` skips
-    held promises on purpose, so a closure never cancels one. The property is
-    still the one that matters — any caller cancelling inside a transaction
-    must have the release stand or fall with it — so it is proven directly
-    rather than through a caller that cannot reach it.
-    """
+    from intake_review_support import explicit_owner
+
+    from reality.services import core
+    from reality.services.delivery_actions import REVIEW_KEY
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
     first = commitment_for(session, business)
     second = commitment_for(session, business)
-    holds = [
-        hold_commitment(session, business.tenant.id, first.id, "credit_check"),
-        hold_commitment(session, business.tenant.id, second.id, "compliance"),
-    ]
-
-    cancel_commitment(session, business.tenant.id, first.id, reason="Test cancellation", _commit=False)
-    cancel_commitment(session, business.tenant.id, second.id, reason="Test cancellation", _commit=False)
-    assert all(hold.released_at is not None for hold in holds)
-    session.rollback()
-
-    # Neither release survived, because neither cancellation did.
-    assert all(hold.released_at is None for hold in holds)
-    assert first.status == "open"
-    assert second.status == "open"
-
-    # The positive control: committed, both go together.
-    cancel_commitment(session, business.tenant.id, first.id, reason="Test cancellation", _commit=False)
-    cancel_commitment(session, business.tenant.id, second.id, reason="Test cancellation", _commit=False)
-    session.commit()
+    holds = [hold_commitment(session, business.tenant.id, first.id, "credit_check"),
+             hold_commitment(session, business.tenant.id, second.id, "compliance")]
+    owner = explicit_owner(session, business.tenant.id)
+    original = core.cancel_commitment
+    def fail_after_release(*args, **kwargs):
+        result = original(*args, **kwargs)
+        assert active_commitment_hold(session, business.tenant.id, result.id) is None
+        raise core.InvalidOperation(code="intake_review_invalid")
+    for commitment in (first, second):
+        proposal = create_change_proposal(session, business.tenant.id, "commitment_cancel", {
+            "commitment_id": commitment.id, "reason": "Test cancellation"})
+        token = json.loads(proposal.input)[REVIEW_KEY]["token"]
+        with monkeypatch.context() as patch:
+            patch.setattr(core, "cancel_commitment", fail_after_release)
+            with pytest.raises(core.InvalidOperation):
+                approve_and_execute_proposal(session, business.tenant.id, proposal.id,
+                    confirming_principal=owner, review_token=token, confirmed=True)
+    for hold in holds:
+        session.refresh(hold)
+        assert hold.released_at is None
+    session.refresh(first)
+    session.refresh(second)
+    assert first.status == second.status == "open"
+    reviewed_cancel_commitment(session, business.tenant.id, first.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, second.id, reason="Test cancellation")
     assert all(hold.released_at is not None for hold in holds)
     assert active_commitment_hold(session, business.tenant.id, first.id) is None
     assert active_commitment_hold(session, business.tenant.id, second.id) is None
@@ -345,7 +358,6 @@ def test_a_closure_never_cancels_a_held_promise(session, business):
     transactional property directly.
     """
     from reality.services.core import (
-        close_stale_promises,
         preview_stale_promise_closure,
     )
 
@@ -360,7 +372,7 @@ def test_a_closure_never_cancels_a_held_promise(session, business):
     assert preview["count"] == 1
     assert preview["sample"] == [free.id]
 
-    close_stale_promises(
+    reviewed_close_stale_promises(
         session,
         business.tenant.id,
         direction="sales",
@@ -387,7 +399,7 @@ def test_no_closed_promise_carries_an_active_hold(session, business):
     # Cancelled directly.
     cancelled = commitment_for(session, business)
     hold_commitment(session, tenant_id, cancelled.id, "credit_check")
-    cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
 
     # Fulfilled by a revision down to what shipped.
     settled = commitment_for(session, business)
@@ -401,7 +413,7 @@ def test_no_closed_promise_carries_an_active_hold(session, business):
         commitment_id=settled.id,
     )
     hold_commitment(session, tenant_id, settled.id, "compliance")
-    revise_commitment(session, tenant_id, settled.id, quantity=1)
+    reviewed_revise_commitment(session, tenant_id, settled.id, quantity=1)
 
     # Fulfilled by shipping, which a held promise cannot reach — so this one is
     # shipped after its hold was lifted, and ends with no active hold either.

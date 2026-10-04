@@ -4,14 +4,16 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_close_stale_promises,
+    reviewed_reserve,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, Commitment, Document, Movement
 from reality.services.core import (
     InvalidOperation,
-    cancel_commitment,
-    close_stale_promises,
     create_commitment,
     create_tenant,
     hold_commitment,
@@ -57,7 +59,7 @@ def preview(session, business, *, before=CUTOFF, direction="sales"):
 
 
 def close(session, business, count, *, before=CUTOFF, reason="Imported history"):
-    return close_stale_promises(
+    return reviewed_close_stale_promises(
         session,
         business.tenant.id,
         direction="sales",
@@ -132,7 +134,7 @@ def test_only_open_dated_promises_match(session, business):
     stock(session, business)
     matching = promise(session, business)
     already_closed = promise(session, business)
-    cancel_commitment(session, business.tenant.id, already_closed.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, already_closed.id, reason="Test cancellation")
     promise(session, business, due_at=None)
 
     # A cancelled promise and a dateless one are somebody else's business.

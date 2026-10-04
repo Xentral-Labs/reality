@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from intake_review_support import reviewed_reserve
+from intake_review_support import reviewed_cancel_commitment, reviewed_reserve
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
 
@@ -27,7 +27,7 @@ from reality.web import api as api_module
 from reality.web import app as web_module
 
 
-def test_core_cancellation_requires_a_non_empty_reason(session, business):
+def test_reviewed_cancellation_requires_a_non_empty_reason(session, business):
     commitment = create_commitment(
         session,
         business.tenant.id,
@@ -40,15 +40,15 @@ def test_core_cancellation_requires_a_non_empty_reason(session, business):
         "2026-12-01",
     )
 
-    with pytest.raises(InvalidOperation, match="requires a reason"):
-        from reality.services.core import cancel_commitment
+    with pytest.raises(InvalidOperation) as refused:
 
-        cancel_commitment(
+        reviewed_cancel_commitment(
             session,
             business.tenant.id,
             commitment.id,
             reason="   ",
         )
+    assert refused.value.code == "commitment_cancellation_reason_required"
 
 
 def test_reviewed_cancellation_closes_open_remainder_and_releases_controls(

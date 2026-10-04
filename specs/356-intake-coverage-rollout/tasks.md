@@ -161,10 +161,10 @@ by all required checks and honest unresolved-outcome reporting.
 
 ## Standalone financial evidence qualification
 
-- [ ] T072 Prove direct/unconfirmed/changed/repeated/early-commit/post-write/sibling/current-context refusal for seven existing posting/netting/supplier-refund families.
-- [ ] T073 Retain current references/defaults and freeze exact canonical parents and posting/allocation/refund children under the actual root decision.
-- [ ] T074 Preserve actual nested invoice/credit/intake/fixed authority and route existing HTTP endpoints through explicit request confirmation.
-- [ ] T075 Qualify exact stated values, current authority/receipt/replay, financial/scenario/browser/adapters/catalog regressions and every committed-head CI job.
+- [x] T072 Prove direct/unconfirmed/changed/repeated/early-commit/post-write/sibling/current-context refusal for seven existing posting/netting/supplier-refund families.
+- [x] T073 Retain current references/defaults and freeze exact canonical parents and posting/allocation/refund children under the actual root decision.
+- [x] T074 Preserve actual nested invoice/credit/intake/fixed authority and route existing HTTP endpoints through explicit request confirmation.
+- [x] T075 Qualify exact stated values, current authority/receipt/replay, financial/scenario/browser/adapters/catalog regressions and every committed-head CI job.
 
 
 ## Atomic reservation allocation/release qualification
@@ -173,3 +173,11 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T077 Freeze actual reservation invocation, recheck retained review/current authority and settle business effects with receipt atomically.
 - [ ] T078 Preserve partial/tracked/replay/guided/fixed profile semantics and require actual explicit transport confirmation.
 - [ ] T079 Qualify reservation/domain/adapter/profile/browser and every committed-head CI job.
+
+
+## Commitment lifecycle qualification
+
+- [ ] T080 Observe valid direct/unconfirmed/changed/repeated/early-commit/post-write/sibling/current-context refusals for revision, cancellation and stale closure.
+- [ ] T081 Freeze current reviewed parents and exact batch children; preserve internal release effects and current actual authority.
+- [ ] T082 Route real transports and fixed/profile/nested callers through their actual scoped decisions.
+- [ ] T083 Qualify domain, adapters, browser, generated catalogs and every final-head CI job.

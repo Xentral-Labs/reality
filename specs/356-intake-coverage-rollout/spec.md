@@ -358,3 +358,10 @@ The existing backorders_serve command is an atomic reservation-batch parent. Ret
 
 
 Ordinary practice/Storyline reservation allocation and release retain and recheck the same current review as ordinary business companies. Only the existing genuine session/transaction/company/tool-bound guided proposal scope preserves its exact step-preview contract; company purpose alone cannot suppress a canonical review. Concurrency keeps the reviewed quantity exact: a stale review refuses, and any subsequent partial allocation requires a fresh retained confirmation. Actual interruption uses the genuine durable claim and never fabricated executing state.
+
+
+## Commitment revision, cancellation and stale closure
+
+FR-046: Existing commitment_revise and commitment_cancel require a current retained delivery review and actual authorized decision. Freeze the exact parent and preserve stated dates, quantity, price, allocation choices and cancellation reason. Reject direct/private-commit, altered/repeated invocation, sibling writes and early effect commit. Derived release of reservations/holds belongs only to the reviewed selected commitment.
+
+FR-047: Existing stale_closure must retain the exact eligible commitment identities and their current revision/allocation/hold/reference state, beyond an equal count. Require explicit confirmation, freeze each selected cancellation, and settle the whole batch with its receipt. The actual fixed Normal Month cancellation and authored profile calls remain narrowly scoped; no new arbitrary operational authority is granted. Historical approval remains unknown.

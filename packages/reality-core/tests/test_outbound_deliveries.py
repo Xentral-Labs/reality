@@ -4,7 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_reserve
+from intake_review_support import reviewed_cancel_commitment, reviewed_reserve
 from sqlalchemy import func, select
 
 from reality.db.core import Movement
@@ -275,7 +275,7 @@ def test_a_cancelled_promise_leaves_its_goods_waiting_to_be_put_back(
         session, tenant, delivery.id, [{"commitment_id": promise.id, "quantity": "10"}]
     )
 
-    core.cancel_commitment(session, tenant, promise.id, reason="Customer cancelled")
+    reviewed_cancel_commitment(session, tenant, promise.id, reason="Customer cancelled")
 
     line = outbound_delivery_detail(session, tenant, delivery.id)["lines"][0]
     assert (line["promise_status"], line["to_put_back"]) == ("cancelled", "10")

@@ -7,6 +7,7 @@ from decimal import Decimal
 import pytest
 from conftest import record_by_id
 from intake_review_support import (
+    reviewed_cancel_commitment,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
     reviewed_record_sales_invoice,
@@ -550,7 +551,7 @@ def test_cancelling_the_replacement_ends_what_the_exchange_settles(session, busi
         commitment.id: Decimal(1)
     }
 
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, tenant, exchange.replacement_commitment_id, reason="Out of stock"
     )
 
@@ -587,7 +588,7 @@ def test_a_partly_shipped_then_cancelled_replacement_settles_what_left(
         commitment_id=exchange.replacement_commitment_id,
     )
 
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, tenant, exchange.replacement_commitment_id, reason="Rest refunded"
     )
 

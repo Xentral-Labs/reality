@@ -2,13 +2,15 @@
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_create_payment_term,
+)
 from sqlalchemy import select
 
 from reality.db.core import Document, DocumentLine, PartyRole
 from reality.services.core import (
     InvalidOperation,
-    cancel_commitment,
     create_commitment,
     create_document,
     record_movement,
@@ -52,7 +54,7 @@ def test_document_and_commitment_operational_fields(session, business):
     assert commitment.due_at.isoformat() == "2026-09-05T10:00:00+00:00"
     assert commitment.priority == "urgent"
 
-    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     assert commitment.cancelled_at is not None
 
 

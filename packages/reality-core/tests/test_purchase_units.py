@@ -11,6 +11,7 @@ import pytest
 from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
+    reviewed_revise_commitment,
 )
 from sqlalchemy.exc import IntegrityError
 
@@ -630,13 +631,12 @@ def test_billable_positions_of_a_purchase_in_cartons_are_in_cartons(
 
 
 def test_the_purchase_view_reads_the_promise_in_force(session, business):
-    from reality.services import core
     from reality.services.delivery_reads import delivery_case
 
     tenant = business.tenant.id
     _cartons(session, business)
     _, _, _, commitments = _purchase(session, business, "5", "box")
-    core.revise_commitment(session, tenant, commitments[0].id, quantity="48")
+    reviewed_revise_commitment(session, tenant, commitments[0].id, quantity="48")
 
     purchase = delivery_case(session, tenant, commitments[0].id)["case"][
         "purchase_unit"

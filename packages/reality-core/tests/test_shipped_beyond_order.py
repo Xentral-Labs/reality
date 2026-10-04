@@ -2,7 +2,11 @@
 
 from decimal import Decimal
 
-from intake_review_support import reviewed_manual_order
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_revise_commitment,
+)
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -64,7 +68,7 @@ def test_a_line_lowered_below_what_shipped_is_reported(session, business):
     # Positive control: part of the order shipped is not beyond it.
     assert promise.id not in _beyond(session, business)
 
-    core.revise_commitment(session, business.tenant.id, promise.id, quantity="4")
+    reviewed_revise_commitment(session, business.tenant.id, promise.id, quantity="4")
 
     finding = _beyond(session, business)[promise.id]
     assert finding.causal_values["excess_quantity"] == 2
@@ -78,7 +82,7 @@ def test_it_clears_by_a_return_or_a_revision_up(session, business):
     raised = _order(session, business, "SO-313-3")
     for promise in (returned, raised):
         _ship(session, business, promise, "6")
-        core.revise_commitment(session, tenant, promise.id, quantity="4")
+        reviewed_revise_commitment(session, tenant, promise.id, quantity="4")
     assert {returned.id, raised.id} <= set(_beyond(session, business))
 
     core.record_movement(
@@ -92,7 +96,7 @@ def test_it_clears_by_a_return_or_a_revision_up(session, business):
         reason="Excess sent back",
     )
     # The customer keeps the excess: the line is raised again to what shipped.
-    core.revise_commitment(session, tenant, raised.id, quantity="6")
+    reviewed_revise_commitment(session, tenant, raised.id, quantity="6")
 
     assert not {returned.id, raised.id} & set(_beyond(session, business))
     session.refresh(raised)
@@ -101,7 +105,7 @@ def test_it_clears_by_a_return_or_a_revision_up(session, business):
     import pytest
 
     with pytest.raises(core.InvalidOperation) as refused:
-        core.revise_commitment(session, tenant, raised.id, quantity="7")
+        reviewed_revise_commitment(session, tenant, raised.id, quantity="7")
     assert refused.value.code == "revision_beyond_shipped"
 
 
@@ -109,7 +113,7 @@ def test_a_cancelled_rest_is_not_beyond_its_order(session, business):
     tenant = business.tenant.id
     promise = _order(session, business, "SO-313-4")
     _ship(session, business, promise, "6")
-    core.cancel_commitment(session, tenant, promise.id, reason="Rest not wanted")
+    reviewed_cancel_commitment(session, tenant, promise.id, reason="Rest not wanted")
 
     assert promise.id not in _beyond(session, business)
 
@@ -117,7 +121,7 @@ def test_a_cancelled_rest_is_not_beyond_its_order(session, business):
 def test_another_company_sees_nothing(session, business):
     promise = _order(session, business, "SO-313-5")
     _ship(session, business, promise, "6")
-    core.revise_commitment(session, business.tenant.id, promise.id, quantity="5")
+    reviewed_revise_commitment(session, business.tenant.id, promise.id, quantity="5")
     other = core.create_tenant(session, "Other GmbH")
 
     assert promise.id in _beyond(session, business)

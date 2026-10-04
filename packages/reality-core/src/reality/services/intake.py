@@ -275,6 +275,8 @@ _INTENT_DEFAULTS = {
         "announce_customer_return",
         "revise_commitment",
         "cancel_commitment",
+        "close_stale_promises",
+        "release_commitment_hold",
     )
 }
 
@@ -367,6 +369,16 @@ def _post_reviewed_invoice(session, tenant_id, document_id, *, direction, credit
     operation = "post_sales_credit_note" if credit else "post_sales_invoice" if direction == "sales" else "post_supplier_invoice"
     identity = {"credit_note_id": document_id} if credit else {"document_id": document_id}
     return _invoke(operation, getattr(core, operation), session, tenant_id, **identity, **arguments)
+
+
+def _cancel_commitment_frozen(session, tenant_id, commitment_id, **arguments):
+    """Bind an authored cancellation to its existing current decision scope."""
+    return _invoke("cancel_commitment", core.cancel_commitment, session, tenant_id, commitment_id=commitment_id, **arguments)
+
+
+def _revise_commitment_frozen(session, tenant_id, commitment_id, **arguments):
+    """Bind an authored revision to its existing current decision scope."""
+    return _invoke("revise_commitment", core.revise_commitment, session, tenant_id, commitment_id=commitment_id, **arguments)
 
 
 def _reserve_frozen(session, tenant_id, commitment_id, quantity=None, **arguments):

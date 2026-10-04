@@ -14,6 +14,7 @@ import pytest
 from conftest import record_by_id
 from intake_review_support import (
     accept_normalized_payment,
+    reviewed_cancel_commitment,
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
@@ -24,6 +25,7 @@ from intake_review_support import (
     reviewed_record_sales_credit,
     reviewed_record_sales_invoice,
     reviewed_reserve,
+    reviewed_revise_commitment,
 )
 from sqlalchemy import func, select
 
@@ -108,7 +110,7 @@ def test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded
         customer_reference="PO-PRE-1",
     )
     for commitment in commitments:
-        core.cancel_commitment(
+        reviewed_cancel_commitment(
             session, tenant, commitment.id, reason="Customer cancelled before paying"
         )
     assert [c.status for c in commitments] == ["cancelled"]
@@ -1171,7 +1173,7 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
             commitment_id=purchase.id,
         )
     # The customer cancels 1 of the 6 still open.
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, commitment.id, quantity="9", note="Customer cancels one"
     )
     # The rest ships; the release still covers the order.
@@ -1753,7 +1755,7 @@ def test_an_order_over_the_limit_is_held_and_released_by_an_owner(session, busin
         session, business, party, "SO-C07-OK", "2", "100.00"
     )
     assert _credit_holds(session, business, within) == []
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, tenant, within[0], reason="Superseded by the next order"
     )
 

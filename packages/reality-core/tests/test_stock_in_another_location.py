@@ -3,7 +3,11 @@
 import json
 from decimal import Decimal
 
-from intake_review_support import reviewed_reserve, reviewed_set_master_data_active
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_reserve,
+    reviewed_set_master_data_active,
+)
 from sqlalchemy import event
 
 from reality.services import core
@@ -115,7 +119,7 @@ def test_a_reserved_held_cancelled_or_shipped_promise_is_not_named(session, busi
 
     reviewed_reserve(session, tenant, reserved.id, location_id=munich.id)
     core.hold_commitment(session, tenant, held.id, "customer_request")
-    core.cancel_commitment(session, tenant, cancelled.id, reason="customer withdrew")
+    reviewed_cancel_commitment(session, tenant, cancelled.id, reason="customer withdrew")
     found = _found(session, tenant)
     assert not {reserved.id, held.id, cancelled.id} & set(found)
 

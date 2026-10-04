@@ -13,11 +13,11 @@ projection below, with the reason, so that it stays a decision rather than a hab
 import re
 
 import pytest
+from intake_review_support import reviewed_cancel_commitment
 from sqlalchemy import event
 
 from reality.services import projections
 from reality.services.core import (
-    cancel_commitment,
     create_commitment,
     create_document,
     record_movement,
@@ -87,7 +87,7 @@ def closed_work(session, business, count: int, tag: str) -> None:
             "2026-08-10T00:00:00+00:00",
             document_id=order.id,
         )
-        cancel_commitment(session, tenant, promise.id, reason="Test cancellation", _commit=False)
+        reviewed_cancel_commitment(session, tenant, promise.id, reason="Test cancellation", _commit=False)
     # One promise still open, so the derivations have something to answer about.
     still_open = create_document(
         session,

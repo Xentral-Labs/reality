@@ -2,7 +2,7 @@
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_reserve
+from intake_review_support import reviewed_reserve, reviewed_revise_commitment
 from sqlalchemy.exc import IntegrityError
 from unified_fixtures import delivery_fixture
 
@@ -10,7 +10,6 @@ from reality.services.core import (
     NotFound,
     create_tenant,
     record_movement,
-    revise_commitment,
 )
 from reality.services.delivery_reads import delivery_case, delivery_work
 
@@ -55,7 +54,7 @@ def test_partial_and_final_delivery_keep_exact_case(session, business):
 def test_effective_quantity_filters_before_paging(session, business):
     fixture = delivery_fixture(session, business)
     tid, cid = business.tenant.id, fixture.commitment.id
-    revise_commitment(session, tid, cid, quantity="15")
+    reviewed_revise_commitment(session, tid, cid, quantity="15")
     result = delivery_work(session, tid, size=1)
     assert result["page"]["total"] == 1
     assert Decimal(result["items"][0]["promised"]) == 15
@@ -80,7 +79,7 @@ def test_revisions_and_corrections_agree_with_inspector(session, business):
 
     fixture = delivery_fixture(session, business)
     tid, cid = business.tenant.id, fixture.commitment.id
-    revise_commitment(session, tid, cid, quantity="15")
+    reviewed_revise_commitment(session, tid, cid, quantity="15")
     shipment = record_movement(
         session,
         tid,

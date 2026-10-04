@@ -148,3 +148,8 @@ The seven currently supported handlers can invoke canonical posting/netting/refu
 ## Reservation follow-up analysis
 
 The two existing canonical parents still allow direct ordinary-company calls and handler commits. Existing delivery reviews and actual decision scopes already provide current-state/person authority; retain and recheck these at the canonical parent. Keep existing partial allocation and release domain logic unchanged. No critical ambiguity or schema change.
+
+
+## Commitment lifecycle analysis
+
+Direct revision/cancellation currently lack canonical application enforcement. Stale closure calls cancellation and commits directly; count equality does not prove selected identity equality. All three parents must close together. Reservation/hold releases are internal consequences, not authority for unrelated writes. Test direct calls, retained review invalidation, identity replacement with unchanged count, exact child invocation, second-child failure, early commit, current actor/OAuth revocation, explicit HTTP/CLI refusal and retained receipt/replay before marking qualification complete. No unresolved clarification or critical finding blocks implementation.

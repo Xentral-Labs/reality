@@ -11,10 +11,12 @@ from decimal import Decimal
 import pytest
 from intake_review_support import (
     accept_import_job,
+    reviewed_cancel_commitment,
     reviewed_manual_order,
     reviewed_post_sales_credit_note,
     reviewed_post_sales_invoice,
     reviewed_reserve,
+    reviewed_revise_commitment,
 )
 from sqlalchemy import select
 
@@ -216,7 +218,7 @@ def test_an_owner_releases_a_currency_hold_and_a_raise_asks_again(session, busin
     assert _holds(session, business, commitments) == []
 
     # Raising the order adds credit nobody has judged yet, so it waits again.
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, commitments[0].id, quantity="8", note="More"
     )
     assert len(_holds(session, business, commitments)) == 1
@@ -692,7 +694,7 @@ def test_cancelling_the_order_still_releases_every_hold(session, business):
     tenant = business.tenant.id
     _, commitments = _held_order(session, business)
 
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, tenant, commitments[0].id, reason="Customer cancelled"
     )
 
@@ -964,7 +966,7 @@ def test_a_cancelled_order_stops_counting_its_service_line(session, business):
     ] == Decimal("215.00")
 
     for commitment in commitments:
-        core.cancel_commitment(session, tenant, commitment.id, reason="Cancelled")
+        reviewed_cancel_commitment(session, tenant, commitment.id, reason="Cancelled")
 
     assert credit_exposure(session, tenant, party.id)["open_orders"]["amount"] == 0
 
@@ -984,7 +986,7 @@ def test_an_order_revised_upwards_past_the_limit_is_held(session, business):
     _, commitments = _order(session, business, party, "SO-C-UP", "400.00")
     assert _holds(session, business, commitments) == []
 
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, business.tenant.id, commitments[0].id, quantity="8", note="More"
     )
 

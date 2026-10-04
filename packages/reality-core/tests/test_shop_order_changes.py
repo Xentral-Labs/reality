@@ -4,7 +4,12 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import accept_import_job, reviewed_reserve
+from intake_review_support import (
+    accept_import_job,
+    reviewed_cancel_commitment,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -389,7 +394,7 @@ def test_a_line_lowered_below_what_shipped_waits(session, business):
 
 def test_a_change_to_a_closed_line_waits(session, business):
     _first, second = _order(session, business)
-    core.cancel_commitment(session, business.tenant.id, second.id, reason="Test")
+    reviewed_cancel_commitment(session, business.tenant.id, second.id, reason="Test")
 
     source, _ = _version(
         session, business, [_line(LINE_A, 10), _line(LINE_B, 5, current_quantity=3)]
@@ -494,7 +499,7 @@ def test_a_redelivered_version_never_undoes_a_persons_later_revision(session, bu
     assert _quantity(session, business, first) == 6
 
     for quantity in (8, 4):
-        core.revise_commitment(
+        reviewed_revise_commitment(
             session, business.tenant.id, first.id, quantity=quantity, note="Phoned"
         )
         # The webhook delivers the same version again, and a person retries its job.

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { reference } from "./tool-catalog-fixture.mjs";
+const artifactDirectory = process.env.JOURNEY_ARTIFACTS || tmpdir();
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
@@ -103,7 +106,9 @@ try {
       path,
     );
     if (path.includes("supplier-orders"))
-      await page.screenshot({ path: "/private/tmp/compact-purchasing.png" });
+      await page.screenshot({
+        path: join(artifactDirectory, "compact-purchasing.png"),
+      });
     assert.equal(await page.locator(".register-toolbar-block .register-count").count(), 0, path);
     const actions = header.locator(".register-actions");
     if (await actions.count()) {
@@ -136,7 +141,7 @@ try {
     const box = await badge.boundingBox();
     assert.equal(box.height, 18);
     badgeWidths.push(box.width);
-    await page.screenshot({ path: `/private/tmp/page-count-badge-${value}.png` });
+    await page.screenshot({ path: join(artifactDirectory, `page-count-badge-${value}.png`) });
   }
   assert.ok(badgeWidths[0] <= badgeWidths[1]);
   assert.ok(badgeWidths[1] < badgeWidths[2]);
@@ -189,14 +194,14 @@ try {
   const bounds = await badge.boundingBox();
   assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 390);
   assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= 844);
-  await page.screenshot({ path: "/private/tmp/page-title-counts-mobile.png" });
+  await page.screenshot({ path: join(artifactDirectory, "page-title-counts-mobile.png") });
   await page.locator(".page-introduction-actions").waitFor();
   assert.ok(
     await page
       .locator(".page-introduction-actions button, .page-introduction-actions summary")
       .count(),
   );
-  await page.screenshot({ path: "/private/tmp/compact-page-actions-mobile.png" });
+  await page.screenshot({ path: join(artifactDirectory, "compact-page-actions-mobile.png") });
   await page.keyboard.press("Escape");
   await page.goto(base + "/app/inspector?inspector_view=graph");
   await page.locator("[data-page-introduction]").waitFor();
@@ -211,7 +216,7 @@ try {
     const menu = await actions.locator(".register-action-menu").boundingBox();
     assert.ok(menu.x >= 0 && menu.x + menu.width <= width + 1);
     await page.screenshot({
-      path: `/private/tmp/reality-225-tabs-de-${width}.png`,
+      path: join(artifactDirectory, `reality-225-tabs-de-${width}.png`),
       animations: "disabled",
     });
     await actions.locator("summary").press("Escape");

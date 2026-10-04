@@ -1,7 +1,11 @@
 // Verify shared page chrome independently of business data loading.
 import assert from "node:assert/strict";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+const artifactDirectory = process.env.JOURNEY_ARTIFACTS || tmpdir();
+const screenshotDirectory = join(artifactDirectory, "page-introduction-screens");
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -71,7 +75,7 @@ const paths = [
   "/inspector?inspector_view=views",
   "/inspector?inspector_view=history",
 ];
-await mkdir("/private/tmp/page-introduction-screens", { recursive: true });
+await mkdir(screenshotDirectory, { recursive: true });
 for (const width of [1440, 390]) {
   await page.setViewportSize({ width, height: 950 });
   for (const path of paths) {
@@ -84,7 +88,9 @@ for (const width of [1440, 390]) {
       .click()
       .catch(async (error) => {
         console.error({ path, width, url: page.url(), errors });
-        await page.screenshot({ path: "/private/tmp/reality-225-introduction-failure.png" });
+        await page.screenshot({
+          path: join(artifactDirectory, "reality-225-introduction-failure.png"),
+        });
         throw error;
       });
     await description.waitFor();
@@ -170,7 +176,7 @@ for (const width of [1440, 390]) {
     }
   }
   await page.screenshot({
-    path: `/private/tmp/page-introduction-screens/${width}.png`,
+    path: join(screenshotDirectory, `${width}.png`),
     fullPage: true,
   });
 }

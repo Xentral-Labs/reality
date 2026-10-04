@@ -6,7 +6,11 @@ per item, with the orders grouped by their stated sales channel.
 
 from decimal import Decimal
 
-from intake_review_support import reviewed_manual_order
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_revise_commitment,
+)
 from sqlalchemy import event
 
 from reality.services import core
@@ -146,7 +150,7 @@ def test_shipped_and_cancelled_quantity_no_longer_counts(session, business):
         commitment_id=shipped.id,
     )
     assert business.item.id in _oversold(session, tenant)
-    core.cancel_commitment(session, tenant, cancelled.id, reason="Withdrawn")
+    reviewed_cancel_commitment(session, tenant, cancelled.id, reason="Withdrawn")
     assert business.item.id not in _oversold(session, tenant)
 
 
@@ -156,7 +160,7 @@ def test_a_revised_promise_counts_its_quantity_in_force(session, business):
     _, promise = _sell(session, business, "SO-R", "6", "shopify")
     assert business.item.id in _oversold(session, tenant)
 
-    core.revise_commitment(session, tenant, promise.id, quantity="4", note="Less")
+    reviewed_revise_commitment(session, tenant, promise.id, quantity="4", note="Less")
     assert business.item.id not in _oversold(session, tenant)
 
 
@@ -289,7 +293,7 @@ def test_every_finding_appears_once(session, business):
     tenant = business.tenant.id
     _stock(session, business, "1")
     _, promise = _sell(session, business, "SO-ONCE", "3", "shopify")
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, promise.id, core.now() + timedelta(hours=5), note="Soon"
     )
 

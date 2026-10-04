@@ -17,7 +17,10 @@ import datetime as dt
 import json
 
 import pytest
-from intake_review_support import reviewed_post_sales_invoice
+from intake_review_support import (
+    reviewed_post_sales_invoice,
+    reviewed_revise_commitment,
+)
 from sqlalchemy import select
 
 import reality.db.core as db_core
@@ -30,7 +33,6 @@ from reality.services.core import (
     hold_commitment,
     record_customer_payment,
     record_movement,
-    revise_commitment,
 )
 
 
@@ -75,7 +77,7 @@ def a_company_with_something_to_age(session, business) -> None:
         "2099-01-01T00:00:00+00:00",
         document_id=order.id,
     )
-    revise_commitment(
+    reviewed_revise_commitment(
         session,
         tenant,
         ahead.id,

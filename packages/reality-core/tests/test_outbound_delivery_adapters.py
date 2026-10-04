@@ -3,7 +3,7 @@
 import json
 
 from fastapi.testclient import TestClient
-from intake_review_support import reviewed_reserve
+from intake_review_support import reviewed_cancel_commitment, reviewed_reserve
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -180,7 +180,7 @@ def test_the_web_prepares_confirms_and_reads(session, business, monkeypatch):
     )
     assert refused.status_code in {400, 409, 422}, refused.text
     assert "outbound_delivery_pick_beyond_planned" in refused.text
-    core.cancel_commitment(session, tenant, promise.id, reason="Customer cancelled")
+    reviewed_cancel_commitment(session, tenant, promise.id, reason="Customer cancelled")
     put_back = client.post(
         f"{prefix}/outbound-deliveries/{row['id']}/put-backs",
         json={

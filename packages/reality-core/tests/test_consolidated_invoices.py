@@ -7,7 +7,11 @@ from uuid import uuid4
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 from test_unified_invoice_entry import confirm
 
@@ -442,7 +446,7 @@ def test_a_cancelled_promise_changes_nothing_as_for_a_single_order_invoice(
         request="single-after-cancel",
     )
     for promise in (first_promise, single_promise):
-        core.cancel_commitment(
+        reviewed_cancel_commitment(
             session,
             business.tenant.id,
             promise.id,

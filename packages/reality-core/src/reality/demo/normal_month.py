@@ -13,7 +13,6 @@ from reality.db.core import ChangeProposal, Party, uid
 from reality.services.core import (
     InvalidOperation,
     active_reserved,
-    cancel_commitment,
     create_commitment,
     create_document,
     create_item,
@@ -30,6 +29,7 @@ from reality.services.core import (
 from reality.services.intake import (
     _allocate_frozen_customer_credit as allocate_credit_note,
 )
+from reality.services.intake import _cancel_commitment_frozen as cancel_commitment
 from reality.services.intake import (
     _post_frozen_customer_payment as post_customer_payment,
 )

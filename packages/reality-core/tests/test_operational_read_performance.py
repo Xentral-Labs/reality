@@ -10,6 +10,7 @@ from intake_review_support import (
     reviewed_manual_order,
     reviewed_post_customer_payment,
     reviewed_post_sales_invoice,
+    reviewed_revise_commitment,
 )
 from sqlalchemy import event, select
 
@@ -22,7 +23,6 @@ from reality.services.core import (
     create_tenant,
     financial_open_items,
     record_movement,
-    revise_commitment,
 )
 from reality.web.read_models import projection_page, projection_totals
 
@@ -81,8 +81,8 @@ def test_exception_inputs_are_bounded_and_match_individual_derivators(
     for _ in range(20):
         promise(session, business)
     supplier = promise(session, business, "supplier_delivery")
-    revise_commitment(session, business.tenant.id, supplier.id, "2026-10-01")
-    revise_commitment(session, business.tenant.id, supplier.id, quantity="15")
+    reviewed_revise_commitment(session, business.tenant.id, supplier.id, "2026-10-01")
+    reviewed_revise_commitment(session, business.tenant.id, supplier.id, quantity="15")
     movement = record_movement(
         session,
         business.tenant.id,
@@ -111,7 +111,7 @@ def test_exception_evaluations_do_not_reuse_inputs_after_change_or_failure(
         x.record_id == row.id
         for x in exceptions.operational_exceptions(session, tenant, as_of=AS_OF)
     )
-    revise_commitment(session, tenant, row.id, "2026-10-01")
+    reviewed_revise_commitment(session, tenant, row.id, "2026-10-01")
     assert not any(
         x.record_id == row.id
         for x in exceptions.operational_exceptions(session, tenant, as_of=AS_OF)
@@ -126,7 +126,7 @@ def test_exception_evaluations_do_not_reuse_inputs_after_change_or_failure(
         patch.setitem(exceptions.DERIVATION_REGISTRY, "silent_source", fail)
         with pytest.raises(RuntimeError, match="derivation failed"):
             exceptions.operational_exceptions(session, tenant, as_of=AS_OF)
-    revise_commitment(session, tenant, row.id, "2026-08-02")
+    reviewed_revise_commitment(session, tenant, row.id, "2026-08-02")
     assert exceptions.operational_exceptions(session, tenant, as_of=AS_OF) == (
         individual_exceptions(session, tenant)
     )

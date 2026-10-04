@@ -10,11 +10,13 @@ from decimal import Decimal
 
 from intake_review_support import (
     accept_import_job,
+    reviewed_cancel_commitment,
     reviewed_manual_order,
     reviewed_post_sales_credit_note,
     reviewed_post_sales_invoice,
     reviewed_post_supplier_invoice,
     reviewed_record_sales_invoice,
+    reviewed_revise_commitment,
 )
 
 from reality.services import core
@@ -158,11 +160,11 @@ def test_an_order_counts_what_is_not_yet_invoiced_once(session, business):
     )
 
     # Revised down to 7, then the rest cancelled: nothing uninvoiced remains.
-    core.revise_commitment(session, tenant, commitment.id, quantity="7", note="Less")
+    reviewed_revise_commitment(session, tenant, commitment.id, quantity="7", note="Less")
     assert credit_exposure(session, tenant, party.id, as_of=AS_OF)["open_orders"][
         "amount"
     ] == Decimal("30.00")
-    core.cancel_commitment(session, tenant, commitment.id, reason="Customer cancelled")
+    reviewed_cancel_commitment(session, tenant, commitment.id, reason="Customer cancelled")
     assert credit_exposure(session, tenant, party.id, as_of=AS_OF)["open_orders"][
         "amount"
     ] == Decimal(0)

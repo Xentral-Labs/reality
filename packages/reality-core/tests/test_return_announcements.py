@@ -9,6 +9,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_cancel_commitment
 
 from reality.services.core import (
     InvalidOperation,
@@ -17,7 +18,6 @@ from reality.services.core import (
     announceable_quantity,
     announcement_outstanding,
     arrived_against_announcement,
-    cancel_commitment,
     create_commitment,
     create_tenant,
     record_movement,
@@ -196,7 +196,7 @@ def test_an_announcement_refuses(session, business):
 
     # A cancelled promise cannot receive one. A *fulfilled* one can, and must:
     # a fully shipped delivery is exactly when returns happen.
-    cancel_commitment(session, tenant_id, unshipped.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, tenant_id, unshipped.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="cancelled promise"):
         announce_customer_return(session, tenant_id, unshipped.id, 1)
 

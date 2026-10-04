@@ -1,7 +1,7 @@
 
 from decimal import Decimal
 
-from intake_review_support import reviewed_reserve
+from intake_review_support import reviewed_reserve, reviewed_revise_commitment
 from sqlalchemy import event
 
 from reality.services.core import (
@@ -12,7 +12,6 @@ from reality.services.core import (
     inventory_rows,
     open_quantity,
     record_movement,
-    revise_commitment,
     send_chat_message,
     stock_at,
 )
@@ -42,7 +41,7 @@ def test_inventory_reads_are_bounded_and_match_current_terms(session, business):
             to_location_id=business.location.id,
             commitment_id=incoming.id,
         )
-        revise_commitment(
+        reviewed_revise_commitment(
             session,
             tenant,
             incoming.id,

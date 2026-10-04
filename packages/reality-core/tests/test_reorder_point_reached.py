@@ -6,6 +6,7 @@ from intake_review_support import (
     reviewed_add_party_group_member,
     reviewed_assign_group_price_list,
     reviewed_assign_party_price_list,
+    reviewed_cancel_commitment,
     reviewed_create_party_group,
     reviewed_create_price_list,
     reviewed_create_price_list_entry,
@@ -13,6 +14,7 @@ from intake_review_support import (
     reviewed_manual_order,
     reviewed_release_reservation,
     reviewed_reserve,
+    reviewed_revise_commitment,
     reviewed_set_master_data_active,
 )
 from sqlalchemy import event
@@ -196,11 +198,11 @@ def test_a_cancelled_or_revised_purchase_counts_as_it_now_stands(session, busine
     purchase = _order(session, business, "purchase", "PO-REV", "48")
     assert _reached(session, tenant) == {}
 
-    core.revise_commitment(session, tenant, purchase.id, quantity="4")
+    reviewed_revise_commitment(session, tenant, purchase.id, quantity="4")
     row = _reached(session, tenant)[(business.item.id, business.location.id)]
     assert row.causal_values["incoming_quantity"] == Decimal(4)
 
-    core.cancel_commitment(session, tenant, purchase.id, reason="supplier cannot")
+    reviewed_cancel_commitment(session, tenant, purchase.id, reason="supplier cannot")
     row = _reached(session, tenant)[(business.item.id, business.location.id)]
     assert row.causal_values["incoming_quantity"] == Decimal(0)
 

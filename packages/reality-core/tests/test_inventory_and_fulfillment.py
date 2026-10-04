@@ -3,13 +3,16 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_release_reservation, reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_release_reservation,
+    reviewed_reserve,
+)
 
 from reality.services.core import (
     InvalidOperation,
     active_reserved,
     business_events,
-    cancel_commitment,
     create_commitment,
     fulfilled_quantity,
     inventory_rows,
@@ -220,7 +223,7 @@ def test_cancel_preserves_commitment_and_releases_allocation(session, business):
     commitment = customer_commitment(session, business, 5)
     reviewed_reserve(session, business.tenant.id, commitment.id)
 
-    cancel_commitment(
+    reviewed_cancel_commitment(
         session, business.tenant.id, commitment.id, reason="Test cancellation"
     )
 

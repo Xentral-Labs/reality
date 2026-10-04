@@ -4,6 +4,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from intake_review_support import (
+    reviewed_cancel_commitment,
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
@@ -138,7 +139,7 @@ def test_payment_release_or_cancellation_clears_it(session, business):
         select(Reservation).where(Reservation.commitment_id == released.id)
     )
     reviewed_release_reservation(session, tenant, reservation.id)
-    core.cancel_commitment(session, tenant, cancelled.id, reason="Customer withdrew")
+    reviewed_cancel_commitment(session, tenant, cancelled.id, reason="Customer withdrew")
 
     assert not {paid.id, released.id, cancelled.id} & set(_findings(session, business))
 

@@ -3,7 +3,11 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 from sqlalchemy import select
 
 from reality.db.core import Reservation
@@ -11,7 +15,6 @@ from reality.services.core import (
     InvalidOperation,
     NotFound,
     active_reserved,
-    cancel_commitment,
     commitment_due_at,
     commitment_quantity,
     commitment_revisions,
@@ -22,7 +25,6 @@ from reality.services.core import (
     hold_commitment,
     open_quantity,
     record_movement,
-    revise_commitment,
 )
 
 ORIGINAL = datetime(2026, 7, 10, 12, tzinfo=UTC)
@@ -47,7 +49,7 @@ def test_a_new_date_never_erases_the_old_one(session, business):
     tenant_id = business.tenant.id
     commitment = promise(session, business)
 
-    revision = revise_commitment(
+    revision = reviewed_revise_commitment(
         session,
         tenant_id,
         commitment.id,
@@ -65,7 +67,7 @@ def test_a_new_date_never_erases_the_old_one(session, business):
     # A second statement does not overwrite the first: both are kept, and the
     # date each names is the date somebody stated, unadjusted.
     later = REVISED + timedelta(days=7)
-    revise_commitment(session, tenant_id, commitment.id, later)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, later)
 
     stated = commitment_revisions(session, tenant_id, commitment.id)
     assert [row.due_at for row in stated] == [REVISED, later]
@@ -79,7 +81,7 @@ def test_the_date_in_force_is_the_latest_stated(session, business):
     # With nothing stated, the promise's own date is in force.
     assert commitment_due_at(session, tenant_id, commitment.id) == ORIGINAL
 
-    revise_commitment(session, tenant_id, commitment.id, REVISED)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, REVISED)
     assert commitment_due_at(session, tenant_id, commitment.id) == REVISED
 
     # Two statements in the same instant still resolve the same way on every
@@ -87,8 +89,8 @@ def test_the_date_in_force_is_the_latest_stated(session, business):
     # stated at another moment decides it instead.
     tied = promise(session, business)
     instant = datetime(2026, 7, 20, 9, tzinfo=UTC)
-    first = revise_commitment(session, tenant_id, tied.id, ORIGINAL, stated_at=instant)
-    second = revise_commitment(session, tenant_id, tied.id, REVISED, stated_at=instant)
+    first = reviewed_revise_commitment(session, tenant_id, tied.id, ORIGINAL, stated_at=instant)
+    second = reviewed_revise_commitment(session, tenant_id, tied.id, REVISED, stated_at=instant)
     winner = max((first, second), key=lambda row: row.id)
     assert commitment_due_at(session, tenant_id, tied.id) == winner.due_at
     assert commitment_due_at(session, tenant_id, tied.id) == winner.due_at
@@ -102,12 +104,12 @@ def test_a_revision_is_refused_where_it_makes_no_sense(session, business):
     tenant_id = business.tenant.id
 
     with pytest.raises(NotFound):
-        revise_commitment(session, tenant_id, "cmt_missing", REVISED)
+        reviewed_revise_commitment(session, tenant_id, "cmt_missing", REVISED)
 
     cancelled = promise(session, business)
-    cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="open"):
-        revise_commitment(session, tenant_id, cancelled.id, REVISED)
+        reviewed_revise_commitment(session, tenant_id, cancelled.id, REVISED)
 
     record_movement(
         session,
@@ -129,16 +131,16 @@ def test_a_revision_is_refused_where_it_makes_no_sense(session, business):
     )
     assert fulfilled.status == "fulfilled"
     with pytest.raises(InvalidOperation, match="open"):
-        revise_commitment(session, tenant_id, fulfilled.id, REVISED)
+        reviewed_revise_commitment(session, tenant_id, fulfilled.id, REVISED)
 
     open_promise = promise(session, business)
     with pytest.raises(InvalidOperation):
-        revise_commitment(session, tenant_id, open_promise.id, "not a date")
+        reviewed_revise_commitment(session, tenant_id, open_promise.id, "not a date")
 
     # The positive control: the same promise takes a readable date, and one
     # already past is accepted, because admitted lateness is a real statement.
     assert (
-        revise_commitment(
+        reviewed_revise_commitment(
             session, tenant_id, open_promise.id, datetime(2026, 6, 1, tzinfo=UTC)
         )
         is not None
@@ -152,18 +154,18 @@ def test_a_hold_does_not_block_recording_what_was_said(session, business):
 
     # A hold stops execution. What the other side said is not execution, and
     # refusing it would lose a statement because of an unrelated block.
-    assert revise_commitment(session, tenant_id, commitment.id, REVISED) is not None
+    assert reviewed_revise_commitment(session, tenant_id, commitment.id, REVISED) is not None
     assert commitment_due_at(session, tenant_id, commitment.id) == REVISED
 
 
 def test_revisions_are_tenant_scoped(session, business):
     tenant_id = business.tenant.id
     commitment = promise(session, business)
-    revise_commitment(session, tenant_id, commitment.id, REVISED)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, REVISED)
     foreign = create_tenant(session, "Foreign revision tenant")
 
     with pytest.raises(NotFound):
-        revise_commitment(session, foreign.id, commitment.id, REVISED)
+        reviewed_revise_commitment(session, foreign.id, commitment.id, REVISED)
     with pytest.raises(NotFound):
         commitment_due_at(session, foreign.id, commitment.id)
     assert commitment_revisions(session, foreign.id, commitment.id) == []
@@ -179,7 +181,7 @@ def test_one_statement_can_restate_both(session, business):
     tenant_id = business.tenant.id
     commitment = promise(session, business, quantity=100)
 
-    revision = revise_commitment(
+    revision = reviewed_revise_commitment(
         session,
         tenant_id,
         commitment.id,
@@ -206,21 +208,21 @@ def test_a_statement_must_restate_something(session, business):
     commitment = promise(session, business, quantity=100)
 
     with pytest.raises(InvalidOperation, match="restate"):
-        revise_commitment(session, tenant_id, commitment.id)
+        reviewed_revise_commitment(session, tenant_id, commitment.id)
 
     for bad in (0, -5):
         with pytest.raises(InvalidOperation, match="quantity"):
-            revise_commitment(session, tenant_id, commitment.id, quantity=bad)
+            reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=bad)
 
     cancelled = promise(session, business, quantity=10)
-    cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="open"):
-        revise_commitment(session, tenant_id, cancelled.id, quantity=5)
+        reviewed_revise_commitment(session, tenant_id, cancelled.id, quantity=5)
 
     # The positive control: either figure alone is a statement.
-    assert revise_commitment(session, tenant_id, commitment.id, quantity=80) is not None
+    assert reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=80) is not None
     assert (
-        revise_commitment(session, tenant_id, commitment.id, due_at=REVISED) is not None
+        reviewed_revise_commitment(session, tenant_id, commitment.id, due_at=REVISED) is not None
     )
 
 
@@ -230,23 +232,23 @@ def test_the_quantity_in_force_is_the_latest_stated(session, business):
 
     assert commitment_quantity(session, tenant_id, commitment.id) == Decimal(100)
 
-    revise_commitment(session, tenant_id, commitment.id, quantity=80)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=80)
     assert commitment_quantity(session, tenant_id, commitment.id) == Decimal(80)
 
     # A later statement about the date alone leaves the eighty standing, which
     # is what the sentence meant: nobody restated the quantity.
-    revise_commitment(session, tenant_id, commitment.id, due_at=REVISED)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, due_at=REVISED)
     assert commitment_quantity(session, tenant_id, commitment.id) == Decimal(80)
     assert commitment_due_at(session, tenant_id, commitment.id) == REVISED
 
-    revise_commitment(session, tenant_id, commitment.id, quantity=60)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=60)
     assert commitment_quantity(session, tenant_id, commitment.id) == Decimal(60)
 
     # And the symmetry holds the other way: a statement about the quantity alone
     # leaves an earlier date standing. Without this the date rule would return
     # the None a quantity-only statement carries, and every date-judged class
     # would go quiet — which is exactly what it did until a test caught it.
-    revise_commitment(session, tenant_id, commitment.id, quantity=55)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=55)
     assert commitment_due_at(session, tenant_id, commitment.id) == REVISED
 
     # Every statement is still there, in the order it was made.
@@ -273,7 +275,7 @@ def test_shrinking_to_what_arrived_finishes_the_promise(session, business):
     )
     assert commitment.status == "open"
 
-    revise_commitment(session, tenant_id, commitment.id, quantity=90)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=90)
 
     # Settled at that moment: there may never be another movement to settle it.
     assert commitment.status == "fulfilled"
@@ -295,7 +297,7 @@ def test_a_promise_can_shrink_below_what_arrived(session, business):
 
     # The supplier said eighty and ninety came. Both are true, the ninety is
     # recorded, and refusing would lose the statement.
-    revise_commitment(session, tenant_id, commitment.id, quantity=80)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=80)
 
     assert commitment_quantity(session, tenant_id, commitment.id) == Decimal(80)
     assert open_quantity(session, tenant_id, commitment.id) == Decimal(0)
@@ -319,7 +321,7 @@ def test_downward_revision_releases_excess_homogeneous_reservation(session, busi
     original = reviewed_reserve(session, tenant_id, commitment.id, 100).reservation
     assert original is not None
 
-    revise_commitment(session, tenant_id, commitment.id, quantity=50)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=50)
 
     session.refresh(original)
     assert original.status == "released"
@@ -367,10 +369,11 @@ def test_downward_revision_requires_and_applies_explicit_heterogeneous_retention
     ).reservation
     assert first is not None and second is not None
 
-    with pytest.raises(InvalidOperation, match="explicit retained reservation"):
-        revise_commitment(session, tenant_id, commitment.id, quantity=60)
+    with pytest.raises(InvalidOperation) as refused:
+        reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=60)
+    assert refused.value.code == "retained_reservations_choice_required"
 
-    revise_commitment(
+    reviewed_revise_commitment(
         session,
         tenant_id,
         commitment.id,

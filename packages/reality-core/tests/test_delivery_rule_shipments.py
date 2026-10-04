@@ -5,7 +5,11 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order, reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_reserve,
+)
 
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
@@ -234,7 +238,7 @@ def test_cancelled_and_shipped_lines_count_as_complete(session, business, lamp):
     _ship_complete(session, business)
     assert not fulfillment_readiness(session, tenant, bikes.id).ship_ready
 
-    core.cancel_commitment(session, tenant, lamps.id, reason="Customer drops lamps")
+    reviewed_cancel_commitment(session, tenant, lamps.id, reason="Customer drops lamps")
 
     assert fulfillment_readiness(session, tenant, bikes.id).ship_ready
     assert (

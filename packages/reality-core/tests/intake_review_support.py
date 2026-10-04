@@ -925,3 +925,41 @@ def reviewed_serve_backorders(session, tenant_id, *positional, **arguments):
     bound = inspect.signature(serve_backorders).bind(session, tenant_id, *positional, **arguments)
     values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id"}}
     return _confirm_document_fixture(session, tenant_id, "backorders_serve", values)
+
+
+def _reviewed_commitment_fixture(session, tenant_id, operation, *positional, **arguments):
+    """Use the actual retained decision for current commitment fixture statements."""
+    import inspect
+
+    from reality.services.intake import _invoke
+    from reality.services.tenant_policy import (
+        _application_authority,
+        _decision_authority,
+        _profile_authority,
+    )
+
+    bound = inspect.signature(getattr(core, operation)).bind(session, tenant_id, *positional, **arguments)
+    values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id"}}
+    if _application_authority.get() is not None or _decision_authority.get() is not None or _profile_authority.get() is not None:
+        return _invoke(operation, getattr(core, operation), session, tenant_id, **values)
+    tool = {"revise_commitment": "commitment_revise", "cancel_commitment": "commitment_cancel", "close_stale_promises": "stale_closure"}[operation]
+    session.flush()
+    session.expire_all()
+    result = _confirm_document_fixture(session, tenant_id, tool, values)
+    if operation == "close_stale_promises":
+        return result
+    model = core.CommitmentRevision if operation == "revise_commitment" else core.Commitment
+    identity = result["records"][0]["id"] if operation == "revise_commitment" else result["commitment_id"]
+    return core._tenant_record_read(session, model, tenant_id, identity)
+
+
+def reviewed_revise_commitment(session, tenant_id, *args, **kwargs):
+    return _reviewed_commitment_fixture(session, tenant_id, "revise_commitment", *args, **kwargs)
+
+
+def reviewed_cancel_commitment(session, tenant_id, *args, **kwargs):
+    return _reviewed_commitment_fixture(session, tenant_id, "cancel_commitment", *args, **kwargs)
+
+
+def reviewed_close_stale_promises(session, tenant_id, *args, **kwargs):
+    return _reviewed_commitment_fixture(session, tenant_id, "close_stale_promises", *args, **kwargs)

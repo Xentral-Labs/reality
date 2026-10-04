@@ -3,7 +3,11 @@
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 
 from reality.catalogs import load_application_catalog
 from reality.services import core
@@ -35,7 +39,7 @@ def _position(row):
 def test_revised_partly_received_supply_agrees_on_every_surface(session, business):
     tenant = business.tenant.id
     supplier = _promise(session, business, "supplier_delivery", "12")
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, supplier.id, quantity="10", note="Supplier revision"
     )
     core.record_movement(
@@ -72,7 +76,7 @@ def test_revised_partly_received_supply_agrees_on_every_surface(session, busines
         session, tenant, projected_min=Decimal(20), projected_max=Decimal(20)
     )
     assert filtered["item"].id == business.item.id
-    core.cancel_commitment(session, tenant, supplier.id, reason="Remainder cancelled")
+    reviewed_cancel_commitment(session, tenant, supplier.id, reason="Remainder cancelled")
     (web,), _ = inventory_page(session, tenant, item_id=business.item.id)
     assert web["incoming"] == 0
 
@@ -122,7 +126,7 @@ def test_receipt_correction_restores_only_effective_incoming(session, business):
     (shared,) = core.inventory_rows(session, tenant, item_ids={business.item.id})
     (web,), _ = inventory_page(session, tenant, item_id=business.item.id)
     assert _position(web) == _position(shared) == (0, 0, 0, 0, 10, 10)
-    core.revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, supplier.id, quantity="4", note="Only four agreed"
     )
     (web,), _ = inventory_page(session, tenant, item_id=business.item.id)

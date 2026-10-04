@@ -4,7 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_revise_commitment
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -135,9 +135,9 @@ def test_keeping_the_surplus_raises_the_line_to_what_arrived(session, business):
 
     _refused(
         "revision_beyond_received",
-        lambda: core.revise_commitment(session, tenant, promise.id, quantity="106"),
+        lambda: reviewed_revise_commitment(session, tenant, promise.id, quantity="106"),
     )
-    core.revise_commitment(session, tenant, promise.id, quantity="105")
+    reviewed_revise_commitment(session, tenant, promise.id, quantity="105")
 
     assert promise.id not in _findings(session, business, "received_beyond_order")
     session.refresh(promise)

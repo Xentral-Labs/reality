@@ -1,7 +1,8 @@
+
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_cancel_commitment, reviewed_manual_order
 from sqlalchemy import func, select
 
 from reality.db.core import SupplyAssignment
@@ -252,7 +253,7 @@ def test_cancelling_the_demand_releases_the_supply_assigned_to_it(session, busin
         Decimal(6),
     )
 
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, business.tenant.id, customer.id, reason="Customer withdrew"
     )
 
@@ -324,7 +325,7 @@ def test_cancelling_the_supply_leaves_the_demand_unprotected(session, business):
         session, business.tenant.id, customer_commitment_id=customer.id
     )["customer"]["protecting_supply"] == Decimal(5)
 
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, business.tenant.id, supplier.id, reason="Supplier discontinued"
     )
 

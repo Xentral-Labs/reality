@@ -10,7 +10,11 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from conftest import record_by_id
-from intake_review_support import reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 from sqlalchemy import delete, func, insert, inspect, select
 from sqlalchemy.exc import TimeoutError
 from sqlalchemy.orm import sessionmaker
@@ -43,12 +47,10 @@ from reality.db.core import (
 )
 from reality.services.core import (
     InvalidOperation,
-    cancel_commitment,
     create_commitment,
     create_tenant,
     enqueue_shopify_order,
     record_movement,
-    revise_commitment,
 )
 from reality.services.memberships import (
     Principal,
@@ -1024,19 +1026,25 @@ def test_concurrent_revisions_keep_active_reservation_within_latest_open(
 
     barrier = Barrier(2)
 
-    def revise(quantity: int) -> None:
+    def revise(quantity: int) -> bool:
         with factory() as session:
             barrier.wait(timeout=5)
-            revise_commitment(
-                session,
-                tenant,
-                commitment_id,
-                quantity=quantity,
-                note="Concurrent customer statement",
-            )
+            try:
+                reviewed_revise_commitment(session, tenant, commitment_id,
+                    quantity=quantity, note="Concurrent customer statement")
+                return True
+            except InvalidOperation as error:
+                assert error.code in {"review_delivery_changed", "delivery_execution_unresolved"}
+                return False
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        list(executor.map(revise, (7, 6)))
+        attempts = list(executor.map(revise, (7, 6)))
+    # A refused review is renewed explicitly after the competing decision settles.
+    for quantity, executed in zip((7, 6), attempts, strict=True):
+        if not executed:
+            with factory() as session:
+                reviewed_revise_commitment(session, tenant, commitment_id,
+                    quantity=quantity, note="Concurrent customer statement")
 
     with factory() as session:
         active = session.scalar(
@@ -1076,7 +1084,7 @@ def test_concurrent_cancellations_record_one_effect(
         with factory() as session:
             barrier.wait(timeout=5)
             try:
-                return cancel_commitment(
+                return reviewed_cancel_commitment(
                     session,
                     tenant,
                     commitment_id,

@@ -3,7 +3,7 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_reserve
+from intake_review_support import reviewed_reserve, reviewed_revise_commitment
 from unified_fixtures import delivery_fixture
 
 from reality.services.core import InvalidOperation, record_movement, stock_at
@@ -413,7 +413,6 @@ def test_direct_writer_changes_invalidate_exact_review(postgres_database, change
         correct_movement,
         create_tenant,
         hold_commitment,
-        revise_commitment,
     )
 
     engine = build_engine(postgres_database)
@@ -455,7 +454,7 @@ def test_direct_writer_changes_invalidate_exact_review(postgres_database, change
                     if change == "hold":
                         hold_commitment(writer_session, tid, cid, "manual_review")
                     elif change == "revision":
-                        revise_commitment(
+                        reviewed_revise_commitment(
                             writer_session,
                             tid,
                             cid,

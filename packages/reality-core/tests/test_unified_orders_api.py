@@ -1,19 +1,22 @@
+
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_document_with_lines,
+    reviewed_revise_commitment,
+)
 from test_unified_source_api import client_for
 from unified_fixtures import delivery_fixture
 
 from reality.services.core import (
-    cancel_commitment,
     correct_movement,
     create_commitment,
     create_document,
     create_tenant,
     preview_movement_correction,
     record_movement,
-    revise_commitment,
 )
 from reality.services.delivery_reads import delivery_case, delivery_work
 
@@ -34,7 +37,7 @@ def test_incoming_register_uses_supplier_effective_values_and_corrected_receipts
         "10",
         "2026-09-10T12:00:00Z",
     )
-    revise_commitment(session, tid, incoming.id, "2026-09-12T12:00:00Z", quantity="14")
+    reviewed_revise_commitment(session, tid, incoming.id, "2026-09-12T12:00:00Z", quantity="14")
     receipt = record_movement(
         session,
         tid,
@@ -114,7 +117,7 @@ def test_incoming_register_uses_supplier_effective_values_and_corrected_receipts
         "2",
         None,
     )
-    cancel_commitment(session, tid, cancelled.id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, tid, cancelled.id, reason="Test cancellation")
     assert (
         delivery_work(session, tid, commitment_type="supplier_delivery")["page"][
             "total"

@@ -2,19 +2,22 @@
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order, reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 from sqlalchemy import event
 
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, dispatch_tool
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    cancel_commitment,
     create_document,
     create_tenant,
     post_ledger,
     record_movement,
-    revise_commitment,
 )
 from reality.tools.application import run_read_tool
 
@@ -199,7 +202,7 @@ def test_inventory_location_and_aggregate_use_same_stock(session, business):
 def test_units_and_effective_promise_context(session, business):
     _, _, _, commitments = order(session, business)
     commitment = next(c for c in commitments if c.type == "customer_delivery")
-    revise_commitment(session, business.tenant.id, commitment.id, quantity="3")
+    reviewed_revise_commitment(session, business.tenant.id, commitment.id, quantity="3")
     for tool in [
         "commitments_list",
         "item_supply_demand",
@@ -247,7 +250,7 @@ def test_retained_order_explanation_preserves_source_and_effects(
             commitment_id=commitment.id,
         )
     else:
-        cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+        reviewed_cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     result = read(session, business, "order_explain", order_reference=document.id)
     assert result["source"]["source_record_id"] == source.id
     assert result["document_lines"][0]["id"] == lines[0].id
@@ -555,7 +558,7 @@ def test_order_explanation_keeps_closed_and_open_lines_together(session, busines
         "20",
     )
     deliveries = [c for c in commitments if c.type == "customer_delivery"]
-    cancel_commitment(session, business.tenant.id, deliveries[0].id, reason="Test cancellation")
+    reviewed_cancel_commitment(session, business.tenant.id, deliveries[0].id, reason="Test cancellation")
     explained = read(session, business, "order_explain", order_reference=document.id)
     lines = {line["commitment_id"]: line for line in explained["fulfillment"]["lines"]}
     assert set(lines) == {c.id for c in deliveries}

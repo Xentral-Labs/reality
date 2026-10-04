@@ -9,6 +9,7 @@ from intake_review_support import accept_import_job as process_import_job
 from intake_review_support import (
     reviewed_allocate_credit_note,
     reviewed_allocate_supplier_credit_note,
+    reviewed_cancel_commitment,
     reviewed_create_payment_term,
     reviewed_create_price_list,
     reviewed_create_price_list_entry,
@@ -24,6 +25,7 @@ from intake_review_support import (
     reviewed_post_supplier_refund,
     reviewed_release_reservation,
     reviewed_reserve,
+    reviewed_revise_commitment,
 )
 from sqlalchemy import select
 
@@ -54,7 +56,6 @@ from reality.services.core import (
     record_movement,
     retry_import_job,
     reverse_ledger_posting_group,
-    revise_commitment,
 )
 from reality.services.exceptions import operational_exceptions
 
@@ -2958,12 +2959,11 @@ def test_a_dated_promise_is_left_to_the_overdue_class(session, business):
 
 
 def test_a_cancelled_promise_is_neither_reported_nor_learned_from(session, business):
-    from reality.services.core import cancel_commitment
 
     history(session, business, lag_days=1, cases=6)
     before, _ = thresholds(session, business)
     abandoned = undated_promise(session, business, age_days=90)
-    cancel_commitment(
+    reviewed_cancel_commitment(
         session, business.tenant.id, abandoned.id, reason="Test cancellation"
     )
 
@@ -5379,7 +5379,7 @@ def test_a_revised_promise_is_judged_by_its_new_date(session, business):
     assert "overdue_incoming_supplier_commitment" in by_class(session, tenant_id)
 
     # The supplier acknowledges a later day. It is not late until that day.
-    revise_commitment(session, tenant_id, commitment.id, AS_OF + timedelta(days=5))
+    reviewed_revise_commitment(session, tenant_id, commitment.id, AS_OF + timedelta(days=5))
     assert "overdue_incoming_supplier_commitment" not in by_class(session, tenant_id)
 
     # The positive control: once the revised date passes it is overdue again,
@@ -5395,7 +5395,7 @@ def test_a_revision_cannot_buy_silence(session, business):
     before = by_class(session, tenant_id)["overdue_incoming_supplier_commitment"]
     assert before.cause_ids == ()
 
-    revise_commitment(session, tenant_id, commitment.id, AS_OF - timedelta(days=5))
+    reviewed_revise_commitment(session, tenant_id, commitment.id, AS_OF - timedelta(days=5))
     row = by_class(session, tenant_id)["overdue_incoming_supplier_commitment"]
 
     # Late against a date the supplier itself chose, having already moved it.
@@ -5420,7 +5420,7 @@ def test_both_directions_can_be_revised(session, business):
     outgoing = late_promise(session, business, kind="customer_delivery")
     assert "overdue_outgoing_customer_commitment" in by_class(session, tenant_id)
 
-    revise_commitment(session, tenant_id, outgoing.id, AS_OF + timedelta(days=5))
+    reviewed_revise_commitment(session, tenant_id, outgoing.id, AS_OF + timedelta(days=5))
     assert "overdue_outgoing_customer_commitment" not in by_class(session, tenant_id)
 
     # And it says so when the agreed date passes too.
@@ -5438,7 +5438,7 @@ def test_a_dated_promise_is_no_longer_a_stalled_order(session, business):
     assert by_class(session, tenant_id)["order_stalled"].record_id == undated.id
 
     # Somebody states a date, so it is a dated order from now on.
-    revise_commitment(session, tenant_id, undated.id, AS_OF + timedelta(days=30))
+    reviewed_revise_commitment(session, tenant_id, undated.id, AS_OF + timedelta(days=30))
 
     rows = by_class(session, tenant_id)
     assert "order_stalled" not in rows
@@ -5449,7 +5449,7 @@ def test_revised_promises_order_deterministically(session, business):
     tenant_id = business.tenant.id
     first = late_promise(session, business)
     second = late_promise(session, business)
-    revise_commitment(session, tenant_id, second.id, AS_OF - timedelta(days=1))
+    reviewed_revise_commitment(session, tenant_id, second.id, AS_OF - timedelta(days=1))
 
     def reported():
         return [
@@ -5574,7 +5574,7 @@ def test_a_shrunk_promise_is_judged_by_what_is_in_force(session, business):
 
     # The supplier says eighty is all there is. Nothing is missing any more, and
     # the entry goes — not because time passed, but because the promise did.
-    revise_commitment(session, tenant_id, commitment.id, quantity=80)
+    reviewed_revise_commitment(session, tenant_id, commitment.id, quantity=80)
 
     assert "overdue_incoming_supplier_commitment" not in by_class(session, tenant_id)
 
@@ -5582,7 +5582,7 @@ def test_a_shrunk_promise_is_judged_by_what_is_in_force(session, business):
     # entry measures against ninety rather than the hundred it was made with.
     other = late_promise(session, business, quantity=100)
     ship(session, business, other, 80, movement_type="receipt")
-    revise_commitment(session, tenant_id, other.id, quantity=90)
+    reviewed_revise_commitment(session, tenant_id, other.id, quantity=90)
     row = by_class(session, tenant_id)["overdue_incoming_supplier_commitment"]
     assert row.record_id == other.id
     assert row.causal_values["committed_quantity"] == Decimal(90)
@@ -5941,7 +5941,7 @@ def test_commitment_hold_unreleased(session, business):
     )
     dangling.created_at = AS_OF - timedelta(days=90)
     session.commit()
-    core.cancel_commitment(
+    reviewed_cancel_commitment(
         session, business.tenant.id, closed.id, reason="Test cancellation"
     )
     assert dangling.released_at is not None

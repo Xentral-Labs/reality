@@ -15,6 +15,7 @@ import json
 from decimal import Decimal
 
 from intake_review_support import (
+    reviewed_cancel_commitment,
     reviewed_create_payment_term,
     reviewed_post_sales_invoice,
     reviewed_reserve,
@@ -916,7 +917,6 @@ def test_a_cancelled_promise_leaves_the_demand_it_was_counted_in(session, busine
     it the article would keep the demand of a promise nobody is waiting for, and no
     later event would take it away.
     """
-    from reality.services.core import cancel_commitment
 
     tenant = business.tenant.id
     a_little_business(session, business)
@@ -924,7 +924,7 @@ def test_a_cancelled_promise_leaves_the_demand_it_was_counted_in(session, busine
     projections.refresh_operational_projections(session, tenant)
     with_promise = _supply(session, tenant)[business.item.id]["open_customer_demand"]
 
-    cancel_commitment(session, tenant, cancelled.id, reason="Test cancellation", _commit=False)
+    reviewed_cancel_commitment(session, tenant, cancelled.id, reason="Test cancellation", _commit=False)
     with projections.narrowing_report() as report:
         projections.refresh_operational_projections(session, tenant)
     reason = report.get(projections.ITEM_SUPPLY_DEMAND)
@@ -1210,14 +1210,13 @@ def test_a_cancelled_promise_keeps_its_row_and_says_so(session, business):
     changes its status. A narrowed refresh that treated the two alike would either
     lose the row or leave it saying `open`.
     """
-    from reality.services.core import cancel_commitment
 
     tenant = business.tenant.id
     _, commitment = _promise(session, business, "ORD-241-RC", "3")
     projections.refresh_operational_projections(session, tenant)
     assert _promises(session, tenant)[commitment.id]["status"] == "open"
 
-    cancel_commitment(session, tenant, commitment.id, reason="Test cancellation", _commit=False)
+    reviewed_cancel_commitment(session, tenant, commitment.id, reason="Test cancellation", _commit=False)
     with projections.narrowing_report() as report:
         projections.refresh_operational_projections(session, tenant)
     reason = report.get(projections.COMMITMENT_REGISTER)

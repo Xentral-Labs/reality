@@ -8,6 +8,7 @@ from intake_review_support import (
     _reviewed_financial_posting_fixture,
     reviewed_manual_order,
     reviewed_post_customer_payment,
+    reviewed_revise_commitment,
 )
 from sqlalchemy import select
 
@@ -305,7 +306,7 @@ def test_higher_revision_allows_only_the_new_quantity(session, business):
         "100",
     )
     commitment = commitments[0]
-    core.revise_commitment(session, tenant, commitment.id, quantity="12")
+    reviewed_revise_commitment(session, tenant, commitment.id, quantity="12")
     assert core.commitment_quantity(session, tenant, commitment.id) == 12
     assert commitment.quantity == 10
 

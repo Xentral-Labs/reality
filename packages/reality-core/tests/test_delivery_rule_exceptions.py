@@ -3,7 +3,11 @@
 from datetime import UTC, datetime
 
 import pytest
-from intake_review_support import reviewed_manual_order, reviewed_reserve
+from intake_review_support import (
+    reviewed_cancel_commitment,
+    reviewed_manual_order,
+    reviewed_reserve,
+)
 
 from reality.services import core
 from reality.services.delivery_rules import state_delivery_rule
@@ -129,7 +133,7 @@ def test_a_rest_after_a_shipment_is_a_backorder_against_the_rule(
     assert set(rows) == {bikes.id, lamps.id}
     assert rows[bikes.id].causal_values["open_quantity"] == 4
     assert rows[lamps.id].causal_values["open_quantity"] == 2
-    core.cancel_commitment(session, tenant, bikes.id, reason="No backorders by rule")
+    reviewed_cancel_commitment(session, tenant, bikes.id, reason="No backorders by rule")
     assert set(_rows(session, business, "backorder_against_rule")) == {lamps.id}
 
 

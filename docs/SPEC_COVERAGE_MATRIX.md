@@ -2610,3 +2610,6 @@ Atomic explicit-list payment run: `packages/reality-core/tests/test_canonical_pa
 Reservation parent follow-up (FR-001–FR-003): `packages/reality-core/tests/test_canonical_reservation_boundary.py`; current review/authority, exact invocation, atomicity and adapter qualification remain pending.
 
 Backorder reservation-batch follow-up (FR-001–FR-003): `packages/reality-core/tests/test_canonical_backorder_boundary.py`; exact parent/children, current consent, atomicity and receipt/replay qualification are pending.
+
+
+Commitment lifecycle parent/batch qualification (Spec 356 FR-046–FR-047): `packages/reality-core/tests/test_canonical_commitment_boundary.py`; exact current review, selected identity, atomicity, current authority, internal hold release and final-head CI remain pending.

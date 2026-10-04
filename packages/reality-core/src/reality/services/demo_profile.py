@@ -31,6 +31,7 @@ from reality.services import core
 from reality.services.intake import (
     _allocate_frozen_customer_credit,
     _allocate_frozen_supplier_credit,
+    _cancel_commitment_frozen,
     _post_frozen_customer_payment,
     _post_frozen_sales_credit,
     _post_frozen_sales_invoice,
@@ -38,6 +39,7 @@ from reality.services.intake import (
     _post_frozen_supplier_invoice,
     _post_frozen_supplier_payment,
     _reserve_frozen,
+    _revise_commitment_frozen,
 )
 
 
@@ -436,7 +438,7 @@ def seed_profile(
                     _commit=False,
                 )
             if index == 10:
-                core.cancel_commitment(
+                _cancel_commitment_frozen(
                     session,
                     tenant,
                     commitment,
@@ -456,7 +458,7 @@ def seed_profile(
             "shipment",
             commitment=cases["O11"]["commitment_id"],
         )
-        core.cancel_commitment(
+        _cancel_commitment_frozen(
             session,
             tenant,
             cases["O11"]["commitment_id"],
@@ -779,7 +781,7 @@ def seed_profile(
             due=anchor + timedelta(days=5),
             date=anchor - timedelta(days=20),
         )
-        core.cancel_commitment(
+        _cancel_commitment_frozen(
             session,
             tenant,
             cancel_ref["commitment_id"],
@@ -2728,7 +2730,7 @@ def seed_profile(
             gross="100",
             date=anchor - timedelta(days=5),
         )
-        overdelivery_revision = core.revise_commitment(
+        overdelivery_revision = _revise_commitment_frozen(
             session,
             tenant,
             overdelivery_ref["commitment_id"],

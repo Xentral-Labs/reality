@@ -173,7 +173,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
         if not db.in_nested_transaction():
             raise InvalidOperation(code="intake_partial_commit_forbidden")
 
-    fixed = authority.tool in RESERVATION_APPLICATION_OPERATIONS or authority.tool in FINANCIAL_POSTING_OPERATIONS or authority.tool in PAYMENT_APPLICATION_OPERATIONS or authority.tool in COMMERCIAL_MASTER_OPERATIONS or authority.tool in {
+    fixed = authority.tool in COMMITMENT_APPLICATION_OPERATIONS or authority.tool in RESERVATION_APPLICATION_OPERATIONS or authority.tool in FINANCIAL_POSTING_OPERATIONS or authority.tool in PAYMENT_APPLICATION_OPERATIONS or authority.tool in COMMERCIAL_MASTER_OPERATIONS or authority.tool in {
         "document_correct", "document_lines_correct",
         "party_merge",
         "document_create",
@@ -209,7 +209,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
 
 _FIXED_DEFINITIONS = {"demo_seed": "compact-demo.v2", "normal_month": "normal-month.v2"}
 _FIXED_APPLICATION_CANONICAL_OPERATIONS = frozenset({
-    "create_party", "create_item", "create_location", "reserve",
+    "create_party", "create_item", "create_location", "reserve", "cancel_commitment",
     "post_customer_payment", "post_supplier_payment",
     "post_sales_invoice", "post_supplier_invoice", "post_sales_credit_note", "allocate_credit_note",
 })
@@ -1672,6 +1672,9 @@ def require_demo_intake(
     raise InvalidOperation(code="intake_approval_required")
 
 
+COMMITMENT_APPLICATION_OPERATIONS = {"commitment_revise": "revise_commitment", "commitment_cancel": "cancel_commitment", "stale_closure": "close_stale_promises"}
+
+
 RESERVATION_APPLICATION_OPERATIONS = {"reserve": "reserve", "reservation_release": "release_reservation", "backorders_serve": "serve_backorders"}
 
 
@@ -1716,6 +1719,8 @@ DOCUMENT_CORRECTION_OPERATIONS = {
 
 
 _CANONICAL_MUTATION_TOOLS = {
+    **{operation: frozenset({tool}) for tool, operation in COMMITMENT_APPLICATION_OPERATIONS.items()},
+    "cancel_commitment": frozenset({"commitment_cancel", "stale_closure"}),
     **{operation: frozenset({tool}) for tool, operation in RESERVATION_APPLICATION_OPERATIONS.items()},
     "reserve": frozenset({"reserve", "backorders_serve"}),
     **{operation: frozenset({tool}) for tool, operation in FINANCIAL_POSTING_OPERATIONS.items()},
@@ -1780,7 +1785,7 @@ def _require_application_decision(session, tenant_id, operation):
     ):
         raise InvalidOperation(code="intake_approval_required")
     _require_current_application_decider(session, tenant_id, authority, proposal)
-    if authority.tool in {"reserve", "reservation_release"}:
+    if authority.tool in {"reserve", "reservation_release", "commitment_revise", "commitment_cancel"}:
         from reality.services.business_locks import lock_delivery_state
         from reality.services.delivery_actions import REVIEW_KEY, validate_review
 
@@ -1790,6 +1795,12 @@ def _require_application_decision(session, tenant_id, operation):
         if review is None:
             raise InvalidOperation(code="review_confirmation_required")
         validate_review(session, tenant_id, authority.tool, arguments, review["token"], True)
+    if authority.tool == "stale_closure" and operation == "close_stale_promises":
+        from reality.services.business_locks import lock_delivery_state
+        from reality.services.commitment_decisions import require_current_stale_closure
+
+        lock_delivery_state(session, tenant_id)
+        require_current_stale_closure(session, tenant_id, authority.intent)
     if authority.tool in FINANCIAL_POSTING_OPERATIONS:
         from reality.services.business_locks import lock_delivery_state
         from reality.services.financial_posting_decisions import (
@@ -1894,6 +1905,8 @@ def _master_application_active(operation=None):
         and (authority is not None and authority.tool in _FIXED_DEFINITIONS or _profile_authority.get() is not None)
     ):
         return True
+    if authority is not None and authority.tool in COMMITMENT_APPLICATION_OPERATIONS:
+        return operation in ({"close_stale_promises", "cancel_commitment"} if authority.tool == "stale_closure" else {COMMITMENT_APPLICATION_OPERATIONS[authority.tool]}) | {"release_commitment_hold"}
     if authority is not None and authority.tool in RESERVATION_APPLICATION_OPERATIONS:
         return operation in {RESERVATION_APPLICATION_OPERATIONS[authority.tool], "reserve"} if authority.tool == "backorders_serve" else operation == RESERVATION_APPLICATION_OPERATIONS[authority.tool]
     if authority is not None and authority.tool in FINANCIAL_POSTING_OPERATIONS:
@@ -1961,13 +1974,20 @@ def _consume_master_invocation(nonce):
 def require_document_operation(session, tenant_id, operation):
     """A manual evidence confirmation grants no unrelated business effect."""
     authority = _application_authority.get()
-    if authority is None or (authority.tool not in RESERVATION_APPLICATION_OPERATIONS and authority.tool not in FINANCIAL_POSTING_OPERATIONS and authority.tool not in PAYMENT_APPLICATION_OPERATIONS and authority.tool not in COMMERCIAL_MASTER_OPERATIONS and authority.tool not in {
+    if authority is None or (authority.tool not in COMMITMENT_APPLICATION_OPERATIONS and authority.tool not in RESERVATION_APPLICATION_OPERATIONS and authority.tool not in FINANCIAL_POSTING_OPERATIONS and authority.tool not in PAYMENT_APPLICATION_OPERATIONS and authority.tool not in COMMERCIAL_MASTER_OPERATIONS and authority.tool not in {
         "document_correct", "document_lines_correct",
         "party_merge",
         "document_create", "order_create", "sales_invoice_record",
         "supplier_invoice_record", "supplier_invoice_free_record",
         "sales_credit_record",
     }):
+        return
+    if authority.tool in COMMITMENT_APPLICATION_OPERATIONS:
+        permitted = {COMMITMENT_APPLICATION_OPERATIONS[authority.tool], "emit_business_event", "release_commitment_hold"}
+        if authority.tool == "stale_closure":
+            permitted.add("cancel_commitment")
+        if authority.session is not session or authority.transaction is not session.get_transaction() or authority.tenant_id != tenant_id or operation not in permitted:
+            raise InvalidOperation(code="intake_approval_required")
         return
     if authority.tool in RESERVATION_APPLICATION_OPERATIONS:
         if (authority.session is not session or authority.transaction is not session.get_transaction()

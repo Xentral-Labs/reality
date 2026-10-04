@@ -73,7 +73,6 @@ from reality.services.core import (
     chat_proposals,
     chat_sessions,
     chat_suggestions,
-    close_stale_promises,
     connector_shells,
     correct_lot_expiry,
     correct_movement,
@@ -3621,6 +3620,7 @@ class StaleClosurePreviewWrite(ApiModel):
 
 
 class StaleClosureWrite(ApiModel):
+    confirmed: bool = False
     direction: str
     due_before: datetime
     expected_count: int
@@ -5628,10 +5628,16 @@ def preview_stale_closure_web(
 
 @router.post("/commitments/stale-closures", status_code=status.HTTP_201_CREATED)
 def close_stale_promises_web(
-    tenant_id: str, body: StaleClosureWrite, session: DatabaseSession
+    tenant_id: str, body: StaleClosureWrite, session: DatabaseSession, request: Request
 ):
     try:
-        return close_stale_promises(session, tenant_id, **body.model_dump())
+        if not body.confirmed:
+            raise InvalidOperation(code="review_confirmation_required")
+        from reality.tools.application import create_change_proposal
+
+        proposal = create_change_proposal(session, tenant_id, "stale_closure", body.model_dump(mode="json", exclude={"confirmed"}), actor_type="user")
+        receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=optional_request_principal(request), confirmed=body.confirmed)
+        return json.loads(receipt.output)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

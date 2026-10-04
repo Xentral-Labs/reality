@@ -298,3 +298,8 @@ Constitution Check: PASS. Reuse the seven existing commands and core financial r
 ## Reservation follow-up
 
 Use the existing current delivery review and actual application authority; freeze the two canonical parents and use private noncommitting calls. Preserve actual narrowly authored profile calls. Add negative proofs first, then domain/services/tools/adapters and regression/browser/final-head CI. No schema expansion. Constitution checks remain PASS.
+
+
+## Commitment lifecycle implementation
+
+Preserve current domain selection and validation. Add finite application parents for revision, cancellation and stale closure; use existing delivery review for single commitments and an exact current-state review for stale selection. Use the existing invocation nonce and root commit guard, retain current human/OAuth checks, and freeze each batch child. Route existing transports through actual confirmation and port authored fixed/profile calls with their genuine scope. No schema expansion. Constitution Check: passed; exact source statements, tenant isolation, current decision, derived state and domain-owned effects remain intact.

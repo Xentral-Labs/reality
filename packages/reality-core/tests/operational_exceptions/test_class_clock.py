@@ -24,7 +24,11 @@ narrowing, tested per class, and not in a table filled in advance.
 import datetime as dt
 import json
 
-from intake_review_support import reviewed_post_sales_invoice, reviewed_reserve
+from intake_review_support import (
+    reviewed_post_sales_invoice,
+    reviewed_reserve,
+    reviewed_revise_commitment,
+)
 
 from reality.services import exceptions as exception_services
 from reality.services.core import (
@@ -34,7 +38,6 @@ from reality.services.core import (
     hold_party_delivery,
     record_customer_payment,
     record_movement,
-    revise_commitment,
 )
 
 #: Measured by the test below, not declared for it to confirm.
@@ -164,7 +167,7 @@ def _rich_company(session, business):
         "2099-01-01T00:00:00+00:00",
         document_id=order.id,
     )
-    revise_commitment(
+    reviewed_revise_commitment(
         session,
         tenant,
         ahead.id,
@@ -340,7 +343,7 @@ def test_a_date_beyond_the_window_does_not_move_the_moment(session, business):
 
 def test_a_revised_date_inside_the_window_is_its_own_candidate(session, business):
     """The date in force is the last one stated, so a revision is a moment too."""
-    from reality.services.core import create_commitment, revise_commitment
+    from reality.services.core import create_commitment
     from reality.services.exceptions import next_clock_moment
 
     tenant = business.tenant.id
@@ -357,7 +360,7 @@ def test_a_revised_date_inside_the_window_is_its_own_candidate(session, business
         (now - dt.timedelta(days=1)).isoformat(),
     )
     revised = now + dt.timedelta(hours=3)
-    revise_commitment(
+    reviewed_revise_commitment(
         session, tenant, promise.id, revised.isoformat(), note="moved", _commit=False
     )
     session.flush()
