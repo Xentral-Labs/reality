@@ -164,16 +164,42 @@ def _inspector_email_reference(
 
 
 def _source_context(session: Session, tenant_id: str, source_id: str):
-    links = session.scalars(
-        select(EmailBusinessLink).where(
-            EmailBusinessLink.tenant_id == tenant_id,
-            EmailBusinessLink.source_record_id == source_id,
+    links = list(
+        session.scalars(
+            select(EmailBusinessLink).where(
+                EmailBusinessLink.tenant_id == tenant_id,
+                EmailBusinessLink.source_record_id == source_id,
+            )
         )
     )
+    if (
+        not links
+        and _source(session, tenant_id, source_id).source_type == "email_attachment"
+    ):
+        # Attachment occurrences inherit only through authoritative linked messages.
+        links = list(
+            session.scalars(
+                select(EmailBusinessLink)
+                .join(
+                    SourceRecord,
+                    (SourceRecord.tenant_id == EmailBusinessLink.tenant_id)
+                    & (SourceRecord.id == EmailBusinessLink.source_record_id),
+                )
+                .where(
+                    EmailBusinessLink.tenant_id == tenant_id,
+                    SourceRecord.tenant_id == tenant_id,
+                    SourceRecord.source_type == "email_message",
+                    cast(SourceRecord.payload, JSONB)["attachment_source_ids"].contains(
+                        [source_id]
+                    ),
+                )
+            )
+        )
+    references = sorted({(link.kind, link.record_id) for link in links})
     return _business_references(
         session,
         tenant_id,
-        [BusinessReference(kind=link.kind, id=link.record_id) for link in links],
+        [BusinessReference(kind=kind, id=record_id) for kind, record_id in references],
     )
 
 

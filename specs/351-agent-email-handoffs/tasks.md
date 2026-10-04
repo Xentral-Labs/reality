@@ -27,8 +27,8 @@ Each FR/DR maps to the story/test tasks above and the specification traceability
 
 ## Mandatory business context extension
 
-- [ ] T014 Add failing mandatory-context, supplier/object-history, tenant, version/dispatch and browser stories (FR-013–016; DR-006).
-- [ ] T015 Add closed reference envelopes, indexed tenant/source membership and protected migration (FR-013–014; DR-006).
-- [ ] T016 Implement validation, immutable memberships, approved context inheritance and paged object history in shared services (FR-013–015).
-- [ ] T017 Extend existing MCP/API history and Inspector/email review UI; verify object/source/file/decision navigation (FR-015–016).
-- [ ] T018 Update canonical contracts, discoverable examples, catalogs and verification; complete full PR checks on the final linear branch (FR-013–016).
+- [x] T014 Add failing mandatory-context, supplier/object-history, tenant, version/dispatch and browser stories (FR-013–016; DR-006).
+- [x] T015 Add closed reference envelopes, indexed tenant/source membership and protected migration (FR-013–014; DR-006).
+- [x] T016 Implement validation, immutable memberships, approved context inheritance and paged object history in shared services (FR-013–015).
+- [x] T017 Extend existing MCP/API history and Inspector/email review UI; verify object/source/file/decision navigation (FR-015–016).
+- [x] T018 Update canonical contracts, discoverable examples, catalogs and verification; complete full PR checks on the final linear branch (FR-013–016).

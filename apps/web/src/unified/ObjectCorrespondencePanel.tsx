@@ -49,32 +49,34 @@ export function ObjectCorrespondencePanel({
               className="block w-full rounded border-b border-border-default py-3 text-left hover:bg-surface-muted"
               onClick={() => setSourceId(email.source_id)}
             >
-              <span data-original-content className="block font-medium">
+              <span data-original-content className="block break-words font-medium">
                 {email.subject}
               </span>
-              <span data-original-content className="block text-sm">
+              <span data-original-content className="block break-words text-sm">
                 {email.sender}
               </span>
               <span className="text-xs text-fg-muted">
                 {t(email.direction === "inbound" ? "Incoming email" : "Outgoing email")} ·{" "}
-                {formatDateTime(email.received_at)}
+                {t("Recorded")} {formatDateTime(email.received_at)}
               </span>
             </button>
           ))}
-          <RegisterPager page={data.page} change={setPage} />
-          {!!data.related_decisions.length && (
-            <h4 className="mt-4 font-medium">{t("Related email decisions")}</h4>
+          {data.page.total > 0 && <RegisterPager page={data.page} change={setPage} />}
+          {data.decision_page.total > 0 && (
+            <>
+              <h4 className="mt-4 font-medium">{t("Related email decisions")}</h4>
+              {data.related_decisions.map((decision) => (
+                <a
+                  key={decision.proposal_id}
+                  className="block py-2 text-accent underline"
+                  href={decision.review_url}
+                >
+                  <span data-original-content>{decision.subject}</span>
+                </a>
+              ))}
+              <RegisterPager page={data.decision_page} change={setDecisionPage} />
+            </>
           )}
-          {data.related_decisions.map((decision) => (
-            <a
-              key={decision.proposal_id}
-              className="block py-2 text-accent underline"
-              href={decision.review_url}
-            >
-              <span data-original-content>{decision.subject}</span>
-            </a>
-          ))}
-          <RegisterPager page={data.decision_page} change={setDecisionPage} />
         </div>
       )}
     </section>
