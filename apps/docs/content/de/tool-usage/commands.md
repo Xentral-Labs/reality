@@ -51,6 +51,7 @@ angegeben.
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                    | Unternehmen & Zugang    | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                    | Unternehmen & Zugang    | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`accept_substitute`](#command-accept_substitute)                                 | Accept a substitute item                     | Bereichsübergreifend    | `commitment_substitute_accept_propose`                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
+| [`apply_prepared_intake`](#command-apply_prepared_intake)                         | Accept reviewed source interpretation        | Bereichsübergreifend    | `proposal_approve_and_execute`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide               | Bereichsübergreifend    | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
 | [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Bereichsübergreifend    | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Bereichsübergreifend    | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
@@ -69,6 +70,7 @@ angegeben.
 | [`authorizations`](#command-authorizations)                                       | List payment authorizations                  | Bereichsübergreifend    | `finance_payment_authorizations`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`payouts`](#command-payouts)                                                     | List payouts                                 | Bereichsübergreifend    | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
 | [`merge_party`](#command-merge_party)                                             | Merge a duplicate business partner           | Bereichsübergreifend    | `party_merge_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
+| [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Bereichsübergreifend    | `intake_prepare_propose`                                                                                                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Bereichsübergreifend    | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Bereichsübergreifend    | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Bereichsübergreifend    | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
@@ -99,6 +101,7 @@ angegeben.
 | [`record_notice`](#command-record_notice)                                         | Record dunning notice                        | Bereichsübergreifend    | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner   | Bereichsübergreifend    | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                       | Bereichsübergreifend    | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
+| [`review_intake`](#command-review_intake)                                         | Review source interpretation                 | Bereichsübergreifend    | `intake_review`                                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote       | Bereichsübergreifend    | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                         | Bereichsübergreifend    | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`settle_payout`](#command-settle_payout)                                         | Settle a payout                              | Bereichsübergreifend    | `finance_payout_settle_propose`                                                                                                                                                              | Web · MCP · Chat · CLI                  |
@@ -7987,6 +7990,79 @@ commitment_substitute_accept_propose commitment_id item_id reason
 
 **Siehe auch:** Command [`accept_substitute`](./commands#command-accept_substitute)
 
+### `apply_prepared_intake` — Accept reviewed source interpretation {#command-apply_prepared_intake}
+
+Apply the exact unchanged interpretation through canonical services and retain attribution and
+receipt in the same transaction.
+
+**Aufruf**
+
+```text
+proposal_approve_and_execute proposal_id [approved] [review_token]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `action`, `source_record`, `source_stream`, `import_job`, `party`, `item`,
+`location` · Schreibt: `document`, `document_line`, `commitment`, `action`, `import_job`,
+`interpretation_outcome`, `interpretation_record_reference`, `business_event`
+
+**Siehe auch:** Agent Tool
+[`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute)
+
+#### `proposal_approve_and_execute` — Approve and execute a proposal {#tool-proposal_approve_and_execute}
+
+Settle one exact proposal by explicit authorized decision and execute it through the shared
+application boundary.
+
+**Aufruf**
+
+```text
+proposal_approve_and_execute proposal_id [approved] [review_token]
+```
+
+**Zugriff:** `confirm`
+
+Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality
+execution boundary.
+
+**Verwenden, wenn**
+
+- A permissioned caller submits an explicit authorized decision on the exact pending proposal
+  preview.
+
+**Nicht verwenden, wenn**
+
+- Approval is inferred from model output, credentials, connection, or prior similar decisions.
+- The proposal is executing, rejected, unknown, foreign, or no longer matches the intended action.
+
+**Voraussetzungen**
+
+- The proposal belongs to the selected tenant
+- remains proposed
+- and approved is explicitly true.
+
+**Abgelehnt, wenn**
+
+- `approval_required` — approved=true was not supplied for an explicit authorized decision.
+- `execution_unknown` — The proposal is already executing and cannot be safely retried.
+- `proposal_settled` — The proposal was rejected or otherwise cannot be confirmed.
+- `proposal_not_found` — No proposal is visible in the selected tenant.
+
+**Parameter**
+
+| Name           | Typ       | Pflicht | Beschreibung                                                   | Standard |
+| -------------- | --------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id`  | `string`  | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
+| `approved`     | `boolean` | nein    | —                                                              | `False`  |
+| `review_token` | `string`  | nein    | —                                                              | —        |
+
+**Prüfen mit:** `proposal_execution_status` — Correlated execution evidence and current
+Reservation/Commitment values match the stored receipt.; `business_records_discover` — Named
+operational records remain visible with current tenant-scoped values.
+
+**Siehe auch:** Command [`apply_prepared_intake`](./commands#command-apply_prepared_intake)
+
 ### `business_journey_guide` — Ask the Business Journey Guide {#command-business_journey_guide}
 
 Match one bounded capability question against the release-reviewed static journey catalog and return
@@ -9247,6 +9323,45 @@ party_merge_propose duplicate_party_id surviving_party_id reason
 
 **Siehe auch:** Command [`merge_party`](./commands#command-merge_party)
 
+### `prepare_intake` — Prepare source interpretation {#command-prepare_intake}
+
+Retain a non-authoritative exact interpretation and review digest; create no accepted business
+records.
+
+**Aufruf**
+
+```text
+intake_prepare_propose job_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `source_record`, `source_stream`, `import_job`, `party`, `item`, `location` ·
+Schreibt: `action`, `import_job`, `interpretation_outcome`
+
+**Siehe auch:** Agent Tool [`intake_prepare_propose`](./commands#tool-intake_prepare_propose)
+
+#### `intake_prepare_propose` — Prepare source interpretation {#tool-intake_prepare_propose}
+
+Prepare exact meaning of a retained source job without accepting business effects. Review and
+confirm the returned proposal separately.
+
+**Aufruf**
+
+```text
+intake_prepare_propose job_id
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name     | Typ      | Pflicht | Beschreibung                                         | Standard |
+| -------- | -------- | ------- | ---------------------------------------------------- | -------- |
+| `job_id` | `string` | ja      | Opaque identity of the queued source-processing job. | —        |
+
+**Siehe auch:** Command [`prepare_intake`](./commands#command-prepare_intake)
+
 ### `contribution_preview` — Preview current contribution candidate {#command-contribution_preview}
 
 Follow an exact whole invoice/order/shipment scope to received net revenue and reviewed consumption;
@@ -10029,7 +10144,7 @@ business object.
 | `page`                    | `integer` | nein    | One-based page of retained membership, bounded to 25 records per page.                                                                                                                                                                                             | `1`      |
 | `size`                    | `integer` | nein    | —                                                                                                                                                                                                                                                                  | `25`     |
 | `source_id`               | `string`  | nein    | Opaque identity of the immutable source record to inspect.                                                                                                                                                                                                         | `None`   |
-| `proposal_id`             | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`   |
+| `proposal_id`             | `string`  | nein    | Opaque same-tenant identity of the retained decision proposal.                                                                                                                                                                                                     | `None`   |
 | `execution_id`            | `string`  | nein    | —                                                                                                                                                                                                                                                                  | `None`   |
 
 **Siehe auch:** Command [`email_history`](./commands#command-email_history)
@@ -11057,6 +11172,60 @@ Reverse one owner-confirmed manual reminder and its fee effect without deleting 
 
 **Siehe auch:** Command [`reverse_notice`](./commands#command-reverse_notice)
 
+### `review_intake` — Review source interpretation {#command-review_intake}
+
+Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it.
+
+**Aufruf**
+
+```text
+intake_review proposal_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `action` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`intake_review`](./commands#tool-intake_review)
+
+#### `intake_review` — Review source interpretation {#tool-intake_review}
+
+Read the retained interpretation, exact digest and decision status without changing source meaning.
+
+**Aufruf**
+
+```text
+intake_review proposal_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage    | Art                        | Standard |
+| ------------------- | -------------------------- | -------- |
+| `MCP intake_review` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read one frozen source interpretation and its exact decision digest.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect proposed source meaning or its retained result.
+
+**Nicht verwenden, wenn**
+
+- The source needs to be received or interpreted again.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                   | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id` | `string` | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
+
+**Siehe auch:** Command [`review_intake`](./commands#command-review_intake)
+
 ### `business_journey_vote_set` — Set a Business Journey suggestion vote {#command-business_journey_vote_set}
 
 Sets or withdraws the confirming account's single reversible vote and derives the public count from
@@ -11090,10 +11259,10 @@ business_journey_vote_propose proposal_id active
 
 **Parameter**
 
-| Name          | Typ       | Pflicht | Beschreibung                                    | Standard |
-| ------------- | --------- | ------- | ----------------------------------------------- | -------- |
-| `proposal_id` | `string`  | ja      | —                                               | —        |
-| `active`      | `boolean` | ja      | True votes; false withdraws the account's vote. | `True`   |
+| Name          | Typ       | Pflicht | Beschreibung                                                   | Standard |
+| ------------- | --------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id` | `string`  | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
+| `active`      | `boolean` | ja      | True votes; false withdraws the account's vote.                | `True`   |
 
 **Siehe auch:** Command [`business_journey_vote_set`](./commands#command-business_journey_vote_set)
 
@@ -11629,7 +11798,6 @@ Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informat
 | [`exception_explain`](#tool-exception_explain)                                                   | Explain an operational exception               | `read`    | —                      |
 | [`proposals_awaiting_approval`](#tool-proposals_awaiting_approval)                               | List proposals awaiting approval               | `read`    | —                      |
 | [`proposal_execution_status`](#tool-proposal_execution_status)                                   | Reconcile proposal execution                   | `read`    | —                      |
-| [`proposal_approve_and_execute`](#tool-proposal_approve_and_execute)                             | Approve and execute a proposal                 | `confirm` | —                      |
 | [`proposal_reject`](#tool-proposal_reject)                                                       | Reject a proposal                              | `confirm` | —                      |
 | [`finance_balances`](#tool-finance_balances)                                                     | Read finance balances                          | `read`    | —                      |
 | [`reality_gaps`](#tool-reality_gaps)                                                             | List missing information                       | `read`    | —                      |
@@ -12340,60 +12508,9 @@ records.
 
 **Parameter**
 
-| Name          | Typ      | Pflicht | Beschreibung | Standard |
-| ------------- | -------- | ------- | ------------ | -------- |
-| `proposal_id` | `string` | ja      | —            | —        |
-
-### `proposal_approve_and_execute` — Approve and execute a proposal {#tool-proposal_approve_and_execute}
-
-Settle one exact proposal by explicit authorized decision and execute it through the shared
-application boundary.
-
-**Aufruf**
-
-```text
-proposal_approve_and_execute proposal_id [approved] [review_token]
-```
-
-**Zugriff:** `confirm`
-
-Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality
-execution boundary.
-
-**Verwenden, wenn**
-
-- A permissioned caller submits an explicit authorized decision on the exact pending proposal
-  preview.
-
-**Nicht verwenden, wenn**
-
-- Approval is inferred from model output, credentials, connection, or prior similar decisions.
-- The proposal is executing, rejected, unknown, foreign, or no longer matches the intended action.
-
-**Voraussetzungen**
-
-- The proposal belongs to the selected tenant
-- remains proposed
-- and approved is explicitly true.
-
-**Abgelehnt, wenn**
-
-- `approval_required` — approved=true was not supplied for an explicit authorized decision.
-- `execution_unknown` — The proposal is already executing and cannot be safely retried.
-- `proposal_settled` — The proposal was rejected or otherwise cannot be confirmed.
-- `proposal_not_found` — No proposal is visible in the selected tenant.
-
-**Parameter**
-
-| Name           | Typ       | Pflicht | Beschreibung | Standard |
-| -------------- | --------- | ------- | ------------ | -------- |
-| `proposal_id`  | `string`  | ja      | —            | —        |
-| `approved`     | `boolean` | nein    | —            | `False`  |
-| `review_token` | `string`  | nein    | —            | —        |
-
-**Prüfen mit:** `proposal_execution_status` — Correlated execution evidence and current
-Reservation/Commitment values match the stored receipt.; `business_records_discover` — Named
-operational records remain visible with current tenant-scoped values.
+| Name          | Typ      | Pflicht | Beschreibung                                                   | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id` | `string` | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
 
 ### `proposal_reject` — Reject a proposal {#tool-proposal_reject}
 
@@ -12409,10 +12526,10 @@ proposal_reject proposal_id rejected
 
 **Parameter**
 
-| Name          | Typ       | Pflicht | Beschreibung | Standard |
-| ------------- | --------- | ------- | ------------ | -------- |
-| `proposal_id` | `string`  | ja      | —            | —        |
-| `rejected`    | `boolean` | ja      | —            | —        |
+| Name          | Typ       | Pflicht | Beschreibung                                                   | Standard |
+| ------------- | --------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id` | `string`  | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
+| `rejected`    | `boolean` | ja      | —                                                              | —        |
 
 ### `finance_balances` — Read finance balances {#tool-finance_balances}
 
@@ -14010,7 +14127,7 @@ email_dispatch_accept_grant proposal_id grant
 
 | Name          | Typ      | Pflicht | Beschreibung                                                                                                                                                                     | Standard |
 | ------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `proposal_id` | `string` | ja      | —                                                                                                                                                                                | —        |
+| `proposal_id` | `string` | ja      | Opaque same-tenant identity of the retained decision proposal.                                                                                                                   | —        |
 | `grant`       | `string` | ja      | Compact Ed25519 JWS for the exact returned approval_digest. Issuer and subject require server-configured company authority; this operation does not grant token approval rights. | —        |
 
 ### `email_dispatch_claim` — Claim an approved external email dispatch {#tool-email_dispatch_claim}
@@ -14030,11 +14147,11 @@ email_dispatch_claim proposal_id fingerprint retry_key
 
 **Parameter**
 
-| Name          | Typ      | Pflicht | Beschreibung | Standard |
-| ------------- | -------- | ------- | ------------ | -------- |
-| `proposal_id` | `string` | ja      | —            | —        |
-| `fingerprint` | `string` | ja      | —            | —        |
-| `retry_key`   | `string` | ja      | —            | —        |
+| Name          | Typ      | Pflicht | Beschreibung                                                   | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id` | `string` | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
+| `fingerprint` | `string` | ja      | —                                                              | —        |
+| `retry_key`   | `string` | ja      | —                                                              | —        |
 
 ### `email_dispatch_report` — Report or reconcile external email execution {#tool-email_dispatch_report}
 

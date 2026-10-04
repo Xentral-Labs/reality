@@ -7,6 +7,11 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
   time_zone: "The company time zone as an IANA name, such as Europe/Berlin, or UTC (spec 349); business days are counted in it."
+
+  proposal_id: Opaque same-tenant identity of the retained decision proposal.
+  settling_token_id: Server-owned MCP access-token identity that settles the decision; never caller-supplied authority.
+  settling_channel: Server-observed decision channel retained without inventing a human identity.
+  digest: Exact content digest of the retained interpretation explicitly reviewed for this decision.
   reality_finance_v1: Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.
   answers: What a person decided for a cost review draft's open inputs; only the valuation method and the owner party are accepted.
   delivery_guard: Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.
@@ -357,6 +362,29 @@ commands:
     writes: []
     effect: Discover email transfer limits and the canonical evidence, decision and
       execution contract.
+  - name: Prepare source interpretation
+    service: prepare_intake
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [source_record, source_stream, import_job, party, item, location]
+    writes: [action, import_job, interpretation_outcome]
+    effect: Retain a non-authoritative exact interpretation and review digest; create no accepted business records.
+  - name: Review source interpretation
+    service: review_intake
+    mode: read
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [action]
+    writes: []
+    effect: Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it.
+  - name: Accept reviewed source interpretation
+    service: apply_prepared_intake
+    related_services: [reject_prepared_intake]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [action, source_record, source_stream, import_job, party, item, location]
+    writes: [document, document_line, commitment, action, import_job, interpretation_outcome, interpretation_record_reference, business_event]
+    effect: Apply the exact unchanged interpretation through canonical services and retain attribution and receipt in the same transaction.
   - name: Ask the Business Journey Guide
     service: business_journey_guide
     mode: read
@@ -2209,6 +2237,29 @@ capability_guidance:
       kind: external_authorization
       meaning: Only the exact approved dispatch snapshot is authorized; no mail is sent
         by Reality.
+  intake_review:
+    kind: read
+    application_tool: intake_review
+    purpose: Read one frozen source interpretation and its exact decision digest.
+    use_when: [An operator needs to inspect proposed source meaning or its retained result.]
+    do_not_use_when: [The source needs to be received or interpreted again.]
+    required_context: [Tenant and opaque proposal ID.]
+    data_basis: [source_record]
+    limitations: [The retained interpretation is non-authoritative until executed.]
+    freshness: Reads retained content without renewing its review or changing effects.
+    empty_result: A missing or foreign proposal is not found.
+    refusal_behavior: Foreign proposals and malformed retained plans refuse without disclosure.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: context
+      proves: [The exact proposed meaning and retained status.]
+      does_not_prove: [Current freshness or permission to accept the plan.]
+    unknown_when: [The source has no supported prepared interpretation.]
+    next_steps: [Confirm the exact digest through the shared proposal decision service.]
+    examples:
+      use: [{scenario: Inspect an awaiting Shopify interpretation., reason: The read exposes frozen source and intended effects.}]
+      do_not_use: [{scenario: Accept the order., reason: A read grants no decision authority.}]
   business_journey_guide:
     kind: read
     application_tool: business_journey_guide
@@ -6287,6 +6338,9 @@ agent_command_coverage:
   install_connector_shell: {classification: eligible, tools: [connector_install_propose]}
   create_source_system: {classification: eligible, tools: [source_system_create_propose, source_system_lifecycle_propose]}
   create_source_capability: {classification: eligible, tools: [source_capability_create_propose, source_capability_lifecycle_propose]}
+  prepare_intake: {classification: eligible, tools: [intake_prepare_propose]}
+  review_intake: {classification: eligible, tools: [intake_review]}
+  apply_prepared_intake: {classification: eligible, tools: [proposal_approve_and_execute]}
   enqueue_source: {classification: eligible, tools: [source_ingest_propose, source_record_ingest_propose]}
   correct_manual_document: {classification: eligible, tools: [document_correct_propose, document_lines_correct_propose]}
   record_corrected_document_source: {classification: eligible, tools: [document_source_correct_propose]}

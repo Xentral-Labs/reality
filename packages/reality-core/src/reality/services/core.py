@@ -124,6 +124,8 @@ HOLD_REASONS = {
 }
 
 INTERPRETATION_CLASSIFICATIONS = {
+    "prepared",
+    "rejected",
     "interpreted",
     "needs_review",
     "unsupported",
@@ -697,10 +699,20 @@ def _event_progress(session: OrmSession, tenant_id: str) -> TenantEventProgress 
         )
     if not _progress_table[url]:
         return None
-    progress = session.get(TenantEventProgress, tenant_id)
+    memo = _batch_memo(session)
+    key = ("event_progress", tenant_id)
+    if memo is not None and key in memo:
+        return memo[key]
+    progress = session.scalar(
+        select(TenantEventProgress)
+        .where(TenantEventProgress.tenant_id == tenant_id)
+        .execution_options(populate_existing=True)
+    )
     if progress is None:
         progress = TenantEventProgress(tenant_id=tenant_id, last_event_sequence=0)
         session.add(progress)
+    if memo is not None:
+        memo[key] = progress
     return progress
 
 
@@ -15504,6 +15516,9 @@ def enqueue_source(
     For a newly received Shopify order, route embedded refund payloads through the shared refund splitter.
     """
     _require_business_mutation(session, tenant_id, "enqueue_source")
+    from reality.services.business_locks import lock_delivery_state
+
+    lock_delivery_state(session, tenant_id)
     source_system, source_type, external_id = (
         source_system.strip().lower(),
         source_type.strip(),

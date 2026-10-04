@@ -2487,3 +2487,30 @@ Spec 354 is a draft external-grant contract, with no implementation claims.
 ## Spec 354 — External email approval grants
 
 FR-001–006 / US1–3: `packages/reality-core/tests/test_external_email_approval_grants.py` proves signature and exact binding, company/subject mandates, lifetime/revocation, duplicate/rebound/concurrent replay, rollback, separate MCP submission permission, attribution and claim/report evidence. `packages/reality-core/tests/test_agent_email_migration.py` proves the channel constraint and lossless guarded downgrade. `apps/web/scripts/decision-trail.test.mjs` and `apps/web/scripts/agent-email-handoffs-browser.mjs` prove external attribution and original Source navigation. Existing email/decision-policy suites preserve generic approval and risk boundaries.
+## Decision-gated source interpretation — Spec 356
+
+- `packages/reality-core/tests/test_intake_admission.py`: lossless raw retention,
+  preparation with no accepted effects, exact review and tenant checks, changed
+  source/mapping/reference refusal, atomic no-commit application, retained receipts
+  and immutable outcome replay, shared application confirmation and membership removal.
+- This initial slice offers explicit reviewed preparation. Automatic legacy import
+  processing, other profiles, bulk mandates and universal writer admission remain
+  pending under specs 357–356; this evidence does not certify their cutover.
+
+## Large-file package preparation — Spec 358
+
+- `packages/reality-core/tests/test_file_intake_admission.py`: 5000-row input,
+  whole-file duplicate/structure rejection, canonical UTF-8 byte limits, multiline
+  content, deterministic packages and indivisible oversized rows.
+- Pure packaging is implemented; artifact registration, reviewed master application
+  and Web bulk handoff remain pending. The legacy single-package limits are unchanged.
+
+## Reviewed payment preparation — Spec 359
+
+- `packages/reality-core/tests/test_financial_intake_admission.py`: non-posting
+  preparation, exact stated payment amounts, owner authority, explicit unmatched
+  payment acceptance and source/decision-attributed postings.
+- Invoice adapters, bank-file integration, financial batch and live demo cutover
+  remain pending.
+
+Contract: `docs/features/decision-gated-intake.md` records the explicit initial profiles and pending rollout.

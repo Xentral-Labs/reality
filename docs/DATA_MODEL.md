@@ -224,3 +224,15 @@ sources remain unchanged; correcting context captures a new immutable version.
 ## External email approval evidence (spec 354)
 
 The existing action.decided_via_channel check permits external_grant alongside Chat. No new table/column is added. The settled Decision output retains grant_source_id referencing an immutable SourceRecord (email_approval/email_approval_grant). Source identity is SHA256([issuer, grant ID]); lossless payload retains compact signature, verified claims, configured actor label and proposal identity. The existing company delivery lock serializes first acceptance and rejects alternate versions or proposal reuse. Shared attribution follows this shortest stored link; execution still uses EmailDispatch and executor-bound receipts. Migration0140 only extends the check; populated downgrade is refused.
+## Prepared source meaning (spec 356, initial implementation)
+
+An intake ChangeProposal holds a non-authoritative, content-addressed interpretation
+in its existing input JSON. It binds one immutable SourceRecord and ImportJob,
+resolved opaque identities and exact proposed effects. The proposal is not a staged
+Document and grants no authority before decision. Prepared and applied phases append
+separate immutable InterpretationOutcomes; replay appends neither an outcome nor an
+effect. The approved effect transaction retains accepted records, decision attribution
+and its receipt together. Historical unknown approval remains unknown.
+
+See [the intake implementation contract](features/decision-gated-intake.md) for the
+implemented profiles and still-pending cross-path cutover.

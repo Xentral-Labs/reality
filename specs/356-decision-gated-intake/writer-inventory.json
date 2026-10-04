@@ -1,0 +1,5411 @@
+{
+  "status": "read-only candidate inventory; not a complete semantic or dynamic-dispatch proof",
+  "method": "top-level AST functions with session/db/connection add/add_all/delete/execute/flush/commit or _require_business_mutation; wrappers, dynamically registered callees and nested/class methods require the explicit follow-up audit",
+  "candidates": [
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/analysis.py",
+      "function": "run_requested_analysis",
+      "line": 29,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/company_setup.py",
+      "function": "initialize",
+      "line": 91,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/runtime.py",
+      "function": "database",
+      "line": 22,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/access_admission.py",
+      "function": "claim_automatic_access_slot",
+      "line": 28,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/account_deletion.py",
+      "function": "delete_account",
+      "line": 164,
+      "signals": [
+        "add",
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/account_sessions.py",
+      "function": "issue_session",
+      "line": 17,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/activity_volume.py",
+      "function": "volume",
+      "line": 72,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/ai_usage.py",
+      "function": "grant",
+      "line": 136,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/captured_options.py",
+      "function": "captured_report_options",
+      "line": 15,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/company_options.py",
+      "function": "company_generation_option",
+      "line": 12,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/compile_sql.py",
+      "function": "execute",
+      "line": 660,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/contribution_options.py",
+      "function": "contribution_review_options",
+      "line": 16,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/costing_relation.py",
+      "function": "company_generation_basis",
+      "line": 291,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/inventory_options.py",
+      "function": "inventory_review_options",
+      "line": 11,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/reports.py",
+      "function": "_change",
+      "line": 223,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/requests.py",
+      "function": "_accept",
+      "line": 85,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/requests.py",
+      "function": "expire",
+      "line": 201,
+      "signals": [
+        "delete"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/artifacts.py",
+      "function": "stage_artifact",
+      "line": 77,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/attention_reads.py",
+      "function": "_targets",
+      "line": 44,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/attention_reads.py",
+      "function": "stored_exceptions",
+      "line": 129,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/attention_reads.py",
+      "function": "attention_summary",
+      "line": 173,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/attention_reads.py",
+      "function": "attention_register",
+      "line": 233,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/backorders.py",
+      "function": "serve_backorders",
+      "line": 338,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/bootstrap.py",
+      "function": "bootstrap_empty_database",
+      "line": 12,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/business_journeys.py",
+      "function": "create_proposal",
+      "line": 727,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/business_journeys.py",
+      "function": "set_vote",
+      "line": 778,
+      "signals": [
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/business_journeys.py",
+      "function": "moderate_proposal",
+      "line": 803,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/captured_report.py",
+      "function": "_header",
+      "line": 81,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/captured_report.py",
+      "function": "_stored",
+      "line": 113,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/captured_report.py",
+      "function": "_build",
+      "line": 185,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/captured_report.py",
+      "function": "_publish",
+      "line": 309,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/captured_report.py",
+      "function": "_discard",
+      "line": 464,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/carrying_value.py",
+      "function": "_execute",
+      "line": 168,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/commercial_matching.py",
+      "function": "_execute",
+      "line": 251,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "function": "_admit",
+      "line": 86,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "function": "_contribution_cache",
+      "line": 350,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "function": "_verify_generation",
+      "line": 433,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "function": "_close_population",
+      "line": 509,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "function": "_build",
+      "line": 612,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "function": "_publish",
+      "line": 807,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "function": "_report",
+      "line": 897,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_setup.py",
+      "function": "create_company",
+      "line": 204,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_setup.py",
+      "function": "_queue_initialization",
+      "line": 345,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_setup.py",
+      "function": "_finish_live_setup",
+      "line": 367,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_setup.py",
+      "function": "initialize_profile",
+      "line": 418,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_setup.py",
+      "function": "_company_presentation",
+      "line": 553,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution_generations.py",
+      "function": "_resolve",
+      "line": 52,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution_generations.py",
+      "function": "_build",
+      "line": 230,
+      "signals": [
+        "add",
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution_generations.py",
+      "function": "_read",
+      "line": 369,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution_reviews.py",
+      "function": "_selling_basis_stale",
+      "line": 43,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution_reviews.py",
+      "function": "_execute",
+      "line": 175,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_replace_party_emails",
+      "line": 517,
+      "signals": [
+        "add_all",
+        "delete",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "emit_business_event",
+      "line": 600,
+      "signals": [
+        "add",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_event_progress",
+      "line": 672,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "observe_fact",
+      "line": 821,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_persist_fact_observation",
+      "line": 910,
+      "signals": [
+        "add",
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_tenant",
+      "line": 1144,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "archive_tenant",
+      "line": 1167,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "restore_tenant",
+      "line": 1187,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "permanently_delete_tenant",
+      "line": 1197,
+      "signals": [
+        "commit",
+        "delete",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_purge_tenant_records",
+      "line": 1217,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "tenant_usage_summaries",
+      "line": 1273,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_payment_term",
+      "line": 1406,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_payment_term",
+      "line": 1499,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_price_list",
+      "line": 1615,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_price_list",
+      "line": 1712,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_price_list_entry",
+      "line": 1798,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "assign_party_price_list",
+      "line": 1878,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_party_group",
+      "line": 1916,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_party_group",
+      "line": 1956,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "add_party_group_member",
+      "line": 1999,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "assign_group_price_list",
+      "line": 2038,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "resolve_price",
+      "line": 2080,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_master_source_record",
+      "line": 2207,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_lock_source_identity",
+      "line": 2262,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "store_source_record",
+      "line": 2280,
+      "signals": [
+        "add",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_store_source_records",
+      "line": 2369,
+      "signals": [
+        "add",
+        "add_all",
+        "execute",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_master_source_reference",
+      "line": 2485,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_party",
+      "line": 2521,
+      "signals": [
+        "add",
+        "add_all",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_item",
+      "line": 2630,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_location",
+      "line": 2735,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_parties",
+      "line": 2815,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_items",
+      "line": 2873,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_locations",
+      "line": 2930,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_party",
+      "line": 3188,
+      "signals": [
+        "add",
+        "commit",
+        "delete",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_item",
+      "line": 3309,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_location",
+      "line": 3407,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_parties",
+      "line": 3498,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_items",
+      "line": 3556,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "update_locations",
+      "line": 3614,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "set_master_data_active",
+      "line": 3672,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_commitment",
+      "line": 3716,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_movement_quantities",
+      "line": 3844,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "commitment_terms",
+      "line": 4100,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_agreed_line_prices",
+      "line": 4243,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "revise_commitment",
+      "line": 4322,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "reserve",
+      "line": 5052,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "release_reservation",
+      "line": 5144,
+      "signals": [
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_consume_reservations",
+      "line": 5186,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_release_reservations_beyond_open",
+      "line": 5278,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_handling_unit",
+      "line": 5373,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_lot",
+      "line": 5453,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "state_lot_expiry",
+      "line": 5530,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "correct_lot_expiry",
+      "line": 5597,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_serial_unit",
+      "line": 5729,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "announce_customer_return",
+      "line": 5946,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "withdraw_return_announcement",
+      "line": 6048,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_append_movement",
+      "line": 6181,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_movement",
+      "line": 6750,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "correct_movement",
+      "line": 7148,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "cancel_commitment",
+      "line": 7415,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "hold_commitment",
+      "line": 7545,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "close_stale_promises",
+      "line": 7709,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "release_commitment_hold",
+      "line": 7785,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "hold_document_commitments",
+      "line": 7859,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "release_document_holds",
+      "line": 7910,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "hold_party_delivery",
+      "line": 7978,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "release_party_delivery_hold",
+      "line": 8045,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "inventory_rows",
+      "line": 8103,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "chat_message_counts",
+      "line": 8439,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "remove_chat_session",
+      "line": 8457,
+      "signals": [
+        "commit",
+        "delete",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "archive_chat_session",
+      "line": 8487,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "restore_chat_session",
+      "line": 8495,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "decision_maker_names",
+      "line": 8528,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_chat_session",
+      "line": 8783,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "add_chat_assistant_message",
+      "line": 8794,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_chat_turn",
+      "line": 8904,
+      "signals": [
+        "add_all",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_document",
+      "line": 9213,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_manual_document_with_lines",
+      "line": 9379,
+      "signals": [
+        "add",
+        "add_all",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_manual_order",
+      "line": 9623,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "line": 10234,
+      "signals": [
+        "add",
+        "commit",
+        "delete",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "correct_manual_document",
+      "line": 10473,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_corrected_document_source",
+      "line": 10599,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_ledger",
+      "line": 10653,
+      "signals": [
+        "add_all",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "reverse_ledger_posting_group",
+      "line": 11342,
+      "signals": [
+        "add",
+        "add_all",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_sales_invoice",
+      "line": 11508,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_supplier_invoice",
+      "line": 11575,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_order_line_billing",
+      "line": 11681,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_record_multi_order_invoice",
+      "line": 12226,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_record_order_invoice",
+      "line": 12354,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_sales_credit",
+      "line": 12609,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_sales_invoice",
+      "line": 12678,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_customer_payment",
+      "line": 12916,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_customer_payment",
+      "line": 13012,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_sales_credit_note",
+      "line": 13069,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_customer_refund",
+      "line": 13125,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_customer_refund",
+      "line": 13221,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "allocate_credit_note",
+      "line": 13317,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_supplier_invoice",
+      "line": 13361,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_supplier_payment",
+      "line": 13415,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_supplier_payment",
+      "line": 13516,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_document_account_balances",
+      "line": 13790,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "allocate_settlement",
+      "line": 13968,
+      "signals": [
+        "add",
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_supplier_credit_note",
+      "line": 14052,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "record_supplier_refund",
+      "line": 14110,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "post_supplier_refund",
+      "line": 14178,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "allocate_supplier_credit_note",
+      "line": 14238,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_financial_open_items",
+      "line": 14392,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "party_detail",
+      "line": 15083,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "location_detail",
+      "line": 15270,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_append_interpretation_outcome",
+      "line": 15331,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "enqueue_source",
+      "line": 15422,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_source_system",
+      "line": 15579,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "install_connector_shell",
+      "line": 15629,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "set_source_system_active",
+      "line": 15745,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "set_source_system_base_url",
+      "line": 15766,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "create_source_capability",
+      "line": 15788,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "set_source_capability_active",
+      "line": 15843,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "enqueue_shopify_order",
+      "line": 15896,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "_shopify_interpretation",
+      "line": 15925,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "process_import_job_bound",
+      "line": 16190,
+      "signals": [
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "process_import_job",
+      "line": 16267,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "process_shopify_import_job",
+      "line": 16457,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "process_pending_import_jobs",
+      "line": 16468,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "retry_import_job",
+      "line": 16618,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "ingest_shopify_order",
+      "line": 16659,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "execute_payment_run",
+      "line": 17359,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "timeline_activity",
+      "line": 17612,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "function": "ensure_demo",
+      "line": 18113,
+      "signals": [
+        "add",
+        "add_all",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_captured_basis.py",
+      "function": "_selected",
+      "line": 63,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_captured_basis.py",
+      "function": "_read",
+      "line": 155,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_captured_basis.py",
+      "function": "_retain",
+      "line": 261,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_captured_summary.py",
+      "function": "_inventory",
+      "line": 37,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_captured_summary.py",
+      "function": "_contribution",
+      "line": 97,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census.py",
+      "function": "_capture",
+      "line": 67,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_resolution.py",
+      "function": "_inventory_review",
+      "line": 23,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_resolution.py",
+      "function": "_contribution_review",
+      "line": 57,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_storage.py",
+      "function": "_header",
+      "line": 117,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_storage.py",
+      "function": "_retain",
+      "line": 160,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_storage.py",
+      "function": "_verify",
+      "line": 277,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_storage.py",
+      "function": "_members",
+      "line": 321,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_records.py",
+      "function": "_read",
+      "line": 198,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_resolution.py",
+      "function": "_pending_proposal",
+      "line": 74,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_review_draft.py",
+      "function": "_item_scope",
+      "line": 60,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_review_draft.py",
+      "function": "_inventory",
+      "line": 286,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_review_relevance.py",
+      "function": "_targets",
+      "line": 29,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_review_relevance.py",
+      "function": "_unchanged",
+      "line": 109,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/costing.py",
+      "function": "_owner",
+      "line": 113,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/costing.py",
+      "function": "_new",
+      "line": 1098,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/costing.py",
+      "function": "_finish",
+      "line": 1232,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/costing.py",
+      "function": "execute_cost_change",
+      "line": 1243,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_actions.py",
+      "function": "_credit_context",
+      "line": 59,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_actions.py",
+      "function": "_record_invoice_credit",
+      "line": 348,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_exposure.py",
+      "function": "_invoiced_quantities",
+      "line": 28,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_exposure.py",
+      "function": "_place_holds",
+      "line": 612,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_exposure.py",
+      "function": "hold_if_over_credit_limit",
+      "line": 656,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_hold_actions.py",
+      "function": "release_credit_holds",
+      "line": 98,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/customer_exchanges.py",
+      "function": "record_customer_exchange",
+      "line": 353,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/customer_item_numbers.py",
+      "function": "set_customer_item_number",
+      "line": 157,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/customer_item_numbers.py",
+      "function": "remove_customer_item_number",
+      "line": 256,
+      "signals": [
+        "commit",
+        "delete",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/customer_item_numbers.py",
+      "function": "customer_item_numbers",
+      "line": 315,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/decision_attribution.py",
+      "function": "decision_attributions",
+      "line": 24,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/decision_attribution.py",
+      "function": "_names",
+      "line": 94,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/decision_attribution.py",
+      "function": "record_decisions",
+      "line": 126,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_actions.py",
+      "function": "prepare_delivery_action",
+      "line": 544,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_actions.py",
+      "function": "review_existing",
+      "line": 647,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_actions.py",
+      "function": "reconcile_delivery",
+      "line": 1097,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_failures.py",
+      "function": "record_delivery_failure",
+      "line": 226,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_reads.py",
+      "function": "delivery_work",
+      "line": 266,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_reads.py",
+      "function": "delivery_case",
+      "line": 358,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_reads.py",
+      "function": "delivery_references",
+      "line": 610,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_rules.py",
+      "function": "state_delivery_rule",
+      "line": 127,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_rules.py",
+      "function": "effective_rules",
+      "line": 264,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_rules.py",
+      "function": "review_delivery_rule",
+      "line": 531,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_data.py",
+      "function": "_atomic_control",
+      "line": 276,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_data.py",
+      "function": "connect",
+      "line": 343,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_data.py",
+      "function": "control",
+      "line": 401,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_data.py",
+      "function": "_counts",
+      "line": 642,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_data.py",
+      "function": "settlement_work",
+      "line": 1035,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_profile.py",
+      "function": "seed_profile",
+      "line": 159,
+      "signals": [
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/desktop_identity.py",
+      "function": "bootstrap_owner",
+      "line": 12,
+      "signals": [
+        "add",
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "function": "_cash_received",
+      "line": 90,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "function": "_offset_groups",
+      "line": 142,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "function": "record_down_payment_invoice",
+      "line": 376,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "function": "post_offsets",
+      "line": 602,
+      "signals": [
+        "add_all",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "function": "held_down_payments",
+      "line": 650,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "function": "record_proforma_invoice",
+      "line": 817,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "function": "order_billing_rows",
+      "line": 933,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/drop_shipping.py",
+      "function": "_pairs",
+      "line": 111,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/drop_shipping.py",
+      "function": "record_drop_shipment",
+      "line": 285,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning.py",
+      "function": "_record_notice",
+      "line": 211,
+      "signals": [
+        "add",
+        "add_all",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning_runs.py",
+      "function": "set_schedule",
+      "line": 119,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning_runs.py",
+      "function": "invoice_dunning_state",
+      "line": 216,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning_runs.py",
+      "function": "_run_items",
+      "line": 455,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning_runs.py",
+      "function": "run_outcome",
+      "line": 480,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning_runs.py",
+      "function": "confirm_run",
+      "line": 609,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning_runs.py",
+      "function": "record_handover",
+      "line": 878,
+      "signals": [
+        "add",
+        "add_all",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "cost_findings",
+      "line": 321,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_released_invoice_ids",
+      "line": 866,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_read_order_line_promises",
+      "line": 1042,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_order_line_price_missing_exceptions",
+      "line": 1632,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_sold_below_purchase_price_exceptions",
+      "line": 2149,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_invoice_price_differs_exceptions",
+      "line": 3176,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_source_failures",
+      "line": 3270,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_silent_source_exceptions",
+      "line": 3301,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_blocked_by_item_location",
+      "line": 3506,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_item_oversold_exceptions",
+      "line": 3525,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_reorder_point_reached_exceptions",
+      "line": 3726,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_backorder_against_rule_exceptions",
+      "line": 4195,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_stock_in_another_location_exceptions",
+      "line": 4260,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "function": "_account_postings",
+      "line": 4855,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/external_stock.py",
+      "function": "_book_quantities",
+      "line": 138,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/external_stock.py",
+      "function": "_compared",
+      "line": 227,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/external_stock.py",
+      "function": "_store",
+      "line": 444,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/external_stock.py",
+      "function": "record_external_stock",
+      "line": 491,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/file_interpreters.py",
+      "function": "interpret_artifact",
+      "line": 313,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "lock_finance",
+      "line": 15,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "_mutation",
+      "line": 41,
+      "signals": [
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "_audit",
+      "line": 113,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "create_account",
+      "line": 136,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "update_account",
+      "line": 197,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "set_default_account",
+      "line": 264,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "initialize_accounts",
+      "line": 321,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "function": "_bootstrap_accounts",
+      "line": 420,
+      "signals": [
+        "add",
+        "add_all",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/balances.py",
+      "function": "party_balance_rows",
+      "line": 27,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/company_currency.py",
+      "function": "set_company_currency",
+      "line": 120,
+      "signals": [
+        "add",
+        "commit",
+        "execute",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/components.py",
+      "function": "assign_component",
+      "line": 422,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/credits.py",
+      "function": "available_credit_rows",
+      "line": 16,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/deposits.py",
+      "function": "clear_deposit",
+      "line": 172,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/opening.py",
+      "function": "import_opening",
+      "line": 290,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/references.py",
+      "function": "maintain_reference",
+      "line": 245,
+      "signals": [
+        "add",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/source_mappings.py",
+      "function": "set_source_mapping",
+      "line": 242,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/target_mappings.py",
+      "function": "maintain_target_configuration",
+      "line": 368,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/financial_reversal_actions.py",
+      "function": "_reversal_choices",
+      "line": 44,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/free_playground.py",
+      "function": "request_entry",
+      "line": 30,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/free_playground.py",
+      "function": "reserve_managed_question",
+      "line": 200,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/fulfillment_readiness.py",
+      "function": "fulfillment_readiness",
+      "line": 251,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/global_search.py",
+      "function": "_hits",
+      "line": 98,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/global_search.py",
+      "function": "search_company",
+      "line": 128,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/global_search.py",
+      "function": "resolve_search_targets",
+      "line": 217,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inspector_register.py",
+      "function": "_inspector_records",
+      "line": 91,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interaction_recorder.py",
+      "function": "_write_batch",
+      "line": 456,
+      "signals": [
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interaction_recorder.py",
+      "function": "_tidy",
+      "line": 566,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interactions.py",
+      "function": "_written_stages",
+      "line": 273,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interactions.py",
+      "function": "pulse",
+      "line": 468,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interactions.py",
+      "function": "purge_expired",
+      "line": 491,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interactions.py",
+      "function": "series",
+      "line": 529,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_batch_generations.py",
+      "function": "_resolve",
+      "line": 23,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_batch_generations.py",
+      "function": "_build",
+      "line": 102,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_costing.py",
+      "function": "_execute",
+      "line": 452,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_generations.py",
+      "function": "_observation",
+      "line": 114,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_generations.py",
+      "function": "_build",
+      "line": 162,
+      "signals": [
+        "add",
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_generations.py",
+      "function": "_read_selection",
+      "line": 459,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_positions.py",
+      "function": "inventory_detail_rows",
+      "line": 37,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_reads.py",
+      "function": "inventory_page",
+      "line": 131,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/invoice_actions.py",
+      "function": "record_free_supplier_invoice",
+      "line": 100,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/item_imports.py",
+      "function": "record_item_import",
+      "line": 256,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/kits.py",
+      "function": "define_kit",
+      "line": 263,
+      "signals": [
+        "add_all",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/kits.py",
+      "function": "assemble_kit",
+      "line": 692,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "_audit",
+      "line": 162,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "_sweep",
+      "line": 186,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "create_interaction",
+      "line": 228,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "interaction_view",
+      "line": 274,
+      "signals": [
+        "commit",
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "_eligible_company",
+      "line": 341,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "approve_interaction",
+      "line": 364,
+      "signals": [
+        "add",
+        "commit",
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "deny_interaction",
+      "line": 451,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "exchange_code",
+      "line": 484,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "rotate_refresh_token",
+      "line": 537,
+      "signals": [
+        "add",
+        "commit",
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "revoke_credential_token",
+      "line": 605,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "resolve_interactive_principal",
+      "line": 622,
+      "signals": [
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "function": "revoke_grant",
+      "line": 668,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/memberships.py",
+      "function": "_audit",
+      "line": 83,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/memberships.py",
+      "function": "create_invitation",
+      "line": 134,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/memberships.py",
+      "function": "accept_invitation",
+      "line": 271,
+      "signals": [
+        "add",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/memberships.py",
+      "function": "access_summary",
+      "line": 369,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/notifications.py",
+      "function": "enqueue_invitation_delivery",
+      "line": 30,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/notifications.py",
+      "function": "deliver_next_invitation",
+      "line": 138,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/notifications.py",
+      "function": "cleanup_terminal_invitations",
+      "line": 187,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/operational_previews.py",
+      "function": "_stock",
+      "line": 321,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/order_journey.py",
+      "function": "search_order_journeys",
+      "line": 37,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/order_line_items.py",
+      "function": "unknown_item_lines",
+      "line": 84,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/order_line_items.py",
+      "function": "_hold_like_its_order",
+      "line": 272,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/order_line_items.py",
+      "function": "assign_line_item",
+      "line": 305,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "_planned_elsewhere",
+      "line": 166,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "_picks",
+      "line": 239,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "_write_lines",
+      "line": 678,
+      "signals": [
+        "add",
+        "delete",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "plan_outbound_delivery",
+      "line": 710,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "revise_outbound_delivery",
+      "line": 802,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "_move_reservation",
+      "line": 936,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "pick_outbound_delivery",
+      "line": 1036,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "put_back_outbound_delivery",
+      "line": 1134,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/outbound_deliveries.py",
+      "function": "_views",
+      "line": 1391,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/party_merges.py",
+      "function": "merged_members",
+      "line": 57,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/party_merges.py",
+      "function": "survivors_of",
+      "line": 77,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/party_merges.py",
+      "function": "merge_party",
+      "line": 295,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/party_merges.py",
+      "function": "party_merges",
+      "line": 402,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_actions.py",
+      "function": "_customer_credit_items",
+      "line": 404,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_authorizations.py",
+      "function": "_captured",
+      "line": 62,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_authorizations.py",
+      "function": "record_authorization",
+      "line": 172,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_authorizations.py",
+      "function": "record_capture",
+      "line": 327,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_returns.py",
+      "function": "_paid_invoices",
+      "line": 58,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_returns.py",
+      "function": "record_return",
+      "line": 278,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_returns.py",
+      "function": "_caused",
+      "line": 483,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_returns.py",
+      "function": "_returned_allocations",
+      "line": 576,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payouts.py",
+      "function": "_bookings",
+      "line": 228,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payouts.py",
+      "function": "_warm",
+      "line": 489,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payouts.py",
+      "function": "_settle",
+      "line": 994,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payouts.py",
+      "function": "_allocated_to",
+      "line": 1160,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payouts.py",
+      "function": "payout_detail",
+      "line": 1206,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payouts.py",
+      "function": "unmatched_lines",
+      "line": 1311,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payouts.py",
+      "function": "payouts",
+      "line": 1382,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/platform.py",
+      "function": "_counts",
+      "line": 117,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/platform.py",
+      "function": "people_overview",
+      "line": 160,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/platform.py",
+      "function": "companies_overview",
+      "line": 225,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/platform.py",
+      "function": "security_trail",
+      "line": 307,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "_finance_state",
+      "line": 121,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "_store_finance_observation",
+      "line": 212,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "_owned_step",
+      "line": 377,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "_store_opening_observation",
+      "line": 498,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "_store_order_observation",
+      "line": 533,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "confirm_step",
+      "line": 580,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "reject_step",
+      "line": 834,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "prepare_step",
+      "line": 945,
+      "signals": [
+        "add",
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "_mutation_session",
+      "line": 1309,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "read_run",
+      "line": 1474,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "list_runs",
+      "line": 1504,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "_initialize",
+      "line": 1579,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "start_run",
+      "line": 1646,
+      "signals": [
+        "add",
+        "add_all",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "restart_run",
+      "line": 1788,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "archive_run",
+      "line": 1857,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "function": "restore_run",
+      "line": 1880,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/prepayment_reservations.py",
+      "function": "reservations_awaiting_prepayment",
+      "line": 32,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projection_jobs.py",
+      "function": "due_projections",
+      "line": 77,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_replace_rows",
+      "line": 110,
+      "signals": [
+        "add",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_open_work_rows",
+      "line": 537,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "change_set",
+      "line": 1331,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_narrowed_journal",
+      "line": 1385,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_items_touched",
+      "line": 1522,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_settled_documents",
+      "line": 1775,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_orders_touched",
+      "line": 1900,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_promises_touched",
+      "line": 2218,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_timeline_records",
+      "line": 2389,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_open_items_touched",
+      "line": 2506,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "_payments_touched",
+      "line": 2650,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "projection_snapshot",
+      "line": 2982,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "rebuild_projections",
+      "line": 3023,
+      "signals": [
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "refresh_operational_projections",
+      "line": 3133,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "function": "refresh_projection",
+      "line": 3143,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/provenance.py",
+      "function": "_creating_decisions",
+      "line": 229,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/read_contracts.py",
+      "function": "finance_balances",
+      "line": 148,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "_entry",
+      "line": 188,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "capture_gap",
+      "line": 216,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "add_gap_entry",
+      "line": 276,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "recommend_gap",
+      "line": 304,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "decide_gap",
+      "line": 342,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "prepare_implementation",
+      "line": 522,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "activate_rule",
+      "line": 1049,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "disable_rule",
+      "line": 1077,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "replay_rule",
+      "line": 1086,
+      "signals": [
+        "add",
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "gap_detail",
+      "line": 1263,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "function": "list_gaps",
+      "line": 1404,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/receipt_deviations.py",
+      "function": "accept_substitute",
+      "line": 250,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/receipt_deviations.py",
+      "function": "wrong_goods_out",
+      "line": 345,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/receipt_deviations.py",
+      "function": "record_misdelivery",
+      "line": 435,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/receipt_deviations.py",
+      "function": "outstanding_misdeliveries",
+      "line": 471,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/receipt_deviations.py",
+      "function": "record_advice",
+      "line": 572,
+      "signals": [
+        "add_all",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/receipt_deviations.py",
+      "function": "_received_into",
+      "line": 593,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/receipt_deviations.py",
+      "function": "in_transit_by_commitment",
+      "line": 663,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reference_workspace.py",
+      "function": "prepare_reference",
+      "line": 410,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reorder_points.py",
+      "function": "reorder_points",
+      "line": 74,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reorder_points.py",
+      "function": "set_reorder_point",
+      "line": 202,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reorder_points.py",
+      "function": "remove_reorder_point",
+      "line": 294,
+      "signals": [
+        "commit",
+        "delete",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/return_dispositions.py",
+      "function": "record_return_disposition",
+      "line": 190,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "_audit",
+      "line": 192,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "create_schedule",
+      "line": 218,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "control_schedule",
+      "line": 314,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "create_manual_run",
+      "line": 445,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "_revive_suspended",
+      "line": 490,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "materialize_due",
+      "line": 516,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "_failed",
+      "line": 616,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "claim_next",
+      "line": 640,
+      "signals": [
+        "execute",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "_locked_claim",
+      "line": 698,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "execute_claim",
+      "line": 714,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "record_failure",
+      "line": 762,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "cancel_queued_run",
+      "line": 989,
+      "signals": [
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "enqueue_projection_run",
+      "line": 1029,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "function": "cleanup_finished_runs",
+      "line": 1105,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipment_actions.py",
+      "function": "review_shipment_action",
+      "line": 115,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipments.py",
+      "function": "record_shipment_notice",
+      "line": 59,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipments.py",
+      "function": "record_shipment_event",
+      "line": 293,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipments.py",
+      "function": "supersede_shipment_event",
+      "line": 383,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipments.py",
+      "function": "record_packaged_execution",
+      "line": 461,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipments.py",
+      "function": "_details",
+      "line": 743,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shop_refunds.py",
+      "function": "interpret_shop_refund",
+      "line": 102,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_blocks.py",
+      "function": "stock_blocks",
+      "line": 154,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_blocks.py",
+      "function": "block_stock",
+      "line": 288,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_blocks.py",
+      "function": "_resolve",
+      "line": 413,
+      "signals": [
+        "add",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_blocks.py",
+      "function": "release_stock_block",
+      "line": 439,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_blocks.py",
+      "function": "scrap_stock_block",
+      "line": 503,
+      "signals": [
+        "commit",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_counts.py",
+      "function": "_uncovered",
+      "line": 283,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_counts.py",
+      "function": "record_stock_count",
+      "line": 428,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_counts.py",
+      "function": "stock_counts",
+      "line": 629,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "export_draft",
+      "line": 249,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "import_package",
+      "line": 309,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "delete_package",
+      "line": 395,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "start",
+      "line": 421,
+      "signals": [
+        "add",
+        "add_all",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "initialize",
+      "line": 512,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "_steps",
+      "line": 768,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "prepare",
+      "line": 1138,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "confirm",
+      "line": 1354,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "choose_branch",
+      "line": 1516,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "function": "restart",
+      "line": 1541,
+      "signals": [
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supplier_item_terms.py",
+      "function": "set_supplier_item_terms",
+      "line": 138,
+      "signals": [
+        "add",
+        "commit",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supplier_item_terms.py",
+      "function": "remove_supplier_item_terms",
+      "line": 223,
+      "signals": [
+        "commit",
+        "delete",
+        "flush",
+        "mutation_guard"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supplier_item_terms.py",
+      "function": "supplier_item_terms",
+      "line": 287,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supply_assignments.py",
+      "function": "_effective_rows",
+      "line": 33,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supply_assignments.py",
+      "function": "_reversed_quantities",
+      "line": 95,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supply_assignments.py",
+      "function": "assign_supply",
+      "line": 329,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supply_assignments.py",
+      "function": "reverse_supply_assignment",
+      "line": 517,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/tenant_policy.py",
+      "function": "_opening_with_cost",
+      "line": 696,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/tenant_policy.py",
+      "function": "require_playground_run",
+      "line": 911,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/tenant_policy.py",
+      "function": "practice_company_runs",
+      "line": 1109,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/application.py",
+      "function": "_movement_create",
+      "line": 1613,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/application.py",
+      "function": "create_change_proposal",
+      "line": 5749,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/application.py",
+      "function": "_finalize_known_no_effect_failure",
+      "line": 6344,
+      "signals": [
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/application.py",
+      "function": "approve_and_execute_proposal",
+      "line": 6399,
+      "signals": [
+        "commit",
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/application.py",
+      "function": "reject_proposal",
+      "line": 6788,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/analytics_api.py",
+      "function": "_change",
+      "line": 218,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "function": "create_company",
+      "line": 541,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "function": "company_members",
+      "line": 647,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "function": "invite_company_member",
+      "line": 657,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "function": "resend_company_invitation",
+      "line": 678,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "function": "revoke_company_invitation",
+      "line": 695,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "function": "remove_company_member",
+      "line": 709,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "function": "document_inspector",
+      "line": 6289,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/app.py",
+      "function": "healthcheck",
+      "line": 353,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/app.py",
+      "function": "api_system_status",
+      "line": 360,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "audit",
+      "line": 86,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "issue_code",
+      "line": 104,
+      "signals": [
+        "add"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "signup",
+      "line": 307,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "invitation_signup",
+      "line": 351,
+      "signals": [
+        "add",
+        "commit",
+        "flush"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "resend_code",
+      "line": 387,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "verify_email",
+      "line": 398,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "invitation_accept",
+      "line": 471,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "login",
+      "line": 489,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "logout",
+      "line": 511,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "update_application",
+      "line": 539,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "update_profile",
+      "line": 571,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "applications",
+      "line": 585,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "review_application",
+      "line": 611,
+      "signals": [
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "function": "bootstrap_platform_admin",
+      "line": 684,
+      "signals": [
+        "add",
+        "commit"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/fact_reads.py",
+      "function": "fact_page",
+      "line": 13,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/read_models.py",
+      "function": "commitment_page",
+      "line": 95,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/read_models.py",
+      "function": "journal_page",
+      "line": 630,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/read_models.py",
+      "function": "projection_page",
+      "line": 933,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/read_models.py",
+      "function": "projection_totals",
+      "line": 1117,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/source_reads.py",
+      "function": "source_metadata_page",
+      "line": 14,
+      "signals": [
+        "execute"
+      ],
+      "classification": "candidate; semantic classification pending",
+      "coverage_owner": "356-intake-coverage-rollout"
+    }
+  ]
+}

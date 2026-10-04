@@ -2782,6 +2782,36 @@
     },
     "email_dispatch_not_found": {
       "message": "Email dispatch not found."
+    },
+    "intake_approval_required": {
+      "message": "An exact transaction-bound intake approval is required."
+    },
+    "intake_review_stale": {
+      "message": "The reviewed intake state has changed. Prepare a new review."
+    },
+    "intake_review_invalid": {
+      "message": "The retained intake review is invalid."
+    },
+    "intake_profile_unsupported": {
+      "message": "This source profile has no reviewed intake adapter."
+    },
+    "intake_package_too_large": {
+      "message": "The coherent intake package exceeds its review limits."
+    },
+    "intake_source_line_amount_required": {
+      "message": "The source states no line amount. Supply explicit evidence before acceptance."
+    },
+    "intake_partial_commit_forbidden": {
+      "message": "Intake effects and their decision receipt must commit together."
+    },
+    "intake_source_already_accepted": {
+      "message": "This source already has accepted evidence; reconcile its existing decision trail."
+    },
+    "intake_file_rows_invalid": {
+      "message": "Large-file intake requires between one and 5000 rows."
+    },
+    "intake_file_size_invalid": {
+      "message": "Large-file raw input must be nonempty and at most 20 MiB."
     }
   },
   "terms": [

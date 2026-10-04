@@ -4349,6 +4349,33 @@ def _email_workflow(session: Session, tenant_id: str, arguments: dict[str, Any])
     return email_workflow()
 
 
+def _intake_apply(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    # Intake owns its atomic decision transaction, never the generic handler path.
+    """
+    BUSINESS PURPOSE:
+    Route accepted source effects exclusively through the atomic reviewed executor.
+
+    BUSINESS RULE application.intake_apply_guard:
+    Refuse generic handler execution because its transaction cannot own an intake decision.
+    """
+    # reality-rule: application.intake_apply_guard
+    raise InvalidOperation(code="intake_approval_required")
+
+
+def _intake_review(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Expose one exact retained source interpretation through shared tools.
+
+    BUSINESS RULE application.intake_review:
+    Use the tenant-scoped shared review service without refreshing or applying meaning.
+    """
+    from reality.services.intake import review_intake
+
+    # reality-rule: application.intake_review
+    return review_intake(session, tenant_id, arguments["proposal_id"])
+
+
 TOOLS = {
     "email_dispatch_authorize": Tool(
         "email_dispatch_authorize",
@@ -4367,6 +4394,18 @@ TOOLS = {
         "Discover the canonical email handoff and external execution contract.",
         False,
         _email_workflow,
+    ),
+    "intake_apply": Tool(
+        "intake_apply",
+        "Accept exactly reviewed source meaning in one transaction.",
+        True,
+        _intake_apply,
+    ),
+    "intake_review": Tool(
+        "intake_review",
+        "Read the exact retained source interpretation and decision result.",
+        False,
+        _intake_review,
     ),
     "business_logic_discover": Tool(
         "business_logic_discover",
@@ -6017,6 +6056,12 @@ def create_change_proposal(
     # reality-rule: application.create_change_proposal.2
     if not tool.mutating:
         raise InvalidOperation(code="proposal_read_tool_not_needed")
+    if tool_name == "intake_apply":
+        from reality.services.intake import prepare_intake
+
+        if set(arguments) != {"job_id"}:
+            raise InvalidOperation(code="intake_review_invalid")
+        return prepare_intake(session, tenant_id, arguments["job_id"])
     if tool_name == "document_create":
         from reality.services.core import validate_manual_operational_document_type
 
@@ -6713,6 +6758,19 @@ def approve_and_execute_proposal(
         phase="preflight",
         confirmed=confirmed,
     )
+    if candidate.type == "tool:intake_apply":
+        from reality.services.intake import apply_prepared_intake
+
+        return apply_prepared_intake(
+            session,
+            tenant_id,
+            proposal_id,
+            review_token or "",
+            confirmed=confirmed,
+            principal=confirming_principal,
+            settling_token_id=settling_token_id,
+            settling_channel=settling_channel,
+        )
     if "report_author" in authority_policy.checks:
         from reality.services.analytics.proposals import reveal
 
@@ -7092,6 +7150,17 @@ def reject_proposal(
         )
     if existing is None:
         raise NotFound(code="proposal_not_found")
+    if existing.type == "tool:intake_apply":
+        from reality.services.intake import reject_prepared_intake
+
+        return reject_prepared_intake(
+            session,
+            tenant_id,
+            proposal_id,
+            principal=confirming_principal,
+            settling_token_id=settling_token_id,
+            settling_channel=settling_channel,
+        )
     # reality-rule: application.reject_proposal.1
     if existing.status == "rejected":
         return existing
