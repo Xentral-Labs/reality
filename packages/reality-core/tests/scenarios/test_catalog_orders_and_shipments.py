@@ -652,7 +652,7 @@ def test_a_zero_price_line_ships_and_is_invoiced_without_revenue(session, busine
     booking = propose_tool(
         session, tenant_id, "sales_invoice_post", {"document_id": invoice_id}
     )
-    confirm_tool(session, tenant_id, booking.id)
+    confirm_tool(session, tenant_id, booking.id, confirmed=True)
 
     assert account_balance(session, tenant_id, "sales_revenue") == Decimal("-20.00")
     assert account_balance(session, tenant_id, "accounts_receivable") == Decimal(
@@ -1721,7 +1721,7 @@ def _invoice(session, business, number, line_id, quantity):
     booking = propose_tool(
         session, business.tenant.id, "sales_invoice_post", {"document_id": invoice_id}
     )
-    confirm_tool(session, business.tenant.id, booking.id)
+    confirm_tool(session, business.tenant.id, booking.id, confirmed=True)
 
 
 def _billed_not_shipped(session, business):

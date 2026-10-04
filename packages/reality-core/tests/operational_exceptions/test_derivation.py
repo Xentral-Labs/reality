@@ -45,7 +45,9 @@ from reality.services.core import (
     open_invoice_amount,
     payment_terms,
     post_ledger,
+    post_sales_credit_note,
     post_sales_invoice,
+    post_supplier_credit_note,
     post_supplier_invoice,
     record_movement,
     release_reservation,
@@ -1572,7 +1574,7 @@ def test_shipped_not_billed(session, business):
 
 
 def _reverse_invoice(session, business, document, *, direction="sales"):
-    post = post_sales_invoice if direction == "sales" else post_supplier_invoice
+    post = reviewed_post_sales_invoice if direction == "sales" else reviewed_post_supplier_invoice
     entries = post(session, business.tenant.id, document.id)
     reverse_ledger_posting_group(
         session,
@@ -5059,7 +5061,7 @@ def booking_history(
     session, business, *, kind="sales_invoice", lag_days=2, cases=6, prefix="A"
 ):
     """A tenant that normally books this kind of document `lag_days` after recording it."""
-    post = post_sales_invoice if kind == "sales_invoice" else post_supplier_invoice
+    post = reviewed_post_sales_invoice if kind == "sales_invoice" else reviewed_post_supplier_invoice
     for index in range(cases):
         recorded = AS_OF - timedelta(days=120 - index * 5)
         document = unbooked(
@@ -5339,10 +5341,10 @@ def test_a_class_and_its_operation_agree_on_booked():
     from reality.services import exceptions
 
     for constant, poster in (
-        (exceptions.SALES_INVOICE, reviewed_post_sales_invoice),
-        (exceptions.SUPPLIER_INVOICE, reviewed_post_supplier_invoice),
-        (exceptions.SALES_CREDIT, reviewed_post_sales_credit_note),
-        (exceptions.SUPPLIER_CREDIT, reviewed_post_supplier_credit_note),
+        (exceptions.SALES_INVOICE, post_sales_invoice),
+        (exceptions.SUPPLIER_INVOICE, post_supplier_invoice),
+        (exceptions.SALES_CREDIT, post_sales_credit_note),
+        (exceptions.SUPPLIER_CREDIT, post_supplier_credit_note),
     ):
         _document_type, account = constant
         guard = next(
