@@ -12352,8 +12352,8 @@ capability_describe tool_name
 Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of
 shown records. Movement summary counts_by_type counts records, not quantities: return is customer
 return, supplier_return is supplier return. Preserve omitted_before/omitted_after and
-complete_matching_selection; a final cursor page is not a total. Explicit legacy mode is a bounded
-lookup.
+complete_matching_selection; a final cursor page is not a total. Quantity references include
+canonical item_name/item_sku beside opaque IDs. Explicit legacy mode is a bounded lookup.
 
 **Aufruf**
 

@@ -463,16 +463,17 @@ def business_discovery_record(
                 )
             )
         )
-        unit = (
+        item = (
             session.scalar(
-                select(Item.unit).where(
-                    Item.tenant_id == row.tenant_id, Item.id == item_id
-                )
+                select(Item).where(Item.tenant_id == row.tenant_id, Item.id == item_id)
             )
             if item_id
             else None
         )
+        unit = item.unit if item else None
         result.update(
+            item_name=item.name if item else None,
+            item_sku=item.sku if item else None,
             unit=unit or None,
             unit_status="known" if unit else "unknown",
             quantity_basis="item_unit",

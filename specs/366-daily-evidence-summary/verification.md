@@ -3,7 +3,7 @@
 ## Baseline and regression proof
 Baseline: merged PR 371, main e2c48e155b26c6d3dd296d18fdb839a899e71b6c.
 Eleven added regressions failed before implementation (missing summary/cause/context).
-Focused read/provider/demo/HTTP/delivery/readiness selection: 124 passed. Ruff passed.
+Focused read/provider/demo/HTTP/delivery/readiness selection: 125 passed. Ruff passed.
 Generated catalog consistency and docs build passed. Spec policy passes after adding
 required traceability/language declarations; final committed diff is checked by CI.
 HTTP proof uses real authenticated MCP tools/call and canonical server dispatch, no browser.
@@ -32,3 +32,13 @@ focused cause answer pass; arbitrary broad provider prose is outside this featur
 Full Quality workflow is pending at PR preparation. No full-CI completion claim yet.
 Native actual model results do not prove external Claude scheduled execution or arbitrary
 external prose accuracy. No scheduler or browser dependency is added by these reads.
+
+## Canonical label refinement
+Three additional label regressions failed before implementation. Movement/Commitment/
+Reservation quantity references now read canonical Item.name/SKU from the existing scoped
+unit lookup. Multiple-item association, missing labels and tenant boundaries are proved.
+The final real label-enabled round correctly names all seven return records and keeps
+counts 4/3. However it still conflates readiness with historical causality for a blocked
+example, calls derived blockers manual holds, invents a finance-exception relationship,
+and assumes external setup state. Its closing question is truncated. The earlier focused
+SO-005 cause response remains correct; broad prose remains explicitly unaccepted.

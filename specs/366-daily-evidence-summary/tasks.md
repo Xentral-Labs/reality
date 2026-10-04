@@ -10,7 +10,7 @@ Input: spec.md, plan.md, research.md. Gate: Constitution PASS; user scope accept
 ## Phase 2: US1 and US2 (P1)
 - [x] T004 [US1] [FR-001] [FR-003] [FR-005] Add failing asymmetric return, read-only/tenant/legacy tests in `packages/reality-core/tests/test_mcp_read_contract.py` and `packages/reality-core/tests/test_mcp_http_runtime.py`.
 - [x] T005 [US2] [FR-002] Add failing limited, final-cursor and empty-page proofs in `packages/reality-core/tests/test_mcp_read_contract.py`.
-- [x] T006 [US1] [FR-001] [FR-003] [FR-005] Add deterministic shown-record summaries in `packages/reality-core/src/reality/services/read_contracts.py`.
+- [x] T006 [US1] [FR-001] [FR-003] [FR-005] Add deterministic shown-record summaries in `packages/reality-core/src/reality/services/read_contracts.py` and canonical item labels in `packages/reality-core/src/reality/services/core.py`.
 - [x] T007 [US2] [FR-002] Add exact returned-page coverage to the same service helper in `packages/reality-core/src/reality/services/read_contracts.py`.
 
 ## Phase 3: US3 (P1)
