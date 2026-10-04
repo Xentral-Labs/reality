@@ -2600,3 +2600,19 @@ Universal canonical-writer coverage is outside the approved external-intake scop
 ## Independent Demo Data lock-order correction — Specs 146 / 361 FR-006
 
 - `packages/reality-core/tests/test_demo_schedule_lock_order.py`: two genuine PostgreSQL connections prove that a settlement worker cannot hold its own schedule while waiting for production, so Pause cannot complete a lock cycle. Retained from closed #352 without any universal writer/decision gate.
+
+## Local user audit regression follow-up (2026-10-04)
+
+- `packages/reality-core/tests/test_intake_mcp_http.py`: spec 360 FR-008/009/011;
+  authenticated named agent over the MCP HTTP runtime, exact source material,
+  forged digest refusal, accepted attribution, free replay, finite daily quota,
+  scoped token and HTTP 401 after revocation.
+- `packages/reality-core/tests/test_financial_intake_admission.py`: spec 359 FR-001/008;
+  HTTP import worker retains missing/zero amounts and failed outcomes, prepares a
+  valid sibling and creates no accepted evidence/posting before confirmation.
+- `packages/reality-core/tests/browser/unified_payment_refresh.py`: spec 121
+  FR-001/006; real authenticated API, external invoice approval and background
+  projections while payment dialog stays open, explicit refresh, real partial payment.
+- `apps/web/scripts/proposal-review-browser.mjs`: spec 357 FR-002, 359 FR-002 and
+  360 FR-002/011; single source meaning appears once with original downloads,
+  readable missing amount notice and unchanged exact confirmation digest.

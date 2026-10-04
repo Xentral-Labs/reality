@@ -5,7 +5,7 @@ import { BusinessFieldList, TechnicalDetails } from "./DecisionReview";
 import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
 
-const profileLabels: Record<string, string> = {
+export const profileLabels: Record<string, string> = {
   "shopify.order": "Sales order",
   "shopify.order_change": "Order changes",
   "shopify.refund": "Refund",
@@ -30,7 +30,64 @@ const dispositionLabels: Record<string, string> = {
   waiting: "Waiting",
 };
 
-function SourceMeaning({
+export function IntakeMeaning({
+  plan,
+  fallback,
+}: {
+  plan?: Record<string, unknown>;
+  fallback: Record<string, unknown>;
+}) {
+  const effects = plan?.effects as
+    Array<{ operation: string; arguments: Record<string, unknown> }> | undefined;
+  const labels: Record<string, string> = {
+    document: t("Document"),
+    commitment: t("Delivery commitment"),
+    commitment_revision: t("Revise commitment"),
+    commitment_cancellation: t("Cancel commitment remainder"),
+    master_item: t("Create item"),
+    master_party: t("Create party"),
+    master_location: t("Create location"),
+    customer_payment: t("Record customer payment"),
+    supplier_payment: t("Record supplier payment"),
+    invoice_post: t("Post invoice"),
+    payment_allocation: t("Payment allocation"),
+    credit_hold: t("Credit hold"),
+    inventory_adjustment: t("Stock adjustment"),
+    external_stock_statement: t("External stock"),
+  };
+  const issues = (plan?.issues ?? []) as string[];
+  return (
+    <div data-intake-meaning>
+      <h3 className="font-semibold">{t("Prepared preview")}</h3>
+      {effects ? (
+        effects.map((effect, index) => (
+          <section key={index} className="mt-3">
+            <h4 className="font-medium">{labels[effect.operation] || effect.operation}</h4>
+            <BusinessFieldList record={effect.arguments} />
+          </section>
+        ))
+      ) : (
+        <BusinessFieldList record={fallback} />
+      )}
+      {issues.length > 0 && (
+        <ul className="mt-3 list-disc pl-5 text-sm">
+          {issues.map((issue, index) => {
+            const match = /^line:(\d+):(amount_unstated|price_unstated|item_unknown)$/.exec(issue);
+            const label =
+              match?.[2] === "amount_unstated"
+                ? "Line amount was not stated."
+                : match?.[2] === "price_unstated"
+                  ? "Unit price was not stated."
+                  : "Unknown item";
+            return <li key={index}>{match ? `${Number(match[1]) + 1}: ${t(label)}` : issue}</li>;
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function SourceMeaning({
   tenant,
   id,
   renewable,
@@ -65,9 +122,7 @@ function SourceMeaning({
   };
   return (
     <div className="mt-3 space-y-3 rounded-lg bg-surface-muted p-4" data-source-meaning>
-      <BusinessFieldList
-        record={plan ? { effects: plan.effects, issues: plan.issues } : detail.data.input}
-      />
+      <IntakeMeaning plan={plan} fallback={detail.data.input} />
       <a className="br-btn" href={intakeBatches.original(tenant, id)}>
         {t("Download original source")}
       </a>

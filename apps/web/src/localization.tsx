@@ -27945,3 +27945,42 @@ Object.assign(dictionaries.es, {
   "Review the original source and its expected effects before confirming.":
     "Revisa la fuente original y sus efectos previstos antes de confirmar.",
 });
+
+Object.assign(dictionaries.de, {
+  "Line amount was not stated.": "Der Zeilenbetrag wurde nicht angegeben.",
+  "Unit price was not stated.": "Der Einzelpreis wurde nicht angegeben.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Line amount was not stated.": "Het regelbedrag is niet opgegeven.",
+  "Unit price was not stated.": "De eenheidsprijs is niet opgegeven.",
+});
+
+Object.assign(dictionaries.es, {
+  "Line amount was not stated.": "No se indicó el importe de la línea.",
+  "Unit price was not stated.": "No se indicó el precio unitario.",
+});
+
+Object.assign(dictionaries.de, {
+  "Credit hold": "Kreditsperre",
+  "External stock": "Externer Bestand",
+  "Payment allocation": "Zahlungszuordnung",
+  "Post invoice": "Rechnung buchen",
+  "Stock adjustment": "Bestandskorrektur",
+});
+
+Object.assign(dictionaries.nl, {
+  "Credit hold": "Kredietblokkade",
+  "External stock": "Externe voorraad",
+  "Payment allocation": "Betalingstoewijzing",
+  "Post invoice": "Factuur boeken",
+  "Stock adjustment": "Voorraadcorrectie",
+});
+
+Object.assign(dictionaries.es, {
+  "Credit hold": "Bloqueo de crédito",
+  "External stock": "Stock externo",
+  "Payment allocation": "Asignación de pago",
+  "Post invoice": "Contabilizar factura",
+  "Stock adjustment": "Ajuste de stock",
+});

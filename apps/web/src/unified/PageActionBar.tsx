@@ -28,6 +28,7 @@ export function PageActionBar({
       key={action.key}
       type="button"
       data-page-action={presentation}
+      aria-label={t(action.label)}
       aria-expanded={action.expanded}
       className="br-btn"
       disabled={action.disabled}

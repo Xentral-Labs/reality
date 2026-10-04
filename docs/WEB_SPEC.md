@@ -3592,3 +3592,15 @@ links complete original source/file bytes, reports actual applied/replayed/refus
 stopped dispositions and receipts, and can stop further units. A refused child
 may explicitly prepare a fresh review, which needs a new decision. Generic
 register selection/export rules remain separate from this decision workflow.
+
+### Intake user-audit regressions (specs 357/359/360)
+
+Single-source review presents the prepared business effects once, using the same
+meaning presentation as a selected batch child. Original source and artifact
+bytes have explicit download links. Known line-level missing amounts/prices and
+unknown items are readable notices with one-based line positions; unrecognized
+issues remain visible. All effect arguments and collapsed technical inspection
+remain available; presentation never recalculates or authorizes business effects.
+Page action buttons carry the same localized accessible name as their visible label.
+Payment dialog Refresh reads the current stored open-items projection into the
+mounted selector; no page reload or new acceptance boundary is needed.
