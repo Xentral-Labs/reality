@@ -164,9 +164,15 @@ def build_tool_catalog(catalog: dict[str, Any]) -> dict[str, Any]:
             )
         read_rows[target]["views"].append(view["key"])
 
+    standalone_tools = set(config.get("standalone_tools", []))
+    unknown_standalone = standalone_tools - tools.keys()
+    if unknown_standalone:
+        raise ValueError(
+            f"Unknown standalone MCP tools: {', '.join(sorted(unknown_standalone))}"
+        )
     represented_tools = {name for row in entries for name in row["mcp"]}
     for name, tool in tools.items():
-        if name in represented_tools:
+        if name in represented_tools and name not in standalone_tools:
             continue
         topic = config["mcp_topics"].get(name)
         if not topic:

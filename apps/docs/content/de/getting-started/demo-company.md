@@ -318,6 +318,10 @@ Vorschlags-ID und, falls vorhanden, `confirmation.review_token` auf. Prüfe die 
 Lese- und Vorschlagsrechten darf nicht bestätigen; Lesen erweitert keine Rechte. Ein Browserlink zur
 Prüfung ist optional; der Entscheidungsablauf funktioniert per MCP.
 
+Das allgemeine Freigabetool findest du unabhängig über `capability_catalog` mit Thema `review`.
+`callable` und `reason` nennen die Rechte der aktuellen Verbindung; die speziellen
+Intake-Fähigkeiten bleiben zusätzlich verfügbar.
+
 Verwende die vollständigen `confirmation.arguments` erst nach dieser Entscheidung; sie enthalten
 auch das erforderliche `approved: true`. Neue Demo-Reservierungen besitzen bereits ihren
 vollständigen Prüfnachweis. Meldet ein älterer Vorschlag `confirmation.review_preparation_required`,
@@ -335,6 +339,10 @@ angebotene Tools als auch ihre Ausführung. Versandfragen erhalten eine begrenzt
 Stichprobe erfasster Versandbewegungen. Beachte Vollständigkeit und `has_more`; prüfe einen
 konkreten Auftrag über `order_explain`. Dieser Kontext garantiert keine fehlerfreie Modellantwort
 und ergibt keine firmenweite Versandgesamtmenge.
+
+Die Discovery mit Familie `movement` und `query: "shipment"` filtert den gespeicherten
+Bewegungstyp vor dem Seitenlimit. Folge `next_cursor`, solange `has_more` wahr ist. Eine
+Firmenstichprobe belegt ohne weitere Abfragen keinen einzelnen Auftrag und keine Gesamtmenge.
 
 `shipments_list` enthält Sendungen und Pakete. Eine leere Liste schließt erfasste Versandbewegungen
 nicht aus: Prüfe `order_explain` und die Discovery-Familie `movement`. Für Rechnungspositionen

@@ -383,4 +383,48 @@ def no_leaked_engine_room_observation():
     yield
     leaked = interaction_recorder.current()
     interaction_recorder._current.set(None)
-    assert leaked is None, f"This test left an engine-room observation open: {leaked.operation}"
+    assert leaked is None, (
+        f"This test left an engine-room observation open: {leaked.operation}"
+    )
+
+
+@pytest.fixture
+def padded_shipping(session, business):
+    """Retained shipments sort after more unrelated movements than the sample limit."""
+    from reality.services.core import create_commitment, record_movement
+
+    for index in range(8):
+        record_movement(
+            session,
+            business.tenant.id,
+            "opening_stock",
+            business.item.id,
+            "5",
+            to_location_id=business.location.id,
+            _movement_id=f"mov_a{index:09x}",
+        )
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "5",
+        None,
+    )
+    movements = [
+        record_movement(
+            session,
+            business.tenant.id,
+            "shipment",
+            business.item.id,
+            "1",
+            from_location_id=business.location.id,
+            commitment_id=commitment.id,
+            _movement_id=f"mov_f{index:09x}",
+        )
+        for index in range(3)
+    ]
+    return commitment, movements

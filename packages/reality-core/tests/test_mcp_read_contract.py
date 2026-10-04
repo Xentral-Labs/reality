@@ -250,7 +250,9 @@ def test_retained_order_explanation_preserves_source_and_effects(
             commitment_id=commitment.id,
         )
     else:
-        cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+        cancel_commitment(
+            session, business.tenant.id, commitment.id, reason="Test cancellation"
+        )
     result = read(session, business, "order_explain", order_reference=document.id)
     assert result["source"]["source_record_id"] == source.id
     assert result["document_lines"][0]["id"] == lines[0].id
@@ -558,7 +560,9 @@ def test_order_explanation_keeps_closed_and_open_lines_together(session, busines
         "20",
     )
     deliveries = [c for c in commitments if c.type == "customer_delivery"]
-    cancel_commitment(session, business.tenant.id, deliveries[0].id, reason="Test cancellation")
+    cancel_commitment(
+        session, business.tenant.id, deliveries[0].id, reason="Test cancellation"
+    )
     explained = read(session, business, "order_explain", order_reference=document.id)
     lines = {line["commitment_id"]: line for line in explained["fulfillment"]["lines"]}
     assert set(lines) == {c.id for c in deliveries}
@@ -566,3 +570,177 @@ def test_order_explanation_keeps_closed_and_open_lines_together(session, busines
     assert Decimal(lines[deliveries[1].id]["open_quantity"]) == 1
     assert explained["fulfillment"]["readiness"] == "blocked"
     assert len(explained["document_lines"]) == 2
+
+
+@pytest.mark.parametrize("query", ["shipment", "SHIPMENT", "ship"])
+def test_movement_query_filters_before_limit_in_legacy_and_pages(
+    session,
+    business,
+    padded_shipping,
+    query,
+):
+    from reality.services.core import discover_business_records
+
+    _, movements = padded_shipping
+    expected = [movement.id for movement in movements]
+    legacy = discover_business_records(
+        session,
+        business.tenant.id,
+        family="movement",
+        query=query,
+        limit=2,
+    )
+    assert [row["id"] for row in legacy] == expected[:2]
+    first = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query=query,
+        limit=2,
+    )
+    assert [row["id"] for row in first["records"]] == expected[:2]
+    assert first["has_more"] is True
+    second = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query=query,
+        limit=2,
+        cursor=first["next_cursor"],
+    )
+    assert [row["id"] for row in second["records"]] == expected[2:]
+    assert second["has_more"] is False
+    assert all(
+        row["type"] == "shipment" for row in first["records"] + second["records"]
+    )
+    with pytest.raises(InvalidOperation, match="cursor"):
+        read(
+            session,
+            business,
+            "business_records_discover",
+            family="movement",
+            query="receipt",
+            cursor=first["next_cursor"],
+        )
+
+
+def test_movement_query_empty_identity_and_company_scope(
+    session, business, padded_shipping
+):
+    _, movements = padded_shipping
+    assert (
+        read(
+            session,
+            business,
+            "business_records_discover",
+            family="movement",
+            query="missing-type",
+        )["records"]
+        == []
+    )
+    mixed = read(
+        session, business, "business_records_discover", family="movement", limit=5
+    )
+    assert {row["type"] for row in mixed["records"]} == {"opening_stock"}
+    exact = read(
+        session,
+        business,
+        "business_records_discover",
+        family="movement",
+        query="receipt",
+        record_id=movements[0].id,
+    )
+    assert exact["records"][0]["id"] == movements[0].id
+    foreign = create_tenant(session, "Foreign shipping company")
+    assert (
+        dispatch_tool(
+            session,
+            foreign.id,
+            "business_records_discover",
+            {"family": "movement", "query": "shipment"},
+        )["records"]
+        == []
+    )
+    with pytest.raises(NotFound):
+        dispatch_tool(
+            session,
+            foreign.id,
+            "business_records_discover",
+            {"family": "movement", "record_id": movements[0].id},
+        )
+
+
+def test_undeclared_tool_arguments_are_refused_before_handler(
+    session, business, monkeypatch
+):
+    from dataclasses import replace
+
+    definition = MCP_TOOL_REGISTRY["shipments_list"]
+
+    def handler(*args):
+        raise AssertionError("Invalid arguments must not reach the handler")
+
+    monkeypatch.setitem(
+        MCP_TOOL_REGISTRY, definition.name, replace(definition, handler=handler)
+    )
+    with pytest.raises(InvalidOperation, match="Unknown.*limit"):
+        read(session, business, "shipments_list", limit=5)
+
+
+def test_declared_arguments_do_not_hide_handler_type_errors(
+    session, business, monkeypatch
+):
+    from dataclasses import replace
+
+    definition = MCP_TOOL_REGISTRY["shipments_list"]
+
+    def handler(*args):
+        raise TypeError("Actual handler defect")
+
+    monkeypatch.setitem(
+        MCP_TOOL_REGISTRY, definition.name, replace(definition, handler=handler)
+    )
+    with pytest.raises(TypeError, match="Actual handler defect"):
+        read(session, business, "shipments_list", size=5)
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        {
+            "type": "object",
+            "oneOf": [{"properties": {"size": {"type": "integer"}}}],
+            "additionalProperties": False,
+        },
+        {"type": "object", "properties": {}, "additionalProperties": True},
+    ],
+)
+def test_composed_and_open_schemas_preserve_existing_dispatch(
+    session, business, monkeypatch, schema
+):
+    from dataclasses import replace
+
+    definition = MCP_TOOL_REGISTRY["shipments_list"]
+    monkeypatch.setitem(
+        MCP_TOOL_REGISTRY,
+        definition.name,
+        replace(
+            definition,
+            input_schema=schema,
+            handler=lambda session, tenant_id, arguments: arguments,
+        ),
+    )
+    assert read(session, business, "shipments_list", size=5) == {"size": 5}
+
+
+def test_access_refusal_precedes_argument_validation(session, business):
+    with pytest.raises(PermissionError, match="does not allow"):
+        dispatch_tool(
+            session,
+            business.tenant.id,
+            "shipments_list",
+            {"limit": 5},
+            allowed_access=("confirm",),
+        )

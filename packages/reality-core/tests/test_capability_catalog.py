@@ -459,3 +459,32 @@ def test_chat_inherits_the_tool_and_reports_no_credential_limit(session, busines
             "kind": "manual",
             "limits_tools": True,
         }
+
+
+@pytest.mark.parametrize("allowed", [False, True])
+def test_generic_confirmation_is_independently_discoverable_in_review(
+    session, business, allowed
+):
+    name = "proposal_approve_and_execute"
+    principal = _manual(business.tenant.id, {name} if allowed else set())
+    with mcp_principal_context(principal):
+        result = topic_capabilities(session, business.tenant.id, "review")
+        evidence = topic_capabilities(session, business.tenant.id, "evidence")
+    generic = [
+        row
+        for row in result["capabilities"]
+        if {tool["name"] for tool in row["tools"]} == {name}
+    ]
+    assert len(generic) == 1
+    assert generic[0]["tools"] == [
+        {
+            "name": name,
+            "access": "confirm",
+            "callable": allowed,
+            "reason": None if allowed else "not_in_token",
+        }
+    ]
+    assert any(
+        name in {tool["name"] for tool in row["tools"]}
+        for row in evidence["capabilities"]
+    )
