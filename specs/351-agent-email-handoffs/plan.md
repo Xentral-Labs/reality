@@ -103,3 +103,16 @@ Constitution Check remains PASS: lossless source, shortest relationship, demonst
 schema need, tenant/service validation, accepted scope/test trace, shared UI reads,
 one PostgreSQL membership table, no recomputed source values. Manual analysis finds
 no unresolved critical requirement/plan/task conflicts.
+
+## Local-test contract follow-up
+
+Owner-approved FR-017/018 reuse `decision_attributions` for the exact proposal and
+add explicit tool/argument descriptors to bounded object history responses. No new
+identity authority, schema, writes, permissions or transport effects. Existing
+attribution disclosure and tenant boundaries remain authoritative. Tests compare
+shared results across principal kinds, pending/unknown and foreign-company reads,
+and follow returned selectors through originals and reported dispatches.
+Constitution Check: PASS for all principles. Manual artifact analysis: no unresolved
+clarifications, critical consistency findings or schema expansion. Spec Kit tools
+are unavailable in this environment; analysis is recorded explicitly rather than
+claimed as a tool invocation.

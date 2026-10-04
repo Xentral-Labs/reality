@@ -326,3 +326,23 @@ explicitly flagged as missing context; they are not assigned a guessed partner.
 Re-capture with verified context creates a linked immutable version. Generic source
 imports cannot manufacture authoritative correspondence memberships. Original file
 and attachment-only Sources reach business context through the email message.
+
+## Accepted local-test contract feedback (2026-10-04)
+
+The owner authorizes these response improvements in PR #332.
+
+- **FR-017**: Email detail history includes `decision.decider` from the existing
+  tenant-scoped decision-attribution service, preserving person, MCP token, Chat
+  agent and unknown distinctions and its existing identity disclosure rules. Never
+  infer approval identity from the dispatch executor.
+- **FR-018**: Each paged object correspondence summary includes `next_read` with
+  tool `email_history` and its exact `source_id` argument. Related decision summaries
+  provide the same explicit handoff using `proposal_id`. Follow-up reads in the same
+  company expose original messages, attachment manifests and applicable decision/
+  execution evidence. Listings remain bounded summaries without embedded bodies.
+  Workflow guidance and MCP schema descriptions explain this distinction.
+
+Acceptance: pending and unattributed decisions return unknown; attributed human,
+MCP and Chat decisions match the shared attribution reader; foreign-tenant detail
+reads remain not found. Following returned summary selectors retrieves the stored
+original and applicable report chain without guessing an identity.

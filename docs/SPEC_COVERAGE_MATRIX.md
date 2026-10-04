@@ -2418,6 +2418,11 @@ Exception class `reservation_awaiting_prepayment`, derived at read time: an open
 
 Specification: `specs/351-agent-email-handoffs/spec.md`.
 Contract: `docs/features/agent-email-handoffs.md`.
+
+FR-017/018: shared approval attribution and explicit bounded-summary detail handoffs
+are covered by `test_email_decider_reuses_shared_authority` and
+`test_object_summaries_explicitly_handoff_to_original_and_dispatch` in
+`test_agent_email_business_context.py`, alongside the shared attribution suite.
 Evidence: `packages/reality-core/tests/test_agent_email_handoffs.py` and
 `packages/reality-core/tests/test_agent_email_migration.py` and
 `packages/reality-core/tests/test_agent_email_business_context.py` cover lossless messages,

@@ -96,3 +96,20 @@ Final attachment-context refinement passes all 12 context integration tests: att
 Sources inherit explicit memberships through their original email Sources. The complete
 frontend contract suite passes 462 tests, and the refined correspondence browser journey
 passes. Final current-head CI proof is maintained in the linked PR verification section.
+
+## Local-test contract feedback (FR-017/018)
+
+The owner approved the two local acceptance-test suggestions in PR comment
+5976704162. Regression tests observed missing `decider` and `next_read` fields
+before implementation. Shared attribution and email/context suite: 48 passed.
+The final 18 context tests pass after extending source-to-decision selectors.
+Person, token issuer distinction, Chat agent, pending/unknown attribution and
+foreign-company follow-up reads are covered. Explicit summary selectors reach
+the original message and separately reported execution without embedding bodies.
+Documentation: all 145 contracts and formatting pass; specification policy, Ruff
+and business-description audit pass. Catalogs are regenerated from executable
+MCP descriptions and schema. The branch was rebased onto current main.
+Catalog/MCP/optional-argument/context/migration integration suite: 82 passed.
+The final source-to-related-decision next-read regression also passes.
+T021 remains a live completion gate: the PR verification section records the final
+current-head full-suite result; this local proof does not assert pending CI passed.

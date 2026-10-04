@@ -4457,7 +4457,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_history",
         "Email evidence and decision history",
-        "Read one source/proposal/execution or independently page explicitly linked correspondence and decisions by existing business reference. All partner roles, including suppliers, are supported. Provider acceptance is not recipient delivery.",
+        "Read one source/proposal/execution or independently page explicitly linked correspondence and decisions by existing business reference. All partner roles, including suppliers, are supported. Object listings are bounded summaries: follow each next_read tool/arguments in the same company for full originals, attachment manifests and applicable decision/execution evidence. Detail decision.decider names approval through the existing attribution authority, independently of the executor. Provider acceptance is not recipient delivery.",
         "read",
         "Email",
         {**EmailHistory.model_json_schema(), "required": []},
