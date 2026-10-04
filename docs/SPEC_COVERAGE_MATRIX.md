@@ -2645,3 +2645,12 @@ no Finance-allocation expansion, new scheduling, deployment or third-party right
   decision policy and original receipt while MCP guidance resolves the existing context read.
 - DR-001/002/003: existing Playground lesson/admission, proposal privacy/decision, MCP permission
   and company-setup tests remain required. No migration; live model accuracy is not claimed.
+
+## Spec 367: Existing-tool evidence boundaries
+
+| Test family | Contract | Evidence |
+|---|---|---|
+| `packages/reality-core/tests/test_tool_evidence_boundaries.py` | Spec 367 FR-001–004,FR-006 | Blocker kinds, cause parity, transient cache metadata, independent exception scope, shared holds and restricted external visibility |
+| `packages/reality-core/tests/test_chat_streaming.py` | Spec 367 FR-005 | Output-limit handling before decoding/dispatch and reset to localized notice |
+| `packages/reality-core/tests/test_chat_scope_security.py` | Spec 367 FR-005 | Nonstreaming output-limit notice and zero tool dispatch |
+| `packages/reality-core/tests/test_shipment_actions.py` | Spec 367 FR-006 | Existing review payload/token compatibility |

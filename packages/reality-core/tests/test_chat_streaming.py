@@ -501,3 +501,117 @@ def test_authenticated_stream_preflight_releases_connection(
         stream=True,
     )
     assert response.media_type == "application/x-ndjson"
+
+
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+@pytest.mark.parametrize("mode", ["text", "tool", "malformed_tool"])
+def test_output_limit_stream_replaces_partial_text_without_tool_execution(
+    provider, mode, session, business, monkeypatch
+):
+    from reality.agent import mcp_chat
+
+    original_client = httpx.AsyncClient
+    tool = mode != "text"
+    raw = frames(provider, tool=tool)
+    if provider == "anthropic":
+        raw = raw.replace(
+            b'"stop_reason": "tool_use"' if tool else b'"stop_reason": "end_turn"',
+            b'"stop_reason": "max_tokens"',
+        )
+    else:
+        raw = raw.replace(
+            b"data: [DONE]",
+            b'data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\ndata: [DONE]',
+        )
+    if mode == "malformed_tool":
+        # Truncation must be checked before decoding even malformed arguments.
+        raw = (
+            raw.replace(b'"arguments": "2}"', b'"arguments": "2"')
+            if provider == "openai"
+            else raw.replace(b'"partial_json": "2}"', b'"partial_json": "2"')
+        )
+    monkeypatch.setattr(
+        mcp_chat.httpx,
+        "AsyncClient",
+        lambda **kw: original_client(
+            transport=httpx.MockTransport(
+                lambda req: httpx.Response(200, stream=Chunks([raw]))
+            )
+        ),
+    )
+    calls, events = [], []
+    monkeypatch.setattr(mcp_chat, "dispatch_tool", lambda *a, **kw: calls.append(a))
+    options = {
+        "session": session,
+        "tenant_id": business.tenant.id,
+        "api_key": "test",
+        "history": [],
+        "message": "Stock?",
+        "language": "de",
+        "on_event": events.append,
+    }
+    if provider == "anthropic":
+        answer = asyncio.run(mcp_chat.reply_via_anthropic_tools(**options))
+    else:
+        answer = asyncio.run(
+            mcp_chat.reply_via_tools(
+                **options, model="test", base_url="https://provider.test"
+            )
+        )
+    assert "Ausgabelimit" in answer
+    assert calls == []
+    assert events[-2:] == [{"type": "reset"}, {"type": "delta", "text": answer}]
+
+
+@pytest.mark.parametrize("stream", [False, True])
+def test_output_limit_notice_is_durable_and_replaces_partial_text(
+    stream, session, business, monkeypatch
+):
+    from reality.agent import mcp_chat
+    from reality.services.core import (
+        chat_messages,
+        create_chat_session,
+        send_chat_message,
+    )
+
+    original_client = httpx.AsyncClient
+    raw = frames("anthropic").replace(b'"end_turn"', b'"max_tokens"')
+
+    def response(request):
+        if stream:
+            return httpx.Response(200, stream=Chunks([raw]))
+        return httpx.Response(
+            200,
+            json={
+                "content": [{"type": "text", "text": "Partial"}],
+                "stop_reason": "max_tokens",
+            },
+        )
+
+    monkeypatch.setattr(
+        mcp_chat.httpx,
+        "AsyncClient",
+        lambda **kw: original_client(transport=httpx.MockTransport(response)),
+    )
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
+    chat = create_chat_session(session, business.tenant.id)
+    events = []
+    _, answer = send_chat_message(
+        session,
+        business.tenant.id,
+        chat.id,
+        "Stock?",
+        on_event=events.append if stream else None,
+    )
+    assert "output limit" in answer.content
+    assert "Grüße" not in answer.content
+    assert "Partial" not in answer.content
+    assert (
+        chat_messages(session, business.tenant.id, chat.id)[-1].content
+        == answer.content
+    )
+    if stream:
+        assert events[-2:] == [
+            {"type": "reset"},
+            {"type": "delta", "text": answer.content},
+        ]

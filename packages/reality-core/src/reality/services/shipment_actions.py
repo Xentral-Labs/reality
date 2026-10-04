@@ -206,7 +206,10 @@ def review_shipment_action(
             state["announced_shipment"] = announced.id
         if tool in {"shipment_dispatch", "shipment_receive"}:
             _check_stock_at_moved_time(
-                session, tenant_id, intent.get("movements") or [], intent.get("occurred_at")
+                session,
+                tenant_id,
+                intent.get("movements") or [],
+                intent.get("occurred_at"),
             )
         if tool in {"shipment_dispatch", "shipment_receive"}:
             unknown = set(arguments) - SHIPMENT_EXECUTION_FIELDS
@@ -379,7 +382,9 @@ def review_shipment_action(
                             else False
                         ),
                         "fulfillment_readiness": (
-                            readiness.as_dict() if readiness is not None else None
+                            readiness.as_dict(include_interpretation=False)
+                            if readiness is not None
+                            else None
                         ),
                     }
                 )

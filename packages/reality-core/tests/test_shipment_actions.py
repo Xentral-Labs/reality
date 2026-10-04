@@ -302,3 +302,40 @@ def test_receive_confirmation_replays_one_atomic_package(session, business):
         )
         == 1
     )
+
+
+def test_shipment_review_omits_transient_read_interpretation(
+    session, business, monkeypatch
+):
+    from reality.services.fulfillment_readiness import FulfillmentReadiness
+    from reality.services.shipment_actions import review_shipment_action
+
+    fixture = delivery_fixture(session, business, quantity="2")
+    reserve(session, business.tenant.id, fixture.commitment.id)
+    intent = {
+        "purpose": "customer_delivery",
+        "counterparty_id": business.customer.id,
+        "movements": [
+            {
+                "commitment_id": fixture.commitment.id,
+                "item_id": business.item.id,
+                "from_location_id": business.location.id,
+                "quantity": "2",
+            }
+        ],
+    }
+    before = review_shipment_action(
+        session, business.tenant.id, "shipment_dispatch", intent
+    )
+    assert "unfulfilled_cause" not in json.dumps(before)
+    assert "blocker_kind" not in json.dumps(before)
+    original = FulfillmentReadiness.as_dict
+
+    def legacy(self, **kwargs):
+        return original(self, include_interpretation=False)
+
+    monkeypatch.setattr(FulfillmentReadiness, "as_dict", legacy)
+    after = review_shipment_action(
+        session, business.tenant.id, "shipment_dispatch", intent
+    )
+    assert before["token"] == after["token"]

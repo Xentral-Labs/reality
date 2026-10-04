@@ -332,6 +332,7 @@ def operational_page(
         PROJECTION_VERSION,
         derive_projection_rows,
     )
+    from reality.services.read_interpretation import projection_interpretation
 
     filters: dict[str, Any] = {}
     if name == INVENTORY:
@@ -367,7 +368,7 @@ def operational_page(
             : limit + 1
         ]
         return page_result(
-            [rows[key] for key in keys],
+            [projection_interpretation(name, rows[key]) for key in keys],
             keys,
             limit,
             scope,

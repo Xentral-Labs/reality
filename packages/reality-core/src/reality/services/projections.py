@@ -36,6 +36,10 @@ from reality.db.core import (
     uid,
 )
 from reality.domain.calendar import day_text
+from reality.services.read_interpretation import (
+    historical_fulfillment_cause,
+    projection_interpretation,
+)
 
 PROJECTION_VERSION = 6
 FULFILLMENT_QUEUE = "fulfillment_queue"
@@ -929,7 +933,7 @@ def _open_work_rows(
                 "location_id": commitment.location_id,
                 "blocking_reasons": [reason for reason, _ in reasons],
                 "fulfillment_readiness": (
-                    payment_readiness.as_dict()
+                    payment_readiness.as_dict(include_interpretation=False)
                     if payment_readiness is not None
                     else None
                 ),
@@ -1153,7 +1157,9 @@ def _build_operational_rows(
             value["cause_ids"] = tuple(value["cause_ids"])
             value.pop("raw_source", None)
             previous.append(OperationalException(**value))
-        combined = operational_exception_rows(session, tenant_id)
+        combined = operational_exception_rows(
+            session, tenant_id, include_interpretation=False
+        )
         combined.extend(
             row.to_dict()
             for row in cost_findings(session, tenant_id, previous_rows=tuple(previous))
@@ -2809,7 +2815,7 @@ def _narrowed_exceptions(
             {
                 row["id"]: row
                 for row in operational_exception_rows(
-                    session, tenant_id, classes=wanted
+                    session, tenant_id, classes=wanted, include_interpretation=False
                 )
             }
         )
@@ -3180,7 +3186,7 @@ def projection_rows(
         return []
     # reality-rule: services.projections.projection_rows.result
     return [
-        json.loads(row.payload)
+        projection_interpretation(projection_name, json.loads(row.payload))
         for row in session.scalars(
             select(ProjectionRow)
             .where(
@@ -3389,18 +3395,7 @@ def _explain_retained_order(
                 "original_due_at": commitment.due_at,
                 "location_id": row["location_id"],
                 "blocking_reasons": reasons,
-                "unfulfilled_cause": {
-                    "status": "unknown" if open_value > 0 else "not_applicable",
-                    "notice": (
-                        "Blocker codes describe current readiness, not the historical cause "
-                        "of remaining fulfillment. This read does not establish why execution "
-                        "has not happened; missing outbound-delivery records do not prove a "
-                        "conversion requirement."
-                        if open_value > 0
-                        else "No open fulfillment remains. Blockers describe current readiness, "
-                        "not a historical cause."
-                    ),
-                },
+                "unfulfilled_cause": historical_fulfillment_cause(open_value),
                 "inventory": case["inventory"],
                 "readiness": readiness,
             }

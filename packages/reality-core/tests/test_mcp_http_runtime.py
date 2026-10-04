@@ -429,3 +429,67 @@ def test_http_read_returns_deterministic_evidence_summary(
     assert "customer return (return): 1 records" in value["summary"]["observation"]
     assert value["summary"]["complete_matching_selection"] is True
     assert value["metadata"]["persistence"]["business_writes"] is False
+
+
+def test_http_existing_tools_expose_evidence_boundaries(session, business, monkeypatch):
+    from test_mcp_read_contract import order
+
+    _, _, _, commitments = order(session, business)
+    commitment = next(c for c in commitments if c.type == "customer_delivery")
+    factory = sessionmaker(
+        session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint"
+    )
+    from reality.mcp import server as server_module
+
+    monkeypatch.setattr(server_module, "Session", factory)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    _, clear_token = create_mcp_access_token(
+        session, business.tenant.id, "Read evidence test"
+    )
+    runtime = create_mcp_app(
+        settings=MCPRuntimeSettings(
+            public_url="http://localhost:8001/", bind_host="127.0.0.1", bind_port=8001
+        ),
+        session_factory=factory,
+    )
+    headers = {
+        "Authorization": f"Bearer {clear_token}",
+        "Accept": "application/json, text/event-stream",
+        "Host": "localhost:8001",
+    }
+    cases = [
+        ("capability_catalog", {}),
+        ("fulfillment_readiness", {"commitment_id": commitment.id}),
+        ("fulfillment_queue", {}),
+        ("fulfillment_blockers", {}),
+    ]
+    with TestClient(runtime) as client:
+        values = {}
+        for name, arguments in cases:
+            response = client.post(
+                "/",
+                headers=headers,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": name,
+                    "method": "tools/call",
+                    "params": {"name": name, "arguments": arguments},
+                },
+            )
+            assert response.status_code == 200
+            result = response.json()["result"]
+            assert not result.get("isError", False)
+            values[name] = json.loads(result["content"][0]["text"])
+    assert (
+        values["capability_catalog"]["external_agent_runtime"]["schedule"] == "unknown"
+    )
+    cause = values["fulfillment_readiness"]["unfulfilled_cause"]
+    assert cause["status"] == "unknown"
+    assert (
+        values["fulfillment_queue"]["records"][0]["lines"][0]["unfulfilled_cause"]
+        == cause
+    )
+    assert all(
+        b["blocker_kind"] == "derived_readiness_condition"
+        for b in values["fulfillment_blockers"]["records"]
+    )

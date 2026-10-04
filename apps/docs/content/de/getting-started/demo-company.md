@@ -86,7 +86,10 @@ und meine Freigabe. Arbeite während offener Decisions an anderen Aufgaben weite
 Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
 wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
 Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
-nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
+nächsten Lauf sowie Pausieren. Trenne nachweislich fehlende Einrichtung von nicht
+prüfbarer Einrichtung. Externe Routinen und gespeicherter Arbeitsstand sind für
+Reality unbekannt; behaupte ohne Prüfung mit den Tools des Agentensystems nicht,
+dass sie fehlen oder dass Reality keine Decisions speichert.
 ```
 
 **Dein Erfolg:** Der Agent erklärt einen offenen Auftrag anhand aktueller Datensätze, einschließlich
@@ -142,7 +145,10 @@ Freigabe. Vermeide doppelte Vorschläge.
 Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
 wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
 Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
-nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
+nächsten Lauf sowie Pausieren. Trenne nachweislich fehlende Einrichtung von nicht
+prüfbarer Einrichtung. Externe Routinen und gespeicherter Arbeitsstand sind für
+Reality unbekannt; behaupte ohne Prüfung mit den Tools des Agentensystems nicht,
+dass sie fehlen oder dass Reality keine Decisions speichert.
 ```
 
 **Dein Erfolg:** Du siehst einen konkreten Bedarf oder Lieferantenfall. In aktuellen Demo-Grunddaten
@@ -195,7 +201,10 @@ nach Möglichkeit mit der bestehenden Einkaufsroutine.
 Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
 wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
 Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
-nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
+nächsten Lauf sowie Pausieren. Trenne nachweislich fehlende Einrichtung von nicht
+prüfbarer Einrichtung. Externe Routinen und gespeicherter Arbeitsstand sind für
+Reality unbekannt; behaupte ohne Prüfung mit den Tools des Agentensystems nicht,
+dass sie fehlen oder dass Reality keine Decisions speichert.
 ```
 
 **Dein Erfolg:** Der Agent erklärt eine Zahlung, Teilzahlung, offene Position oder ein Guthaben.
@@ -249,7 +258,10 @@ eine Reality-Decision erlaubt keinen E-Mail-Versand.
 Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
 wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
 Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
-nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
+nächsten Lauf sowie Pausieren. Trenne nachweislich fehlende Einrichtung von nicht
+prüfbarer Einrichtung. Externe Routinen und gespeicherter Arbeitsstand sind für
+Reality unbekannt; behaupte ohne Prüfung mit den Tools des Agentensystems nicht,
+dass sie fehlen oder dass Reality keine Decisions speichert.
 ```
 
 **Dein Erfolg:** Ein Antwortentwurf, der den echten Auftragsstand erklärt. Prüfe Empfänger und

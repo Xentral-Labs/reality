@@ -81,7 +81,10 @@ Read only for now; business changes require specific Decisions and my approval.
 Continue other work while Decisions are pending.
 Run once now. Then configure repetition in your agent system only if tools and saved
 assignment and progress are available. Confirm time zone and working days; reuse existing
-routines. Show the verified next run and how to pause. Report missing setup clearly.
+routines. Show the verified next run and how to pause. Distinguish proven missing
+setup from setup you cannot inspect. External routines and saved working state are
+unknown to Reality; do not claim they are absent or that Reality stores no Decisions
+without verification through the agent system’s own tools.
 ```
 
 **Your success:** The agent explains an actual open order through its current records, including
@@ -134,7 +137,10 @@ Obtain information yourself and ask only for unresolved inputs. Order and send n
 further changes need specific proposals and my approval. Avoid duplicate proposals.
 Run once now. Then configure repetition in your agent system only if tools and saved
 assignment and progress are available. Confirm time zone and working days; reuse existing
-routines. Show the verified next run and how to pause. Report missing setup clearly.
+routines. Show the verified next run and how to pause. Distinguish proven missing
+setup from setup you cannot inspect. External routines and saved working state are
+unknown to Reality; do not claim they are absent or that Reality stores no Decisions
+without verification through the agent system’s own tools.
 ```
 
 **Your success:** You see a concrete need or supplier case. In current demo baselines, `PO-001` has
@@ -181,7 +187,10 @@ Ask only about unresolved matches. Change nothing and do not duplicate invoices 
 payments. Combine this with existing purchasing checks where practical.
 Run once now. Then configure repetition in your agent system only if tools and saved
 assignment and progress are available. Confirm time zone and working days; reuse existing
-routines. Show the verified next run and how to pause. Report missing setup clearly.
+routines. Show the verified next run and how to pause. Distinguish proven missing
+setup from setup you cannot inspect. External routines and saved working state are
+unknown to Reality; do not claim they are absent or that Reality stores no Decisions
+without verification through the agent system’s own tools.
 ```
 
 **Your success:** The agent explains a payment, partial payment, open position or credit. New
@@ -231,7 +240,10 @@ delivery date. Avoid duplicate drafts and send nothing. Sending needs my separat
 approval in the agent system; a Reality Decision does not authorize email.
 Run once now. Then configure repetition in your agent system only if tools and saved
 assignment and progress are available. Confirm time zone and working days; reuse existing
-routines. Show the verified next run and how to pause. Report missing setup clearly.
+routines. Show the verified next run and how to pause. Distinguish proven missing
+setup from setup you cannot inspect. External routines and saved working state are
+unknown to Reality; do not claim they are absent or that Reality stores no Decisions
+without verification through the agent system’s own tools.
 ```
 
 **Your success:** A reply draft explaining the actual order state. Review recipient and content in

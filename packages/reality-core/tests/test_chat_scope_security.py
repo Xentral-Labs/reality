@@ -1,3 +1,5 @@
+import asyncio
+
 """Deterministic adapter attacks; not measurements of live model refusal rates."""
 
 import copy
@@ -572,3 +574,25 @@ def test_return_context_preserves_refusal_as_unknown(monkeypatch):
     ]
     assert "Evidence status: unknown; read refused" in result
     assert "Evidence status: observed" not in result
+
+
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+@pytest.mark.parametrize("tool", [False, True])
+def test_output_limit_replaces_incomplete_response_before_dispatch(
+    provider, tool, harness, monkeypatch
+):
+    _, replies = harness
+    reply = tool_reply(provider, "inventory_read", {}) if tool else text_reply(provider)
+    if provider == "anthropic":
+        reply["stop_reason"] = "max_tokens"
+    else:
+        reply["choices"][0]["finish_reason"] = "length"
+    replies.append(reply)
+    dispatched = []
+    monkeypatch.setattr(
+        mcp_chat, "dispatch_tool", lambda *a, **kw: dispatched.append(a)
+    )
+    answer = asyncio.run(invoke(provider))
+    assert "output limit" in answer.lower()
+    assert "incomplete" in answer.lower()
+    assert dispatched == []

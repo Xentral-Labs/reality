@@ -28,6 +28,10 @@ from reality.services.core import (
     open_invoice_amount,
     stock_at,
 )
+from reality.services.read_interpretation import (
+    blocker_kind,
+    historical_fulfillment_cause,
+)
 
 ZERO = Decimal(0)
 
@@ -57,13 +61,18 @@ class FulfillmentReadiness:
     #: The owner's release that lets the order ship before it is paid (spec 347).
     prepayment_release_id: str | None = None
 
-    def as_dict(self) -> dict[str, object]:
+    def as_dict(self, *, include_interpretation: bool = True) -> dict[str, object]:
         payment_policy = "prepayment" if self.requires_prepayment else "standard"
         blockers = [
             {
                 "code": code,
                 "detail": _blocker_detail(code, self),
                 "links": _blocker_links(code, self),
+                **(
+                    {"blocker_kind": blocker_kind(code)}
+                    if include_interpretation
+                    else {}
+                ),
             }
             for code in self.blocker_codes
         ]
@@ -86,6 +95,11 @@ class FulfillmentReadiness:
             "document_id": self.order_id,
             "order_id": self.order_id,
             "ship_ready": self.ship_ready,
+            **(
+                {"unfulfilled_cause": historical_fulfillment_cause(self.open_quantity)}
+                if include_interpretation
+                else {}
+            ),
             "blocker_codes": list(self.blocker_codes),
             "blocking_reasons": list(self.blocker_codes),
             "blockers": blockers,
