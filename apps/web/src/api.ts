@@ -2300,7 +2300,10 @@ export const api = {
       `/api/tenants/${tenant}/change-proposals?status=${status}&page=${page}&size=${size}` +
         `&q=${encodeURIComponent(query)}&tool=${encodeURIComponent(tool)}`,
     ),
-  emailHistory: (tenant: string, identity: { source_id?: string; proposal_id?: string }) =>
+  emailHistory: (
+    tenant: string,
+    identity: { source_id?: string; proposal_id?: string; execution_id?: string },
+  ) =>
     request<{
       source: { id: string; payload: Record<string, unknown> } | null;
       attachments: {
@@ -2316,7 +2319,10 @@ export const api = {
       business_references?: { kind: string; id: string; label: string }[];
       context_missing?: boolean;
       authorization?: string;
-      decision?: { duplicate_send_risk?: boolean };
+      decision?: {
+        duplicate_send_risk?: boolean;
+        retry_acknowledgements?: { execution_id: string }[];
+      };
       related_decisions?: { proposal_id: string; status: string; review_url: string }[];
     }>(`/api/tenants/${tenant}/email/history?${new URLSearchParams(identity)}`),
   emailCorrespondence: (
