@@ -1,8 +1,8 @@
 """Which decision caused a change, and who settled it (spec 263).
 
-A decision is settled in one of four ways that the record can tell apart: by a
+A decision is settled in a way that the record can tell apart: by a
 signed-in person, through an MCP access token, through the built-in Chat agent, or
-by nobody the record can name. This
+by an externally verified person with issuer provenance, or by nobody the record can name. This
 module states exactly that, for a bounded set of decisions in at most three
 statements, and never guesses: a token names the owner who issued it only as its
 issuer, because Reality sees the token, not the person at the agent client.
@@ -10,13 +10,14 @@ issuer, because Reality sees the token, not the person at the agent client.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 from typing import Any
 
 from sqlalchemy import select, union
 from sqlalchemy.orm import Session
 
-from reality.db.core import AppUser, ChangeProposal, MCPAccessToken
+from reality.db.core import AppUser, ChangeProposal, MCPAccessToken, SourceRecord
 
 UNKNOWN: dict[str, Any] = {"kind": "unknown"}
 
@@ -41,6 +42,7 @@ def decision_attributions(
             ChangeProposal.decided_by_user_id,
             ChangeProposal.decided_via_token_id,
             ChangeProposal.decided_via_channel,
+            ChangeProposal.output,
             MCPAccessToken.name,
             MCPAccessToken.token_prefix,
             MCPAccessToken.revoked_at,
@@ -59,15 +61,55 @@ def decision_attributions(
         {row.decided_by_user_id for row in decisions if row.decided_by_user_id},
         {row.created_by_user_id for row in decisions if row.created_by_user_id},
     )
+    grant_ids = {
+        json.loads(row.output or "{}").get("grant_source_id")
+        for row in decisions
+        if row.decided_via_channel == "external_grant"
+    } - {None}
+    grant_sources = (
+        {
+            source.id: json.loads(source.payload)
+            for source in session.scalars(
+                select(SourceRecord).where(
+                    SourceRecord.tenant_id == tenant_id,
+                    SourceRecord.id.in_(grant_ids),
+                    SourceRecord.source_system == "email_approval",
+                    SourceRecord.source_type == "email_approval_grant",
+                )
+            )
+        }
+        if grant_ids
+        else {}
+    )
     return {
         row.id: {
             "id": row.id,
             "tool": row.type.removeprefix("tool:"),
             "outcome": row.status,
             "decided_at": row.decided_at.isoformat() if row.decided_at else None,
-            "decider": _decider(row, names),
+            "decider": _external_decider(row, grant_sources) or _decider(row, names),
         }
         for row in decisions
+    }
+
+
+def _external_decider(row: Any, sources: dict) -> dict[str, Any] | None:
+    if row.decided_at is None or row.decided_via_channel != "external_grant":
+        return None
+    if row.type != "tool:email_dispatch_authorize":
+        return dict(UNKNOWN)
+    source_id = json.loads(row.output or "{}").get("grant_source_id")
+    proof = sources.get(source_id)
+    if not proof or proof.get("proposal_id") != row.id:
+        return dict(UNKNOWN)
+    claims = proof["claims"]
+    return {
+        "kind": "external_grant",
+        "issuer": claims["iss"],
+        "subject": claims["sub"],
+        "name": proof["name"],
+        "approved_at": claims["iat"],
+        "grant_source_id": source_id,
     }
 
 
@@ -159,7 +201,9 @@ def record_decisions(
             if action_id and action_id != creating and action_id not in later:
                 later.append(action_id)
         roles = [("created", creating)] if creating else []
-        roles += [("changed", action_id) for action_id in reversed(later[:CHANGE_LIMIT])]
+        roles += [
+            ("changed", action_id) for action_id in reversed(later[:CHANGE_LIMIT])
+        ]
     attributions = decision_attributions(session, tenant_id, [a for _, a in roles])
     return [
         {**attributions[action_id], "role": role}

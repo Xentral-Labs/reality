@@ -4432,7 +4432,8 @@ MCP_TOOL_CATALOG += (
 )
 
 # Spec 351: evidence intake/dispatch handoff are independently permissioned mutations,
-# not approval operations. No handler here can settle the outgoing proposal.
+# Signed grant acceptance is a separate authority boundary, never token approval.
+from reality.domain.email_approval_grants import AcceptEmailGrant
 from reality.domain.emails import (
     CaptureEmail,
     ClaimDispatch,
@@ -4466,7 +4467,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_dispatch_propose",
         "Propose an outgoing email",
-        "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it. If prior execution is uncertain, retry_acknowledgements must bind every unresolved attempt and current report snapshot with an explicit duplicate-send risk acceptance; only signed-in member/trusted-local review may confirm that exception, never an MCP token or built-in Chat.",
+        "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it. If prior execution is uncertain, retry_acknowledgements must bind every unresolved attempt and current report snapshot with an explicit duplicate-send risk acceptance; only signed-in member/trusted-local review may confirm that exception, never an MCP token or built-in Chat. Ordinary proposals return approval_digest for provider-independent signed external approval via email_dispatch_accept_grant.",
         "propose",
         "Email",
         DispatchProposal.model_json_schema(),
@@ -4498,6 +4499,15 @@ MCP_TOOL_CATALOG += (
         "Email",
         CaptureEmail.model_json_schema(),
         _email_mutation("capture_email"),
+    ),
+    MCPToolDefinition(
+        "email_dispatch_accept_grant",
+        "Recognize a signed external email approval",
+        "Recognize one human approval attested by a configured issuer for its expressly mandated external subject and this exact company/proposal approval_digest. Submit compact Ed25519 JWS v1 after showing the normalized preview. Separately permissioned submission never grants token approval rights. Reject expired/revoked proofs and replay onto another proposal; retain original Source and external_grant attribution. No retroactive approval or external risk exception. Follow with ordinary claim/report.",
+        "confirm",
+        "Email",
+        AcceptEmailGrant.model_json_schema(),
+        _email_mutation("accept_grant"),
     ),
     MCPToolDefinition(
         "email_dispatch_claim",

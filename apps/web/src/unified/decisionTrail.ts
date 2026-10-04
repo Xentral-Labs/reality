@@ -10,6 +10,14 @@ export type Decider =
   | { kind: "person"; name: string }
   | { kind: "chat_agent" }
   | {
+      kind: "external_grant";
+      issuer: string;
+      subject: string;
+      name: string;
+      approved_at: number;
+      grant_source_id: string;
+    }
+  | {
       kind: "mcp_token";
       token_name: string;
       token_prefix: string;
@@ -35,6 +43,11 @@ export function deciderSentence(outcome: string, decider: Decider): DeciderSente
     return {
       template: rejected ? "Rejected by {name}" : "Confirmed by {name}",
       values: { name: decider.name },
+    };
+  if (decider.kind === "external_grant")
+    return {
+      template: "External approval by {name}, verified through {issuer}",
+      values: { name: decider.name, issuer: decider.issuer },
     };
   if (decider.kind === "chat_agent")
     return {

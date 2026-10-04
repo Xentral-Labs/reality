@@ -116,3 +116,9 @@ party address may resolve an existing ID; domain alignment alone is insufficient
 Never automatically redispatch an uncertain send. Reconcile it first or obtain
 a new member-reviewed exact-message risk acknowledgement under FR-020. Reality does not own mailbox
 transport and provider acceptance is not verified recipient delivery.
+
+An external application may submit email_dispatch_accept_grant only with spec354
+issuer-signed exact approval_digest proof and configured company/subject mandate.
+A submitting token is never the approver; preserve external_grant attribution and
+original proof. Claim rechecks expiry/revocation. Risk exceptions still require
+observed member/trusted-local review. Read the canonical contract for the v1 format.

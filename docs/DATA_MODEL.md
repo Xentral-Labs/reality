@@ -219,3 +219,8 @@ not a Fact or original message content. Suppliers and every other Party role are
 valid targets; other supported operational/evidence objects use their own opaque IDs.
 Actual send Sources inherit the approved proposal context. Historical unlinked
 sources remain unchanged; correcting context captures a new immutable version.
+
+
+## External email approval evidence (spec 354)
+
+The existing action.decided_via_channel check permits external_grant alongside Chat. No new table/column is added. The settled Decision output retains grant_source_id referencing an immutable SourceRecord (email_approval/email_approval_grant). Source identity is SHA256([issuer, grant ID]); lossless payload retains compact signature, verified claims, configured actor label and proposal identity. The existing company delivery lock serializes first acceptance and rejects alternate versions or proposal reuse. Shared attribution follows this shortest stored link; execution still uses EmailDispatch and executor-bound receipts. Migration0140 only extends the check; populated downgrade is refused.

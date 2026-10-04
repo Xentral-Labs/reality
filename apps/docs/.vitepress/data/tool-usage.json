@@ -243,6 +243,7 @@
         "tool:email_file_chunk",
         "tool:email_file_complete",
         "tool:email_capture",
+        "tool:email_dispatch_accept_grant",
         "tool:email_dispatch_claim",
         "tool:email_dispatch_report"
       ],
@@ -788,6 +789,7 @@
         "tool:movement_explanation",
         "tool:drop_shipments",
         "tool:delivery_failure_summary",
+        "tool:email_dispatch_accept_grant",
         "tool:email_dispatch_claim",
         "tool:email_dispatch_report"
       ],
@@ -21732,7 +21734,7 @@
       "key": "email_dispatch_propose",
       "label": "Propose an outgoing email",
       "area": "cross_functional",
-      "summary": "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it. If prior execution is uncertain, retry_acknowledgements must bind every unresolved attempt and current report snapshot with an explicit duplicate-send risk acceptance; only signed-in member/trusted-local review may confirm that exception, never an MCP token or built-in Chat.",
+      "summary": "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it. If prior execution is uncertain, retry_acknowledgements must bind every unresolved attempt and current report snapshot with an explicit duplicate-send risk acceptance; only signed-in member/trusted-local review may confirm that exception, never an MCP token or built-in Chat. Ordinary proposals return approval_digest for provider-independent signed external approval via email_dispatch_accept_grant.",
       "access": "propose",
       "group": "Email",
       "synopsis": "email_dispatch_propose business_references [retry_acknowledgements] message rationale [supporting_source_ids] [fingerprint]",
@@ -22427,6 +22429,40 @@
       "links": [],
       "label_de": "E-Mail als Beleg ablegen",
       "resources": ["email"]
+    },
+    {
+      "id": "tool:email_dispatch_accept_grant",
+      "kind": "tool",
+      "key": "email_dispatch_accept_grant",
+      "label": "Recognize a signed external email approval",
+      "area": "cross_functional",
+      "summary": "Recognize one human approval attested by a configured issuer for its expressly mandated external subject and this exact company/proposal approval_digest. Submit compact Ed25519 JWS v1 after showing the normalized preview. Separately permissioned submission never grants token approval rights. Reject expired/revoked proofs and replay onto another proposal; retain original Source and external_grant attribution. No retroactive approval or external risk exception. Follow with ordinary claim/report.",
+      "access": "confirm",
+      "group": "Email",
+      "synopsis": "email_dispatch_accept_grant proposal_id grant",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "grant",
+          "type": "string",
+          "required": true,
+          "description": "Compact Ed25519 JWS for the exact returned approval_digest. Issuer and subject require server-configured company authority; this operation does not grant token approval rights.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Externe E-Mail-Freigabe prüfen",
+      "resources": ["delivery", "email"]
     },
     {
       "id": "tool:email_dispatch_claim",

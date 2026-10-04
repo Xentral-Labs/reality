@@ -49,6 +49,7 @@ execution.
 Tools without a command: [`email_file_chunk`](./commands#tool-email_file_chunk),
 [`email_file_complete`](./commands#tool-email_file_complete),
 [`email_capture`](./commands#tool-email_capture),
+[`email_dispatch_accept_grant`](./commands#tool-email_dispatch_accept_grant),
 [`email_dispatch_claim`](./commands#tool-email_dispatch_claim),
 [`email_dispatch_report`](./commands#tool-email_dispatch_report)
 
@@ -513,6 +514,7 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 [`movement_explanation`](./commands#tool-movement_explanation),
 [`drop_shipments`](./commands#tool-drop_shipments),
 [`delivery_failure_summary`](./commands#tool-delivery_failure_summary),
+[`email_dispatch_accept_grant`](./commands#tool-email_dispatch_accept_grant),
 [`email_dispatch_claim`](./commands#tool-email_dispatch_claim),
 [`email_dispatch_report`](./commands#tool-email_dispatch_report)
 

@@ -3595,7 +3595,7 @@ class ChangeProposal(Base):
         PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_action_tenant_id"),
         CheckConstraint(
-            "decided_via_channel IS NULL OR decided_via_channel = 'chat'",
+            "decided_via_channel IS NULL OR decided_via_channel IN ('chat', 'external_grant')",
             name="ck_action_decided_via_channel",
         ),
         ForeignKeyConstraint(

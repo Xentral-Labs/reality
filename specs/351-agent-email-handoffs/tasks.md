@@ -43,5 +43,5 @@ Each FR/DR maps to the story/test tasks above and the specification traceability
 
 - [x] T022 Add evidence-label and explicit uncertain-retry actor/tenant/snapshot/concurrency regression tests (FR-019/020).
 - [x] T023 Implement shared derived authorization labels, immutable risk acknowledgements and locked revalidation; show labels and risk in Inspector/review (FR-019/020).
-- [x] T024 Publish provider-independent integration, linking, capture and retention guidance and draft external-grant spec 353 (FR-021).
+- [x] T024 Publish provider-independent integration, linking, capture and retention guidance and draft external-grant spec 354 (FR-021).
 - T025 Completion gate: local verification, generated catalogs and final current-head full-suite checks are recorded in the PR verification section. Pending checks are not completion.

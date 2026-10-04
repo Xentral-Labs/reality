@@ -2320,6 +2320,10 @@ export const api = {
       context_missing?: boolean;
       authorization?: string;
       decision?: {
+        proposal_id: string;
+        status: string;
+        decided_at: string | null;
+        decider?: import("./unified/decisionTrail").Decider;
         duplicate_send_risk?: boolean;
         retry_acknowledgements?: { execution_id: string }[];
       };

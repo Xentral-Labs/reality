@@ -35,6 +35,15 @@ const fixturePage = (number = 1, total = 1, size = 25) => ({
   has_next: number * size < total,
   has_previous: number > 1,
 });
+let externalApproved = false;
+const externalDecider = {
+  kind: "external_grant",
+  name: "Anna Buyer",
+  subject: "person-42",
+  issuer: "approval.example",
+  approved_at: 1791093600,
+  grant_source_id: "grant-source",
+};
 const proposal = {
   id: "email-proposal",
   tool: "email_dispatch_authorize",
@@ -182,8 +191,12 @@ await page.route("**/api/**", async (route) => {
     return reply({
       business_references: businessReferences,
       decision: {
-        duplicate_send_risk: true,
-        retry_acknowledgements: proposal.input.retry_acknowledgements,
+        proposal_id: proposal.id,
+        status: proposal.status,
+        decided_at: externalApproved ? "2026-10-04T06:00:00Z" : null,
+        decider: externalApproved ? externalDecider : { kind: "unknown" },
+        duplicate_send_risk: !externalApproved,
+        retry_acknowledgements: externalApproved ? [] : proposal.input.retry_acknowledgements,
       },
       state: {
         proposed: "decision_pending",
@@ -304,6 +317,24 @@ try {
     .getByRole("button", { name: "Return to email decision", exact: true })
     .click();
   await page.getByRole("dialog").locator("[data-email-retry-risk]").waitFor();
+  externalApproved = true;
+  proposal.status = "executed";
+  proposal.confirmable = false;
+  proposal.rejectable = false;
+  proposal.input.retry_acknowledgements = [];
+  await page.reload();
+  const grantPanel = page.getByRole("dialog").locator("[data-email-external-grant]");
+  await grantPanel
+    .getByText("External approval by Anna Buyer, verified through approval.example", {
+      exact: false,
+    })
+    .waitFor();
+  const proof = grantPanel.getByRole("link", { name: "Open original approval proof" });
+  assert.equal(
+    await proof.getAttribute("href"),
+    "/app/inspector?tenant=company&inspector_view=facts&inspector_target_kind=source_record&inspector_target_id=grant-source",
+  );
+  assert.equal(await page.getByRole("dialog").locator("[data-email-retry-risk]").count(), 0);
   assert.deepEqual(errors, []);
   console.log(
     "Email review, BCC, full text, safe HTML and original-file navigation, decision status refresh and paged supplier correspondence passed.",

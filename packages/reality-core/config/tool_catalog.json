@@ -333,6 +333,7 @@
     "email_capture": "evidence",
     "email_file_chunk": "evidence",
     "email_file_complete": "evidence",
+    "email_dispatch_accept_grant": "evidence",
     "email_dispatch_claim": "evidence",
     "email_dispatch_report": "evidence"
   },

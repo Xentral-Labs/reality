@@ -1,4 +1,4 @@
-"""Permission-scoped email evidence/execution adapters, never proposal approval."""
+"""Permission-scoped email adapters; signed approval uses independent issuer authority."""
 
 import os
 from typing import Any
@@ -8,10 +8,12 @@ from sqlalchemy.orm import Session
 from reality.mcp.principal import current_mcp_principal
 from reality.services import emails
 from reality.services.core import InvalidOperation
+from reality.services.email_approval_grants import accept_grant
 
 
 def email_mutation_handler(operation: str):
     function = {
+        "accept_grant": accept_grant,
         "stage_email_chunk": emails.stage_email_chunk,
         "complete_email_file": emails.complete_email_file,
         "capture_email": emails.capture_email,

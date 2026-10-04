@@ -15,7 +15,9 @@ Read tools: `email_workflow`, `email_history`. Proposal tool:
 approval of an outgoing email. Do not grant `proposal_approve_and_execute` merely
 because the agent needs evidence intake or execution handoff. Built-in Chat has
 read/propose tools only and hands off to Decisions. Existing confirmation policy,
-company authority and truthful decision attribution remain authoritative.
+company authority and truthful decision attribution remain authoritative. Separately
+grant `email_dispatch_accept_grant` only to clients that submit signed proof;
+its authority comes from configured issuer/person mandates, never token permissions.
 
 ## Receive and archive
 
@@ -211,7 +213,7 @@ A source may support multiple decisions; follow its related decision links for e
 
 Detail `decision.decider` comes from the shared decision-attribution authority,
 the same reader used for proposal execution status. It preserves `person`,
-`mcp_token`, `chat_agent` and `unknown` distinctions and existing name-disclosure
+`mcp_token`, `chat_agent`, `external_grant` and `unknown` distinctions and existing name-disclosure
 rules. A token issuer is not asserted to be the acting person. Pending or legacy
 unattributed decisions stay unknown; an executor is never inferred as the approver.
 
@@ -219,7 +221,7 @@ unattributed decisions stay unknown; an executor is never inferred as the approv
 
 The same API/MCP contract applies to Atlas, a Grok application and other agents.
 The application needs mailbox transport and Reality integration; a model name
-alone provides neither. Choose one of two currently supported outgoing paths:
+alone provides neither. Choose one of three supported outgoing paths:
 
 1. Reality review: propose the exact payload, review/approve the Decision, claim
    it with the authenticated executor, then report actual message and outcome.
@@ -233,8 +235,12 @@ alone provides neither. Choose one of two currently supported outgoing paths:
 A typed, executor-bound dispatch receipt connects actual outgoing evidence to
 a Reality Decision (`authorization=reality_decision`). Never infer this link
 from origin names or caller claims. These labels do not prove recipient delivery.
-Provider-independent verified grant recognition is separately drafted in
-[spec 353](../../specs/353-external-email-approval-grants/spec.md); it is not available.
+3. Verified external approval: propose first, show the normalized preview to the
+   authorized external person, and submit their issuer-signed approval through
+   `email_dispatch_accept_grant`. Reality retains one existing Decision with
+   `external_grant` attribution, then the executor claims/reports normally.
+   Requires explicit server-configured company/issuer/subject trust; see
+   [spec 354](../../specs/354-external-email-approval-grants/spec.md).
 
 Capture is a direct permissioned `confirm` mutation, because it archives evidence.
 It does not require a separate `source_ingest_propose` and does not create Facts,
@@ -295,3 +301,110 @@ that the system cannot perform. A follow-up lifecycle specification must define
 operator authority, attachment sharing, retained Decision evidence, audit/redaction
 semantics, backup/storage cleanup and bounded verified deletion workflows before
 introducing granular retention/deletion features.
+
+
+## Signed external approval format — Spec 354
+
+V1 is compact JWS, signed using Ed25519. Header (JSON shown before base64url):
+
+```json
+{"alg":"EdDSA","typ":"reality-email-approval+jwt","kid":"approval-key-2026-10"}
+```
+
+Claims (illustrative IDs/times; use the actual returned values and current time):
+
+```json
+{
+  "version": 1,
+  "iss": "https://approval.example.test",
+  "sub": "person-42",
+  "aud": "reality:email_dispatch",
+  "jti": "unique-approval-id",
+  "tenant_id": "ten_EXACT_COMPANY",
+  "proposal_id": "act_EXACT_PROPOSAL",
+  "approval_digest": "USE_RETURNED_64_CHARACTER_APPROVAL_DIGEST",
+  "decision": "approve",
+  "human_approved": true,
+  "iat": 1791093600,
+  "exp": 1791093900
+}
+```
+
+1. Call `email_dispatch_propose` (API: POST `/email/dispatch-proposals`). Retain
+   `proposal_id` and `preview.approval_digest`; show the complete normalized
+   preview, including BCC, attachment identity and business context, to the person.
+   For an existing pending proposal read `email_history` and its
+   `decision.approval_digest`; obtain the full reviewed input via `proposal_review`.
+2. The external approval application authenticates the person, observes their
+   affirmative approval of that exact preview, and signs the claims. Private
+   signing keys stay with its approval service, separately from worker/MCP tokens.
+3. Submit `email_dispatch_accept_grant` with only `proposal_id` and `grant`
+   (API: POST `/email/dispatch-grants`). The compact `grant` is
+   `base64url(header).base64url(claims).base64url(signature)` without padding;
+   Ed25519 signs the ASCII first two encoded segments joined by a dot. Unknown
+   headers/claims and duplicate JSON fields are rejected. No `none`, HMAC, remote
+   `jku`, client public key or alternate algorithm is accepted.
+4. Read the existing Decision, then `email_dispatch_claim`/`email_dispatch_report`.
+   API/MCP submission permissions are required separately. A manual token may
+   submit a valid proof, but is never considered the human approver.
+
+`approval_digest_format=reality-email-proposal-v1` hashes the **complete normalized
+proposal input**, including every message field, attachment IDs and verified hashes,
+explicit sorted business context, supporting Sources, rationale and retry input.
+The server calculates SHA-256 over UTF-8 compact sorted-key JSON with
+`ensure_ascii=false`. It returns the digest; clients need not reproduce Python
+JSON number formatting. Sign that exact returned digest after approving its preview.
+`fingerprint` remains the separate transport-payload identity used by claim and
+uncertainty checks; it is insufficient as an approval grant digest.
+
+### Server-owned trust and lifecycle
+
+Deployment operators set `REALITY_EMAIL_APPROVAL_TRUST_JSON` only after the company
+has authorized the issuer's human-approval process and each person's email mandate.
+Example registry structure (public key placeholder; not an active trust entry):
+
+```json
+{
+  "https://approval.example.test": {
+    "keys": {"approval-key-2026-10": "BASE64URL_RAW_32_BYTE_ED25519_PUBLIC_KEY"},
+    "tenants": {
+      "ten_EXACT_COMPANY": {
+        "subjects": {"person-42": "Anna Buyer"},
+        "revoked_grant_ids": [],
+        "revoked_before": 0
+      }
+    }
+  }
+}
+```
+
+There is no default trust, wildcard mandate or request-based registration. Only
+public keys belong in Reality configuration. A Grok application uses the same
+contract through its own authorized approval service; a model name alone is not
+an issuer or human identity. External people need not have Reality accounts; an
+explicit company/issuer/subject mandate authorizes **email approval only**.
+A signature proves the configured issuer's human-approval attestation; Reality
+has not independently observed the person's interaction. The configured name and
+opaque subject are retained, separately from issuer and submitting executor.
+
+Validity is at most 600 seconds with 30 seconds future issue skew and no expiration
+grace. Acceptance and every claim (including replay) recheck current configuration.
+Remove a key, subject or company/issuer entry to revoke outstanding approvals;
+list `jti` in `revoked_grant_ids` for individual revocation or set
+`revoked_before` to reject approvals issued at/before that UTC epoch. Deploy trust
+changes consistently to **every API/MCP process**; removed mandates must not remain
+in old processes. Key rotation uses a new kid, with old public keys retained only
+as long as outstanding approvals should remain usable. Registry management is
+operator configuration; a self-service company trust UI is not part of v1.
+
+An expired unclaimed approval needs a new exact person approval; there is no
+automatic extension. Issuer/jti identifies one grant/Decision. Exact valid replay
+returns the original receipt; changed proof or use on another proposal is refused.
+Original proof Source, Decision and authorization commit atomically. The Source also retains the verified public key/kid and mandate/verification time for independent historical checking after key rotation; current claims always use current server trust. Historical
+attribution remains after revocation. External approvals cannot authorize uncertain
+retry risk exceptions; those keep signed-in member/trusted-local review. Neither
+signed proof nor its Source is permission to send twice or to approve other actions.
+
+Inspector/Decisions show **External approval by …, verified through …** and the
+email evidence panel links to the original approval Source. Direct outbound capture
+continues to be `external_unverified` and cannot retrofit an approval Decision.

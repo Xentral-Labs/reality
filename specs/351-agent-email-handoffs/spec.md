@@ -383,5 +383,4 @@ attempts, token/Chat approval and concurrent duplicate claims are refused.
 A human-reviewed risk acknowledgement allows a separately bound execution while
 original uncertainty remains visible. New reports invalidate stale acknowledgements.
 
-External grant recognition is a separately drafted provider-independent follow-up
-(spec 353), not an implemented authorization shortcut in this PR.
+External grant recognition is specified and implemented by spec 354 in this PR. Only server-configured issuer/company/subject mandates and exact signed proof can settle the existing email Decision; risk exceptions remain member-reviewed.

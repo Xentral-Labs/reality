@@ -2759,6 +2759,12 @@
     "email_fingerprint_mismatch": {
       "message": "The email payload does not match the approved version."
     },
+    "email_approval_grant_invalid": {
+      "message": "The external email approval proof is invalid, expired, revoked or not authorized for this exact company and proposal."
+    },
+    "email_approval_grant_reused": {
+      "message": "This external approval has already been used. Read its original decision instead of authorizing another proposal."
+    },
     "email_decision_required": {
       "message": "An explicitly approved email proposal is required before dispatch."
     },

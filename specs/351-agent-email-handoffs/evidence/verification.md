@@ -133,7 +133,7 @@ Four-language audits cover 2,729 strings; production web build passes. All 145
 documentation contracts and formatting pass. Spec policy and business annotation
 audit pass; generated catalogs reflect the published schema and workflow.
 
-Spec 353 is explicitly a draft provider-independent external-grant contract; no
+Spec 354 is explicitly a draft provider-independent external-grant contract; no
 verified external grant or granular retention/deletion implementation is claimed.
 T025 completion is recorded with current-head full-suite proof in PR #332; this
 local acceptance evidence does not claim a pending CI run has passed.
