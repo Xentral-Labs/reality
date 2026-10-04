@@ -3,6 +3,7 @@
 import json
 from decimal import Decimal
 
+from intake_review_support import reviewed_set_master_data_active
 from sqlalchemy import event
 
 from reality.services import core
@@ -154,7 +155,7 @@ def test_only_serving_warehouses_count(session, business):
     _stock(session, business, "40", closed)
     transit.allows_stock = False
     session.commit()
-    core.set_master_data_active(session, tenant, Location, closed.id, False)
+    reviewed_set_master_data_active(session, tenant, Location, closed.id, False)
     promise = _promise(session, business, "4")
 
     assert promise.id not in _found(session, tenant)

@@ -10,6 +10,7 @@ from intake_review_support import (
     accept_pending_import_jobs,
     reviewed_manual_order,
     reviewed_record_sales_invoice,
+    reviewed_set_master_data_active,
 )
 from intake_review_support import accept_shopify_order as ingest_shopify_order
 from sqlalchemy import select
@@ -34,7 +35,6 @@ from reality.services.core import (
     open_quantity,
     record_movement,
     reserve,
-    set_master_data_active,
     stock_at,
 )
 from reality.services.delivery_actions import prepare_delivery_action
@@ -384,7 +384,7 @@ def test_delisted_item_still_serves_its_open_commitment(session, business):
         "4",
         None,
     )
-    set_master_data_active(session, tenant_id, Item, business.item.id, False)
+    reviewed_set_master_data_active(session, tenant_id, Item, business.item.id, False)
     assert record_by_id(session, Item, business.item.id).is_active is False
 
     reserved = reserve(session, tenant_id, commitment.id)

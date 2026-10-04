@@ -11,6 +11,7 @@ from intake_review_support import (
     reviewed_create_price_list_entry,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
+    reviewed_set_master_data_active,
 )
 from sqlalchemy import event
 
@@ -460,18 +461,18 @@ def test_a_point_that_no_longer_qualifies_proposes_nothing(session, business):
     # Positive control: the qualifying point is reported, live and stored.
     assert key in _reached(session, tenant)
 
-    core.set_master_data_active(session, tenant, Item, business.item.id, False)
+    reviewed_set_master_data_active(session, tenant, Item, business.item.id, False)
     assert _reached(session, tenant) == {}
     # The deactivation is a change the stored inbox follows.
     projections.refresh_operational_projections(session, tenant)
     rows, _ = stored_exceptions(session, tenant)
     assert not [row for row in rows if row["class_id"] == "reorder_point_reached"]
 
-    core.set_master_data_active(session, tenant, Item, business.item.id, True)
+    reviewed_set_master_data_active(session, tenant, Item, business.item.id, True)
     assert key in _reached(session, tenant)
-    core.set_master_data_active(session, tenant, Location, business.location.id, False)
+    reviewed_set_master_data_active(session, tenant, Location, business.location.id, False)
     assert _reached(session, tenant) == {}
-    core.set_master_data_active(session, tenant, Location, business.location.id, True)
+    reviewed_set_master_data_active(session, tenant, Location, business.location.id, True)
     business.location.allows_stock = False
     session.commit()
     assert _reached(session, tenant) == {}
@@ -490,7 +491,7 @@ def test_an_inactive_supplier_is_not_named(session, business):
     key = (business.item.id, business.location.id)
     assert _reached(session, tenant)[key].causal_values["supplier_choice"] == "single"
 
-    core.set_master_data_active(session, tenant, Party, business.supplier.id, False)
+    reviewed_set_master_data_active(session, tenant, Party, business.supplier.id, False)
     assert _reached(session, tenant)[key].causal_values["supplier_choice"] == "none"
 
 

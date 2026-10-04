@@ -174,6 +174,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
             raise InvalidOperation(code="intake_partial_commit_forbidden")
 
     fixed = authority.tool in COMMERCIAL_MASTER_OPERATIONS or authority.tool in {
+        "party_merge",
         "document_create",
         "order_create",
         "sales_invoice_record",
@@ -206,6 +207,9 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
 
 
 _FIXED_DEFINITIONS = {"demo_seed": "compact-demo.v2", "normal_month": "normal-month.v2"}
+_FIXED_APPLICATION_CANONICAL_OPERATIONS = frozenset({
+    "create_party", "create_item", "create_location",
+})
 
 
 def _fixed_definition_input(tool, *, day=None):
@@ -1666,6 +1670,7 @@ def require_demo_intake(
 
 
 COMMERCIAL_MASTER_OPERATIONS = {
+    "master_data_lifecycle": "set_master_data_active",
     "payment_term_create": "create_payment_term",
     "payment_term_update": "update_payment_term",
     "price_list_create": "create_price_list",
@@ -1681,6 +1686,8 @@ COMMERCIAL_MASTER_OPERATIONS = {
 
 _CANONICAL_MUTATION_TOOLS = {
     **{operation: frozenset({tool}) for tool, operation in COMMERCIAL_MASTER_OPERATIONS.items()},
+    "merge_party": frozenset({"party_merge"}),
+    "set_master_data_active": frozenset({"master_data_lifecycle", "party_merge"}),
     "record_sales_credit": frozenset({"sales_credit_record"}),
     "record_sales_invoice": frozenset({"sales_invoice_record"}),
     "record_supplier_invoice": frozenset({"supplier_invoice_record"}),
@@ -1703,6 +1710,8 @@ def _require_application_decision(session, tenant_id, operation):
     """Require current retained confirmation for the exact canonical family."""
     authority = _application_authority.get()
     if authority is not None and authority.tool in _FIXED_DEFINITIONS:
+        if operation not in _FIXED_APPLICATION_CANONICAL_OPERATIONS:
+            raise InvalidOperation(code="intake_approval_required")
         _require_fixed_setup(session, tenant_id, authority.tool)
         return
     if (
@@ -1797,6 +1806,8 @@ def _master_application_active(operation=None):
     authority = _application_authority.get()
     if authority is not None and authority.tool in COMMERCIAL_MASTER_OPERATIONS:
         return operation == COMMERCIAL_MASTER_OPERATIONS[authority.tool]
+    if authority is not None and authority.tool == "party_merge":
+        return operation in {"merge_party", "set_master_data_active"}
     if authority is not None and authority.tool == "sales_credit_record":
         return operation in {
             "record_sales_credit", "create_manual_document_with_lines",
@@ -1837,6 +1848,7 @@ def require_document_operation(session, tenant_id, operation):
     """A manual evidence confirmation grants no unrelated business effect."""
     authority = _application_authority.get()
     if authority is None or (authority.tool not in COMMERCIAL_MASTER_OPERATIONS and authority.tool not in {
+        "party_merge",
         "document_create", "order_create", "sales_invoice_record",
         "supplier_invoice_record", "supplier_invoice_free_record",
         "sales_credit_record",
@@ -1848,6 +1860,8 @@ def require_document_operation(session, tenant_id, operation):
     }
     if authority.tool in COMMERCIAL_MASTER_OPERATIONS:
         permitted.add(COMMERCIAL_MASTER_OPERATIONS[authority.tool])
+    if authority.tool == "party_merge":
+        permitted.update({"merge_party", "set_master_data_active"})
     if authority.tool == "order_create":
         permitted.update({"create_manual_order", "create_commitment"})
     if authority.tool == "sales_invoice_record":

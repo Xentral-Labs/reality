@@ -3790,11 +3790,12 @@ def update_locations(
 def set_master_data_active(
     session: OrmSession,
     tenant_id: str,
-    model: type[Party | Item | Location | PaymentTerm],
+    model: type[Party | Item | Location | PaymentTerm] | str,
     record_id: str,
     is_active: bool,
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> Party | Item | Location | PaymentTerm:
     """
     BUSINESS PURPOSE:
@@ -3807,6 +3808,12 @@ def set_master_data_active(
     IF the active flag changes, emit a lifecycle event with its before and after values; an unchanged flag produces no lifecycle event.
     """
     _require_business_mutation(session, tenant_id, "set_master_data_active")
+    models = {"party": Party, "item": Item, "location": Location, "payment_term": PaymentTerm}
+    if isinstance(model, str):
+        model = models.get(model)
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("set_master_data_active", {**locals(), "model": model.__tablename__ if model in models.values() else None})
     # reality-rule: core.set_master_data_active.1
     if model not in {Party, Item, Location, PaymentTerm}:
         raise InvalidOperation("Unsupported master data type.")
@@ -3827,7 +3834,10 @@ def set_master_data_active(
             },
             action_id=action_id,
         )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return record
 
 

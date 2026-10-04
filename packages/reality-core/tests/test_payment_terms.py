@@ -4,6 +4,7 @@ from decimal import Decimal
 import pytest
 from intake_review_support import (
     reviewed_create_payment_term,
+    reviewed_set_master_data_active,
     reviewed_update_payment_term,
 )
 
@@ -15,7 +16,6 @@ from reality.services.core import (
     create_document,
     payment_terms,
     post_supplier_invoice,
-    set_master_data_active,
 )
 
 
@@ -41,7 +41,7 @@ def test_payment_terms_are_tenant_scoped_master_data(session, business):
     assert party.payment_term_id == term.id
     assert payment_terms(session, business.tenant.id) == [term]
 
-    set_master_data_active(session, business.tenant.id, PaymentTerm, term.id, False)
+    reviewed_set_master_data_active(session, business.tenant.id, PaymentTerm, term.id, False)
     with pytest.raises(NotFound, match="Active payment term"):
         reviewed_create_party(
             session,

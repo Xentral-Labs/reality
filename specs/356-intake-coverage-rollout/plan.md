@@ -267,3 +267,10 @@ scope/root locks and separately bound initializer semantics. Prove actual OAuth
 revocation/expiry/permission and actual membership changes after dispatch before
 the first canonical fixed-profile write; qualify real positive confirmation,
 source values and receipt replay. No schema or invented identity is required.
+## Master-data lifecycle plan
+
+Constitution Check: PASS. Reuse the finite existing lifecycle tool and canonical setter. Freeze the supported model identity, record, supplied active flag and action ID; retain a private current-record hash at preparation and recheck before effects. The canonical service accepts the existing type or corresponding finite model string and normalizes both to the same frozen identity. Replace internal commit with application-owned root settlement. REST/CLI explicit confirmation returns the existing record shape. Tests precede implementation; compare full row/event state for update rollback, qualify current references and adapters, then require full committed-head CI. No schema expansion or new authority store.
+
+Qualify the real existing party_merge caller of lifecycle in the same boundary: freeze its canonical parent and exact nested duplicate deactivation, carry private no-commit to both, and let its retained reviewed proposal own root settlement. Existing merge eligibility/current review remains authoritative; tests precede this necessary caller integration.
+
+Keep fixed application canonical admission literal: the two authored current definitions directly create party/item/location only, while separately bound exact source-intake and company/lesson scopes retain their existing checks. New canonical map entries cannot automatically broaden an earlier fixed confirmation. Test actual borrowed frozen lifecycle/merge invocations against a preserved runtime snapshot first.

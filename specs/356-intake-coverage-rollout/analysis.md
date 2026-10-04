@@ -119,3 +119,8 @@ current consent are separate requirements: the existing early fixed-definition
 return skips ordinary current confirming authority. Share its actual persisted
 checks without introducing a blanket interactive credential requirement on
 worker/company/lesson initializers or retroactively revoking settled receipts.
+## Master-data lifecycle analysis
+
+No unresolved clarification or critical finding. The existing setter commits directly and existing REST/CLI bypass retained proposals. Existing tool uses finite public model strings while the core setter takes actual model types; normalize only those four supported types/strings for exact frozen invocation. Preserve read-only queries and existing domain tenant/membership permissions. Raw source-reference and other writers remain separate qualifications.
+
+Caller review found fixed application authority inherited every entry of the canonical mutation map. The new lifecycle/merge entries must not widen those authored definitions. A copied owned runtime snapshot reproduces four valid borrowed frozen invocations; no proposal status, grant or permission is manufactured. Use the literal currently authored direct canonical creation families rather than a generated whitelist.

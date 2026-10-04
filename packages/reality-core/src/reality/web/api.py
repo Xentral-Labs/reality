@@ -148,7 +148,6 @@ from reality.services.core import (
     reverse_ledger_posting_group,
     send_chat_message,
     serial_units,
-    set_master_data_active,
     set_source_capability_active,
     set_source_system_active,
     set_source_system_base_url,
@@ -3361,6 +3360,10 @@ class ActiveWrite(ApiModel):
     is_active: bool
 
 
+class MasterActiveMutation(ActiveWrite):
+    confirmed: bool = False
+
+
 class PaymentTermWrite(ApiModel):
     code: str
     name: str
@@ -4261,7 +4264,7 @@ def _confirmed_commercial_record(session, tenant_id, request, tool, arguments, *
     proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="user")
     receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=optional_request_principal(request), confirmed=confirmed)
     result = json.loads(receipt.output)["records"][0]
-    models = {"payment_term": records.PaymentTerm, "price_list": records.PriceList, "price_list_entry": records.PriceListEntry, "party_price_list": records.PartyPriceList, "party_group": records.PartyGroup, "party_group_member": records.PartyGroupMember, "party_group_price_list": records.PartyGroupPriceList}
+    models = {"party": records.Party, "item": records.Item, "location": records.Location, "payment_term": records.PaymentTerm, "price_list": records.PriceList, "price_list_entry": records.PriceListEntry, "party_price_list": records.PartyPriceList, "party_group": records.PartyGroup, "party_group_member": records.PartyGroupMember, "party_group_price_list": records.PartyGroupPriceList}
     return _tenant_record_read(session, models[result["family"]], tenant_id, result["id"])
 
 
@@ -4281,11 +4284,11 @@ def put_payment_term(
 
 @router.patch("/payment-terms/{record_id}/active", response_model=PaymentTermRead)
 def patch_payment_term_active(
-    tenant_id: str, record_id: str, body: ActiveWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: MasterActiveMutation, session: DatabaseSession, request: Request
 ):
     try:
-        return set_master_data_active(
-            session, tenant_id, PaymentTerm, record_id, body.is_active
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "master_data_lifecycle", {"model": "payment_term", "record_id": record_id, "is_active": body.is_active}, confirmed=body.confirmed
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4606,11 +4609,11 @@ def put_party(
 
 @router.patch("/parties/{record_id}/active", response_model=PartyRead)
 def patch_party_active(
-    tenant_id: str, record_id: str, body: ActiveWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: MasterActiveMutation, session: DatabaseSession, request: Request
 ):
     try:
-        party = set_master_data_active(
-            session, tenant_id, Party, record_id, body.is_active
+        party = _confirmed_commercial_record(
+            session, tenant_id, request, "master_data_lifecycle", {"model": "party", "record_id": record_id, "is_active": body.is_active}, confirmed=body.confirmed
         )
         return party_response(session, party)
     except (NotFound, InvalidOperation) as error:
@@ -4663,11 +4666,11 @@ def put_item(tenant_id: str, record_id: str, body: ItemMutation, session: Databa
 
 @router.patch("/items/{record_id}/active", response_model=ItemRead)
 def patch_item_active(
-    tenant_id: str, record_id: str, body: ActiveWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: MasterActiveMutation, session: DatabaseSession, request: Request
 ):
     try:
-        item = set_master_data_active(
-            session, tenant_id, Item, record_id, body.is_active
+        item = _confirmed_commercial_record(
+            session, tenant_id, request, "master_data_lifecycle", {"model": "item", "record_id": record_id, "is_active": body.is_active}, confirmed=body.confirmed
         )
         return item_response(session, item)
     except (NotFound, InvalidOperation) as error:
@@ -4732,11 +4735,11 @@ def put_location(
 
 @router.patch("/locations/{record_id}/active", response_model=LocationRead)
 def patch_location_active(
-    tenant_id: str, record_id: str, body: ActiveWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: MasterActiveMutation, session: DatabaseSession, request: Request
 ):
     try:
-        location = set_master_data_active(
-            session, tenant_id, Location, record_id, body.is_active
+        location = _confirmed_commercial_record(
+            session, tenant_id, request, "master_data_lifecycle", {"model": "location", "record_id": record_id, "is_active": body.is_active}, confirmed=body.confirmed
         )
         return location_response(session, location)
     except (NotFound, InvalidOperation) as error:

@@ -1878,9 +1878,11 @@ def _lifecycle(session: Session, tenant_id: str, arguments: dict[str, Any]) -> A
     # reality-rule: application.lifecycle.1
     if model is None:
         raise InvalidOperation("Unsupported master data type.")
+    from reality.services.intake import _invoke
+
     # reality-rule: application.lifecycle.2
     return _entity_result(
-        model_name, set_master_data_active(session, tenant_id, model, **arguments)
+        model_name, _invoke("set_master_data_active", set_master_data_active, session, tenant_id, model=model_name, **arguments, _commit=False)
     )
 
 
@@ -3230,16 +3232,17 @@ def _party_merge(session: Session, tenant_id: str, arguments: dict[str, Any]) ->
     BUSINESS RULE application.party_merge.1:
     Route this company-scoped request to merge_party. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
     from reality.services.party_merges import merge_party
 
     # reality-rule: application.party_merge.1
-    merge = merge_party(
-        session,
-        tenant_id,
-        arguments["duplicate_party_id"],
-        arguments["surviving_party_id"],
-        arguments["reason"],
+    merge = _invoke(
+        "merge_party", merge_party, session, tenant_id,
+        duplicate_party_id=arguments["duplicate_party_id"],
+        surviving_party_id=arguments["surviving_party_id"],
+        reason=arguments["reason"],
         action_id=arguments.get("_action_id"),
+        _commit=False,
     )
     return {
         "merge_id": merge.id,
@@ -6919,6 +6922,7 @@ def approve_and_execute_proposal(
     if (
         (candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
         in {
+            "tool:party_merge",
             "tool:demo_seed",
             "tool:normal_month",
             "tool:party_create",

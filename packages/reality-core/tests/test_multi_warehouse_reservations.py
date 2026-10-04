@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_set_master_data_active
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, Reservation
@@ -143,7 +144,7 @@ def test_a_location_that_cannot_serve_is_refused(session, business):
     transit.allows_stock = False
     closed = _munich(session, business, "Old warehouse")
     session.commit()
-    core.set_master_data_active(session, tenant, Location, closed.id, False)
+    reviewed_set_master_data_active(session, tenant, Location, closed.id, False)
 
     for location in (transit, closed):
         with pytest.raises(core.InvalidOperation) as refused:

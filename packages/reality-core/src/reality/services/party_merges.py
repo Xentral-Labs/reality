@@ -300,6 +300,7 @@ def merge_party(
     reason: str,
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> PartyMerge:
     """
     Record that one business partner is a duplicate of another.
@@ -327,6 +328,9 @@ def merge_party(
     """
     # reality-rule: services.party_merges.merge_party.step-10
     _require_business_mutation(session, tenant_id, "merge_party")
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("merge_party", locals())
     # reality-rule: services.party_merges.merge_party.step-11
     duplicate, survivor, text = validate_party_merge(
         session, tenant_id, duplicate_party_id, surviving_party_id, reason
@@ -376,12 +380,15 @@ def merge_party(
         correlation_id=action_id,
     )
     if duplicate.is_active:
-        # Commits the merge and the lifecycle change together.
-        set_master_data_active(
-            session, tenant_id, Party, duplicate.id, False, action_id=action_id
+        _invoke(
+            "set_master_data_active", set_master_data_active,
+            session, tenant_id, model="party", record_id=duplicate.id,
+            is_active=False, action_id=action_id, _commit=False,
         )
-    else:
+    if _commit:
         session.commit()
+    else:
+        session.flush()
     # reality-rule: services.party_merges.merge_party.result
     return merge
 

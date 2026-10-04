@@ -235,6 +235,7 @@ _INTENT_DEFAULTS = {
         if parameter.default is not Parameter.empty
     }
     for name in (
+        "set_master_data_active",
         "create_payment_term", "update_payment_term", "create_price_list", "update_price_list",
         "create_price_list_entry", "assign_party_price_list", "create_party_group",
         "update_party_group", "add_party_group_member", "assign_group_price_list",
@@ -275,6 +276,14 @@ from reality.services.invoice_actions import (
 _INTENT_DEFAULTS["record_free_supplier_invoice"] = {
     key: parameter.default
     for key, parameter in signature(_free_supplier_invoice).parameters.items()
+    if parameter.default is not Parameter.empty
+}
+
+from reality.services.party_merges import merge_party as _merge_party
+
+_INTENT_DEFAULTS["merge_party"] = {
+    key: parameter.default
+    for key, parameter in signature(_merge_party).parameters.items()
     if parameter.default is not Parameter.empty
 }
 

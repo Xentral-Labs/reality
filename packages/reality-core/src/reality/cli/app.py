@@ -14,7 +14,6 @@ from reality.db.core import (
     Item,
     Location,
     Party,
-    PaymentTerm,
     Session,
     engine,
     init_db,
@@ -58,7 +57,6 @@ from reality.services.core import (
     retry_import_job,
     reverse_ledger_posting_group,
     serial_units,
-    set_master_data_active,
     source_capabilities,
     source_records,
     source_systems,
@@ -950,11 +948,11 @@ def party_update(
     con.print(f"✓ Party updated: {party.name} ({party.id})")
 
 
-def change_party_active(party_id: str, is_active: bool, tenant: str | None) -> None:
+def change_party_active(party_id: str, is_active: bool, tenant: str | None, *, yes: bool = False) -> None:
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            party = set_master_data_active(s, selected.id, Party, party_id, is_active)
+            party = _confirmed_commercial_cli(s, selected.id, "master_data_lifecycle", {"model": "party", "record_id": party_id, "is_active": is_active}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(
@@ -963,8 +961,8 @@ def change_party_active(party_id: str, is_active: bool, tenant: str | None) -> N
 
 
 @party_app.command("deactivate")
-def party_deactivate(party_id: str, tenant: str | None = None):
-    change_party_active(party_id, False, tenant)
+def party_deactivate(party_id: str, tenant: str | None = None, yes: bool = False):
+    change_party_active(party_id, False, tenant, yes=yes)
 
 
 @party_app.command("merge")
@@ -1019,8 +1017,8 @@ def party_merges_show(party_id: str = "", tenant: str | None = None):
 
 
 @party_app.command("activate")
-def party_activate(party_id: str, tenant: str | None = None):
-    change_party_active(party_id, True, tenant)
+def party_activate(party_id: str, tenant: str | None = None, yes: bool = False):
+    change_party_active(party_id, True, tenant, yes=yes)
 
 
 @stock_app.command("list")
@@ -2019,12 +2017,12 @@ def _confirmed_commercial_cli(session, tenant_id, tool, arguments, *, yes):
 
     proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="human")
     con.print_json(data={"tool": tool, "input": arguments, "review": json.loads(proposal.output)})
-    if not yes and not typer.confirm("Confirm these exact commercial master changes?"):
-        con.print("Stopped; the proposal remains pending and no commercial master data changed.")
+    if not yes and not typer.confirm("Confirm these exact master data changes?"):
+        con.print("Stopped; the proposal remains pending and no master data changed.")
         raise typer.Exit()
     receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirmed=True)
     result = json.loads(receipt.output)["records"][0]
-    models = {"payment_term": records.PaymentTerm, "price_list": records.PriceList, "price_list_entry": records.PriceListEntry, "party_price_list": records.PartyPriceList, "party_group": records.PartyGroup, "party_group_member": records.PartyGroupMember, "party_group_price_list": records.PartyGroupPriceList}
+    models = {"party": records.Party, "item": records.Item, "location": records.Location, "payment_term": records.PaymentTerm, "price_list": records.PriceList, "price_list_entry": records.PriceListEntry, "party_price_list": records.PartyPriceList, "party_group": records.PartyGroup, "party_group_member": records.PartyGroupMember, "party_group_price_list": records.PartyGroupPriceList}
     return _tenant_record_read(session, models[result["family"]], tenant_id, result["id"])
 
 
@@ -2084,14 +2082,12 @@ def payment_term_list(tenant: str | None = None):
 
 
 def change_payment_term_active(
-    payment_term_id: str, is_active: bool, tenant: str | None
+    payment_term_id: str, is_active: bool, tenant: str | None, *, yes: bool = False
 ) -> None:
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            term = set_master_data_active(
-                s, selected.id, PaymentTerm, payment_term_id, is_active
-            )
+            term = _confirmed_commercial_cli(s, selected.id, "master_data_lifecycle", {"model": "payment_term", "record_id": payment_term_id, "is_active": is_active}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(
@@ -2101,13 +2097,13 @@ def change_payment_term_active(
 
 
 @payment_term_app.command("deactivate")
-def payment_term_deactivate(payment_term_id: str, tenant: str | None = None):
-    change_payment_term_active(payment_term_id, False, tenant)
+def payment_term_deactivate(payment_term_id: str, tenant: str | None = None, yes: bool = False):
+    change_payment_term_active(payment_term_id, False, tenant, yes=yes)
 
 
 @payment_term_app.command("activate")
-def payment_term_activate(payment_term_id: str, tenant: str | None = None):
-    change_payment_term_active(payment_term_id, True, tenant)
+def payment_term_activate(payment_term_id: str, tenant: str | None = None, yes: bool = False):
+    change_payment_term_active(payment_term_id, True, tenant, yes=yes)
 
 
 @pricing_app.command("list")
@@ -2319,11 +2315,11 @@ def item_update(
     con.print(f"✓ Item updated: {item.name} · {item.sku} ({item.id})")
 
 
-def change_item_active(item_id: str, is_active: bool, tenant: str | None) -> None:
+def change_item_active(item_id: str, is_active: bool, tenant: str | None, *, yes: bool = False) -> None:
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            item = set_master_data_active(s, selected.id, Item, item_id, is_active)
+            item = _confirmed_commercial_cli(s, selected.id, "master_data_lifecycle", {"model": "item", "record_id": item_id, "is_active": is_active}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(
@@ -2332,13 +2328,13 @@ def change_item_active(item_id: str, is_active: bool, tenant: str | None) -> Non
 
 
 @item_app.command("deactivate")
-def item_deactivate(item_id: str, tenant: str | None = None):
-    change_item_active(item_id, False, tenant)
+def item_deactivate(item_id: str, tenant: str | None = None, yes: bool = False):
+    change_item_active(item_id, False, tenant, yes=yes)
 
 
 @item_app.command("activate")
-def item_activate(item_id: str, tenant: str | None = None):
-    change_item_active(item_id, True, tenant)
+def item_activate(item_id: str, tenant: str | None = None, yes: bool = False):
+    change_item_active(item_id, True, tenant, yes=yes)
 
 
 @location_app.command("create")
@@ -2383,14 +2379,12 @@ def location_update(
 
 
 def change_location_active(
-    location_id: str, is_active: bool, tenant: str | None
+    location_id: str, is_active: bool, tenant: str | None, *, yes: bool = False
 ) -> None:
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            location = set_master_data_active(
-                s, selected.id, Location, location_id, is_active
-            )
+            location = _confirmed_commercial_cli(s, selected.id, "master_data_lifecycle", {"model": "location", "record_id": location_id, "is_active": is_active}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(
@@ -2400,13 +2394,13 @@ def change_location_active(
 
 
 @location_app.command("deactivate")
-def location_deactivate(location_id: str, tenant: str | None = None):
-    change_location_active(location_id, False, tenant)
+def location_deactivate(location_id: str, tenant: str | None = None, yes: bool = False):
+    change_location_active(location_id, False, tenant, yes=yes)
 
 
 @location_app.command("activate")
-def location_activate(location_id: str, tenant: str | None = None):
-    change_location_active(location_id, True, tenant)
+def location_activate(location_id: str, tenant: str | None = None, yes: bool = False):
+    change_location_active(location_id, True, tenant, yes=yes)
 
 
 @commitment_app.command("hold")

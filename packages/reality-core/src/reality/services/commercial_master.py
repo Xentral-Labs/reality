@@ -5,7 +5,7 @@ from hashlib import sha256
 
 from sqlalchemy import select
 
-from reality.db.core import Item, Party, PartyGroup, PaymentTerm, PriceList
+from reality.db.core import Item, Location, Party, PartyGroup, PaymentTerm, PriceList
 from reality.domain.intake import canonical_json
 from reality.services import core
 from reality.services.tenant_policy import COMMERCIAL_MASTER_OPERATIONS
@@ -22,6 +22,7 @@ _TERM_FIELDS = {"code", "name", "due_days", "discount_percent", "discount_days",
 _SOURCE_FIELDS = {"source_system", "external_id", "source_payload"}
 _PRICE_LIST_FIELDS = {"code", "name", "direction", "currency", "is_default"}
 _PUBLIC_FIELDS = {
+    "set_master_data_active": {"model", "record_id", "is_active"},
     "create_payment_term": _TERM_FIELDS | _SOURCE_FIELDS,
     "update_payment_term": _TERM_FIELDS | {"payment_term_id"},
     "create_price_list": _PRICE_LIST_FIELDS | _SOURCE_FIELDS | {"valid_from", "valid_until"},
@@ -38,7 +39,13 @@ _PUBLIC_FIELDS = {
 def _reference_state(session, tenant_id, arguments):
     """Read the current actual referenced records; never calculate a price."""
     result = {}
-    for field, model in _REFERENCES.items():
+    references = dict(_REFERENCES)
+    if "model" in arguments:
+        model = {"party": Party, "item": Item, "location": Location, "payment_term": PaymentTerm}.get(arguments["model"])
+        if model is None:
+            raise core.InvalidOperation("Unsupported master data type.")
+        references["record_id"] = model
+    for field, model in references.items():
         if field not in arguments:
             continue
         row = session.scalar(

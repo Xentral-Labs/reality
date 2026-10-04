@@ -6,12 +6,13 @@ from decimal import Decimal
 
 import pytest
 from intake_review_support import accept_shopify_order as ingest_shopify_order
+from intake_review_support import reviewed_merge_party
 
 from reality.db.core import Party
 from reality.services import core
 from reality.services.credit_exposure import credit_exposure
 from reality.services.finance.balances import party_balances
-from reality.services.party_merges import merge_party, party_merges
+from reality.services.party_merges import party_merges
 from reality.tools.application import (
     approve_and_execute_proposal,
     create_change_proposal,
@@ -156,7 +157,7 @@ def test_two_partners_merged_as_duplicates(session, business):
     )
 
     with pytest.raises(core.InvalidOperation) as refused:
-        merge_party(session, tenant, third.id, duplicate.id, "Also Huber")
+        reviewed_merge_party(session, tenant, third.id, duplicate.id, "Also Huber")
     assert refused.value.code == "party_merge_already_merged"
     assert session.get(Party, (tenant, third.id)).is_active is True
 

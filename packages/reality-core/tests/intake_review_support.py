@@ -729,3 +729,34 @@ def reviewed_add_party_group_member(session, tenant_id, *args, **kwargs):
 
 def reviewed_assign_group_price_list(session, tenant_id, *args, **kwargs):
     return reviewed_commercial_master(session, tenant_id, "assign_group_price_list", *args, **kwargs)
+
+
+def reviewed_set_master_data_active(session, tenant_id, model, record_id, is_active, **arguments):
+    """Current fixture lifecycle statement through an actual retained decision."""
+    from reality.services.core import _tenant_record_read
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    if arguments:
+        raise ValueError("Fixture lifecycle accepts only actual public stated input.")
+    owner = explicit_owner(session, tenant_id)
+    proposal = create_change_proposal(session, tenant_id, "master_data_lifecycle", {"model": model.__tablename__, "record_id": record_id, "is_active": is_active}, actor_type="human")
+    approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=owner, confirmed=True)
+    return _tenant_record_read(session, model, tenant_id, record_id)
+
+
+def reviewed_merge_party(session, tenant_id, duplicate_party_id, surviving_party_id, reason):
+    """A current merge fixture settles its actual retained reviewed meaning."""
+    from reality.db.core import PartyMerge
+    from reality.services.core import _tenant_record_read
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    owner = explicit_owner(session, tenant_id)
+    proposal = create_change_proposal(session, tenant_id, "party_merge", {"duplicate_party_id": duplicate_party_id, "surviving_party_id": surviving_party_id, "reason": reason}, actor_type="human")
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=owner, confirmed=True)
+    return _tenant_record_read(session, PartyMerge, tenant_id, json.loads(receipt.output)["merge_id"])

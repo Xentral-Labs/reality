@@ -2590,3 +2590,9 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/test_commercial_master_decisions.py`: spec 356 FR-001–FR-003; ten existing commercial master canonical families refuse direct writes and changed/repeated/early-commit/post-write/sibling callbacks; complete row/source/audit snapshots prove updates roll back as well as creates. Full qualification pending.
 
 - `packages/reality-core/tests/test_current_fixed_setup_authority.py`: spec 356 FR-003; actual fixed-profile OAuth/manual-token/membership changes after dispatch refuse canonical effects; actual-person positive receipt replay. Full qualification pending.
+
+- `packages/reality-core/tests/test_master_lifecycle_decisions.py`: spec 356 FR-001–FR-003; actual party/item/location/payment-term activation decisions reject direct/unconfirmed/changed/repeated/partial effects, preserve current references and authentic HTTP/CLI attribution and receipt replay. Full qualification pending.
+
+- `packages/reality-core/tests/test_party_merge_decision_boundary.py`: spec 356 FR-001–FR-003; actual reviewed party-merge parent and duplicate lifecycle require exact atomic confirmed invocation, preserving reason/source/history and refusing sibling effects. Full qualification pending.
+
+- `packages/reality-core/tests/test_fixed_profile_lifecycle_isolation.py`: spec 356 FR-003; actual confirmed fixed application profile cannot borrow new lifecycle or merge canonical authority even through a frozen invocation. Full qualification pending.

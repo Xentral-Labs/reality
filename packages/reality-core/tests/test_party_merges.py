@@ -4,13 +4,14 @@ import json
 from datetime import UTC, datetime
 
 import pytest
+from intake_review_support import reviewed_merge_party, reviewed_set_master_data_active
 from sqlalchemy import event, func, select
 
 from reality.db.core import BusinessEvent, Document, Party, PartyMerge
 from reality.services import core
 from reality.services.credit_exposure import credit_exposure
 from reality.services.finance.balances import party_balances
-from reality.services.party_merges import merge_party, party_merges
+from reality.services.party_merges import party_merges
 from reality.tools.application import (
     approve_and_execute_proposal,
     create_change_proposal,
@@ -126,7 +127,7 @@ def test_the_credit_exposure_counts_the_merged_partner(session, business):
     _invoice(session, business, "INV-2", "200", business.customer.id)
     assert credit_exposure(session, tenant, business.customer.id)["exposure"] == 200
 
-    merge_party(session, tenant, duplicate.id, business.customer.id, "Shop guest")
+    reviewed_merge_party(session, tenant, duplicate.id, business.customer.id, "Shop guest")
 
     exposure = credit_exposure(session, tenant, business.customer.id)
     assert exposure["exposure"] == 500
@@ -145,51 +146,51 @@ def test_every_refusal_changes_nothing(session, business):
     held = reviewed_create_party(session, tenant, "Gesperrt", "customer")
     core.hold_party_delivery(session, tenant, held.id, "collection")
     inactive = reviewed_create_party(session, tenant, "Alt", "customer")
-    core.set_master_data_active(session, tenant, Party, inactive.id, False)
+    reviewed_set_master_data_active(session, tenant, Party, inactive.id, False)
 
     _refused(
         "party_merge_same_party",
-        lambda: merge_party(session, tenant, duplicate.id, duplicate.id, "x"),
+        lambda: reviewed_merge_party(session, tenant, duplicate.id, duplicate.id, "x"),
     )
     _refused(
         "party_merge_reason_required",
-        lambda: merge_party(session, tenant, duplicate.id, business.customer.id, " "),
+        lambda: reviewed_merge_party(session, tenant, duplicate.id, business.customer.id, " "),
     )
     _refused(
         "party_merge_party_not_found",
-        lambda: merge_party(session, tenant, duplicate.id, "pty_missing", "x"),
+        lambda: reviewed_merge_party(session, tenant, duplicate.id, "pty_missing", "x"),
     )
     _refused(
         "party_merge_company_party",
-        lambda: merge_party(
+        lambda: reviewed_merge_party(
             session, tenant, business.company.id, business.customer.id, "x"
         ),
     )
     _refused(
         "party_merge_roles_missing",
-        lambda: merge_party(
+        lambda: reviewed_merge_party(
             session, tenant, supplier_too.id, business.customer.id, "x"
         ),
     )
     _refused(
         "party_merge_hold_open",
-        lambda: merge_party(session, tenant, held.id, business.customer.id, "x"),
+        lambda: reviewed_merge_party(session, tenant, held.id, business.customer.id, "x"),
     )
     _refused(
         "party_merge_survivor_inactive",
-        lambda: merge_party(session, tenant, duplicate.id, inactive.id, "x"),
+        lambda: reviewed_merge_party(session, tenant, duplicate.id, inactive.id, "x"),
     )
     assert session.scalar(select(func.count()).select_from(PartyMerge)) == 0
 
     # Positive control, then no chains either way.
-    merge_party(session, tenant, duplicate.id, business.customer.id, "Same")
+    reviewed_merge_party(session, tenant, duplicate.id, business.customer.id, "Same")
     _refused(
         "party_merge_already_merged",
-        lambda: merge_party(session, tenant, duplicate.id, supplier_too.id, "x"),
+        lambda: reviewed_merge_party(session, tenant, duplicate.id, supplier_too.id, "x"),
     )
     _refused(
         "party_merge_already_merged",
-        lambda: merge_party(session, tenant, held.id, duplicate.id, "x"),
+        lambda: reviewed_merge_party(session, tenant, held.id, duplicate.id, "x"),
     )
     assert session.scalar(select(func.count()).select_from(PartyMerge)) == 1
 
@@ -197,14 +198,14 @@ def test_every_refusal_changes_nothing(session, business):
 def test_another_company_sees_nothing(session, business):
     tenant = business.tenant.id
     duplicate = reviewed_create_party(session, tenant, "Dublette", "customer")
-    merge_party(session, tenant, duplicate.id, business.customer.id, "Same")
+    reviewed_merge_party(session, tenant, duplicate.id, business.customer.id, "Same")
     other = core.create_tenant(session, "Other GmbH")
     stranger = reviewed_create_party(session, other.id, "Fremd", "customer")
 
     assert party_merges(session, other.id) == []
     _refused(
         "party_merge_party_not_found",
-        lambda: merge_party(session, other.id, stranger.id, business.customer.id, "x"),
+        lambda: reviewed_merge_party(session, other.id, stranger.id, business.customer.id, "x"),
     )
 
 
@@ -227,7 +228,7 @@ def test_merged_reads_cost_the_same_however_much_the_duplicate_holds(session, bu
 
     small = reviewed_create_party(session, tenant, "Klein", "customer")
     _invoice(session, business, "INV-S1", "10", small.id)
-    merge_party(session, tenant, small.id, business.customer.id, "Same")
+    reviewed_merge_party(session, tenant, small.id, business.customer.id, "Same")
     detail_small = statements(
         lambda: core.party_detail(session, tenant, business.customer.id)
     )
@@ -235,7 +236,7 @@ def test_merged_reads_cost_the_same_however_much_the_duplicate_holds(session, bu
     big = reviewed_create_party(session, tenant, "Gross", "customer")
     for number in range(5):
         _invoice(session, business, f"INV-B{number}", "10", big.id)
-    merge_party(session, tenant, big.id, business.customer.id, "Same")
+    reviewed_merge_party(session, tenant, big.id, business.customer.id, "Same")
     detail_big = statements(
         lambda: core.party_detail(session, tenant, business.customer.id)
     )
@@ -253,7 +254,7 @@ def test_a_file_row_naming_the_duplicate_lands_on_the_survivor(session, business
     with _refused_text:
         _party(session, tenant, {"party_name": "Müller GmbH"})
 
-    merge_party(session, tenant, duplicate.id, business.customer.id, "Same")
+    reviewed_merge_party(session, tenant, duplicate.id, business.customer.id, "Same")
 
     assert _party(session, tenant, {"party_name": "Müller GmbH"}).id == (
         business.customer.id

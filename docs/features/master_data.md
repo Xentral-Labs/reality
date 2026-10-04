@@ -81,3 +81,7 @@ Payment terms carry `requires_prepayment` as an explicit tenant-scoped boolean. 
 created terms default to false unless the caller states otherwise; no migration or service infers
 the policy from the term code, translated name or due days. The policy is available through the
 shared service, HTTP API, CLI, application tools and MCP schema.
+
+## Confirmed lifecycle boundary
+
+Activation/deactivation of a partner, item, location or payment term uses the existing `master_data_lifecycle` retained proposal. Confirm the actual active flag and current referenced record explicitly; a changed referenced record requires renewed review. REST mutations carry `confirmed: true`; CLI activate/deactivate prompts for the reviewed input or accepts explicit `--yes`. An unchanged flag remains event-silent. The canonical setter participates in the application-owned root transaction and preserves before/after event values and actual decision attribution. The existing confirmed party merge includes the exact duplicate deactivation in its own atomic root receipt. No historical approvals or CLI person identity are fabricated.

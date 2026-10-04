@@ -1,6 +1,9 @@
 
 import pytest
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_set_master_data_active,
+)
 
 from reality.services.core import (
     InvalidOperation,
@@ -166,7 +169,6 @@ def test_basic_rename_preserves_roles_commercial_values_and_hierarchy(
 
 
 def test_register_filters_before_count_and_pagination(session, business):
-    from reality.services.core import set_master_data_active
 
     tid = business.tenant.id
     rows = [
@@ -175,7 +177,7 @@ def test_register_filters_before_count_and_pagination(session, business):
     ]
     from reality.db.core import Item
 
-    set_master_data_active(session, tid, Item, rows[0].id, False)
+    reviewed_set_master_data_active(session, tid, Item, rows[0].id, False)
     assert (
         reference_register(session, tid, "item", query="Search", size=1)["page"][
             "total"

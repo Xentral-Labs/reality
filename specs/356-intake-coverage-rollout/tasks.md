@@ -126,3 +126,12 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T052 Prove real current authority changes after fixed-profile dispatch refuse the canonical write, without fabricated grants or decisions.
 - [ ] T053 Share actual current decider validation between fixed and ordinary application scopes.
 - [ ] T054 Qualify successful fixed-profile source values/receipt replay, setup compatibility and full committed-head CI.
+## Master-data lifecycle qualification
+
+- [ ] T055 Observe meaningful direct/unconfirmed/callback and complete update-rollback refusal tests for four actual families.
+- [ ] T056 Freeze current model/record/active flag and settle the existing lifecycle command atomically; route REST/CLI explicit confirmation.
+- [ ] T057 Qualify current reference changes, source/event values, receipt replay, adapters and full committed-head CI.
+
+- [ ] T058 Prove and freeze the existing party-merge parent and its exact duplicate lifecycle effect, preserving eligibility/source history and atomic receipt.
+
+- [ ] T059 Prove fixed application profiles cannot borrow lifecycle/merge authority and restrict direct canonical families to their actual authored definitions.

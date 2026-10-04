@@ -317,3 +317,10 @@ revoked or expired confirmation credential or a removed confirming membership.
 Use existing transaction/root/fixed-definition checks; retain successful profile
 values and receipt replay. Separately bound company/lesson initialization remains
 its existing authority and does not acquire a synthetic interactive principal.
+## Confirmed master-data lifecycle (FR-001–FR-003)
+
+The existing master_data_lifecycle command must retain explicit confirmation for the actual party, item, location or payment-term active flag and current referenced record. Direct canonical writes, absent confirmation, changed/repeated invocation, early root commit, post-write failure and unrelated effects refuse atomically. Preserve unchanged-flag idempotency, lifecycle before/after event values and actual receipt attribution/replay. REST PATCH and CLI activate/deactivate use the same retained decision with explicit confirmation. The finite public model strings resolve to existing model types; existing internal type-valued calls retain their meaning. No deletion, schema or invented historical approval is introduced.
+
+The existing confirmed party_merge parent includes the exact duplicate deactivation in its own atomic root receipt. Its parent and nested lifecycle invocation must be frozen; direct or changed/repeated/partial merge effects refuse. Preserve current merge eligibility and review, source reason/identities, survivor history and unchanged validation refusals. Merge confirmation grants no unrelated header or financial effect.
+
+The two fixed confirmed application profiles admit only their currently authored direct party/item/location canonical creation families. They do not inherit newly registered lifecycle/merge or other arbitrary canonical family authority. Separately retained source-intake and company/lesson profile scopes keep their own exact existing definition checks.

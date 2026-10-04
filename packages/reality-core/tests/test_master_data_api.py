@@ -1896,7 +1896,7 @@ def test_json_api_master_data_lifecycle(session, business):
 
             deactivated = client.patch(
                 f"{tenant_path}/{collection}/{record_id}/active",
-                json={"is_active": False},
+                json={"is_active": False, "confirmed": True},
             )
             assert deactivated.status_code == 200
             assert deactivated.json()["is_active"] is False

@@ -2361,10 +2361,10 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ ...body, confirmed: true }),
     }),
-  setPartyActive: (tenant: string, id: string, isActive: boolean) =>
+  setPartyActive: (tenant: string, id: string, isActive: boolean, confirmed: boolean) =>
     request<PartyRow>(`/api/tenants/${tenant}/parties/${id}/active`, {
       method: "PATCH",
-      body: JSON.stringify({ is_active: isActive }),
+      body: JSON.stringify({ is_active: isActive, confirmed }),
     }),
   items: (tenant: string) => request<ItemRow[]>(`/api/tenants/${tenant}/items`),
   createItem: (tenant: string, body: Record<string, unknown>) =>
@@ -2377,10 +2377,10 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ ...body, confirmed: true }),
     }),
-  setItemActive: (tenant: string, id: string, isActive: boolean) =>
+  setItemActive: (tenant: string, id: string, isActive: boolean, confirmed: boolean) =>
     request<ItemRow>(`/api/tenants/${tenant}/items/${id}/active`, {
       method: "PATCH",
-      body: JSON.stringify({ is_active: isActive }),
+      body: JSON.stringify({ is_active: isActive, confirmed }),
     }),
   locations: (tenant: string) => request<LocationRow[]>(`/api/tenants/${tenant}/locations`),
   createLocation: (tenant: string, body: Record<string, unknown>) =>
@@ -2393,10 +2393,10 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ ...body, confirmed: true }),
     }),
-  setLocationActive: (tenant: string, id: string, isActive: boolean) =>
+  setLocationActive: (tenant: string, id: string, isActive: boolean, confirmed: boolean) =>
     request<LocationRow>(`/api/tenants/${tenant}/locations/${id}/active`, {
       method: "PATCH",
-      body: JSON.stringify({ is_active: isActive }),
+      body: JSON.stringify({ is_active: isActive, confirmed }),
     }),
   paymentTerms: (tenant: string) =>
     request<PaymentTermRow[]>(`/api/tenants/${tenant}/payment-terms`),

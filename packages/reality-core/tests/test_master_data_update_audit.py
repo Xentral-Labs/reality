@@ -1,12 +1,13 @@
+
 import json
 
 from conftest import record_by_id
+from intake_review_support import reviewed_set_master_data_active
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, Item, Party, SourceRecord
 from reality.services.core import (
     InvalidOperation,
-    set_master_data_active,
 )
 
 
@@ -79,14 +80,14 @@ def test_item_noop_emits_no_update_event(session, business):
 
 
 def test_lifecycle_event_records_before_and_after_and_noop_is_silent(session, business):
-    set_master_data_active(session, business.tenant.id, Item, business.item.id, False)
+    reviewed_set_master_data_active(session, business.tenant.id, Item, business.item.id, False)
     event = _latest_event(session, business.tenant.id, business.item.id)
     assert json.loads(event.payload)["changes"] == {
         "is_active": {"before": True, "after": False}
     }
     sequence = event.sequence
 
-    set_master_data_active(session, business.tenant.id, Item, business.item.id, False)
+    reviewed_set_master_data_active(session, business.tenant.id, Item, business.item.id, False)
     assert (
         _latest_event(session, business.tenant.id, business.item.id).sequence
         == sequence
