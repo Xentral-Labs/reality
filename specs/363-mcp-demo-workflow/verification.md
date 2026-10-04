@@ -22,3 +22,9 @@ No migration, direct adapter ORM write, new scheduling infrastructure or broaden
 MCP confirmation still owns explicit approval, membership/credential authority, stale review refusal, execution and replay. Follow-up names are derived from the executable catalog and limited to registered reads; unavailable bases are explicit. Shipment Movements remain independent of consignment objects.
 
 Full invoice allocation explanation, optional human review URL and external-agent schedule/isolation qualification remain deferred. The running local installation and original checkout were not replaced. No merge or deployment is requested.
+
+## CI-discovered correction
+
+The first implementation CI caught a real login regression: `languageHref` requires an absolute URL, but the new signup call supplied a relative path. Build/source checks did not detect the render exception. Resolve signup against `location.origin` before applying language. The login-to-signup browser proof exercises the actual constructor and navigation. Replace redundant source-pattern UI tests with rendered reservation-label/current-state assertions in the existing delivery browser journey. Re-run all required gates on the corrected head.
+
+The corrected full company-setup browser journey passed locally against an isolated live stack (80.68 seconds). The actual login-to-signup locale fixture and delivery case/launcher/Chat browser matrix passed, including rendered proposed-effect wording with unchanged current stock before confirmation. The published EN and DE mission text is tested directly; product advice mentioning an operational agent remains advice.

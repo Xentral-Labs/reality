@@ -52,7 +52,7 @@ of the unambiguous slice; the original checkout and running installation stay un
 cursor scope, exact review privacy, browser-free decision/receipt/replay/refusal story,
 document-line discovery, movement-only order evidence, closed schema choices.
 `tests/test_chat_tools.py`: exact mission and genuine product-query routing.
-`apps/web/scripts/demo-workflow-contract.test.mjs`: locale and proposed-effect labels.
+`apps/web/scripts/unified-delivery-browser.mjs`: locale and proposed-effect labels.
 Retain existing proposal, MCP read, privacy and demo/documentation regressions.
 
 ## Verification and Rollback

@@ -32,3 +32,18 @@ def test_current_company_mission_with_reality_is_operational():
 
 def test_reality_product_advice_may_mention_our_company():
     assert is_product_advisor_question("How can our company use Reality for B2B?")
+
+
+def test_published_demo_missions_route_to_operational_tools():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
+    for locale in ("", "de/"):
+        guide = (
+            root / f"apps/docs/content/{locale}getting-started/demo-company.md"
+        ).read_text()
+        mission = guide.split("```text\n", 1)[1].split("```", 1)[0]
+        assert not is_product_advisor_question(mission)
+    assert is_product_advisor_question(
+        "How can our company build an operational agent with Reality?"
+    )

@@ -507,7 +507,10 @@ function Login({ complete }: { complete: (user: AuthUser) => void }) {
         </button>
       </form>
       <p className="auth-alternative">
-        New to Reality? <a href={languageHref("/signup", readLanguage() ?? "en")}>Create account</a>
+        New to Reality?{" "}
+        <a href={languageHref(new URL("/signup", location.origin).href, readLanguage() ?? "en")}>
+          Create account
+        </a>
       </p>
     </AuthShell>
   );
@@ -567,7 +570,10 @@ function InvitationEntry({ token }: { token: string }) {
             Sign in
           </a>
           {state.status === "pending" && (
-            <a className="auth-secondary" href={languageHref("/signup", readLanguage() ?? "en")}>
+            <a
+              className="auth-secondary"
+              href={languageHref(new URL("/signup", location.origin).href, readLanguage() ?? "en")}
+            >
               Create account
             </a>
           )}

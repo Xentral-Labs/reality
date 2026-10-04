@@ -274,6 +274,10 @@ try {
       }
       await dialog.getByRole("button", { name: "Confirm change", exact: true }).waitFor();
       assert.equal(confirmed, 0, "preparation must not execute");
+      if (tool === "reserve") {
+        await dialog.getByText("Reserved after confirming", { exact: true }).waitFor();
+        assert.equal(phase, 0, "the displayed proposed reservation leaves current stock unchanged");
+      }
       assert.ok(new URL(page.url()).searchParams.get("proposal"));
       await page.reload();
       await page

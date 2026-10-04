@@ -2624,5 +2624,5 @@ Contract: `specs/363-mcp-demo-workflow/spec.md`. Clear authorized slice only; fu
 
 - `packages/reality-core/tests/test_demo_mcp_workflow.py`: stored company identity, bounded pending summary traversal and scoped cursors, exact safe review, separate authorized decision, receipt/replay, stale-state refusal, document-line discovery and closed schemas.
 - `packages/reality-core/tests/test_chat_tools.py`: operational company mission mentioning Reality versus product advice.
-- `apps/web/scripts/demo-workflow-contract.test.mjs` and `apps/web/scripts/signup-preferences-browser.mjs`: proposed reservation effect and retained signup language.
+- `apps/web/scripts/unified-delivery-browser.mjs` and `apps/web/scripts/signup-preferences-browser.mjs`: proposed reservation effect and retained signup language.
 - Existing proposal privacy, MCP read, product advisor and canonical demo-costing tests remain required; published guidance does not claim external schedules or connector isolation were qualified.
