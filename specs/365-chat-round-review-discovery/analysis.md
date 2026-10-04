@@ -31,3 +31,8 @@ schemas use oneOf without root properties. Resolved before implementation by
 restricting refusal to flat object schemas with their own properties and no
 composition/reference/patternProperties; add union/open-schema and access-precedence
 regressions. Permission checks remain first.
+
+Read-only guard amendment reviewed before implementation: the live use case is
+shipments_list read recovery; mutating handlers must retain existing admission order.
+Existing CI Playground regressions reproduce the issue, and an explicit guard
+compatibility regression is added before the correction.

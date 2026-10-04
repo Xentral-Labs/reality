@@ -106,7 +106,7 @@ unknown client outcomes, locked Mac, and revoked test credentials.
 - **FR-003**: Generic confirmation MUST be independently discoverable in review with its executable description, confirmation access class and actual caller permission, preserving intake bindings and authorization.
 - **FR-004**: Client-owned recurring qualification MUST record actual repeat/mission/time/next-run/pause evidence or explicit unsupported/blocked outcomes, without adding a Reality timer or granting business approval.
 
-- **FR-005**: Canonical MCP dispatch MUST refuse undeclared top-level arguments for flat object schemas whose executable input schema forbids additional properties, before calling the handler. Both internal provider loops MUST receive that refusal and be able to retry the declared read without ending the daily round. Genuine handler failures MUST remain errors.
+- **FR-005**: Canonical MCP read dispatch MUST refuse undeclared top-level arguments for flat object schemas whose executable input schema forbids additional properties, before calling the handler. Both internal provider loops MUST receive that refusal and be able to retry the declared read without ending the daily round. Genuine handler failures MUST remain errors. Proposal/confirmation dispatch MUST preserve its existing business-admission refusal precedence.
 
 ### Documentation Requirements
 

@@ -4875,7 +4875,8 @@ def dispatch_tool(
             raise PermissionError(f"MCP principal does not allow tool: {tool_name}")
     schema = definition.input_schema
     if (
-        schema.get("additionalProperties") is False
+        definition.access == "read"
+        and schema.get("additionalProperties") is False
         and isinstance(schema.get("properties"), dict)
         and not any(
             key in schema
