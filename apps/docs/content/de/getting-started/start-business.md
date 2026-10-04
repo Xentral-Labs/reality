@@ -3,9 +3,8 @@
 Beginne mit einem leeren Unternehmen und lass deinen Agenten ein kleines, zusammenhängendes Geschäft
 einrichten. Dein erstes Ergebnis ist ein prüfbarer Auftrag, nicht nur eine Liste neuer Stammdaten.
 
-Das Beispiel beschreibt ein kleines Geschäft mit Schreibtischlampen. Nutze im eigenen Unternehmen
-deine tatsächlichen Namen und angegebenen Werte. Zum Üben mit den Beispieldaten wählst du
-stattdessen eine **leere Sandbox**.
+Beschreibe dein Geschäft und gib seine tatsächlichen Namen und Werte an. Zum Üben wählst du eine
+**leere Sandbox** und gibst ausdrücklich fiktive Werte für die Übung vor.
 
 ## 1. Erstelle das leere Unternehmen
 
@@ -26,12 +25,11 @@ Unternehmensanlage erledigst du im Browser; der Agent arbeitet im freigegebenen 
 ## 3. Beschreibe dem Agenten dein Geschäft
 
 ```text
-Ich richte in diesem Reality-Unternehmen ein kleines Geschäft mit Schreibtischlampen
-ein. Wir verkaufen bestandsgeführte Artikel in Stück (pcs) und verwenden EUR. Lies die
-bereits vorhandenen Einrichtungsdatensätze. Sage mir, welche Datensätze für den eigenen
-Geschäftspartner, Artikel, Kunden und Lager für einen ersten Kundenauftrag benötigt
-werden. Frage nach fehlenden Angaben. Erfinde keine Bestände, Preise oder
-Geschäftsvorfälle und bereite noch keine Änderungen vor.
+Hilf mir, in diesem ausgewählten Reality-Unternehmen ein kleines Geschäft aufzubauen.
+Lies vorhandene Einrichtungsdatensätze und frage, was wir verkaufen, welche Einheiten
+und Währung wir nutzen und welchen Kunden und welches Lager wir für den ersten
+Auftrag brauchen. Trenne vorhandene Datensätze von fehlenden Angaben. Erfinde keine
+Bestände, Preise oder Geschäftsvorfälle. Bereite noch keine Änderungen vor.
 ```
 
 **Prüfen:** Der Agent trennt vorhandene Datensätze von fehlender Einrichtung und fragt nach den
@@ -39,15 +37,14 @@ benötigten tatsächlichen Werten. Eine Geschäftsbeschreibung allein erzeugt ke
 
 ## 4. Bereite die minimalen Stammdaten vor
 
-Für die Übung verwendest du diese ausdrücklich angegebenen Beispielwerte:
+Halte deine Geschäftswerte bereit; der Agent fragt nach fehlenden Angaben:
 
 ```text
-Prüfe zuerst, ob diese Datensätze schon bestehen. Bereite getrennte Anlagevorschläge
-für fehlende Datensätze vor: Artikel START-LAMP, Name Schreibtischlampe, Bestandseinheit
-pcs, Typ stocked; Kunde Beispielkunde, Rolle customer; Standort Hauptlager, Typ
-warehouse. Ermittle den eigenen Geschäftspartner aus vorhandenen Datensätzen. Wenn er
-fehlt, frage vor einem Vorschlag nach dem genauen Namen. Zeige jeden Prüflink und seine
-Wirkung. Führe keine Vorschläge aus und lege keine Duplikate an.
+Bereite getrennte Vorschläge für fehlende Artikel, Kunden, Lager und den eigenen
+Geschäftspartner vor. Prüfe zuerst vorhandene Datensätze, um Duplikate zu vermeiden.
+Frage nach benötigten Namen, Artikelnummern, Einheiten und weiteren fehlenden Werten.
+Nutze nur meine Angaben. Zeige jeweils Wirkung und Prüflink. Führe nichts ohne meine
+Freigabe aus.
 ```
 
 Prüfe und bestätige die Vorschläge in Reality. Lass den Agenten die angelegten Datensätze und ihre
@@ -57,16 +54,15 @@ den Schritt an und lässt erklären, was benötigt wird. Siehe das
 
 ## 5. Erfasse den ersten Auftrag
 
-Nutze im eigenen Unternehmen eine tatsächliche Vereinbarung. Für die Sandbox-Übung gibst du
-stattdessen diese fiktive Vereinbarung ausdrücklich an:
+Nutze im eigenen Unternehmen eine tatsächliche Vereinbarung. Für die Sandbox gibst du ausdrücklich
+fiktive Auftragswerte vor, einschließlich Preisen, Positions- und Auftragsbeträgen:
 
 ```text
-Für diese Übung hat Beispielkunde 5 pcs START-LAMP bestellt. Der angegebene Stückpreis
-ist EUR 20, der angegebene Bruttobetrag der Position EUR 100. Der angegebene Bruttoauftragsbetrag ist ebenfalls EUR 100. Bereite einen
-Kundenauftragsvorschlag mit Nummer START-SO-001 vor. Verwende Hauptlager und die
-tatsächlichen IDs für Unternehmen, Kunde, Artikel und Standort. Frage nach weiteren
-benötigten Angaben. Übernimm die Beträge wie angegeben. Zeige den Prüflink. Führe den
-Vorschlag nicht aus und erfasse keine Warenbewegung.
+Bereite unseren ersten Kundenauftrag als Vorschlag vor. Frage nach Kunde, Artikel,
+Menge, Lager, vereinbartem Termin, benötigter Auftragsreferenz sowie ausdrücklich
+angegebenen Preisen, Positions- und Auftragsbeträgen. Ermittle tatsächliche
+Datensatz-IDs und übernimm die Beträge unverändert; berechne keine fehlenden Werte.
+Zeige Wirkung und Prüflink. Führe den Vorschlag nicht aus und erfasse keine Warenbewegung.
 ```
 
 Prüfe den Auftrag, bestätige ihn und untersuche sein erfasstes Ergebnis. Ein Auftrag erfasst eine
@@ -77,19 +73,25 @@ Auftrag korrekt einen ungedeckten Bedarf zeigen.
 ## 6. Gib dem Agenten seine erste operative Aufgabe
 
 ```text
-Lies unseren ersten Auftrag und erkläre Lieferzusage, Bestand, Reservierungen und
-offene Menge. Sage mir, welche nächste Aktion möglich ist, welche Belege benötigt
-werden und welche Entscheidung bei mir liegt. Verändere keine Daten. Zeige die
-Datensätze hinter deiner Antwort.
+Beobachte unsere offenen Aufträge täglich um 09:00. Erkläre Lieferzusagen, Bestand,
+Reservierungen, offene Mengen und Hindernisse anhand der Reality-Datensätze.
+Priorisiere nächste Schritte und frage nur nach Informationen, die du nicht selbst
+beschaffen kannst. Erfinde keine Daten oder Regeln. Lies nur; Änderungen brauchen
+konkrete Vorschläge und meine Freigabe.
+Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
+wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
+Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
+nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
 ```
 
 **Prüfen:** Du kannst vom Auftrag zur Lieferzusage folgen und erkennst, was noch benötigt wird. Wenn
 eine zulässige Aktion verfügbar ist, folge dem [Vorschlags- und Prüfablauf](./first-action) im
 bewusst ausgewählten Unternehmen; das allgemeine Beispiel dort verwendet eine Demo-Sandbox.
 
-Wiederhole die Aufgabe bei neuen Aufträgen und erweitere sie anhand des
-[Arbeitsrhythmus](/de/agent-playbooks/operating-rhythm). Wiederkehrende Agentenausführung wird
-getrennt eingerichtet; der Prompt läuft morgen nicht von selbst.
+Erweitere die Aufgabe anhand des [Arbeitsrhythmus](/de/agent-playbooks/operating-rhythm). Die
+tägliche Prüfung um 09:00 ist ein Beispiel, keine Firmenvorgabe. Wiederkehrende Ausführung gilt erst
+nach geprüfter Einrichtung im Agentensystem; ohne diese Fähigkeit wiederholst du die Abfrage
+manuell.
 
 **Andere Wege:** [Demo erleben](./demo-company) ·
 [Mit bestehender Firma starten](./existing-business).

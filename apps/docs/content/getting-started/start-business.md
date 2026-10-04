@@ -3,8 +3,8 @@
 Start with an empty company and let your agent help set up a small, coherent business. Your first
 result is an order you can inspect, not just a list of newly created master data.
 
-The example below describes a small desk-lamp business. Use your actual names and stated values in
-your own company. To practice with the example data, choose an **empty Sandbox** instead.
+Describe your own business and supply its actual names and stated values. To practice, choose an
+**empty Sandbox** and explicitly provide fictional values for the exercise.
 
 ## 1. Create the empty company
 
@@ -25,11 +25,10 @@ creation happen in the browser; the agent works inside the company you authorize
 ## 3. Tell the agent what your business does
 
 ```text
-I am setting up a small desk-lamp business in this Reality company. We sell stocked
-items in pieces (pcs), using EUR. Read the setup records already held. Tell me which
-company partner, item, customer and warehouse records we need for a first customer
-order. Ask for missing information. Do not invent stock, prices or business activity,
-and do not prepare changes yet.
+Help me set up a small business in this selected Reality company. Read existing setup
+records and ask what we sell, which units and currency we use, and which customer
+and warehouse we need for a first order. Distinguish existing records from missing
+information. Invent no stock, prices or business activity. Do not prepare changes yet.
 ```
 
 **Check:** The agent distinguishes existing records from missing setup and asks for the actual
@@ -37,15 +36,13 @@ values it needs. A company description alone creates no business records.
 
 ## 4. Prepare the minimum master data
 
-For the exercise, use these explicitly stated example values:
+Have your business values ready; the agent asks for missing inputs:
 
 ```text
-First check whether these records already exist. Prepare separate creation proposals
-for missing records: item START-LAMP, name Desk lamp, stock unit pcs, type stocked;
-customer Example Customer, role customer; location Main Warehouse, type warehouse.
-Resolve the company's own business partner from existing records. If it is missing,
-ask me for the exact name before proposing it. Show each review link and its effect.
-Do not execute any proposal or create duplicates.
+Prepare separate proposals for the missing item, customer, warehouse and company
+business partner. Check existing records first to avoid duplicates. Ask for required
+names, item codes, units and other missing values. Use only the information I provide.
+Show each proposal's effect and review link. Execute nothing without my approval.
 ```
 
 Review and confirm the proposals in Reality. Ask the agent to read the created records and their IDs
@@ -54,15 +51,15 @@ explain what is needed. See the [master-data playbook](/agent-playbooks/master-d
 
 ## 5. Record the first order
 
-Use a real agreement in your own company. In the Sandbox exercise, explicitly state this fictional
-agreement instead:
+Use a real agreement in your own company. In a Sandbox, explicitly provide fictional order values
+for the exercise, including prices and line and order amounts:
 
 ```text
-For this exercise, Example Customer has ordered 5 pcs of START-LAMP. The stated unit
-price is EUR 20 and the stated line gross amount is EUR 100. The stated gross order amount is also EUR 100. Prepare a sales-order
-proposal numbered START-SO-001, using Main Warehouse and the actual company, customer,
-item and location IDs. Ask for any remaining required inputs. Keep the amounts as
-stated. Show the review link. Do not execute it or record a stock movement.
+Prepare our first customer order as a proposal. Ask for the customer, item, quantity,
+warehouse, agreed date, required order reference and explicitly stated prices and
+line and order amounts. Resolve actual record IDs and preserve stated amounts; do not
+calculate missing values. Show the effect and review link. Do not execute the proposal
+or record goods movements.
 ```
 
 Review the order, confirm it and inspect its recorded result. An order records a delivery promise;
@@ -72,18 +69,22 @@ receipt. If no stock is held, the first order may correctly show an uncovered de
 ## 6. Give the agent its first operating task
 
 ```text
-Read our first order and explain its delivery promise, stock, reservations and open
-quantity. Tell me the next action we can take, what evidence is needed and which
-decision belongs to me. Do not change data. Show the records supporting your answer.
+Monitor our open orders daily at 09:00. Explain delivery promises, stock, reservations,
+open quantities and blockers using Reality records. Prioritize the next steps and ask
+only for information you cannot obtain yourself. Invent no data or rules. Read only;
+business changes need specific proposals and my approval.
+Run once now. Then configure repetition in your agent system only if tools and saved
+assignment and progress are available. Confirm time zone and working days; reuse existing
+routines. Show the verified next run and how to pause. Report missing setup clearly.
 ```
 
 **Check:** You can follow the order into its delivery commitment and see what is still needed. When
 an eligible action is available, follow the [proposal and verification loop](./first-action) in the
 company you intentionally selected; the generic example there uses a demo Sandbox.
 
-Repeat this task as orders arrive, then extend it with the
-[operating rhythm](/agent-playbooks/operating-rhythm). Recurring agent execution is configured
-separately; the prompt itself does not run tomorrow.
+Extend this task with the [operating rhythm](/agent-playbooks/operating-rhythm). The daily 09:00
+check is an example, not a company setting. Recurring execution is active only after verified setup
+in your agent system; without scheduling support, repeat the read manually.
 
 **Other paths:** [Experience the demo](./demo-company) ·
 [Start with an existing company](./existing-business).

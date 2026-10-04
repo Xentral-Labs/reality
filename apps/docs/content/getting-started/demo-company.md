@@ -10,14 +10,14 @@ business tasks for you to perform. You review outcomes and answer genuine decisi
 Reality currently requires confirmation of specific business proposals.
 
 **Steps 1–5 are enough to begin:** create a company, connect an agent, understand an order and
-review your first Decision. Then add repetition, purchasing, Finance, a daily plan and optional
-email. Use the same agent conversation; new conversations need the saved assignment and access to
-the same company.
+review your first Decision. Then add purchasing, Finance and optional email. Each area gets its own
+cadence immediately; finish by checking the combined plan. Use the same agent conversation; new
+conversations need the saved assignment and access to the same company.
 
 Reality supplies business records and tools. Your agent system coordinates work and recurring
 execution. Live simulation supplies additional synthetic arrivals.
 
-**When you pause:** Manual prompts do not keep running on their own. After daily-plan setup, pause
+**When you pause:** Manual prompts do not keep running on their own. After each routine setup, pause
 active agent tasks in your agent system. Control new synthetic arrivals separately through **Demo
 Data** in Reality. You can still review or reject pending proposals in Reality.
 
@@ -58,33 +58,28 @@ agent begins after connection and authorization. You can also try the first roun
 the task regularly with access to Reality.
 
 Keep Reality open alongside your agent: **Inbox → Welcome** shows activity and queues. Under **Sales
-→ Orders**, find **SO-006**. The baseline has five units ordered, three shipped and two open. The
-agent must read its current state; the running demo may already contain further activity.
+→ Orders**, find an open order. Your agent selects a suitable case and reads its current state; the
+running demo may already contain further activity.
 
 ## 4. Your agent understands its first order
 
 **Goal:** Hand over responsibility and begin with a concrete case. Copy this prompt:
 
 ```text
-You are the operational agent for my selected Reality demo company. You own monitoring,
-priorities and next steps instead of waiting for assignments. Your example rhythm:
-09:00 recorded cancellations and holds; 11:00 and 12:00 upcoming deliveries and
-blockers; 13:00 recorded shipments; 14:00 existing returns. Use actual commitment
-dates. 13:00 is an example pickup time, not evidence of a DHL handover. New cancellation
-requests and returns require additional sources. Discover Reality tools and schemas.
-First read SO-006 using actual IDs and explain its current state. Obtain information
-yourself and ask me only unresolved questions. Invent no data or business rules.
-This first routine only reads; business changes require specific Decisions and my
-approval. Continue other executable work while decisions are pending.
-You run a first round now, then configure repetition in your agent system if scheduled
-runs have the required tools, assignment and working state. You clarify missing time
-zone and working days with me, inspect existing routines and prevent overlaps.
-You show the configured task, next run and how to pause it. If setup or verification
-is unavailable, you explain what is missing rather than claiming active operation.
+You are the operational agent for my selected Reality demo company. Use available
+Reality tools to prioritize open orders: 09:00 recorded cancellations and holds;
+11:00 and 12:00 delivery promises and blockers; 13:00 recorded shipments; 14:00 returns.
+Explain one suitable open order using its current records and actual promised dates.
+Obtain information yourself; ask only when you cannot resolve it. Invent no data or rules.
+Read only for now; business changes require specific Decisions and my approval.
+Continue other work while Decisions are pending.
+Run once now. Then configure repetition in your agent system only if tools and saved
+assignment and progress are available. Confirm time zone and working days; reuse existing
+routines. Show the verified next run and how to pause. Report missing setup clearly.
 ```
 
-**Your success:** The agent explains a real order through its records. The baseline has three of
-five units shipped and two open; the current read is authoritative. For connection issues, use
+**Your success:** The agent explains an actual open order through its current records, including
+fulfilled and remaining quantities. For connection issues, use
 [your first business question](./first-question).
 
 **You can stop here:** Pause the configured read routine in your agent system. No business change
@@ -95,13 +90,10 @@ has been executed.
 **Goal:** Experience a complete loop with a small reservation.
 
 ```text
-You as the agent now prepare our first business action. You read stock and our order's
-open delivery commitment in Reality. You use existing tools to check whether a
-reservation is permitted and look for pending proposals. Where possible, you create
-a reservation proposal with actual IDs and show company, item, location, quantity,
-effect and review link. You do not execute it. If unavailable, you explain the
-evidenced reason and inspect at most one other open demo order. You invent neither
-stock nor a permitted action.
+Prepare a reservation proposal for the open order we inspected. Check available stock,
+eligibility and pending proposals with Reality tools. Use actual record IDs and show
+quantity, location, effect and review link. Do not execute it or create duplicates.
+If blocked, explain why and inspect one other suitable open order. Invent no stock.
 ```
 
 Open the review link or proposal under **Decisions**. Check records and effect, then approve only
@@ -111,10 +103,9 @@ the specific change you want; otherwise reject it. Reserving does not ship goods
 Then return to the agent:
 
 ```text
-You as the agent now verify the reviewed proposal. You read its execution status
-and affected records again in Reality. You explain what actually happened and what
-remains open. For rejection, pending execution or unknown outcome, you create no
-replacement proposal.
+Check the reviewed proposal's execution status and affected records in Reality.
+Explain what changed and what remains open. Do not create a replacement for a
+rejected, pending or unclear result.
 ```
 
 **Your success:** You see the difference between proposal, approval and executed effect. If stock or
@@ -128,20 +119,15 @@ permissions are missing, the evidenced blocker is your result.
 **Goal:** A first purchasing overview without immediately ordering anything.
 
 ```text
-You as the agent own purchasing checks every three hours during agreed working hours,
-for example 09:00, 12:00 and 15:00. Discover schemas for item_supply_demand,
-fulfillment_blockers, commitments_list, inventory_read and exceptions_list. Show
-uncovered demand, evidenced receipts and overdue supplier commitments with customer
-orders; movement readers provide receipt evidence. Inspect PO-001, PO-003 and PO-006
-where present. An order is not a receipt; without a promised date it is not overdue.
-Prioritize independently and ask me only for inputs unavailable from existing sources.
-Order and send nothing yet. Further changes require specific proposals and approval;
-report unchanged cases without duplicate proposals.
-You run a first round now, then configure repetition in your agent system if scheduled
-runs have the required tools, assignment and working state. You clarify missing time
-zone and working days with me, inspect existing routines and prevent overlaps.
-You show the configured task, next run and how to pause it. If setup or verification
-is unavailable, you explain what is missing rather than claiming active operation.
+Check purchasing every three hours during agreed working hours, for example
+09:00, 12:00 and 15:00. Use Reality tools to prioritize uncovered demand, recorded
+receipts and overdue supplier promises. Connect each need to affected customer orders.
+An order is not a receipt; missing promised dates do not prove lateness.
+Obtain information yourself and ask only for unresolved inputs. Order and send nothing;
+further changes need specific proposals and my approval. Avoid duplicate proposals.
+Run once now. Then configure repetition in your agent system only if tools and saved
+assignment and progress are available. Confirm time zone and working days; reuse existing
+routines. Show the verified next run and how to pause. Report missing setup clearly.
 ```
 
 **Your success:** You see a concrete need or supplier case. In current demo baselines, `PO-001` has
@@ -161,11 +147,10 @@ Select an evidenced need. Provide supplier, quantity, date and explicitly stated
 values. The agent must not invent missing buying rules or supplier assignments.
 
 ```text
-You as the agent prepare a purchase order for the selected need with
-order_create_propose, direction purchase. You first ask me for missing required
-inputs and buying rules. You use my explicitly stated values and do not recompute
-missing document amounts as new authority. You show the review link and wait for
-my approval before any change is executed.
+Prepare a purchase-order proposal for the selected need. Read existing records and
+ask for missing supplier, quantity, date, stated prices, amounts or buying rules.
+Use actual IDs and the values I provide; do not invent or recompute missing amounts.
+Show the effect and review link. Execute nothing without my approval.
 ```
 
 After approval, inspect the incoming commitment. An explicitly fictional counted receipt can then be
@@ -180,19 +165,14 @@ reminder stays a draft in your agent system; a Reality Decision does not send it
 **Goal:** A small Finance round with one explainable case.
 
 ```text
-You as the agent own Finance checks every three hours during agreed working hours,
-for example 09:00, 12:00 and 15:00, and report the day's position at 17:00.
-Discover finance_balances, finance_payments, finance_credits, finance_party_balances
-and exceptions_list and their schemas. Show open amounts per currency, new or
-unallocated payments and credits. Explain one case with finance_settlement_context;
-ask me only if uncertainty remains. Change nothing yet and create no duplicates
-of live invoices or payments. Where possible, integrate this into the purchasing
-round instead of starting parallel work.
-You run a first round now, then configure repetition in your agent system if scheduled
-runs have the required tools, assignment and working state. You clarify missing time
-zone and working days with me, inspect existing routines and prevent overlaps.
-You show the configured task, next run and how to pause it. If setup or verification
-is unavailable, you explain what is missing rather than claiming active operation.
+Check Finance at 09:00, 12:00 and 15:00 during agreed working hours and report at 17:00.
+Use Reality tools to show open amounts by currency, new or unallocated payments and
+credits. Explain one relevant case with supporting records and prioritize next steps.
+Ask only about unresolved matches. Change nothing and do not duplicate invoices or
+payments. Combine this with existing purchasing checks where practical.
+Run once now. Then configure repetition in your agent system only if tools and saved
+assignment and progress are available. Confirm time zone and working days; reuse existing
+routines. Show the verified next run and how to pause. Report missing setup clearly.
 ```
 
 **Your success:** The agent explains a payment, partial payment, open position or credit. New
@@ -205,10 +185,11 @@ inputs and your approval. The agent asks when matches are ambiguous.
 **Optional: your first payment preview.** First agree the date by which payment should occur:
 
 ```text
-You as the agent also own a daily payment preview at 15:00. Clarify the pay_by date
-or its rule with me and read payment_run_preview. Explain the selection and reasons;
-post and pay nothing. Run a first preview now and add it to the existing Finance
-routine only with available tool access. Show the next run and how to pause this subtask.
+Add a daily payment preview at 15:00 to our Finance routine. Agree the payment cutoff
+date or its rule with me. Use Reality tools to explain eligible payments and reasons.
+Post and pay nothing. Run once now; schedule only with available tools and saved
+assignment and progress. Confirm time zone and working days, avoid duplicate routines
+and show the verified next run and pausing. Report missing setup.
 ```
 
 The preview pays nothing. Even an approved Reality posting does not execute a bank transfer. A
@@ -223,28 +204,25 @@ next run before leaving it active.
 **Goal:** A first support round with an explainable customer case. Email is optional.
 
 If your agent system supports email, connect a selected test mailbox there and check reading and
-reply drafts. The Reality connection grants no mailbox access. Send this yourself:
+reply drafts. The Reality connection grants no mailbox access. Send this yourself and include a
+reference to an actual order you selected so the agent can match the inquiry:
 
 ```text
-Subject: Question about my order SO-006
+Subject: Question about my order
 
-Hello, when will my order SO-006 arrive? Has anything shipped already?
+Hello, when will my order arrive? Has anything shipped already?
 ```
 
 ```text
-You as the agent own test customer support: check the selected mailbox every
-30 minutes during agreed working hours, for example 09:00 to 17:00. Verify email access
-and tools; ask me only for missing access. Start with the test request about SO-006
-and read the current order in Reality. Create a friendly evidenced reply draft and
-show me the supporting records internally. Invent no delivery date and send nothing.
-Check the message and existing drafts to avoid handling the same request repeatedly.
-Ask me only for unresolved matches. Drafts and sending approval belong in the agent
-system, not in Reality Decisions.
-You run a first round now, then configure repetition in your agent system if scheduled
-runs have the required tools, assignment and working state. You clarify missing time
-zone and working days with me, inspect existing routines and prevent overlaps.
-You show the configured task, next run and how to pause it. If setup or verification
-is unavailable, you explain what is missing rather than claiming active operation.
+Check the selected test mailbox every 30 minutes during agreed working hours, for
+example 09:00–17:00. Verify mailbox and Reality access. Match a test inquiry to its
+actual order; ask me if the match is unclear. Draft a friendly reply from recorded
+order and shipment information and show the supporting records internally. Invent no
+delivery date. Avoid duplicate drafts and send nothing. Sending needs my separate
+approval in the agent system; a Reality Decision does not authorize email.
+Run once now. Then configure repetition in your agent system only if tools and saved
+assignment and progress are available. Confirm time zone and working days; reuse existing
+routines. Show the verified next run and how to pause. Report missing setup clearly.
 ```
 
 **Your success:** A reply draft explaining the actual order state. Review recipient and content in
@@ -259,19 +237,18 @@ setup with mailbox and Reality access. Without that capability, the first draft 
 **Goal:** Existing tasks fit together. You do not configure a second daily plan.
 
 ```text
-You as the agent review your configured routines for sales, purchasing, Finance and,
-if connected, support. For each task show responsibility, time or interval, time zone,
-working days, tools, next run and pausing. Distinguish active routines, manually tested
-tasks and missing setup. Check gaps, duplicate work, overlaps and pending Decisions.
-Verify at least one actual run and obtain missing information yourself. Propose
-necessary corrections instead of creating a second daily plan. Bypass no approvals
-and claim no active operation for unverified routines. Give me a short report:
-What is running? What waits for me? What is still missing?
+Review our sales, purchasing, Finance and connected support routines now. For each,
+show task, time or interval, time zone, working days, tools, next run and pausing.
+Distinguish verified active routines, manual checks and missing setup. Verify an actual
+run if available; report if none has run yet. Check gaps, overlaps and pending Decisions.
+Propose corrections without creating a second daily plan or bypassing approvals.
+Report briefly: What is running? What needs my decision? What is missing?
 ```
 
 **Your success:** A verifiable combined plan with actual next runs. Example times are not company
-settings: pickup time, time zone and working days must fit your exercise. The demo evidences no real
-DHL pickup and supplies no new cancellation requests from a mailbox.
+settings: time zone and working days must fit your exercise. The 13:00 shipment check is not a
+pickup confirmation. The demo evidences no real DHL pickup and supplies no new cancellation requests
+from a mailbox.
 
 **You can stop here:** Pause the desired routines in your agent system. Pending Reality proposals
 remain separately reviewable. For tasks without suitable automation, you can repeat the first round

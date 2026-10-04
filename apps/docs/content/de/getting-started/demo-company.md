@@ -62,37 +62,30 @@ probieren, wenn KI für dein Unternehmen eingerichtet ist. Die spätere Wiederho
 Agentensystem, das die Aufgabe samt Reality-Zugriff regelmäßig ausführen kann.
 
 Öffne daneben Reality: **Inbox → Willkommen** zeigt Aktivitäten und Warteschlangen. Unter **Verkauf
-→ Aufträge & Bestellungen** findest du **SO-006**. Im Ausgangsbeispiel sind fünf Stück bestellt,
-drei versendet und zwei offen. Der Agent soll den aktuellen Stand lesen; die laufende Demo kann
-inzwischen weitere Geschäftsvorfälle enthalten.
+→ Aufträge & Bestellungen** findest du offene Aufträge. Dein Agent wählt einen passenden Fall und
+liest den aktuellen Stand; die laufende Demo kann inzwischen weitere Geschäftsvorfälle enthalten.
 
 ## 4. Dein Agent versteht den ersten Auftrag
 
 **Ziel:** Übertrage Verantwortung und starte mit einem konkreten Fall. Kopiere diesen Prompt:
 
 ```text
-Du bist der operative Agent meiner ausgewählten Reality-Demo-Firma. Du übernimmst
-Beobachtung, Prioritäten und nächste Schritte, statt auf Arbeitsaufträge zu warten.
-Dein Beispielrhythmus: 09:00 erfasste Stornos und Sperren; 11:00 und 12:00 anstehende
-Lieferungen und Hindernisse; 13:00 erfassten Versand; 14:00 vorhandene Retouren prüfen.
-Du verwendest tatsächliche Zusagetermine. 13:00 ist eine beispielhafte Abholzeit,
-keine belegte DHL-Übergabe. Neue Stornowünsche und Retouren brauchen weitere Quellen.
-Du entdeckst die Reality-Tools und Schemas. Du liest zuerst SO-006 mit tatsächlichen
-IDs und erklärst den aktuellen Stand. Du beschaffst Informationen selbst; nur
-unlösbare Fragen stellst du mir. Du erfindest keine Daten oder Geschäftsregeln.
-Diese erste Routine liest nur; Geschäftsänderungen brauchen konkrete Decisions
-und meine Freigabe. Du arbeitest während offener Entscheidungen an anderen Aufgaben.
-Du führst zuerst eine Runde jetzt aus. Danach richtest du die Wiederholung in deinem
-Agentensystem ein, wenn dort die benötigten Tools, der Arbeitsauftrag und der
-Bearbeitungsstand verfügbar sind. Fehlende Zeitzone und Arbeitstage klärst du mit mir.
-Du prüfst bestehende Routinen, vermeidest Überschneidungen und zeigst mir die Aufgabe,
-den nächsten Lauf und Pausieren. Wenn Einrichtung oder Prüfung nicht geht, sagst du
-konkret, was fehlt, statt einen laufenden Betrieb zu behaupten.
+Du bist der operative Agent meiner ausgewählten Reality-Demo-Firma. Nutze die
+Reality-Tools und priorisiere offene Aufträge: 09:00 erfasste Stornos und Sperren;
+11:00 und 12:00 Lieferzusagen und Hindernisse; 13:00 erfassten Versand; 14:00 Retouren.
+Erkläre einen passenden offenen Auftrag anhand aktueller Datensätze und Zusagetermine.
+Beschaffe Informationen selbst und frage nur, wenn du nicht weiterkommst. Erfinde
+keine Daten oder Regeln. Lies zunächst nur; Änderungen brauchen konkrete Decisions
+und meine Freigabe. Arbeite während offener Decisions an anderen Aufgaben weiter.
+Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
+wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
+Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
+nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
 ```
 
-**Dein Erfolg:** Der Agent erklärt einen echten Auftrag anhand seiner Datensätze. Im Ausgangsfall
-sind drei von fünf Stück versendet, zwei offen; maßgeblich ist der aktuell gelesene Stand. Bei
-Verbindungsproblemen hilft [Deine erste Geschäftsfrage](./first-question).
+**Dein Erfolg:** Der Agent erklärt einen offenen Auftrag anhand aktueller Datensätze, einschließlich
+erfüllter und verbleibender Mengen. Bei Verbindungsproblemen hilft
+[Deine erste Geschäftsfrage](./first-question).
 
 **Hier kannst du stoppen:** Pausiere die eingerichtete Leseroutine in deinem Agentensystem. Es wurde
 noch keine Geschäftsänderung ausgeführt.
@@ -102,13 +95,11 @@ noch keine Geschäftsänderung ausgeführt.
 **Ziel:** Erlebe einen vollständigen Kreislauf an einer kleinen Reservierung.
 
 ```text
-Du als Agent bereitest jetzt unsere erste Geschäftsaktion vor. Du liest den Bestand
-und die offene Lieferzusage unseres Auftrags in Reality. Du prüfst mit den vorhandenen
-Tools, ob eine Reservierung zulässig ist, und suchst nach bereits offenen Vorschlägen.
-Wenn möglich, erstellst du einen Reservierungsvorschlag mit tatsächlichen IDs und
-zeigst mir Firma, Artikel, Standort, Menge, Wirkung und Prüflink. Du führst ihn nicht aus.
-Wenn das nicht geht, erklärst du den belegten Grund und prüfst höchstens einen anderen
-offenen Demo-Auftrag. Du erfindest weder Bestand noch eine zulässige Aktion.
+Bereite einen Reservierungsvorschlag für den betrachteten offenen Auftrag vor.
+Prüfe mit Reality-Tools Bestand, Zulässigkeit und vorhandene Vorschläge. Nutze die
+tatsächlichen Datensatz-IDs und zeige Menge, Lager, Wirkung und Prüflink. Führe nichts
+aus und vermeide Duplikate. Bei Hindernissen erkläre den Grund und prüfe einen anderen
+passenden offenen Auftrag. Erfinde keine Bestände.
 ```
 
 Öffne den Prüflink oder den Vorschlag unter **Decisions**. Prüfe Datensätze und Wirkung und
@@ -118,10 +109,9 @@ keine Ware. [Deine erste Aktion vorbereiten](./first-action) erklärt die einzel
 Kehre danach zum Agenten zurück:
 
 ```text
-Du als Agent kontrollierst jetzt den geprüften Vorschlag. Du liest seinen
-Ausführungsstatus und die betroffenen Datensätze erneut in Reality. Du erklärst mir,
-was tatsächlich passiert ist und was offen bleibt. Bei Ablehnung, ausstehender
-Ausführung oder unklarem Ausgang legst du keinen Ersatzvorschlag an.
+Prüfe den Ausführungsstatus des geprüften Vorschlags und lies die betroffenen
+Datensätze erneut in Reality. Erkläre, was sich geändert hat und was offen bleibt.
+Erstelle bei Ablehnung, ausstehender Ausführung oder unklarem Ergebnis keinen Ersatz.
 ```
 
 **Dein Erfolg:** Du siehst den Unterschied zwischen Vorschlag, Freigabe und ausgeführter Wirkung.
@@ -135,22 +125,17 @@ aus Schritt 4 ändert damit noch nichts; pausiere sie bei Bedarf im Agentensyste
 **Ziel:** Eine erste Einkaufsübersicht, ohne sofort etwas zu bestellen.
 
 ```text
-Du als Agent übernimmst die Einkaufsprüfung alle drei Stunden in der vereinbarten
-Arbeitszeit, beispielsweise 09:00, 12:00 und 15:00. Du entdeckst die Schemas von
-item_supply_demand, fulfillment_blockers, commitments_list, inventory_read und
-exceptions_list. Du zeigst ungedeckten Bedarf, belegte Eingänge und überfällige
-Lieferantenzusagen mit Kundenaufträgen; Bewegungs-Reader liefern die Eingangsbelege.
-Du untersuchst PO-001, PO-003 und PO-006, soweit vorhanden. Eine Bestellung ist kein
-Wareneingang; ohne zugesagten Termin ist sie nicht überfällig. Du priorisierst selbst
-und fragst mich nur nach Angaben, die du nicht aus vorhandenen Quellen klären kannst.
-Du bestellst und versendest noch nichts. Weitere Änderungen brauchen konkrete
-Vorschläge und Freigabe; unveränderte Fälle meldest du ohne doppelte Vorschläge.
-Du führst zuerst eine Runde jetzt aus. Danach richtest du die Wiederholung in deinem
-Agentensystem ein, wenn dort die benötigten Tools, der Arbeitsauftrag und der
-Bearbeitungsstand verfügbar sind. Fehlende Zeitzone und Arbeitstage klärst du mit mir.
-Du prüfst bestehende Routinen, vermeidest Überschneidungen und zeigst mir die Aufgabe,
-den nächsten Lauf und Pausieren. Wenn Einrichtung oder Prüfung nicht geht, sagst du
-konkret, was fehlt, statt einen laufenden Betrieb zu behaupten.
+Prüfe den Einkauf alle drei Stunden während der vereinbarten Arbeitszeit, zum
+Beispiel um 09:00, 12:00 und 15:00. Priorisiere mit Reality-Tools ungedeckten Bedarf,
+erfasste Wareneingänge und überfällige Lieferzusagen. Zeige betroffene Kundenaufträge.
+Eine Bestellung ist kein Wareneingang; ohne Zusagetermin ist sie nicht nachweislich
+überfällig. Beschaffe Informationen selbst und frage nur nach ungeklärten Angaben.
+Bestelle und versende nichts; Änderungen brauchen konkrete Vorschläge und meine
+Freigabe. Vermeide doppelte Vorschläge.
+Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
+wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
+Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
+nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
 ```
 
 **Dein Erfolg:** Du siehst einen konkreten Bedarf oder Lieferantenfall. In aktuellen Demo-Grunddaten
@@ -172,11 +157,11 @@ und Betragswerte vor. Fehlende Beschaffungsregeln oder Lieferantenzuordnungen er
 nicht.
 
 ```text
-Du als Agent bereitest für den ausgewählten Bedarf eine Einkaufsbestellung mit
-order_create_propose, direction purchase, vor. Du fragst mich zuerst nach fehlenden
-Pflichtangaben und Beschaffungsregeln. Du nutzt meine ausdrücklich angegebenen Werte
-und berechnest keine fehlenden Belegbeträge als neue Autorität. Du zeigst mir den
-Prüflink und wartest auf meine Freigabe, bevor eine Änderung ausgeführt wird.
+Bereite eine Einkaufsbestellung für den ausgewählten Bedarf als Vorschlag vor.
+Lies vorhandene Datensätze und frage nach fehlendem Lieferanten, Menge, Termin,
+angegebenen Preisen, Beträgen oder Einkaufsregeln. Nutze tatsächliche IDs und meine
+Angaben; erfinde oder berechne keine fehlenden Beträge. Zeige Wirkung und Prüflink.
+Führe nichts ohne meine Freigabe aus.
 ```
 
 Nach Freigabe prüfst du die eingehende Zusage. Ein ausdrücklich fiktiver, gezählter Wareneingang
@@ -192,20 +177,16 @@ deinem Agentensystem; die Reality-Decision versendet sie nicht.
 **Ziel:** Eine kleine Finance-Runde mit einem nachvollziehbaren Einzelfall.
 
 ```text
-Du als Agent übernimmst die Finance-Prüfung alle drei Stunden in der vereinbarten
-Arbeitszeit, beispielsweise 09:00, 12:00 und 15:00, und berichtest um 17:00 den Tagesstand.
-Du entdeckst finance_balances, finance_payments, finance_credits,
-finance_party_balances und exceptions_list samt Schemas. Du zeigst offene Beträge
-je Währung, neue oder unzugeordnete Zahlungen und Guthaben. Du erklärst einen
-Klärungsfall mit finance_settlement_context und fragst nur bei verbleibender Unklarheit.
-Du änderst noch nichts und legst keine Duplikate der Live-Rechnungen oder Zahlungen an.
-Du integrierst diese Prüfung möglichst in die Einkaufsrunde statt parallel zu starten.
-Du führst zuerst eine Runde jetzt aus. Danach richtest du die Wiederholung in deinem
-Agentensystem ein, wenn dort die benötigten Tools, der Arbeitsauftrag und der
-Bearbeitungsstand verfügbar sind. Fehlende Zeitzone und Arbeitstage klärst du mit mir.
-Du prüfst bestehende Routinen, vermeidest Überschneidungen und zeigst mir die Aufgabe,
-den nächsten Lauf und Pausieren. Wenn Einrichtung oder Prüfung nicht geht, sagst du
-konkret, was fehlt, statt einen laufenden Betrieb zu behaupten.
+Prüfe Finance um 09:00, 12:00 und 15:00 während der vereinbarten Arbeitszeit und
+berichte um 17:00. Zeige mit Reality-Tools offene Beträge je Währung, neue oder
+nicht zugeordnete Zahlungen und Guthaben. Erkläre einen relevanten Fall anhand seiner
+Datensätze und priorisiere nächste Schritte. Frage nur bei ungeklärten Zuordnungen.
+Ändere nichts und dupliziere keine Rechnungen oder Zahlungen. Verbinde die Prüfung
+nach Möglichkeit mit der bestehenden Einkaufsroutine.
+Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
+wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
+Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
+nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
 ```
 
 **Dein Erfolg:** Der Agent erklärt eine Zahlung, Teilzahlung, offene Position oder ein Guthaben.
@@ -219,11 +200,12 @@ belegten Angaben und deiner Freigabe. Bei mehrdeutigen Treffern fragt der Agent 
 soll:
 
 ```text
-Du als Agent übernimmst zusätzlich täglich um 15:00 die Zahlungsvorschau. Du klärst
-mit mir das pay_by-Datum beziehungsweise seine Regel und liest payment_run_preview.
-Du erklärst die Auswahl und Gründe, buchst und zahlst nichts. Du führst eine erste
-Vorschau jetzt aus und ergänzt die bestehende Finance-Routine nur bei verfügbarem
-Toolzugriff. Du zeigst mir den nächsten Lauf und wie ich diese Teilaufgabe pausieren kann.
+Ergänze unsere Finance-Routine um eine tägliche Zahlungsvorschau um 15:00. Kläre mit
+mir den Zahlungsstichtag oder seine Regel. Erkläre mit Reality-Tools die Auswahl und
+Gründe. Buche und zahle nichts. Starte jetzt; richte die Wiederholung nur mit Tools,
+gespeichertem Arbeitsauftrag und Bearbeitungsstand ein. Kläre Zeitzone und Arbeitstage,
+vermeide doppelte Routinen und zeige den geprüften nächsten Lauf sowie Pausieren.
+Sage klar, welche Einrichtung fehlt.
 ```
 
 Die Vorschau löst keine Zahlung aus. Auch eine bestätigte Reality-Buchung führt keine
@@ -238,30 +220,27 @@ Einkaufs-/Finance-Routine. Prüfe den nächsten Lauf, bevor du sie weiterlaufen 
 **Ziel:** Eine erste Support-Runde mit einem nachvollziehbaren Kundenfall. E-Mail ist optional.
 
 Wenn dein Agentensystem E-Mail unterstützt, verbinde dort ein ausgewähltes Testpostfach und prüfe
-Lesezugriff und Antwortentwürfe. Die Reality-Verbindung gibt keinen Postfachzugriff. Sende selbst:
+Lesezugriff und Antwortentwürfe. Die Reality-Verbindung gibt keinen Postfachzugriff. Sende selbst
+und ergänze eine Referenz zu einem tatsächlich ausgewählten Auftrag für die Zuordnung:
 
 ```text
-Betreff: Frage zu meiner Bestellung SO-006
+Betreff: Frage zu meiner Bestellung
 
-Hallo, wann kommt meine Bestellung SO-006? Ist schon etwas versendet worden?
+Hallo, wann kommt meine Bestellung? Ist schon etwas versendet worden?
 ```
 
 ```text
-Du als Agent übernimmst den Test-Kundensupport: Du prüfst das ausgewählte Postfach
-alle 30 Minuten während der vereinbarten Arbeitszeit, etwa 09:00 bis 17:00.
-Du prüfst E-Mail-Zugriff und Tools und fragst mich nur nach fehlenden Zugängen.
-Du beginnst mit der Testanfrage zu SO-006 und liest den aktuellen Auftrag in Reality.
-Du erstellst einen freundlichen, belegten Antwortentwurf und zeigst mir intern die
-Datensätze dahinter. Du erfindest keinen Liefertermin und sendest nichts.
-Du prüfst Nachricht und vorhandene Entwürfe, damit dieselbe Anfrage nicht mehrfach
-bearbeitet wird. Nur unlösbare Zuordnungen fragst du bei mir ab. Der Entwurf und
-seine Versandfreigabe liegen im Agentensystem, nicht in Reality-Decisions.
-Du führst zuerst eine Runde jetzt aus. Danach richtest du die Wiederholung in deinem
-Agentensystem ein, wenn dort die benötigten Tools, der Arbeitsauftrag und der
-Bearbeitungsstand verfügbar sind. Fehlende Zeitzone und Arbeitstage klärst du mit mir.
-Du prüfst bestehende Routinen, vermeidest Überschneidungen und zeigst mir die Aufgabe,
-den nächsten Lauf und Pausieren. Wenn Einrichtung oder Prüfung nicht geht, sagst du
-konkret, was fehlt, statt einen laufenden Betrieb zu behaupten.
+Prüfe das ausgewählte Testpostfach alle 30 Minuten während der vereinbarten
+Arbeitszeit, zum Beispiel 09:00–17:00. Prüfe Postfach- und Reality-Zugriff. Ordne eine
+Testanfrage ihrem tatsächlichen Auftrag zu; frage mich bei unklarer Zuordnung.
+Erstelle aus belegten Auftrags- und Versanddaten einen freundlichen Antwortentwurf
+und zeige intern die Datensätze dazu. Erfinde keinen Liefertermin. Vermeide doppelte
+Entwürfe und sende nichts. Versand braucht meine separate Freigabe im Agentensystem;
+eine Reality-Decision erlaubt keinen E-Mail-Versand.
+Starte jetzt mit einer Runde. Richte danach die Wiederholung im Agentensystem ein,
+wenn Tools sowie gespeicherter Arbeitsauftrag und Bearbeitungsstand verfügbar sind.
+Kläre Zeitzone und Arbeitstage, nutze bestehende Routinen und zeige den geprüften
+nächsten Lauf sowie Pausieren. Sage klar, welche Einrichtung noch fehlt.
 ```
 
 **Dein Erfolg:** Ein Antwortentwurf, der den echten Auftragsstand erklärt. Prüfe Empfänger und
@@ -278,20 +257,19 @@ Antwortentwurf dein Ergebnis.
 ein.
 
 ```text
-Du als Agent prüfst jetzt deine bereits eingerichteten Routinen für Verkauf, Einkauf,
-Finance und – falls verbunden – Support. Du zeigst je Aufgabe Verantwortung, Uhrzeit
-oder Turnus, Zeitzone, Arbeitstage, Tools, nächsten Lauf und Pausieren. Du unterscheidest
-aktive Routinen, manuell getestete Aufgaben und noch fehlende Einrichtung.
-Du prüfst Lücken, doppelte Arbeit, Überschneidungen und offene Decisions. Du kontrollierst
-mindestens einen tatsächlichen Lauf und beschaffst fehlende Informationen selbst.
-Du schlägst nötige Korrekturen vor, statt einen zweiten Tagesplan anzulegen. Du umgehst
-keine Freigaben und behauptest keinen Betrieb für ungeprüfte Routinen.
-Du gibst mir einen kurzen Bericht: Was läuft? Was wartet auf mich? Was fehlt noch?
+Prüfe jetzt unsere Routinen für Verkauf, Einkauf, Finance und verbundenen Support.
+Zeige je Aufgabe Uhrzeit oder Turnus, Zeitzone, Arbeitstage, Tools, nächsten Lauf und
+Pausieren. Unterscheide geprüfte aktive Routinen, manuelle Prüfungen und fehlende
+Einrichtung. Prüfe einen tatsächlichen Lauf, sofern vorhanden; sage, wenn noch keiner
+stattgefunden hat. Suche Lücken, Überschneidungen und offene Decisions. Schlage
+Korrekturen vor, ohne einen zweiten Tagesplan anzulegen oder Freigaben zu umgehen.
+Berichte kurz: Was läuft? Was braucht meine Entscheidung? Was fehlt?
 ```
 
 **Dein Erfolg:** Ein überprüfbarer Gesamtplan mit den tatsächlichen nächsten Läufen. Beispielzeiten
-sind keine Firmenvorgaben: Abholzeit, Zeitzone und Arbeitstage müssen zu deiner Übung passen. Die
-Demo belegt keine echte DHL-Abholung und liefert keine neuen Stornowünsche aus einem Postfach.
+sind keine Firmenvorgaben: Zeitzone und Arbeitstage müssen zu deiner Übung passen. Die
+Versandprüfung um 13:00 bestätigt keine Abholung. Die Demo belegt keine echte DHL-Abholung und
+liefert keine neuen Stornowünsche aus einem Postfach.
 
 **Hier kannst du stoppen:** Pausiere die gewünschten Routinen im Agentensystem. Bereits offene
 Reality-Vorschläge bleiben separat prüfbar. Bei Aufgaben ohne passende Automatisierung kannst du die
