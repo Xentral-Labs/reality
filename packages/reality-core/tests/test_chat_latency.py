@@ -1,5 +1,7 @@
+
 from decimal import Decimal
 
+from intake_review_support import reviewed_reserve
 from sqlalchemy import event
 
 from reality.services.core import (
@@ -10,7 +12,6 @@ from reality.services.core import (
     inventory_rows,
     open_quantity,
     record_movement,
-    reserve,
     revise_commitment,
     send_chat_message,
     stock_at,
@@ -60,7 +61,7 @@ def test_inventory_reads_are_bounded_and_match_current_terms(session, business):
             2,
             "2026-09-20",
         )
-        reserve(session, tenant, outgoing.id)
+        reviewed_reserve(session, tenant, outgoing.id)
         return incoming
 
     incoming = {business.item.id: seed(business.item)}

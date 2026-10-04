@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 
@@ -297,7 +298,7 @@ def test_only_free_stock_can_be_blocked(session, business):
         "12",
         "2026-10-10",
     )
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     block_stock(session, tenant, business.item.id, business.location.id, "5", "quality")
 
     # 20 there, 12 reserved for an order, 5 already blocked: 3 are free.

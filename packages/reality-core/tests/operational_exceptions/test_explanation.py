@@ -15,6 +15,7 @@ from intake_review_support import (
     reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
     reviewed_post_supplier_refund,
+    reviewed_reserve,
 )
 
 from reality.db.core import now
@@ -25,7 +26,6 @@ from reality.services.core import (
     create_document,
     create_tenant,
     record_movement,
-    reserve,
     reverse_ledger_posting_group,
 )
 from reality.services.exceptions import (
@@ -91,7 +91,7 @@ def test_new_class_explanation_and_not_found_parity(session, business):
         6,
         to_location_id=business.location.id,
     )
-    reserve(session, tenant_id, commitment.id)
+    reviewed_reserve(session, tenant_id, commitment.id)
     record_movement(
         session,
         tenant_id,
@@ -186,7 +186,7 @@ def test_shared_consumer_parity_includes_new_classes(session, business):
         5,
         datetime(2026, 12, 1, 12, tzinfo=UTC),
     )
-    reserve(session, tenant_id, backed.id)
+    reviewed_reserve(session, tenant_id, backed.id)
     record_movement(
         session,
         tenant_id,

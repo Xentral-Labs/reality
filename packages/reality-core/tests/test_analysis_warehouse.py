@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_release_reservation, reviewed_reserve
 
 from reality.domain.traversal import Traversal
 from reality.services import core
@@ -47,7 +48,7 @@ def test_stock_matches_canonical_and_warehouse_through_reservation_lifecycle(
         8,
         "2026-09-01",
     )
-    reservation = core.reserve(session, tenant, promise.id).reservation
+    reservation = reviewed_reserve(session, tenant, promise.id).reservation
     second = reviewed_create_location(session, tenant, "Second")
     core.record_movement(
         session,
@@ -80,9 +81,9 @@ def test_stock_matches_canonical_and_warehouse_through_reservation_lifecycle(
         return row
 
     assert Decimal(verify()["stock_available"]) == 12
-    core.release_reservation(session, tenant, reservation.id)
+    reviewed_release_reservation(session, tenant, reservation.id)
     assert Decimal(verify()["stock_reserved"]) == 0
-    reservation = core.reserve(session, tenant, promise.id).reservation
+    reservation = reviewed_reserve(session, tenant, promise.id).reservation
     core.record_movement(
         session,
         tenant,
@@ -169,7 +170,7 @@ def test_shortage_template_and_movement_corrections_preserve_observations(
         8,
         "2026-09-01",
     )
-    reserved = core.reserve(session, tenant, promise.id).reservation
+    reserved = reviewed_reserve(session, tenant, promise.id).reservation
     # Retained imported reservations can exceed stock: do not clamp the observation.
     reserved.quantity = Decimal(12)
     session.flush()
@@ -178,7 +179,7 @@ def test_shortage_template_and_movement_corrections_preserve_observations(
     assert Decimal(row["stock_available"]) == -2
     reserved.quantity = Decimal(8)
     session.flush()
-    core.release_reservation(session, tenant, reserved.id)
+    reviewed_release_reservation(session, tenant, reserved.id)
     core.correct_movement(session, tenant, receipt.id, reason="Wrong receipt")
     row = next(
         r

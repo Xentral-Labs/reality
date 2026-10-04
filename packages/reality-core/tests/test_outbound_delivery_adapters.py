@@ -3,6 +3,7 @@
 import json
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -37,7 +38,7 @@ def _promise(session, business, quantity="4"):
         quantity,
         None,
     )
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     return promise
 
 

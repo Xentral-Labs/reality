@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -38,7 +39,7 @@ def returned_goods(session, business, quantity="2"):
         quantity,
         "2026-09-10",
     )
-    core.reserve(session, tenant, commitment.id)
+    reviewed_reserve(session, tenant, commitment.id)
     core.record_movement(
         session,
         tenant,

@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -73,7 +74,7 @@ def test_reserving_takes_only_unblocked_stock(session, business):
     _block(session, business, "5")
     promise = _promise(session, business, "20")
 
-    result = core.reserve(session, tenant, promise.id)
+    result = reviewed_reserve(session, tenant, promise.id)
 
     assert (result.reserved, result.shortage) == (Decimal(15), Decimal(5))
 
@@ -83,11 +84,11 @@ def test_releasing_a_block_makes_it_reservable_again(session, business):
     _stock(session, business, "20")
     block = _block(session, business, "5")
     promise = _promise(session, business, "20")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
 
     release_stock_block(session, tenant, block.id, reason="passed QC")
 
-    assert core.reserve(session, tenant, promise.id).reserved == 5
+    assert reviewed_reserve(session, tenant, promise.id).reserved == 5
 
 
 def test_blocked_stock_does_not_move(session, business):
@@ -210,7 +211,7 @@ def test_without_blocks_readers_are_unchanged(session, business):
     tenant = business.tenant.id
     _stock(session, business, "10")
     promise = _promise(session, business, "10")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
 
     assert fulfillment_readiness(session, tenant, promise.id).ship_ready
     row = _inventory(session, business)
@@ -407,7 +408,7 @@ def test_every_reader_counts_only_what_is_still_open(session, business):
     assert (position["blocked"], position["available"]) == (Decimal(5), Decimal(13))
     rows, _ = inventory_page(session, tenant, item_id=business.item.id)
     assert (rows[0]["blocked"], rows[0]["available"]) == (Decimal(5), Decimal(13))
-    assert core.reserve(session, tenant, promise.id).reserved == 13
+    assert reviewed_reserve(session, tenant, promise.id).reserved == 13
     assert fulfillment_readiness(session, tenant, promise.id).physical_quantity == 13
     projections.refresh_operational_projections(session, tenant, force=True)
     (line,) = [

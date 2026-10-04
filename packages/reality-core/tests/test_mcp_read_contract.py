@@ -1,7 +1,8 @@
+
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_reserve
 from sqlalchemy import event
 
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, dispatch_tool
@@ -13,7 +14,6 @@ from reality.services.core import (
     create_tenant,
     post_ledger,
     record_movement,
-    reserve,
     revise_commitment,
 )
 from reality.tools.application import run_read_tool
@@ -235,7 +235,7 @@ def test_retained_order_explanation_preserves_source_and_effects(
         "2",
         to_location_id=business.location.id,
     )
-    reservation = reserve(session, business.tenant.id, commitment.id).reservation
+    reservation = reviewed_reserve(session, business.tenant.id, commitment.id).reservation
     if closed == "fulfilled":
         record_movement(
             session,
@@ -365,7 +365,7 @@ def test_reserved_local_stock_and_cursor_filter_scope(session, business):
         "3",
         None,
     )
-    reserve(session, business.tenant.id, commitment.id, "1")
+    reviewed_reserve(session, business.tenant.id, commitment.id, "1")
     result = read(session, business, "inventory_read", view="location", limit=1)
     cursor = result["next_cursor"]
     assert cursor and result["has_more"]

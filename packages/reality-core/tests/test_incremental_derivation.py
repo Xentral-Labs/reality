@@ -17,6 +17,7 @@ from decimal import Decimal
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_post_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import select
 
@@ -826,7 +827,7 @@ def test_a_delivery_hold_on_a_party_reaches_the_articles_it_stops(session, busin
     no article at all, and the hold would be invisible in supply and demand until
     something else touched that article.
     """
-    from reality.services.core import hold_party_delivery, reserve
+    from reality.services.core import hold_party_delivery
 
     tenant = business.tenant.id
     record_movement(
@@ -839,7 +840,7 @@ def test_a_delivery_hold_on_a_party_reaches_the_articles_it_stops(session, busin
     )
     _, commitment = _promise(session, business, "ORD-241-HOLD", "4")
     # Fully reserved, so the only thing that can block this order is the hold.
-    reserve(session, tenant, commitment.id, "4", _commit=False)
+    reviewed_reserve(session, tenant, commitment.id, "4", _commit=False)
     projections.refresh_operational_projections(session, tenant)
     assert _supply(session, tenant)[business.item.id]["blocked_order_count"] == 0
 

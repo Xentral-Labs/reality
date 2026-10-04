@@ -345,6 +345,7 @@ def serve_backorders(
     supplier_commitment_id: str | None = None,
     reviewed: dict[str, Any] | None = None,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     Reserve the confirmed lines; refuse all of them if anything changed.
@@ -374,7 +375,11 @@ def serve_backorders(
     Run the shared review backorder serving check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
     """
     from reality.services.business_locks import lock_delivery_state
+    from reality.services.core import _require_business_mutation
+    from reality.services.intake import _invoke, require_scoped_intent
 
+    _require_business_mutation(session, tenant_id, "serve_backorders")
+    require_scoped_intent("serve_backorders", locals())
     lock_delivery_state(session, tenant_id)
     if reviewed is not None:
         item, location = _place(session, tenant_id, item_id, location_id)
@@ -413,11 +418,12 @@ def serve_backorders(
         raise
     reservations = []
     for line in normalized["lines"]:
-        result = reserve(
+        result = _invoke(
+            "reserve", reserve,
             session,
             tenant_id,
-            line["commitment_id"],
-            line["quantity"],
+            commitment_id=line["commitment_id"],
+            quantity=line["quantity"],
             location_id=location_id,
             action_id=action_id,
             _commit=False,
@@ -433,7 +439,8 @@ def serve_backorders(
                 "quantity": line["quantity"],
             }
         )
-    session.commit()
+    if _commit:
+        session.commit()
     # reality-rule: services.backorders.serve_backorders.result
     return {
         "item_id": item_id,

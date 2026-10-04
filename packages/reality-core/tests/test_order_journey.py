@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_reserve
 
 from reality.db.core import BusinessEvent, DocumentLine, now
 from reality.services.core import (
@@ -13,7 +14,6 @@ from reality.services.core import (
     observe_fact,
     post_ledger,
     record_movement,
-    reserve,
     store_source_record,
 )
 from reality.services.order_journey import order_journey, search_order_journeys
@@ -72,7 +72,7 @@ def test_journey_uses_shortest_links_and_does_not_merge_shared_references(
         "10",
         to_location_id=business.location.id,
     )
-    reservation = reserve(session, tenant, commitment.id).reservation
+    reservation = reviewed_reserve(session, tenant, commitment.id).reservation
     movement = record_movement(
         session,
         tenant,

@@ -347,3 +347,14 @@ Ordinary payments in practice/Storyline companies retain and recheck the same cu
 ## Standalone financial evidence follow-up
 
 Existing sales/supplier invoice posting, customer/supplier credit posting, customer/supplier credit netting and selected supplier refund commands must retain current selected evidence/account/partner/settlement references and actual explicit consent. Freeze each existing canonical parent and its exact posting/allocation/refund children; do not let callbacks change, repeat, commit early or add unrelated effects. Business effects and the executed receipt settle in the application-owned root. Direct/private-commit calls require the actual supported scope. Preserve stated money, exchange rates, currency, current domain eligibility and response shapes. Existing HTTP endpoints require actual explicit confirmation; fixed/profile callers freeze only their actual authored families and retain their existing authority. Source reception and header-only creation remain separately tracked; no external transfer, schema change or invented historical decision.
+
+
+## Atomic reservation allocation and release follow-up
+
+Existing reserve and reservation_release commands require actual retained explicit confirmation, current actual person/token authority and current delivery review at their canonical parent. Freeze exact invocation and reject changed/repeated calls, early commits, post-write failure and unrelated effects. Effects and executed receipt settle atomically. Preserve partial/zero allocations, tracking identities, release semantics, replay and existing guided/fixed profile authority; no borrowed authority for other writers. Existing transports must state confirmation.
+
+
+The existing backorders_serve command is an atomic reservation-batch parent. Retain its actual server-produced current waiting/available/hold review, freeze selected lines and every exact child reservation, and require explicit confirmation/current person or OAuth authority. Refuse partial-child failure, unrelated effects and changed/repeated/early-commit calls; preserve current eligibility and batch receipt/replay. No new public command or schema.
+
+
+Ordinary practice/Storyline reservation allocation and release retain and recheck the same current review as ordinary business companies. Only the existing genuine session/transaction/company/tool-bound guided proposal scope preserves its exact step-preview contract; company purpose alone cannot suppress a canonical review. Concurrency keeps the reviewed quantity exact: a stale review refuses, and any subsequent partial allocation requires a fresh retained confirmation. Actual interruption uses the genuine durable claim and never fabricated executing state.

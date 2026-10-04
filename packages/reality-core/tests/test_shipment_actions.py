@@ -1,7 +1,9 @@
+
 import json
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 from unified_fixtures import delivery_fixture
 
@@ -10,7 +12,6 @@ from reality.services.core import (
     InvalidOperation,
     create_commitment,
     record_movement,
-    reserve,
 )
 from reality.tools.application import (
     approve_and_execute_proposal,
@@ -208,7 +209,7 @@ def test_tracking_event_and_supersession_are_separate_reviewed_append_only_actio
 
 def test_dispatch_review_rejects_changed_stock_state(session, business):
     fixture = delivery_fixture(session, business, quantity="2")
-    reserve(session, business.tenant.id, fixture.commitment.id)
+    reviewed_reserve(session, business.tenant.id, fixture.commitment.id)
     proposal = create_change_proposal(
         session,
         business.tenant.id,

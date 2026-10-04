@@ -1,8 +1,10 @@
+
 import json
 from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_reserve
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
 
@@ -14,7 +16,6 @@ from reality.services.core import (
     create_commitment,
     hold_commitment,
     record_movement,
-    reserve,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -73,7 +74,7 @@ def test_reviewed_cancellation_closes_open_remainder_and_releases_controls(
         10,
         "2026-12-01",
     )
-    reservation = reserve(session, tenant_id, commitment.id, 10).reservation
+    reservation = reviewed_reserve(session, tenant_id, commitment.id, 10).reservation
     hold_commitment(session, tenant_id, commitment.id, reason_code="customer_request")
 
     proposal = prepare_delivery_action(
@@ -177,7 +178,7 @@ def test_reviewed_revision_discloses_and_applies_reservation_release(session, bu
         10,
         "2026-12-01",
     )
-    original = reserve(session, tenant_id, commitment.id, 10).reservation
+    original = reviewed_reserve(session, tenant_id, commitment.id, 10).reservation
     assert original is not None
 
     proposal = prepare_delivery_action(

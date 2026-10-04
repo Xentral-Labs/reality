@@ -22,6 +22,8 @@ from intake_review_support import (
     reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
     reviewed_post_supplier_refund,
+    reviewed_release_reservation,
+    reviewed_reserve,
 )
 from sqlalchemy import select
 
@@ -50,8 +52,6 @@ from reality.services.core import (
     post_supplier_credit_note,
     post_supplier_invoice,
     record_movement,
-    release_reservation,
-    reserve,
     retry_import_job,
     reverse_ledger_posting_group,
     revise_commitment,
@@ -370,7 +370,7 @@ def test_overdue_outgoing_supersedes_at_risk(session, business):
         to_location_id=business.location.id,
     )
     commitment = customer_commitment(session, business, 10, AS_OF - timedelta(days=1))
-    reserve(session, tenant_id, commitment.id)
+    reviewed_reserve(session, tenant_id, commitment.id)
 
     rows = [
         row
@@ -429,7 +429,7 @@ def test_reservation_exceeds_stock(session, business):
     )
     commitment = customer_commitment(session, business, 10, AS_OF + timedelta(days=5))
 
-    allocation = reserve(session, tenant_id, commitment.id)
+    allocation = reviewed_reserve(session, tenant_id, commitment.id)
 
     # Reserving cannot over-allocate, so the condition never arises at write time.
     assert allocation.reserved == Decimal(10)
@@ -525,8 +525,8 @@ def unbacked_reservations(session, business):
     )
     first = customer_commitment(session, business, 6, AS_OF + timedelta(days=5))
     second = customer_commitment(session, business, 4, AS_OF + timedelta(days=5))
-    first_reservation = reserve(session, tenant_id, first.id).reservation
-    second_reservation = reserve(session, tenant_id, second.id).reservation
+    first_reservation = reviewed_reserve(session, tenant_id, first.id).reservation
+    second_reservation = reviewed_reserve(session, tenant_id, second.id).reservation
     record_movement(
         session,
         tenant_id,
@@ -616,7 +616,7 @@ def both_new_classes(session, tenant_id, company_id, customer_id, item_id, locat
         8,
         AS_OF + timedelta(days=5),
     )
-    reservation = reserve(session, tenant_id, backed.id).reservation
+    reservation = reviewed_reserve(session, tenant_id, backed.id).reservation
     record_movement(
         session,
         tenant_id,
@@ -702,7 +702,7 @@ def test_new_classes_clear_through_reality(session, business):
         from_location_id=business.location.id,
         commitment_id=overdue.id,
     )
-    release_reservation(session, tenant_id, reservation.id)
+    reviewed_release_reservation(session, tenant_id, reservation.id)
 
     cleared = by_class(session, tenant_id)
     assert "overdue_outgoing_customer_commitment" not in cleared
@@ -6212,7 +6212,7 @@ def test_expired_stock_reserved_for_a_customer(session, business):
     commitment = customer_commitment(session, business, 4, AS_OF + timedelta(days=3))
     commitment.item_id = item.id
     session.commit()
-    reserved = core.reserve(session, business.tenant.id, commitment.id, lot_id=lot.id)
+    reserved = reviewed_reserve(session, business.tenant.id, commitment.id, lot_id=lot.id)
 
     row = by_class(session, business.tenant.id)["stock_expired"]
     assert row.cause_ids == ("reserved_for_delivery",)
@@ -6221,7 +6221,7 @@ def test_expired_stock_reserved_for_a_customer(session, business):
 
     # Releasing the reservation removes the reason and leaves the entry, because
     # the stock is still expired.
-    core.release_reservation(session, business.tenant.id, reserved.reservation.id)
+    reviewed_release_reservation(session, business.tenant.id, reserved.reservation.id)
     after = by_class(session, business.tenant.id)["stock_expired"]
     assert after.cause_ids == ()
     assert after.causal_values["reserved_quantity"] == Decimal(0)

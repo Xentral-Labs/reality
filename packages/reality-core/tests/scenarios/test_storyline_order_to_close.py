@@ -292,3 +292,26 @@ def test_an_exported_and_reimported_package_plays_to_the_same_end_state(session,
     play_path(session, owner, copy["tenant_id"], DEFAULT_PATH)
 
     assert end_state(copy["tenant_id"]) == end_state(original)
+
+
+def test_ordinary_practice_reservation_retains_current_review_before_confirmation(session, owner):
+    import json
+
+    from test_canonical_reservation_boundary import state
+
+    from reality.db.core import ChangeProposal
+    from reality.services.delivery_actions import REVIEW_KEY
+
+    tenant = started(session, owner)["tenant_id"]
+    play_path(session, owner, tenant, DEFAULT_PATH[:3])
+    before = state(session, tenant)
+    prepared = storyline.prepare(session.get_bind(), owner.id, tenant, "reserve", "actual-reservation-review", db_session=session)
+    assert prepared["status"] == "pending" and not prepared["refused"]
+    proposal = session.scalar(select(ChangeProposal).where(ChangeProposal.tenant_id == tenant, ChangeProposal.type == "tool:reserve"))
+    assert proposal is not None and proposal.status == "proposed"
+    assert json.loads(proposal.input)[REVIEW_KEY]["token"]
+    assert state(session, tenant) == before
+    result = storyline.confirm(session.get_bind(), owner.id, tenant, "reserve", prepared["step_id"], prepared["preview_revision"], confirmed=True, db_session=session)
+    assert result["status"] == "done", result
+    session.refresh(proposal)
+    assert proposal.status == "executed" and proposal.decided_by_user_id == owner.id

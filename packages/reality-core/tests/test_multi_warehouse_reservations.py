@@ -4,7 +4,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_set_master_data_active
+from intake_review_support import (
+    reviewed_release_reservation,
+    reviewed_reserve,
+    reviewed_set_master_data_active,
+)
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, Reservation
@@ -68,7 +72,7 @@ def test_reserving_without_a_location_is_unchanged(session, business):
     _stock(session, business, "40", munich)
     promise = _promise(session, business, "10")
 
-    result = core.reserve(session, business.tenant.id, promise.id)
+    result = reviewed_reserve(session, business.tenant.id, promise.id)
 
     # Only the promise's own location: 6 reserved, 4 short, Munich untouched.
     assert (result.reserved, result.shortage) == (Decimal(6), Decimal(4))
@@ -83,9 +87,9 @@ def test_the_rest_is_reserved_at_a_named_second_location(session, business):
     _stock(session, business, "6", business.location)
     _stock(session, business, "40", munich)
     promise = _promise(session, business, "10")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
 
-    result = core.reserve(session, tenant, promise.id, location_id=munich.id)
+    result = reviewed_reserve(session, tenant, promise.id, location_id=munich.id)
 
     # The rest is what is still open; Munich has plenty and gives exactly it.
     assert (result.requested, result.reserved, result.shortage) == (
@@ -115,10 +119,10 @@ def test_availability_is_judged_at_the_named_location(session, business):
     munich = _munich(session, business)
     _stock(session, business, "3", munich)
     other = _promise(session, business, "2")
-    core.reserve(session, tenant, other.id, location_id=munich.id)
+    reviewed_reserve(session, tenant, other.id, location_id=munich.id)
     promise = _promise(session, business, "10")
 
-    result = core.reserve(session, tenant, promise.id, location_id=munich.id)
+    result = reviewed_reserve(session, tenant, promise.id, location_id=munich.id)
 
     # Munich holds 3, of which 2 are reserved for another order.
     assert (result.reserved, result.shortage) == (Decimal(1), Decimal(9))
@@ -129,7 +133,7 @@ def test_nothing_available_there_reserves_nothing(session, business):
     munich = _munich(session, business)
     promise = _promise(session, business, "10")
 
-    result = core.reserve(session, tenant, promise.id, location_id=munich.id)
+    result = reviewed_reserve(session, tenant, promise.id, location_id=munich.id)
 
     assert (result.reservation, result.reserved) == (None, Decimal(0))
     assert _reservations(session, business, promise) == []
@@ -148,13 +152,13 @@ def test_a_location_that_cannot_serve_is_refused(session, business):
 
     for location in (transit, closed):
         with pytest.raises(core.InvalidOperation) as refused:
-            core.reserve(session, tenant, promise.id, location_id=location.id)
+            reviewed_reserve(session, tenant, promise.id, location_id=location.id)
         assert refused.value.code == "reservation_location_not_stock"
 
     other = core.create_tenant(session, "Other GmbH")
     foreign = reviewed_create_location(session, other.id, "Foreign warehouse")
     with pytest.raises(core.NotFound):
-        core.reserve(session, tenant, promise.id, location_id=foreign.id)
+        reviewed_reserve(session, tenant, promise.id, location_id=foreign.id)
     assert _reservations(session, business, promise) == []
 
 
@@ -167,8 +171,8 @@ def test_a_lot_is_reserved_where_it_lies(session, business):
     promise = _promise(session, business, "5", item=item)
 
     # Positive control: the lot is not at home, so nothing is reserved there.
-    assert core.reserve(session, tenant, promise.id, lot_id=lot.id).reserved == 0
-    result = core.reserve(
+    assert reviewed_reserve(session, tenant, promise.id, lot_id=lot.id).reserved == 0
+    result = reviewed_reserve(
         session, tenant, promise.id, lot_id=lot.id, location_id=munich.id
     )
 
@@ -181,9 +185,9 @@ def test_a_reservation_elsewhere_is_released_like_any_other(session, business):
     munich = _munich(session, business)
     _stock(session, business, "4", munich)
     promise = _promise(session, business, "4")
-    reserved = core.reserve(session, tenant, promise.id, location_id=munich.id)
+    reserved = reviewed_reserve(session, tenant, promise.id, location_id=munich.id)
 
-    core.release_reservation(session, tenant, reserved.reservation.id)
+    reviewed_release_reservation(session, tenant, reserved.reservation.id)
 
     assert _reservations(session, business, promise) == [
         (munich.id, Decimal("4.0000"), "released")
@@ -253,8 +257,8 @@ def _split(session, business):
     _stock(session, business, "6", business.location)
     _stock(session, business, "40", munich)
     promise = _promise(session, business, "10")
-    core.reserve(session, tenant, promise.id)
-    core.reserve(session, tenant, promise.id, location_id=munich.id)
+    reviewed_reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id, location_id=munich.id)
     return munich, promise
 
 
@@ -330,7 +334,7 @@ def test_without_reservations_elsewhere_readiness_is_unchanged(session, business
     _stock(session, business, "10", business.location)
     readiness = _readiness(session, business, promise)
     assert readiness.blocker_codes == ("insufficient_reservation",)
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     assert _readiness(session, business, promise).ship_ready
 
 

@@ -1,6 +1,8 @@
+
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy.exc import IntegrityError
 from unified_fixtures import delivery_fixture
 
@@ -8,7 +10,6 @@ from reality.services.core import (
     NotFound,
     create_tenant,
     record_movement,
-    reserve,
     revise_commitment,
 )
 from reality.services.delivery_reads import delivery_case, delivery_work
@@ -17,7 +18,7 @@ from reality.services.delivery_reads import delivery_case, delivery_work
 def test_partial_and_final_delivery_keep_exact_case(session, business):
     fixture = delivery_fixture(session, business)
     tid, cid = business.tenant.id, fixture.commitment.id
-    reserve(session, tid, cid, "12")
+    reviewed_reserve(session, tid, cid, "12")
     record_movement(
         session,
         tid,

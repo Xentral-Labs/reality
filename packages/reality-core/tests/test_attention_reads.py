@@ -3,6 +3,7 @@
 from datetime import timedelta
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import event
 from unified_fixtures import delivery_fixture
 
@@ -16,7 +17,7 @@ from reality.services.attention_reads import (
     attention_summary,
     stored_exceptions,
 )
-from reality.services.core import NotFound, create_tenant, reserve
+from reality.services.core import NotFound, create_tenant
 from reality.services.exceptions import operational_exception_rows
 from reality.services.projections import EXCEPTIONS, rebuild_projections
 
@@ -184,7 +185,7 @@ def test_stale_generation_keeps_rows_and_reports_pending(
     assert fixture.commitment.id in listed
     # The finding clears in Reality; the stored generation still lists it until the
     # worker publishes the next one, and a minute later the reader is told so.
-    reserve(session, business.tenant.id, fixture.commitment.id, "12")
+    reviewed_reserve(session, business.tenant.id, fixture.commitment.id, "12")
     later = projections.now() + timedelta(seconds=120)
     monkeypatch.setattr(projections, "now", lambda: later)
     rows, metadata = stored_exceptions(session, business.tenant.id)
@@ -212,7 +213,7 @@ def test_detail_explains_live_and_classifies_a_cleared_finding(session, business
     other = create_tenant(session, "Foreign attention")
     with pytest.raises(NotFound):
         attention_detail(session, other.id, finding["id"])
-    reserve(session, business.tenant.id, fixture.commitment.id, "12")
+    reviewed_reserve(session, business.tenant.id, fixture.commitment.id, "12")
     with pytest.raises(FindingCleared) as cleared:
         attention_detail(session, business.tenant.id, finding["id"])
     assert isinstance(cleared.value, NotFound)
@@ -309,7 +310,7 @@ def test_welcome_dashboard_counts_the_stored_register(session, business, monkeyp
     _publish(session, tenant_id)
     # The finding clears in Reality before the worker publishes the next generation:
     # a live count would now disagree with the register the Welcome link opens.
-    reserve(session, tenant_id, fixture.commitment.id, "12")
+    reviewed_reserve(session, tenant_id, fixture.commitment.id, "12")
     live = len(operational_exception_rows(session, tenant_id))
     _forbid_derivation(monkeypatch)
 

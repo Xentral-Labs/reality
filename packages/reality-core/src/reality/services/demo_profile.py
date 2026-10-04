@@ -37,6 +37,7 @@ from reality.services.intake import (
     _post_frozen_supplier_credit,
     _post_frozen_supplier_invoice,
     _post_frozen_supplier_payment,
+    _reserve_frozen,
 )
 
 
@@ -410,7 +411,7 @@ def seed_profile(
                 )
             commitment = cases[key]["commitment_id"]
             if index in {1, 4, 5, 10}:
-                core.reserve(
+                _reserve_frozen(
                     session,
                     tenant,
                     commitment,

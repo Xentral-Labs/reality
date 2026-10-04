@@ -5,7 +5,11 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_post_sales_invoice
+from intake_review_support import (
+    reviewed_post_sales_invoice,
+    reviewed_release_reservation,
+    reviewed_reserve,
+)
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry
@@ -354,7 +358,7 @@ def test_lot_null_tracking_and_reservations_conserve_canonical_stock(session, bu
         3,
         "2026-09-01",
     )
-    reservation = core.reserve(session, tenant, promise.id, lot_id=lot.id).reservation
+    reservation = reviewed_reserve(session, tenant, promise.id, lot_id=lot.id).reservation
     session.flush()
     rows = [
         r for r in inventory_detail_rows(session, tenant) if r["item_id"] == item.id
@@ -367,7 +371,7 @@ def test_lot_null_tracking_and_reservations_conserve_canonical_stock(session, bu
     )
     for field in ("physical", "reserved", "available"):
         assert sum(r[field] for r in rows) == canonical[field]
-    core.release_reservation(session, tenant, reservation.id)
+    reviewed_release_reservation(session, tenant, reservation.id)
     core.correct_movement(session, tenant, movement.id, reason="Wrong receipt")
     assert (
         sum(

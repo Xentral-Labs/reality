@@ -5,7 +5,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_reserve
 from sqlalchemy import select
 
 from reality.db.core import KitComponent, Movement
@@ -97,7 +97,7 @@ def test_availability_is_the_minimum_the_free_components_build(session, business
         ],
         "5",
     )
-    core.reserve(session, business.tenant.id, order[3][0].id)
+    reviewed_reserve(session, business.tenant.id, order[3][0].id)
     (here,) = kit_availability(session, business.tenant.id, kit.id)
     assert (here["buildable"], here["components"][1]["free"]) == ("1", "3")
 

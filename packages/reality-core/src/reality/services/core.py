@@ -5214,6 +5214,9 @@ def reserve(
     Return requested, allocated and shortage quantities; shortage is requested minus allocated.
     """
     _require_business_mutation(session, tenant_id, "reserve")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("reserve", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     # reality-rule: core.reserve.1
@@ -5297,6 +5300,9 @@ def release_reservation(
     from reality.services.tenant_policy import require_decision_release
 
     _require_business_mutation(session, tenant_id, "release_reservation")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("release_reservation", locals())
     require_decision_release(session, tenant_id, reservation_id, action_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
@@ -18232,7 +18238,9 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
     _, _, _, outgoing = _ingest_authored_setup_order(
         session, tenant.id, raw, company.id, customer.id, location.id
     )
-    reserve(session, tenant.id, outgoing[0].id, _commit=False)
+    from reality.services.intake import _reserve_frozen
+
+    _reserve_frozen(session, tenant.id, outgoing[0].id, _commit=False)
     create_commitment(
         session,
         tenant.id,

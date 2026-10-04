@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 from unified_fixtures import delivery_fixture
 
@@ -18,7 +19,6 @@ from reality.services.core import (
     hold_commitment,
     hold_party_delivery,
     release_commitment_hold,
-    reserve,
     stock_at,
 )
 from reality.services.delivery_actions import (
@@ -59,7 +59,7 @@ def prepare(session, tid, cid, tool="commitment_hold", request="hold", **extra):
 def test_hold_release_review_effects_and_party_scope(session, business):
     tid = business.tenant.id
     cid = delivery_fixture(session, business).commitment.id
-    reserve(session, tid, cid, "4")
+    reviewed_reserve(session, tid, cid, "4")
     proposal = prepare(session, tid, cid)
     assert active_commitment_hold(session, tid, cid) is None
     with pytest.raises(InvalidOperation, match="confirmation"):
@@ -79,7 +79,7 @@ def test_hold_release_review_effects_and_party_scope(session, business):
         == 1
     )
     with pytest.raises(InvalidOperation, match="hold"):
-        reserve(session, tid, cid, "1")
+        reviewed_reserve(session, tid, cid, "1")
     hold_party_delivery(
         session, tid, business.customer.id, "credit_check", "Customer-wide"
     )

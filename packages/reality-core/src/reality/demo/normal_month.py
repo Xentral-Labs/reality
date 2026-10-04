@@ -22,7 +22,6 @@ from reality.services.core import (
     get_tenant,
     open_invoice_amount,
     record_movement,
-    reserve,
     stock_at,
 )
 from reality.services.core import (
@@ -45,6 +44,9 @@ from reality.services.intake import (
 )
 from reality.services.intake import (
     _post_frozen_supplier_payment as post_supplier_payment,
+)
+from reality.services.intake import (
+    _reserve_frozen as reserve,
 )
 
 FIXTURE = Path(__file__).parents[3] / "fixtures" / "shopify" / "order_10473.json"

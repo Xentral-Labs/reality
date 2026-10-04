@@ -3,7 +3,7 @@
 import json
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_reserve
 
 from reality.db.core import AppUser, ChangeProposal, TenantMembership, uid
 from reality.services import core
@@ -377,7 +377,7 @@ def test_shipment_member_guidance_and_execution_agree(session, business):
     from reality.tools.application import create_change_proposal
 
     fixture = delivery_fixture(session, business, quantity="2")
-    core.reserve(session, business.tenant.id, fixture.commitment.id)
+    reviewed_reserve(session, business.tenant.id, fixture.commitment.id)
     member, _ = _member(session, business.tenant.id)
     proposal = create_change_proposal(
         session,

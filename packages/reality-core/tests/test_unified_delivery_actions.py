@@ -1,7 +1,9 @@
+
 import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from unified_fixtures import delivery_fixture
 
 from reality.services.core import InvalidOperation, record_movement, stock_at
@@ -69,7 +71,6 @@ def test_shipment_recovery_uses_recorded_evidence_without_reexecution(
 ):
     import json
 
-    from reality.services.core import reserve
     from reality.services.delivery_actions import (
         delivery_proposal_detail,
         reconcile_delivery,
@@ -77,7 +78,7 @@ def test_shipment_recovery_uses_recorded_evidence_without_reexecution(
 
     fixture = delivery_fixture(session, business)
     tid, cid = business.tenant.id, fixture.commitment.id
-    reserve(session, tid, cid, "12")
+    reviewed_reserve(session, tid, cid, "12")
     args = {
         "movement_type": "shipment",
         "commitment_id": cid,
@@ -190,7 +191,6 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
     from reality.services.core import (
         create_commitment,
         create_tenant,
-        reserve,
     )
 
     engine = build_engine(postgres_database)
@@ -225,7 +225,13 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
         def allocate(cid):
             with factory() as session:
                 barrier.wait(timeout=5)
-                return reserve(session, tenant.id, cid, "7").reserved
+                try:
+                    return reviewed_reserve(session, tenant.id, cid, "7").reserved
+                except InvalidOperation as error:
+                    assert error.code == "review_delivery_changed"
+                    # This fixture explicitly confirms a new current review after
+                    # the competing decision changed the available stock.
+                    return reviewed_reserve(session, tenant.id, cid, "7").reserved
 
         with ThreadPoolExecutor(max_workers=2) as workers:
             quantities = list(workers.map(allocate, commitments))
@@ -320,7 +326,6 @@ def test_old_review_upgrade_and_empty_allocation_keep_existing_identity(
     import json
 
     from reality.db.core import ChangeProposal, uid
-    from reality.services.core import reserve
     from reality.services.delivery_actions import review_existing
 
     fixture = delivery_fixture(session, business)
@@ -342,7 +347,7 @@ def test_old_review_upgrade_and_empty_allocation_keep_existing_identity(
     reviewed = review_existing(session, tid, proposal.id)
     assert reviewed.id == original_id
     assert json.loads(reviewed.input)["commitment_id"] == cid
-    reserve(session, tid, cid, "12")
+    reviewed_reserve(session, tid, cid, "12")
     empty = prepare_delivery_action(
         session, tid, "reserve", {"commitment_id": cid}, request_id="empty-allocation"
     )

@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -318,11 +319,11 @@ def test_shipment_correction_restores_stock_and_open_not_reservations(
 ):
     from unified_fixtures import delivery_fixture
 
-    from reality.services.core import active_reserved, open_quantity, reserve
+    from reality.services.core import active_reserved, open_quantity
 
     tid = business.tenant.id
     cid = delivery_fixture(session, business).commitment.id
-    reserve(session, tid, cid, "12")
+    reviewed_reserve(session, tid, cid, "12")
     original = record_movement(
         session,
         tid,

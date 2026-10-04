@@ -9,6 +9,7 @@ from intake_review_support import (
     reviewed_post_customer_payment,
     reviewed_post_sales_credit_note,
     reviewed_post_sales_invoice,
+    reviewed_reserve,
 )
 
 from reality.services.core import (
@@ -17,7 +18,6 @@ from reality.services.core import (
     open_invoice_amount,
     open_quantity,
     record_movement,
-    reserve,
 )
 
 
@@ -42,7 +42,7 @@ def test_order_to_cash_business_story(session, business):
         business.location.id,
     )
     commitment = commitments[0]
-    assert reserve(session, business.tenant.id, commitment.id).shortage == 0
+    assert reviewed_reserve(session, business.tenant.id, commitment.id).shortage == 0
     record_movement(
         session,
         business.tenant.id,

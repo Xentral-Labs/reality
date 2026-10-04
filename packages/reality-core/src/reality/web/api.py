@@ -126,7 +126,6 @@ from reality.services.core import (
     release_commitment_hold,
     release_document_holds,
     release_party_delivery_hold,
-    reserve,
     restore_chat_session,
     restore_tenant,
     retry_import_job,
@@ -3325,6 +3324,7 @@ class LedgerReversalWrite(ApiModel):
 
 
 class ReservationWrite(ApiModel):
+    confirmed: bool = False
     commitment_id: str
     quantity: str | None = None
     handling_unit_id: str | None = None
@@ -5086,31 +5086,21 @@ def post_ledger_reversal(
     response_model=ReservationRead,
     status_code=status.HTTP_201_CREATED,
 )
-def post_reservation(tenant_id: str, body: ReservationWrite, session: DatabaseSession):
+def post_reservation(tenant_id: str, body: ReservationWrite, session: DatabaseSession, request: Request):
+    from reality.services.delivery_actions import REVIEW_KEY
+    from reality.tools.application import create_change_proposal
+
     try:
-        result = reserve(
-            session,
-            tenant_id,
-            body.commitment_id,
-            body.quantity,
-            handling_unit_id=body.handling_unit_id,
-            lot_id=body.lot_id,
-            serial_unit_id=body.serial_unit_id,
-        )
-        reservation = result.reservation
-        return {
-            "id": reservation.id if reservation else None,
-            "requested": str(result.requested),
-            "reserved": str(result.reserved),
-            "shortage": str(result.shortage),
-            "handling_unit_id": reservation.handling_unit_id
-            if reservation
-            else body.handling_unit_id,
-            "lot_id": reservation.lot_id if reservation else body.lot_id,
-            "serial_unit_id": reservation.serial_unit_id
-            if reservation
-            else body.serial_unit_id,
-        }
+        if not body.confirmed:
+            raise InvalidOperation(code="review_confirmation_required")
+        proposal = create_change_proposal(session, tenant_id, "reserve",
+            body.model_dump(mode="json", exclude={"confirmed"}), actor_type="user")
+        receipt = approve_and_execute_proposal(session, tenant_id, proposal.id,
+            confirming_principal=optional_request_principal(request), confirmed=body.confirmed,
+            review_token=json.loads(proposal.input)[REVIEW_KEY]["token"])
+        result = json.loads(receipt.output)
+        return {"id": result["reservation_id"], **{key: result[key] for key in (
+            "requested", "reserved", "shortage", "handling_unit_id", "lot_id", "serial_unit_id")}}
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

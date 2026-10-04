@@ -1,3 +1,5 @@
+
+from intake_review_support import reviewed_release_reservation, reviewed_reserve
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, ProjectionCheckpoint, ProjectionRow
@@ -5,8 +7,6 @@ from reality.services.core import (
     cancel_commitment,
     create_commitment,
     record_movement,
-    release_reservation,
-    reserve,
 )
 from reality.services.projections import (
     COMMITMENT_REGISTER,
@@ -90,13 +90,13 @@ def test_materialized_operational_views_refresh_from_business_events(session, bu
         for row in checkpoints
     )
 
-    reservation = reserve(session, business.tenant.id, commitment.id).reservation
+    reservation = reviewed_reserve(session, business.tenant.id, commitment.id).reservation
     rebuild_projections(session, business.tenant.id, MATERIALIZED_PROJECTIONS)
     refreshed = projection_rows(session, business.tenant.id, FULFILLMENT_QUEUE)
     assert refreshed[0]["ship_ready"] is True
     assert projection_rows(session, business.tenant.id, FULFILLMENT_BLOCKERS) == []
 
-    release_reservation(session, business.tenant.id, reservation.id)
+    reviewed_release_reservation(session, business.tenant.id, reservation.id)
     rebuild_projections(session, business.tenant.id, MATERIALIZED_PROJECTIONS)
     released = projection_rows(session, business.tenant.id, FULFILLMENT_QUEUE)
     assert released[0]["ship_ready"] is False

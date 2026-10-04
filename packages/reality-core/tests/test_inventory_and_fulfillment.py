@@ -1,7 +1,9 @@
+
 import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_release_reservation, reviewed_reserve
 
 from reality.services.core import (
     InvalidOperation,
@@ -13,8 +15,6 @@ from reality.services.core import (
     inventory_rows,
     open_quantity,
     record_movement,
-    release_reservation,
-    reserve,
     stock_at,
 )
 
@@ -45,7 +45,7 @@ def test_shortage_reservation_and_release(session, business):
     )
     commitment = customer_commitment(session, business)
 
-    result = reserve(session, business.tenant.id, commitment.id)
+    result = reviewed_reserve(session, business.tenant.id, commitment.id)
 
     assert result.requested == Decimal("30.0000")
     assert result.reserved == Decimal("20.0000")
@@ -54,7 +54,7 @@ def test_shortage_reservation_and_release(session, business):
     assert active_reserved(session, business.tenant.id, business.item.id) == Decimal(
         "20.0000"
     )
-    release_reservation(session, business.tenant.id, result.reservation.id)
+    reviewed_release_reservation(session, business.tenant.id, result.reservation.id)
     assert active_reserved(session, business.tenant.id, business.item.id) == 0
 
 
@@ -70,7 +70,7 @@ def test_partial_shipments_derive_fulfillment_and_consume_reservations(
         to_location_id=business.location.id,
     )
     commitment = customer_commitment(session, business)
-    reserve(session, business.tenant.id, commitment.id)
+    reviewed_reserve(session, business.tenant.id, commitment.id)
 
     record_movement(
         session,
@@ -154,7 +154,7 @@ def test_shipment_consumes_only_the_reservation_at_its_own_location(session, bus
             to_location_id=location.id,
         )
     commitment = customer_commitment(session, business, 12)
-    reserve(session, business.tenant.id, commitment.id)
+    reviewed_reserve(session, business.tenant.id, commitment.id)
 
     def ship(location, quantity):
         record_movement(
@@ -218,7 +218,7 @@ def test_cancel_preserves_commitment_and_releases_allocation(session, business):
         to_location_id=business.location.id,
     )
     commitment = customer_commitment(session, business, 5)
-    reserve(session, business.tenant.id, commitment.id)
+    reviewed_reserve(session, business.tenant.id, commitment.id)
 
     cancel_commitment(
         session, business.tenant.id, commitment.id, reason="Test cancellation"

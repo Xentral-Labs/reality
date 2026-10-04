@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import select
 
 from reality.db.core import Commitment, Movement
@@ -194,7 +195,7 @@ def test_a_kit_is_sold_and_shipped_from_its_components(session, business):
         ("FRAME", "2"),
         ("WHEEL", "4"),
     ]
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     _dispatch(session, business, promise, "2", "TRK-K01")
 
     session.refresh(promise)
@@ -240,7 +241,7 @@ def test_a_kit_missing_one_component_is_held_back_whole(session, business):
     # Positive control: the missing wheel arrives and the kit ships whole.
     _receive(session, business, wheel, "1")
     _assemble(session, business, kit, "1")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     _dispatch(session, business, promise, "1", "TRK-K02")
     session.refresh(promise)
     assert promise.status == "fulfilled"
@@ -301,7 +302,7 @@ def _invoiced_kit(session, business):
     _receive(session, business, wheel, "2")
     promise = _order(session, business, "SO-K06", kit, "1", "119.00")
     _assemble(session, business, kit, "1")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     _dispatch(session, business, promise, "1", "TRK-K06")
     receipt = _reviewed(
         session,

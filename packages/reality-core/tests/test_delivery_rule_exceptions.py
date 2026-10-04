@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_reserve
 
 from reality.services import core
 from reality.services.delivery_rules import state_delivery_rule
@@ -74,7 +74,7 @@ def test_an_order_waiting_only_for_completeness_is_reported(session, business, l
         session, business, "SO-306-E1", [(business.item, "5"), (lamp, "3")]
     )
     _stock(session, business, business.item, "5")
-    core.reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, bikes.id)
     # Positive control: without the rule nothing waits for completeness.
     assert document.id not in _rows(session, business, "order_waiting_for_completeness")
     _rule(session, business, "ship_complete")
@@ -87,7 +87,7 @@ def test_an_order_waiting_only_for_completeness_is_reported(session, business, l
     assert row.trace["rule_source"] == "customer"
     # Once the whole order can ship, it no longer waits.
     _stock(session, business, lamp, "3")
-    core.reserve(session, tenant, lamps.id)
+    reviewed_reserve(session, tenant, lamps.id)
     assert document.id not in _rows(session, business, "order_waiting_for_completeness")
 
 
@@ -113,7 +113,7 @@ def test_a_rest_after_a_shipment_is_a_backorder_against_the_rule(
     # Positive control: nothing shipped yet, nothing is a backorder.
     assert not _rows(session, business, "backorder_against_rule")
     _stock(session, business, business.item, "6")
-    core.reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, bikes.id)
     core.record_movement(
         session,
         tenant,
@@ -183,7 +183,7 @@ def test_an_order_kept_back_by_a_hold_is_not_waiting_for_the_rule(
         session, business, "SO-306-HOLD", [(business.item, "5"), (lamp, "3")]
     )
     _stock(session, business, business.item, "5")
-    core.reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, bikes.id)
     _rule(session, business, "ship_complete")
     assert document.id in _rows(session, business, "order_waiting_for_completeness")
 

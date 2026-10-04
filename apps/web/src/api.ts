@@ -2442,7 +2442,7 @@ export const api = {
     request<ReservationRow[]>(
       `/api/tenants/${tenant}/reservations?${new URLSearchParams({ status })}`,
     ),
-  createReservation: (tenant: string, body: Record<string, unknown>) =>
+  createReservation: (tenant: string, body: Record<string, unknown> & { confirmed: boolean }) =>
     request(`/api/tenants/${tenant}/reservations`, { method: "POST", body: JSON.stringify(body) }),
   createHandlingUnit: (tenant: string, body: Record<string, unknown>) =>
     request<{ id: string }>(`/api/tenants/${tenant}/handling-units`, {

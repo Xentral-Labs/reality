@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import accept_import_job
+from intake_review_support import accept_import_job, reviewed_reserve
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -107,7 +107,7 @@ def _order(session, business):
 
 
 def _ship(session, business, commitment, quantity):
-    core.reserve(session, business.tenant.id, commitment.id)
+    reviewed_reserve(session, business.tenant.id, commitment.id)
     core.record_movement(
         session,
         business.tenant.id,
@@ -157,7 +157,7 @@ def test_a_lowered_open_line_revises_its_promise_and_cites_the_version(
     session, business
 ):
     first, second = _order(session, business)
-    core.reserve(session, business.tenant.id, first.id)
+    reviewed_reserve(session, business.tenant.id, first.id)
     assert core.active_reserved(session, business.tenant.id, business.item.id) == 10
 
     source, result = _version(
@@ -207,7 +207,7 @@ def test_a_removed_open_line_is_cancelled_citing_the_version(session, business):
 
 def test_a_cancellation_with_nothing_shipped_cancels_every_line(session, business):
     first, second = _order(session, business)
-    core.reserve(session, business.tenant.id, first.id)
+    reviewed_reserve(session, business.tenant.id, first.id)
 
     source, _ = _version(
         session,
@@ -420,7 +420,7 @@ def test_a_reduction_needing_a_reservation_choice_waits(session, business):
     _, interpreted = _intake(session, business, _payload(lines=lines))
     first = interpreted[3][0]
     for lot in lots:
-        core.reserve(session, tenant, first.id, "5", lot_id=lot.id)
+        reviewed_reserve(session, tenant, first.id, "5", lot_id=lot.id)
 
     source, _ = _version(
         session,

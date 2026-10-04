@@ -1,7 +1,8 @@
+
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_reserve
 from sqlalchemy import select
 from unified_fixtures import delivery_fixture
 
@@ -10,13 +11,12 @@ from reality.services import activity_volume
 from reality.services.core import (
     create_tenant,
     emit_business_event,
-    reserve,
 )
 
 
 def test_volume_counts_business_entities_not_import_steps(session, business):
     fixture = delivery_fixture(session, business)
-    reserve(session, business.tenant.id, fixture.commitment.id, "1")
+    reviewed_reserve(session, business.tenant.id, fixture.commitment.id, "1")
     reviewed_manual_order(
         session,
         business.tenant.id,

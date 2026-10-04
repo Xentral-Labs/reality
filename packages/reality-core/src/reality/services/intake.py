@@ -241,6 +241,7 @@ _INTENT_DEFAULTS = {
         if parameter.default is not Parameter.empty
     }
     for name in (
+        "reserve", "release_reservation",
         "post_supplier_credit_note", "post_supplier_refund", "record_supplier_refund",
         "allocate_credit_note", "allocate_supplier_credit_note",
         "execute_payment_run",
@@ -275,6 +276,13 @@ _INTENT_DEFAULTS = {
         "revise_commitment",
         "cancel_commitment",
     )
+}
+
+from reality.services.backorders import serve_backorders as _backorder_service
+
+_INTENT_DEFAULTS["serve_backorders"] = {
+    key: parameter.default for key, parameter in signature(_backorder_service).parameters.items()
+    if parameter.default is not Parameter.empty
 }
 
 _INTENT_DEFAULTS["record_external_stock_source"] = {}
@@ -359,6 +367,11 @@ def _post_reviewed_invoice(session, tenant_id, document_id, *, direction, credit
     operation = "post_sales_credit_note" if credit else "post_sales_invoice" if direction == "sales" else "post_supplier_invoice"
     identity = {"credit_note_id": document_id} if credit else {"document_id": document_id}
     return _invoke(operation, getattr(core, operation), session, tenant_id, **identity, **arguments)
+
+
+def _reserve_frozen(session, tenant_id, commitment_id, quantity=None, **arguments):
+    """Freeze an authored reservation; its existing actual scope owns authority."""
+    return _invoke("reserve", core.reserve, session, tenant_id, commitment_id=commitment_id, quantity=quantity, **arguments)
 
 
 def _post_frozen_customer_payment(session, tenant_id, invoice_id, amount, **arguments):

@@ -11,6 +11,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_release_reservation, reviewed_reserve
 
 from reality.db.core import Commitment
 from reality.services.core import (
@@ -28,9 +29,7 @@ from reality.services.core import (
     open_invoice_amount,
     open_quantity,
     record_movement,
-    release_reservation,
     reservation_register,
-    reserve,
     return_announcements,
     stock_at,
 )
@@ -119,14 +118,14 @@ def test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one(
     )
     for_b = customer_commitment(session, business, important, business.location, 8)
 
-    held_by_a = reserve(session, tenant, for_a.id)
+    held_by_a = reviewed_reserve(session, tenant, for_a.id)
     assert held_by_a.reserved == Decimal("10.0000")
     # Positive control for the shortage: while A holds everything, B gets nothing.
-    assert reserve(session, tenant, for_b.id).reserved == Decimal(0)
+    assert reviewed_reserve(session, tenant, for_b.id).reserved == Decimal(0)
     assert reserved_for(session, business, for_b) == Decimal(0)
 
-    release_reservation(session, tenant, held_by_a.reservation.id)
-    held_by_b = reserve(session, tenant, for_b.id)
+    reviewed_release_reservation(session, tenant, held_by_a.reservation.id)
+    held_by_b = reviewed_reserve(session, tenant, for_b.id)
 
     assert held_by_b.requested == Decimal("8.0000")
     assert held_by_b.reserved == Decimal("8.0000")
@@ -144,7 +143,7 @@ def test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one(
         "available": Decimal("2.0000"),
     }
     # What is left over can go back to A, and no more than that.
-    assert reserve(session, tenant, for_a.id).reserved == Decimal("2.0000")
+    assert reviewed_reserve(session, tenant, for_a.id).reserved == Decimal("2.0000")
     assert reserved_for(session, business, for_a) == Decimal("2.0000")
 
     # Both steps are traceable: the released reservation keeps its record and
@@ -292,11 +291,11 @@ def test_consignment_stock_at_a_customer_site_stays_counted_as_ours(session, bus
     from_warehouse = customer_commitment(
         session, business, business.customer, business.location, 16
     )
-    warehouse_hold = reserve(session, tenant, from_warehouse.id)
+    warehouse_hold = reviewed_reserve(session, tenant, from_warehouse.id)
     assert warehouse_hold.reserved == Decimal("14.0000")
     assert warehouse_hold.shortage == Decimal("2.0000")
     from_site = customer_commitment(session, business, business.customer, site, 4)
-    assert reserve(session, tenant, from_site.id).reserved == Decimal("4.0000")
+    assert reviewed_reserve(session, tenant, from_site.id).reserved == Decimal("4.0000")
 
     assert position(session, business, business.location) == {
         "physical": Decimal("14.0000"),
@@ -335,7 +334,7 @@ def test_stock_at_an_external_fulfilment_location_is_sold_from_there(session, bu
 
     marketplace_buyer = reviewed_create_party(session, tenant, "Amazon customer", "customer")
     order = customer_commitment(session, business, marketplace_buyer, fba, 5)
-    assert reserve(session, tenant, order.id).reserved == Decimal("5.0000")
+    assert reviewed_reserve(session, tenant, order.id).reserved == Decimal("5.0000")
     assert position(session, business, fba)["available"] == Decimal("7.0000")
     # The warehouse is untouched by a reservation at FBA.
     assert position(session, business, business.location) == {
@@ -425,7 +424,7 @@ def _sales_order(session, business, number, quantity, unit_price):
 
 
 def _deliver(session, business, commitment, quantity, days_ago):
-    reserve(session, business.tenant.id, commitment.id)
+    reviewed_reserve(session, business.tenant.id, commitment.id)
     return record_movement(
         session,
         business.tenant.id,
@@ -740,7 +739,7 @@ def test_an_exchange_returns_one_unit_and_sends_another_without_money(
     replacement = record_by_id(
         session, Commitment, receipt["replacement_commitment_id"]
     )
-    reserve(session, tenant, replacement.id)
+    reviewed_reserve(session, tenant, replacement.id)
     sent = record_movement(
         session,
         tenant,
@@ -1292,7 +1291,6 @@ def test_a_month_end_loss_uncovers_three_reservations_and_releases_none(
     from reality.services.core import (
         create_commitment,
         record_movement,
-        reserve,
     )
     from reality.services.exceptions import operational_exceptions
 
@@ -1320,7 +1318,7 @@ def test_a_month_end_loss_uncovers_three_reservations_and_releases_none(
         for _ in range(3)
     ]
     for promise in promises:
-        reserve(session, tenant, promise.id)
+        reviewed_reserve(session, tenant, promise.id)
 
     def flagged():
         return {

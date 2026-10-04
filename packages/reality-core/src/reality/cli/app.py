@@ -51,7 +51,6 @@ from reality.services.core import (
     release_commitment_hold,
     release_document_holds,
     release_party_delivery_hold,
-    reserve,
     retry_import_job,
     reverse_ledger_posting_group,
     serial_units,
@@ -622,29 +621,30 @@ def commitment_reserve(
     handling_unit_id: str | None = None,
     lot_id: str | None = None,
     serial_unit_id: str | None = None,
-    location_id: str | None = typer.Option(
-        None, help="Reserve the rest at this warehouse instead of the promise's own."
-    ),
+    location_id: str | None = typer.Option(None, help="Reserve the rest at this warehouse instead of the promise's own."),
+    yes: bool = typer.Option(False, "--yes"),
 ):
+    from reality.services.delivery_actions import REVIEW_KEY
+    from reality.tools.application import create_change_proposal
+
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            result = reserve(
-                s,
-                selected.id,
-                commitment_id,
-                quantity,
-                handling_unit_id=handling_unit_id,
-                lot_id=lot_id,
-                serial_unit_id=serial_unit_id,
-                location_id=location_id,
-            )
+            proposal = create_change_proposal(s, selected.id, "reserve", {
+                "commitment_id": commitment_id, "quantity": quantity,
+                "handling_unit_id": handling_unit_id, "lot_id": lot_id,
+                "serial_unit_id": serial_unit_id, "location_id": location_id,
+            }, actor_type="human")
+            review = json.loads(proposal.input)[REVIEW_KEY]
+            con.print_json(data={"tool": "reserve", "input": review["intent"], "review": json.loads(proposal.output)})
+            if not yes and not typer.confirm("Confirm this exact reservation?"):
+                con.print("Stopped; the proposal remains pending.")
+                raise typer.Exit()
+            receipt = approve_and_execute_proposal(s, selected.id, proposal.id, confirmed=True, review_token=review["token"])
+            result = json.loads(receipt.output)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
-    con.print(
-        f"✓ Reserved {result.reserved}; shortage {result.shortage}; "
-        f"reservation {result.reservation.id if result.reservation else 'none'}"
-    )
+    con.print(f"✓ Reserved {result['reserved']}; shortage {result['shortage']}; reservation {result['reservation_id'] or 'none'}")
 
 
 @import_app.command("work")

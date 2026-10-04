@@ -1,7 +1,9 @@
+
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import select
 
 from reality.db.core import Reservation
@@ -20,7 +22,6 @@ from reality.services.core import (
     hold_commitment,
     open_quantity,
     record_movement,
-    reserve,
     revise_commitment,
 )
 
@@ -315,7 +316,7 @@ def test_downward_revision_releases_excess_homogeneous_reservation(session, busi
     commitment = promise(
         session, business, kind="customer_delivery", quantity=100
     )
-    original = reserve(session, tenant_id, commitment.id, 100).reservation
+    original = reviewed_reserve(session, tenant_id, commitment.id, 100).reservation
     assert original is not None
 
     revise_commitment(session, tenant_id, commitment.id, quantity=50)
@@ -358,10 +359,10 @@ def test_downward_revision_requires_and_applies_explicit_heterogeneous_retention
         100,
         ORIGINAL,
     )
-    first = reserve(
+    first = reviewed_reserve(
         session, tenant_id, commitment.id, 50, lot_id=first_lot.id
     ).reservation
-    second = reserve(
+    second = reviewed_reserve(
         session, tenant_id, commitment.id, 50, lot_id=second_lot.id
     ).reservation
     assert first is not None and second is not None

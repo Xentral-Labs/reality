@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+from intake_review_support import reviewed_reserve
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -17,7 +18,6 @@ from reality.services.core import (
     create_commitment,
     create_lot,
     record_movement,
-    reserve,
     stock_at,
 )
 from reality.services.delivery_actions import (
@@ -76,7 +76,7 @@ def test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly(
         10,
         "2026-12-01",
     )
-    original_reservation = reserve(
+    original_reservation = reviewed_reserve(
         session, tenant_id, revised.id, 10, lot_id=lot.id
     ).reservation
     confirm(

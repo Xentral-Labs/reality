@@ -1,4 +1,6 @@
+
 import pytest
+from intake_review_support import reviewed_reserve
 
 from reality.services.core import (
     InvalidOperation,
@@ -12,7 +14,6 @@ from reality.services.core import (
     record_movement,
     release_commitment_hold,
     release_document_holds,
-    reserve,
     revise_commitment,
 )
 
@@ -52,7 +53,7 @@ def test_hold_blocks_reservation_and_movement_until_released(session, business):
 
     assert active_commitment_hold(session, business.tenant.id, commitment.id) == hold
     with pytest.raises(InvalidOperation, match="on hold"):
-        reserve(session, business.tenant.id, commitment.id)
+        reviewed_reserve(session, business.tenant.id, commitment.id)
     with pytest.raises(InvalidOperation, match="on hold"):
         record_movement(
             session,
@@ -67,7 +68,7 @@ def test_hold_blocks_reservation_and_movement_until_released(session, business):
     released = release_commitment_hold(session, business.tenant.id, commitment.id)
     assert released == [hold]
     assert hold.released_at is not None
-    assert reserve(session, business.tenant.id, commitment.id).reserved == 2
+    assert reviewed_reserve(session, business.tenant.id, commitment.id).reserved == 2
 
 
 def test_document_hold_is_a_convenience_over_linked_commitments(session, business):

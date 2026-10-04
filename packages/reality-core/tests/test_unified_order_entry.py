@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -22,7 +23,6 @@ from reality.services.core import (
     NotFound,
     create_tenant,
     record_movement,
-    reserve,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -211,7 +211,7 @@ def test_historical_proof_after_partial_delivery_and_receipt_mismatch(
         "5",
         to_location_id=business.location.id,
     )
-    reserve(session, business.tenant.id, receipt["commitment_ids"][0], "1")
+    reviewed_reserve(session, business.tenant.id, receipt["commitment_ids"][0], "1")
     record_movement(
         session,
         business.tenant.id,

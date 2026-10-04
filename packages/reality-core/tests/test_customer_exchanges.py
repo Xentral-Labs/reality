@@ -10,6 +10,7 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
     reviewed_record_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -56,7 +57,7 @@ def _delivered(session, business, quantity="2"):
         "2026-09-10",
         amount="40.00",
     )
-    core.reserve(session, tenant, commitment.id)
+    reviewed_reserve(session, tenant, commitment.id)
     core.record_movement(
         session,
         tenant,
@@ -199,7 +200,7 @@ def _sold(session, business, number, quantity="2", unit_price="20.00"):
         gross,
     )
     commitment = commitments[0]
-    core.reserve(session, tenant, commitment.id)
+    reviewed_reserve(session, tenant, commitment.id)
     core.record_movement(
         session,
         tenant,
@@ -575,7 +576,7 @@ def test_a_partly_shipped_then_cancelled_replacement_settles_what_left(
         quantity="2",
         replacement_quantity="2",
     )
-    core.reserve(session, tenant, exchange.replacement_commitment_id)
+    reviewed_reserve(session, tenant, exchange.replacement_commitment_id)
     core.record_movement(
         session,
         tenant,
@@ -653,7 +654,7 @@ def test_the_replacement_names_its_exchange_and_the_delivery_it_replaces(
     commitment = _delivered(session, business)
     goods_back = _returned(session, business, commitment)
     exchange = _exchange(session, business, return_movement_id=goods_back.id)
-    core.reserve(session, tenant, exchange.replacement_commitment_id)
+    reviewed_reserve(session, tenant, exchange.replacement_commitment_id)
     sent = core.record_movement(
         session,
         tenant,

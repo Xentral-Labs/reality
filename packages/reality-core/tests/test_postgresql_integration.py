@@ -1,3 +1,4 @@
+
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
@@ -9,6 +10,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from conftest import record_by_id
+from intake_review_support import reviewed_reserve
 from sqlalchemy import delete, func, insert, inspect, select
 from sqlalchemy.exc import TimeoutError
 from sqlalchemy.orm import sessionmaker
@@ -46,7 +48,6 @@ from reality.services.core import (
     create_tenant,
     enqueue_shopify_order,
     record_movement,
-    reserve,
     revise_commitment,
 )
 from reality.services.memberships import (
@@ -1018,7 +1019,7 @@ def test_concurrent_revisions_keep_active_reservation_within_latest_open(
             10,
             "2026-12-01",
         )
-        reserve(session, tenant, commitment.id, 10)
+        reviewed_reserve(session, tenant, commitment.id, 10)
         commitment_id = commitment.id
 
     barrier = Barrier(2)

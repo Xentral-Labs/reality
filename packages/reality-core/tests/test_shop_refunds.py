@@ -3,7 +3,11 @@
 import json
 from decimal import Decimal
 
-from intake_review_support import accept_import_job, accept_pending_import_jobs
+from intake_review_support import (
+    accept_import_job,
+    accept_pending_import_jobs,
+    reviewed_reserve,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -90,7 +94,7 @@ def _interpreted_order(session, business, *, shipped="0"):
     _, job = _enqueue(session, business, _order())
     commitment = accept_import_job(session, business.tenant.id, job.id)[3][0]
     if shipped != "0":
-        core.reserve(session, business.tenant.id, commitment.id)
+        reviewed_reserve(session, business.tenant.id, commitment.id)
         core.record_movement(
             session,
             business.tenant.id,

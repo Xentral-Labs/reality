@@ -14,6 +14,7 @@ from intake_review_support import (
     reviewed_manual_order,
     reviewed_post_sales_credit_note,
     reviewed_post_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import select
 
@@ -562,7 +563,7 @@ def test_an_owner_releases_a_credit_hold_with_a_reason(session, business):
         "10",
         to_location_id=business.location.id,
     )
-    core.reserve(session, tenant, commitments[0].id)
+    reviewed_reserve(session, tenant, commitments[0].id)
     assert fulfillment_readiness(session, tenant, commitments[0].id).ship_ready
 
 

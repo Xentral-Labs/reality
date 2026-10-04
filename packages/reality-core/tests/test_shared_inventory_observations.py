@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 
 from reality.catalogs import load_application_catalog
 from reality.services import core
@@ -55,7 +56,7 @@ def test_revised_partly_received_supply_agrees_on_every_surface(session, busines
         to_location_id=business.location.id,
     )
     customer = _promise(session, business, "customer_delivery", "4")
-    core.reserve(session, tenant, customer.id)
+    reviewed_reserve(session, tenant, customer.id)
     block = block_stock(
         session, tenant, business.item.id, business.location.id, "5", "quality"
     )
@@ -91,7 +92,7 @@ def test_location_scope_applies_to_every_contribution(session, business):
     block_stock(session, tenant, business.item.id, business.location.id, "3", "quality")
     block_stock(session, tenant, business.item.id, other.id, "5", "quality")
     promise = _promise(session, business, "customer_delivery", "4")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     _promise(session, business, "supplier_delivery", "7")
     _promise(session, business, "supplier_delivery", "11", other)
     (web,), _ = inventory_page(session, tenant, location_id=business.location.id)

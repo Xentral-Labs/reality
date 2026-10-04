@@ -2,7 +2,12 @@
 
 from decimal import Decimal
 
-from intake_review_support import reviewed_manual_order
+from intake_review_support import (
+    explicit_owner,
+    reviewed_manual_order,
+    reviewed_reserve,
+    reviewed_serve_backorders,
+)
 
 from reality.services import core
 from reality.services.supply_assignments import (
@@ -10,6 +15,7 @@ from reality.services.supply_assignments import (
     reverse_supply_assignment,
     supply_coverage,
 )
+from reality.tools import application
 
 
 def _promise(session, business, quantity, due="2026-10-20", location=None):
@@ -312,14 +318,13 @@ def test_a_tracked_item_is_refused(session, business):
 
 
 def test_serving_reserves_the_confirmed_lines(session, business):
-    from reality.services.backorders import serve_backorders
 
     first = _promise(session, business, "3", due="2026-10-15")
     second = _promise(session, business, "3", due="2026-10-16")
     _stock(session, business, "4")
     normalized, _ = _review(session, business)
 
-    result = serve_backorders(
+    result = reviewed_serve_backorders(
         session,
         business.tenant.id,
         business.item.id,
@@ -333,22 +338,17 @@ def test_serving_reserves_the_confirmed_lines(session, business):
 
 
 def test_a_confirmation_after_the_stock_changed_is_refused(session, business):
-    from reality.services.backorders import serve_backorders
 
     first = _promise(session, business, "3", due="2026-10-15")
     _stock(session, business, "3")
     normalized, _ = _review(session, business)
+    owner = explicit_owner(session, business.tenant.id)
+    proposal = application.create_change_proposal(session, business.tenant.id, "backorders_serve", normalized)
     # Someone else takes the stock first.
-    core.reserve(session, business.tenant.id, _promise(session, business, "3").id)
+    reviewed_reserve(session, business.tenant.id, _promise(session, business, "3").id)
 
     try:
-        serve_backorders(
-            session,
-            business.tenant.id,
-            business.item.id,
-            business.location.id,
-            normalized["lines"],
-        )
+        application.approve_and_execute_proposal(session, business.tenant.id, proposal.id, confirming_principal=owner, confirmed=True)
     except core.InvalidOperation as error:
         assert error.code == "backorder_serving_changed_since_review"
     else:
@@ -497,7 +497,6 @@ def test_a_revised_due_date_moves_the_promise_and_the_purchase(session, business
 
 
 def test_a_reserved_promise_does_not_hold_back_its_assigned_supply(session, business):
-    from reality.services.backorders import serve_backorders
 
     customer = _promise(session, business, "3")
     purchase = _purchase(session, business, "10")
@@ -506,7 +505,7 @@ def test_a_reserved_promise_does_not_hold_back_its_assigned_supply(session, busi
     # Other stock arrives and serves the customer by due date.
     _stock(session, business, "3")
     normalized, _ = _review(session, business)
-    serve_backorders(
+    reviewed_serve_backorders(
         session,
         business.tenant.id,
         business.item.id,
@@ -520,12 +519,13 @@ def test_a_reserved_promise_does_not_hold_back_its_assigned_supply(session, busi
 
 
 def test_a_hold_placed_after_the_review_refuses_the_confirmation(session, business):
-    from reality.services.backorders import serve_backorders
 
     first = _promise(session, business, "3", due="2026-10-15")
     _promise(session, business, "3", due="2026-10-16")
     _stock(session, business, "6")
     normalized, _ = _review(session, business)
+    owner = explicit_owner(session, business.tenant.id)
+    proposal = application.create_change_proposal(session, business.tenant.id, "backorders_serve", normalized)
     # Positive control: an unchanged review confirms.
     unchanged, _ = _review(session, business)
     assert unchanged["reviewed"] == normalized["reviewed"]
@@ -533,14 +533,7 @@ def test_a_hold_placed_after_the_review_refuses_the_confirmation(session, busine
     core.hold_commitment(session, business.tenant.id, first.id, "customer_request")
 
     try:
-        serve_backorders(
-            session,
-            business.tenant.id,
-            business.item.id,
-            business.location.id,
-            normalized["lines"],
-            reviewed=normalized["reviewed"],
-        )
+        application.approve_and_execute_proposal(session, business.tenant.id, proposal.id, confirming_principal=owner, confirmed=True)
     except core.InvalidOperation as error:
         assert error.code == "backorder_serving_changed_since_review"
     else:

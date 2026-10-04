@@ -1,4 +1,6 @@
+
 import pytest
+from intake_review_support import reviewed_reserve
 
 from reality.services.core import (
     InvalidOperation,
@@ -7,7 +9,6 @@ from reality.services.core import (
     hold_party_delivery,
     record_movement,
     release_party_delivery_hold,
-    reserve,
 )
 
 
@@ -39,7 +40,7 @@ def test_customer_delivery_hold_blocks_only_shipment(session, business):
         "Customer credit review",
     )
 
-    assert reserve(session, business.tenant.id, commitment.id).reserved == 2
+    assert reviewed_reserve(session, business.tenant.id, commitment.id).reserved == 2
     with pytest.raises(InvalidOperation, match="delivery hold"):
         record_movement(
             session,

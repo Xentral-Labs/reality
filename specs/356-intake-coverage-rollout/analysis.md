@@ -143,3 +143,8 @@ Caller review identifies authored fixed/profile payment calls, two direct CLI pa
 ## Standalone financial evidence analysis
 
 The seven currently supported handlers can invoke canonical posting/netting/refund services without an exact parent scope and retain child-owned commits. Existing invoice/credit record parents already freeze their relevant posting children; adding standalone coverage must preserve these finite nested meanings and real fixed/profile authority. Current references and no-confirmation refusal precede effects. No unresolved clarification or critical design finding remains. Required tests precede implementation and completion still requires every committed-head CI job.
+
+
+## Reservation follow-up analysis
+
+The two existing canonical parents still allow direct ordinary-company calls and handler commits. Existing delivery reviews and actual decision scopes already provide current-state/person authority; retain and recheck these at the canonical parent. Keep existing partial allocation and release domain logic unchanged. No critical ambiguity or schema change.

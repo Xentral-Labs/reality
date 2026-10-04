@@ -8,6 +8,7 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
+    reviewed_reserve,
 )
 
 from reality.db.core import Document, DocumentLine, uid
@@ -17,7 +18,6 @@ from reality.services.core import (
     create_tenant,
     hold_commitment,
     record_movement,
-    reserve,
     reverse_ledger_posting_group,
 )
 from reality.services.fulfillment_readiness import fulfillment_readiness
@@ -73,7 +73,7 @@ def _prepayment_order(session, business):
         "10",
         to_location_id=business.location.id,
     )
-    reserve(session, tenant_id, commitment.id)
+    reviewed_reserve(session, tenant_id, commitment.id)
     return order, lines[0], commitment
 
 
@@ -358,7 +358,7 @@ def test_unpaid_net_term_is_not_blocked_by_prepayment(session, business):
         "1",
         to_location_id=business.location.id,
     )
-    reserve(session, tenant_id, commitment.id)
+    reviewed_reserve(session, tenant_id, commitment.id)
     assert fulfillment_readiness(session, tenant_id, commitment.id).ship_ready is True
 
 
@@ -411,7 +411,7 @@ def test_readiness_combines_stock_reservation_and_active_hold(session, business)
         "2",
         to_location_id=business.location.id,
     )
-    reserve(session, tenant_id, commitment.id)
+    reviewed_reserve(session, tenant_id, commitment.id)
     hold = hold_commitment(
         session, tenant_id, commitment.id, "manual_review", "Check delivery"
     )

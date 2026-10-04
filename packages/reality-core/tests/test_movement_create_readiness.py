@@ -15,6 +15,7 @@ from intake_review_support import (
     reviewed_manual_order,
     reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import func, select
 
@@ -57,7 +58,7 @@ def _prepayment_order(session, business, *, reserve=True):
         payment_term_code="PREPAY",
     )
     if reserve:
-        core.reserve(session, tenant, commitments[0].id)
+        reviewed_reserve(session, tenant, commitments[0].id)
     return lines[0], commitments[0]
 
 

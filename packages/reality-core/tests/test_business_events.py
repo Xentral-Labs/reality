@@ -1,6 +1,8 @@
+
 import json
 from datetime import timedelta
 
+from intake_review_support import reviewed_reserve
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, Document, now
@@ -11,7 +13,6 @@ from reality.services.core import (
     create_tenant,
     emit_business_event,
     record_movement,
-    reserve,
     store_source_record,
     timeline_activity,
 )
@@ -224,7 +225,7 @@ def test_domain_changes_emit_ordered_tenant_scoped_events(session, business):
         2,
         to_location_id=business.location.id,
     )
-    reservation = reserve(session, business.tenant.id, commitment.id)
+    reservation = reviewed_reserve(session, business.tenant.id, commitment.id)
 
     events = business_events(session, business.tenant.id)
     assert [event.sequence for event in events] == list(range(1, len(events) + 1))

@@ -1324,7 +1324,7 @@ def test_react_registers_and_reference_inspectors_are_tenant_scoped(session, bus
     try:
         reserved = client.post(
             f"/api/tenants/{business.tenant.id}/reservations",
-            json={"commitment_id": commitment.id, "quantity": "3"},
+            json={"confirmed": True, "commitment_id": commitment.id, "quantity": "3"},
         )
         reservations = client.get(f"/api/tenants/{business.tenant.id}/reservations")
         movements = client.get(f"/api/tenants/{business.tenant.id}/movements")

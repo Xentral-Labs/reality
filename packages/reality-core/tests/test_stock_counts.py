@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
@@ -273,7 +274,7 @@ def test_the_review_names_the_reservations_a_loss_leaves_uncovered(session, busi
         for _ in range(3)
     ]
     for promise in promises:
-        core.reserve(session, tenant, promise.id)
+        reviewed_reserve(session, tenant, promise.id)
     # Positive control: a count that finds everything names nobody.
     _, unchanged = _review(
         session, business, [{"item_id": business.item.id, "counted_quantity": "12"}]

@@ -3,7 +3,7 @@
 import json
 from decimal import Decimal
 
-from intake_review_support import reviewed_set_master_data_active
+from intake_review_support import reviewed_reserve, reviewed_set_master_data_active
 from sqlalchemy import event
 
 from reality.services import core
@@ -90,7 +90,7 @@ def test_nothing_is_named_when_home_covers_the_rest(session, business):
 
     # Positive control: another order takes home's stock, and Munich is named.
     other = _promise(session, business, "5")
-    core.reserve(session, tenant, other.id)
+    reviewed_reserve(session, tenant, other.id)
     assert promise.id in _found(session, tenant)
 
 
@@ -113,7 +113,7 @@ def test_a_reserved_held_cancelled_or_shipped_promise_is_not_named(session, busi
     cancelled = _promise(session, business, "4")
     assert {reserved.id, held.id, cancelled.id} <= set(_found(session, tenant))
 
-    core.reserve(session, tenant, reserved.id, location_id=munich.id)
+    reviewed_reserve(session, tenant, reserved.id, location_id=munich.id)
     core.hold_commitment(session, tenant, held.id, "customer_request")
     core.cancel_commitment(session, tenant, cancelled.id, reason="customer withdrew")
     found = _found(session, tenant)
@@ -121,7 +121,7 @@ def test_a_reserved_held_cancelled_or_shipped_promise_is_not_named(session, busi
 
     shipped = _promise(session, business, "2")
     _stock(session, business, "2", business.location)
-    core.reserve(session, tenant, shipped.id)
+    reviewed_reserve(session, tenant, shipped.id)
     core.record_movement(
         session,
         tenant,
@@ -166,7 +166,7 @@ def test_what_other_orders_reserved_there_is_not_available(session, business):
     munich = _location(session, business, "Munich")
     _stock(session, business, "5", munich)
     other = _promise(session, business, "5")
-    core.reserve(session, tenant, other.id, location_id=munich.id)
+    reviewed_reserve(session, tenant, other.id, location_id=munich.id)
     promise = _promise(session, business, "4")
 
     # Munich's five are all reserved for the other order.
@@ -226,7 +226,7 @@ def test_a_transfer_through_the_review_clears_it(session, business):
 
     # Home now holds the four; reserving is the usual next step.
     assert promise.id not in _found(session, tenant)
-    assert core.reserve(session, tenant, promise.id).reserved == 4
+    assert reviewed_reserve(session, tenant, promise.id).reserved == 4
 
 
 def test_the_statement_count_does_not_grow_with_promises(session, business):

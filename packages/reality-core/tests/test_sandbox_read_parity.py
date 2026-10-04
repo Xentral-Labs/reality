@@ -5,6 +5,7 @@ import io
 from types import SimpleNamespace
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import event
 
 from reality.services.core import (
@@ -13,7 +14,6 @@ from reality.services.core import (
     create_commitment,
     create_tenant,
     record_movement,
-    reserve,
 )
 from reality.services.item_imports import preview_item_import, stage_item_csv
 from reality.services.reference_workspace import (
@@ -79,7 +79,7 @@ def test_populated_sandbox_warehouse_preserves_values_without_writes(
         "3",
         None,
     )
-    reserve(session, tid, commitment.id)
+    reviewed_reserve(session, tid, commitment.id)
     before = warehouse_register(
         session, tid, view, size=1, item_id=sandbox_business.item.id
     )

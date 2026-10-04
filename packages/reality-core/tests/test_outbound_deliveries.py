@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 
 from reality.db.core import Movement
@@ -159,7 +160,7 @@ def test_a_revision_keeps_every_statement(session, business):
 def test_picking_moves_the_goods_and_the_reservation_to_staging(session, business):
     tenant = business.tenant.id
     staging, promise = _setup(session, business)
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     delivery = _plan(session, business, promise, staging)
 
     pick_outbound_delivery(
@@ -180,7 +181,7 @@ def test_picking_moves_the_goods_and_the_reservation_to_staging(session, busines
 def test_a_pick_beyond_the_plan_is_refused_and_nothing_moves(session, business):
     tenant = business.tenant.id
     staging, promise = _setup(session, business)
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     delivery = _plan(session, business, promise, staging, quantity="5")
     before = session.scalar(select(func.count()).select_from(Movement))
 
@@ -224,7 +225,7 @@ def test_a_pick_needs_a_reservation_and_a_staging_location(session, business):
 def test_a_put_back_moves_both_back(session, business):
     tenant = business.tenant.id
     staging, promise = _setup(session, business)
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     delivery = _plan(session, business, promise, staging)
     pick_outbound_delivery(
         session, tenant, delivery.id, [{"commitment_id": promise.id, "quantity": "10"}]
@@ -268,7 +269,7 @@ def test_a_cancelled_promise_leaves_its_goods_waiting_to_be_put_back(
 ):
     tenant = business.tenant.id
     staging, promise = _setup(session, business)
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     delivery = _plan(session, business, promise, staging)
     pick_outbound_delivery(
         session, tenant, delivery.id, [{"commitment_id": promise.id, "quantity": "10"}]
@@ -299,7 +300,7 @@ def test_a_cancelled_promise_leaves_its_goods_waiting_to_be_put_back(
 def test_a_dispatch_through_the_delivery_keeps_where_it_went(session, business):
     tenant = business.tenant.id
     staging, promise = _setup(session, business)
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     slot = {"from": "2026-10-08T08:00:00+00:00", "until": "2026-10-08T10:00:00+00:00"}
     delivery = _plan(session, business, promise, staging, slot=slot)
     pick_outbound_delivery(
@@ -327,7 +328,7 @@ def test_a_dispatch_through_the_delivery_keeps_where_it_went(session, business):
 def test_a_dispatch_that_differs_from_the_delivery_is_refused(session, business):
     tenant = business.tenant.id
     staging, promise = _setup(session, business)
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     delivery = _plan(session, business, promise, staging)
     pick_outbound_delivery(
         session, tenant, delivery.id, [{"commitment_id": promise.id, "quantity": "6"}]
@@ -354,7 +355,7 @@ def test_a_dispatch_that_differs_from_the_delivery_is_refused(session, business)
 def test_a_dispatch_without_a_delivery_is_unchanged(session, business):
     tenant = business.tenant.id
     _, promise = _setup(session, business, quantity="2")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     output = _dispatch(
         session,
         business,

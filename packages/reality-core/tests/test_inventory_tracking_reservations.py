@@ -1,9 +1,11 @@
+
 import json
 from datetime import date
 from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_reserve
 from sqlalchemy.orm import sessionmaker
 
 from reality.services.core import (
@@ -17,7 +19,6 @@ from reality.services.core import (
     create_tenant,
     expired_lots,
     record_movement,
-    reserve,
     state_lot_expiry,
 )
 from reality.tools.application import confirm_tool, propose_tool
@@ -59,7 +60,7 @@ def test_lot_quantity_can_be_received_reserved_and_shipped_on_a_pallet(
     )
     commitment = customer_commitment(session, business, item.id, 6)
 
-    result = reserve(
+    result = reviewed_reserve(
         session,
         business.tenant.id,
         commitment.id,
@@ -102,7 +103,7 @@ def test_lot_tracked_item_requires_lot_for_movement_and_reservation(session, bus
             to_location_id=business.location.id,
         )
     with pytest.raises(InvalidOperation, match="require a lot"):
-        reserve(session, business.tenant.id, commitment.id, 1)
+        reviewed_reserve(session, business.tenant.id, commitment.id, 1)
 
 
 def test_serial_reservation_identifies_exact_unit_and_quantity_one(session, business):
@@ -132,7 +133,7 @@ def test_serial_reservation_identifies_exact_unit_and_quantity_one(session, busi
     )
     commitment = customer_commitment(session, business, item.id, 1)
 
-    result = reserve(
+    result = reviewed_reserve(
         session,
         business.tenant.id,
         commitment.id,
@@ -199,7 +200,7 @@ def test_api_uses_same_lot_reservation_flow(session, business, monkeypatch):
     assert movement_response.status_code == 201
     reservation_response = client.post(
         f"{prefix}/reservations",
-        json={
+        json={"confirmed": True,
             "commitment_id": commitment.id,
             "quantity": "2",
             "lot_id": lot_id,
@@ -378,7 +379,7 @@ def test_expiry_blocks_nothing(session, business):
 
     # Reserving expired stock is not refused: refusing would stop a company
     # recording what it is about to do, and Reality has never chosen a lot.
-    assert reserve(
+    assert reviewed_reserve(
         session, business.tenant.id, commitment.id, lot_id=lot.id
     ).reserved == Decimal(2)
 

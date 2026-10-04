@@ -880,3 +880,48 @@ def reviewed_allocate_supplier_credit_note(session, tenant_id, *args, **kwargs):
 
 def reviewed_post_supplier_refund(session, tenant_id, *args, **kwargs):
     return _reviewed_financial_posting_fixture(session, tenant_id, "post_supplier_refund", *args, **kwargs)
+
+
+def _reviewed_reservation_fixture(session, tenant_id, operation, *positional, **arguments):
+    """Create current reservation fixtures through actual retained confirmation."""
+    import inspect
+
+    from reality.db.core import BusinessEvent, Reservation
+    from reality.services.intake import _invoke
+    from reality.services.tenant_policy import (
+        _application_authority,
+        _decision_authority,
+        _profile_authority,
+    )
+
+    bound = inspect.signature(getattr(core, operation)).bind(session, tenant_id, *positional, **arguments)
+    values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id"}}
+    authority = _application_authority.get()
+    if _profile_authority.get() is not None or _decision_authority.get() is not None or authority is not None:
+        return _invoke(operation, getattr(core, operation), session, tenant_id, **values)
+    tool = "reserve" if operation == "reserve" else "reservation_release"
+    result = _confirm_document_fixture(session, tenant_id, tool, values)
+    if operation == "release_reservation":
+        return core._tenant_record_read(session, Reservation, tenant_id, result["records"][0]["id"])
+    reservation = core._tenant_record_read(session, Reservation, tenant_id, result["reservation_id"]) if result["reservation_id"] else None
+    event = core._tenant_record_read(session, BusinessEvent, tenant_id, result["event_id"]) if result["event_id"] else None
+    return core.ReservationResult(reservation, core.decimal(result["requested"]), core.decimal(result["reserved"]), core.decimal(result["shortage"]), event)
+
+
+def reviewed_reserve(session, tenant_id, *args, **kwargs):
+    return _reviewed_reservation_fixture(session, tenant_id, "reserve", *args, **kwargs)
+
+
+def reviewed_release_reservation(session, tenant_id, *args, **kwargs):
+    return _reviewed_reservation_fixture(session, tenant_id, "release_reservation", *args, **kwargs)
+
+
+def reviewed_serve_backorders(session, tenant_id, *positional, **arguments):
+    """Confirm the complete original backorder fixture as one actual decision."""
+    import inspect
+
+    from reality.services.backorders import serve_backorders
+
+    bound = inspect.signature(serve_backorders).bind(session, tenant_id, *positional, **arguments)
+    values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id"}}
+    return _confirm_document_fixture(session, tenant_id, "backorders_serve", values)

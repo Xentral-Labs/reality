@@ -11,6 +11,8 @@ from intake_review_support import (
     reviewed_create_price_list_entry,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
+    reviewed_release_reservation,
+    reviewed_reserve,
     reviewed_set_master_data_active,
 )
 from sqlalchemy import event
@@ -154,11 +156,11 @@ def test_active_reservations_reduce_what_is_available(session, business):
     # Control: an unreserved sale does not touch the stock at the location.
     assert _reached(session, tenant) == {}
 
-    reserved = core.reserve(session, tenant, sale.id)
+    reserved = reviewed_reserve(session, tenant, sale.id)
     row = _reached(session, tenant)[(business.item.id, business.location.id)]
     assert row.causal_values["available_quantity"] == Decimal(15)
 
-    core.release_reservation(session, tenant, reserved.reservation.id)
+    reviewed_release_reservation(session, tenant, reserved.reservation.id)
     assert _reached(session, tenant) == {}
 
 

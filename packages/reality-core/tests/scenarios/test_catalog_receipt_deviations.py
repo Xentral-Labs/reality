@@ -3,7 +3,7 @@
 import json
 from decimal import Decimal
 
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_reserve
 
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
@@ -345,7 +345,7 @@ def test_a_picking_error_found_by_the_customer(session, business):
             to_location_id=business.location.id,
         )
     _, promise = _order(session, business, "sales", "SO-D05", "3")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     shipped = _act(
         session,
         business,
@@ -410,7 +410,7 @@ def test_a_picking_error_found_by_the_customer(session, business):
         "d05-bells-back",
     )
     assert promise.id not in _findings(session, business, "misdelivery_outstanding")
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     _act(
         session,
         business,

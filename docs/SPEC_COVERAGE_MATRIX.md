@@ -2606,3 +2606,7 @@ Atomic selected payment/refund boundary: `packages/reality-core/tests/test_canon
 Atomic explicit-list payment run: `packages/reality-core/tests/test_canonical_payment_run_boundary.py` (spec 356 FR-001–FR-003; qualification pending).
 
 - `packages/reality-core/tests/test_canonical_financial_postings.py`: spec 356 FR-001–FR-003, T072–T075; exact current standalone posting/netting/supplier-refund decisions, complete receipt atomicity and authentic authority. Full qualification pending.
+
+Reservation parent follow-up (FR-001–FR-003): `packages/reality-core/tests/test_canonical_reservation_boundary.py`; current review/authority, exact invocation, atomicity and adapter qualification remain pending.
+
+Backorder reservation-batch follow-up (FR-001–FR-003): `packages/reality-core/tests/test_canonical_backorder_boundary.py`; exact parent/children, current consent, atomicity and receipt/replay qualification are pending.

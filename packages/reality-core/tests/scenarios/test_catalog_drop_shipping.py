@@ -9,13 +9,13 @@ import json
 from decimal import Decimal
 
 from conftest import record_by_id
+from intake_review_support import reviewed_reserve
 
 from reality.db.core import Commitment
 from reality.services.core import (
     account_balance,
     fulfilled_quantity,
     record_movement,
-    reserve,
     stock_at,
 )
 from reality.services.delivery_actions import prepare_delivery_action
@@ -244,7 +244,7 @@ def test_one_order_is_served_partly_from_stock_and_partly_by_the_supplier(
         to_location_id=business.location.id,
     )
     sale = _order(session, business, "sales", "SO-D11", "10", "20.00")
-    reserve(session, tenant, sale.id)
+    reviewed_reserve(session, tenant, sale.id)
     purchase = _drop_ship_order(session, business, "PO-D11", sale, "4")
     # The six in stock are reserved, the four the supplier ships are not a shortage.
     assert not _findings(session, business, {sale.id})

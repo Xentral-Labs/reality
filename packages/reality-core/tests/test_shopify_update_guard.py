@@ -1,3 +1,4 @@
+
 import json
 from copy import deepcopy
 from decimal import Decimal
@@ -5,6 +6,7 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 from intake_review_support import accept_import_job as process_import_job
+from intake_review_support import reviewed_reserve
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -26,7 +28,6 @@ from reality.services.core import (
     open_quantity,
     process_pending_import_jobs,
     record_movement,
-    reserve,
     retry_import_job,
 )
 from reality.tools.application import run_read_tool
@@ -116,7 +117,7 @@ def test_changed_order_preserves_every_business_record(
         10,
         to_location_id=business.location.id,
     )
-    reserve(session, business.tenant.id, commitment.id)
+    reviewed_reserve(session, business.tenant.id, commitment.id)
     if shipped:
         record_movement(
             session,

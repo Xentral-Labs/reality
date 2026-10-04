@@ -8,6 +8,7 @@ from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_order,
     reviewed_post_customer_payment,
+    reviewed_reserve,
 )
 from sqlalchemy import select
 
@@ -89,7 +90,7 @@ def _order(session, business, number, *, prepaid=True, paid="80.00"):
         "100.00",
         payment_term_code=code,
     )
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     proposal = prepare_delivery_action(
         session,
         tenant,

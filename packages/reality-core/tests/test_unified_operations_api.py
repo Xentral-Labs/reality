@@ -1,6 +1,8 @@
+
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_release_reservation, reviewed_reserve
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from unified_fixtures import delivery_fixture
@@ -10,7 +12,6 @@ from reality.services.core import (
     correct_movement,
     create_tenant,
     record_movement,
-    reserve,
 )
 from reality.services.projections import EXCEPTIONS, rebuild_projections
 from reality.web.api import database_session
@@ -22,7 +23,7 @@ def test_warehouse_reads_filter_exact_item_before_paging_without_effects(
 ):
     fixture = delivery_fixture(session, business)
     tid = business.tenant.id
-    reserve(session, tid, fixture.commitment.id, "12")
+    reviewed_reserve(session, tid, fixture.commitment.id, "12")
     other_item = reviewed_create_item(session, tid, "OTHER", business.item.name, unit="kg")
     record_movement(
         session,
@@ -142,17 +143,17 @@ def test_warehouse_movement_history_keeps_correction_roles(session, business):
 def test_warehouse_state_filters_and_non_customer_targets(session, business):
     from decimal import Decimal
 
-    from reality.services.core import create_commitment, release_reservation
+    from reality.services.core import create_commitment
     from reality.web.warehouse_reads import warehouse_register
 
     fixture = delivery_fixture(session, business)
     tid = business.tenant.id
-    reserve(session, tid, fixture.commitment.id, "12")
+    reviewed_reserve(session, tid, fixture.commitment.id, "12")
     extra = reviewed_create_item(session, tid, "EMPTY", "Empty item")
     result = warehouse_register(session, tid, "stock", state="fully_allocated", size=1)
     assert result["page"]["total"] == 1 and result["items"][0]["id"] == extra.id
     active = warehouse_register(session, tid, "reservations", state="active")
-    release_reservation(session, tid, active["items"][0]["id"])
+    reviewed_release_reservation(session, tid, active["items"][0]["id"])
     assert (
         warehouse_register(session, tid, "reservations", state="active")["page"][
             "total"
@@ -223,7 +224,7 @@ def test_attention_detail_classifies_a_cleared_finding_over_http(session, busine
                 if row["record_id"] == fixture.commitment.id
             )
             assert client.get(f"{base}/attention/{finding['id']}").status_code == 200
-            reserve(session, tid, fixture.commitment.id, "12")
+            reviewed_reserve(session, tid, fixture.commitment.id, "12")
             cleared = client.get(f"{base}/attention/{finding['id']}")
             assert cleared.status_code == 404
             assert cleared.json()["code"] == "finding_cleared"

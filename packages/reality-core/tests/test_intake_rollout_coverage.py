@@ -3,7 +3,7 @@
 import json
 
 import pytest
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import reviewed_create_payment_term, reviewed_reserve
 from sqlalchemy import func, select
 from test_intake_admission import FIXTURE
 
@@ -304,7 +304,7 @@ def test_unstated_order_total_stays_unknown_in_delivery_readiness(
         )
         order.payment_term_id = term.id
         session.flush()
-    core.reserve(session, tenant, commitment_id)
+    reviewed_reserve(session, tenant, commitment_id)
     readiness = fulfillment_readiness(session, tenant, commitment_id)
     assert readiness.required_amount is None
     assert readiness.as_dict()["required_amount"] is None

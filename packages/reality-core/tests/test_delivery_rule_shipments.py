@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_manual_order, reviewed_reserve
 
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
@@ -129,8 +129,8 @@ def test_readiness_waits_for_the_whole_order(session, business, lamp):
     )
     _stock(session, business, business.item, "5")
     _stock(session, business, lamp, "1")
-    core.reserve(session, tenant, bikes.id)
-    core.reserve(session, tenant, lamps.id)
+    reviewed_reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, lamps.id)
     # Positive control: without a rule the reserved bikes are ready.
     assert fulfillment_readiness(session, tenant, bikes.id).ship_ready
 
@@ -141,7 +141,7 @@ def test_readiness_waits_for_the_whole_order(session, business, lamp):
     assert "ship_complete_incomplete" in readiness.blocker_codes
     # A part of a line is incomplete as well.
     _stock(session, business, lamp, "2")
-    core.reserve(session, tenant, lamps.id)
+    reviewed_reserve(session, tenant, lamps.id)
     assert fulfillment_readiness(session, tenant, bikes.id).ship_ready
     partial = fulfillment_readiness(
         session, tenant, bikes.id, proposed_quantity=Decimal(2)
@@ -156,8 +156,8 @@ def test_every_shipment_path_refuses_a_partial_order(session, business, lamp):
     )
     _stock(session, business, business.item, "5")
     _stock(session, business, lamp, "3")
-    core.reserve(session, tenant, bikes.id)
-    core.reserve(session, tenant, lamps.id)
+    reviewed_reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, lamps.id)
     _ship_complete(session, business)
 
     # One line alone, as a package or as a single shipment.
@@ -200,8 +200,8 @@ def test_a_lifted_order_ships_in_parts_while_others_wait(session, business, lamp
         session, business, "SO-306-W", [(business.item, "2"), (lamp, "1")]
     )
     _stock(session, business, business.item, "7")
-    core.reserve(session, tenant, bikes.id)
-    core.reserve(session, tenant, other_bikes.id)
+    reviewed_reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, other_bikes.id)
     _ship_complete(session, business)
 
     state_delivery_rule(
@@ -230,7 +230,7 @@ def test_cancelled_and_shipped_lines_count_as_complete(session, business, lamp):
         session, business, "SO-306-C", [(business.item, "5"), (lamp, "3")]
     )
     _stock(session, business, business.item, "5")
-    core.reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, bikes.id)
     _ship_complete(session, business)
     assert not fulfillment_readiness(session, tenant, bikes.id).ship_ready
 
@@ -275,7 +275,7 @@ def test_the_fulfillment_queue_names_the_rule(session, business, lamp):
         session, business, "SO-306-Q", [(business.item, "5"), (lamp, "3")]
     )
     _stock(session, business, business.item, "5")
-    core.reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, bikes.id)
 
     def reasons():
         projections.refresh_operational_projections(session, tenant, force=True)
@@ -311,8 +311,8 @@ def test_a_line_split_across_two_warehouses_ships_complete(session, business, la
         "2",
         to_location_id=munich.id,
     )
-    core.reserve(session, tenant, bikes.id, "3")
-    core.reserve(session, tenant, bikes.id, "2", location_id=munich.id)
+    reviewed_reserve(session, tenant, bikes.id, "3")
+    reviewed_reserve(session, tenant, bikes.id, "2", location_id=munich.id)
     _ship_complete(session, business)
     proposal = create_change_proposal(
         session,
@@ -351,7 +351,7 @@ def test_a_single_line_order_ships_complete_as_one_shipment(session, business):
     tenant = business.tenant.id
     _, (bikes,) = _order(session, business, "SO-306-ONE", [(business.item, "5")])
     _stock(session, business, business.item, "5")
-    core.reserve(session, tenant, bikes.id)
+    reviewed_reserve(session, tenant, bikes.id)
     _ship_complete(session, business)
 
     proposal = _single_shipment(session, business, bikes, business.item, "5", "one")

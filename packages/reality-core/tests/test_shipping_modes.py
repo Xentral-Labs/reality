@@ -4,6 +4,7 @@ import json
 from datetime import timedelta
 
 import pytest
+from intake_review_support import reviewed_reserve
 from unified_fixtures import delivery_fixture
 
 from reality.db.core import Movement
@@ -63,7 +64,7 @@ def _refused(code, call):
 def test_a_customer_collects_and_says_who(session, business):
     tenant = business.tenant.id
     fixture = delivery_fixture(session, business, quantity="2")
-    core.reserve(session, tenant, fixture.commitment.id)
+    reviewed_reserve(session, tenant, fixture.commitment.id)
 
     output = _dispatch(
         session, business, fixture, delivery_mode="pickup", collected_by="M. Müller"
@@ -79,7 +80,7 @@ def test_a_customer_collects_and_says_who(session, business):
 def test_a_pickup_takes_no_carrier_and_is_for_customers_only(session, business):
     tenant = business.tenant.id
     fixture = delivery_fixture(session, business, quantity="4")
-    core.reserve(session, tenant, fixture.commitment.id)
+    reviewed_reserve(session, tenant, fixture.commitment.id)
     _refused(
         "shipment_pickup_carrier_refused",
         lambda: _dispatch(
@@ -120,7 +121,7 @@ def test_a_pickup_takes_no_carrier_and_is_for_customers_only(session, business):
 def test_movements_carry_when_the_goods_left(session, business):
     tenant = business.tenant.id
     fixture = delivery_fixture(session, business, quantity="2")
-    core.reserve(session, tenant, fixture.commitment.id)
+    reviewed_reserve(session, tenant, fixture.commitment.id)
     _stock_since(session, business)
     left = core.now() - timedelta(days=3)
 
@@ -139,7 +140,7 @@ def test_movements_carry_when_the_goods_left(session, business):
 def test_a_future_time_is_refused_and_no_time_has_no_lag(session, business):
     tenant = business.tenant.id
     fixture = delivery_fixture(session, business, quantity="2")
-    core.reserve(session, tenant, fixture.commitment.id)
+    reviewed_reserve(session, tenant, fixture.commitment.id)
     _refused(
         "shipment_occurred_at_future",
         lambda: _dispatch(
@@ -159,7 +160,7 @@ def test_an_agent_records_a_pickup_through_the_strict_schema(session, business):
     from reality.mcp.server import _reject_unknown_fields
 
     fixture = delivery_fixture(session, business, quantity="1")
-    core.reserve(session, business.tenant.id, fixture.commitment.id)
+    reviewed_reserve(session, business.tenant.id, fixture.commitment.id)
     _stock_since(session, business)
     arguments = {
         "purpose": "customer_delivery",
@@ -190,7 +191,7 @@ def test_goods_cannot_leave_before_they_arrived(session, business):
 
     tenant = business.tenant.id
     fixture = delivery_fixture(session, business, quantity="2")
-    core.reserve(session, tenant, fixture.commitment.id)
+    reviewed_reserve(session, tenant, fixture.commitment.id)
     # The fixture's stock was received now; a shipment a week ago had nothing.
     week_ago = (core.now() - timedelta(days=7)).isoformat()
     _refused(

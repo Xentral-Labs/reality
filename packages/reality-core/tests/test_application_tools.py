@@ -31,7 +31,6 @@ from reality.services.core import (
     create_commitment,
     create_tenant,
     record_movement,
-    reserve,
 )
 from reality.services.memberships import Principal
 from reality.tools.application import (
@@ -376,30 +375,30 @@ def test_mutation_changes_reality_only_after_confirmation(session, business):
     }
 
 
-def test_executing_proposal_requires_reconciliation_without_reexecution(
-    session, business
-):
+def test_executing_proposal_requires_reconciliation_without_reexecution(session, business, monkeypatch):
+    """An actual confirmed claim interrupted before effects requires reconciliation."""
+    from intake_review_support import explicit_owner
+
+    from reality.tools import application
+
     commitment = commitment_with_stock(session, business)
-    proposal = propose_tool(
-        session, business.tenant.id, "reserve", {"commitment_id": commitment.id}
-    )
-    proposal.status = "executing"
-    session.commit()
-
+    owner = explicit_owner(session, business.tenant.id)
+    proposal = propose_tool(session, business.tenant.id, "reserve", {"commitment_id": commitment.id})
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    def stopped(db, tenant, *args, **arguments):
+        raise SystemExit("Process interrupted after its actual durable claim")
+    monkeypatch.setattr(application, "reserve", stopped)
+    with pytest.raises(SystemExit):
+        confirm_tool(session, business.tenant.id, proposal.id, confirming_principal=owner, confirmed=True, review_token=token)
     with pytest.raises(InvalidOperation, match="reconcile by proposal ID"):
-        confirm_tool(session, business.tenant.id, proposal.id)
-
-    assert (
-        session.query(Reservation).filter_by(commitment_id=commitment.id).count() == 0
-    )
-    status = run_read_tool(
-        session,
-        business.tenant.id,
-        "proposal_execution_status",
-        {"proposal_id": proposal.id},
-    )
+        confirm_tool(session, business.tenant.id, proposal.id, confirming_principal=owner, confirmed=True, review_token=token)
+    assert session.query(Reservation).filter_by(commitment_id=commitment.id).count() == 0
+    status = run_read_tool(session, business.tenant.id, "proposal_execution_status", {"proposal_id": proposal.id})
     assert status["status"] == "executing"
     assert status["verification"]["execution"] == "unknown"
+    session.refresh(proposal)
+    assert proposal.decided_by_user_id == owner.user_id and proposal.decided_at is not None
+
 
 
 def test_deterministic_unreviewed_refusal_is_terminal_and_retryable_as_new_proposal(
@@ -432,41 +431,32 @@ def test_deterministic_unreviewed_refusal_is_terminal_and_retryable_as_new_propo
     )
 
 
-def test_reconciliation_finds_effect_committed_before_proposal_receipt(
-    session, business
-):
+def test_atomic_reservation_refuses_effect_commit_before_proposal_receipt(session, business, monkeypatch):
+    """A reservation callback cannot leave committed effects without its receipt."""
+    from intake_review_support import explicit_owner
+
+    from reality.services import core
+    from reality.tools import application
+
     commitment = commitment_with_stock(session, business)
-    proposal = propose_tool(
-        session, business.tenant.id, "reserve", {"commitment_id": commitment.id}
-    )
-    proposal.status = "executing"
-    session.commit()
-    committed = reserve(
-        session,
-        business.tenant.id,
-        commitment.id,
-        action_id=proposal.id,
-    )
+    owner = explicit_owner(session, business.tenant.id)
+    proposal = propose_tool(session, business.tenant.id, "reserve", {"commitment_id": commitment.id})
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    original = core.reserve
+    def commit_before_receipt(db, tenant, *args, **arguments):
+        result = original(db, tenant, *args, **arguments)
+        db.commit()
+        return result
+    monkeypatch.setattr(application, "reserve", commit_before_receipt)
+    with pytest.raises(InvalidOperation) as refused:
+        confirm_tool(session, business.tenant.id, proposal.id, confirming_principal=owner, confirmed=True, review_token=token)
+    assert refused.value.code == "intake_partial_commit_forbidden"
+    session.rollback()
+    assert session.query(Reservation).filter_by(commitment_id=commitment.id).count() == 0
+    status = run_read_tool(session, business.tenant.id, "proposal_execution_status", {"proposal_id": proposal.id})
+    assert status["status"] != "executed" and status["receipt"] is None
+    assert status.get("reconciliation_evidence") is None
 
-    status = run_read_tool(
-        session,
-        business.tenant.id,
-        "proposal_execution_status",
-        {"proposal_id": proposal.id},
-    )
-
-    assert status["status"] == "executing"
-    assert status["receipt"] is None
-    assert status["reconciliation_evidence"] == {
-        "event_id": committed.event.id,
-        "reservation_id": committed.reservation.id,
-        "commitment_id": commitment.id,
-        "applied": "5",
-    }
-    assert status["verification"]["execution"] == "effect_observed_proposal_unsettled"
-    assert status["verification"]["operational_state"] == "verified"
-    with pytest.raises(InvalidOperation, match="reconcile by proposal ID"):
-        confirm_tool(session, business.tenant.id, proposal.id)
 
 
 @pytest.mark.parametrize(

@@ -9,13 +9,13 @@ from uuid import uuid4
 
 import httpx
 from conftest import business
+from intake_review_support import reviewed_reserve
 from live_stack import PASSWORD, add_member, live_stack, migrate
 from sqlalchemy.orm import sessionmaker
 from test_proposal_decision_policy import _held_release
 from unified_fixtures import delivery_fixture
 
 from reality.db.core import build_engine
-from reality.services import core
 from reality.services.analytics.reports import caller
 from reality.services.memberships import Principal
 from reality.tools.application import create_change_proposal
@@ -36,7 +36,7 @@ def test_live_proposal_decision_roles(postgres_database, tmp_path):
         credit, _ = _held_release(session, company)
         rejection, _ = _held_release(session, company)
         fixture = delivery_fixture(session, company, quantity="2")
-        core.reserve(session, tenant, fixture.commitment.id)
+        reviewed_reserve(session, tenant, fixture.commitment.id)
         shipment = create_change_proposal(
             session,
             tenant,

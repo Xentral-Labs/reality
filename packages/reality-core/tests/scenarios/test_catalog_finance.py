@@ -23,6 +23,7 @@ from intake_review_support import (
     reviewed_post_supplier_invoice,
     reviewed_record_sales_credit,
     reviewed_record_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import func, select
 
@@ -697,7 +698,7 @@ def test_one_payment_releases_two_prepaid_orders(session, business):
             "100.00",
             payment_term_code="PREPAY",
         )
-        core.reserve(session, tenant, commitments[0].id)
+        reviewed_reserve(session, tenant, commitments[0].id)
         orders.append((lines[0], commitments[0]))
     invoices = [
         _invoice_line(session, business, line.id, "5", "100.00", f"RE-C04-{n}")[0]
@@ -1036,7 +1037,7 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
         payment_term_code="PREPAY",
     )
     commitment = commitments[0]
-    core.reserve(session, tenant, commitment.id)
+    reviewed_reserve(session, tenant, commitment.id)
     invoice_id, _ = _invoice_line(
         session, business, lines[0].id, "10", "100.00", "RE-R01"
     )
@@ -1174,7 +1175,7 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
         session, tenant, commitment.id, quantity="9", note="Customer cancels one"
     )
     # The rest ships; the release still covers the order.
-    core.reserve(session, tenant, commitment.id)
+    reviewed_reserve(session, tenant, commitment.id)
     rest = {**dispatch, "movements": [{**dispatch["movements"][0], "quantity": "5"}]}
     _reviewed(session, business, "shipment_dispatch", rest, "r01-ship-rest")
     # 2 come back damaged and are scrapped.
@@ -1833,7 +1834,7 @@ def test_an_order_over_the_limit_is_held_and_released_by_an_owner(session, busin
         (row["id"], row["tool"])
         for row in record_decisions(session, tenant, "commitment", held[0])
     }
-    core.reserve(session, tenant, held[0])
+    reviewed_reserve(session, tenant, held[0])
     assert fulfillment_readiness(session, tenant, held[0]).ship_ready
 
 
@@ -1941,7 +1942,7 @@ def _stocked_order(session, business, number, *, prepay=False, quantity="10"):
         f"{quantity}00.00",
         **({"payment_term_code": f"PRE-{number}"} if prepay else {}),
     )
-    core.reserve(session, tenant, commitments[0].id)
+    reviewed_reserve(session, tenant, commitments[0].id)
     return order, lines[0], commitments[0]
 
 

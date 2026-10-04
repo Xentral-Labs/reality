@@ -14,6 +14,7 @@ from intake_review_support import (
     accept_normalized_payment,
     accept_pending_import_jobs,
     reviewed_record_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import func, select
 
@@ -95,7 +96,7 @@ def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
     )
     _, interpreted = _intake(session, business, _order_payload(6101))
     commitment = interpreted[3][0]
-    core.reserve(session, tenant, commitment.id)
+    reviewed_reserve(session, tenant, commitment.id)
 
     cancellation, applied = _intake(
         session,
@@ -123,7 +124,7 @@ def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
     # A second order ships one of two before the shop cancels it.
     _, interpreted = _intake(session, business, _order_payload(6102))
     shipped = interpreted[3][0]
-    core.reserve(session, tenant, shipped.id)
+    reviewed_reserve(session, tenant, shipped.id)
     core.record_movement(
         session,
         tenant,
@@ -283,7 +284,7 @@ def _stocked(session, business, quantity="20"):
 
 
 def _ship_line(session, business, commitment, quantity):
-    core.reserve(session, business.tenant.id, commitment.id)
+    reviewed_reserve(session, business.tenant.id, commitment.id)
     core.record_movement(
         session,
         business.tenant.id,
@@ -308,7 +309,7 @@ def test_a_new_shop_version_revises_the_promise_and_keeps_the_old_version(
     _stocked(session, business)
     first, interpreted = _intake(session, business, _shop_order(9601))
     order, (line_a, line_b) = interpreted[1], interpreted[3]
-    core.reserve(session, business.tenant.id, line_a.id)
+    reviewed_reserve(session, business.tenant.id, line_a.id)
 
     second, applied = _intake(
         session,
@@ -871,7 +872,7 @@ def test_an_open_order_partly_delivered_before_go_live_is_traceable(
     assert commitment.id in _classes(
         session, business, "overdue_outgoing_customer_commitment"
     )
-    core.reserve(session, tenant, commitment.id)
+    reviewed_reserve(session, tenant, commitment.id)
     _ship_line(session, business, commitment, "6")
     # Positive control: the six shipped since go-live are unbilled until invoiced.
     unbilled = _classes(session, business, "shipped_not_billed")

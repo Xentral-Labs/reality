@@ -4,6 +4,7 @@ import json
 from types import SimpleNamespace
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -160,7 +161,7 @@ def test_future_shipments_blocked_reservations_allowed_and_own_hold_remains(
         "3",
         None,
     ).id
-    assert core.reserve(session, tid, cid).reserved == 3
+    assert reviewed_reserve(session, tid, cid).reserved == 3
     with pytest.raises(core.InvalidOperation, match="delivery hold"):
         core.record_movement(
             session,

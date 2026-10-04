@@ -777,17 +777,21 @@ def _reserve(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any
     BUSINESS RULE application.reserve.2:
     Report no effect when allocated quantity is zero, complete when shortage is zero, and partial otherwise; retain the shared requested, allocated and shortage quantities.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.reserve.1
-    result = reserve(
+    result = _invoke(
+        "reserve", reserve,
         session,
         tenant_id,
-        arguments["commitment_id"],
-        arguments.get("quantity"),
+        commitment_id=arguments["commitment_id"],
+        quantity=arguments.get("quantity"),
         handling_unit_id=arguments.get("handling_unit_id"),
         lot_id=arguments.get("lot_id"),
         serial_unit_id=arguments.get("serial_unit_id"),
         location_id=arguments.get("location_id"),
         action_id=arguments.get("_action_id"),
+        _commit=False,
     )
     # reality-rule: application.reserve.2
     effect = (
@@ -1744,9 +1748,11 @@ def _reservation_release(
     """
     arguments = dict(arguments)
     arguments["action_id"] = arguments.pop("_action_id", None)
+    from reality.services.intake import _invoke
+
     # reality-rule: application.reservation_release.1
     return _entity_result(
-        "reservation", release_reservation(session, tenant_id, **arguments)
+        "reservation", _invoke("release_reservation", release_reservation, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -2455,17 +2461,20 @@ def _backorders_serve(
     Route this company-scoped request to serve_backorders. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
     from reality.services.backorders import serve_backorders
+    from reality.services.intake import _invoke
 
     # reality-rule: application.backorders_serve.1
-    return serve_backorders(
+    return _invoke(
+        "serve_backorders", serve_backorders,
         session,
         tenant_id,
-        arguments["item_id"],
-        arguments["location_id"],
-        arguments["lines"],
+        item_id=arguments["item_id"],
+        location_id=arguments["location_id"],
+        lines=arguments["lines"],
         supplier_commitment_id=arguments.get("supplier_commitment_id") or None,
         reviewed=arguments.get("reviewed"),
         action_id=arguments.get("_action_id"),
+        _commit=False,
     )
 
 
@@ -6329,7 +6338,10 @@ def create_change_proposal(
 
         review_opening(session, tenant_id, arguments)
     from reality.services.payment_actions import PAYMENT_TOOLS
-    from reality.services.tenant_policy import _proposal_authority
+    from reality.services.tenant_policy import (
+        RESERVATION_APPLICATION_OPERATIONS,
+        _proposal_authority,
+    )
 
     guided = _proposal_authority.get()
     actual_guided_proposal = (
@@ -6339,11 +6351,11 @@ def create_change_proposal(
         and guided.tenant_id == tenant_id
         and guided.tool_name == tool_name
     )
-    # Ordinary practice payments retain the same current review as business
-    # payments. Guided lessons retain their existing exact step preview contract.
+    # Ordinary practice payments and reservations retain the same current review.
+    # Guided lessons retain their existing exact step preview contract.
     if (
         tenant
-        and (tenant.purpose != "playground" or tool_name in PAYMENT_TOOLS and not actual_guided_proposal)
+        and (tenant.purpose != "playground" or tool_name in {*PAYMENT_TOOLS, *RESERVATION_APPLICATION_OPERATIONS} and not actual_guided_proposal)
         and eligible(tool_name, arguments)
         and not raw_opening
         and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}
@@ -6979,10 +6991,11 @@ def approve_and_execute_proposal(
     from reality.services.tenant_policy import (
         COMMERCIAL_MASTER_OPERATIONS,
         FINANCIAL_POSTING_OPERATIONS,
+        RESERVATION_APPLICATION_OPERATIONS,
     )
 
     if (
-        (candidate.type.removeprefix("tool:") in FINANCIAL_POSTING_OPERATIONS or candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
+        (candidate.type.removeprefix("tool:") in RESERVATION_APPLICATION_OPERATIONS or candidate.type.removeprefix("tool:") in FINANCIAL_POSTING_OPERATIONS or candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
         in {
             "tool:document_correct", "tool:document_lines_correct",
             "tool:party_merge", "tool:payment_run",

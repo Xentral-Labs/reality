@@ -7,6 +7,7 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
     reviewed_post_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import event
 from unified_fixtures import delivery_fixture
@@ -15,7 +16,6 @@ from reality.services.core import (
     NotFound,
     create_tenant,
     record_movement,
-    reserve,
 )
 from reality.services.operational_previews import operational_preview
 
@@ -85,7 +85,7 @@ def test_missing_description_uses_labeled_current_name_and_bounds_lines(
 def test_partial_delivery_and_warehouse_reads_agree_and_do_not_write(session, business):
     fixture = delivery_fixture(session, business)
     tid, cid = business.tenant.id, fixture.commitment.id
-    reservation = reserve(session, tid, cid, "12").reservation
+    reservation = reviewed_reserve(session, tid, cid, "12").reservation
     movement = record_movement(
         session,
         tid,

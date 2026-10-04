@@ -4,13 +4,13 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import event
 
 from reality.services.core import (
     NotFound,
     create_commitment,
     record_movement,
-    reserve,
 )
 from reality.services.operational_previews import operational_preview
 from reality.services.read_contracts import location_inventory_rows
@@ -46,7 +46,7 @@ def places(session, business):
         1,
         "2026-09-30",
     )
-    reserve(session, tenant, commitment.id, 1)
+    reviewed_reserve(session, tenant, commitment.id, 1)
     return {
         "tenant": tenant,
         "item": item,
@@ -306,7 +306,7 @@ def test_scoped_reservations_hold_that_location_only(session, places, business):
         1,
         "2026-09-30",
     )
-    reserve(session, places["tenant"], elsewhere.id, 1)
+    reviewed_reserve(session, places["tenant"], elsewhere.id, 1)
     rotterdam = register(
         session, places, "reservations", location_id=places["rotterdam"].id
     )

@@ -10,6 +10,7 @@ from intake_review_support import (
     accept_pending_import_jobs,
     reviewed_manual_order,
     reviewed_record_sales_invoice,
+    reviewed_reserve,
     reviewed_set_master_data_active,
 )
 from intake_review_support import accept_shopify_order as ingest_shopify_order
@@ -34,7 +35,6 @@ from reality.services.core import (
     fulfilled_quantity,
     open_quantity,
     record_movement,
-    reserve,
     stock_at,
 )
 from reality.services.delivery_actions import prepare_delivery_action
@@ -181,8 +181,8 @@ def test_one_shipment_fulfils_two_orders_of_the_same_customer(session, business)
     assert first["document_id"] != second["document_id"]
     first_id = first["commitment_ids"][0]
     second_id = second["commitment_ids"][0]
-    reserve(session, business.tenant.id, first_id)
-    reserve(session, business.tenant.id, second_id)
+    reviewed_reserve(session, business.tenant.id, first_id)
+    reviewed_reserve(session, business.tenant.id, second_id)
 
     receipt = _dispatch(
         session,
@@ -257,7 +257,7 @@ def test_one_package_carries_several_commitments_of_one_customer(session, busine
         )
     ]
     for commitment in commitments:
-        reserve(session, tenant_id, commitment.id)
+        reviewed_reserve(session, tenant_id, commitment.id)
 
     receipt = _dispatch(
         session,
@@ -387,7 +387,7 @@ def test_delisted_item_still_serves_its_open_commitment(session, business):
     reviewed_set_master_data_active(session, tenant_id, Item, business.item.id, False)
     assert record_by_id(session, Item, business.item.id).is_active is False
 
-    reserved = reserve(session, tenant_id, commitment.id)
+    reserved = reviewed_reserve(session, tenant_id, commitment.id)
     assert reserved.reserved == Decimal(4)
     receipt = _dispatch(
         session,
@@ -478,7 +478,7 @@ def test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest(
     _receive(session, business, business.item.id, "20", business.location.id)
     receipt = _order(session, business, "SO-A04", [_line(business.item.id, "10")])
     commitment_id = receipt["commitment_ids"][0]
-    reserve(session, tenant_id, commitment_id)
+    reviewed_reserve(session, tenant_id, commitment_id)
     _ship(session, business, "OUT-A04-1", commitment_id, "4")
 
     _act(
@@ -496,7 +496,7 @@ def test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest(
     assert record_by_id(session, Commitment, commitment_id).quantity == Decimal(10)
 
     # The rest can be reserved and go out in full, and nothing more.
-    reserve(session, tenant_id, commitment_id)
+    reviewed_reserve(session, tenant_id, commitment_id)
     assert _active_reservations(session, business, commitment_id) == Decimal(8)
     _ship(session, business, "OUT-A04-2", commitment_id, "8")
     assert open_quantity(session, tenant_id, commitment_id) == Decimal(0)
@@ -524,7 +524,7 @@ def test_cancelling_one_line_leaves_the_other_lines_open_and_reserved(
     )
     first, cancelled, third = receipt["commitment_ids"]
     for commitment_id in receipt["commitment_ids"]:
-        reserve(session, tenant_id, commitment_id)
+        reviewed_reserve(session, tenant_id, commitment_id)
 
     _act(
         session,
@@ -565,7 +565,7 @@ def test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock(
         [_line(business.item.id, "3"), _line(pump.id, "5")],
     )
     for commitment_id in receipt["commitment_ids"]:
-        reserve(session, tenant_id, commitment_id)
+        reviewed_reserve(session, tenant_id, commitment_id)
     assert active_reserved(session, tenant_id, business.item.id) == Decimal(3)
     assert active_reserved(session, tenant_id, pump.id) == Decimal(5)
 
@@ -608,7 +608,7 @@ def test_a_zero_price_line_ships_and_is_invoiced_without_revenue(session, busine
     priced_id, free_id = receipt["commitment_ids"]
     priced_line_id, free_line_id = receipt["document_line_ids"]
     for commitment_id in receipt["commitment_ids"]:
-        reserve(session, tenant_id, commitment_id)
+        reviewed_reserve(session, tenant_id, commitment_id)
     _ship(session, business, "OUT-A19-1", priced_id, "2")
     _ship(session, business, "OUT-A19-2", free_id, "1", item_id=gift.id)
     assert record_by_id(session, Commitment, free_id).status == "fulfilled"
@@ -684,7 +684,7 @@ def test_a_free_replacement_ships_without_an_order_and_explains_itself(
     _receive(session, business, business.item.id, "10", business.location.id)
     receipt = _order(session, business, "SO-D16", [_line(business.item.id, "2")])
     delivered_id = receipt["commitment_ids"][0]
-    reserve(session, tenant, delivered_id)
+    reviewed_reserve(session, tenant, delivered_id)
     _ship(session, business, "OUT-D16-1", delivered_id, "2")
     announcement = announce_customer_return(
         session, tenant, delivered_id, 1, reference="RMA-D16", reason="Faulty unit"
@@ -708,7 +708,7 @@ def test_a_free_replacement_ships_without_an_order_and_explains_itself(
     replacement_id = exchanged["replacement_commitment_id"]
     replacement = record_by_id(session, Commitment, replacement_id)
     assert (replacement.document_id, replacement.amount) == (None, Decimal(0))
-    reserve(session, tenant, replacement_id)
+    reviewed_reserve(session, tenant, replacement_id)
     _ship(session, business, "OUT-D16-2", replacement_id, "1")
 
     assert record_by_id(session, Commitment, replacement_id).status == "fulfilled"
@@ -788,7 +788,7 @@ def test_a_renamed_item_number_keeps_every_record_on_the_same_item(session, busi
     receipt = _order(session, business, "SO-O01", [_line(item.id, "4")])
     commitment_id = receipt["commitment_ids"][0]
     order_line_id = receipt["document_line_ids"][0]
-    reserve(session, tenant, commitment_id)
+    reviewed_reserve(session, tenant, commitment_id)
     _ship(session, business, "OUT-O01", commitment_id, "2")
     invoiced = reviewed_record_sales_invoice(
         session, tenant, order_line_id, "2", "20.00", "RE-O01"
@@ -1022,7 +1022,7 @@ def test_a_marketplace_order_due_tomorrow_is_at_risk_until_it_ships(
         session, business, tmp_path, "AMZ-L02-3", "2", now + timedelta(hours=2)
     )
     for promise in (urgent, relaxed, late):
-        core.reserve(session, tenant, promise.id)
+        reviewed_reserve(session, tenant, promise.id)
 
     due_soon = _findings(session, business, "outgoing_commitment_due_soon", as_of=now)
     assert set(due_soon) == {urgent.id, late.id}
@@ -1095,7 +1095,7 @@ def test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved(
         )
     ).all()
     for promise in promises:
-        core.reserve(session, tenant, promise.id)
+        reviewed_reserve(session, tenant, promise.id)
     reserved = core.active_reserved(session, tenant, business.item.id)
     stock = core.stock_at(session, tenant, business.item.id)
     assert reserved == stock == 60
@@ -1317,7 +1317,7 @@ def test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once(
     )
     bikes, lamps = order["commitment_ids"]
     for commitment_id in (bikes, lamps):
-        reserve(session, tenant, commitment_id)
+        reviewed_reserve(session, tenant, commitment_id)
     # Positive control: without a rule the bikes alone ship.
     assert fulfillment_readiness(session, tenant, bikes).ship_ready
 
@@ -1341,7 +1341,7 @@ def test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once(
         raise AssertionError("a partial shipment left for a ship-complete customer")
 
     _receive(session, business, lamp.id, "2", business.location.id)
-    reserve(session, tenant, lamps)
+    reviewed_reserve(session, tenant, lamps)
     _dispatch(
         session,
         business,
@@ -1381,7 +1381,7 @@ def test_a_customer_who_wants_no_backorders_has_the_rest_cancelled(session, busi
     _receive(session, business, business.item.id, "6", business.location.id)
     order = _order(session, business, "SO-M06", [_line(business.item.id, "10")])
     (bikes,) = order["commitment_ids"]
-    reserve(session, tenant, bikes)
+    reviewed_reserve(session, tenant, bikes)
     # Positive control: nothing shipped, nothing is a backorder yet.
     assert bikes not in _rule_findings(session, business, "backorder_against_rule")
 
@@ -1532,7 +1532,7 @@ def test_a_customer_lowers_a_line_below_what_already_shipped(session, business):
     _receive(session, business, business.item.id, "10", business.location.id)
     order = _order(session, business, "SO-A05", [_line(business.item.id, "10")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     _ship(session, business, "TRK-A05", promise, "6")
 
     _act(
@@ -1596,7 +1596,7 @@ def test_a_customer_collects_the_order_at_the_counter(session, business):
     _receive(session, business, business.item.id, "3", business.location.id)
     order = _order(session, business, "SO-D15", [_line(business.item.id, "3")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
 
     shipped = _dispatch_as(
         session,
@@ -1643,7 +1643,7 @@ def test_a_3pl_confirms_on_thursday_what_left_on_monday(session, business):
         ],
     )
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     overdue = {
         row.record_id
         for row in operational_exceptions(session, tenant, as_of=core.now())
@@ -1738,7 +1738,7 @@ def test_an_undeliverable_parcel_comes_back_and_is_sent_again(session, business)
     _receive(session, business, business.item.id, "4", business.location.id)
     order = _order(session, business, "SO-D08", [_line(business.item.id, "2")])
     (promise,), (line_id,) = order["commitment_ids"], order["document_line_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     shipped = _ship(session, business, "TRK-D08", promise, "2")
     _invoice(session, business, "RE-D08", line_id, "2")
     # Positive control: invoiced and shipped, nothing is invoiced ahead.
@@ -1754,7 +1754,7 @@ def test_an_undeliverable_parcel_comes_back_and_is_sent_again(session, business)
     assert detail["delivery_failure"]["kind"] == "undeliverable"
 
     # Sent again to the corrected address: kept, and the invoice is covered.
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     _ship(session, business, "TRK-D08-2", promise, "2")
     assert record_by_id(session, Commitment, promise).status == "fulfilled"
     assert line_id not in _billed_not_shipped(session, business)
@@ -1768,7 +1768,7 @@ def test_a_refused_delivery_keeps_the_reason_and_the_rest_is_cancelled(
     _receive(session, business, business.item.id, "3", business.location.id)
     order = _order(session, business, "SO-D09", [_line(business.item.id, "3")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     shipped = _ship(session, business, "TRK-D09", promise, "3")
 
     _fail(
@@ -1825,7 +1825,7 @@ def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, busin
     _receive(session, business, business.item.id, "4", business.location.id)
     order = _order(session, business, "SO-D07", [_line(business.item.id, "2")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     shipped = _ship(session, business, "TRK-D07", promise, "2")
     after_shipment = _stock(session, business)
 
@@ -1866,7 +1866,7 @@ def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, busin
     assert core.open_invoice_amount(session, tenant, claim["document_id"]) == 0
 
     # The customer is still served: the order ships again.
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     _ship(session, business, "TRK-D07-2", promise, "2")
     assert record_by_id(session, Commitment, promise).status == "fulfilled"
 
@@ -1921,7 +1921,7 @@ def test_an_order_cancelled_after_picking_goes_back_to_its_bin(session, business
     _receive(session, business, business.item.id, "10", business.location.id)
     order = _order(session, business, "SO-A08", [_line(business.item.id, "4")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     delivery = _planned(
         session,
         business,
@@ -1980,7 +1980,7 @@ def test_a_changed_address_before_shipment_is_the_one_used(session, business):
     _receive(session, business, business.item.id, "3", business.location.id)
     order = _order(session, business, "SO-A11", [_line(business.item.id, "3")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     first = {"name": "Müller GmbH", "street": "Hafenstr. 1", "city": "Hamburg"}
     moved = {"name": "Müller GmbH", "street": "Am Kai 9", "city": "Kiel"}
     delivery = _planned(
@@ -2018,7 +2018,7 @@ def test_one_order_goes_to_two_addresses(session, business):
     _receive(session, business, business.item.id, "10", business.location.id)
     order = _order(session, business, "SO-A21", [_line(business.item.id, "10")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     office = {"name": "Müller GmbH", "city": "Hamburg"}
     site = {"name": "Müller GmbH Baustelle", "city": "Rostock"}
     to_office = _planned(
@@ -2049,12 +2049,12 @@ def test_a_line_added_later_rides_with_the_open_delivery(session, business):
     _receive(session, business, business.item.id, "8", business.location.id)
     order = _order(session, business, "SO-A24", [_line(business.item.id, "5")])
     (first,) = order["commitment_ids"]
-    reserve(session, tenant, first)
+    reviewed_reserve(session, tenant, first)
     delivery = _planned(session, business, [{"commitment_id": first, "quantity": "5"}])
     # The customer calls back: two more, on the same truck.
     later = _order(session, business, "SO-A24-2", [_line(business.item.id, "2")])
     (added,) = later["commitment_ids"]
-    reserve(session, tenant, added)
+    reviewed_reserve(session, tenant, added)
 
     _decide(
         session,
@@ -2082,7 +2082,7 @@ def test_a_picking_error_is_caught_before_shipment(session, business):
     _receive(session, business, business.item.id, "10", business.location.id)
     order = _order(session, business, "SO-D04", [_line(business.item.id, "5")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     delivery = _planned(
         session,
         business,
@@ -2168,7 +2168,7 @@ def test_pallet_freight_ships_with_its_booked_slot(session, business):
     _receive(session, business, business.item.id, "40", business.location.id)
     order = _order(session, business, "SO-D13", [_line(business.item.id, "40")])
     (promise,) = order["commitment_ids"]
-    reserve(session, tenant, promise)
+    reviewed_reserve(session, tenant, promise)
     opens = (core.now() + timedelta(days=2)).replace(
         hour=8, minute=0, second=0, microsecond=0
     )
@@ -2223,7 +2223,7 @@ def test_a_retail_chain_order_is_delivered_to_its_stores(session, business):
     )
     lights, bells = order["commitment_ids"]
     for promise in (lights, bells):
-        reserve(session, tenant, promise)
+        reviewed_reserve(session, tenant, promise)
     to_north = _planned(
         session,
         business,

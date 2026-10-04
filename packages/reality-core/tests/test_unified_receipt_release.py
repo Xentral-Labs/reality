@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_release_reservation, reviewed_reserve
 from sqlalchemy import func, select
 from unified_fixtures import delivery_fixture
 
@@ -14,8 +15,6 @@ from reality.services.core import (
     active_reserved,
     create_commitment,
     record_movement,
-    release_reservation,
-    reserve,
     stock_at,
 )
 from reality.services.delivery_actions import (
@@ -102,7 +101,7 @@ def test_partial_receipt_review_replay_and_trace(session, business):
 def test_full_release_preserves_physical_and_commitment_and_replays(session, business):
     fixture = delivery_fixture(session, business)
     tid = business.tenant.id
-    reservation = reserve(session, tid, fixture.commitment.id, "6")
+    reservation = reviewed_reserve(session, tid, fixture.commitment.id, "6")
     args = {"reservation_id": reservation.reservation.id}
     proposal = prepare_delivery_action(
         session, tid, "reservation_release", args, request_id="release"
@@ -140,7 +139,7 @@ def test_full_release_preserves_physical_and_commitment_and_replays(session, bus
 def test_release_stale_and_foreign_reviews_do_not_execute(session, business):
     fixture = delivery_fixture(session, business)
     tid = business.tenant.id
-    reservation = reserve(session, tid, fixture.commitment.id, "6")
+    reservation = reviewed_reserve(session, tid, fixture.commitment.id, "6")
     proposal = prepare_delivery_action(
         session,
         tid,
@@ -148,7 +147,7 @@ def test_release_stale_and_foreign_reviews_do_not_execute(session, business):
         {"reservation_id": reservation.reservation.id},
         request_id="stale",
     )
-    release_reservation(session, tid, reservation.reservation.id)
+    reviewed_release_reservation(session, tid, reservation.reservation.id)
     with pytest.raises(InvalidOperation):
         confirm(session, tid, proposal)
     assert proposal.status == "proposed"
@@ -163,44 +162,52 @@ def test_release_stale_and_foreign_reviews_do_not_execute(session, business):
 
 
 @pytest.mark.parametrize("action", ["receipt", "release"])
-def test_new_action_recovery_and_pool_guard(session, business, action):
+def test_new_action_recovery_and_pool_guard(session, business, action, monkeypatch):
+    """Recover actual committed receipt evidence; atomic release keeps unknown claims."""
+    from intake_review_support import explicit_owner
+
+    from reality.services import core
+    from reality.tools import application
+
     tid = business.tenant.id
     fixture = delivery_fixture(session, business)
+    owner = explicit_owner(session, tid)
     if action == "receipt":
         commitment = incoming(session, business)
         tool, args = "movement_create", receipt_args(business, commitment)
     else:
-        reservation = reserve(session, tid, fixture.commitment.id, "6")
-        tool, args = (
-            "reservation_release",
-            {"reservation_id": reservation.reservation.id},
-        )
+        reservation = reviewed_reserve(session, tid, fixture.commitment.id, "6")
+        tool, args = "reservation_release", {"reservation_id": reservation.reservation.id}
     proposal = prepare_delivery_action(session, tid, tool, args, request_id="recovery")
-    proposal.status = "executing"
-    session.commit()
-    if action == "receipt":
-        record_movement(session, tid, **args, action_id=proposal.id)
-    else:
-        release_reservation(session, tid, **args, action_id=proposal.id)
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
     before = stock_at(session, tid, business.item.id, business.location.id)
+    def stopped(db, tenant, *positional, **arguments):
+        if action == "receipt":
+            core.record_movement(db, tenant, *positional, **arguments)
+        raise SystemExit("The actual confirmed execution process was interrupted")
+    monkeypatch.setattr(application, "record_movement" if action == "receipt" else "release_reservation", stopped)
+    with pytest.raises(SystemExit):
+        approve_and_execute_proposal(session, tid, proposal.id, confirming_principal=owner, confirmed=True, review_token=token)
+    session.rollback()
+    session.refresh(proposal)
+    assert proposal.status == "executing" and proposal.decided_by_user_id == owner.user_id
     with pytest.raises(InvalidOperation, match="unresolved"):
-        prepare_delivery_action(
-            session,
-            tid,
-            "reserve",
-            {"commitment_id": fixture.commitment.id, "quantity": "1"},
-            request_id="conflicting",
-        )
+        prepare_delivery_action(session, tid, "reserve", {"commitment_id": fixture.commitment.id, "quantity": "1"}, request_id="conflicting")
     result = reconcile_delivery(session, tid, proposal.id)
-    assert result["verification"] == "verified"
-    assert result["status"] == "executed"
-    assert stock_at(session, tid, business.item.id, business.location.id) == before
-    assert reconcile_delivery(session, tid, proposal.id)["receipt"] == result["receipt"]
+    if action == "receipt":
+        assert result["verification"] == "verified" and result["status"] == "executed"
+        assert stock_at(session, tid, business.item.id, business.location.id) == before + core.decimal(args["quantity"])
+        assert reconcile_delivery(session, tid, proposal.id)["receipt"] == result["receipt"]
+    else:
+        assert result["status"] == "executing" and result["receipt"] is None
+        assert stock_at(session, tid, business.item.id, business.location.id) == before
+        session.refresh(reservation.reservation)
+        assert reservation.reservation.status == "active"
 
 
 def test_company_tool_proposal_uses_same_release_review(session, business):
     fixture = delivery_fixture(session, business)
-    reservation = reserve(session, business.tenant.id, fixture.commitment.id, "2")
+    reservation = reviewed_reserve(session, business.tenant.id, fixture.commitment.id, "2")
     proposal = create_change_proposal(
         session,
         business.tenant.id,
@@ -235,7 +242,7 @@ def test_receipt_stale_state_and_foreign_commitment(session, business):
 def test_release_wrong_receipt_cannot_verify(session, business):
     fixture = delivery_fixture(session, business)
     tid = business.tenant.id
-    reservation = reserve(session, tid, fixture.commitment.id, "6").reservation
+    reservation = reviewed_reserve(session, tid, fixture.commitment.id, "6").reservation
     proposal = prepare_delivery_action(
         session,
         tid,
@@ -262,7 +269,7 @@ def test_receipt_and_release_http_review_round_trip(session, business):
     from reality.web.app import app
 
     fixture = delivery_fixture(session, business)
-    reservation = reserve(
+    reservation = reviewed_reserve(
         session, business.tenant.id, fixture.commitment.id, "6"
     ).reservation
     commitment = incoming(session, business)

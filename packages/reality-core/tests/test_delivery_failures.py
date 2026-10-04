@@ -5,6 +5,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from unified_fixtures import delivery_fixture
 
 from reality.services import core
@@ -50,7 +51,7 @@ def _dispatch(session, business, promise, quantity="2", **extra):
 
 def _shipped(session, business, quantity="2", **extra):
     fixture = delivery_fixture(session, business, quantity=quantity)
-    core.reserve(session, business.tenant.id, fixture.commitment.id)
+    reviewed_reserve(session, business.tenant.id, fixture.commitment.id)
     shipment_id = _dispatch(session, business, fixture.commitment, quantity, **extra)
     session.refresh(fixture.commitment)
     assert fixture.commitment.status == "fulfilled"
@@ -133,7 +134,7 @@ def test_an_undeliverable_parcel_reopens_the_promise_and_brings_the_goods_back(
     assert summary["claim"] is None
 
     # A person reships it: reserved and shipped again, the promise is kept.
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     _dispatch(session, business, promise)
     session.refresh(promise)
     assert promise.status == "fulfilled"

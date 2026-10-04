@@ -13,6 +13,7 @@ from intake_review_support import (
     reviewed_create_price_list_entry,
     reviewed_manual_order,
     reviewed_record_supplier_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import select
 
@@ -1296,7 +1297,7 @@ def test_bought_in_cartons_of_twelve_and_held_in_pieces(session, business):
         ],
         "63",
     )
-    core.reserve(session, tenant, sold[0].id)
+    reviewed_reserve(session, tenant, sold[0].id)
     assert core.active_reserved(session, tenant, item.id) == Decimal("7.0000")
 
 
@@ -1428,7 +1429,7 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
         ],
         "108",
     )
-    core.reserve(session, tenant, sold[0].id)
+    reviewed_reserve(session, tenant, sold[0].id)
     assert reached() == {}
     # Raising the point above what is there and coming brings the entry back.
     proposal = create_change_proposal(
@@ -1923,7 +1924,7 @@ def test_a_minimum_and_a_pack_size_are_named_and_the_surplus_is_stock(
         .where(core.Commitment.tenant_id == tenant, core.Document.number == "PO-G06")
     ).one()
     _receive_into(session, business, "IN-G06", purchase, "60")
-    core.reserve(session, tenant, need.id)
+    reviewed_reserve(session, tenant, need.id)
     # 30 serve the order and 30 stay free stock.
     assert core.stock_at(session, tenant, business.item.id, business.location.id) == 60
     assert _reserved(session, business, need.id) == 30

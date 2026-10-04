@@ -1,7 +1,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from intake_review_support import reviewed_post_sales_invoice
+from intake_review_support import reviewed_post_sales_invoice, reviewed_reserve
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -163,7 +163,6 @@ def test_the_usage_summary_agrees_with_the_tables_it_summarises(session, busines
         create_commitment,
         record_customer_payment,
         record_movement,
-        reserve,
     )
 
     tenant = business.tenant.id
@@ -190,7 +189,7 @@ def test_the_usage_summary_agrees_with_the_tables_it_summarises(session, busines
         "5",
         to_location_id=business.location.id,
     )
-    reserve(session, tenant, commitment.id, "3", _commit=False)
+    reviewed_reserve(session, tenant, commitment.id, "3", _commit=False)
     invoice = create_document(
         session, tenant, "sales_invoice", "INV-USAGE", business.customer.id, "100"
     )

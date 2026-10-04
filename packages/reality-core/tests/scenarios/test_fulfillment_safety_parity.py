@@ -9,6 +9,7 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
+    reviewed_reserve,
 )
 from sqlalchemy import func, select
 
@@ -71,7 +72,7 @@ def _order(
         document_id=document.id,
         document_line_id=lines[0].id,
     )
-    core.reserve(session, tenant_id, commitment.id, reserve_quantity)
+    reviewed_reserve(session, tenant_id, commitment.id, reserve_quantity)
     return document, lines[0], commitment
 
 
@@ -472,7 +473,7 @@ def test_agent_proposes_future_prepayment_and_partial_shipment_without_self_exec
         to_location_id=business.location.id,
         commitment_id=replenishment.id,
     )
-    core.reserve(session, tenant_id, commitment.id, "6")
+    reviewed_reserve(session, tenant_id, commitment.id, "6")
     rest_movement_count = session.scalar(select(func.count()).select_from(Movement))
     rest_proposal = dispatch_tool(
         session,

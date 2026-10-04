@@ -8,6 +8,8 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
+    reviewed_release_reservation,
+    reviewed_reserve,
 )
 from sqlalchemy import select
 
@@ -69,7 +71,7 @@ def _order(session, business, number, term, *, reserve=True):
         document_line_id=lines[0].id,
     )
     if reserve:
-        core.reserve(session, tenant, commitment.id)
+        reviewed_reserve(session, tenant, commitment.id)
     return document, lines[0], commitment
 
 
@@ -135,7 +137,7 @@ def test_payment_release_or_cancellation_clears_it(session, business):
     reservation = session.scalar(
         select(Reservation).where(Reservation.commitment_id == released.id)
     )
-    core.release_reservation(session, tenant, reservation.id)
+    reviewed_release_reservation(session, tenant, reservation.id)
     core.cancel_commitment(session, tenant, cancelled.id, reason="Customer withdrew")
 
     assert not {paid.id, released.id, cancelled.id} & set(_findings(session, business))

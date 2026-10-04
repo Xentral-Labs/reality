@@ -24,7 +24,7 @@ narrowing, tested per class, and not in a table filled in advance.
 import datetime as dt
 import json
 
-from intake_review_support import reviewed_post_sales_invoice
+from intake_review_support import reviewed_post_sales_invoice, reviewed_reserve
 
 from reality.services import exceptions as exception_services
 from reality.services.core import (
@@ -34,7 +34,6 @@ from reality.services.core import (
     hold_party_delivery,
     record_customer_payment,
     record_movement,
-    reserve,
     revise_commitment,
 )
 
@@ -174,7 +173,7 @@ def _rich_company(session, business):
         _commit=False,
     )
     hold_commitment(session, tenant, overdue.id, "credit_check", _commit=False)
-    reserve(session, tenant, ahead.id, "2", _commit=False)
+    reviewed_reserve(session, tenant, ahead.id, "2", _commit=False)
     supply = create_commitment(
         session,
         tenant,

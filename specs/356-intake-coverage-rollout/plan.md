@@ -293,3 +293,8 @@ Integration scope includes the existing explicit-list payment_run parent and its
 ## Standalone financial evidence plan
 
 Constitution Check: PASS. Reuse the seven existing commands and core financial rules. Retain exact public defaults and tenant-scoped hashes of selected documents/lines, source/partner roles, accounts and selected current postings/allocations; recheck under the existing Tenant-before-finance locks. Freeze finite canonical parents and planned children, pass private no-commit and attribute actual receipts/events. Preserve already reviewed invoice/credit/intake parents and private authored profile scope; no broad family inheritance. Prove meaningful failures first, then preserve stated precision, current references/OAuth, atomicity/replay, HTTP and fixed-profile integration. Qualify financial/scenario/frontend/catalog gates and all committed-head CI. No schema or constitutional exception.
+
+
+## Reservation follow-up
+
+Use the existing current delivery review and actual application authority; freeze the two canonical parents and use private noncommitting calls. Preserve actual narrowly authored profile calls. Add negative proofs first, then domain/services/tools/adapters and regression/browser/final-head CI. No schema expansion. Constitution checks remain PASS.

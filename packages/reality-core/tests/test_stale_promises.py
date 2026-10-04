@@ -1,8 +1,10 @@
+
 import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_reserve
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, Commitment, Document, Movement
@@ -16,7 +18,6 @@ from reality.services.core import (
     hold_party_delivery,
     preview_stale_promise_closure,
     record_movement,
-    reserve,
 )
 from reality.services.exceptions import operational_exceptions
 
@@ -69,7 +70,7 @@ def close(session, business, count, *, before=CUTOFF, reason="Imported history")
 def test_the_preview_states_what_would_close(session, business):
     stock(session, business)
     stale = [promise(session, business) for _ in range(3)]
-    reserve(session, business.tenant.id, stale[0].id)
+    reviewed_reserve(session, business.tenant.id, stale[0].id)
     promise(session, business, due_at=CUTOFF + timedelta(days=5))
 
     result = preview(session, business)
@@ -89,7 +90,7 @@ def test_the_preview_states_what_would_close(session, business):
 def test_the_preview_writes_nothing(session, business):
     stock(session, business)
     standing = promise(session, business)
-    reserve(session, business.tenant.id, standing.id)
+    reviewed_reserve(session, business.tenant.id, standing.id)
     events_before = session.scalar(select(func.count(BusinessEvent.id)))
 
     preview(session, business)
@@ -188,7 +189,7 @@ def test_closing_nothing_is_not_a_failure(session, business):
 def test_closing_clears_the_wall(session, business):
     stock(session, business)
     promises = [promise(session, business) for _ in range(3)]
-    reserve(session, business.tenant.id, promises[0].id)
+    reviewed_reserve(session, business.tenant.id, promises[0].id)
     documents_before = session.scalar(select(func.count(Document.id)))
     movements_before = session.scalar(select(func.count(Movement.id)))
 

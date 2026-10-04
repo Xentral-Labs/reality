@@ -9,6 +9,8 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
     reviewed_record_sales_invoice,
+    reviewed_release_reservation,
+    reviewed_reserve,
 )
 from sqlalchemy import select
 
@@ -52,7 +54,7 @@ def _order(session, business, number):
         document_id=document.id,
         document_line_id=lines[0].id,
     )
-    core.reserve(session, tenant, promise.id)
+    reviewed_reserve(session, tenant, promise.id)
     receipt = reviewed_record_sales_invoice(
         session, tenant, lines[0].id, "6", "150", f"RE-{number}"
     )
@@ -108,7 +110,7 @@ def test_a_reservation_waiting_for_an_unpaid_prepayment_is_put_to_a_person(
     assert reservation.status == "active"
 
     # The person releases the stock; the order stays open and can be reserved later.
-    core.release_reservation(session, tenant, reservation.id)
+    reviewed_release_reservation(session, tenant, reservation.id)
 
     assert unpaid.id not in _waiting(session, business, 8)
     assert record_by_id(session, Commitment, unpaid.id).status == "open"
