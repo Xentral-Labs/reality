@@ -94,3 +94,34 @@ frontend, migration (if applicable), spec and generated-documentation gates → 
 Any affected command/tool/schema requires `make docs-generate` and
 `make docs-catalog-check`. Business services remain the authority; transport-only
 patches cannot implement stock, settlement or confirmation rules.
+
+
+## Final implementation disposition
+
+The owner subsequently authorized all clear work. The reviewed implementation plan,
+tasks and analysis supersede the preparation-only sequencing above. The following
+summarizes the actual scope rather than claiming every wider product question is solved.
+
+| # | Delivered outcome | Remaining limit |
+|---|---|---|
+| 1 | `proposal_review` exposes exact safe review and the existing MCP confirmation handoff | Optional human review URL remains deferred |
+| 2 | Shared decision policy, retained preview, current/proposed effect and blockers are reusable through MCP | Human approval and appropriate confirmation rights remain required |
+| 3 | `company_context` returns stored identity and directs rights checks to `capability_catalog` | Existing credentials must deliberately allow the new read |
+| 4 | Shipping tool guidance distinguishes Movements, consignment objects and carrier evidence; regression proves shipped quantity without a Shipment object | External agents must use the documented evidence reads |
+| 5 | Public pending discovery defaults to bounded, payload-free metadata with exact detail and stable traversal | Explicit legacy mode remains available for compatibility |
+| 6 | Guides explain received sources, pending admission and accepted business records | Admission still requires the existing decision gate |
+| 7 | Exact document-line discovery exposes retained amounts and source references within the company | Full settlement/allocation explanation remains a separate follow-up |
+| 8 | EN/DE guides now match the completed canonical PO-006 profile: five received and five billed | Inspect current evidence after subsequent demo activity |
+| 9 | The complete published EN/DE operational missions bypass Product Advisor misrouting | Genuine product advice still uses the advisor |
+| 10 | Guides constrain support drafts to stored facts/promises and explicitly missing evidence | Reality cannot enforce every third-party model's generated wording |
+| 11 | Setup distinguishes external modes and scheduling prerequisites | No general qualification of every Claude mode or OAuth route is claimed |
+| 12 | Guides separate prompts from technical credential/connector restrictions | Reality does not administer external connector settings |
+| 13 | Guides distinguish company and routine timezones, actual run times, device dependency and pause | External scheduler behavior remains owned by that agent system |
+| 14 | Review says reserved after confirming; rendered regression proves current stock is unchanged beforehand | Existing authoritative review remains the source of quantities |
+| 15 | Both login signup links preserve language through an absolute URL; rendered navigation regression passes | Original external payload languages remain lossless |
+| 16 | Affected schemas enumerate discovery families and review returns actual callable verification tools; generated references updated | Unsupported verification bases are reported explicitly |
+
+Privacy/authority review: no schema, alternative business engine, timer, direct adapter
+write or credential expansion. Read-only review does not refresh proposals or authorize
+execution. Retained business fingerprints are exposed only where the existing delivery
+confirmation requires them; authentication secrets and private carriers stay protected.

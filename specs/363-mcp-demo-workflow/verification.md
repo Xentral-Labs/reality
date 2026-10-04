@@ -13,7 +13,7 @@ Before production edits, seven backend regressions failed for missing company/re
 - Documentation Python contracts: 16 passed; generated tool references regenerated with the configured formatter.
 - Ruff passed from the shared-core project directory. Spec coverage and whitespace gates are required before commit.
 
-Full backend and browser execution is gated by GitHub's isolated PostgreSQL and Playwright CI jobs. T012/T013 remain open until the implementation head is green and its final review is recorded.
+Full backend and browser execution passed in GitHub's isolated PostgreSQL and Playwright CI jobs on the reviewed implementation head. Completion evidence is recorded below.
 
 ## Review boundaries
 
@@ -36,3 +36,26 @@ Final MCP review also names the existing confirmation tool as its decision hando
 Run 37219326781 completed the four PostgreSQL shards: three passed; the remaining shard had 1,536 passes and one refusal-ratchet failure for the new document-scope validation sentence. Register `discovery_document_scope_unsupported` and translate it in DE/NL/ES; do not weaken the gate or extend the uncoded-refusal ratchet. A direct wrong-family regression asserts the stable code.
 
 The fixture catalog search also found two valid tools after the shipping description began citing `order_explain`. The test must select the canonical `mcp:order_explain` entry instead of assuming every full-text query returns one row. The complete catalog browser proof passed locally with that precise selection, including languages, mobile layout and no writes.
+
+
+## Completed implementation verification
+
+Implementation head `5230b85174b6d82207b4d0f057b33165dff2c628` passed
+[Quality run 37220690460](https://github.com/Xentral-Labs/reality/actions/runs/37220690460).
+All four PostgreSQL backend shards, seven fixture browser groups, eight live browser
+journeys, frontend quality, documentation quality and specification policy passed.
+No required job was bypassed to obtain this result. The two previous full-suite
+failures were corrected at their actual boundaries, without weakening refusal gates.
+
+The final focused error-code/MCP/Chat suite passed 42 tests; all three refusal locale
+checks passed. The actual catalog browser journey passed locally after its canonical
+row selection was corrected. Repeated whole-suite checks are required on the final
+completion commit before marking the PR ready; this completion update changes only
+specification evidence and the feedback disposition table.
+
+Final review covered tenant scope, immutable retained review, private carriers,
+credential redaction, explicit approval, stale state, replay, named callable follow-ups,
+legacy application callers and public bounded defaults. Wider invoice allocation and
+external agent enforcement remain explicit limits. All 16 owner feedback items have
+an implementation outcome and a remaining limit in `triage.md`. No merge or deployment
+was performed.
