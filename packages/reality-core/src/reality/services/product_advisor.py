@@ -277,6 +277,7 @@ def is_product_advisor_question(question: str) -> bool:
         phrase in folded
         for phrase in (
             "use reality tools", "nutze die reality-tools", "operative agent",
+            "you are the operational agent",
             "show my", "show our", "read my", "read our", "inspect my", "inspect our",
             "zeige meine", "zeige unsere", "prufe meine", "prufe unsere",
             "priorisiere offene", "lies zunachst",

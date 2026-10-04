@@ -4,7 +4,7 @@
 
 - [x] T001 Record authorized slice and Constitution PASS in `specs/363-mcp-demo-workflow/spec.md` and `plan.md`.
 - [x] T002 Add failing MCP read/decision/navigation regressions in `packages/reality-core/tests/test_demo_mcp_workflow.py`.
-- [x] T003 Add failing operational routing scenarios in `packages/reality-core/tests/test_chat_tools.py` and UI regressions in `apps/web/scripts/demo-workflow-contract.test.mjs`.
+- [x] T003 Add failing operational routing scenarios in `packages/reality-core/tests/test_chat_tools.py` and browser UI regressions in `apps/web/scripts/unified-delivery-browser.mjs`.
 
 ## US1 — Browser-free decision cycle
 
