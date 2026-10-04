@@ -225,8 +225,9 @@ def test_public_schemas_offer_closed_navigation_choices():
     ] == ["aggregate", "location"]
 
 
+@pytest.mark.parametrize("purpose", ["business", "playground"])
 def test_reservation_review_confirms_without_browser_and_checks_stale_state(
-    session, business, scheduled_owner
+    session, business, scheduled_owner, purpose
 ):
     from reality.services.core import (
         active_reserved,
@@ -234,6 +235,30 @@ def test_reservation_review_confirms_without_browser_and_checks_stale_state(
         record_movement,
     )
 
+    if purpose == "playground":
+        from reality.db.core import Tenant
+        from reality.services import company_setup
+        from reality.services.core import create_item, create_location, create_party
+
+        created = company_setup.create_company(
+            session,
+            scheduled_owner.id,
+            uid("req"),
+            "Practice review",
+            "sandbox",
+            "empty",
+            confirmed=True,
+        )
+        tenant = session.get(Tenant, created["tenant_id"])
+        business = replace(
+            business,
+            tenant=tenant,
+            company=create_party(session, tenant.id, "Practice review", "company"),
+            customer=create_party(session, tenant.id, "Customer", "customer"),
+            supplier=create_party(session, tenant.id, "Supplier", "supplier"),
+            item=create_item(session, tenant.id, "MUG", "Mug"),
+            location=create_location(session, tenant.id, "Warehouse"),
+        )
     record_movement(
         session,
         business.tenant.id,
@@ -286,6 +311,12 @@ def test_reservation_review_confirms_without_browser_and_checks_stale_state(
     assert active_reserved(session, business.tenant.id, business.item.id) == 0
     token = review["confirmation"]["review_token"]
     assert isinstance(token, str) and token
+    assert not review["confirmation"]["review_preparation_required"]
+    assert review["confirmation"]["arguments"] == {
+        "proposal_id": proposed["proposal_id"],
+        "approved": True,
+        "review_token": token,
+    }
     confirmed = dispatch_mcp_tool(
         session,
         principal,
@@ -293,9 +324,21 @@ def test_reservation_review_confirms_without_browser_and_checks_stale_state(
         {**args, "approved": True, "review_token": token},
     )
     assert confirmed["status"] == "executed"
+    assert "inventory_read" in confirmed["next_step"]["verification_reads"]
+    assert "inventory" in confirmed["receipt"]["verification_reads"]
+    stored = session.get(
+        ChangeProposal, (business.tenant.id, proposed["proposal_id"])
+    ).output
     assert active_reserved(session, business.tenant.id, business.item.id) == 2
     receipt = dispatch_mcp_tool(session, principal, "proposal_execution_status", args)
     assert receipt["status"] == "executed"
+    assert "inventory_read" in receipt["next_step"]["verification_reads"]
+    assert (
+        session.get(
+            ChangeProposal, (business.tenant.id, proposed["proposal_id"])
+        ).output
+        == stored
+    )
     dispatch_mcp_tool(
         session,
         principal,
@@ -382,3 +425,85 @@ def test_shipping_movements_remain_visible_without_consignment(session, business
     from reality.db.core import Shipment
 
     assert session.query(Shipment).filter_by(tenant_id=business.tenant.id).count() == 0
+
+
+def test_legacy_delivery_handoff_requires_preparation_without_read_writes(
+    session, business, scheduled_owner
+):
+    from reality.services.core import (
+        active_reserved,
+        create_commitment,
+        record_movement,
+    )
+
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "2",
+        None,
+    )
+    principal = MCPPrincipal(
+        "interactive",
+        "credential_legacy",
+        "grant_legacy",
+        scheduled_owner.id,
+        business.tenant.id,
+        "client_legacy",
+        frozenset({"reality:read", "reality:confirm"}),
+        frozenset({"proposal_review", "proposal_approve_and_execute"}),
+    )
+    proposal = ChangeProposal(
+        id=uid("act"),
+        tenant_id=business.tenant.id,
+        type="tool:reserve",
+        status="proposed",
+        input=json.dumps({"commitment_id": commitment.id, "quantity": "2"}),
+        output="{}",
+    )
+    session.add(proposal)
+    session.flush()
+    before = (proposal.input, proposal.output)
+    review = dispatch_tool(
+        session, business.tenant.id, "proposal_review", {"proposal_id": proposal.id}
+    )
+    confirmation = review["confirmation"]
+    assert confirmation["review_preparation_required"]
+    assert not confirmation["execution_expected"]
+    assert confirmation["arguments"] == {"proposal_id": proposal.id, "approved": True}
+    assert confirmation["after_preparation"]["tool"] == "proposal_review"
+    assert confirmation["after_preparation"]["requires_new_explicit_approval"]
+    assert (proposal.input, proposal.output) == before
+
+    prepared = dispatch_mcp_tool(
+        session, principal, "proposal_approve_and_execute", confirmation["arguments"]
+    )
+    assert prepared["status"] == "proposed"
+    assert prepared["requires_new_explicit_approval"]
+    assert active_reserved(session, business.tenant.id, business.item.id) == 0
+    exact = dispatch_mcp_tool(
+        session, principal, "proposal_review", {"proposal_id": proposal.id}
+    )
+    assert not exact["confirmation"]["review_preparation_required"]
+    assert exact["confirmation"]["execution_expected"]
+    assert exact["confirmation"]["arguments"]["review_token"]
+    executed = dispatch_mcp_tool(
+        session,
+        principal,
+        "proposal_approve_and_execute",
+        exact["confirmation"]["arguments"],
+    )
+    assert executed["status"] == "executed"
+    assert active_reserved(session, business.tenant.id, business.item.id) == 2

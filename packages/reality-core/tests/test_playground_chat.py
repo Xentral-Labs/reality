@@ -112,10 +112,10 @@ def test_provider_cannot_dispatch_mutations(session, playground_http, monkeypatc
             return Response()
 
     monkeypatch.setattr(mcp_chat.httpx, "AsyncClient", Client)
-    with (
-        playground_chat_scope(session, user.id, run.id),
-        pytest.raises(PermissionError),
-    ):
+    from reality.db.core import ChangeProposal
+
+    before = session.query(ChangeProposal).filter_by(tenant_id=tenant.id).count()
+    with playground_chat_scope(session, user.id, run.id):
         asyncio.run(
             mcp_chat.reply_via_anthropic_tools(
                 session=session,
@@ -125,6 +125,10 @@ def test_provider_cannot_dispatch_mutations(session, playground_http, monkeypatc
                 message="approve",
             )
         )
+    assert (
+        session.query(ChangeProposal).filter_by(tenant_id=tenant.id).count() == before
+    )
+    assert "access_denied" in str(captured["messages"])
     assert {tool["name"] for tool in captured["tools"]} == {
         tool["function"]["name"] for tool in model_tool_schemas(access=("read",))
     }

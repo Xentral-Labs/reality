@@ -6313,6 +6313,7 @@ def create_change_proposal(
         }
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, review_delivery
+    from reality.services.tenant_policy import playground_proposal_active
 
     tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
     delivery_review = None
@@ -6331,7 +6332,13 @@ def create_change_proposal(
         review_opening(session, tenant_id, arguments)
     if (
         tenant
-        and tenant.purpose != "playground"
+        and (
+            tenant.purpose != "playground"
+            or (
+                tool_name == "reserve"
+                and not playground_proposal_active(session, tenant_id)
+            )
+        )
         and eligible(tool_name, arguments)
         and not raw_opening
         and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}

@@ -267,3 +267,182 @@ async def test_read_only_policy_is_shared(provider, harness, monkeypatch):
         prompt = "\n".join(block["text"] for block in prompt)
     assert "read-only" in prompt
     assert "Never propose" in prompt
+
+
+async def invoke_business(provider, session, tenant_id, message, history=None):
+    args = {
+        "session": session,
+        "tenant_id": tenant_id,
+        "api_key": "test-secret",
+        "history": history or [],
+        "message": message,
+    }
+    if provider == "anthropic":
+        return await mcp_chat.reply_via_anthropic_tools(**args)
+    return await mcp_chat.reply_via_tools(
+        **args, model="test", base_url="https://example.test"
+    )
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Read first; changes need a decision and my approval. Check company time zone.",
+        "Lies zunächst nur; Änderungen brauchen konkrete Decisions und meine Freigabe. Prüfe die Zeitzone.",
+    ],
+)
+async def test_current_read_first_turn_refuses_model_proposal_without_persistence(
+    provider,
+    message,
+    harness,
+    session,
+    business,
+):
+    from reality.db.core import ChangeProposal
+
+    requests, replies = harness
+    replies.extend(
+        [
+            tool_reply(
+                provider,
+                "company_time_zone_set_propose",
+                {"time_zone": "Europe/Berlin"},
+            ),
+            text_reply(provider),
+        ]
+    )
+    before = (
+        session.query(ChangeProposal).filter_by(tenant_id=business.tenant.id).count()
+    )
+    await invoke_business(provider, session, business.tenant.id, message)
+    assert (
+        session.query(ChangeProposal).filter_by(tenant_id=business.tenant.id).count()
+        == before
+    )
+    advertised = str(requests[0]["tools"])
+    assert "company_time_zone_set_propose" not in advertised
+    assert "company_time_zone" in advertised
+    assert "denied" in str(requests[-1]["messages"]).lower()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+async def test_shipping_turn_receives_retained_movements_without_consignment_or_model_lookup(
+    provider,
+    harness,
+    session,
+    business,
+):
+    from reality.db.core import Shipment
+    from reality.services.core import create_commitment, record_movement
+
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "5",
+        None,
+    )
+    movement = record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        "3",
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+    )
+    assert session.query(Shipment).filter_by(tenant_id=business.tenant.id).count() == 0
+    requests, replies = harness
+    replies.append(text_reply(provider))
+    await invoke_business(
+        provider, session, business.tenant.id, "Summarize recorded shipping; read only."
+    )
+    prompt = str(requests[0].get("system") or requests[0]["messages"][0]["content"])
+    assert movement.id in prompt and commitment.id in prompt
+    assert '"quantity":"3"' in prompt or '"quantity":"3.0000"' in prompt
+    assert "matching_retained_records_only" in prompt
+    assert "company-wide" in prompt and "not a shipment total" in prompt
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+async def test_historical_read_first_request_does_not_restrict_current_authorized_proposal(
+    provider,
+    harness,
+    session,
+    business,
+):
+    from reality.db.core import ChangeProposal
+
+    requests, replies = harness
+    replies.extend(
+        [
+            tool_reply(
+                provider,
+                "company_time_zone_set_propose",
+                {"time_zone": "Europe/Berlin"},
+            ),
+            text_reply(provider),
+        ]
+    )
+    await invoke_business(
+        provider,
+        session,
+        business.tenant.id,
+        "Propose setting company time zone to Europe/Berlin.",
+        history=[{"role": "user", "content": "Read first; do not create proposals."}],
+    )
+    assert (
+        session.query(ChangeProposal).filter_by(tenant_id=business.tenant.id).count()
+        == 1
+    )
+    assert "company_time_zone_set_propose" in str(requests[0]["tools"])
+
+
+def test_shipping_context_preserves_refused_evidence_as_unknown(monkeypatch):
+    observed = []
+
+    def refused(session, tenant_id, name, arguments, access):
+        observed.append((tenant_id, name, arguments, access))
+        return {"error": "Read unavailable", "code": "access_denied"}, True
+
+    monkeypatch.setattr(mcp_chat, "_call_tool", refused)
+    context = mcp_chat._shipping_context(
+        None, "tenant_exact", "Check recorded shipments"
+    )
+    assert observed == [
+        (
+            "tenant_exact",
+            "business_records_discover",
+            {"family": "movement", "query": "shipment", "limit": 5},
+            ("read",),
+        )
+    ]
+    assert "Evidence status: unknown; read refused" in context
+    assert "access_denied" in context
+    assert "Evidence status: observed" not in context
+
+
+def test_unrelated_turn_does_not_prefetch_shipping_context(monkeypatch):
+    def unexpected(*args):
+        raise AssertionError("Unrelated turn must not inspect shipping records")
+
+    monkeypatch.setattr(mcp_chat, "_call_tool", unexpected)
+    assert (
+        mcp_chat._shipping_context(None, "tenant_exact", "Read company time zone") == ""
+    )

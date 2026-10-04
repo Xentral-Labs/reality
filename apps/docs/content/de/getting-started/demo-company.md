@@ -97,14 +97,15 @@ noch keine Geschäftsänderung ausgeführt.
 ```text
 Bereite einen Reservierungsvorschlag für den betrachteten offenen Auftrag vor.
 Prüfe mit Reality-Tools Bestand, Zulässigkeit und vorhandene Vorschläge. Nutze die
-tatsächlichen Datensatz-IDs und zeige Menge, Lager, Wirkung und Prüflink. Führe nichts
-aus und vermeide Duplikate. Bei Hindernissen erkläre den Grund und prüfe einen anderen
+tatsächlichen Datensatz-IDs und zeige Menge, Lager, Wirkung und den Aufruf von
+proposal_review; ergänze optional einen Prüflink. Führe nichts aus und vermeide Duplikate. Bei Hindernissen erkläre den Grund und prüfe einen anderen
 passenden offenen Auftrag. Erfinde keine Bestände.
 ```
 
-Öffne den Prüflink oder den Vorschlag unter **Decisions**. Prüfe Datensätze und Wirkung und
-bestätige nur die konkrete gewünschte Änderung; andernfalls lehne sie ab. Reservieren versendet
-keine Ware. [Deine erste Aktion vorbereiten](./first-action) erklärt die einzelnen Prüfungen.
+Lies `proposal_review` im Agenten oder öffne den optionalen Prüflink unter **Decisions**. Prüfe
+Datensätze und Wirkung und bestätige nur die konkrete gewünschte Änderung; andernfalls lehne sie ab.
+Reservieren versendet keine Ware. [Deine erste Aktion vorbereiten](./first-action) erklärt die
+einzelnen Prüfungen.
 
 Kehre danach zum Agenten zurück:
 
@@ -316,6 +317,24 @@ Vorschlags-ID und, falls vorhanden, `confirmation.review_token` auf. Prüfe die 
 `proposal_execution_status` und danach die genannten operativen Datensätze. Eine Verbindung mit
 Lese- und Vorschlagsrechten darf nicht bestätigen; Lesen erweitert keine Rechte. Ein Browserlink zur
 Prüfung ist optional; der Entscheidungsablauf funktioniert per MCP.
+
+Verwende die vollständigen `confirmation.arguments` erst nach dieser Entscheidung; sie enthalten
+auch das erforderliche `approved: true`. Neue Demo-Reservierungen besitzen bereits ihren
+vollständigen Prüfnachweis. Meldet ein älterer Vorschlag `confirmation.review_preparation_required`,
+bereitet der erste freigegebene Aufruf nur den Review vor. Folge `confirmation.after_preparation`,
+prüfe den neuen konkreten Review und hole vor der Ausführung eine neue ausdrückliche Entscheidung
+ein. Lesen bereitet keinen Review vor und aktualisiert ihn nicht.
+
+Ausführung und Status liefern unter `next_step.verification_reads` aktuell aufrufbare MCP-Lesetools.
+Der Ausführungsnachweis behält seine ursprünglichen Projektionsnamen unter `verification_reads`;
+verwende die separate Anleitung für Tool-Aufrufe. Prüfe außerdem die Rechte der Verbindung:
+`confirmable` beschreibt den Vorschlagszustand und erteilt keine Bestätigungsrechte.
+
+Der interne Chat beschränkt bei einer ausdrücklichen Nur-Lesen-Anweisung im aktuellen Auftrag sowohl
+angebotene Tools als auch ihre Ausführung. Versandfragen erhalten eine begrenzte firmenweite
+Stichprobe erfasster Versandbewegungen. Beachte Vollständigkeit und `has_more`; prüfe einen
+konkreten Auftrag über `order_explain`. Dieser Kontext garantiert keine fehlerfreie Modellantwort
+und ergibt keine firmenweite Versandgesamtmenge.
 
 `shipments_list` enthält Sendungen und Pakete. Eine leere Liste schließt erfasste Versandbewegungen
 nicht aus: Prüfe `order_explain` und die Discovery-Familie `movement`. Für Rechnungspositionen

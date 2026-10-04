@@ -107,7 +107,18 @@ def _read(application_name: str) -> ToolHandler:
         }:
             arguments = {"response_format": "page", **arguments}
         # reality-rule: mcp.catalog._read.handler.step-10
-        return run_read_tool(session, tenant_id, application_name, arguments)
+        result = run_read_tool(session, tenant_id, application_name, arguments)
+        if application_name == "proposal_execution_status":
+            from reality.services.proposal_reviews import mcp_verification_guidance
+
+            receipt = result.get("receipt") or {}
+            result = {
+                **result,
+                "next_step": mcp_verification_guidance(
+                    receipt.get("verification_reads", [])
+                ),
+            }
+        return result
 
     return handler
 
@@ -217,7 +228,7 @@ def _propose(application_name: str) -> ToolHandler:
         proposal = create_change_proposal(
             session, tenant_id, application_name, normalized
         )
-        from reality.services.proposal_reviews import proposal_next_step
+        from reality.services.proposal_reviews import proposal_mcp_next_step
 
         # reality-rule: mcp.catalog._propose.handler.result
         return {
@@ -226,7 +237,7 @@ def _propose(application_name: str) -> ToolHandler:
             "requires_confirmation": True,
             "arguments": normalized,
             "preview": json.loads(proposal.output),
-            "next_step": proposal_next_step(proposal),
+            "next_step": proposal_mcp_next_step(proposal),
         }
 
     handler.application_name = application_name  # type: ignore[attr-defined]
@@ -289,11 +300,15 @@ def _approve_proposal(
     ):
         # reality-rule: mcp.catalog._approve_proposal.effect-31
         reviewed = review_existing(session, tenant_id, candidate.id)
+        from reality.services.proposal_reviews import proposal_mcp_next_step
+
         return {
             "proposal_id": reviewed.id,
             "status": reviewed.status,
             "preview": json.loads(reviewed.output),
             "requires_confirmation": True,
+            "requires_new_explicit_approval": True,
+            "next_step": proposal_mcp_next_step(reviewed),
         }
     mcp_principal = current_mcp_principal()
     confirming_principal = _analytics_caller()
@@ -313,6 +328,8 @@ def _approve_proposal(
         settling_channel=SETTLING_CHANNEL.get(),
     )
     receipt = json.loads(proposal.output)
+    from reality.services.proposal_reviews import mcp_verification_guidance
+
     # reality-rule: mcp.catalog._approve_proposal.result
     return {
         "proposal_id": proposal.id,
@@ -320,6 +337,7 @@ def _approve_proposal(
         "tool": proposal.type.removeprefix("tool:"),
         "output": receipt,
         "receipt": receipt,
+        "next_step": mcp_verification_guidance(receipt.get("verification_reads", [])),
         "decider": _decider(session, tenant_id, proposal.id),
     }
 
@@ -1392,7 +1410,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "proposal_review",
         "Review an exact proposal",
-        "Read the company's exact safe proposal, retained preview or receipt, decision policy and confirmation inputs without executing or refreshing it. Review does not grant confirmation rights.",
+        "Read the company's exact safe proposal, retained preview or receipt, decision policy and confirmation inputs without executing or refreshing it. confirmation.arguments contains the complete human-approved call template; review_preparation_required names legacy preparation followed by reread and a new decision. Review does not grant confirmation rights.",
         "read",
         "Exceptions & proposals",
         _object_schema({"proposal_id": STRING}, required=("proposal_id",)),
@@ -1401,7 +1419,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "proposal_execution_status",
         "Reconcile proposal execution",
-        "Read one proposal lifecycle and verify its stored receipt against authoritative Reality records.",
+        "Read one proposal lifecycle and verify its stored receipt against authoritative Reality records. next_step.verification_reads names callable MCP tools beside the unchanged recorded receipt.",
         "read",
         "Exceptions & proposals",
         _object_schema({"proposal_id": STRING}, required=("proposal_id",)),
@@ -1410,7 +1428,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "proposal_approve_and_execute",
         "Approve and execute a proposal",
-        "Settle one exact proposal by explicit authorized decision and execute it through the shared application boundary.",
+        "Settle one exact proposal by explicit authorized decision and execute it through the shared application boundary. Use proposal_review confirmation.arguments only after a human decision. Legacy review preparation does not execute: reread and obtain a new explicit decision. Current MCP verification guidance is beside the original receipt.",
         "confirm",
         "Exceptions & proposals",
         _object_schema(

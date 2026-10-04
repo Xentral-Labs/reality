@@ -2626,3 +2626,20 @@ Contract: `specs/363-mcp-demo-workflow/spec.md`. Clear authorized slice only; fu
 - `packages/reality-core/tests/test_chat_tools.py`: operational company mission mentioning Reality versus product advice.
 - `apps/web/scripts/unified-delivery-browser.mjs` and `apps/web/scripts/signup-preferences-browser.mjs`: proposed reservation effect and retained signup language.
 - Existing proposal privacy, MCP read, product advisor and canonical demo-costing tests remain required; published guidance does not claim external schedules or connector isolation were qualified.
+
+
+## Feature 364 — Complete live demo agent contracts
+
+Contract: `specs/364-mcp-demo-contracts/spec.md`. Five accepted post-merge retest boundaries;
+no Finance-allocation expansion, new scheduling, deployment or third-party rights management.
+
+- FR-001/002: `tests/test_chat_scope_security.py` — both provider loops, retained shipment
+  Movements without consignments or model lookup, explicit current read-first enforcement,
+  no persisted mutation, and historical instructions do not constrain a new authorized request.
+- FR-003: `tests/test_mcp_http_runtime.py` — authenticated tools/list preserves registered
+  schemas; existing typed calls, nullable/union arguments and transport validation remain gates.
+- FR-004/005/006: `tests/test_demo_mcp_workflow.py` — real practice-company creation,
+  initial full review, exact approval arguments, execution/reconciliation, immutable original
+  receipt, replay/stale refusal and legacy preparation without read-time mutation.
+- DR-001/002/003: existing Playground lesson/admission, proposal privacy/decision, MCP permission
+  and company-setup tests remain required. No migration; live model accuracy is not claimed.
