@@ -232,11 +232,20 @@ def _roots(entry: dict[str, Any], inventory: dict) -> list[Any]:
                 roots.extend(_roots(inventory["projection", projection_key], inventory))
             return roots
         return [_canonical_handler(handler)] if approved_callable(handler) else []
-    return [
+    roots = [
         function
         for name in [entry.get("service"), *entry.get("related_services", [])]
         if name and callable(function := _service(name))
     ]
+    if kind == "command":
+        from reality.catalogs import runtime_application_catalog
+
+        coverage = runtime_application_catalog()["agent_command_coverage"].get(entry["key"], {})
+        for tool in coverage.get("tools", []):
+            target = inventory.get(("tool", tool))
+            if target:
+                roots.extend(_roots(target, inventory))
+    return list(dict.fromkeys(roots))
 
 
 def discover(
@@ -297,6 +306,8 @@ def discover(
 
 def _resolve_calls(function: Any, tree: ast.AST) -> tuple[list[Any], list[str]]:
     """Resolve only names supplied by approved implementation, never by callers."""
+    from reality.services.intake import _invoke
+
     namespace = dict(function.__globals__)
     namespace.update(inspect.getclosurevars(function).nonlocals)
     for statement in ast.walk(tree):
@@ -329,6 +340,20 @@ def _resolve_calls(function: Any, tree: ast.AST) -> tuple[list[Any], list[str]]:
                 "reality."
             ):
                 value = getattr(parent, fn.attr, None)
+        if value is _invoke:
+            # This framework helper freezes the actual supplied callback. Walking
+            # its generic body would collect unrelated writers and omit the one
+            # business operation the source really calls.
+            target = call.args[1] if len(call.args) > 1 else next(
+                (keyword.value for keyword in call.keywords if keyword.arg == "handler"), None
+            )
+            value = namespace.get(target.id) if isinstance(target, ast.Name) else None
+            if isinstance(target, ast.Attribute):
+                parent = namespace.get(ast.unparse(target.value))
+                if isinstance(parent, types.ModuleType) and parent.__name__.startswith("reality."):
+                    value = getattr(parent, target.attr, None)
+            if value is None:
+                missing.append("Frozen invocation callback is dynamic; no business source inferred.")
         if inspect.isclass(value) and value.__module__.startswith(
             ("reality.services.", "reality.domain.")
         ):

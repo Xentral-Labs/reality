@@ -167,3 +167,23 @@ def test_projection_binding_does_not_guess_dynamic_or_shadowed_arguments(monkeyp
         )
         monkeypatch.setattr(blueprints, "capture_source", lambda function, changed=changed: changed)
         assert blueprints._bound_projection_keys([function], inventory) == set()
+
+
+def test_frozen_invocation_resolves_actual_business_callback_without_framework_walk():
+    from reality.services import business_blueprints as blueprints
+    from reality.services import core
+    from reality.services.business_blueprint_analysis import source_tree
+    from reality.services.business_blueprint_source import capture_source
+    from reality.services.intake import _invoke
+
+    helpers, _ = blueprints._resolve_calls(core.revise_commitment, source_tree(capture_source(core.revise_commitment)))
+    assert core.release_commitment_hold in helpers
+    assert _invoke not in helpers
+
+
+def test_command_sources_include_its_registered_application_adapter():
+    from reality.services import business_blueprints as blueprints
+    from reality.tools import application
+
+    inventory = blueprints._inventory()
+    assert application.TOOLS["movement_create"].handler in blueprints._roots(inventory["command", "record_movement"], inventory)
