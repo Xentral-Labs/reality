@@ -82,8 +82,9 @@ export function ProposalReviewCard({
           tenant,
           proposalId,
           null,
-          review.data?.tool === "intake_apply" && typeof review.data.input.digest === "string"
-            ? review.data.input.digest
+          ["intake_apply", "intake_batch_apply"].includes(review.data?.tool ?? "") &&
+            typeof review.data?.input.digest === "string"
+            ? review.data?.input.digest
             : undefined,
         );
       else await api.rejectProposal(tenant, proposalId, null);

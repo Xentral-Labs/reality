@@ -67,7 +67,10 @@ def resolve_decision_policy(
         authority = "company_member"
         checks.append("reviewed_member")
         exceptions.extend(["delivery_platform_admin", "delivery_trusted_local"])
-    if "_delivery_review" in arguments or tool == "intake_apply":
+    if "_delivery_review" in arguments or tool in {
+        "intake_apply",
+        "intake_batch_apply",
+    }:
         checks.append("reviewed_member")
         if authority == "action_context":
             authority = "company_member"

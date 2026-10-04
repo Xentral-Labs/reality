@@ -336,7 +336,7 @@ resources:
         verstummte Quellen erscheinen als Klärfälle.
     synonyms: [ERP, shop, import, connector, interface, evidence, Schnittstelle, Import, Beleg, Nachweis, Quelle]
     tables: [source_system, source_capability, document, document_line, fact]
-    match: "source|connector|document|fact|interpretation|ingest|intake|commercial_match"
+    match: "source|connector|document|fact|interpretation|ingest|intake|commercial_match|^(prepare_batch|review_batch|batch_status)$"
     views: [documents, sources_imports]
     projections: [document_register]
     exceptions: [silent_source, source_interpretation_failure]
@@ -678,6 +678,9 @@ labels:
       install_connector_shell: Connector einrichten
       create_source_system: Quellsystem anlegen
       create_source_capability: Quellfähigkeit festlegen
+      prepare_batch: Importauswahl vorbereiten
+      review_batch: Importauswahl prüfen
+      batch_status: Ergebnisse der Importauswahl anzeigen
       prepare_intake: Quellinterpretation vorbereiten
       review_intake: Quellinterpretation prüfen
       apply_prepared_intake: Geprüfte Quellinterpretation übernehmen

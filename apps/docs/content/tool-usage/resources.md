@@ -22,7 +22,7 @@ the technical key stands beside each one.
 | [Ledger and accounts](#resource-accounting)                      | 2     | 16      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
-| [Document and source system](#resource-source)                   | 3     | 15      | 2                   |
+| [Document and source system](#resource-source)                   | 3     | 16      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 5       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
@@ -950,6 +950,7 @@ Nachweis, Quelle
 
 **Actions**
 
+- [Prepare selected intake batch](./commands#command-prepare_batch) (`prepare_batch`)
 - [Prepare source interpretation](./commands#command-prepare_intake) (`prepare_intake`)
 - [Accept reviewed source interpretation](./commands#command-apply_prepared_intake)
   (`apply_prepared_intake`)
@@ -975,6 +976,8 @@ Nachweis, Quelle
 
 **Look up**
 
+- [Review selected intake batch](./commands#command-review_batch) (`review_batch`)
+- [Read intake batch results](./commands#command-batch_status) (`batch_status`)
 - [Review source interpretation](./commands#command-review_intake) (`review_intake`)
 - [Read reviewed partial commercial match](./commands#command-commercial_match) (`commercial_match`)
 - [Preview Document](./commands#command-preview_document) (`preview_document`)

@@ -99,8 +99,8 @@ class PreparedIntake(IntakeModel):
 
 
 class ManifestEntry(IntakeModel):
-    proposal_id: str
-    digest: str
+    proposal_id: str = Field(min_length=1, max_length=128)
+    digest: str = Field(min_length=64, max_length=64, pattern=r"^[0-9a-f]{64}$")
 
 
 class IntakeManifest(IntakeModel):

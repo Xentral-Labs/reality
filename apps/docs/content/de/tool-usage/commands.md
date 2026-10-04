@@ -70,6 +70,7 @@ angegeben.
 | [`authorizations`](#command-authorizations)                                       | List payment authorizations                  | Bereichsübergreifend    | `finance_payment_authorizations`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`payouts`](#command-payouts)                                                     | List payouts                                 | Bereichsübergreifend    | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
 | [`merge_party`](#command-merge_party)                                             | Merge a duplicate business partner           | Bereichsübergreifend    | `party_merge_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
+| [`prepare_batch`](#command-prepare_batch)                                         | Prepare selected intake batch                | Bereichsübergreifend    | `intake_batch_prepare_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Bereichsübergreifend    | `intake_prepare_propose`                                                                                                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Bereichsübergreifend    | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Bereichsübergreifend    | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
@@ -85,6 +86,7 @@ angegeben.
 | [`schedule`](#command-schedule)                                                   | Read dunning schedule                        | Bereichsübergreifend    | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
 | [`email_history`](#command-email_history)                                         | Read email history                           | Bereichsübergreifend    | `email_history`                                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
 | [`email_workflow`](#command-email_workflow)                                       | Read email workflow                          | Bereichsübergreifend    | `email_workflow`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`batch_status`](#command-batch_status)                                           | Read intake batch results                    | Bereichsübergreifend    | `intake_batch_status`                                                                                                                                                                        | Web · API · MCP · Chat                  |
 | [`kits`](#command-kits)                                                           | Read kits                                    | Bereichsübergreifend    | `kits`                                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`outbound_deliveries`](#command-outbound_deliveries)                             | Read planned deliveries                      | Bereichsübergreifend    | `outbound_deliveries`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs               | Bereichsübergreifend    | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
@@ -101,6 +103,7 @@ angegeben.
 | [`record_notice`](#command-record_notice)                                         | Record dunning notice                        | Bereichsübergreifend    | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner   | Bereichsübergreifend    | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                       | Bereichsübergreifend    | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
+| [`review_batch`](#command-review_batch)                                           | Review selected intake batch                 | Bereichsübergreifend    | `intake_batch_review`                                                                                                                                                                        | Web · API · MCP · Chat                  |
 | [`review_intake`](#command-review_intake)                                         | Review source interpretation                 | Bereichsübergreifend    | `intake_review`                                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote       | Bereichsübergreifend    | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                         | Bereichsübergreifend    | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
@@ -9323,6 +9326,48 @@ party_merge_propose duplicate_party_id surviving_party_id reason
 
 **Siehe auch:** Command [`merge_party`](./commands#command-merge_party)
 
+### `prepare_batch` — Prepare selected intake batch {#command-prepare_batch}
+
+Retain up to 500 exact independently reviewed source units; create no accepted effects and exclude
+future arrivals.
+
+**Aufruf**
+
+```text
+intake_batch_prepare_propose request_id entries
+```
+
+**Erreichbar über:** Web · API · MCP · Chat
+
+**Wirkung:** Liest: `action` · Schreibt: `action`
+
+**Siehe auch:** Agent Tool
+[`intake_batch_prepare_propose`](./commands#tool-intake_batch_prepare_propose)
+
+#### `intake_batch_prepare_propose` — Prepare a selected intake batch {#tool-intake_batch_prepare_propose}
+
+Freeze up to 500 exact selected proposal IDs and digests. Later arrivals are excluded; this does not
+approve or apply business meaning.
+
+**Aufruf**
+
+```text
+intake_batch_prepare_propose request_id entries
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                    | Typ      | Pflicht | Beschreibung                                                                                                                           | Standard |
+| ----------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `request_id`            | `string` | ja      | Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused. | —        |
+| `entries`               | `array`  | ja      | Exact selected proposal IDs and reviewed digests; never future arrivals.                                                               | —        |
+| `entries[].proposal_id` | `string` | ja      | Opaque same-tenant identity of the retained decision proposal.                                                                         | —        |
+| `entries[].digest`      | `string` | ja      | Exact content digest of the retained interpretation explicitly reviewed for this decision.                                             | —        |
+
+**Siehe auch:** Command [`prepare_batch`](./commands#command-prepare_batch)
+
 ### `prepare_intake` — Prepare source interpretation {#command-prepare_intake}
 
 Retain a non-authoritative exact interpretation and review digest; create no accepted business
@@ -10204,6 +10249,63 @@ business object.
 Keine Parameter.
 
 **Siehe auch:** Command [`email_workflow`](./commands#command-email_workflow)
+
+### `batch_status` — Read intake batch results {#command-batch_status}
+
+Explain applied, replayed, refused and stopped units separately through bounded pagination.
+
+**Aufruf**
+
+```text
+intake_batch_status batch_id [cursor] [limit]
+```
+
+**Erreichbar über:** Web · API · MCP · Chat
+
+**Wirkung:** Liest: `action` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`intake_batch_status`](./commands#tool-intake_batch_status)
+
+#### `intake_batch_status` — Read intake batch results {#tool-intake_batch_status}
+
+Read at most 100 retained child dispositions; successful queue processing can include
+review-required or stopped decisions.
+
+**Aufruf**
+
+```text
+intake_batch_status batch_id [cursor] [limit]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage          | Art                        | Standard |
+| ------------------------- | -------------------------- | -------- |
+| `MCP intake_batch_status` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read one page of retained source acceptance dispositions.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect a selected batch.
+
+**Nicht verwenden, wenn**
+
+- New units should be included or existing reviews renewed.
+
+**Parameter**
+
+| Name       | Typ       | Pflicht | Beschreibung                                                           | Standard |
+| ---------- | --------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `batch_id` | `string`  | ja      | Opaque same-tenant identity of the retained selected manifest.         | —        |
+| `cursor`   | `integer` | nein    | Zero-based retained manifest or result position for this bounded page. | `0`      |
+| `limit`    | `integer` | nein    | Maximum number of records or jobs processed by this invocation.        | `100`    |
+
+**Siehe auch:** Command [`batch_status`](./commands#command-batch_status)
 
 ### `kits` — Read kits {#command-kits}
 
@@ -11171,6 +11273,63 @@ Reverse one owner-confirmed manual reminder and its fee effect without deleting 
 **Prüfen mit:** `finance.dunning.notice` — Reversal identity and fee outcome are retained.
 
 **Siehe auch:** Command [`reverse_notice`](./commands#command-reverse_notice)
+
+### `review_batch` — Review selected intake batch {#command-review_batch}
+
+Read at most 100 exact selected members and the immutable manifest digest.
+
+**Aufruf**
+
+```text
+intake_batch_review batch_id [cursor] [limit]
+```
+
+**Erreichbar über:** Web · API · MCP · Chat
+
+**Wirkung:** Liest: `action` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`intake_batch_review`](./commands#tool-intake_batch_review)
+
+#### `intake_batch_review` — Review a selected intake batch {#tool-intake_batch_review}
+
+Read at most 100 members of a fixed manifest and its exact confirmation digest. This never refreshes
+or applies a child decision.
+
+**Aufruf**
+
+```text
+intake_batch_review batch_id [cursor] [limit]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage          | Art                        | Standard |
+| ------------------------- | -------------------------- | -------- |
+| `MCP intake_batch_review` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read one page of exact selected source decisions.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect a selected batch.
+
+**Nicht verwenden, wenn**
+
+- New units should be included or existing reviews renewed.
+
+**Parameter**
+
+| Name       | Typ       | Pflicht | Beschreibung                                                           | Standard |
+| ---------- | --------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `batch_id` | `string`  | ja      | Opaque same-tenant identity of the retained selected manifest.         | —        |
+| `cursor`   | `integer` | nein    | Zero-based retained manifest or result position for this bounded page. | `0`      |
+| `limit`    | `integer` | nein    | Maximum number of records or jobs processed by this invocation.        | `100`    |
+
+**Siehe auch:** Command [`review_batch`](./commands#command-review_batch)
 
 ### `review_intake` — Review source interpretation {#command-review_intake}
 
@@ -12837,12 +12996,12 @@ reality_gap_rule_replay_propose rule_id [source_ids] [cursor] [limit]
 
 **Parameter**
 
-| Name         | Typ       | Pflicht | Beschreibung                                                    | Standard |
-| ------------ | --------- | ------- | --------------------------------------------------------------- | -------- |
-| `rule_id`    | `string`  | ja      | —                                                               | —        |
-| `source_ids` | `array`   | nein    | —                                                               | —        |
-| `cursor`     | `string`  | nein    | —                                                               | —        |
-| `limit`      | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | `500`    |
+| Name         | Typ       | Pflicht | Beschreibung                                                           | Standard |
+| ------------ | --------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `rule_id`    | `string`  | ja      | —                                                                      | —        |
+| `source_ids` | `array`   | nein    | —                                                                      | —        |
+| `cursor`     | `string`  | nein    | Zero-based retained manifest or result position for this bounded page. | —        |
+| `limit`      | `integer` | nein    | Maximum number of records or jobs processed by this invocation.        | `500`    |
 
 ### `supply_coverage` — Supply coverage {#tool-supply_coverage}
 
@@ -13236,7 +13395,7 @@ business_logic_discover [query] [kind] [cursor] [limit]
 | -------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `query`  | `string`  | nein    | Optional invoice-number search within matching same-party credit targets.                                                                      | —        |
 | `kind`   | `string`  | nein    | Explicit internal or target reference kind; no inferred tax or country meaning. `command`, `tool`, `action`, `view`, `projection`, `exception` | —        |
-| `cursor` | `integer` | nein    | —                                                                                                                                              | —        |
+| `cursor` | `integer` | nein    | Zero-based retained manifest or result position for this bounded page.                                                                         | —        |
 | `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                                                | —        |
 
 ### `business_logic_explain` — Explain live business logic {#tool-business_logic_explain}
@@ -13419,11 +13578,11 @@ Discover sealed captured report generations for an explicit fixed analysis selec
 
 **Parameter**
 
-| Name     | Typ       | Pflicht | Beschreibung                                                    | Standard |
-| -------- | --------- | ------- | --------------------------------------------------------------- | -------- |
-| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | `20`     |
-| `cursor` | `string`  | nein    | —                                                               | `None`   |
-| `family` | `string`  | ja      | `inventory`, `contribution`                                     | —        |
+| Name     | Typ       | Pflicht | Beschreibung                                                           | Standard |
+| -------- | --------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.        | `20`     |
+| `cursor` | `string`  | nein    | Zero-based retained manifest or result position for this bounded page. | `None`   |
+| `family` | `string`  | ja      | `inventory`, `contribution`                                            | —        |
 
 ### `graph_contribution_reviews_list` — List confirmed contribution valuations {#tool-graph_contribution_reviews_list}
 
@@ -13458,10 +13617,10 @@ Discover retained joint contribution confirmations for explicit historical repor
 
 **Parameter**
 
-| Name     | Typ       | Pflicht | Beschreibung                                                    | Standard |
-| -------- | --------- | ------- | --------------------------------------------------------------- | -------- |
-| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | `20`     |
-| `cursor` | `string`  | nein    | —                                                               | `None`   |
+| Name     | Typ       | Pflicht | Beschreibung                                                           | Standard |
+| -------- | --------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.        | `20`     |
+| `cursor` | `string`  | nein    | Zero-based retained manifest or result position for this bounded page. | `None`   |
 
 ### `graph_inventory_reviews_list` — List confirmed inventory valuations {#tool-graph_inventory_reviews_list}
 
@@ -13496,10 +13655,10 @@ Discover retained joint inventory confirmations for explicit historical report s
 
 **Parameter**
 
-| Name     | Typ       | Pflicht | Beschreibung                                                    | Standard |
-| -------- | --------- | ------- | --------------------------------------------------------------- | -------- |
-| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | `20`     |
-| `cursor` | `string`  | nein    | —                                                               | `None`   |
+| Name     | Typ       | Pflicht | Beschreibung                                                           | Standard |
+| -------- | --------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.        | `20`     |
+| `cursor` | `string`  | nein    | Zero-based retained manifest or result position for this bounded page. | `None`   |
 
 ### `graph_catalog` — Discover the Business Recorder {#tool-graph_catalog}
 

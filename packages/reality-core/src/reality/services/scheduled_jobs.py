@@ -1215,3 +1215,73 @@ def _still_referenced() -> ColumnElement[bool]:
         .where(AnalysisRequest.run_id == ScheduledJobRun.id)
         .exists()
     )
+
+
+def enqueue_intake_batch_run(
+    session: Session, tenant_id: str, batch_id: str
+) -> ScheduledJobRun | None:
+    """
+    BUSINESS PURPOSE:
+    Continue an exact retained intake authorization through the shared durable queue.
+
+    BUSINESS RULE scheduled_jobs.enqueue_intake_batch_run:
+    Preserve the original actor and immutable manifest; queue metadata grants no child authority.
+    """
+    from reality.services.intake_batches import _batch, _manifest
+
+    # reality-rule: scheduled_jobs.enqueue_intake_batch_run
+    _tenant_lock(session, tenant_id)
+    batch = _batch(session, tenant_id, batch_id, lock=True)
+    _, manifest = _manifest(batch)
+    if batch.status != "executing":
+        return None
+    progress = json.loads(batch.output)
+    authority = progress["authorization"]
+    from reality.domain.intake import content_digest
+
+    if (
+        content_digest(authority) != progress["authorization_digest"]
+        or authority["batch_id"] != batch.id
+        or authority["manifest_digest"] != _manifest(batch)[0]["digest"]
+        or authority["manifest_revision"] != manifest.revision
+    ):
+        raise JobError("not_authorized")
+    actor_id = authority["reviewer_user_id"]
+    arguments = {
+        "batch_id": batch.id,
+        "manifest_revision": manifest.revision,
+        "continuation_id": progress["continuation_id"],
+    }
+    definition = get_definition("intake.batch_apply")
+    parsed = definition.validate(arguments)
+    definition.authorize(session, _context(tenant_id, actor_id), parsed)
+    request_id = _key(f"intake:{batch.id}:{progress['continuation_id']}")
+    envelope = {"version": definition.version, "arguments": parsed.model_dump()}
+    fingerprint = _fingerprint(
+        {"actor": actor_id, "type": definition.name, "configuration": envelope}
+    )
+    old = session.scalar(
+        select(ScheduledJobRun).where(
+            ScheduledJobRun.tenant_id == tenant_id,
+            ScheduledJobRun.request_id == request_id,
+        )
+    )
+    if old is not None:
+        if old.request_fingerprint != fingerprint:
+            raise JobError("request_conflict")
+        return old
+    if not _capacity(session, tenant_id):
+        raise JobError("queue_full")
+    run = ScheduledJobRun(
+        id=f"run_{uuid4().hex}",
+        tenant_id=tenant_id,
+        actor_id=actor_id,
+        job_type=definition.name,
+        configuration=envelope,
+        request_id=request_id,
+        request_fingerprint=fingerprint,
+    )
+    session.add(run)
+    session.flush()
+    _audit(session, tenant_id, actor_id, run.id, "enqueued")
+    return run

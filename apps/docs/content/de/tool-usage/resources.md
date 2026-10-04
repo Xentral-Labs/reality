@@ -22,7 +22,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
-| [Beleg und Quellsystem](#resource-source)                      | 3      | 15       | 2         |
+| [Beleg und Quellsystem](#resource-source)                      | 3      | 16       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 5        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
@@ -967,6 +967,7 @@ Nachweis, Quelle
 
 **Aktionen**
 
+- [Importauswahl vorbereiten](./commands#command-prepare_batch) (`prepare_batch`)
 - [Quellinterpretation vorbereiten](./commands#command-prepare_intake) (`prepare_intake`)
 - [Geprüfte Quellinterpretation übernehmen](./commands#command-apply_prepared_intake)
   (`apply_prepared_intake`)
@@ -991,6 +992,8 @@ Nachweis, Quelle
 
 **Nachschlagen**
 
+- [Importauswahl prüfen](./commands#command-review_batch) (`review_batch`)
+- [Ergebnisse der Importauswahl anzeigen](./commands#command-batch_status) (`batch_status`)
 - [Quellinterpretation prüfen](./commands#command-review_intake) (`review_intake`)
 - [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
 - [Belegzuordnung vorschauen](./commands#command-preview_document) (`preview_document`)

@@ -2525,3 +2525,14 @@ Contract: `docs/features/decision-gated-intake.md` records the explicit initial 
   nullable evidence migration, empty roundtrip and refusal without rewriting nulls.
 - Shared scope proofs additionally refuse unplanned writers and changed invocation
   arguments. Adapter cutover and its legacy story/transport regression remain pending.
+
+
+## Exact bulk source decisions — Spec 360
+
+- `packages/reality-core/tests/test_bulk_intake_admission.py`: fixed manifest,
+  zero preparation effects, 25-unit chunks, original reviewer attribution,
+  revocation and stop dispositions, infrastructure rollback of the whole chunk,
+  compact durable continuation, delivery replay, exact shared-tool confirmation
+  and foreign-tenant refusal.
+- This checkpoint does not certify AgentMandates, Web selection/recovery flows,
+  demo cutover or the required full workload measurements; those remain pending.
