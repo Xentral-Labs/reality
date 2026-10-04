@@ -157,3 +157,11 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T069 Prove and retain the existing explicit-list payment-run parent, exact selected current obligations, frozen supplier-payment children and complete run/receipt atomicity.
 - [ ] T070 Route existing payment CLI and customer/supplier payment, refund and payment-run HTTP through actual reviewed confirmation and prove real person/decline/tenant parity.
 - [ ] T071 Freeze existing authored fixed/profile payment calls and qualify the literal two-parent integration without lending lifecycle/merge/refund/future-family authority.
+
+
+## Standalone financial evidence qualification
+
+- [ ] T072 Prove direct/unconfirmed/changed/repeated/early-commit/post-write/sibling/current-context refusal for seven existing posting/netting/supplier-refund families.
+- [ ] T073 Retain current references/defaults and freeze exact canonical parents and posting/allocation/refund children under the actual root decision.
+- [ ] T074 Preserve actual nested invoice/credit/intake/fixed authority and route existing HTTP endpoints through explicit request confirmation.
+- [ ] T075 Qualify exact stated values, current authority/receipt/replay, financial/scenario/browser/adapters/catalog regressions and every committed-head CI job.

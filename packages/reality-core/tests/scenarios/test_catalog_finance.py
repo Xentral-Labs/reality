@@ -18,6 +18,9 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
     reviewed_post_customer_payment,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
     reviewed_record_sales_credit,
     reviewed_record_sales_invoice,
 )
@@ -764,7 +767,7 @@ def test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open(
         "1000.00",
         document_date="2026-09-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
 
     reviewed, receipt = _finance(
         session,
@@ -826,7 +829,7 @@ def test_the_party_balance_counts_credits_deposits_and_prepayments_once(
             document_date="2026-09-01",
             payment_term_code=term,
         )
-        core.post_sales_invoice(session, tenant, document.id)
+        reviewed_post_sales_invoice(session, tenant, document.id)
         return document
 
     invoice("RE-N06-OPEN", "500.00")
@@ -834,7 +837,7 @@ def test_the_party_balance_counts_credits_deposits_and_prepayments_once(
     note = core.create_document(
         session, tenant, "credit_note", "GS-N06", business.customer.id, "50.00"
     )
-    core.post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
     _finance(
         session,
         business,
@@ -1271,7 +1274,7 @@ def _overdue_invoice(session, business, number, party, day, amount="400.00"):
         amount,
         document_date=day,
     )
-    core.post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     return invoice
 
 
@@ -1496,7 +1499,7 @@ def test_a_returned_direct_debit_reopens_the_invoice_and_charges_the_fee(
         "240.00",
         document_date="2026-09-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     paid = _pay(session, business, invoice.id, "240.00", "SEPA debit 0915")
     assert core.open_invoice_amount(session, tenant, invoice.id) == 0
     # Positive control for the absence: a paid invoice raises no return finding.
@@ -1622,6 +1625,7 @@ def test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods(
         propose_tool(
             session, tenant, "sales_invoice_post", {"document_id": invoice_id}
         ).id,
+        confirmed=True,
     )
 
     charges = [
@@ -1680,9 +1684,9 @@ def _posted(session, business, kind, number, party, amount, day):
         session, business.tenant.id, kind, number, party.id, amount, document_date=day
     )
     post = {
-        "sales_invoice": core.post_sales_invoice,
-        "credit_note": core.post_sales_credit_note,
-        "supplier_invoice": core.post_supplier_invoice,
+        "sales_invoice": reviewed_post_sales_invoice,
+        "credit_note": reviewed_post_sales_credit_note,
+        "supplier_invoice": reviewed_post_supplier_invoice,
     }[kind]
     post(session, business.tenant.id, document.id)
     return document
@@ -2289,7 +2293,7 @@ def _billed_order(session, business, number, amount, party=None):
         document_date="2026-09-20",
         _commit=False,
     )
-    core.post_sales_invoice(session, tenant, invoice.id, _commit=False)
+    reviewed_post_sales_invoice(session, tenant, invoice.id, _commit=False)
     return invoice, invoice_line
 
 
@@ -2360,7 +2364,7 @@ def test_a_marketplace_payout_settles_each_order_and_books_the_fees(session, bus
             Document.tenant_id == tenant, Document.number == "GS-L03"
         )
     )
-    core.post_sales_credit_note(session, tenant, note.id, _commit=False)
+    reviewed_post_sales_credit_note(session, tenant, note.id, _commit=False)
     bank = list_accounts(session, tenant)["defaults"]["cash"]
     bank_before = _cash_on(session, business, bank)
 
@@ -2442,7 +2446,7 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
             "25.00",
             _commit=False,
         )
-        core.post_sales_credit_note(session, tenant, note.id, _commit=False)
+        reviewed_post_sales_credit_note(session, tenant, note.id, _commit=False)
     session.commit()
     lines = (
         [

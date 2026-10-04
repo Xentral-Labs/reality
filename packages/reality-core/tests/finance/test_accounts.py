@@ -3,8 +3,11 @@ from decimal import Decimal
 
 import pytest
 from intake_review_support import (
+    reviewed_allocate_credit_note,
     reviewed_post_customer_payment,
     reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
 )
 from sqlalchemy import select
 
@@ -31,9 +34,9 @@ def test_required_ids_and_explicit_setup(session, business):
     assert list_accounts(session, business.tenant.id)["accounts"] == []
     doc = invoice(session, business)
     with pytest.raises(core.InvalidOperation, match="default"):
-        core.post_sales_invoice(session, business.tenant.id, doc.id)
+        reviewed_post_sales_invoice(session, business.tenant.id, doc.id)
     reviewed_initialize_accounts(session, business.tenant.id)
-    entries = core.post_sales_invoice(session, business.tenant.id, doc.id)
+    entries = reviewed_post_sales_invoice(session, business.tenant.id, doc.id)
     assert all(e.account_id for e in entries)
     assert "account" not in LedgerEntry.__table__.columns
     assert (
@@ -46,7 +49,7 @@ def test_default_change_preserves_invoice_account_and_blocked_inverse(
 ):
     reviewed_initialize_accounts(session, business.tenant.id)
     doc = invoice(session, business)
-    entries = core.post_sales_invoice(session, business.tenant.id, doc.id)
+    entries = reviewed_post_sales_invoice(session, business.tenant.id, doc.id)
     original = next(e for e in entries if e.account == "accounts_receivable")
     new = reviewed_create_account(
         session,
@@ -107,12 +110,12 @@ def test_credit_cannot_be_consumed_again_after_refund(session, business):
     note = core.create_document(
         session, business.tenant.id, "credit_note", "CN", business.customer.id, "100"
     )
-    core.post_sales_credit_note(session, business.tenant.id, note.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, note.id)
     reviewed_post_customer_refund(session, business.tenant.id, note.id, "80")
     doc = invoice(session, business)
-    core.post_sales_invoice(session, business.tenant.id, doc.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, doc.id)
     with pytest.raises(core.InvalidOperation, match="unallocated"):
-        core.allocate_credit_note(session, business.tenant.id, note.id, doc.id, "30")
+        reviewed_allocate_credit_note(session, business.tenant.id, note.id, doc.id, "30")
 
 
 def test_account_proposal_is_atomic_stale_and_idempotent(session, business):
@@ -216,7 +219,7 @@ def test_concurrent_consumers_cannot_spend_one_credit_twice(postgres_database):
                 doc = core.create_document(
                     session, tenant_id, "sales_invoice", number, customer.id, "100"
                 )
-                entries = core.post_sales_invoice(session, tenant_id, doc.id)
+                entries = reviewed_post_sales_invoice(session, tenant_id, doc.id)
                 invoice_ids.append(
                     next(e.id for e in entries if e.account == "accounts_receivable")
                 )
@@ -287,7 +290,7 @@ def test_account_configuration_api_uses_proposal(session, business):
             response = client.get(base + "/finance/accounts")
             assert response.status_code == 200
             doc = invoice(session, business)
-            posted = core.post_sales_invoice(session, business.tenant.id, doc.id)
+            posted = reviewed_post_sales_invoice(session, business.tenant.id, doc.id)
             journal = client.get(base + "/finance/journal").json()["items"]
             assert {row["account_id"] for row in journal} == {
                 entry.account_id for entry in posted

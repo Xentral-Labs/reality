@@ -6,7 +6,12 @@ from types import SimpleNamespace
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_post_customer_refund
+from intake_review_support import (
+    reviewed_allocate_credit_note,
+    reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -22,7 +27,6 @@ from reality.services.core import (
     create_document,
     create_tenant,
     open_invoice_amount,
-    post_sales_credit_note,
     reverse_ledger_posting_group,
 )
 from reality.services.delivery_actions import (
@@ -43,7 +47,7 @@ def obligation(session, business, direction="customer"):
         "300",
         currency="USD",
     )
-    post_sales_credit_note(session, business.tenant.id, doc.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, doc.id)
     return doc
 
 
@@ -422,7 +426,6 @@ def test_supported_refund_precision_is_preserved(session, business, amount):
 
 
 def test_netting_consumes_credit_and_stales_review(session, business):
-    from reality.services.core import allocate_credit_note, post_sales_invoice
 
     credit = obligation(session, business)
     invoice = create_document(
@@ -434,9 +437,9 @@ def test_netting_consumes_credit_and_stales_review(session, business):
         "200",
         currency="USD",
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     old = prepare(session, business, credit, amount="20")
-    allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "50")
+    reviewed_allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "50")
     with pytest.raises(InvalidOperation, match="review"):
         confirm(session, business, old)
     fresh = prepare(session, business, credit, request="after-net", amount="20")
@@ -551,10 +554,6 @@ def test_refund_and_credit_reversal_unresolved_overlap_both_directions(
 def test_credit_cannot_be_netted_again_after_refund_consumes_capacity(
     session, business
 ):
-    from reality.services.core import (
-        allocate_credit_note,
-        post_sales_invoice,
-    )
 
     credit = obligation(session, business)
     invoice = create_document(
@@ -566,10 +565,10 @@ def test_credit_cannot_be_netted_again_after_refund_consumes_capacity(
         "300",
         currency="USD",
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     reviewed_post_customer_refund(session, business.tenant.id, credit.id, "250")
     with pytest.raises(InvalidOperation, match="exceeds"):
-        allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100")
+        reviewed_allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100")
     assert open_invoice_amount(session, business.tenant.id, credit.id) == 50
 
 
@@ -580,10 +579,6 @@ def test_direct_refund_and_netting_serialize_shared_credit_capacity(postgres_dat
     from sqlalchemy.orm import sessionmaker
 
     from reality.db.core import Base, build_engine
-    from reality.services.core import (
-        allocate_credit_note,
-        post_sales_invoice,
-    )
 
     engine = build_engine(postgres_database)
     Base.metadata.create_all(engine)
@@ -603,7 +598,7 @@ def test_direct_refund_and_netting_serialize_shared_credit_capacity(postgres_dat
                 "300",
                 currency="USD",
             )
-            post_sales_invoice(connection, tenant.id, invoice.id)
+            reviewed_post_sales_invoice(connection, tenant.id, invoice.id)
             tenant_id, credit_id, invoice_id = tenant.id, credit.id, invoice.id
         gate = Barrier(2)
 
@@ -614,7 +609,7 @@ def test_direct_refund_and_netting_serialize_shared_credit_capacity(postgres_dat
                     if refund:
                         reviewed_post_customer_refund(connection, tenant_id, credit_id, "200")
                     else:
-                        allocate_credit_note(
+                        reviewed_allocate_credit_note(
                             connection, tenant_id, credit_id, invoice_id, "200"
                         )
                     return True
@@ -667,7 +662,7 @@ def test_credit_register_paging_sorting_and_reversed_exclusion(session, business
         "50",
         currency="EUR",
     )
-    entries = post_sales_credit_note(session, business.tenant.id, second.id)
+    entries = reviewed_post_sales_credit_note(session, business.tenant.id, second.id)
     page = _customer_credit_items(
         session, business.tenant.id, size=1, page=2, sort="number"
     )

@@ -11,7 +11,11 @@ from pathlib import Path
 from urllib.request import urlopen
 
 from conftest import record_by_id
-from intake_review_support import _reviewed_payment_fixture
+from intake_review_support import (
+    _reviewed_financial_posting_fixture,
+    _reviewed_payment_fixture,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -120,10 +124,7 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                     party.id,
                     "100",
                 )
-                getattr(
-                    core,
-                    f"post_{'sales' if side == 'customer' else 'supplier'}_invoice",
-                )(session, tenant.id, invoice.id)
+                _reviewed_financial_posting_fixture(session, tenant.id, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice", invoice.id)
                 _reviewed_payment_fixture(
                     session, tenant.id, f"post_{side}_payment", invoice.id, "80"
                 )
@@ -140,12 +141,12 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                         party.id,
                         amount,
                     )
-                    getattr(
-                        core,
-                        "post_sales_invoice"
-                        if side == "customer"
-                        else "post_supplier_invoice",
-                    )(session, tenant.id, claim.id)
+                    _reviewed_financial_posting_fixture(
+                        session,
+                        tenant.id,
+                        "post_sales_invoice" if side == "customer" else "post_supplier_invoice",
+                        claim.id,
+                    )
             from reality.services.finance.references import list_references
             from reality.tools.application import (
                 approve_and_execute_proposal,
@@ -201,7 +202,7 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                 "1190",
                 source_record_id=source.id,
             )
-            core.post_sales_invoice(session, tenant.id, attribution_invoice.id)
+            reviewed_post_sales_invoice(session, tenant.id, attribution_invoice.id)
             opening_customer = reviewed_create_party(
                 session, tenant.id, "Opening customer", "customer"
             )

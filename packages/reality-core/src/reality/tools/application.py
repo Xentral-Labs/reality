@@ -3601,8 +3601,11 @@ def _sales_invoice_post(
     """
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
     # reality-rule: application.sales_invoice_post.1
-    return _posting_result(post_sales_invoice(session, tenant_id, **arguments))
+    return _posting_result(_invoke("post_sales_invoice", post_sales_invoice, session, tenant_id, **arguments, _commit=False))
 
 
 def _supplier_invoice_post(
@@ -3617,8 +3620,11 @@ def _supplier_invoice_post(
     """
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
     # reality-rule: application.supplier_invoice_post.1
-    return _posting_result(post_supplier_invoice(session, tenant_id, **arguments))
+    return _posting_result(_invoke("post_supplier_invoice", post_supplier_invoice, session, tenant_id, **arguments, _commit=False))
 
 
 def _document_create(
@@ -3662,8 +3668,11 @@ def _credit_note_post(
     """
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
     # reality-rule: application.credit_note_post.1
-    return _posting_result(post_sales_credit_note(session, tenant_id, **arguments))
+    return _posting_result(_invoke("post_sales_credit_note", post_sales_credit_note, session, tenant_id, **arguments, _commit=False))
 
 
 def _credit_note_allocate(
@@ -3676,9 +3685,12 @@ def _credit_note_allocate(
     BUSINESS RULE application.credit_note_allocate.1:
     Route this company-scoped request to allocate_credit_note. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
     # reality-rule: application.credit_note_allocate.1
     return _entity_result(
-        "settlement_allocation", allocate_credit_note(session, tenant_id, **arguments)
+        "settlement_allocation", _invoke("allocate_credit_note", allocate_credit_note, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -3715,8 +3727,11 @@ def _supplier_credit_note_post(
     """
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
     # reality-rule: application.supplier_credit_note_post.1
-    return _posting_result(post_supplier_credit_note(session, tenant_id, **arguments))
+    return _posting_result(_invoke("post_supplier_credit_note", post_supplier_credit_note, session, tenant_id, **arguments, _commit=False))
 
 
 def _supplier_credit_note_allocate(
@@ -3729,10 +3744,13 @@ def _supplier_credit_note_allocate(
     BUSINESS RULE application.supplier_credit_note_allocate.1:
     Route this company-scoped request to allocate_supplier_credit_note. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
     # reality-rule: application.supplier_credit_note_allocate.1
     return _entity_result(
         "settlement_allocation",
-        allocate_supplier_credit_note(session, tenant_id, **arguments),
+        _invoke("allocate_supplier_credit_note", allocate_supplier_credit_note, session, tenant_id, **arguments, _commit=False),
     )
 
 
@@ -3748,9 +3766,12 @@ def _supplier_refund_post(
     """
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
     # reality-rule: application.supplier_refund_post.1
     return _entity_result(
-        "ledger_entry", post_supplier_refund(session, tenant_id, **arguments)
+        "ledger_entry", _invoke("post_supplier_refund", post_supplier_refund, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -6218,8 +6239,15 @@ def create_change_proposal(
     from reality.services.tenant_policy import (
         COMMERCIAL_MASTER_OPERATIONS,
         DOCUMENT_CORRECTION_OPERATIONS,
+        FINANCIAL_POSTING_OPERATIONS,
     )
 
+    if tool_name in FINANCIAL_POSTING_OPERATIONS:
+        from reality.services.financial_posting_decisions import (
+            prepare_financial_posting,
+        )
+
+        arguments = prepare_financial_posting(session, tenant_id, tool_name, arguments)
     if tool_name == "payment_run":
         from reality.services.payment_run_decisions import prepare_payment_run
 
@@ -6948,10 +6976,13 @@ def approve_and_execute_proposal(
     )
     if candidate is None:
         raise NotFound(code="proposal_not_found")
-    from reality.services.tenant_policy import COMMERCIAL_MASTER_OPERATIONS
+    from reality.services.tenant_policy import (
+        COMMERCIAL_MASTER_OPERATIONS,
+        FINANCIAL_POSTING_OPERATIONS,
+    )
 
     if (
-        (candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
+        (candidate.type.removeprefix("tool:") in FINANCIAL_POSTING_OPERATIONS or candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
         in {
             "tool:document_correct", "tool:document_lines_correct",
             "tool:party_merge", "tool:payment_run",
@@ -7045,6 +7076,12 @@ def approve_and_execute_proposal(
     if tool is None or not tool.mutating:
         raise InvalidOperation(code="proposal_mutation_tool_invalid")
     arguments = json.loads(candidate.input)
+    if tool_name in FINANCIAL_POSTING_OPERATIONS:
+        from reality.services.financial_posting_decisions import (
+            REVIEW_KEY as POSTING_REVIEW_KEY,
+        )
+
+        arguments.pop(POSTING_REVIEW_KEY, None)
     if tool_name == "payment_run":
         from reality.services.payment_run_decisions import REVIEW_KEY as RUN_REVIEW_KEY
 

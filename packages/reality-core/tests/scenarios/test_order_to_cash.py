@@ -4,16 +4,18 @@ from decimal import Decimal
 from pathlib import Path
 
 from intake_review_support import accept_shopify_order as ingest_shopify_order
-from intake_review_support import reviewed_post_customer_payment
+from intake_review_support import (
+    reviewed_allocate_credit_note,
+    reviewed_post_customer_payment,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+)
 
 from reality.services.core import (
-    allocate_credit_note,
     create_document,
     explain_commitment,
     open_invoice_amount,
     open_quantity,
-    post_sales_credit_note,
-    post_sales_invoice,
     record_movement,
     reserve,
 )
@@ -68,7 +70,7 @@ def test_order_to_cash_business_story(session, business):
         "1470.00",
         document_date="2026-09-22",
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "500")
     credit = create_document(
         session,
@@ -79,8 +81,8 @@ def test_order_to_cash_business_story(session, business):
         "100",
         document_date="2026-09-27",
     )
-    post_sales_credit_note(session, business.tenant.id, credit.id)
-    allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100")
+    reviewed_post_sales_credit_note(session, business.tenant.id, credit.id)
+    reviewed_allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100")
 
     assert open_quantity(session, business.tenant.id, commitment.id) == 0
     assert (

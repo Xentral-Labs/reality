@@ -6,6 +6,7 @@ from decimal import Decimal
 import pytest
 from conftest import record_by_id
 from intake_review_support import (
+    _reviewed_financial_posting_fixture,
     _reviewed_payment_fixture,
     reviewed_post_customer_payment,
 )
@@ -39,8 +40,8 @@ def prepare(session, business, side, amount="20", **changes):
     invoice = core.create_document(
         session, tenant, kind, core.uid("inv"), party.id, "100"
     )
-    getattr(core, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice")(
-        session, tenant, invoice.id
+    _reviewed_financial_posting_fixture(
+        session, tenant, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice", invoice.id
     )
     payment = _reviewed_payment_fixture(session, tenant, f"post_{side}_payment", invoice.id, "80")
     context = adjustment_context(session, tenant, invoice.id)

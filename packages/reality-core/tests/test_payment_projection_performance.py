@@ -5,6 +5,8 @@ from decimal import Decimal
 import pytest
 from intake_review_support import (
     reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
 )
 from sqlalchemy import select
@@ -15,7 +17,6 @@ from reality.services.core import (
     create_document,
     create_tenant,
     payment_rows,
-    post_sales_invoice,
     reverse_ledger_posting_group,
 )
 from reality.web.api import tenant_payments
@@ -30,7 +31,7 @@ def payment_history(session, business):
         business.customer.id,
         "100",
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     return invoice
 
 
@@ -124,7 +125,6 @@ def test_payment_refresh_keeps_other_checkpoints_and_read_only_derivation(
 def test_payment_totals_keep_currencies_separate_and_apply_direction_filter(
     session, business
 ):
-    from reality.services.core import post_supplier_invoice
 
     tenant = business.tenant.id
     for number, kind, party, currency, amount in [
@@ -136,10 +136,10 @@ def test_payment_totals_keep_currencies_separate_and_apply_direction_filter(
             session, tenant, kind, number, party, amount, currency=currency
         )
         if kind == "sales_invoice":
-            post_sales_invoice(session, tenant, invoice.id)
+            reviewed_post_sales_invoice(session, tenant, invoice.id)
             reviewed_post_customer_payment(session, tenant, invoice.id, Decimal(amount))
         else:
-            post_supplier_invoice(session, tenant, invoice.id)
+            reviewed_post_supplier_invoice(session, tenant, invoice.id)
             reviewed_post_supplier_payment(session, tenant, invoice.id, Decimal(amount))
     result = tenant_payments(
         tenant,

@@ -11,6 +11,9 @@ from decimal import Decimal
 from intake_review_support import (
     accept_import_job,
     reviewed_manual_order,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
     reviewed_record_sales_invoice,
 )
 
@@ -37,11 +40,11 @@ def _invoice(session, business, party, number, amount, day, kind="sales_invoice"
         session, business.tenant.id, kind, number, party.id, amount, document_date=day
     )
     if kind == "sales_invoice":
-        core.post_sales_invoice(session, business.tenant.id, document.id)
+        reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     elif kind == "supplier_invoice":
-        core.post_supplier_invoice(session, business.tenant.id, document.id)
+        reviewed_post_supplier_invoice(session, business.tenant.id, document.id)
     else:
-        core.post_sales_credit_note(session, business.tenant.id, document.id)
+        reviewed_post_sales_credit_note(session, business.tenant.id, document.id)
     return document
 
 

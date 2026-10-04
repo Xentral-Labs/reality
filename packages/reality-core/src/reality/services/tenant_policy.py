@@ -173,7 +173,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
         if not db.in_nested_transaction():
             raise InvalidOperation(code="intake_partial_commit_forbidden")
 
-    fixed = authority.tool in PAYMENT_APPLICATION_OPERATIONS or authority.tool in COMMERCIAL_MASTER_OPERATIONS or authority.tool in {
+    fixed = authority.tool in FINANCIAL_POSTING_OPERATIONS or authority.tool in PAYMENT_APPLICATION_OPERATIONS or authority.tool in COMMERCIAL_MASTER_OPERATIONS or authority.tool in {
         "document_correct", "document_lines_correct",
         "party_merge",
         "document_create",
@@ -211,6 +211,7 @@ _FIXED_DEFINITIONS = {"demo_seed": "compact-demo.v2", "normal_month": "normal-mo
 _FIXED_APPLICATION_CANONICAL_OPERATIONS = frozenset({
     "create_party", "create_item", "create_location",
     "post_customer_payment", "post_supplier_payment",
+    "post_sales_invoice", "post_supplier_invoice", "post_sales_credit_note", "allocate_credit_note",
 })
 
 
@@ -1671,6 +1672,17 @@ def require_demo_intake(
     raise InvalidOperation(code="intake_approval_required")
 
 
+FINANCIAL_POSTING_OPERATIONS = {
+    "sales_invoice_post": "post_sales_invoice",
+    "supplier_invoice_post": "post_supplier_invoice",
+    "credit_note_post": "post_sales_credit_note",
+    "supplier_credit_note_post": "post_supplier_credit_note",
+    "credit_note_allocate": "allocate_credit_note",
+    "supplier_credit_note_allocate": "allocate_supplier_credit_note",
+    "supplier_refund_post": "post_supplier_refund",
+}
+
+
 PAYMENT_APPLICATION_OPERATIONS = {
     "payment_run": "execute_payment_run",
     "customer_payment_post": "post_customer_payment",
@@ -1701,9 +1713,13 @@ DOCUMENT_CORRECTION_OPERATIONS = {
 
 
 _CANONICAL_MUTATION_TOOLS = {
+    **{operation: frozenset({tool}) for tool, operation in FINANCIAL_POSTING_OPERATIONS.items()},
     **{operation: frozenset({tool}) for tool, operation in PAYMENT_APPLICATION_OPERATIONS.items()},
     **{operation: frozenset({tool}) for tool, operation in COMMERCIAL_MASTER_OPERATIONS.items()},
     **{operation: frozenset({tool}) for tool, operation in DOCUMENT_CORRECTION_OPERATIONS.items()},
+    "post_sales_invoice": frozenset({"sales_invoice_post", "sales_invoice_record"}),
+    "post_supplier_invoice": frozenset({"supplier_invoice_post", "supplier_invoice_record", "supplier_invoice_free_record"}),
+    "post_sales_credit_note": frozenset({"credit_note_post", "sales_credit_record"}),
     "post_supplier_payment": frozenset({"supplier_payment_post", "payment_run"}),
     "merge_party": frozenset({"party_merge"}),
     "set_master_data_active": frozenset({"master_data_lifecycle", "party_merge"}),
@@ -1759,6 +1775,14 @@ def _require_application_decision(session, tenant_id, operation):
     ):
         raise InvalidOperation(code="intake_approval_required")
     _require_current_application_decider(session, tenant_id, authority, proposal)
+    if authority.tool in FINANCIAL_POSTING_OPERATIONS:
+        from reality.services.business_locks import lock_delivery_state
+        from reality.services.financial_posting_decisions import (
+            require_current_financial_posting,
+        )
+
+        lock_delivery_state(session, tenant_id)
+        require_current_financial_posting(session, tenant_id, authority.tool, authority.intent)
     if authority.tool == "payment_run" and operation == "execute_payment_run":
         from reality.services.business_locks import lock_delivery_state
         from reality.services.payment_run_decisions import require_current_payment_run
@@ -1847,7 +1871,16 @@ def _master_application_active(operation=None):
     }:
         return True
     authority = _application_authority.get()
-    from reality.services.intake import _payment_invocation
+    from reality.services.intake import _financial_invocation, _payment_invocation
+
+    if (
+        operation in {"create_document", "record_supplier_refund", "post_ledger", "allocate_settlement"}
+        and _financial_invocation.get()
+        and (authority is not None and authority.tool in _FIXED_DEFINITIONS or _profile_authority.get() is not None)
+    ):
+        return True
+    if authority is not None and authority.tool in FINANCIAL_POSTING_OPERATIONS:
+        return operation in {FINANCIAL_POSTING_OPERATIONS[authority.tool], "create_document", "record_supplier_refund", "post_ledger", "allocate_settlement"}
 
     if (
         operation in {"record_customer_payment", "record_supplier_payment", "create_document", "post_ledger", "allocate_settlement"}
@@ -1911,7 +1944,7 @@ def _consume_master_invocation(nonce):
 def require_document_operation(session, tenant_id, operation):
     """A manual evidence confirmation grants no unrelated business effect."""
     authority = _application_authority.get()
-    if authority is None or (authority.tool not in PAYMENT_APPLICATION_OPERATIONS and authority.tool not in COMMERCIAL_MASTER_OPERATIONS and authority.tool not in {
+    if authority is None or (authority.tool not in FINANCIAL_POSTING_OPERATIONS and authority.tool not in PAYMENT_APPLICATION_OPERATIONS and authority.tool not in COMMERCIAL_MASTER_OPERATIONS and authority.tool not in {
         "document_correct", "document_lines_correct",
         "party_merge",
         "document_create", "order_create", "sales_invoice_record",
@@ -1923,6 +1956,14 @@ def require_document_operation(session, tenant_id, operation):
         "create_manual_document_with_lines", "emit_business_event",
         "store_source_record", "create_master_source_record",
     }
+    if authority.tool in FINANCIAL_POSTING_OPERATIONS:
+        permitted.add(FINANCIAL_POSTING_OPERATIONS[authority.tool])
+        if authority.tool.endswith("allocate"):
+            permitted.add("allocate_settlement")
+        elif authority.tool == "supplier_refund_post":
+            permitted.update({"record_supplier_refund", "create_document", "post_ledger", "allocate_settlement"})
+        else:
+            permitted.add("post_ledger")
     if authority.tool in PAYMENT_APPLICATION_OPERATIONS:
         child = {"customer_payment_post": "record_customer_payment", "supplier_payment_post": "record_supplier_payment", "customer_refund_post": "record_customer_refund", "payment_run": "record_supplier_payment"}[authority.tool]
         permitted.update({PAYMENT_APPLICATION_OPERATIONS[authority.tool], child, "create_document", "post_ledger", "allocate_settlement"})

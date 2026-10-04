@@ -5,8 +5,10 @@ from decimal import Decimal
 
 import pytest
 from intake_review_support import (
+    _reviewed_financial_posting_fixture,
     accept_normalized_payment,
     reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
 )
 from sqlalchemy import func, select
 
@@ -37,9 +39,7 @@ def invoice_for(session, business, side, amount="100"):
         party.id,
         amount,
     )
-    getattr(
-        core, "post_sales_invoice" if side == "customer" else "post_supplier_invoice"
-    )(session, tenant, invoice.id)
+    _reviewed_financial_posting_fixture(session, tenant, "post_sales_invoice" if side == "customer" else "post_supplier_invoice", invoice.id)
     return invoice
 
 
@@ -327,10 +327,12 @@ def test_credit_note_can_be_reused_and_refunded(session, business, side):
         party.id,
         "10",
     )
-    getattr(
-        core,
+    _reviewed_financial_posting_fixture(
+        session,
+        tenant,
         "post_sales_credit_note" if side == "customer" else "post_supplier_credit_note",
-    )(session, tenant, note.id)
+        note.id,
+    )
     invoice = invoice_for(session, business, side)
     execute(
         session,
@@ -376,7 +378,7 @@ def test_rejects_foreign_party_blocked_and_reversed_credit(session, business):
     other = core.create_document(
         session, tenant, "sales_invoice", "OTHER", party.id, "10"
     )
-    core.post_sales_invoice(session, tenant, other.id)
+    reviewed_post_sales_invoice(session, tenant, other.id)
     with pytest.raises(core.InvalidOperation, match="same party"):
         propose(
             session, tenant, origin, "allocate_credit", invoice_id=other.id, amount="1"

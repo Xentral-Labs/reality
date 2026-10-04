@@ -3,7 +3,7 @@
 import json
 
 import pytest
-from legacy_finance import create_legacy_tenant
+from legacy_finance import create_legacy_tenant, historical_post_sales_invoice
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry
@@ -426,7 +426,7 @@ def test_source_mapping_migration_preserves_ledger_and_history(
                 "119",
                 document_date="2026-01-05",
             )
-            core.post_sales_invoice(db, tenant, doc.id)
+            historical_post_sales_invoice(db, tenant, doc.id)
             customer = SimpleNamespace(id=customer.id)
             before = (
                 db.execute(

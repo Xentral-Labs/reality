@@ -2,7 +2,9 @@
 
 from datetime import UTC, date, datetime
 
-from reality.services.core import create_document, post_sales_invoice
+from intake_review_support import reviewed_post_sales_invoice
+
+from reality.services.core import create_document
 from reality.services.finance.worklists import overdue_document_ids
 
 
@@ -42,7 +44,7 @@ def test_overdue_worklist_uses_aging_and_retains_unknown_due_exclusion(
         document.document_date = day
         document.payment_term_id = term.id
         session.flush()
-        post_sales_invoice(session, business.tenant.id, document.id)
+        reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     assert overdue_document_ids(
         session, business.tenant.id, as_of=datetime(2026, 9, 18, tzinfo=UTC)
     ) == {old.id}

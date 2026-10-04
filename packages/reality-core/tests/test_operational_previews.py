@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
 )
 from sqlalchemy import event
 from unified_fixtures import delivery_fixture
@@ -13,7 +14,6 @@ from unified_fixtures import delivery_fixture
 from reality.services.core import (
     NotFound,
     create_tenant,
-    post_sales_invoice,
     record_movement,
     reserve,
 )
@@ -136,7 +136,7 @@ def test_invoice_partial_payment_and_journal_share_financial_authority(
 ):
     doc, _ = document(session, business, "sales_invoice")
     tid = business.tenant.id
-    entries = post_sales_invoice(session, tid, doc.id)
+    entries = reviewed_post_sales_invoice(session, tid, doc.id)
     payment = reviewed_post_customer_payment(session, tid, doc.id, "20")
     cash = next(e for e in payment if e.account == "cash")
     invoice = fields(operational_preview(session, tid, "document", doc.id))
@@ -209,7 +209,7 @@ def test_reversed_payment_has_no_available_money_and_invoice_reopens(session, bu
 
     doc, _ = document(session, business, "sales_invoice")
     tid = business.tenant.id
-    post_sales_invoice(session, tid, doc.id)
+    reviewed_post_sales_invoice(session, tid, doc.id)
     payment = reviewed_post_customer_payment(session, tid, doc.id, "20")
     cash = next(e for e in payment if e.account == "cash")
     reverse_ledger_posting_group(

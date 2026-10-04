@@ -7,6 +7,8 @@ import pytest
 from conftest import record_by_id
 from intake_review_support import accept_import_job as process_import_job
 from intake_review_support import (
+    reviewed_allocate_credit_note,
+    reviewed_allocate_supplier_credit_note,
     reviewed_create_payment_term,
     reviewed_create_price_list,
     reviewed_create_price_list_entry,
@@ -14,7 +16,12 @@ from intake_review_support import (
     reviewed_manual_order,
     reviewed_post_customer_payment,
     reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_credit_note,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
+    reviewed_post_supplier_refund,
 )
 from sqlalchemy import select
 
@@ -28,8 +35,6 @@ from reality.db.core import (
 )
 from reality.services import core
 from reality.services.core import (
-    allocate_credit_note,
-    allocate_supplier_credit_note,
     create_commitment,
     create_document,
     create_source_capability,
@@ -40,11 +45,8 @@ from reality.services.core import (
     open_invoice_amount,
     payment_terms,
     post_ledger,
-    post_sales_credit_note,
     post_sales_invoice,
-    post_supplier_credit_note,
     post_supplier_invoice,
-    post_supplier_refund,
     record_movement,
     release_reservation,
     reserve,
@@ -776,7 +778,7 @@ def overdue_invoice(session, business, number="RE-9001", amount="1000.00"):
     invoice = sales_invoice(
         session, business, number, "2026-07-01", amount, term_code="NET30"
     )
-    entries = post_sales_invoice(session, business.tenant.id, invoice.id)
+    entries = reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     return invoice, entries
 
 
@@ -828,8 +830,8 @@ def test_overdue_receivable_boundaries(session, business):
         settled,
         reversed_invoice,
     ):
-        post_sales_invoice(session, tenant_id, document.id)
-    post_supplier_invoice(session, tenant_id, supplier.id)
+        reviewed_post_sales_invoice(session, tenant_id, document.id)
+    reviewed_post_supplier_invoice(session, tenant_id, supplier.id)
     reviewed_post_customer_payment(session, tenant_id, settled.id, "1000.00")
     group = session.scalar(
         select(LedgerEntry.posting_group_id).where(
@@ -856,8 +858,8 @@ def test_overdue_receivable_reports_the_outstanding_amount(session, business):
         "100.00",
         document_date="2026-08-20",
     )
-    post_sales_credit_note(session, business.tenant.id, credit.id)
-    allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100.00")
+    reviewed_post_sales_credit_note(session, business.tenant.id, credit.id)
+    reviewed_allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100.00")
 
     row = by_class(session, business.tenant.id)["overdue_receivable"]
 
@@ -923,7 +925,7 @@ def test_overdue_receivable_is_tenant_scoped(session, business):
         document_date="2026-07-01",
         payment_term_code="NET30",
     )
-    post_sales_invoice(session, other_tenant.id, theirs.id)
+    reviewed_post_sales_invoice(session, other_tenant.id, theirs.id)
 
     assert records_of(session, tenant_id, "overdue_receivable") == {mine.id}
     assert records_of(session, other_tenant.id, "overdue_receivable") == {theirs.id}
@@ -933,7 +935,7 @@ def test_overdue_receivable_orders_before_unmatched_payment(session, business):
     tenant_id = business.tenant.id
     older, _ = overdue_invoice(session, business, number="RE-8000")
     newer = sales_invoice(session, business, "RE-8001", "2026-07-15", term_code="NET30")
-    post_sales_invoice(session, tenant_id, newer.id)
+    reviewed_post_sales_invoice(session, tenant_id, newer.id)
     standalone = create_document(
         session, tenant_id, "customer_payment", "PAY-1", business.customer.id, 25
     )
@@ -1270,7 +1272,7 @@ def overdue_supplier_invoice(session, business, number="ER-9001", amount="600.00
     invoice = supplier_invoice_with_term(
         session, business, number, "2026-07-01", amount
     )
-    entries = post_supplier_invoice(session, business.tenant.id, invoice.id)
+    entries = reviewed_post_supplier_invoice(session, business.tenant.id, invoice.id)
     return invoice, entries
 
 
@@ -1322,8 +1324,8 @@ def test_payable_and_receivable_share_one_rule(session, business):
     payable = supplier_invoice_with_term(
         session, business, "ER-5001", "2026-07-01", term_code=""
     )
-    post_sales_invoice(session, tenant_id, receivable.id)
-    post_supplier_invoice(session, tenant_id, payable.id)
+    reviewed_post_sales_invoice(session, tenant_id, receivable.id)
+    reviewed_post_supplier_invoice(session, tenant_id, payable.id)
 
     rows = by_class(session, tenant_id)
 
@@ -1360,8 +1362,8 @@ def test_overdue_payable_boundaries(session, business):
         payment_term_code="NET30",
     )
     for document in (overdue, not_yet_due, no_date, settled, reversed_invoice):
-        post_supplier_invoice(session, tenant_id, document.id)
-    post_sales_invoice(session, tenant_id, receivable.id)
+        reviewed_post_supplier_invoice(session, tenant_id, document.id)
+    reviewed_post_sales_invoice(session, tenant_id, receivable.id)
     reviewed_post_supplier_payment(session, tenant_id, settled.id, "600.00")
     group = session.scalar(
         select(LedgerEntry.posting_group_id).where(
@@ -1383,8 +1385,8 @@ def test_overdue_payable_orders_longest_first(session, business):
     reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     older = supplier_invoice_with_term(session, business, "ER-8000", "2026-05-01")
     newer = supplier_invoice_with_term(session, business, "ER-8001", "2026-07-01")
-    post_supplier_invoice(session, tenant_id, older.id)
-    post_supplier_invoice(session, tenant_id, newer.id)
+    reviewed_post_supplier_invoice(session, tenant_id, older.id)
+    reviewed_post_supplier_invoice(session, tenant_id, newer.id)
 
     first = operational_exceptions(session, tenant_id, as_of=AS_OF)
     payables = [row for row in first if row.class_id == "overdue_payable"]
@@ -1587,7 +1589,7 @@ def test_a_reversed_invoice_no_longer_bills_what_was_shipped(session, business):
     ship(session, business, commitment, 6)
     document, _ = bill(session, business, line, quantity="6")
     # Posted and in force, the invoice bills the whole delivery.
-    post_sales_invoice(session, business.tenant.id, document.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     assert "shipped_not_billed" not in by_class(session, business.tenant.id)
 
     other, _ = bill(session, business, line, number="RE-076-REV", quantity="6")
@@ -1625,7 +1627,7 @@ def test_a_reversed_supplier_invoice_is_not_billed_and_not_received(session, bus
     document, _ = bill(
         session, business, line, direction="purchase", number="ER-076-REV", quantity="6"
     )
-    post_supplier_invoice(session, business.tenant.id, document.id)
+    reviewed_post_supplier_invoice(session, business.tenant.id, document.id)
     assert (
         by_class(session, business.tenant.id)["billed_not_received"].record_id
         == line.id
@@ -2003,9 +2005,9 @@ def invoice(
     )
     if post:
         if document_type == "sales_invoice":
-            post_sales_invoice(session, business.tenant.id, document.id)
+            reviewed_post_sales_invoice(session, business.tenant.id, document.id)
         else:
-            post_supplier_invoice(session, business.tenant.id, document.id)
+            reviewed_post_supplier_invoice(session, business.tenant.id, document.id)
     return document
 
 
@@ -2209,7 +2211,7 @@ def test_unnumbered_invoices_are_neither_reported_nor_matched(session, business)
         )
         document.number = "   "
         session.flush()
-        post_supplier_invoice(session, business.tenant.id, document.id)
+        reviewed_post_supplier_invoice(session, business.tenant.id, document.id)
 
     # An empty string is not a number two documents can share.
     assert "duplicate_supplier_invoice" not in by_class(session, business.tenant.id)
@@ -3461,7 +3463,7 @@ def credited_invoice(session, business, number, amount, *, day="2026-08-01"):
         amount,
         document_date=day,
     )
-    post_sales_invoice(session, business.tenant.id, document.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     return document
 
 
@@ -3488,7 +3490,7 @@ def posting_history(session, business, *, lag_days=2, cases=6, prefix="A"):
             "10.00",
             day=recorded.date().isoformat(),
         )
-        post_sales_credit_note(
+        reviewed_post_sales_credit_note(
             session,
             business.tenant.id,
             credit.id,
@@ -3525,14 +3527,14 @@ def test_credit_note_unposted(session, business):
     assert row.causal_values["threshold_days"] == 14
 
     # Posting it clears the entry with no manual step.
-    post_sales_credit_note(session, business.tenant.id, forgotten.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, forgotten.id)
     assert "credit_note_unposted" not in by_class(session, business.tenant.id)
 
 
 def test_credit_note_unsettled(session, business):
     invoice_document = credited_invoice(session, business, "RE-UNSETTLED", "500.00")
     owed = note(session, business, "GS-UNSETTLED", "60.00")
-    post_sales_credit_note(session, business.tenant.id, owed.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, owed.id)
 
     row = by_class(session, business.tenant.id)["credit_note_unsettled"]
 
@@ -3542,7 +3544,7 @@ def test_credit_note_unsettled(session, business):
     assert row.causal_values["outstanding_amount"] == Decimal("60.0000")
 
     # Netting part of it reports only the remainder.
-    allocate_credit_note(
+    reviewed_allocate_credit_note(
         session, business.tenant.id, owed.id, invoice_document.id, "20.00"
     )
     assert by_class(session, business.tenant.id)["credit_note_unsettled"].causal_values[
@@ -3558,7 +3560,7 @@ def test_credit_note_classes_expose_full_entry_shape(session, business):
     posting_history(session, business, cases=6)
     forgotten = note(session, business, "GS-SHAPE-1", "40.00", day="2026-06-01")
     owed = note(session, business, "GS-SHAPE-2", "60.00")
-    post_sales_credit_note(session, business.tenant.id, owed.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, owed.id)
 
     current = by_class(session, business.tenant.id)
     for class_id, record_id in (
@@ -3603,7 +3605,7 @@ def test_credit_note_classes_are_tenant_scoped(session, business):
     posting_history(session, business, cases=6)
     note(session, business, "GS-TENANT", "40.00", day="2026-06-01")
     owed = note(session, business, "GS-TENANT-2", "60.00")
-    post_sales_credit_note(session, business.tenant.id, owed.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, owed.id)
     foreign = create_tenant(session, "Foreign credit tenant")
 
     current = by_class(session, business.tenant.id)
@@ -4235,7 +4237,7 @@ def supplier_invoice_under(
         document_date=document_date,
         payment_term_code=term_code,
     )
-    post_supplier_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_supplier_invoice(session, business.tenant.id, invoice.id)
     return invoice
 
 
@@ -4245,7 +4247,7 @@ def discounted_receivable(session, business, number="RE-088", amount="1000.00"):
     invoice = sales_invoice(
         session, business, number, "2026-07-01", amount, term_code="SK2_10"
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     return invoice
 
 
@@ -4534,13 +4536,13 @@ def supplier_posting_history(session, business, *, lag_days=2, cases=6, prefix="
             "10.00",
             day=recorded.date().isoformat(),
         )
-        post_supplier_credit_note(
+        reviewed_post_supplier_credit_note(
             session,
             business.tenant.id,
             credit.id,
             effective_at=recorded + timedelta(days=lag_days),
         )
-        post_supplier_refund(session, business.tenant.id, credit.id, "10.00")
+        reviewed_post_supplier_refund(session, business.tenant.id, credit.id, "10.00")
 
 
 def payable(session, business, number, amount, *, day="2026-08-01"):
@@ -4553,7 +4555,7 @@ def payable(session, business, number, amount, *, day="2026-08-01"):
         amount,
         document_date=day,
     )
-    post_supplier_invoice(session, business.tenant.id, document.id)
+    reviewed_post_supplier_invoice(session, business.tenant.id, document.id)
     return document
 
 
@@ -4572,14 +4574,14 @@ def test_supplier_credit_unposted(session, business):
     assert row.causal_values["threshold_days"] == 14
 
     # Booking it clears the entry with no manual step.
-    post_supplier_credit_note(session, business.tenant.id, forgotten.id)
+    reviewed_post_supplier_credit_note(session, business.tenant.id, forgotten.id)
     assert "supplier_credit_unposted" not in by_class(session, business.tenant.id)
 
 
 def test_supplier_credit_unclaimed(session, business):
     owed_to_us = payable(session, business, "ER-UNCLAIMED", "500.00")
     credit = supplier_note(session, business, "SG-UNCLAIMED", "60.00")
-    post_supplier_credit_note(session, business.tenant.id, credit.id)
+    reviewed_post_supplier_credit_note(session, business.tenant.id, credit.id)
 
     row = by_class(session, business.tenant.id)["supplier_credit_unclaimed"]
 
@@ -4589,7 +4591,7 @@ def test_supplier_credit_unclaimed(session, business):
     assert row.causal_values["outstanding_amount"] == Decimal("60.0000")
 
     # Netting part of it reports only the remainder.
-    allocate_supplier_credit_note(
+    reviewed_allocate_supplier_credit_note(
         session, business.tenant.id, credit.id, owed_to_us.id, "20.00"
     )
     assert by_class(session, business.tenant.id)[
@@ -4597,7 +4599,7 @@ def test_supplier_credit_unclaimed(session, business):
     ].causal_values["outstanding_amount"] == Decimal("40.0000")
 
     # Having the supplier refund the rest clears it.
-    post_supplier_refund(session, business.tenant.id, credit.id, "40.00")
+    reviewed_post_supplier_refund(session, business.tenant.id, credit.id, "40.00")
     assert "supplier_credit_unclaimed" not in by_class(session, business.tenant.id)
 
 
@@ -4657,7 +4659,7 @@ def test_the_supplier_credit_entries_expose_full_shape(session, business):
     supplier_posting_history(session, business, cases=6, prefix="SHAPE")
     unbooked = supplier_note(session, business, "SG-SHAPE-1", "40.00", day="2026-06-01")
     unclaimed = supplier_note(session, business, "SG-SHAPE-2", "70.00")
-    post_supplier_credit_note(session, tenant_id, unclaimed.id)
+    reviewed_post_supplier_credit_note(session, tenant_id, unclaimed.id)
 
     rows = by_class(session, tenant_id)
 
@@ -4690,10 +4692,10 @@ def test_the_supplier_credit_entries_clear_through_reality(session, business):
     tenant_id = business.tenant.id
     invoice_document = payable(session, business, "ER-CLEARS", "300.00")
     credit = supplier_note(session, business, "SG-CLEARS", "300.00")
-    post_supplier_credit_note(session, tenant_id, credit.id)
+    reviewed_post_supplier_credit_note(session, tenant_id, credit.id)
     assert "supplier_credit_unclaimed" in by_class(session, tenant_id)
 
-    allocate_supplier_credit_note(
+    reviewed_allocate_supplier_credit_note(
         session, tenant_id, credit.id, invoice_document.id, "300.00"
     )
 
@@ -4704,8 +4706,8 @@ def test_the_supplier_credit_entries_order_deterministically(session, business):
     tenant_id = business.tenant.id
     older = supplier_note(session, business, "SG-ORDER-1", "10.00", day="2026-07-01")
     newer = supplier_note(session, business, "SG-ORDER-2", "20.00", day="2026-07-15")
-    post_supplier_credit_note(session, tenant_id, older.id)
-    post_supplier_credit_note(session, tenant_id, newer.id)
+    reviewed_post_supplier_credit_note(session, tenant_id, older.id)
+    reviewed_post_supplier_credit_note(session, tenant_id, newer.id)
 
     def reported():
         return [
@@ -4721,7 +4723,7 @@ def test_the_supplier_credit_entries_order_deterministically(session, business):
 def test_the_supplier_credit_classes_are_tenant_scoped(session, business):
     tenant_id = business.tenant.id
     credit = supplier_note(session, business, "SG-TENANT", "10.00")
-    post_supplier_credit_note(session, tenant_id, credit.id)
+    reviewed_post_supplier_credit_note(session, tenant_id, credit.id)
     foreign = create_tenant(session, "Foreign supplier credit derivation tenant")
 
     assert "supplier_credit_unclaimed" in by_class(session, tenant_id)
@@ -5101,7 +5103,7 @@ def test_sales_invoice_unposted(session, business):
     )
 
     # Booking it clears the entry with no manual step.
-    post_sales_invoice(session, tenant_id, forgotten.id)
+    reviewed_post_sales_invoice(session, tenant_id, forgotten.id)
     assert "sales_invoice_unposted" not in by_class(session, tenant_id)
 
 
@@ -5122,7 +5124,7 @@ def test_supplier_invoice_unposted(session, business):
     assert row.record_id == forgotten.id
     assert row.causal_values["gross_amount"] == Decimal("700.0000")
 
-    post_supplier_invoice(session, tenant_id, forgotten.id)
+    reviewed_post_supplier_invoice(session, tenant_id, forgotten.id)
     assert "supplier_invoice_unposted" not in by_class(session, tenant_id)
 
 
@@ -5166,7 +5168,7 @@ def test_a_reversed_posting_is_not_an_unbooked_one(session, business):
     tenant_id = business.tenant.id
     booking_history(session, business, cases=6, prefix="REV")
     booked = unbooked(session, business, "RE-092-REVERSED", "200.00", day="2026-06-01")
-    post_sales_invoice(session, tenant_id, booked.id)
+    reviewed_post_sales_invoice(session, tenant_id, booked.id)
     group = session.scalar(
         select(LedgerEntry.posting_group_id).where(
             LedgerEntry.tenant_id == tenant_id,
@@ -5334,13 +5336,13 @@ def test_a_class_and_its_operation_agree_on_booked():
     """FR-015: the class asks the account its own posting operation guards on."""
     import inspect
 
-    from reality.services import core, exceptions
+    from reality.services import exceptions
 
     for constant, poster in (
-        (exceptions.SALES_INVOICE, core.post_sales_invoice),
-        (exceptions.SUPPLIER_INVOICE, core.post_supplier_invoice),
-        (exceptions.SALES_CREDIT, core.post_sales_credit_note),
-        (exceptions.SUPPLIER_CREDIT, core.post_supplier_credit_note),
+        (exceptions.SALES_INVOICE, reviewed_post_sales_invoice),
+        (exceptions.SUPPLIER_INVOICE, reviewed_post_supplier_invoice),
+        (exceptions.SALES_CREDIT, reviewed_post_sales_credit_note),
+        (exceptions.SUPPLIER_CREDIT, reviewed_post_supplier_credit_note),
     ):
         _document_type, account = constant
         guard = next(

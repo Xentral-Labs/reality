@@ -138,3 +138,8 @@ No unresolved clarification or critical finding. Defaults must be captured at pr
 No unresolved clarification or critical finding. Existing sandbox finance policy is not ordinary-company canonical Decision enforcement. Existing payment review owns selected obligations and current financial state, but canonical callbacks and inner evidence/posting/allocation need exact frozen invocation ownership and application-root settlement. No bank execution, schema, status fabrication or historical approval rewrite is permitted. Remaining standalone financial/operational writers are separate closure work.
 
 Caller review identifies authored fixed/profile payment calls, two direct CLI payment routes, the direct refund HTTP route and the explicit-list payment-run parent/HTTP route. These are necessary integration work for the three canonical gates. The payment run already owns a stated list and total; its retained review must cover selected current financial state, not recalculate an unspecified batch. No fictional reviewer, generic fixed-family permission or bank transfer is introduced.
+
+
+## Standalone financial evidence analysis
+
+The seven currently supported handlers can invoke canonical posting/netting/refund services without an exact parent scope and retain child-owned commits. Existing invoice/credit record parents already freeze their relevant posting children; adding standalone coverage must preserve these finite nested meanings and real fixed/profile authority. Current references and no-confirmation refusal precede effects. No unresolved clarification or critical design finding remains. Required tests precede implementation and completion still requires every committed-head CI job.

@@ -4,10 +4,17 @@ from decimal import Decimal
 
 import pytest
 from intake_review_support import (
+    reviewed_allocate_credit_note,
+    reviewed_allocate_supplier_credit_note,
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
     reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_credit_note,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
+    reviewed_post_supplier_refund,
 )
 
 from reality.services import core
@@ -17,14 +24,14 @@ def run_story(session, tenant_id, party_id, item_id, side, prefix):
     customer = side == "customer"
     invoice_kind = "sales_invoice" if customer else "supplier_invoice"
     credit_kind = "credit_note" if customer else "supplier_credit_note"
-    post_invoice = core.post_sales_invoice if customer else core.post_supplier_invoice
+    post_invoice = reviewed_post_sales_invoice if customer else reviewed_post_supplier_invoice
     pay = reviewed_post_customer_payment if customer else reviewed_post_supplier_payment
     post_credit = (
-        core.post_sales_credit_note if customer else core.post_supplier_credit_note
+        reviewed_post_sales_credit_note if customer else reviewed_post_supplier_credit_note
     )
-    refund = reviewed_post_customer_refund if customer else core.post_supplier_refund
+    refund = reviewed_post_customer_refund if customer else reviewed_post_supplier_refund
     allocate = (
-        core.allocate_credit_note if customer else core.allocate_supplier_credit_note
+        reviewed_allocate_credit_note if customer else reviewed_allocate_supplier_credit_note
     )
 
     def document(kind, suffix, amount):

@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SettlementAllocation, SourceRecord
@@ -294,7 +295,7 @@ def test_historical_original_and_ambiguous_cash_are_held_for_review(session, bus
         source_record_id=source.id,
     )
     with pytest.raises(core.InvalidOperation, match="opening"):
-        core.post_sales_invoice(session, tenant, original.id)
+        reviewed_post_sales_invoice(session, tenant, original.id)
     assert record_by_id(session, SourceRecord, source.id) is not None
     with pytest.raises(core.InvalidOperation, match="cutover|timestamp"):
         core.record_customer_payment(session, tenant, business.customer.id, "10")

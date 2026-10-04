@@ -12,6 +12,7 @@ from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_manual_order,
     reviewed_post_customer_payment,
+    reviewed_post_sales_credit_note,
     reviewed_record_sales_invoice,
 )
 from sqlalchemy import select
@@ -1033,7 +1034,7 @@ def test_a_down_payment_settled_by_a_credit_is_not_paid(session, business):
     note = core.create_document(
         session, tenant, "credit_note", "GS-DP", business.customer.id, "300.00"
     )
-    core.post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
 
     def control(document_id, side):
         return session.scalar(

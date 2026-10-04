@@ -2,7 +2,8 @@
 
 import pytest
 from conftest import record_by_id
-from legacy_finance import create_legacy_tenant
+from intake_review_support import reviewed_post_sales_invoice
+from legacy_finance import create_legacy_tenant, historical_post_sales_invoice
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry
@@ -391,7 +392,7 @@ def test_target_migration_preserves_ledger_and_refuses_history_loss(
                 "119",
                 document_date="2026-01-05",
             )
-            core.post_sales_invoice(db, tenant, doc.id)
+            historical_post_sales_invoice(db, tenant, doc.id)
             before = db.scalars(
                 text(
                     "SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id"
@@ -651,7 +652,7 @@ def test_target_operational_leg_does_not_fill_missing_component_case(session, bu
 
     tenant, target, account, _ = setup(session, business)
     doc, _ = fixture(session, business, detail={"net": "1000", "tax": "190"})
-    core.post_sales_invoice(session, tenant, doc.id)
+    reviewed_post_sales_invoice(session, tenant, doc.id)
     local = session.scalar(
         select(SubledgerAccount).where(
             SubledgerAccount.tenant_id == tenant,

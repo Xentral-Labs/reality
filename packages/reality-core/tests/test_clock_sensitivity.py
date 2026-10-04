@@ -17,6 +17,7 @@ import datetime as dt
 import json
 
 import pytest
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import select
 
 import reality.db.core as db_core
@@ -27,7 +28,6 @@ from reality.services.core import (
     create_commitment,
     create_document,
     hold_commitment,
-    post_sales_invoice,
     record_customer_payment,
     record_movement,
     revise_commitment,
@@ -93,7 +93,7 @@ def a_company_with_something_to_age(session, business) -> None:
         "100",
         document_date="2026-08-02",
     )
-    post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     record_movement(
         session,
         tenant,

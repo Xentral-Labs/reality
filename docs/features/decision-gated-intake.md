@@ -166,3 +166,6 @@ references also witness separately held partner roles, including the existing
 document's partner: changing those roles through a separate confirmed decision
 requires renewed review even when the main partner/document row stays unchanged.
 These witnesses grant no authority to create an unrelated business effect.
+
+
+Standalone sales/supplier invoice posting, customer/supplier credit posting and netting, and selected supplier refunds retain the current selected evidence, partner roles, ledger/allocation/reversal context and financial references before explicit confirmation. Their canonical parents freeze exact posting/allocation/refund children and settle effects with the executed receipt in the application-owned root. Existing HTTP endpoints require an explicit confirmation flag. Actual current person and OAuth consent are rechecked; unchanged receipt replay adds no effects. Fixed profiles use only their existing authored families under their real confirmed definition. Header-only creation and remaining canonical writers continue to be tracked separately in spec 356.

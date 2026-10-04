@@ -9,6 +9,7 @@ from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
     reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
 )
 from sqlalchemy import event, select
 
@@ -20,7 +21,6 @@ from reality.services.core import (
     create_document,
     create_tenant,
     financial_open_items,
-    post_sales_invoice,
     record_movement,
     revise_commitment,
 )
@@ -141,7 +141,7 @@ def invoice(session, business, number, amount):
         business.customer.id,
         amount,
     )
-    post_sales_invoice(session, business.tenant.id, row.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, row.id)
     return row
 
 

@@ -4,7 +4,11 @@ import json
 from datetime import UTC, datetime
 
 import pytest
-from intake_review_support import reviewed_merge_party, reviewed_set_master_data_active
+from intake_review_support import (
+    reviewed_merge_party,
+    reviewed_post_sales_invoice,
+    reviewed_set_master_data_active,
+)
 from sqlalchemy import event, func, select
 
 from reality.db.core import BusinessEvent, Document, Party, PartyMerge
@@ -30,7 +34,7 @@ def _invoice(session, business, number, amount, party_id):
         amount,
         document_date="2026-08-01",
     )
-    core.post_sales_invoice(session, business.tenant.id, document.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     return document
 
 

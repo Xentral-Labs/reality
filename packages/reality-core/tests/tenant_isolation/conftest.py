@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_post_sales_invoice
 
 from reality.services.core import (
     create_chat_session,
@@ -13,7 +14,6 @@ from reality.services.core import (
     create_source_capability,
     create_source_system,
     create_tenant,
-    post_sales_invoice,
     record_movement,
 )
 
@@ -92,7 +92,7 @@ def _graph(session, label: str, quantity: Decimal) -> TenantGraph:
         "100.00",
         source_record_id=source.id,
     )
-    post_sales_invoice(session, tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, tenant.id, invoice.id)
     chat_session = create_chat_session(session, tenant.id)
     source_system = create_source_system(
         session, tenant.id, "shared-shop", "Shared Shop"

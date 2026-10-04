@@ -10,6 +10,7 @@ these tests hold.
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_post_sales_invoice
 
 from reality.domain.traversal import Traversal
 from reality.services import core
@@ -36,7 +37,7 @@ def two_customers(session, business):
             "100",
             document_date="2026-08-01",
         )
-        core.post_sales_invoice(session, tenant, document.id)
+        reviewed_post_sales_invoice(session, tenant, document.id)
     return other
 
 

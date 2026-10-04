@@ -64,8 +64,6 @@ from reality.services.core import (
     NotFound,
     activity_signal,
     add_chat_assistant_message,
-    allocate_credit_note,
-    allocate_supplier_credit_note,
     announce_customer_return,
     archive_tenant,
     change_proposal_count,
@@ -115,11 +113,6 @@ from reality.services.core import (
     payment_terms,
     pending_proposals_elsewhere,
     permanently_delete_tenant,
-    post_sales_credit_note,
-    post_sales_invoice,
-    post_supplier_credit_note,
-    post_supplier_invoice,
-    post_supplier_refund,
     preview_ledger_reversal,
     preview_movement_correction,
     preview_payment_run,
@@ -3649,6 +3642,7 @@ class CommitmentRevisionWrite(ApiModel):
 
 
 class InvoicePostingWrite(ApiModel):
+    confirmed: bool = False
     document_id: str
     effective_at: datetime | None = None
 
@@ -3659,11 +3653,13 @@ class SupplierInvoicePostingWrite(InvoicePostingWrite):
 
 
 class CreditNotePostingWrite(ApiModel):
+    confirmed: bool = False
     credit_note_id: str
     effective_at: datetime | None = None
 
 
 class CreditNoteNettingWrite(ApiModel):
+    confirmed: bool = False
     credit_note_id: str
     invoice_id: str
     amount: str
@@ -5650,46 +5646,57 @@ def close_stale_promises_web(
         raise api_error(error) from error
 
 
+def _confirmed_financial_posting_request(session, tenant_id, request, tool, arguments, *, confirmed):
+    """Confirm the current financial evidence through the actual request person."""
+    from reality.tools.application import create_change_proposal
+
+    if not confirmed:
+        raise InvalidOperation(code="review_confirmation_required")
+    proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="user")
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id,
+        confirming_principal=optional_request_principal(request), confirmed=confirmed)
+    records = json.loads(receipt.output)["records"]
+    if tool.endswith("allocate"):
+        return {"id": records[0]["id"]}
+    return {"ledger_entry_ids": [row["id"] for row in records if row["family"] == "ledger_entry"]}
+
+
 @router.post("/finance/sales-invoices/postings", status_code=status.HTTP_201_CREATED)
 def post_sales_invoice_web(
-    tenant_id: str, body: InvoicePostingWrite, session: DatabaseSession
+    tenant_id: str, body: InvoicePostingWrite, session: DatabaseSession, request: Request
 ):
     try:
-        entries = post_sales_invoice(session, tenant_id, **body.model_dump())
-        return {"ledger_entry_ids": [entry.id for entry in entries]}
+        return _confirmed_financial_posting_request(session, tenant_id, request, "sales_invoice_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
 @router.post("/finance/supplier-invoices/postings", status_code=status.HTTP_201_CREATED)
 def post_supplier_invoice_web(
-    tenant_id: str, body: SupplierInvoicePostingWrite, session: DatabaseSession
+    tenant_id: str, body: SupplierInvoicePostingWrite, session: DatabaseSession, request: Request
 ):
     try:
-        entries = post_supplier_invoice(session, tenant_id, **body.model_dump())
-        return {"ledger_entry_ids": [entry.id for entry in entries]}
+        return _confirmed_financial_posting_request(session, tenant_id, request, "supplier_invoice_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
 @router.post("/finance/credit-notes/postings", status_code=status.HTTP_201_CREATED)
 def post_credit_note_web(
-    tenant_id: str, body: CreditNotePostingWrite, session: DatabaseSession
+    tenant_id: str, body: CreditNotePostingWrite, session: DatabaseSession, request: Request
 ):
     try:
-        entries = post_sales_credit_note(session, tenant_id, **body.model_dump())
-        return {"ledger_entry_ids": [entry.id for entry in entries]}
+        return _confirmed_financial_posting_request(session, tenant_id, request, "credit_note_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
 @router.post("/finance/credit-notes/allocations", status_code=status.HTTP_201_CREATED)
 def allocate_credit_note_web(
-    tenant_id: str, body: CreditNoteNettingWrite, session: DatabaseSession
+    tenant_id: str, body: CreditNoteNettingWrite, session: DatabaseSession, request: Request
 ):
     try:
-        allocation = allocate_credit_note(session, tenant_id, **body.model_dump())
-        return {"id": allocation.id}
+        return _confirmed_financial_posting_request(session, tenant_id, request, "credit_note_allocate", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -5708,11 +5715,10 @@ def post_customer_refund_web(
     "/finance/supplier-credit-notes/postings", status_code=status.HTTP_201_CREATED
 )
 def post_supplier_credit_note_web(
-    tenant_id: str, body: CreditNotePostingWrite, session: DatabaseSession
+    tenant_id: str, body: CreditNotePostingWrite, session: DatabaseSession, request: Request
 ):
     try:
-        entries = post_supplier_credit_note(session, tenant_id, **body.model_dump())
-        return {"ledger_entry_ids": [entry.id for entry in entries]}
+        return _confirmed_financial_posting_request(session, tenant_id, request, "supplier_credit_note_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -5721,24 +5727,20 @@ def post_supplier_credit_note_web(
     "/finance/supplier-credit-notes/allocations", status_code=status.HTTP_201_CREATED
 )
 def allocate_supplier_credit_note_web(
-    tenant_id: str, body: CreditNoteNettingWrite, session: DatabaseSession
+    tenant_id: str, body: CreditNoteNettingWrite, session: DatabaseSession, request: Request
 ):
     try:
-        allocation = allocate_supplier_credit_note(
-            session, tenant_id, **body.model_dump()
-        )
-        return {"id": allocation.id}
+        return _confirmed_financial_posting_request(session, tenant_id, request, "supplier_credit_note_allocate", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
 @router.post("/finance/supplier-refunds", status_code=status.HTTP_201_CREATED)
 def post_supplier_refund_web(
-    tenant_id: str, body: CustomerRefundWrite, session: DatabaseSession
+    tenant_id: str, body: CustomerRefundWrite, session: DatabaseSession, request: Request
 ):
     try:
-        entries = post_supplier_refund(session, tenant_id, **body.model_dump())
-        return {"ledger_entry_ids": [entry.id for entry in entries]}
+        return _confirmed_financial_posting_request(session, tenant_id, request, "supplier_refund_post", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

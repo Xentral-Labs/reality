@@ -11,6 +11,8 @@ import pytest
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_execute_payment_run,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
 )
 
@@ -27,8 +29,6 @@ from reality.services.core import (
     open_invoice_amount,
     payable_supplier_invoices,
     payment_terms,
-    post_sales_invoice,
-    post_supplier_invoice,
     preview_payment_run,
     reverse_ledger_posting_group,
 )
@@ -97,7 +97,7 @@ def supplier_invoice(
     )
     if post:
         # Spec 309: an invoice in another currency is posted at a stated rate.
-        post_supplier_invoice(
+        reviewed_post_supplier_invoice(
             session,
             business.tenant.id,
             invoice.id,
@@ -203,7 +203,7 @@ def test_what_is_not_payable_and_why(session, business):
         document_date="2026-08-01",
         payment_term_code="NET30",
     )
-    post_sales_invoice(session, business.tenant.id, customer_invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, customer_invoice.id)
 
     payable, withheld = payable_supplier_invoices(
         session, business.tenant.id, as_of=AS_OF

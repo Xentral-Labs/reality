@@ -9,6 +9,7 @@ from conftest import record_by_id
 from intake_review_support import (
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
     reviewed_record_sales_invoice,
     reviewed_record_supplier_invoice,
 )
@@ -120,7 +121,7 @@ def test_unposted_and_multiple_groups_are_conservative(session, business):
     line = order(session, b)[0]
     doc = evidence(session, b, line, "2")
     assert core._order_line_billing(session, b.tenant.id, line.id)["remaining"] == 1
-    g1 = core.post_sales_invoice(session, b.tenant.id, doc.id)[0].posting_group_id
+    g1 = reviewed_post_sales_invoice(session, b.tenant.id, doc.id)[0].posting_group_id
     g2 = core.post_ledger(
         session,
         b.tenant.id,

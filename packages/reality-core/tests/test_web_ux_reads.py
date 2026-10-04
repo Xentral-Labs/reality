@@ -1,12 +1,14 @@
 
 from fastapi.testclient import TestClient
-from intake_review_support import reviewed_post_customer_payment
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy.orm import sessionmaker
 
 from reality.services.core import (
     create_document,
     create_tenant,
-    post_sales_invoice,
 )
 from reality.web import api as api_module
 from reality.web.app import app
@@ -34,7 +36,7 @@ def test_journal_read_is_tenant_scoped_balanced_filterable_and_inspectable(
         business.customer.id,
         100,
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     reviewed_post_customer_payment(
         session,
         business.tenant.id,

@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry
@@ -27,7 +28,7 @@ def invoice(session, business, number="HISTORY"):
         "100",
         document_date="2026-01-01",
     )
-    core.post_sales_invoice(session, business.tenant.id, doc.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, doc.id)
     for entry in session.scalars(
         select(LedgerEntry).where(LedgerEntry.document_id == doc.id)
     ):

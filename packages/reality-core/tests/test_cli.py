@@ -1,3 +1,5 @@
+
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -9,7 +11,6 @@ from reality.services.core import (
     create_commitment,
     create_document,
     create_tenant,
-    post_sales_invoice,
     record_movement,
 )
 
@@ -141,7 +142,7 @@ def test_cli_posts_customer_payment_and_reports_derived_open_amount(
         business.customer.id,
         100,
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     runner = runner_for(session, monkeypatch)
 
     paid = runner.invoke(

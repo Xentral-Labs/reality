@@ -29,7 +29,13 @@ from reality.demo.international import (
 from reality.integrations.demo_data import demo_invoice_number
 from reality.services import core
 from reality.services.intake import (
+    _allocate_frozen_customer_credit,
+    _allocate_frozen_supplier_credit,
     _post_frozen_customer_payment,
+    _post_frozen_sales_credit,
+    _post_frozen_sales_invoice,
+    _post_frozen_supplier_credit,
+    _post_frozen_supplier_invoice,
     _post_frozen_supplier_payment,
 )
 
@@ -514,7 +520,7 @@ def seed_profile(
                 source_record_id=src.id,
                 _commit=False,
             )
-            core.post_supplier_invoice(
+            _post_frozen_supplier_invoice(
                 session,
                 tenant,
                 supplier_invoice.id,
@@ -693,7 +699,7 @@ def seed_profile(
                 source_record_id=invoice_source.id,
                 _commit=False,
             )
-            core.post_supplier_invoice(
+            _post_frozen_supplier_invoice(
                 session,
                 tenant,
                 supplier_invoice.id,
@@ -746,14 +752,14 @@ def seed_profile(
                     source_record_id=credit_source.id,
                     _commit=False,
                 )
-                core.post_supplier_credit_note(
+                _post_frozen_supplier_credit(
                     session,
                     tenant,
                     credit.id,
                     effective_at=credit_date,
                     _commit=False,
                 )
-                core.allocate_supplier_credit_note(
+                _allocate_frozen_supplier_credit(
                     session,
                     tenant,
                     credit.id,
@@ -843,7 +849,7 @@ def seed_profile(
                 source_record_id=src.id,
                 _commit=False,
             )
-            core.post_sales_invoice(
+            _post_frozen_sales_invoice(
                 session, tenant, invoice.id, effective_at=date, _commit=False
             )
             receipt = movement(
@@ -910,10 +916,10 @@ def seed_profile(
                     source_record_id=credit_source.id,
                     _commit=False,
                 )
-                core.post_sales_credit_note(
+                _post_frozen_sales_credit(
                     session, tenant, credit.id, effective_at=credit_date, _commit=False
                 )
-                core.allocate_credit_note(
+                _allocate_frozen_customer_credit(
                     session,
                     tenant,
                     credit.id,
@@ -1293,7 +1299,7 @@ def seed_profile(
             source_record_id=invoice_source.id,
             _commit=False,
         )
-        core.post_sales_invoice(
+        _post_frozen_sales_invoice(
             session, tenant, _invoice.id, effective_at=fixture_time, _commit=False
         )
         prior_p03 = list(
@@ -1501,7 +1507,7 @@ def seed_profile(
             source_record_id=credit_source.id,
             _commit=False,
         )
-        core.post_sales_credit_note(
+        _post_frozen_sales_credit(
             session,
             tenant,
             credit.id,
@@ -1569,7 +1575,7 @@ def seed_profile(
             source_record_id=selling_source.id,
             _commit=False,
         )
-        core.post_supplier_invoice(
+        _post_frozen_supplier_invoice(
             session,
             tenant,
             selling_document.id,
@@ -1756,7 +1762,7 @@ def seed_profile(
                 source_record_id=portfolio_invoice_source.id,
                 _commit=False,
             )
-            core.post_sales_invoice(
+            _post_frozen_sales_invoice(
                 session,
                 tenant,
                 portfolio_invoice.id,
@@ -1931,7 +1937,7 @@ def seed_profile(
                 _commit=False,
             )
         )
-        core.post_supplier_invoice(
+        _post_frozen_supplier_invoice(
             session,
             tenant,
             portfolio_selling_document.id,
@@ -2194,7 +2200,7 @@ def seed_profile(
                     source_record_id=invoice_source.id,
                     _commit=False,
                 )
-                core.post_sales_invoice(
+                _post_frozen_sales_invoice(
                     session,
                     tenant,
                     invoice.id,
@@ -2245,14 +2251,14 @@ def seed_profile(
             source_record_id=price_credit_source.id,
             _commit=False,
         )
-        core.post_sales_credit_note(
+        _post_frozen_sales_credit(
             session,
             tenant,
             price_credit.id,
             effective_at=price_credit_date,
             _commit=False,
         )
-        core.allocate_credit_note(
+        _allocate_frozen_customer_credit(
             session,
             tenant,
             price_credit.id,
@@ -2694,7 +2700,7 @@ def seed_profile(
             source_record_id=supplier_final_source.id,
             _commit=False,
         )
-        core.post_supplier_invoice(session, tenant, supplier_final.id, _commit=False)
+        _post_frozen_supplier_invoice(session, tenant, supplier_final.id, _commit=False)
         supplier_clearing = _finance_action(
             session,
             run,
@@ -3031,7 +3037,7 @@ def seed_profile(
                     source_record_id=invoice_source.id,
                     _commit=False,
                 )
-                core.post_supplier_invoice(
+                _post_frozen_supplier_invoice(
                     session,
                     tenant,
                     supplier_invoice.id,

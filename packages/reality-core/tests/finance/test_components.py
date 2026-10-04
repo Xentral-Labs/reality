@@ -6,7 +6,8 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from legacy_finance import create_legacy_tenant
+from intake_review_support import reviewed_post_sales_invoice
+from legacy_finance import create_legacy_tenant, historical_post_sales_invoice
 from sqlalchemy import func, select
 
 from reality.db.core import DocumentLine, LedgerEntry, SourceRecord
@@ -117,7 +118,7 @@ def test_received_net_split_and_partial_revision_preserve_gross(
     tenant = business.tenant.id
     doc, ids = fixture(session, business, kind)
     if kind == "sales_invoice":
-        core.post_sales_invoice(session, tenant, doc.id)
+        reviewed_post_sales_invoice(session, tenant, doc.id)
     before = [
         (r.id, r.amount, r.account_id)
         for r in session.scalars(
@@ -491,7 +492,7 @@ def test_component_migration_preserves_postings_and_guards_history(
                 document_date="2026-01-05",
             )
             doc_id = doc.id
-            core.post_sales_invoice(db, tenant, doc_id)
+            historical_post_sales_invoice(db, tenant, doc_id)
             before = (
                 db.execute(
                     text(

@@ -6,6 +6,10 @@ from types import SimpleNamespace
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -21,8 +25,6 @@ from reality.services.core import (
     create_document,
     create_tenant,
     open_invoice_amount,
-    post_sales_invoice,
-    post_supplier_invoice,
     reverse_ledger_posting_group,
 )
 from reality.services.delivery_actions import (
@@ -46,9 +48,9 @@ def obligation(session, business, direction="customer"):
     )
     if supplier:
         # Spec 309: a supplier invoice in another currency states its rate.
-        post_supplier_invoice(session, business.tenant.id, doc.id, exchange_rate="0.9")
+        reviewed_post_supplier_invoice(session, business.tenant.id, doc.id, exchange_rate="0.9")
     else:
-        post_sales_invoice(session, business.tenant.id, doc.id)
+        reviewed_post_sales_invoice(session, business.tenant.id, doc.id)
     return doc
 
 

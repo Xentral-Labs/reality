@@ -2604,3 +2604,5 @@ Retained commercial defaults and partner-role reference integrity: `packages/rea
 Atomic selected payment/refund boundary: `packages/reality-core/tests/test_canonical_payment_boundary.py` (spec 356 FR-001–FR-003; qualification pending).
 
 Atomic explicit-list payment run: `packages/reality-core/tests/test_canonical_payment_run_boundary.py` (spec 356 FR-001–FR-003; qualification pending).
+
+- `packages/reality-core/tests/test_canonical_financial_postings.py`: spec 356 FR-001–FR-003, T072–T075; exact current standalone posting/netting/supplier-refund decisions, complete receipt atomicity and authentic authority. Full qualification pending.

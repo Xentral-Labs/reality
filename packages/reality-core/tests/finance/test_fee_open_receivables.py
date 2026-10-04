@@ -8,6 +8,7 @@ import pytest
 from intake_review_support import (
     reviewed_create_payment_term,
     reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
 )
 from sqlalchemy import func, select
 
@@ -70,7 +71,7 @@ def fee_story(session, business, kind):
         "100",
         document_date="2026-01-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     if kind == "dunning":
         execute(
             session,
@@ -328,7 +329,7 @@ def test_company_borne_and_zero_fees_create_no_customer_claim(
     invoice = core.create_document(
         session, tenant, "sales_invoice", core.uid("inv"), business.customer.id, "100"
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     payment = reviewed_post_customer_payment(session, tenant, invoice.id, "100")[0]
     receipt = execute(
         session,

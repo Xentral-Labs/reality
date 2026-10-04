@@ -5,8 +5,12 @@ from decimal import Decimal
 import pytest
 from conftest import record_by_id
 from intake_review_support import (
+    reviewed_allocate_credit_note,
     reviewed_create_payment_term,
     reviewed_post_customer_payment,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
 )
 
@@ -15,7 +19,6 @@ from reality.services.core import (
     InvalidOperation,
     NotFound,
     account_statement,
-    allocate_credit_note,
     allocate_settlement,
     create_document,
     create_tenant,
@@ -27,9 +30,6 @@ from reality.services.core import (
     open_item_control_accounts,
     payment_rows,
     post_ledger,
-    post_sales_credit_note,
-    post_sales_invoice,
-    post_supplier_invoice,
     record_customer_payment,
 )
 
@@ -44,7 +44,7 @@ def test_sales_invoice_partial_payment_and_credit_are_balanced(session, business
         "1470.00",
         document_date="2026-09-22",
     )
-    invoice_entries = post_sales_invoice(session, business.tenant.id, invoice.id)
+    invoice_entries = reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     payment_entries = reviewed_post_customer_payment(
         session, business.tenant.id, invoice.id, "500.00"
     )
@@ -57,8 +57,8 @@ def test_sales_invoice_partial_payment_and_credit_are_balanced(session, business
         "100.00",
         document_date="2026-09-27",
     )
-    credit_entries = post_sales_credit_note(session, business.tenant.id, credit.id)
-    allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100.00")
+    credit_entries = reviewed_post_sales_credit_note(session, business.tenant.id, credit.id)
+    reviewed_allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100.00")
 
     for group in (invoice_entries, payment_entries, credit_entries):
         debits = sum(
@@ -113,7 +113,7 @@ def test_supplier_invoice_and_partial_payment_leave_open_payable(session, busine
         "600.00",
         document_date="2026-09-22",
     )
-    post_supplier_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_supplier_invoice(session, business.tenant.id, invoice.id)
     reviewed_post_supplier_payment(session, business.tenant.id, invoice.id, "250.00")
 
     assert open_invoice_amount(session, business.tenant.id, invoice.id) == Decimal(
@@ -149,10 +149,10 @@ def test_duplicate_invoice_posting_and_overpayment_are_rejected(session, busines
         business.customer.id,
         10,
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
 
     with pytest.raises(InvalidOperation, match="already posted"):
-        post_sales_invoice(session, business.tenant.id, invoice.id)
+        reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     with pytest.raises(InvalidOperation, match="exceeds"):
         reviewed_post_customer_payment(session, business.tenant.id, invoice.id, 11)
 
@@ -170,7 +170,7 @@ def test_one_payment_can_settle_multiple_invoices_tenant_safely(session, busines
         for number, amount in [("RE-10", 60), ("RE-11", 40)]
     ]
     invoice_entries = [
-        post_sales_invoice(session, business.tenant.id, invoice.id)
+        reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
         for invoice in invoices
     ]
     payment_entries = record_customer_payment(
@@ -220,7 +220,7 @@ def test_finance_registers_share_ledger_and_allocation_truth(session, business):
         business.customer.id,
         100,
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     reviewed_post_customer_payment(
         session,
         business.tenant.id,
@@ -296,8 +296,8 @@ def test_invoice_term_cascades_from_the_document_to_the_party(session, business)
     assert effective_payment_term(from_party, None, terms) is None
     assert invoice_due_date(from_party, net30) == date(2026, 7, 31)
 
-    post_sales_invoice(session, tenant_id, own_term.id)
-    post_sales_invoice(session, tenant_id, from_party.id)
+    reviewed_post_sales_invoice(session, tenant_id, own_term.id)
+    reviewed_post_sales_invoice(session, tenant_id, from_party.id)
     register = {
         row["document"].id: row
         for row in aging_register(session, tenant_id, as_of=AGING_AS_OF)
@@ -355,7 +355,7 @@ def test_one_aging_rule_serves_every_consumer(session, business):
     invoice = invoice_with_term(
         session, business, "RE-2001", "2026-07-01", term_code="NET30"
     )
-    post_sales_invoice(session, tenant_id, invoice.id)
+    reviewed_post_sales_invoice(session, tenant_id, invoice.id)
 
     register = {
         row["document"].id: row

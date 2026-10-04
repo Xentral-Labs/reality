@@ -9,7 +9,12 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import accept_import_job, reviewed_manual_order
+from intake_review_support import (
+    accept_import_job,
+    reviewed_manual_order,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, CommitmentHold
@@ -41,7 +46,7 @@ def _open_invoice(session, business, party, amount, day="2026-07-01", number="RE
         amount,
         document_date=day,
     )
-    core.post_sales_invoice(session, business.tenant.id, document.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     return document
 
 
@@ -770,7 +775,7 @@ def test_an_available_credit_lowers_the_finding(session, business):
     note = core.create_document(
         session, business.tenant.id, "credit_note", "GS-C-1", party.id, "200.00"
     )
-    core.post_sales_credit_note(session, business.tenant.id, note.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, note.id)
 
     assert _finding(session, business, party) is None
 

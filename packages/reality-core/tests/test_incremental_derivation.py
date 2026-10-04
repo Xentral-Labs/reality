@@ -14,7 +14,10 @@ not known to be a net.
 import json
 from decimal import Decimal
 
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import ProjectionRow
@@ -22,7 +25,6 @@ from reality.services import projections
 from reality.services.core import (
     create_commitment,
     create_document,
-    post_sales_invoice,
     record_customer_payment,
     record_movement,
 )
@@ -94,7 +96,7 @@ def a_little_business(session, business) -> None:
         "100",
         document_date="2026-08-02",
     )
-    post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     record_movement(
         session,
         tenant,
@@ -298,7 +300,7 @@ def test_a_second_invoice_narrows_the_journal_and_agrees_with_the_company(
         "60",
         document_date="2026-08-03",
     )
-    post_sales_invoice(session, tenant, second.id)
+    reviewed_post_sales_invoice(session, tenant, second.id)
 
     with projections.narrowing_report() as report:
         projections.refresh_operational_projections(session, tenant)
@@ -329,7 +331,7 @@ def test_narrowing_the_journal_leaves_the_rows_it_did_not_look_at(session, busin
         "25",
         document_date="2026-08-04",
     )
-    post_sales_invoice(session, tenant, second.id)
+    reviewed_post_sales_invoice(session, tenant, second.id)
     projections.refresh_operational_projections(session, tenant)
     after = _journal(session, tenant)
 
@@ -423,7 +425,7 @@ def test_a_narrowed_journal_writes_only_the_entries_that_changed(session, busine
         "15",
         document_date="2026-08-06",
     )
-    post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     written = projections.rebuild_projections(session, tenant, [projections.JOURNAL])
     session.commit()
 
@@ -1618,7 +1620,7 @@ def test_a_new_invoice_narrows_the_open_items_and_agrees_with_the_company(
         "250",
         document_date="2026-08-12",
     )
-    post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     with projections.narrowing_report() as report:
         projections.refresh_operational_projections(session, tenant)
     reason = report.get(projections.OPEN_FINANCIAL_ITEMS)
@@ -1758,7 +1760,7 @@ def test_a_narrowed_open_items_refresh_writes_only_the_documents_that_changed(
             "40",
             document_date="2026-08-13",
         )
-        post_sales_invoice(session, tenant, other.id)
+        reviewed_post_sales_invoice(session, tenant, other.id)
     projections.refresh_operational_projections(session, tenant)
     whole_company = projections.rebuild_projections(
         session, tenant, [projections.OPEN_FINANCIAL_ITEMS], force=True
@@ -1774,7 +1776,7 @@ def test_a_narrowed_open_items_refresh_writes_only_the_documents_that_changed(
         "40",
         document_date="2026-08-14",
     )
-    post_sales_invoice(session, tenant, last.id)
+    reviewed_post_sales_invoice(session, tenant, last.id)
     written = projections.rebuild_projections(
         session, tenant, [projections.OPEN_FINANCIAL_ITEMS]
     )

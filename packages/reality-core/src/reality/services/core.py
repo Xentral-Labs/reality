@@ -13618,6 +13618,7 @@ def allocate_credit_note(
     invoice_id: str,
     amount,
     *,
+    action_id: str | None = None,
     _commit: bool = True,
 ) -> SettlementAllocation:
     """
@@ -13637,6 +13638,9 @@ def allocate_credit_note(
     Allocate the stated amount between the credit and invoice control entries; shared settlement validation checks their compatibility and remaining amounts.
     """
     _require_business_mutation(session, tenant_id, "allocate_credit_note")
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("allocate_credit_note", locals())
     note = _tenant_record(session, Document, tenant_id, credit_note_id)
     if note.type != "credit_note":
         raise InvalidOperation("Document is not a credit note.")
@@ -13645,12 +13649,14 @@ def allocate_credit_note(
     if note.party_id != invoice.party_id:
         raise InvalidOperation("A credit note settles only its own customer.")
     # reality-rule: core.allocate_credit_note.2
-    return allocate_settlement(
+    return _invoke(
+        "allocate_settlement", allocate_settlement,
         session,
         tenant_id,
-        _settlement_control_entry(session, tenant_id, note.id).id,
-        _settlement_control_entry(session, tenant_id, invoice.id).id,
-        amount,
+        payment_ledger_entry_id=_settlement_control_entry(session, tenant_id, note.id).id,
+        invoice_ledger_entry_id=_settlement_control_entry(session, tenant_id, invoice.id).id,
+        amount=amount,
+        action_id=action_id,
         _commit=_commit,
     )
 
@@ -14374,6 +14380,7 @@ def post_supplier_credit_note(
     credit_note_id: str,
     *,
     effective_at: datetime | None = None,
+    action_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     """
@@ -14401,6 +14408,9 @@ def post_supplier_credit_note(
     Debit accounts payable and credit inventory for the positive stated supplier-credit total. Preserve the document currency and source provenance; the ledger service validates the posting.
     """
     _require_business_mutation(session, tenant_id, "post_supplier_credit_note")
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("post_supplier_credit_note", locals())
     document = _tenant_record(session, Document, tenant_id, credit_note_id)
     # reality-rule: core.post_supplier_credit_note.1
     if document.type != "supplier_credit_note":
@@ -14410,18 +14420,20 @@ def post_supplier_credit_note(
         raise InvalidOperation("Supplier credit note is already posted.")
     amount = positive(document.gross_amount, "supplier credit note total")
     # reality-rule: core.post_supplier_credit_note.3
-    return post_ledger(
+    return _invoke(
+        "post_ledger", post_ledger,
         session,
         tenant_id,
-        document.id,
-        document.party_id,
-        [
+        document_id=document.id,
+        party_id=document.party_id,
+        postings=[
             ("accounts_payable", "debit", amount),
             ("inventory", "credit", amount),
         ],
         currency=document.currency,
         source_record_id=document.source_record_id,
         effective_at=effective_at,
+        action_id=action_id,
         _commit=_commit,
     )
 
@@ -14438,6 +14450,7 @@ def record_supplier_refund(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     _control_account_id: str | None = None,
+    _cash_account_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     """
@@ -14453,17 +14466,21 @@ def record_supplier_refund(
     Create refund evidence, debit cash and credit accounts payable for the stated positive amount. Keep document recording and posting within the shared atomic transaction boundary.
     """
     _require_business_mutation(session, tenant_id, "record_supplier_refund")
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("record_supplier_refund", locals())
     # reality-rule: core.record_supplier_refund.1
     amount = positive(amount, "amount")
     # reality-rule: core.record_supplier_refund.2
     with session.begin_nested():
-        refund = create_document(
+        refund = _invoke(
+            "create_document", create_document,
             session,
             tenant_id,
-            "supplier_refund",
-            refund_number or uid("ref"),
-            party_id,
-            amount,
+            document_type="supplier_refund",
+            number=refund_number or uid("ref"),
+            party_id=party_id,
+            amount=amount,
             currency=currency,
             document_date=_company_day(
                 session, tenant_id, effective_at or now()
@@ -14472,17 +14489,18 @@ def record_supplier_refund(
             action_id=action_id,
             _commit=False,
         )
-        entries = post_ledger(
+        entries = _invoke(
+            "post_ledger", post_ledger,
             session,
             tenant_id,
-            refund.id,
-            party_id,
-            [
+            document_id=refund.id,
+            party_id=party_id,
+            postings=[
                 ("cash", "debit", amount),
                 ("accounts_payable", "credit", amount),
             ],
-            account_ids={"accounts_payable": _control_account_id}
-            if _control_account_id
+            account_ids={"accounts_payable": _control_account_id, "cash": _cash_account_id}
+            if _control_account_id or _cash_account_id
             else None,
             currency=currency,
             source_record_id=source_record_id,
@@ -14505,6 +14523,7 @@ def post_supplier_refund(
     refund_number: str | None = None,
     source_record_id: str | None = None,
     effective_at: datetime | None = None,
+    action_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     """
@@ -14520,6 +14539,11 @@ def post_supplier_refund(
     Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
     """
     _require_business_mutation(session, tenant_id, "post_supplier_refund")
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("post_supplier_refund", locals())
+    from reality.services.finance.accounts import resolve_account
+
     with session.begin_nested():
         note = _tenant_record(session, Document, tenant_id, credit_note_id)
         if note.type != "supplier_credit_note":
@@ -14528,11 +14552,12 @@ def post_supplier_refund(
         # reality-rule: core.post_supplier_refund.1
         if amount > open_invoice_amount(session, tenant_id, note.id):
             raise InvalidOperation("Refund exceeds what the credit note still claims.")
-        entries = record_supplier_refund(
+        entries = _invoke(
+            "record_supplier_refund", record_supplier_refund,
             session,
             tenant_id,
-            note.party_id,
-            amount,
+            party_id=note.party_id,
+            amount=amount,
             _control_account_id=_settlement_control_entry(
                 session, tenant_id, note.id
             ).account_id,
@@ -14540,15 +14565,19 @@ def post_supplier_refund(
             refund_number=refund_number,
             source_record_id=source_record_id,
             effective_at=effective_at,
+            action_id=action_id,
+            _cash_account_id=resolve_account(session, tenant_id, "cash").id,
             _commit=False,
         )
         # reality-rule: core.post_supplier_refund.2
-        allocate_settlement(
+        _invoke(
+            "allocate_settlement", allocate_settlement,
             session,
             tenant_id,
-            _control_entry(entries, "accounts_payable").id,
-            _settlement_control_entry(session, tenant_id, note.id).id,
-            amount,
+            payment_ledger_entry_id=_control_entry(entries, "accounts_payable").id,
+            invoice_ledger_entry_id=_settlement_control_entry(session, tenant_id, note.id).id,
+            amount=amount,
+            action_id=action_id,
             _commit=False,
         )
     if _commit:
@@ -14563,6 +14592,7 @@ def allocate_supplier_credit_note(
     invoice_id: str,
     amount,
     *,
+    action_id: str | None = None,
     _commit: bool = True,
 ) -> SettlementAllocation:
     """
@@ -14583,6 +14613,9 @@ def allocate_supplier_credit_note(
     Allocate the stated amount between the credit and invoice control entries; shared settlement validation checks their compatibility and remaining amounts.
     """
     _require_business_mutation(session, tenant_id, "allocate_supplier_credit_note")
+    from reality.services.intake import _invoke, require_scoped_intent
+
+    require_scoped_intent("allocate_supplier_credit_note", locals())
     note = _tenant_record(session, Document, tenant_id, credit_note_id)
     if note.type != "supplier_credit_note":
         raise InvalidOperation("Document is not a supplier credit note.")
@@ -14593,12 +14626,14 @@ def allocate_supplier_credit_note(
     if note.party_id != invoice.party_id:
         raise InvalidOperation("A supplier credit settles only its own supplier.")
     # reality-rule: core.allocate_supplier_credit_note.2
-    return allocate_settlement(
+    return _invoke(
+        "allocate_settlement", allocate_settlement,
         session,
         tenant_id,
-        _settlement_control_entry(session, tenant_id, note.id).id,
-        _settlement_control_entry(session, tenant_id, invoice.id).id,
-        amount,
+        payment_ledger_entry_id=_settlement_control_entry(session, tenant_id, note.id).id,
+        invoice_ledger_entry_id=_settlement_control_entry(session, tenant_id, invoice.id).id,
+        amount=amount,
+        action_id=action_id,
         _commit=_commit,
     )
 

@@ -3,6 +3,10 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
+)
 
 from reality.domain.traversal import Traversal
 from reality.services import core
@@ -22,9 +26,9 @@ def invoice(
         session, tenant, kind, number, business.customer.id, amount, document_date=day
     )
     if kind == "sales_invoice":
-        core.post_sales_invoice(session, tenant, doc.id)
+        reviewed_post_sales_invoice(session, tenant, doc.id)
     else:
-        core.post_supplier_invoice(session, tenant, doc.id)
+        reviewed_post_supplier_invoice(session, tenant, doc.id)
     return doc
 
 

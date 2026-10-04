@@ -6,7 +6,10 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_post_customer_payment
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -42,7 +45,7 @@ def _paid_invoice(session, business, number="RE-297", amount="100.00", paid=None
         amount,
         document_date="2026-09-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     entries = reviewed_post_customer_payment(
         session, tenant, invoice.id, paid or amount, payment_number=f"PAY-{number}"
     )
@@ -291,7 +294,7 @@ def test_a_payment_of_two_invoices_reopens_both(session, business):
         document_date="2026-09-01",
     )
     for invoice in (first, second):
-        core.post_sales_invoice(session, tenant, invoice.id)
+        reviewed_post_sales_invoice(session, tenant, invoice.id)
     payment = core.record_customer_payment(
         session, tenant, business.customer.id, "100", payment_number="PAY-297-2"
     )
@@ -532,7 +535,7 @@ def _posted_invoice(session, business, number, amount="100"):
         amount,
         document_date="2026-09-01",
     )
-    core.post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     return invoice
 
 
@@ -566,7 +569,7 @@ def test_a_deducted_payment_fee_settles_the_invoice_and_is_an_expense(
         "100",
         document_date="2026-09-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
 
     _settle_with_fee(session, business, invoice, "97", "3")
 

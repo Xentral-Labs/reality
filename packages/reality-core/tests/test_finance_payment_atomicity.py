@@ -9,6 +9,9 @@ from intake_review_support import (
     reviewed_manual_order,
     reviewed_post_customer_payment,
     reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
     reviewed_record_sales_credit,
     reviewed_record_sales_invoice,
@@ -50,11 +53,11 @@ def outgoing_obligation(postgres_database, request):
         )
         if supplier:
             # Spec 309: a supplier invoice in another currency states its rate.
-            core.post_supplier_invoice(
+            reviewed_post_supplier_invoice(
                 session, tenant.id, document.id, exchange_rate="0.9"
             )
         else:
-            core.post_sales_credit_note(session, tenant.id, document.id)
+            reviewed_post_sales_credit_note(session, tenant.id, document.id)
         identity = tenant.id, document.id
     try:
         yield engine, *identity, request.param
@@ -186,7 +189,7 @@ def posted_invoice(postgres_database):
         invoice = core.create_document(
             session, tenant.id, "sales_invoice", "INV-1", customer.id, "300"
         )
-        core.post_sales_invoice(session, tenant.id, invoice.id)
+        reviewed_post_sales_invoice(session, tenant.id, invoice.id)
         identity = tenant.id, invoice.id
     try:
         yield engine, *identity

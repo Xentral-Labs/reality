@@ -4,11 +4,17 @@ from decimal import Decimal
 
 import pytest
 from intake_review_support import (
+    reviewed_allocate_supplier_credit_note,
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
     reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_credit_note,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
+    reviewed_post_supplier_refund,
 )
 
 from reality.services.core import (
@@ -16,15 +22,9 @@ from reality.services.core import (
     NotFound,
     account_balance,
     allocate_settlement,
-    allocate_supplier_credit_note,
     create_document,
     create_tenant,
     open_invoice_amount,
-    post_sales_credit_note,
-    post_sales_invoice,
-    post_supplier_credit_note,
-    post_supplier_invoice,
-    post_supplier_refund,
 )
 from reality.services.exceptions import operational_exceptions
 
@@ -40,7 +40,7 @@ def invoice(session, business, number, amount, *, post=True):
         document_date="2026-08-01",
     )
     if post:
-        post_sales_invoice(session, business.tenant.id, document.id)
+        reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     return document
 
 
@@ -71,7 +71,7 @@ def test_a_credit_note_posts_the_reverse_of_an_invoice(session, business):
     invoice(session, business, "RE-CN-1", "100.00")
     note = credit_note(session, business, "GS-1", "30.00")
 
-    post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
 
     # Exactly what a sales invoice posts, in the other direction.
     assert account_balance(session, tenant, "sales_revenue", note.id) == Decimal(
@@ -89,7 +89,7 @@ def test_a_paid_invoice_can_still_be_credited(session, business):
     assert open_invoice_amount(session, tenant, paid.id) == Decimal(0)
 
     note = credit_note(session, business, "GS-PAID", "30.00")
-    post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
 
     # The ordinary consumer return: paid at checkout, sent back later. The
     # company owes the customer, and the books say so.
@@ -102,7 +102,7 @@ def test_the_stated_total_is_what_posts(session, business):
     # The paper says 25 and the line says 30. The paper is what somebody stated.
     note = credit_note(session, business, "GS-2", "25.00", line_total="30.00")
 
-    post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
 
     assert account_balance(session, tenant, "sales_revenue", note.id) == Decimal(
         "25.0000"
@@ -116,17 +116,17 @@ def test_posting_is_refused_where_it_would_be_wrong(session, business):
 
     # A sales invoice is not a credit note.
     with pytest.raises(InvalidOperation, match="credit note"):
-        post_sales_credit_note(session, tenant, sales.id)
+        reviewed_post_sales_credit_note(session, tenant, sales.id)
 
     # Posting once is accepted; twice is not.
-    post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
     with pytest.raises(InvalidOperation, match="already posted"):
-        post_sales_credit_note(session, tenant, note.id)
+        reviewed_post_sales_credit_note(session, tenant, note.id)
 
     # Nothing moves for nothing.
     empty = credit_note(session, business, "GS-ZERO", "0")
     with pytest.raises(InvalidOperation):
-        post_sales_credit_note(session, tenant, empty.id)
+        reviewed_post_sales_credit_note(session, tenant, empty.id)
 
 
 def test_a_credit_may_be_netted_against_an_open_invoice(session, business):
@@ -135,7 +135,7 @@ def test_a_credit_may_be_netted_against_an_open_invoice(session, business):
     tenant = business.tenant.id
     open_invoice = invoice(session, business, "RE-CN-4", "100.00")
     note = credit_note(session, business, "GS-4", "30.00")
-    post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
 
     allocate_settlement(
         session,
@@ -155,7 +155,7 @@ def test_a_credit_may_be_refunded(session, business):
     paid = invoice(session, business, "RE-CN-5", "100.00")
     reviewed_post_customer_payment(session, tenant, paid.id, "100.00")
     note = credit_note(session, business, "GS-5", "30.00")
-    post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
     cash_before = account_balance(session, tenant, "cash")
 
     reviewed_post_customer_refund(session, tenant, note.id, "30.00")
@@ -169,7 +169,7 @@ def test_settling_is_refused_beyond_what_is_owed(session, business):
     tenant = business.tenant.id
     invoice(session, business, "RE-CN-6", "100.00")
     note = credit_note(session, business, "GS-6", "30.00")
-    post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
 
     # Everything owed may be refunded.
     reviewed_post_customer_refund(session, tenant, note.id, "30.00")
@@ -195,7 +195,7 @@ def supplier_invoice(
         document_date=date,
     )
     if post:
-        post_supplier_invoice(session, business.tenant.id, document.id)
+        reviewed_post_supplier_invoice(session, business.tenant.id, document.id)
     return document
 
 
@@ -210,7 +210,7 @@ def supplier_credit(session, business, number, amount, *, post=True, date="2026-
         document_date=date,
     )
     if post:
-        post_supplier_credit_note(session, business.tenant.id, document.id)
+        reviewed_post_supplier_credit_note(session, business.tenant.id, document.id)
     return document
 
 
@@ -235,7 +235,7 @@ def test_a_supplier_credit_note_posts_once_and_for_something(session, business):
     note = supplier_credit(session, business, "SG-089-TWICE", "150.00")
 
     with pytest.raises(InvalidOperation, match="already posted"):
-        post_supplier_credit_note(session, tenant_id, note.id)
+        reviewed_post_supplier_credit_note(session, tenant_id, note.id)
 
     nothing = create_document(
         session,
@@ -247,13 +247,13 @@ def test_a_supplier_credit_note_posts_once_and_for_something(session, business):
         document_date="2026-08-05",
     )
     with pytest.raises(InvalidOperation):
-        post_supplier_credit_note(session, tenant_id, nothing.id)
+        reviewed_post_supplier_credit_note(session, tenant_id, nothing.id)
 
     # A document that is not a supplier credit note is refused, and the positive
     # control is that a real one posts on the very next line.
     invoice_document = supplier_invoice(session, business, "ER-089-NOT", "10.00")
     with pytest.raises(InvalidOperation, match="not a supplier credit note"):
-        post_supplier_credit_note(session, tenant_id, invoice_document.id)
+        reviewed_post_supplier_credit_note(session, tenant_id, invoice_document.id)
     assert supplier_credit(session, business, "SG-089-OK", "10.00") is not None
 
 
@@ -269,24 +269,24 @@ def test_a_supplier_credit_settles_only_its_own_supplier(session, business):
         "500.00",
         document_date="2026-08-01",
     )
-    post_supplier_invoice(session, tenant_id, theirs.id)
+    reviewed_post_supplier_invoice(session, tenant_id, theirs.id)
     ours = supplier_invoice(session, business, "ER-089-OURS", "500.00")
     note = supplier_credit(session, business, "SG-089-PARTY", "100.00")
 
     with pytest.raises(InvalidOperation, match="own supplier"):
-        allocate_supplier_credit_note(session, tenant_id, note.id, theirs.id, "100.00")
+        reviewed_allocate_supplier_credit_note(session, tenant_id, note.id, theirs.id, "100.00")
 
     # An unposted credit has no control entry to settle with.
     unposted = supplier_credit(
         session, business, "SG-089-UNPOSTED", "100.00", post=False
     )
     with pytest.raises(InvalidOperation):
-        allocate_supplier_credit_note(
+        reviewed_allocate_supplier_credit_note(
             session, tenant_id, unposted.id, ours.id, "100.00"
         )
 
     # The positive control: the same credit against its own supplier's invoice.
-    allocate_supplier_credit_note(session, tenant_id, note.id, ours.id, "100.00")
+    reviewed_allocate_supplier_credit_note(session, tenant_id, note.id, ours.id, "100.00")
     assert open_invoice_amount(session, tenant_id, ours.id) == Decimal(400)
 
 
@@ -295,7 +295,7 @@ def test_netting_leaves_the_remainder_open(session, business):
     small = supplier_invoice(session, business, "ER-089-SMALL", "100.00")
     note = supplier_credit(session, business, "SG-089-BIG", "250.00")
 
-    allocate_supplier_credit_note(session, tenant_id, note.id, small.id, "100.00")
+    reviewed_allocate_supplier_credit_note(session, tenant_id, note.id, small.id, "100.00")
 
     # The invoice is settled and the excess is still claimable from the supplier.
     assert open_invoice_amount(session, tenant_id, small.id) == Decimal(0)
@@ -304,8 +304,8 @@ def test_netting_leaves_the_remainder_open(session, business):
     # And what is left cannot be netted beyond what either document holds.
     another = supplier_invoice(session, business, "ER-089-REST", "500.00")
     with pytest.raises(InvalidOperation):
-        allocate_supplier_credit_note(session, tenant_id, note.id, another.id, "200.00")
-    allocate_supplier_credit_note(session, tenant_id, note.id, another.id, "150.00")
+        reviewed_allocate_supplier_credit_note(session, tenant_id, note.id, another.id, "200.00")
+    reviewed_allocate_supplier_credit_note(session, tenant_id, note.id, another.id, "150.00")
     assert open_invoice_amount(session, tenant_id, note.id) == Decimal(0)
     assert open_invoice_amount(session, tenant_id, another.id) == Decimal(350)
 
@@ -320,9 +320,9 @@ def test_a_supplier_refund_settles_the_credit(session, business):
     # against, and the company's money is with the supplier.
     note = supplier_credit(session, business, "SG-089-REFUND", "60.00")
     with pytest.raises(InvalidOperation, match="still claims"):
-        post_supplier_refund(session, tenant_id, note.id, "61.00")
+        reviewed_post_supplier_refund(session, tenant_id, note.id, "61.00")
 
-    entries = post_supplier_refund(session, tenant_id, note.id, "60.00")
+    entries = reviewed_post_supplier_refund(session, tenant_id, note.id, "60.00")
 
     assert open_invoice_amount(session, tenant_id, note.id) == Decimal(0)
     refund = next(entry for entry in entries if entry.account == "cash")
@@ -343,7 +343,7 @@ def test_a_credit_takes_a_payable_off_the_overdue_queue(session, business):
         document_date="2026-07-01",
         payment_term_code="NET30",
     )
-    post_supplier_invoice(session, tenant_id, overdue.id)
+    reviewed_post_supplier_invoice(session, tenant_id, overdue.id)
     as_of = datetime(2026, 8, 31, 12, tzinfo=UTC)
     reported = {
         row.record_id
@@ -355,7 +355,7 @@ def test_a_credit_takes_a_payable_off_the_overdue_queue(session, business):
     # A credit settles the last of it, and nothing downstream needed telling
     # that a credit was involved rather than a payment.
     note = supplier_credit(session, business, "SG-089-OVERDUE", "300.00")
-    allocate_supplier_credit_note(session, tenant_id, note.id, overdue.id, "300.00")
+    reviewed_allocate_supplier_credit_note(session, tenant_id, note.id, overdue.id, "300.00")
 
     reported = {
         row.record_id
@@ -373,7 +373,7 @@ def test_one_allocation_service_settles_both_sides(session, business):
 
     for name in ("allocate_credit_note", "allocate_supplier_credit_note"):
         source = inspect.getsource(getattr(core, name))
-        assert "allocate_settlement(" in source
+        assert '"allocate_settlement", allocate_settlement' in source
         # Neither writes an allocation of its own.
         assert "SettlementAllocation(" not in source
 
@@ -384,7 +384,7 @@ def test_supplier_credit_operations_are_tenant_scoped(session, business):
     foreign = create_tenant(session, "Foreign supplier credit tenant")
 
     with pytest.raises(NotFound):
-        post_supplier_refund(session, foreign.id, note.id, "50.00")
+        reviewed_post_supplier_refund(session, foreign.id, note.id, "50.00")
     with pytest.raises(NotFound):
         open_invoice_amount(session, foreign.id, note.id)
 

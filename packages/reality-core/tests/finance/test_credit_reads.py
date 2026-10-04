@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from intake_review_support import reviewed_post_sales_invoice
+
 from reality.mcp.catalog import MCP_TOOL_NAMES
 from reality.services import core
 from reality.tools.application import run_read_tool
@@ -12,7 +14,7 @@ def _overpaid_invoice(session, business):
     invoice = core.create_document(
         session, tenant, "sales_invoice", "INV-CREDIT", business.customer.id, "100"
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     entries = core.record_customer_payment(
         session, tenant, business.customer.id, "120", payment_number="PAY-120"
     )

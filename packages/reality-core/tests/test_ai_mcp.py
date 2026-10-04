@@ -1,3 +1,4 @@
+
 import inspect
 import json
 from dataclasses import FrozenInstanceError, replace
@@ -5,6 +6,7 @@ from dataclasses import FrozenInstanceError, replace
 import pytest
 from conftest import record_by_id
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_post_sales_invoice
 from mcp.server.auth.middleware.auth_context import auth_context_var
 from mcp.server.auth.middleware.bearer_auth import AuthenticatedUser
 from mcp.server.auth.provider import AccessToken
@@ -669,7 +671,7 @@ def test_new_external_agent_surfaces_use_opaque_ids_and_refuse_foreign_records(
         "50.00",
         document_date="2026-01-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     with pytest.raises(NotFound):
         dispatch_tool(
             session,

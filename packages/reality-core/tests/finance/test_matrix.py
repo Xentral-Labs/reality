@@ -6,7 +6,12 @@ import pytest
 from intake_review_support import (
     reviewed_post_customer_payment,
     reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_credit_note,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
+    reviewed_post_supplier_refund,
 )
 from sqlalchemy import func, select
 
@@ -28,12 +33,12 @@ def test_matrix_matches_actual_invoice_credit_payment_refund(session, business, 
         session, tenant, invoice_kind, "INV", party.id, "119"
     )
     credit = core.create_document(session, tenant, credit_kind, "CR", party.id, "59")
-    post_invoice = core.post_sales_invoice if customer else core.post_supplier_invoice
+    post_invoice = reviewed_post_sales_invoice if customer else reviewed_post_supplier_invoice
     post_credit = (
-        core.post_sales_credit_note if customer else core.post_supplier_credit_note
+        reviewed_post_sales_credit_note if customer else reviewed_post_supplier_credit_note
     )
     payment = reviewed_post_customer_payment if customer else reviewed_post_supplier_payment
-    refund = reviewed_post_customer_refund if customer else core.post_supplier_refund
+    refund = reviewed_post_customer_refund if customer else reviewed_post_supplier_refund
     actual = {
         invoice_kind: post_invoice(session, tenant, invoice.id),
         credit_kind: post_credit(session, tenant, credit.id),
@@ -99,7 +104,7 @@ def test_default_changes_do_not_rewrite_original_settlement_accounts(session, bu
     doc = core.create_document(
         session, tenant, "sales_invoice", "ORIGINAL", business.customer.id, "100"
     )
-    entries = core.post_sales_invoice(session, tenant, doc.id)
+    entries = reviewed_post_sales_invoice(session, tenant, doc.id)
     original = next(e for e in entries if e.account == "accounts_receivable").account_id
     replacement = reviewed_create_account(
         session, tenant, code="NEW", name="New receivables", role="accounts_receivable"
@@ -133,7 +138,7 @@ def test_posted_customer_credit_supports_financial_attribution(session, business
     doc = core.create_document(
         session, tenant, "credit_note", "ACTUAL-CREDIT", business.customer.id, "119"
     )
-    core.post_sales_credit_note(session, tenant, doc.id)
+    reviewed_post_sales_credit_note(session, tenant, doc.id)
     before = session.scalar(select(func.count()).select_from(LedgerEntry))
     context = component_context(session, tenant, doc.id)
     proposal = create_change_proposal(

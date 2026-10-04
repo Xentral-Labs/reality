@@ -3,7 +3,11 @@
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_post_customer_refund
+from intake_review_support import (
+    _reviewed_financial_posting_fixture,
+    reviewed_post_customer_refund,
+    reviewed_post_supplier_refund,
+)
 
 from reality.services import core
 from reality.services.finance.credits import available_credit_items
@@ -28,9 +32,7 @@ def test_credit_availability_refund_reversal_and_scope(session, business, side):
     control = next(e for e in payment if e.account == role)
     kind = "sales_invoice" if side == "customer" else "supplier_invoice"
     invoice = core.create_document(session, tenant, kind, "INV-CREDIT", party.id, "100")
-    entries = getattr(
-        core, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice"
-    )(session, tenant, invoice.id)
+    entries = _reviewed_financial_posting_fixture(session, tenant, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice", invoice.id)
     target = next(e for e in entries if e.account == role)
     core.allocate_settlement(session, tenant, control.id, target.id, "100")
 
@@ -97,10 +99,8 @@ def test_note_credit_target_endpoint_blocked_account_and_http(session, business,
     note = core.create_document(
         session, tenant, kind, "CREDIT", party.id, "20", source_record_id=source.id
     )
-    entries = getattr(
-        core, f"post_{'sales' if side == 'customer' else 'supplier'}_credit_note"
-    )(session, tenant, note.id)
-    (reviewed_post_customer_refund if side == "customer" else core.post_supplier_refund)(session, tenant, note.id, "8")
+    entries = _reviewed_financial_posting_fixture(session, tenant, f"post_{'sales' if side == 'customer' else 'supplier'}_credit_note", note.id)
+    (reviewed_post_customer_refund if side == "customer" else reviewed_post_supplier_refund)(session, tenant, note.id, "8")
     role = "accounts_receivable" if side == "customer" else "accounts_payable"
     control = next(e for e in entries if e.account == role)
     reviewed_update_account(

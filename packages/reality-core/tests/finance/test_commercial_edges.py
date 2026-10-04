@@ -4,7 +4,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order, reviewed_post_customer_payment
+from intake_review_support import (
+    _reviewed_financial_posting_fixture,
+    reviewed_manual_order,
+    reviewed_post_customer_payment,
+)
 from sqlalchemy import select
 
 from reality.db.core import DunningNotice, LedgerEntry
@@ -57,8 +61,8 @@ def _invoice(
         amount,
         document_date="2026-01-01",
     )
-    getattr(core, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice")(
-        session, tenant, invoice.id
+    _reviewed_financial_posting_fixture(
+        session, tenant, f"post_{'sales' if side == 'customer' else 'supplier'}_invoice", invoice.id
     )
     return invoice
 

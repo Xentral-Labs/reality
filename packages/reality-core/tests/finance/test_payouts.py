@@ -4,7 +4,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import Document, DocumentLine, LedgerEntry, PaymentReturn
@@ -98,7 +102,7 @@ def _invoiced_order(session, business, number, amount, customer=None, invoice=Tr
         document_date="2026-09-20",
         _commit=False,
     )
-    core.post_sales_invoice(session, tenant, document.id, _commit=False)
+    reviewed_post_sales_invoice(session, tenant, document.id, _commit=False)
     session.flush()
     return order, document
 
@@ -132,7 +136,7 @@ def _credit_note(session, business, invoice, amount):
         document_date="2026-09-25",
         _commit=False,
     )
-    core.post_sales_credit_note(session, tenant, note.id, _commit=False)
+    reviewed_post_sales_credit_note(session, tenant, note.id, _commit=False)
     session.flush()
     return note
 

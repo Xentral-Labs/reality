@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import pytest
 from intake_review_support import accept_shopify_order as ingest_shopify_order
-from intake_review_support import reviewed_merge_party
+from intake_review_support import reviewed_merge_party, reviewed_post_sales_invoice
 
 from reality.db.core import Party
 from reality.services import core
@@ -57,7 +57,7 @@ def _invoice(session, business, number, amount, party_id):
         amount,
         document_date="2026-11-02",
     )
-    core.post_sales_invoice(session, business.tenant.id, document.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     return document
 
 

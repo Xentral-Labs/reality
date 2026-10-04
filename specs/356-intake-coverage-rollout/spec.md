@@ -343,3 +343,7 @@ The selected-payment review retains public defaults and current exact cash/contr
 
 
 Ordinary payments in practice/Storyline companies retain and recheck the same current payment review as business-company payments. Company purpose does not bypass the reviewed canonical parent. The existing real transaction-bound guided-lesson proposal scope retains its exact step-preview/schema contract and actual step confirmation; never manufacture such a scope or allow an unmatched session/company/tool to suppress ordinary review.
+
+## Standalone financial evidence follow-up
+
+Existing sales/supplier invoice posting, customer/supplier credit posting, customer/supplier credit netting and selected supplier refund commands must retain current selected evidence/account/partner/settlement references and actual explicit consent. Freeze each existing canonical parent and its exact posting/allocation/refund children; do not let callbacks change, repeat, commit early or add unrelated effects. Business effects and the executed receipt settle in the application-owned root. Direct/private-commit calls require the actual supported scope. Preserve stated money, exchange rates, currency, current domain eligibility and response shapes. Existing HTTP endpoints require actual explicit confirmation; fixed/profile callers freeze only their actual authored families and retain their existing authority. Source reception and header-only creation remain separately tracked; no external transfer, schema change or invented historical decision.

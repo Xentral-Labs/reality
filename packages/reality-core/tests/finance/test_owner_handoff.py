@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_post_sales_invoice
 
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, dispatch_tool
 from reality.services import core
@@ -22,7 +23,7 @@ def _posted_customer_invoice(session, business):
         business.customer.id,
         "100",
     )
-    core.post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     return invoice
 
 

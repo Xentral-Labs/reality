@@ -3,7 +3,7 @@
 import json
 
 import pytest
-from legacy_finance import create_legacy_tenant
+from legacy_finance import create_legacy_tenant, historical_post_sales_invoice
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry
@@ -230,7 +230,7 @@ def test_reference_migration_preserves_postings_and_blocks_destructive_downgrade
                 "119",
                 document_date="2026-01-05",
             )
-            core.post_sales_invoice(db, tenant, invoice.id)
+            historical_post_sales_invoice(db, tenant, invoice.id)
             before = (
                 db.execute(
                     text(

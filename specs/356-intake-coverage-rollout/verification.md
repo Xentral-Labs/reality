@@ -491,3 +491,18 @@ The actual ordinary-practice payment review and both Purchase-to-Pay branches, a
 
 
 All 70 actual command-catalog/refusal/service-refusal checks passed in 41.70 seconds. The command audit now follows actual frozen invocation callables, including lexical factory selections, with the existing bidirectional threshold preserved. The eight existing payment-run refusal ratchet entries were moved to their extracted pure validator with unchanged messages and counts. Corrected committed-head CI remains required.
+
+
+## Standalone financial posting qualification in progress
+
+On the unchanged parent, 71 of the initial 78 posting/netting/supplier-refund checks failed meaningfully while seven existing confirmed positives passed (14.98 seconds). The changed implementation passed all 78 (16.13 seconds). All 28 real OAuth revocation/HTTP confirmation cases failed on the frozen parent (10.19 seconds); updated actual authority/profile/payment checks passed 210 tests (73.07 seconds). Nineteen additional private review/public defaults/separately approved partner-role cases failed on the unchanged parent (4.64 seconds). No synthetic person, grant or approval was introduced.
+
+The broader initial regression passed 654 tests and exposed 39 failures (287.18 seconds). Corrections preserved catalog refusal codes and actual frozen allocator source auditing, retained the original already-authorized callback, and routed missed dynamic financial fixtures through actual approvals. Four pinned historical migration fixtures now reflect only their received original document/account ledger facts, with an exact schema guard; no current approval is backfilled. Their original before/after migration assertions remain intact. The follow-up passed 204 checks, including all four migrations, with two remaining missed dynamic credit fixture calls (174.11 seconds). Those calls now use actual reviewed posting. All 153 current posting adversarial/reference/authority and settlement-flow checks then passed in 32.30 seconds.
+
+The owned financial-posting work was rebased onto corrected payment head 702f5ed2beab5d516ffaf53722a091a257312a8b. Both append-only specification sections and the reviewed customer/supplier credit/refund fixture changes were preserved. Source files merged without conflict. Actual browser qualification and full committed-head CI remain required; T072–T075 remain pending.
+
+
+At the rebased corrected source, all 225 selected posting/payment/run/current fixed-authority/Normal Month/profile-history checks passed (76.69 seconds). All 462 frontend checks passed (67.34 seconds), and the production build passed (4.66 seconds). Specification policy and the annotation audit passed (620 described functions, 115 described tests), catalog regeneration and formatting leave no generated documentation churn. The company-setup browser passed; the first business-browser setup exposed one additional multiline direct invoice fixture, now routed through actual retained confirmation. The business-browser rerun remains in progress.
+
+
+The final actual business browser passed in 243.66 seconds, including the linked business case, four opening directions, fourteen-operation transaction matrix, current financial settings, source mappings, component attribution and historical credit detail. Company setup passed in the earlier paired run. No remaining runtime failure was hidden by loosening an expectation. All local source/static/catalog/formatting gates pass; full committed-head CI remains required.

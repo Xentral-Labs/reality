@@ -7,6 +7,7 @@ a customer order line than has shipped is reported until the goods ship.
 import json
 from decimal import Decimal
 
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry
@@ -96,7 +97,7 @@ def test_a_cancelled_line_stays_reported_until_its_invoice_is_reversed(
     tenant = business.tenant.id
     _, line, commitment = order(session, business)
     invoice, _ = bill(session, business, line, quantity="5")
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
 
     core.cancel_commitment(session, tenant, commitment.id, reason="Customer withdrew")
     # The customer was asked to pay for goods that will now never ship.

@@ -3,7 +3,10 @@
 import json
 
 from fastapi.testclient import TestClient
-from intake_review_support import reviewed_post_customer_payment
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -28,7 +31,7 @@ def _paid(session, business, number="RE-297-A"):
         "100",
         document_date="2026-09-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     entry = reviewed_post_customer_payment(
         session, tenant, invoice.id, "100", payment_number=f"PAY-{number}"
     )[0]

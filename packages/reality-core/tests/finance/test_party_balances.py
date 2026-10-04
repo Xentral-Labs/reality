@@ -3,7 +3,11 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from intake_review_support import reviewed_create_payment_term
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+)
 
 from reality.mcp.catalog import MCP_TOOL_NAMES
 from reality.services import core
@@ -35,7 +39,7 @@ def _invoice(
         document_date=date,
         payment_term_code=term,
     )
-    core.post_sales_invoice(session, business.tenant.id, document.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     return document
 
 
@@ -70,7 +74,7 @@ def test_party_rows_sum_open_items_and_credits(session, business):
     note = core.create_document(
         session, tenant, "credit_note", "CN-1", business.customer.id, "40"
     )
-    core.post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
     _invoice(session, business, "INV-USD", "500", currency="USD")
     other = reviewed_create_party(session, tenant, "Zweit GmbH", "customer")
     settled = _invoice(session, business, "INV-Z", "70", party=other.id)
@@ -119,7 +123,7 @@ def test_credit_only_lists_each_party_once(session, business):
     note = core.create_document(
         session, tenant, "credit_note", "CN-2", business.customer.id, "15"
     )
-    core.post_sales_credit_note(session, tenant, note.id)
+    reviewed_post_sales_credit_note(session, tenant, note.id)
     other = reviewed_create_party(session, tenant, "Nur Offen GmbH", "customer")
     _invoice(session, business, "INV-O", "80", party=other.id)
 

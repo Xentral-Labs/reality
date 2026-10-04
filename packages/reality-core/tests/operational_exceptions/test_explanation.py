@@ -9,7 +9,12 @@ from intake_review_support import (
     reviewed_manual_order,
     reviewed_post_customer_payment,
     reviewed_post_customer_refund,
+    reviewed_post_sales_credit_note,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_credit_note,
+    reviewed_post_supplier_invoice,
     reviewed_post_supplier_payment,
+    reviewed_post_supplier_refund,
 )
 
 from reality.db.core import now
@@ -19,8 +24,6 @@ from reality.services.core import (
     create_commitment,
     create_document,
     create_tenant,
-    post_sales_invoice,
-    post_supplier_invoice,
     record_movement,
     reserve,
     reverse_ledger_posting_group,
@@ -249,7 +252,7 @@ def test_shared_consumer_parity_includes_new_classes(session, business):
         document_date="2026-01-01",
         payment_term_code="NET30",
     )
-    post_supplier_invoice(session, tenant_id, payable.id)
+    reviewed_post_supplier_invoice(session, tenant_id, payable.id)
 
     receivable = create_document(
         session,
@@ -261,7 +264,7 @@ def test_shared_consumer_parity_includes_new_classes(session, business):
         document_date="2026-01-01",
         payment_term_code="NET30",
     )
-    post_sales_invoice(session, tenant_id, receivable.id)
+    reviewed_post_sales_invoice(session, tenant_id, receivable.id)
 
     rows = operational_exception_rows(session, tenant_id)
     entries = operational_exceptions(session, tenant_id)
@@ -324,7 +327,7 @@ def test_overdue_receivable_explanation_and_not_found_parity(session, business):
         document_date="2026-07-01",
         payment_term_code="NET30",
     )
-    post_sales_invoice(session, tenant_id, invoice.id)
+    reviewed_post_sales_invoice(session, tenant_id, invoice.id)
     exception_id = f"exc__overdue_receivable__{invoice.id}"
 
     explained = explain_operational_exception(
@@ -733,9 +736,8 @@ def promised_and_owed(session, business):
     posting_history(session, business, cases=6, prefix="E")
     forgotten = note(session, business, "GS-EXPL-1", "40.00", day="2026-06-01")
     owed = note(session, business, "GS-EXPL-2", "60.00")
-    from reality.services.core import post_sales_credit_note
 
-    post_sales_credit_note(session, business.tenant.id, owed.id)
+    reviewed_post_sales_credit_note(session, business.tenant.id, owed.id)
     return forgotten, owed
 
 
@@ -935,7 +937,7 @@ def discount_still_available(session, business):
         document_date=(now() - timedelta(days=2)).date().isoformat(),
         payment_term_code="SK2_10_EXPL",
     )
-    post_supplier_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_supplier_invoice(session, business.tenant.id, invoice.id)
     return invoice
 
 
@@ -971,7 +973,6 @@ def test_discount_class_explanation_and_not_found_parity(session, business):
 
 def supplier_credit_unclaimed(session, business):
     """A booked supplier credit nobody has netted or asked for."""
-    from reality.services.core import post_supplier_credit_note
 
     credit = create_document(
         session,
@@ -982,7 +983,7 @@ def supplier_credit_unclaimed(session, business):
         "80.00",
         document_date="2026-08-05",
     )
-    post_supplier_credit_note(session, business.tenant.id, credit.id)
+    reviewed_post_supplier_credit_note(session, business.tenant.id, credit.id)
     return credit
 
 
@@ -992,7 +993,6 @@ def supplier_credit_unposted(session, business):
     The rhythm has to be this side's own: the unposted class deliberately learns
     nothing from the credit notes the company writes itself.
     """
-    from reality.services.core import post_supplier_credit_note, post_supplier_refund
 
     tenant_id = business.tenant.id
     for index in range(6):
@@ -1006,10 +1006,10 @@ def supplier_credit_unposted(session, business):
             "10.00",
             document_date=recorded.date().isoformat(),
         )
-        post_supplier_credit_note(
+        reviewed_post_supplier_credit_note(
             session, tenant_id, booked.id, effective_at=recorded + timedelta(days=2)
         )
-        post_supplier_refund(session, tenant_id, booked.id, "10.00")
+        reviewed_post_supplier_refund(session, tenant_id, booked.id, "10.00")
     forgotten = create_document(
         session,
         tenant_id,
@@ -1023,7 +1023,6 @@ def supplier_credit_unposted(session, business):
 
 
 def test_supplier_credit_explanation_and_not_found_parity(session, business):
-    from reality.services.core import post_supplier_refund
 
     tenant_id = business.tenant.id
     credit = supplier_credit_unclaimed(session, business)
@@ -1046,7 +1045,7 @@ def test_supplier_credit_explanation_and_not_found_parity(session, business):
         explain_operational_exception(session, foreign.id, row.id)
 
     # Claiming it back settles the credit and its identity stops explaining.
-    post_supplier_refund(session, tenant_id, credit.id, "80.00")
+    reviewed_post_supplier_refund(session, tenant_id, credit.id, "80.00")
     with pytest.raises(NotFound):
         explain_operational_exception(session, tenant_id, row.id)
 
@@ -1169,7 +1168,6 @@ def test_supplier_return_explanation_and_not_found_parity(session, business):
 
 def sales_invoice_unposted(session, business):
     """A tenant with a booking rhythm and one sales invoice left unbooked."""
-    from reality.services.core import post_sales_invoice
 
     tenant_id = business.tenant.id
     for index in range(6):
@@ -1183,7 +1181,7 @@ def sales_invoice_unposted(session, business):
             "10.00",
             document_date=recorded.date().isoformat(),
         )
-        post_sales_invoice(
+        reviewed_post_sales_invoice(
             session, tenant_id, booked.id, effective_at=recorded + timedelta(days=2)
         )
     return create_document(
@@ -1199,7 +1197,6 @@ def sales_invoice_unposted(session, business):
 
 def supplier_invoice_unposted(session, business):
     """The same on the buying side, with its own rhythm rather than the sales one."""
-    from reality.services.core import post_supplier_invoice
 
     tenant_id = business.tenant.id
     for index in range(6):
@@ -1213,7 +1210,7 @@ def supplier_invoice_unposted(session, business):
             "10.00",
             document_date=recorded.date().isoformat(),
         )
-        post_supplier_invoice(
+        reviewed_post_supplier_invoice(
             session, tenant_id, booked.id, effective_at=recorded + timedelta(days=2)
         )
     return create_document(
@@ -1228,7 +1225,6 @@ def supplier_invoice_unposted(session, business):
 
 
 def test_unposted_invoice_explanation_and_not_found_parity(session, business):
-    from reality.services.core import post_sales_invoice
 
     tenant_id = business.tenant.id
     forgotten = sales_invoice_unposted(session, business)
@@ -1251,7 +1247,7 @@ def test_unposted_invoice_explanation_and_not_found_parity(session, business):
         explain_operational_exception(session, foreign.id, row.id)
 
     # Booking it clears the entry and its identity stops explaining.
-    post_sales_invoice(session, tenant_id, forgotten.id)
+    reviewed_post_sales_invoice(session, tenant_id, forgotten.id)
     with pytest.raises(NotFound):
         explain_operational_exception(session, tenant_id, row.id)
 

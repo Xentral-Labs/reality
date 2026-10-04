@@ -1,4 +1,6 @@
+
 import pytest
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import select
 from test_unified_source_api import client_for
 
@@ -74,7 +76,6 @@ def test_numeric_sorts_use_full_canonical_amounts_and_keep_totals(session, busin
 
     from reality.services.core import (
         create_document,
-        post_sales_invoice,
         record_movement,
     )
 
@@ -83,7 +84,7 @@ def test_numeric_sorts_use_full_canonical_amounts_and_keep_totals(session, busin
         invoice = create_document(
             session, tid, "sales_invoice", f"TABLE-{i}", business.customer.id, amount
         )
-        post_sales_invoice(session, tid, invoice.id)
+        reviewed_post_sales_invoice(session, tid, invoice.id)
         item = reviewed_create_item(session, tid, f"TABLE-{i}", f"Table quantity {i}")
         record_movement(
             session,
@@ -114,7 +115,7 @@ def test_numeric_sorts_use_full_canonical_amounts_and_keep_totals(session, busin
 
 
 def test_open_items_default_to_newest_document_first(session, business):
-    from reality.services.core import create_document, post_sales_invoice
+    from reality.services.core import create_document
 
     tid = business.tenant.id
     for number, document_date in [
@@ -131,7 +132,7 @@ def test_open_items_default_to_newest_document_first(session, business):
             "10",
             document_date=document_date,
         )
-        post_sales_invoice(session, tid, invoice.id)
+        reviewed_post_sales_invoice(session, tid, invoice.id)
     rebuild_projections(session, tid, (OPEN_FINANCIAL_ITEMS,))
     with client_for(session) as client:
         root = f"/api/tenants/{tid}"

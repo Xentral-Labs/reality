@@ -6,7 +6,11 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_post_customer_payment
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
+)
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
@@ -92,7 +96,7 @@ def _invoice(session, business, number):
         "100",
         document_date="2026-01-01",
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     return invoice
 
 
@@ -360,7 +364,7 @@ def _dated_invoice(
         currency=currency,
         document_date=day,
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     return invoice
 
 
@@ -529,7 +533,7 @@ def test_paid_and_supplier_items_are_not_dunned(session, business):
         "100",
         document_date="2026-08-01",
     )
-    core.post_supplier_invoice(session, tenant, supplier.id)
+    reviewed_post_supplier_invoice(session, tenant, supplier.id)
 
     context = _context(session, tenant, "2026-09-01")
 

@@ -4,6 +4,7 @@ from decimal import Decimal
 import pytest
 from intake_review_support import (
     reviewed_create_payment_term,
+    reviewed_post_supplier_invoice,
     reviewed_set_master_data_active,
     reviewed_update_payment_term,
 )
@@ -15,7 +16,6 @@ from reality.services.core import (
     aging_register,
     create_document,
     payment_terms,
-    post_supplier_invoice,
 )
 
 
@@ -210,7 +210,7 @@ def test_the_discount_deadline_is_one_shared_rule(session, business):
         document_date="2026-08-01",
         payment_term_code="SK10",
     )
-    post_supplier_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_supplier_invoice(session, business.tenant.id, invoice.id)
 
     # The window is placed the way the due date is placed: the invoice's own
     # date advanced by a number of days the company stated.

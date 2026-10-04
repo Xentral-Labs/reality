@@ -829,3 +829,54 @@ def reviewed_post_customer_refund(session, tenant_id, *args, **kwargs):
 
 def reviewed_execute_payment_run(session, tenant_id, *args, **kwargs):
     return _reviewed_payment_fixture(session, tenant_id, "execute_payment_run", *args, **kwargs)
+
+
+
+def _reviewed_financial_posting_fixture(session, tenant_id, operation, *positional, **arguments):
+    """Create current posting fixture data through its actual retained decision."""
+    import inspect
+
+    from reality.db.core import LedgerEntry, SettlementAllocation
+    from reality.services.intake import _invoke
+    from reality.services.tenant_policy import (
+        FINANCIAL_POSTING_OPERATIONS,
+        _profile_authority,
+    )
+
+    bound = inspect.signature(getattr(core, operation)).bind(session, tenant_id, *positional, **arguments)
+    values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id"}}
+    if _profile_authority.get() is not None:
+        return _invoke(operation, getattr(core, operation), session, tenant_id, **values)
+    tool = next(tool for tool, canonical in FINANCIAL_POSTING_OPERATIONS.items() if canonical == operation)
+    result = _confirm_document_fixture(session, tenant_id, tool, values)
+    if tool.endswith("allocate"):
+        return core._tenant_record_read(session, SettlementAllocation, tenant_id, result["records"][0]["id"])
+    return [core._tenant_record_read(session, LedgerEntry, tenant_id, row["id"]) for row in result["records"] if row["family"] == "ledger_entry"]
+
+
+def reviewed_post_sales_invoice(session, tenant_id, *args, **kwargs):
+    return _reviewed_financial_posting_fixture(session, tenant_id, "post_sales_invoice", *args, **kwargs)
+
+
+def reviewed_post_supplier_invoice(session, tenant_id, *args, **kwargs):
+    return _reviewed_financial_posting_fixture(session, tenant_id, "post_supplier_invoice", *args, **kwargs)
+
+
+def reviewed_post_sales_credit_note(session, tenant_id, *args, **kwargs):
+    return _reviewed_financial_posting_fixture(session, tenant_id, "post_sales_credit_note", *args, **kwargs)
+
+
+def reviewed_post_supplier_credit_note(session, tenant_id, *args, **kwargs):
+    return _reviewed_financial_posting_fixture(session, tenant_id, "post_supplier_credit_note", *args, **kwargs)
+
+
+def reviewed_allocate_credit_note(session, tenant_id, *args, **kwargs):
+    return _reviewed_financial_posting_fixture(session, tenant_id, "allocate_credit_note", *args, **kwargs)
+
+
+def reviewed_allocate_supplier_credit_note(session, tenant_id, *args, **kwargs):
+    return _reviewed_financial_posting_fixture(session, tenant_id, "allocate_supplier_credit_note", *args, **kwargs)
+
+
+def reviewed_post_supplier_refund(session, tenant_id, *args, **kwargs):
+    return _reviewed_financial_posting_fixture(session, tenant_id, "post_supplier_refund", *args, **kwargs)

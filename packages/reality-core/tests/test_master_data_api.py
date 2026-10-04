@@ -12,6 +12,8 @@ from intake_review_support import (
     reviewed_create_price_list_entry,
     reviewed_manual_document_with_lines,
     reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+    reviewed_post_supplier_invoice,
 )
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -40,7 +42,6 @@ from reality.services.core import (
     create_tenant,
     observe_fact,
     open_invoice_amount,
-    post_sales_invoice,
     record_movement,
     store_source_record,
 )
@@ -1368,7 +1369,7 @@ def test_frontend_finance_endpoints_are_tenant_scoped_and_currency_safe(
         "1470.00",
         document_date="2026-08-30",
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     reviewed_post_customer_payment(session, business.tenant.id, invoice.id, "500.00")
     rebuild_projections(session, business.tenant.id, (OPEN_FINANCIAL_ITEMS,))
     other = create_tenant(session, "Other Finance API")
@@ -1407,7 +1408,6 @@ def test_frontend_finance_endpoints_are_tenant_scoped_and_currency_safe(
 
 
 def test_outstanding_items_filter_before_paging_and_totals(session, business):
-    from reality.services.core import post_supplier_invoice
     from reality.services.projections import OPEN_FINANCIAL_ITEMS, rebuild_projections
 
     tenant = business.tenant.id
@@ -1420,7 +1420,7 @@ def test_outstanding_items_filter_before_paging_and_totals(session, business):
             business.customer.id,
             "100.00",
         )
-        post_sales_invoice(session, tenant, invoice.id)
+        reviewed_post_sales_invoice(session, tenant, invoice.id)
         if index == 1:
             reviewed_post_customer_payment(session, tenant, invoice.id, "40.00")
         if index == 2:
@@ -1433,7 +1433,7 @@ def test_outstanding_items_filter_before_paging_and_totals(session, business):
         business.customer.id,
         "80.00",
     )
-    post_supplier_invoice(session, tenant, supplier.id)
+    reviewed_post_supplier_invoice(session, tenant, supplier.id)
     rebuild_projections(session, tenant, (OPEN_FINANCIAL_ITEMS,))
     client = api_client(session)
     try:
@@ -1986,7 +1986,7 @@ def test_json_api_previews_and_executes_ledger_reversal(session, business):
         business.customer.id,
         25,
     )
-    entries = post_sales_invoice(session, business.tenant.id, invoice.id)
+    entries = reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     path = (
         f"/api/tenants/{business.tenant.id}/ledger/posting-groups/"
         f"{entries[0].posting_group_id}/reversal"
@@ -2230,7 +2230,7 @@ def test_a_sales_invoice_can_be_booked_over_the_api(session, business):
 
         booked = client.post(
             f"/api/tenants/{tenant_id}/finance/sales-invoices/postings",
-            json={"document_id": invoice_id},
+            json={"confirmed": True, "document_id": invoice_id},
         )
 
         assert booked.status_code == 201
@@ -2241,7 +2241,7 @@ def test_a_sales_invoice_can_be_booked_over_the_api(session, business):
         # Booking twice is refused, and so is the wrong type and the unknown.
         again = client.post(
             f"/api/tenants/{tenant_id}/finance/sales-invoices/postings",
-            json={"document_id": invoice_id},
+            json={"confirmed": True, "document_id": invoice_id},
         )
         assert again.status_code == 400
         supplier_side = _record_invoice(
@@ -2255,19 +2255,19 @@ def test_a_sales_invoice_can_be_booked_over_the_api(session, business):
         )
         wrong_type = client.post(
             f"/api/tenants/{tenant_id}/finance/sales-invoices/postings",
-            json={"document_id": supplier_side.json()["id"]},
+            json={"confirmed": True, "document_id": supplier_side.json()["id"]},
         )
         assert wrong_type.status_code == 400
         unknown = client.post(
             f"/api/tenants/{tenant_id}/finance/sales-invoices/postings",
-            json={"document_id": "doc_missing"},
+            json={"confirmed": True, "document_id": "doc_missing"},
         )
         assert unknown.status_code == 404
 
         foreign = create_tenant(session, "Foreign booking tenant")
         across = client.post(
             f"/api/tenants/{foreign.id}/finance/sales-invoices/postings",
-            json={"document_id": invoice_id},
+            json={"confirmed": True, "document_id": invoice_id},
         )
         assert across.status_code == 404
 
@@ -2285,11 +2285,11 @@ def test_a_sales_invoice_can_be_booked_over_the_api(session, business):
         )
         client.post(
             f"/api/tenants/{tenant_id}/finance/credit-notes/postings",
-            json={"credit_note_id": credit.json()["id"]},
+            json={"confirmed": True, "credit_note_id": credit.json()["id"]},
         )
         netted = client.post(
             f"/api/tenants/{tenant_id}/finance/credit-notes/allocations",
-            json={
+            json={"confirmed": True,
                 "credit_note_id": credit.json()["id"],
                 "invoice_id": invoice_id,
                 "amount": "150.00",
@@ -2319,7 +2319,7 @@ def test_a_supplier_invoice_can_be_booked_over_the_api(session, business):
 
         booked = client.post(
             f"/api/tenants/{tenant_id}/finance/supplier-invoices/postings",
-            json={"document_id": invoice_id},
+            json={"confirmed": True, "document_id": invoice_id},
         )
 
         assert booked.status_code == 201
@@ -2327,7 +2327,7 @@ def test_a_supplier_invoice_can_be_booked_over_the_api(session, business):
 
         again = client.post(
             f"/api/tenants/{tenant_id}/finance/supplier-invoices/postings",
-            json={"document_id": invoice_id},
+            json={"confirmed": True, "document_id": invoice_id},
         )
         assert again.status_code == 400
 
@@ -2344,12 +2344,12 @@ def test_a_supplier_invoice_can_be_booked_over_the_api(session, business):
         )
         wrong_type = client.post(
             f"/api/tenants/{tenant_id}/finance/supplier-invoices/postings",
-            json={"document_id": sales_side.json()["id"]},
+            json={"confirmed": True, "document_id": sales_side.json()["id"]},
         )
         assert wrong_type.status_code == 400
         right_type = client.post(
             f"/api/tenants/{tenant_id}/finance/sales-invoices/postings",
-            json={"document_id": sales_side.json()["id"]},
+            json={"confirmed": True, "document_id": sales_side.json()["id"]},
         )
         assert right_type.status_code == 201
     finally:
@@ -2411,11 +2411,11 @@ def test_booking_makes_the_money_classes_reachable(session, business):
 
         client.post(
             f"/api/tenants/{tenant_id}/finance/sales-invoices/postings",
-            json={"document_id": receivable.json()["id"]},
+            json={"confirmed": True, "document_id": receivable.json()["id"]},
         )
         client.post(
             f"/api/tenants/{tenant_id}/finance/supplier-invoices/postings",
-            json={"document_id": payable.json()["id"]},
+            json={"confirmed": True, "document_id": payable.json()["id"]},
         )
 
         reported = {

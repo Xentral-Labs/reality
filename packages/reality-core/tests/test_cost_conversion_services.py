@@ -9,6 +9,7 @@ import test_cost_allocation_services as allocation
 import test_costing_services as costs
 import test_inventory_costing_services as stock
 import test_selling_costs as selling
+from intake_review_support import reviewed_post_supplier_invoice
 
 from reality.db.core import SourceRecord
 from reality.mcp.catalog import MCP_TOOL_REGISTRY
@@ -221,7 +222,7 @@ def test_a_posted_invoice_rate_is_offered_as_the_conversion_basis(
     assert "offered_conversion_basis" not in cost_evidence(
         session, business.tenant.id, document.id
     )
-    core.post_supplier_invoice(
+    reviewed_post_supplier_invoice(
         session, business.tenant.id, document.id, exchange_rate="0.9"
     )
 

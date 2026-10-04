@@ -1,7 +1,10 @@
 """The palette searches complete scoped sets before limiting results."""
 
 import pytest
-from intake_review_support import reviewed_post_customer_payment
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+)
 
 from reality.domain.search import RecordTarget, SearchRequest
 from reality.services.core import NotFound, create_tenant
@@ -146,14 +149,13 @@ def test_document_payment_shipment_canonical_authorities(session, business):
     from reality.db.core import LedgerEntry, Shipment, ShipmentPackage, SourceRecord
     from reality.services.core import (
         create_document,
-        post_sales_invoice,
     )
 
     tenant = business.tenant.id
     invoice = create_document(
         session, tenant, "sales_invoice", "INV-EXACT", business.customer.id, 100
     )
-    post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     reviewed_post_customer_payment(session, tenant, invoice.id, 40, payment_number="PAY-EXACT")
     cash = session.scalar(
         select(LedgerEntry).where(
@@ -268,13 +270,13 @@ def test_every_materialized_search_cte_carries_its_own_name(session, business):
     """
     from sqlalchemy import event
 
-    from reality.services.core import create_document, post_sales_invoice
+    from reality.services.core import create_document
 
     tenant = business.tenant.id
     invoice = create_document(
         session, tenant, "sales_invoice", "INV-CTE", business.customer.id, 100
     )
-    post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     reviewed_create_item(session, tenant, "CTE-ITEM", "Named cte item")
     session.flush()
 

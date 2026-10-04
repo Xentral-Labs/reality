@@ -221,6 +221,9 @@ _call_intent: ContextVar[tuple[str, str] | None] = ContextVar(
 )
 
 
+_financial_invocation: ContextVar[bool] = ContextVar("canonical_financial_invocation", default=False)
+
+
 _payment_invocation: ContextVar[bool] = ContextVar("canonical_payment_invocation", default=False)
 
 
@@ -238,6 +241,8 @@ _INTENT_DEFAULTS = {
         if parameter.default is not Parameter.empty
     }
     for name in (
+        "post_supplier_credit_note", "post_supplier_refund", "record_supplier_refund",
+        "allocate_credit_note", "allocate_supplier_credit_note",
         "execute_payment_run",
         "post_customer_payment", "post_supplier_payment", "post_customer_refund", "record_customer_refund",
         "correct_manual_document", "correct_manual_document_lines",
@@ -323,12 +328,16 @@ def _invoke(
     )
     nonce_token = _call_nonce.set(object())
     document_token = _payment_document.set(None)
+    from reality.services.tenant_policy import FINANCIAL_POSTING_OPERATIONS
+
+    financial_token = _financial_invocation.set(_financial_invocation.get() or operation in FINANCIAL_POSTING_OPERATIONS.values())
     payment_token = _payment_invocation.set(_payment_invocation.get() or operation in {
         "post_customer_payment", "post_supplier_payment", "post_customer_refund", "execute_payment_run",
     })
     try:
         return handler(session, tenant_id, **arguments)
     finally:
+        _financial_invocation.reset(financial_token)
         _payment_invocation.reset(payment_token)
         _payment_document.reset(document_token)
         _call_nonce.reset(nonce_token)
@@ -362,6 +371,38 @@ def _post_frozen_supplier_payment(session, tenant_id, invoice_id, amount, **argu
     """Freeze an existing authored payment call; its real scope owns admission."""
     return _invoke("post_supplier_payment", core.post_supplier_payment, session, tenant_id,
         invoice_id=invoice_id, amount=amount, **arguments)
+
+
+def _post_frozen_sales_invoice(session, tenant_id, document_id, **arguments):
+    """Freeze an authored posting; the existing actual scope owns admission."""
+    return _invoke("post_sales_invoice", core.post_sales_invoice, session, tenant_id, document_id=document_id, **arguments)
+
+
+def _post_frozen_supplier_invoice(session, tenant_id, document_id, **arguments):
+    """Freeze an authored posting; the existing actual scope owns admission."""
+    return _invoke("post_supplier_invoice", core.post_supplier_invoice, session, tenant_id, document_id=document_id, **arguments)
+
+
+def _post_frozen_sales_credit(session, tenant_id, credit_note_id, **arguments):
+    """Freeze an authored posting; the existing actual scope owns admission."""
+    return _invoke("post_sales_credit_note", core.post_sales_credit_note, session, tenant_id, credit_note_id=credit_note_id, **arguments)
+
+
+def _post_frozen_supplier_credit(session, tenant_id, credit_note_id, **arguments):
+    """Freeze an authored posting; the existing actual scope owns admission."""
+    return _invoke("post_supplier_credit_note", core.post_supplier_credit_note, session, tenant_id, credit_note_id=credit_note_id, **arguments)
+
+
+def _allocate_frozen_customer_credit(session, tenant_id, credit_note_id, invoice_id, amount, **arguments):
+    """Freeze an authored netting; the existing actual scope owns admission."""
+    return _invoke("allocate_credit_note", core.allocate_credit_note, session, tenant_id,
+        credit_note_id=credit_note_id, invoice_id=invoice_id, amount=amount, **arguments)
+
+
+def _allocate_frozen_supplier_credit(session, tenant_id, credit_note_id, invoice_id, amount, **arguments):
+    """Freeze an authored netting; the existing actual scope owns admission."""
+    return _invoke("allocate_supplier_credit_note", core.allocate_supplier_credit_note, session, tenant_id,
+        credit_note_id=credit_note_id, invoice_id=invoice_id, amount=amount, **arguments)
 
 
 def _post_reviewed_ledger(session, tenant_id, document_id, party_id, postings, **arguments):

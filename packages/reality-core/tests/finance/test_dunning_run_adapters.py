@@ -3,6 +3,7 @@
 import json
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -46,7 +47,7 @@ def _overdue(session, business, number, day="2026-08-01", party=None):
         "100",
         document_date=day,
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     return invoice
 
 

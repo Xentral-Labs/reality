@@ -4,7 +4,11 @@ from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
 import pytest
-from intake_review_support import accept_import_job, reviewed_create_payment_term
+from intake_review_support import (
+    accept_import_job,
+    reviewed_create_payment_term,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import Document, SourceRecord
@@ -284,7 +288,7 @@ def test_a_payment_and_an_overdue_day_follow_the_zone(session, business):
         document_date="2026-10-01",
         payment_term_code=_net30(session, tenant),
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     moment = datetime(2026, 10, 31, 23, 30, tzinfo=UTC)
 
     def overdue():
@@ -384,7 +388,7 @@ def test_the_next_clock_moment_is_the_local_midnight(session, business):
         document_date="2026-10-01",
         payment_term_code=_net30(session, tenant),
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
 
     moment = next_clock_moment(
         session, tenant, as_of=datetime(2026, 10, 31, 9, tzinfo=UTC)

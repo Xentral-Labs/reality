@@ -24,13 +24,14 @@ narrowing, tested per class, and not in a table filled in advance.
 import datetime as dt
 import json
 
+from intake_review_support import reviewed_post_sales_invoice
+
 from reality.services import exceptions as exception_services
 from reality.services.core import (
     create_commitment,
     create_document,
     hold_commitment,
     hold_party_delivery,
-    post_sales_invoice,
     record_customer_payment,
     record_movement,
     reserve,
@@ -194,7 +195,7 @@ def _rich_company(session, business):
         "100",
         document_date="2026-08-02",
     )
-    post_sales_invoice(session, tenant, invoice.id)
+    reviewed_post_sales_invoice(session, tenant, invoice.id)
     record_customer_payment(session, tenant, business.customer.id, "40")
     hold_party_delivery(session, tenant, business.customer.id, "credit_check")
     # A sales invoice nobody posted, two supplier invoices under one number, and a

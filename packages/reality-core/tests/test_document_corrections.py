@@ -8,6 +8,7 @@ from intake_review_support import (
     reviewed_correct_manual_document_lines,
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
+    reviewed_post_sales_invoice,
 )
 from sqlalchemy import select
 
@@ -20,7 +21,6 @@ from reality.services.core import (
     create_tenant,
     enqueue_source,
     manual_document_line_snapshot,
-    post_sales_invoice,
     record_corrected_document_source,
 )
 
@@ -331,7 +331,7 @@ def test_manual_line_economic_changes_detect_document_commitment_and_ledger(
         ],
         "25",
     )
-    post_sales_invoice(session, business.tenant.id, invoice.id)
+    reviewed_post_sales_invoice(session, business.tenant.id, invoice.id)
     invoice_snapshot = manual_document_line_snapshot(
         session, business.tenant.id, invoice.id
     )

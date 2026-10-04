@@ -12,7 +12,10 @@ from http.cookies import SimpleCookie
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-from intake_review_support import _reviewed_payment_fixture
+from intake_review_support import (
+    _reviewed_financial_posting_fixture,
+    _reviewed_payment_fixture,
+)
 from live_stack import PASSWORD, add_member, live_stack, migrate, run_browser_script
 from sqlalchemy.orm import sessionmaker
 
@@ -84,7 +87,7 @@ def test_finance_rollout_on_a_live_stack(postgres_database, tmp_path):
                     "100",
                 )
                 kind = "sales" if side == "customer" else "supplier"
-                getattr(core, f"post_{kind}_invoice")(session, tenant.id, invoice.id)
+                _reviewed_financial_posting_fixture(session, tenant.id, f"post_{kind}_invoice", invoice.id)
                 _reviewed_payment_fixture(
                     session, tenant.id, f"post_{side}_payment", invoice.id, "62"
                 )

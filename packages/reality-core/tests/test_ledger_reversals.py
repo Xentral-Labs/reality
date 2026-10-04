@@ -3,7 +3,10 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_post_customer_payment
+from intake_review_support import (
+    reviewed_post_customer_payment,
+    reviewed_post_sales_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry, LedgerReversal, SettlementAllocation
@@ -17,7 +20,6 @@ from reality.services.core import (
     ledger_reversal_snapshot,
     open_invoice_amount,
     payment_rows,
-    post_sales_invoice,
     preview_ledger_reversal,
     reverse_ledger_posting_group,
 )
@@ -32,7 +34,7 @@ def _sales_invoice(session, business, amount="100"):
         business.customer.id,
         amount,
     )
-    entries = post_sales_invoice(session, business.tenant.id, document.id)
+    entries = reviewed_post_sales_invoice(session, business.tenant.id, document.id)
     return document, entries
 
 
