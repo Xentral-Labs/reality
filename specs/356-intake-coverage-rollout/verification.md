@@ -238,3 +238,13 @@ separate nonces. No extra SQL/state/actor is manufactured. Full source/profile/b
 regression and final volume qualification remain required.
 
 The Finance parent de4d4218 passed all 23 CI jobs. Its identical production/backend source completed the full regression with 6,221 passed and 10 skipped in 1,637.74 seconds. Normalized document single-use, import, bulk, mandate and calendar follow-ups passed all 112 checks in 75.74 seconds; complete document qualification is pending.
+
+Normalized document adapter follow-ups: 50 focused document/API/annotation checks,
+462 frontend contracts and the production Web build passed. Both real backend
+business/bulk browser journeys passed in 360.81 seconds. The frozen complete run
+found positive catalog document confirmation calls missing their explicit flag,
+an obsolete API-only order spy, and source attribution checks not following the
+new canonical normalizer. Corrected catalog/drop-ship/finance/order/purchase/HTTP
+cases passed all 104 checks; return and source-attribution cases passed all 21.
+These changes are test adaptation only; absent confirmation remains refused.
+Full regression and final committed-head CI remain required.

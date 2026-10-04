@@ -479,6 +479,7 @@ def test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported(
                     ],
                 },
             ).id,
+            confirmed=True,
         ).output
     )
     differing = {
@@ -2195,6 +2196,7 @@ def test_two_suppliers_name_one_item_by_their_own_numbers(session, business):
                 ],
             },
         ).id,
+        confirmed=True,
     )
     assert run_read_tool(
         session, tenant, "purchase_match", {"document_id": orders["PO-O06-A"].id}

@@ -129,11 +129,12 @@ def test_specialized_projection_views_are_allowlisted_and_bounded(
 def test_missing_business_web_adapters_delegate_to_shared_services(
     session, business, monkeypatch
 ):
+    from reality.tools import application
     from reality.web import api as api_module
 
     calls = []
     monkeypatch.setattr(
-        api_module,
+        application,
         "create_manual_order",
         lambda _session, tenant_id, **values: (
             calls.append(("order", tenant_id, values))

@@ -380,7 +380,7 @@ WATCHED = {
 
 def _tool(session, business, tool, arguments):
     proposal = propose_tool(session, business.tenant.id, tool, arguments)
-    return json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)
+    return json.loads(confirm_tool(session, business.tenant.id, proposal.id, confirmed=True).output)
 
 
 def _reviewed(session, business, tool, arguments, request_id):

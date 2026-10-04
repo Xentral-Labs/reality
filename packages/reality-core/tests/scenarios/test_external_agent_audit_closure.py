@@ -112,9 +112,14 @@ def test_evidence_writer_refuses_incomplete_finding_matrix(tmp_path: Path, missi
 
 
 def test_source_evidence_reality_paths_do_not_invent_cross_domain_authority():
+    from reality.services.intake import _record_normalized_document
+
+    normalizer = inspect.getsource(_record_normalized_document)
+    assert "core.create_manual_document_with_lines" in normalizer
+    assert "_invoke(" in normalizer
     free_invoice = inspect.getsource(invoice_actions.record_free_supplier_invoice)
     assert "create_master_source_record" in free_invoice
-    assert "create_manual_document_with_lines" in free_invoice
+    assert "_record_normalized_document(" in free_invoice
     assert "post_supplier_invoice" in free_invoice
     assert "source_record_id=source.id" in free_invoice
     assert "create_commitment" not in free_invoice
@@ -122,7 +127,7 @@ def test_source_evidence_reality_paths_do_not_invent_cross_domain_authority():
 
     credit = inspect.getsource(credit_actions._record_invoice_credit)
     assert "create_master_source_record" in credit
-    assert "create_manual_document_with_lines" in credit
+    assert "_record_normalized_document(" in credit
     assert "post_sales_credit_note" in credit
     assert "billed_document_line_id" in inspect.getsource(credit_actions._preview_credit)
     assert "record_movement" not in credit

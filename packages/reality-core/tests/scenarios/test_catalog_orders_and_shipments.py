@@ -646,7 +646,7 @@ def test_a_zero_price_line_ships_and_is_invoiced_without_revenue(session, busine
             ],
         },
     )
-    invoice_id = json.loads(confirm_tool(session, tenant_id, recording.id).output)[
+    invoice_id = json.loads(confirm_tool(session, tenant_id, recording.id, confirmed=True).output)[
         "document_id"
     ]
     booking = propose_tool(
@@ -1716,7 +1716,7 @@ def _invoice(session, business, number, line_id, quantity):
         },
     )
     invoice_id = json.loads(
-        confirm_tool(session, business.tenant.id, recording.id).output
+        confirm_tool(session, business.tenant.id, recording.id, confirmed=True).output
     )["document_id"]
     booking = propose_tool(
         session, business.tenant.id, "sales_invoice_post", {"document_id": invoice_id}

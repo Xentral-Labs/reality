@@ -1611,7 +1611,7 @@ def test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods(
             ],
         },
     )
-    invoice_id = json.loads(confirm_tool(session, tenant, recording.id).output)[
+    invoice_id = json.loads(confirm_tool(session, tenant, recording.id, confirmed=True).output)[
         "document_id"
     ]
     confirm_tool(
