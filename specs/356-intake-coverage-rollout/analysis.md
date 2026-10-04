@@ -95,3 +95,11 @@ No unresolved clarification or critical design finding. Existing invoice-linked
 and return-credit commands retain their source and receipt contracts; only their
 effect boundary changes. Ledger and allocation callbacks need independent frozen
 invocations. Supplier credit posting and other writers remain explicitly pending.
+## Fixed new-company reference exception analysis
+
+No unresolved clarification or critical finding. This is the narrow fixed
+initialization exception already required by FR-003, not a synthetic approval.
+All three production callers insert an actual new Tenant and need the same
+transaction-bound initializer; only one current test creates its lesson Tenant
+by direct ORM and must use the actual initializer. Legacy bootstrap migration
+helpers remain pinned to their old schema and do not receive invented authority.

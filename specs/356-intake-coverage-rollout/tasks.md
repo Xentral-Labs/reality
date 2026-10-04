@@ -109,3 +109,8 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T040 Prove changed/repeated parent and ledger/allocation calls, early commit, post-write failure and unrelated effects.
 - [ ] T041 Freeze both existing credit recorders and their posting/allocation inside actual retained confirmation.
 - [ ] T042 Qualify modern/legacy source values, replay, adapters and complete committed-head CI.
+## Fixed new-company reference exception qualification
+
+- [ ] T043 Prove existing-company, changed identity, repeat, early commit and post-write failure refusal.
+- [ ] T044 Bind actual transient-company insertion and fixed references atomically across ordinary/lesson creation.
+- [ ] T045 Qualify fixed reference values, creation, historical migration compatibility and committed-head CI.

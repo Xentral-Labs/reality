@@ -1112,6 +1112,11 @@ def _tenant_record_read(session: OrmSession, model, tenant_id: str, record_id: s
 def _require_business_mutation(
     session: OrmSession, tenant_id: str, operation: str
 ) -> None:
+    from reality.services.finance.accounts import (
+        _require_new_company_reference_operation,
+    )
+
+    _require_new_company_reference_operation(session, tenant_id, operation)
     # Import at the boundary because the policy shares the domain error types.
     # Only fixed, transaction-bound reference setup is currently admitted.
     from reality.services.tenant_policy import require_core_operation
@@ -1196,12 +1201,13 @@ def create_tenant(
     if not name.strip():
         raise InvalidOperation("Tenant name is required.")
     tenant = Tenant(id=uid("ten"), name=name.strip())
-    session.add(tenant)
-    session.flush()
     if _with_finance_defaults:
-        from reality.services.finance.accounts import _bootstrap_accounts
+        from reality.services.finance.accounts import _initialize_new_company_references
 
-        _bootstrap_accounts(session, tenant.id)
+        _initialize_new_company_references(session, tenant)
+    else:
+        session.add(tenant)
+        session.flush()
     if _commit:
         session.commit()
     else:

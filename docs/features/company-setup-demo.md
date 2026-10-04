@@ -215,3 +215,10 @@ Legacy import work now reports prepared sources separately from completed busine
 acceptance. Historical completed jobs are never reinterpreted to fabricate a
 proposal or decision. API, scheduler and workers must use the same fenced revision;
 rolling back to a direct-writing interpreter is unsupported.
+Fixed base-account references are initialized only while the actual new Tenant
+is inserted in its root transaction. Ordinary, Playground and storyline creation
+share that narrow initializer. Existing-company/wrong-company/repeated bootstrap,
+early commit and unrelated business effects refuse. This structural reference
+exception creates no financial posting or retroactive person approval and grants
+no subsequent account-configuration authority. Full rollout qualification is
+tracked in spec 356.

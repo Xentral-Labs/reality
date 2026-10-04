@@ -359,3 +359,24 @@ replay, repeated parent, modern/legacy credit atomicity, catalog Finance/returns
 source attribution, annotations and fixed-profile checks all passed: 117 tests
 in 96.58 seconds. Ruff, annotation audit, spec policy and catalog generation pass.
 Full committed-head CI remains required; unrelated writers remain pending.
+## Fixed new-company reference exception qualification in progress
+
+Before enforcement, an existing company accepted fixed reference bootstrap and
+an early root commit succeeded. Wrong-company identity was first tested against
+a nonexistent FK target; that was not a meaningful authorization proof. The
+corrected existing target accepted the changed bootstrap and produced DID NOT
+RAISE. A sibling-header callback was also accepted. The first sibling payment-
+term call omitted a required name; after correcting the real signature the valid
+unrelated terms call produced DID NOT RAISE. Repeated bootstrap previously failed
+incidentally through a unique constraint rather than the narrow scope.
+
+After the actual transient-company scope and business-operation refusal, all
+134 new/existing-company, Playground/storyline, ordinary setup/concurrency,
+initialization and historical cost-projection migration checks passed, with one
+existing skip (213.66 seconds). Fixed account roles/names/state/revisions are
+preserved and no financial postings or fabricated person approval are created.
+Final parent and committed-head qualification remain required.
+Final parent integration with confirmed credit, invoice, actual MCP/OAuth,
+PostgreSQL shared schedule locking, Playground and business annotations passed
+all 146 checks (35.79 seconds). Ruff, annotation audit and spec policy passed.
+Committed-head full CI and remaining universal writer qualification are pending.

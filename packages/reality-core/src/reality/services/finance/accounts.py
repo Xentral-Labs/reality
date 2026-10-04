@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+from contextvars import ContextVar
+from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import event, inspect, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from reality.db.core import FinanceRoleDestination, FinanceState, SubledgerAccount, uid
+from reality.db.core import (
+    FinanceRoleDestination,
+    FinanceState,
+    SubledgerAccount,
+    Tenant,
+    uid,
+)
 from reality.domain.finance import ACCOUNT_ROLES, BASE_ACCOUNT_ROLES
 
 
@@ -443,8 +451,76 @@ def resolve_account(
     return account
 
 
+@dataclass(frozen=True)
+class _NewCompanyReferences:
+    session: Session
+    transaction: object
+    tenant: Tenant
+    tenant_id: str
+
+
+_new_company_references: ContextVar[_NewCompanyReferences | None] = ContextVar(
+    "fixed_new_company_references", default=None
+)
+_new_company_references_used: ContextVar[bool] = ContextVar(
+    "fixed_new_company_references_used", default=False
+)
+_FIXED_BASE_ACCOUNT_ROLES = tuple(BASE_ACCOUNT_ROLES.items())
+
+
+def _require_new_company_reference_operation(session: Session, tenant_id: str, operation: str) -> None:
+    """Fixed reference initialization grants no subsequent business operation."""
+    if _new_company_references.get() is not None:
+        from reality.services.core import InvalidOperation
+
+        raise InvalidOperation(code="intake_approval_required")
+
+
+def _initialize_new_company_references(session: Session, tenant: Tenant) -> None:
+    """Insert the actual new company and only its fixed account references."""
+    from reality.services.core import InvalidOperation
+
+    if not inspect(tenant).transient or not tenant.id:
+        raise InvalidOperation(code="intake_approval_required")
+    session.add(tenant)
+    authority = _NewCompanyReferences(session, session.get_transaction(), tenant, tenant.id)
+    token = _new_company_references.set(authority)
+    used_token = _new_company_references_used.set(False)
+
+    def deny_root_commit(db):
+        if not db.in_nested_transaction():
+            raise InvalidOperation(code="intake_partial_commit_forbidden")
+
+    event.listen(session, "before_commit", deny_root_commit)
+    try:
+        session.flush()
+        _bootstrap_accounts(session, tenant.id)
+    except BaseException:
+        session.rollback()
+        raise
+    finally:
+        event.remove(session, "before_commit", deny_root_commit)
+        _new_company_references_used.reset(used_token)
+        _new_company_references.reset(token)
+
+
 def _bootstrap_accounts(session: Session, tenant_id: str) -> None:
     """Fixed references inside new-company creation; no financial postings."""
+    from reality.services.core import InvalidOperation
+
+    authority = _new_company_references.get()
+    if (
+        authority is None
+        or authority.session is not session
+        or authority.transaction is not session.get_transaction()
+        or authority.tenant_id != tenant_id
+        or authority.tenant.id != tenant_id
+        or inspect(authority.tenant).session is not session
+        or not inspect(authority.tenant).persistent
+        or _new_company_references_used.get()
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    _new_company_references_used.set(True)
     rows = [
         SubledgerAccount(
             id=uid("acc"),
@@ -456,7 +532,7 @@ def _bootstrap_accounts(session: Session, tenant_id: str) -> None:
             revision=1,
             default_destination_id=uid("dest"),
         )
-        for role, name in BASE_ACCOUNT_ROLES.items()
+        for role, name in _FIXED_BASE_ACCOUNT_ROLES
     ]
     session.add_all(rows)
     session.flush()

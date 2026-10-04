@@ -236,3 +236,12 @@ credit posting, ledger and explicit allocation through the existing invocation
 mechanism. Carry _commit=False into both actual recorders and deny root commits
 until receipt settlement. Test valid callbacks before implementation, then the
 modern/legacy credit, invoice, settlement and source attribution regressions.
+## Fixed new-company reference exception plan
+
+Constitution Check: PASS. No schema expansion or fabricated decision. A private
+initializer takes the actual transient Tenant, binds its insert and fixed account
+bootstrap to one session/root transaction and consumes initialization once.
+The low-level bootstrap refuses calls outside that narrow scope. Reuse it in the
+three actual company creation paths; preserve historical migration helpers.
+Test existing-company refusal, repeat/identity/commit/failure callbacks first,
+then ordinary/lesson/setup and migration compatibility before full CI.

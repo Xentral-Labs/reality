@@ -282,3 +282,12 @@ business records. Preserve stated totals, position values, reason and netting;
 confirmation grants neither refund nor inventory authority. Existing historical
 records receive no manufactured approval. Supplier credit posting remains a
 separate writer qualification, not coverage claimed by this family.
+## Fixed new-company reference exception (FR-003)
+
+The fixed base-account initializer may write only the authored reference accounts
+and initial FinanceState for the exact newly inserted company in the same root
+transaction. It must refuse existing companies, changed company identity,
+repeated initialization, early root commit and post-write failure. Ordinary and
+Playground/storyline creation use the same initializer. This structural exception
+creates no financial posting, person approval or authority for later account
+configuration. Historical migration specimens remain historical.

@@ -686,11 +686,11 @@ def playground_http(session, monkeypatch):
         status="active",
         email_verified_at=now(),
     )
-    session.add_all([tenant, user])
+    session.add(user)
     session.flush()
-    from reality.services.finance.accounts import _bootstrap_accounts
+    from reality.services.finance.accounts import _initialize_new_company_references
 
-    _bootstrap_accounts(session, tenant.id)
+    _initialize_new_company_references(session, tenant)
     run = PlaygroundRun(
         id=uid("pgr"),
         tenant_id=tenant.id,
