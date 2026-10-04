@@ -234,3 +234,12 @@ never reparses, refreshes meaning or authorizes mutation. CLI accepts a bounded
 JSON manifest file and exposes exact digest confirmation under an explicit
 current local principal. Tests cover missing confirmation, foreign references,
 selection replay, truthful mixed results, stop and source byte preservation.
+
+### Grant integrity and competing transactions
+
+Validate the retained mandate against its original closed grant on every current
+mandate check. Failure-first tests mutate scope, expiry, token and revision and
+require zero accepted effects. Commercial-limit fixtures issue their actual limits
+through the owner confirmation. Two independent PostgreSQL sessions compete for
+one daily quota and for the same accepted review; require exactly one charged
+receipt and free exact replay. No new schema or authority cache is introduced.

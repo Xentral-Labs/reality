@@ -194,3 +194,12 @@ source download/artifact link. Current progress, no-effect refusals and receipts
 remain visible, and stop affects further units only. Trusted local CLI exposes the
 same prepare/review/confirm/status/stop services; confirmation and stop require an
 explicit current member identity, and confirmation includes the exact digest.
+
+## Original mandate decision integrity
+
+FR-005/FR-006 require every material read and settlement to compare the current
+mandate's normalized scope, named token, expiry and active revision with the exact
+executed owner grant. Editing the retained mandate cannot enlarge or replace that
+grant. Revocation remains a separate confirmed decision, not scope renewal. Tests
+must issue genuine narrower owner grants when testing commercial limits, rather
+than mutating a mandate after approval.

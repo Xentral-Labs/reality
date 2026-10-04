@@ -128,3 +128,24 @@ proposal URL was visible. The fixtures now return the canonical review ID and
 wait for the replacement proposal. Both actual browser scripts pass, including
 sixteen localized responsive review combinations each. The product's protection
 against displaying a previous proposal's data remains enforced.
+## Mandate grant integrity and real competing transactions
+
+Every current-mandate check now compares normalized scope, named token, expiry and
+active revision with the exact executed owner grant. Failure-first probes observed
+three previously accepted alterations (scope enlargement, expiry extension and token
+replacement). The corrected four-field regression also covers revision alteration.
+Commercial-limit tests now issue genuinely narrower owner grants, so refusal proves
+the limit itself rather than post-approval scope tampering.
+
+Two independent PostgreSQL connections start together: distinct reviews competing
+for one daily unit produce one accepted receipt and one quota refusal; simultaneous
+exact-review requests both return the same accepted decision and charge one receipt.
+Queued children with changed mandate authority retain review-required dispositions
+and no business effects.
+
+Observed checks: 40 final single-unit/bulk/concurrency tests passed in 14.16 seconds;
+89 broader catalog/tenant/review tests passed with one test expecting an exception
+where the specified worker correctly retained two review-required dispositions.
+That assertion was corrected and covered by the final 40-test run. Ruff, generated
+catalogs and complete annotation coverage pass. Required PR gates remain pending.
+The controls slice's correctly permitted frontend run also passed all contracts.

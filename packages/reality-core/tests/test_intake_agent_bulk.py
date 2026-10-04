@@ -293,3 +293,29 @@ def test_current_token_tool_restrictions_refuse_queued_units(
         row["disposition"] == "review_required"
         for row in json.loads(batch.output)["results"]
     )
+
+
+def test_queued_batch_cannot_use_an_expanded_original_mandate(
+    session, business, scheduled_owner
+):
+    from reality.db.intake_review import IntakeReviewMandate
+
+    batch, token, evidence = reviewed_batch(session, business, scheduled_owner)
+    with agent_context(business, token):
+        intake_review.submit_agent_batch_review(session, business.tenant.id, evidence)
+    mandate = session.get(
+        IntakeReviewMandate, (business.tenant.id, evidence["reviews"][0]["mandate_id"])
+    )
+    mandate.scope = {**mandate.scope, "max_units_per_day": 100000}
+    session.flush()
+    result = intake_batches.settle_chunk(
+        session,
+        business.tenant.id,
+        batch.id,
+        continuation_id=json.loads(batch.output)["continuation_id"],
+    )
+    assert result == {"settled": 2, "terminal": True}
+    assert session.scalar(select(Document)) is None
+    results = json.loads(batch.output)["results"]
+    assert len(results) == 2
+    assert all(row["disposition"] == "review_required" for row in results)
