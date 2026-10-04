@@ -157,7 +157,7 @@ def test_target_reference_change_invalidates_pending_mapping(session, business):
         state="blocked",
     )
     with pytest.raises(core.Conflict, match="stale"):
-        approve_and_execute_proposal(session, tenant, pending.id)
+        approve_and_execute_proposal(session, tenant, pending.id, confirmed=True)
 
 
 @pytest.mark.parametrize(
@@ -353,7 +353,9 @@ def test_target_activation_race_and_history(scheduled_database):
         with factory() as db:
             barrier.wait(timeout=10)
             try:
-                return approve_and_execute_proposal(db, tenant, identity).status
+                return approve_and_execute_proposal(
+                    db, tenant, identity, confirmed=True
+                ).status
             except core.Conflict:
                 return "stale"
 
@@ -449,6 +451,7 @@ def test_target_owner_and_shared_adapter_contract(
             tenant,
             pending.id,
             confirming_principal=Principal(scheduled_owner.id),
+            confirmed=True,
         ).output
     )
     assert row["actor_id"] == scheduled_owner.id

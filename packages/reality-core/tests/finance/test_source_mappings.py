@@ -67,9 +67,15 @@ def test_source_mapping_preview_confirmation_and_no_financial_effect(session, bu
     assert before["items"][0]["source_resolution"]["case"]["status"] == "unmapped"
     pending = prepare(session, tenant, source, case)
     assert mappings.list_source_mappings(session, tenant)["total"] == 0
-    row = json.loads(approve_and_execute_proposal(session, tenant, pending.id).output)
+    row = json.loads(
+        approve_and_execute_proposal(session, tenant, pending.id, confirmed=True).output
+    )
     assert (
-        json.loads(approve_and_execute_proposal(session, tenant, pending.id).output)
+        json.loads(
+            approve_and_execute_proposal(
+                session, tenant, pending.id, confirmed=True
+            ).output
+        )
         == row
     )
     after = components.component_context(session, tenant, doc.id)["items"][0]
@@ -100,7 +106,7 @@ def test_source_mapping_revision_block_and_stale_confirmation(session, business)
         session, tenant, prepare(session, tenant, source, case, state="blocked")
     )
     with pytest.raises(core.Conflict):
-        approve_and_execute_proposal(session, tenant, stale.id)
+        approve_and_execute_proposal(session, tenant, stale.id, confirmed=True)
     session.rollback()
     assert (
         components.component_context(session, tenant, doc.id)["items"][0][
@@ -307,6 +313,7 @@ def test_source_mapping_owner_adapters_and_atomic_rollback(
             tenant,
             pending.id,
             confirming_principal=Principal(scheduled_owner.id),
+            confirmed=True,
         ).output
     )
     assert row["actor_id"] == scheduled_owner.id
@@ -379,7 +386,9 @@ def test_source_mapping_concurrent_scope_activation(scheduled_database):
         with factory() as db:
             barrier.wait(timeout=10)
             try:
-                return approve_and_execute_proposal(db, tenant, proposal_id).status
+                return approve_and_execute_proposal(
+                    db, tenant, proposal_id, confirmed=True
+                ).status
             except core.Conflict:
                 return "stale"
 

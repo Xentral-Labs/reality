@@ -77,7 +77,10 @@ def _settle_counted(session, tenant, values):
         ),
     )
     settled, executed = _counted(
-        session, lambda: approve_and_execute_proposal(session, tenant, proposal.id)
+        session,
+        lambda: approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ),
     )
     assert json.loads(executed.output)["unmatched_line_ids"] == []
     return reviewed, settled

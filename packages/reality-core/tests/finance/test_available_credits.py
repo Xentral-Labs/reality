@@ -79,7 +79,6 @@ def test_note_credit_target_endpoint_blocked_account_and_http(session, business,
     from fastapi.testclient import TestClient
     from sqlalchemy.orm import sessionmaker
 
-    from reality.services.finance.accounts import update_account
     from reality.web.api import database_session
     from reality.web.app import app
 
@@ -103,7 +102,9 @@ def test_note_credit_target_endpoint_blocked_account_and_http(session, business,
     getattr(core, f"post_{side}_refund")(session, tenant, note.id, "8")
     role = "accounts_receivable" if side == "customer" else "accounts_payable"
     control = next(e for e in entries if e.account == role)
-    update_account(session, tenant, account_id=control.account_id, state="blocked")
+    reviewed_update_account(
+        session, tenant, account_id=control.account_id, state="blocked"
+    )
     result = available_credit_items(session, tenant, side=side)
     row = result["items"][0]
     assert Decimal(row["open"]) == 12
@@ -137,3 +138,6 @@ def test_note_credit_target_endpoint_blocked_account_and_http(session, business,
             assert Decimal(payload["items"][0]["gross"]) == 20
     finally:
         app.dependency_overrides.clear()
+
+
+from intake_review_support import reviewed_update_account

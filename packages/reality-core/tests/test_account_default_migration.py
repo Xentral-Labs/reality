@@ -111,13 +111,11 @@ def test_populated_defaults_roundtrip_exact_ids_accounts_authority_and_schema(
     # Rollback must also preserve legitimate new choices made after upgrade.
     from sqlalchemy.orm import Session
 
-    from reality.services.finance import accounts
-
     with Session(engine) as session:
-        new = accounts.create_account(
+        new = reviewed_create_account(
             session, "a", code="cash-new", name="New cash", role="cash"
         )
-        accounts.set_default_account(session, "a", role="cash", account_id=new["id"])
+        reviewed_set_default_account(session, "a", role="cash", account_id=new["id"])
     with engine.connect() as connection:
         after_change = _records(connection, columns)
         for name in ("source_record", "ledger_entry"):
@@ -172,3 +170,6 @@ def test_incompatible_legacy_role_aborts_without_schema_or_data_loss(legacy_defa
             connection.scalar(text("SELECT version_num FROM alembic_version"))
             == "0117_cost_projections"
         )
+
+
+from intake_review_support import reviewed_create_account, reviewed_set_default_account

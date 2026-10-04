@@ -162,6 +162,11 @@ def create_account(
     BUSINESS RULE services.finance.accounts.create_account.result:
     Return the created account identity, code, name, role, active state and revision. Preserve its company scope and record the account-change audit.
     """
+    from reality.services.tenant_policy import require_finance_configuration
+
+    require_finance_configuration(
+        session, tenant_id, "finance_account_create", locals()
+    )
     from reality.services.core import Conflict, InvalidOperation
 
     state = _mutation(session, tenant_id, expected_revision)
@@ -228,6 +233,11 @@ def update_account(
     BUSINESS RULE services.finance.accounts.update_account.result:
     Return the updated account identity, code, name, role, state and revision. Record the account-change audit through the common account service.
     """
+    from reality.services.tenant_policy import require_finance_configuration
+
+    require_finance_configuration(
+        session, tenant_id, "finance_account_update", locals()
+    )
     from reality.services.core import Conflict, InvalidOperation
 
     coordinator = _mutation(session, tenant_id, expected_revision)
@@ -285,6 +295,11 @@ def set_default_account(
     BUSINESS RULE services.finance.accounts.set_default_account.result:
     Return the selected account identity, code, name, role, state and revision after recording it as the default for the matching role.
     """
+    from reality.services.tenant_policy import require_finance_configuration
+
+    require_finance_configuration(
+        session, tenant_id, "finance_account_set_default", locals()
+    )
     from reality.services.core import InvalidOperation
 
     state = _mutation(session, tenant_id, expected_revision)
@@ -336,6 +351,11 @@ def initialize_accounts(
     BUSINESS RULE services.finance.accounts.initialize_accounts.effect-40:
     Pass the stated inputs to the shared create account service. Its own source describes validation and record changes.
     """
+    from reality.services.tenant_policy import require_finance_configuration
+
+    require_finance_configuration(
+        session, tenant_id, "finance_account_initialize", locals()
+    )
     _mutation(session, tenant_id, expected_revision)
     from reality.services.core import (
         _company_amounts_stored,
@@ -362,7 +382,11 @@ def initialize_accounts(
             if dest is not None:
                 continue
             # reality-rule: services.finance.accounts.initialize_accounts.effect-40
-            account = create_account(
+            from reality.services.intake import _invoke
+
+            account = _invoke(
+                "finance_account_create",
+                create_account,
                 session,
                 tenant_id,
                 code=role,
@@ -371,7 +395,9 @@ def initialize_accounts(
                 action_id=action_id,
                 _commit=False,
             )
-            set_default_account(
+            _invoke(
+                "finance_account_set_default",
+                set_default_account,
                 session,
                 tenant_id,
                 role=role,

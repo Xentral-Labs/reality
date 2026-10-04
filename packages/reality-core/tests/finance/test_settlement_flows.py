@@ -15,7 +15,7 @@ from reality.db.core import (
     SubledgerAccount,
 )
 from reality.services import core
-from reality.services.finance.accounts import initialize_accounts, list_accounts
+from reality.services.finance.accounts import list_accounts
 from reality.services.finance.settlement_flows import settlement_context
 from reality.tools.application import (
     approve_and_execute_proposal,
@@ -56,7 +56,11 @@ def propose(session, tenant, document, mode="payment", **values):
 
 
 def execute(session, tenant, proposal):
-    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    return json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
 
 
 @pytest.mark.parametrize("side", ["customer", "supplier"])
@@ -76,7 +80,7 @@ def test_underpayment_optional_reduction_and_independent_inverse(
     """
     tenant = business.tenant.id
     if accept:
-        initialize_accounts(session, tenant)
+        reviewed_initialize_accounts(session, tenant)
     invoice = invoice_for(session, business, side)
     extra = (
         {
@@ -356,7 +360,6 @@ def test_rejects_foreign_party_blocked_and_reversed_credit(session, business):
     THEN:
     Each request is refused with the asserted party, tenant, account or reversal restriction.
     """
-    from reality.services.finance.accounts import update_account
 
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
@@ -379,7 +382,7 @@ def test_rejects_foreign_party_blocked_and_reversed_credit(session, business):
     with pytest.raises(core.NotFound):
         settlement_context(session, foreign.id, origin)
     account = settlement_context(session, tenant, origin)["control_account_id"]
-    update_account(session, tenant, account_id=account, state="blocked")
+    reviewed_update_account(session, tenant, account_id=account, state="blocked")
     with pytest.raises(core.InvalidOperation):
         propose(session, tenant, origin, "refund_credit", amount="1")
     core.reverse_ledger_posting_group(
@@ -404,7 +407,7 @@ def test_supplier_reduction_requires_agreement_and_combined_limit(session, busin
     Missing agreement and combined amount exceeding the invoice are refused.
     """
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     invoice = invoice_for(session, business, "supplier")
     reduction = {
         "amount": "2",
@@ -540,7 +543,8 @@ def test_http_and_mcp_proposals_share_service_without_early_effects(session, bus
             assert mcp["status"] == "proposed"
             assert core.open_invoice_amount(session, tenant, invoice.id) == 100
             result = client.post(
-                base + f"/change-proposals/{response.json()['id']}/approve", json={}
+                base + f"/change-proposals/{response.json()['id']}/approve",
+                json={"confirmed": True},
             )
             assert result.status_code == 200, result.text
             assert Decimal(result.json()["output"]["remaining_credit"]) == 2
@@ -620,7 +624,7 @@ def test_concurrent_payment_confirmations_only_consume_once(postgres_database):
                 barrier.wait(timeout=10)
                 try:
                     return approve_and_execute_proposal(
-                        session, tenant_id, identity
+                        session, tenant_id, identity, confirmed=True
                     ).status
                 except core.Conflict:
                     return "stale"
@@ -732,4 +736,8 @@ def test_payment_credit_context_carries_candidate_reasons(session, business):
     assert settlement_context(session, tenant, payment.id)["candidates"] == []
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_party,
+    reviewed_initialize_accounts,
+    reviewed_update_account,
+)

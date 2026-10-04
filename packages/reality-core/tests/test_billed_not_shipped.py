@@ -12,7 +12,6 @@ from sqlalchemy import select
 from reality.db.core import LedgerEntry
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
-from reality.services.finance.accounts import initialize_accounts
 from reality.services.month_end_billing import month_end_billing
 from reality.tools.application import approve_and_execute_proposal
 from tests.operational_exceptions.test_derivation import (
@@ -68,7 +67,7 @@ def test_shipping_ahead_of_the_invoice_is_not_this_class(session, business):
 
 def test_a_down_payment_invoice_reports_nothing(session, business):
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     document, line, _ = order(session, business)
     proposal = prepare_delivery_action(
         session,
@@ -137,3 +136,6 @@ def test_the_month_end_lists_are_the_findings(session, business):
     )
     assert (unshipped["order_number"], unshipped["quantity"]) == ("SO-ME-2", "5.0000")
     assert unshipped["item_id"] == business.item.id
+
+
+from intake_review_support import reviewed_initialize_accounts

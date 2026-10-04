@@ -156,3 +156,17 @@ writer family; their semantic classification and enforcement remain required.
 
 Qualification tasks T019–T022 cover direct/auth-disabled refusal, callback/root
 attacks, transport parity, current token revocation and full committed-head checks.
+
+## Canonical finance configuration slice
+
+Reuse the existing atomic Finance command branch: delivery lock when needed,
+finance lock, proposed row lock, execution and executed receipt in one transaction.
+A private scope records only the actual confirmed retained command, current root,
+principal/token and exact input. It must accept the existing proposed state and
+must never force an executing claim. Freeze account calls before callbacks and
+recheck current authority at canonical configuration writers. Only fixed default
+account bootstrap remains a narrowly classified initialization exception; direct
+arbitrary account changes and action tags refuse. Verify no-effect rollback,
+callback duplication, altered arguments, current authority, stale configuration,
+replay and transports before full CI qualification. Other finance/business writer
+families retain their own pending enforcement work.

@@ -16,7 +16,6 @@ from reality.db.core import (
     SettlementAllocation,
 )
 from reality.services import core
-from reality.services.finance.accounts import initialize_accounts
 from reality.tools.application import confirm_tool, propose_tool
 
 
@@ -27,7 +26,7 @@ def outgoing_obligation(postgres_database, request):
     supplier = request.param == "supplier"
     with Session(engine, expire_on_commit=False) as session:
         tenant = core.create_tenant(session, "Outgoing finance example")
-        initialize_accounts(session, tenant.id)
+        reviewed_initialize_accounts(session, tenant.id)
         party = reviewed_create_party(
             session, tenant.id, "Counterparty", "supplier" if supplier else "customer"
         )
@@ -173,7 +172,7 @@ def posted_invoice(postgres_database):
     Base.metadata.create_all(engine)
     with Session(engine, expire_on_commit=False) as session:
         tenant = core.create_tenant(session, "Atomic finance example")
-        initialize_accounts(session, tenant.id)
+        reviewed_initialize_accounts(session, tenant.id)
         customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
         invoice = core.create_document(
             session, tenant.id, "sales_invoice", "INV-1", customer.id, "300"
@@ -455,4 +454,4 @@ def test_shared_invoice_preserves_stated_amount_and_rolls_back(
     assert order.gross_amount == 300
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import reviewed_create_party, reviewed_initialize_accounts

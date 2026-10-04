@@ -41,7 +41,9 @@ def _order(session, business, number="SO-336", amount="100"):
 def _confirm(session, tenant, tool, values):
     proposal = create_change_proposal(session, tenant, tool, values, actor_type="human")
     return json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
 
 
@@ -136,7 +138,8 @@ def test_what_cannot_be_authorized_or_captured_is_refused(session, business):
         ({"amount": "0"}, "payment_authorization_amount_invalid"),
     ):
         _refused(
-            code, lambda change=change: _confirm(session, tenant, tool, {**base, **change})
+            code,
+            lambda change=change: _confirm(session, tenant, tool, {**base, **change}),
         )
     # Positive control: the stated authorization is recorded, once.
     authorization = _confirm(session, tenant, tool, base)

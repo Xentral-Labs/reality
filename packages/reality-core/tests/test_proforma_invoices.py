@@ -16,7 +16,6 @@ from reality.services.delivery_actions import (
     delivery_proposal_detail,
     prepare_delivery_action,
 )
-from reality.services.finance.accounts import initialize_accounts
 from reality.services.fulfillment_readiness import fulfillment_readiness
 from reality.tools.application import approve_and_execute_proposal
 from reality.web.api import document_inspector
@@ -92,7 +91,7 @@ def _ledger_count(session, tenant):
 
 def test_a_proforma_is_for_its_order_and_posts_nothing(session, business):
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     order, _, _ = _order(session, business)
     before = _ledger_count(session, tenant)
 
@@ -142,7 +141,7 @@ def test_a_proforma_states_its_lines(session, business):
 
 def test_a_proforma_bills_nothing_and_proves_no_prepayment(session, business):
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     order, line, commitment = _order(session, business, prepay=True)
 
     _proforma(session, business, order)
@@ -161,7 +160,7 @@ def test_a_proforma_bills_nothing_and_proves_no_prepayment(session, business):
 
 def test_the_order_inspector_lists_its_billing_documents(session, business):
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     order, _, _ = _order(session, business)
     _proforma(session, business, order)
     _reviewed(
@@ -260,3 +259,6 @@ def test_a_proforma_is_refused_with_its_code(session, business, change, code):
             request_id="pf-bad",
         )
     assert refused.value.code == code
+
+
+from intake_review_support import reviewed_initialize_accounts

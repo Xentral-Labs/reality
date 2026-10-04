@@ -13770,7 +13770,9 @@
             "dunning_fee_revenue",
             "payment_fee_expense",
             "carrier_claim_income",
-            "opening_counterpart"
+            "opening_counterpart",
+            "customer_down_payments",
+            "exchange_difference"
           ]
         }
       ],

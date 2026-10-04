@@ -2573,3 +2573,5 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/legacy_business_support.py`: explicit historical test construction preserves unknown creating attribution and pinned migration rows without granting runtime authority.
 
 - `packages/reality-core/tests/test_master_token_authority.py`: spec 356 FR-003; actual confirming token revocation or loss of confirmation permission after dispatch refuses canonical master effects.
+
+- `packages/reality-core/tests/finance/test_canonical_configuration_boundary.py`: spec 356 FR-001–FR-003; direct/account-tag and unconfirmed dispatch refusal, atomic callback attacks, retained confirmed existing roles and current Owner demotion in another transaction.

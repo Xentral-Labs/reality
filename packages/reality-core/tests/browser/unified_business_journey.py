@@ -102,17 +102,13 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                 "50",
                 payment_number="SUPPLIER-AVAILABLE",
             )
-            from reality.services.finance.accounts import (
-                create_account,
-                set_default_account,
-            )
 
             for side, party in (("customer", customer), ("supplier", supplier)):
                 role = f"{side}_reduction"
-                account = create_account(
+                account = reviewed_create_account(
                     session, tenant.id, code=role, name=role, role=role
                 )
-                set_default_account(
+                reviewed_set_default_account(
                     session, tenant.id, role=role, account_id=account["id"]
                 )
                 invoice = core.create_document(
@@ -211,21 +207,25 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
             opening_supplier = reviewed_create_party(
                 session, tenant.id, "Opening supplier", "supplier"
             )
-            opening_account = create_account(
+            opening_account = reviewed_create_account(
                 session,
                 tenant.id,
                 code="OPEN",
                 name="Neutral opening",
                 role="opening_counterpart",
             )
-            set_default_account(
+            reviewed_set_default_account(
                 session,
                 tenant.id,
                 role="opening_counterpart",
                 account_id=opening_account["id"],
             )
-            item = reviewed_create_item(session, tenant.id, "JOURNEY-LAMP", "Journey lamp")
-            warehouse = reviewed_create_location(session, tenant.id, "Journey warehouse")
+            item = reviewed_create_item(
+                session, tenant.id, "JOURNEY-LAMP", "Journey lamp"
+            )
+            warehouse = reviewed_create_location(
+                session, tenant.id, "Journey warehouse"
+            )
             core.record_movement(
                 session,
                 tenant.id,
@@ -468,7 +468,9 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
 
 
 from intake_review_support import (
+    reviewed_create_account,
     reviewed_create_item,
     reviewed_create_location,
     reviewed_create_party,
+    reviewed_set_default_account,
 )

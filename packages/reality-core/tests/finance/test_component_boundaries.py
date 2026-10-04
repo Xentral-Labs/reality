@@ -117,7 +117,9 @@ def test_component_cli_proposal_and_history_use_shared_services(
             is None
         )
         receipt = json.loads(
-            approve_and_execute_proposal(db, tenant, proposal["id"]).output
+            approve_and_execute_proposal(
+                db, tenant, proposal["id"], confirmed=True
+            ).output
         )
     result = runner.invoke(
         cli_module.app,

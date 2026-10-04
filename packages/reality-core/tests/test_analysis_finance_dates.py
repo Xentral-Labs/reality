@@ -234,14 +234,14 @@ def test_reversed_payment_and_invoice_keep_canonical_positions(session, business
 
 
 def test_opening_due_date_and_no_cross_currency_sum(session, business):
-    from reality.services.finance.accounts import initialize_accounts, list_accounts
+    from reality.services.finance.accounts import list_accounts
     from reality.tools.application import (
         approve_and_execute_proposal,
         create_change_proposal,
     )
 
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     proposal = create_change_proposal(
         session,
         tenant,
@@ -268,7 +268,7 @@ def test_opening_due_date_and_no_cross_currency_sum(session, business):
         },
         actor_type="human",
     )
-    approve_and_execute_proposal(session, tenant, proposal.id)
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     result = ask(
         session,
         tenant,
@@ -318,3 +318,6 @@ def test_chat_validation_accepts_registered_financial_positions():
         }
     )
     assert value["status"] == "ready"
+
+
+from intake_review_support import reviewed_initialize_accounts

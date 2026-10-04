@@ -388,6 +388,7 @@ def test_component_owner_and_http_mcp_parity(
             tenant,
             proposal.id,
             confirming_principal=Principal(scheduled_owner.id),
+            confirmed=True,
         ).output
     )
     assert receipt["actor_id"] == scheduled_owner.id
@@ -433,7 +434,9 @@ def test_component_concurrent_replay_and_reference_change(scheduled_database):
         with factory() as db:
             barrier.wait(timeout=10)
             try:
-                return approve_and_execute_proposal(db, tenant, proposal_id).status
+                return approve_and_execute_proposal(
+                    db, tenant, proposal_id, confirmed=True
+                ).status
             except core.Conflict:
                 return "stale"
 

@@ -14,14 +14,13 @@ from reality.cli import app as cli_module
 from reality.db.core import ChangeProposal, Document
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, model_tool_schemas
 from reality.services import core
-from reality.services.finance.accounts import initialize_accounts
 from reality.tools.application import approve_and_execute_proposal
 from reality.web import api as api_module
 from reality.web import app as web_module
 
 
 def _order(session, business, number="SO-AD"):
-    initialize_accounts(session, business.tenant.id)
+    reviewed_initialize_accounts(session, business.tenant.id)
     _, order, lines, commitments = core.create_manual_order(
         session,
         business.tenant.id,
@@ -275,3 +274,6 @@ def test_the_cli_help_lists_the_billing_commands():
         "month-end-billing",
     ):
         assert command in result.output
+
+
+from intake_review_support import reviewed_initialize_accounts

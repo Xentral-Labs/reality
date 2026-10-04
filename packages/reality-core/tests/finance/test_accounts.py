@@ -6,11 +6,7 @@ from sqlalchemy import select
 from reality.db.core import LedgerEntry
 from reality.services import core
 from reality.services.finance.accounts import (
-    create_account,
-    initialize_accounts,
     list_accounts,
-    set_default_account,
-    update_account,
 )
 
 
@@ -31,28 +27,30 @@ def test_required_ids_and_explicit_setup(session, business):
     doc = invoice(session, business)
     with pytest.raises(core.InvalidOperation, match="default"):
         core.post_sales_invoice(session, business.tenant.id, doc.id)
-    initialize_accounts(session, business.tenant.id)
+    reviewed_initialize_accounts(session, business.tenant.id)
     entries = core.post_sales_invoice(session, business.tenant.id, doc.id)
     assert all(e.account_id for e in entries)
     assert "account" not in LedgerEntry.__table__.columns
-    assert len(initialize_accounts(session, business.tenant.id)["accounts"]) == 14
+    assert (
+        len(reviewed_initialize_accounts(session, business.tenant.id)["accounts"]) == 14
+    )
 
 
 def test_default_change_preserves_invoice_account_and_blocked_inverse(
     session, business
 ):
-    initialize_accounts(session, business.tenant.id)
+    reviewed_initialize_accounts(session, business.tenant.id)
     doc = invoice(session, business)
     entries = core.post_sales_invoice(session, business.tenant.id, doc.id)
     original = next(e for e in entries if e.account == "accounts_receivable")
-    new = create_account(
+    new = reviewed_create_account(
         session,
         business.tenant.id,
         code="CUSTOM",
         name="Receivables 2",
         role="accounts_receivable",
     )
-    set_default_account(
+    reviewed_set_default_account(
         session, business.tenant.id, role="accounts_receivable", account_id=new["id"]
     )
     paid = core.post_customer_payment(session, business.tenant.id, doc.id, "40")
@@ -61,7 +59,9 @@ def test_default_change_preserves_invoice_account_and_blocked_inverse(
         == original.account_id
     )
     assert core.open_invoice_amount(session, business.tenant.id, doc.id) == Decimal(60)
-    update_account(session, business.tenant.id, original.account_id, state="blocked")
+    reviewed_update_account(
+        session, business.tenant.id, original.account_id, state="blocked"
+    )
     with pytest.raises(core.InvalidOperation, match="blocked"):
         core.post_customer_payment(session, business.tenant.id, doc.id, "10")
     core.reverse_ledger_posting_group(
@@ -79,17 +79,17 @@ def test_default_change_preserves_invoice_account_and_blocked_inverse(
 
 
 def test_account_role_tenant_and_code_validation(session, business):
-    initialize_accounts(session, business.tenant.id)
+    reviewed_initialize_accounts(session, business.tenant.id)
     with pytest.raises(core.InvalidOperation):
-        create_account(
+        reviewed_create_account(
             session, business.tenant.id, code="bad", name="Bad", role="guess"
         )
     other = core.create_tenant(session, "Other")
-    foreign = create_account(
+    foreign = reviewed_create_account(
         session, other.id, code="AR", name="AR", role="accounts_receivable"
     )
     with pytest.raises(core.NotFound):
-        set_default_account(
+        reviewed_set_default_account(
             session,
             business.tenant.id,
             role="accounts_receivable",
@@ -98,7 +98,7 @@ def test_account_role_tenant_and_code_validation(session, business):
 
 
 def test_credit_cannot_be_consumed_again_after_refund(session, business):
-    initialize_accounts(session, business.tenant.id)
+    reviewed_initialize_accounts(session, business.tenant.id)
     note = core.create_document(
         session, business.tenant.id, "credit_note", "CN", business.customer.id, "100"
     )
@@ -132,10 +132,14 @@ def test_account_proposal_is_atomic_stale_and_idempotent(session, business):
         a["code"] == "NEW"
         for a in list_accounts(session, business.tenant.id)["accounts"]
     )
-    result = approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+    result = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, confirmed=True
+    )
     assert result.status == "executed"
     assert (
-        approve_and_execute_proposal(session, business.tenant.id, proposal.id).output
+        approve_and_execute_proposal(
+            session, business.tenant.id, proposal.id, confirmed=True
+        ).output
         == result.output
     )
     stale = create_change_proposal(
@@ -150,7 +154,9 @@ def test_account_proposal_is_atomic_stale_and_idempotent(session, business):
         },
     )
     with pytest.raises(core.Conflict, match="stale"):
-        approve_and_execute_proposal(session, business.tenant.id, stale.id)
+        approve_and_execute_proposal(
+            session, business.tenant.id, stale.id, confirmed=True
+        )
     assert not any(
         a["code"] == "STALE"
         for a in list_accounts(session, business.tenant.id)["accounts"]
@@ -192,7 +198,7 @@ def test_concurrent_consumers_cannot_spend_one_credit_twice(postgres_database):
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Concurrent finance")
             tenant_id = tenant.id
-            initialize_accounts(session, tenant_id)
+            reviewed_initialize_accounts(session, tenant_id)
             customer = reviewed_create_party(session, tenant_id, "Customer", "customer")
             payment = core.record_customer_payment(
                 session, tenant_id, customer.id, "100"
@@ -255,6 +261,7 @@ def test_account_confirmation_requires_owner(session, business):
             business.tenant.id,
             proposal.id,
             confirming_principal=Principal("foreign-user"),
+            confirmed=True,
         )
     assert not any(
         a["code"] == "DENIED"
@@ -301,7 +308,7 @@ def test_account_configuration_api_uses_proposal(session, business):
             )
             applied = client.post(
                 base + "/change-proposals/" + proposal.json()["id"] + "/approve",
-                json={},
+                json={"confirmed": True},
             )
             assert applied.status_code == 200, applied.text
             assert any(
@@ -312,4 +319,10 @@ def test_account_configuration_api_uses_proposal(session, business):
         app.dependency_overrides.clear()
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_initialize_accounts,
+    reviewed_set_default_account,
+    reviewed_update_account,
+)

@@ -1691,45 +1691,51 @@ def _require_master_decision(session, tenant_id, operation):
         or proposal.decided_at is None
     ):
         raise InvalidOperation(code="intake_approval_required")
-    from reality.db.core import MCPAccessToken
     from reality.services.delivery_actions import require_delivery_principal
     from reality.services.memberships import Principal
 
     if proposal.decided_via_token_id is not None:
-        credential = session.scalar(
-            select(MCPAccessToken)
-            .where(
-                MCPAccessToken.tenant_id == tenant_id,
-                MCPAccessToken.id == proposal.decided_via_token_id,
-            )
-            .with_for_update()
-            .execution_options(populate_existing=True)
-        )
-        try:
-            permissions = json.loads(credential.allowed_tools) if credential else []
-        except (TypeError, ValueError):
-            permissions = []
-        if (
-            credential is None
-            or credential.revoked_at is not None
-            or not isinstance(permissions, list)
-            or not (
-                {"*", "proposal_approve_and_execute"}
-                & {
-                    permission
-                    for permission in permissions
-                    if isinstance(permission, str)
-                }
-            )
-        ):
-            raise InvalidOperation(code="intake_approval_required")
+        _require_confirming_token(session, tenant_id, proposal.decided_via_token_id)
     if proposal.decided_by_user_id is not None:
         require_delivery_principal(
             session, tenant_id, Principal(proposal.decided_by_user_id)
         )
 
 
+def _require_confirming_token(session, tenant_id, token_id):
+    from reality.db.core import MCPAccessToken
+
+    credential = session.scalar(
+        select(MCPAccessToken)
+        .where(
+            MCPAccessToken.tenant_id == tenant_id,
+            MCPAccessToken.id == token_id,
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    try:
+        permissions = json.loads(credential.allowed_tools) if credential else []
+    except (TypeError, ValueError):
+        permissions = []
+    if (
+        credential is None
+        or credential.revoked_at is not None
+        or not isinstance(permissions, list)
+        or not (
+            {"*", "proposal_approve_and_execute"}
+            & {permission for permission in permissions if isinstance(permission, str)}
+        )
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+
+
 def _master_application_active(operation=None):
+    if _finance_authority.get() is not None and operation in {
+        "execute_finance_command",
+        *_FINANCE_CONFIGURATION_TOOLS,
+    }:
+        return True
     authority = _application_authority.get()
     if authority is not None and authority.tool in {
         *MASTER_TOOLS,
@@ -1853,3 +1859,175 @@ def require_company_partner_intent(actual):
     if _company_partner_used.get():
         raise InvalidOperation(code="intake_approval_required")
     _company_partner_used.set(True)
+
+
+_FINANCE_CONFIGURATION_TOOLS = {
+    "finance_account_create": {"finance.account.create", "finance.account.initialize"},
+    "finance_account_update": {"finance.account.update"},
+    "finance_account_set_default": {
+        "finance.account.set_default",
+        "finance.account.initialize",
+    },
+    "finance_account_initialize": {"finance.account.initialize"},
+}
+
+
+@dataclass(frozen=True)
+class _FinanceAuthority:
+    session: Session
+    transaction: object
+    tenant_id: str
+    proposal_id: str
+    tool: str
+    intent: str
+    principal: object
+    token_id: str | None
+    policy: object
+    defaults: tuple[tuple[str, str], ...]
+
+
+_finance_authority: ContextVar[_FinanceAuthority | None] = ContextVar(
+    "confirmed_atomic_finance", default=None
+)
+
+
+@contextmanager
+def _confirmed_finance_scope(
+    session, tenant_id, proposal, *, confirmed, principal, token_id, policy
+):
+    """Bind actual consent to the existing locked proposed-state transaction."""
+    from reality.domain.finance import ACCOUNT_ROLES
+    from reality.tools.finance import FINANCE_COMMANDS
+
+    if not confirmed:
+        raise InvalidOperation(code="review_confirmation_required")
+    if (
+        proposal.status != "proposed"
+        or proposal.type.removeprefix("tool:") not in FINANCE_COMMANDS
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    proof = _FinanceAuthority(
+        session,
+        session.get_transaction(),
+        tenant_id,
+        proposal.id,
+        proposal.type.removeprefix("tool:"),
+        proposal.input,
+        principal,
+        token_id if principal is None else None,
+        policy,
+        tuple(ACCOUNT_ROLES.items()),
+    )
+    token = _finance_authority.set(proof)
+    consumed_token = _master_consumed.set(set())
+
+    def deny_partial_commit(db):
+        if not db.in_nested_transaction():
+            raise InvalidOperation(code="intake_partial_commit_forbidden")
+
+    event.listen(session, "before_commit", deny_partial_commit)
+    try:
+        require_finance_configuration(session, tenant_id, "execute_finance_command")
+        yield
+    except BaseException:
+        session.rollback()
+        raise
+    finally:
+        event.remove(session, "before_commit", deny_partial_commit)
+        _master_consumed.reset(consumed_token)
+        _finance_authority.reset(token)
+
+
+def require_finance_configuration(session, tenant_id, operation, actual=None):
+    """Refuse direct configuration and recheck exact actual confirmation authority."""
+    proof = _finance_authority.get()
+    if (
+        proof is None
+        or proof.session is not session
+        or proof.transaction is not session.get_transaction()
+        or proof.tenant_id != tenant_id
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    if (
+        operation != "execute_finance_command"
+        and proof.tool not in _FINANCE_CONFIGURATION_TOOLS.get(operation, ())
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    proposal = session.scalar(
+        select(ChangeProposal)
+        .where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.id == proof.proposal_id,
+        )
+        .execution_options(populate_existing=True)
+    )
+    if (
+        proposal is None
+        or proposal.status != "proposed"
+        or proposal.type != f"tool:{proof.tool}"
+        or proposal.input != proof.intent
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    from reality.services.proposal_decisions import require_decision_authority
+
+    require_decision_authority(
+        session,
+        tenant_id,
+        proof.policy,
+        proof.principal,
+        phase="execution",
+        confirmed=True,
+    )
+    require_decision_authority(
+        session,
+        tenant_id,
+        proof.policy,
+        proof.principal,
+        phase="locked",
+        confirmed=True,
+    )
+    if proof.principal is not None and "finance_owner" in proof.policy.checks:
+        from reality.services.delivery_actions import require_delivery_principal
+
+        require_delivery_principal(session, tenant_id, proof.principal)
+        membership_role = select(TenantMembership.role).where(
+            TenantMembership.tenant_id == tenant_id,
+            TenantMembership.user_id == proof.principal.user_id,
+            TenantMembership.status == "active",
+        )
+        # At the canonical effect, serialize further membership changes until
+        # this transaction ends. Earlier dispatch checks still read fresh values.
+        if operation != "execute_finance_command":
+            membership_role = membership_role.with_for_update()
+        if session.scalar(membership_role) != "owner":
+            raise InvalidOperation(code="company_owner_access_required")
+    if proof.token_id is not None:
+        _require_confirming_token(session, tenant_id, proof.token_id)
+    if actual is None:
+        return
+    if operation == "execute_finance_command":
+        from reality.services.intake import canonical_json
+
+        if (
+            actual["name"] != proof.tool
+            or actual["action_id"] != proof.proposal_id
+            or canonical_json(actual["arguments"])
+            != canonical_json(json.loads(proof.intent))
+            or actual["actor_id"]
+            != (proof.principal.user_id if proof.principal else None)
+        ):
+            raise InvalidOperation(code="intake_review_invalid")
+    if (
+        proof.tool == "finance.account.initialize"
+        and operation == "finance_account_create"
+    ):
+        definitions = dict(proof.defaults)
+        if (
+            actual["role"] not in definitions
+            or actual["code"] != actual["role"]
+            or actual["name"] != definitions[actual["role"]]
+        ):
+            raise InvalidOperation(code="intake_review_invalid")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent(operation, actual)

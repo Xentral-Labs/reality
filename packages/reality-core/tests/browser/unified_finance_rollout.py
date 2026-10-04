@@ -17,7 +17,6 @@ from sqlalchemy.orm import sessionmaker
 
 from reality.db.core import build_engine
 from reality.services import core
-from reality.services.finance.accounts import initialize_accounts
 from reality.web.auth import COOKIE_NAME
 
 
@@ -70,9 +69,11 @@ def test_finance_rollout_on_a_live_stack(postgres_database, tmp_path):
     try:
         with sessionmaker(engine, expire_on_commit=False)() as session:
             tenant = core.create_tenant(session, "Finance rollout company")
-            initialize_accounts(session, tenant.id)
+            reviewed_initialize_accounts(session, tenant.id)
             for side in ("customer", "supplier"):
-                party = reviewed_create_party(session, tenant.id, f"Rollout {side}", side)
+                party = reviewed_create_party(
+                    session, tenant.id, f"Rollout {side}", side
+                )
                 invoice = core.create_document(
                     session,
                     tenant.id,
@@ -113,4 +114,4 @@ def test_finance_rollout_on_a_live_stack(postgres_database, tmp_path):
     print(f"Finance rollout verified against a live stack; artifacts: {artifacts}")
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import reviewed_create_party, reviewed_initialize_accounts

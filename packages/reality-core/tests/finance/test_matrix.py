@@ -72,7 +72,7 @@ def test_matrix_missing_blocked_defaults_and_tenant_scope_are_read_only(
     )
     current = accounts.list_accounts(session, business.tenant.id)
     cash = current["defaults"]["cash"]
-    accounts.update_account(session, business.tenant.id, cash, state="blocked")
+    reviewed_update_account(session, business.tenant.id, cash, state="blocked")
     rows = accounts.transaction_matrix(session, business.tenant.id)["operations"]
     assert all(
         leg["status"] == "blocked"
@@ -96,10 +96,10 @@ def test_default_changes_do_not_rewrite_original_settlement_accounts(session, bu
     )
     entries = core.post_sales_invoice(session, tenant, doc.id)
     original = next(e for e in entries if e.account == "accounts_receivable").account_id
-    replacement = accounts.create_account(
+    replacement = reviewed_create_account(
         session, tenant, code="NEW", name="New receivables", role="accounts_receivable"
     )
-    accounts.set_default_account(
+    reviewed_set_default_account(
         session, tenant, role="accounts_receivable", account_id=replacement["id"]
     )
     row = next(
@@ -239,3 +239,10 @@ def test_matrix_adjustments_match_actual_accepted_reductions(session, business, 
         (leg["role"], leg["side"]) for leg in row["legs"]
     }
     assert row["control_policy"] == "original_required"
+
+
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_set_default_account,
+    reviewed_update_account,
+)

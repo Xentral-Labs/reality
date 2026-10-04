@@ -7,7 +7,6 @@ from sqlalchemy import select, text
 
 from reality.db.core import LedgerEntry, SourceRecord
 from reality.services import core
-from reality.services.finance.accounts import create_account, set_default_account
 from reality.services.finance.company_currency import (
     company_currency,
     company_currency_state,
@@ -34,14 +33,14 @@ def _document(session, business, currency="EUR", number="SI-309"):
 
 
 def _exchange_account(session, tenant):
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="exchange_difference",
         name="Exchange differences",
         role="exchange_difference",
     )
-    set_default_account(
+    reviewed_set_default_account(
         session, tenant, role="exchange_difference", account_id=account["id"]
     )
 
@@ -386,4 +385,8 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
         command.upgrade(config, "head")
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_set_default_account,
+)

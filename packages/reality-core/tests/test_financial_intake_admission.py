@@ -143,10 +143,9 @@ def test_unrelated_financial_sibling_does_not_stale_payment(
 def test_nested_payment_cannot_substitute_reviewed_cash_account(
     session, business, scheduled_owner, monkeypatch
 ):
-    from reality.services.finance.accounts import create_account
     from reality.services.memberships import Principal
 
-    alternate = create_account(
+    alternate = reviewed_create_account(
         session,
         business.tenant.id,
         code="cash-alternate",
@@ -450,3 +449,6 @@ def test_prepared_financial_review_names_canonical_defaults(session, business):
     assert effects[0]["arguments"]["sales_channel"] == ""
     assert effects[1]["arguments"]["exchange_rate"] is None
     assert effects[1]["arguments"]["company_amounts"] is None
+
+
+from intake_review_support import reviewed_create_account

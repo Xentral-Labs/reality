@@ -31,7 +31,11 @@ def propose(session, tenant, **values):
 
 
 def confirm(session, tenant, proposal):
-    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    return json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
 
 
 @pytest.mark.parametrize("kind", ["cost_center", "case_code", "coding_group"])
@@ -155,7 +159,7 @@ def test_reference_owner_confirmation_and_adapter_parity(
     principal = Principal(user_id=scheduled_owner.id)
     receipt = json.loads(
         approve_and_execute_proposal(
-            session, tenant, proposal.id, confirming_principal=principal
+            session, tenant, proposal.id, confirming_principal=principal, confirmed=True
         ).output
     )
     history = refs.reference_history(session, tenant, receipt["id"])
@@ -192,7 +196,7 @@ def test_reference_owner_confirmation_and_adapter_parity(
             assert (
                 client.post(
                     f"/api/tenants/{tenant}/change-proposals/{response.json()['id']}/approve",
-                    json={},
+                    json={"confirmed": True},
                 ).status_code
                 == 200
             )
@@ -282,7 +286,9 @@ def test_reference_concurrent_confirmation_has_one_decision(scheduled_database):
         with factory() as db:
             barrier.wait(timeout=10)
             return json.loads(
-                approve_and_execute_proposal(db, tenant, proposal_id).output
+                approve_and_execute_proposal(
+                    db, tenant, proposal_id, confirmed=True
+                ).output
             )
 
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -325,6 +331,7 @@ def test_reference_member_cannot_confirm_and_foreign_update_is_unavailable(
             tenant,
             proposal.id,
             confirming_principal=Principal(scheduled_owner.id),
+            confirmed=True,
         )
     assert refs.list_references(session, tenant)["total"] == 0
     member.role = "owner"
@@ -359,7 +366,9 @@ def test_reference_competing_changes_reject_stale_intent(scheduled_database):
         with factory() as db:
             barrier.wait(timeout=10)
             try:
-                return approve_and_execute_proposal(db, tenant, proposal_id).status
+                return approve_and_execute_proposal(
+                    db, tenant, proposal_id, confirmed=True
+                ).status
             except core.Conflict:
                 return "stale"
 
@@ -407,7 +416,9 @@ def test_reference_cli_reads_and_proposal_use_shared_services(
     proposal_id = json.loads(result.output)["id"]
     with factory() as db:
         assert refs.list_references(db, tenant)["total"] == 0
-        row = json.loads(approve_and_execute_proposal(db, tenant, proposal_id).output)
+        row = json.loads(
+            approve_and_execute_proposal(db, tenant, proposal_id, confirmed=True).output
+        )
     result = runner.invoke(
         cli_module.app, ["finance-reference-history", row["id"], "--tenant-id", tenant]
     )

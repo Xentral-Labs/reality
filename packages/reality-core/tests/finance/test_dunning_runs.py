@@ -20,9 +20,7 @@ from reality.db.core import (
 )
 from reality.services import core, dunning_runs
 from reality.services.finance.accounts import (
-    create_account,
     list_accounts,
-    set_default_account,
 )
 from reality.tools.application import (
     approve_and_execute_proposal,
@@ -167,7 +165,7 @@ def _fee_account(session, tenant):
     state = list_accounts(session, tenant)
     if "dunning_fee_revenue" in state["defaults"]:
         return
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="dunning_fee_revenue",
@@ -175,7 +173,7 @@ def _fee_account(session, tenant):
         role="dunning_fee_revenue",
         expected_revision=state["revision"],
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="dunning_fee_revenue",
@@ -186,7 +184,11 @@ def _fee_account(session, tenant):
 
 def _execute(session, tenant, command, arguments):
     proposal = create_change_proposal(session, tenant, command, arguments)
-    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    return json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
 
 
 def _set_schedule(session, tenant, levels=SCHEDULE):
@@ -327,7 +329,7 @@ def test_a_stale_schedule_confirmation_is_refused(session, business):
     _set_schedule(session, tenant)
 
     with pytest.raises(core.Conflict) as refused:
-        approve_and_execute_proposal(session, tenant, proposal.id)
+        approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     assert refused.value.code == "dunning_preview_stale"
 
 
@@ -661,7 +663,9 @@ def test_an_item_paid_after_preparation_is_skipped(session, business):
     core.post_customer_payment(session, tenant, paid.id, "100")
 
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
 
     assert [notice["invoice_ids"] for notice in receipt["notices"]] == [[still.id]]
@@ -682,9 +686,9 @@ def test_a_second_run_on_the_same_day_does_not_dun_twice(session, business):
     first = create_change_proposal(session, tenant, "finance.dunning.run", arguments)
     second = create_change_proposal(session, tenant, "finance.dunning.run", arguments)
 
-    approve_and_execute_proposal(session, tenant, first.id)
+    approve_and_execute_proposal(session, tenant, first.id, confirmed=True)
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, second.id).output
+        approve_and_execute_proposal(session, tenant, second.id, confirmed=True).output
     )
 
     assert receipt["notices"] == []
@@ -894,7 +898,7 @@ def test_a_run_reviewed_under_an_older_schedule_is_stale(session, business):
     _set_schedule(session, tenant, [{**entry, "fee_amount": "2"} for entry in SCHEDULE])
 
     with pytest.raises(core.Conflict) as refused:
-        approve_and_execute_proposal(session, tenant, proposal.id)
+        approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     assert refused.value.code == "dunning_preview_stale"
 
 
@@ -1036,7 +1040,9 @@ def test_the_run_review_names_what_confirmation_will_skip(session, business):
     )
     review = json.loads(proposal.output)["dunning_run"]
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
 
     assert [
@@ -1122,4 +1128,8 @@ def test_customers_of_a_run_are_a_list(session, business):
     assert refused.value.code == "dunning_run_parties_invalid"
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_set_default_account,
+)

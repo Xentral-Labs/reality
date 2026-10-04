@@ -220,7 +220,9 @@ _call_intent: ContextVar[tuple[str, str] | None] = ContextVar(
 )
 
 
-_call_nonce: ContextVar[object | None] = ContextVar("canonical_call_nonce", default=None)
+_call_nonce: ContextVar[object | None] = ContextVar(
+    "canonical_call_nonce", default=None
+)
 
 
 # Omitted optional parameters still have exact canonical invocation values.
@@ -253,6 +255,27 @@ _INTENT_DEFAULTS = {
 }
 
 _INTENT_DEFAULTS["record_external_stock_source"] = {}
+_INTENT_DEFAULTS["execute_finance_command"] = {"actor_id": None}
+
+from reality.services.finance import accounts as _finance_accounts
+
+_INTENT_DEFAULTS.update(
+    {
+        f"finance_account_{operation}": {
+            key: parameter.default
+            for key, parameter in signature(
+                getattr(_finance_accounts, function)
+            ).parameters.items()
+            if parameter.default is not Parameter.empty
+        }
+        for operation, function in (
+            ("create", "create_account"),
+            ("update", "update_account"),
+            ("set_default", "set_default_account"),
+            ("initialize", "initialize_accounts"),
+        )
+    }
+)
 
 
 def _invoke(

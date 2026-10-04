@@ -69,3 +69,10 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T020 Prove changed callback arguments, repeat invocation and premature root commit leave no partial source/master records; qualify confirmed ordinary company-partner creation and retained replay.
 - [ ] T021 Route CLI master create/update through retained catalog proposals and explicit confirmation; migrate legitimate test setup to real named Owner decisions and verify transport/lesson parity.
 - [ ] T022 Complete master-family source, annotation/catalog, full regression and committed-head CI evidence without claiming remaining writer families are covered.
+
+## Canonical finance configuration boundary qualification (FR-001–FR-003)
+
+- [ ] T023 Prove valid direct finance/account calls, action tags and unconfirmed dispatch cannot authorize accepted configuration.
+- [ ] T024 Bind the existing atomic proposed Finance branch to actual confirmation under its existing delivery/finance/proposal locks, without changing claim state or committing an intermediate decision.
+- [ ] T025 Freeze exact account calls, recheck the current confirming person/token and reject changed/repeated callbacks and premature root commits; preserve fixed default-account bootstrap and historical migration fixtures explicitly.
+- [ ] T026 Route legitimate account tests/adapters through confirmed existing commands; complete focused/full regression and committed-head CI evidence, with remaining business writer coverage pending.

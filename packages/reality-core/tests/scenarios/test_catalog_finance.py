@@ -28,7 +28,7 @@ from reality.services.artifacts import materialize_artifact, stage_artifact
 from reality.services.delivery_actions import prepare_delivery_action
 from reality.services.finance import components
 from reality.services.finance import references as finance_references
-from reality.services.finance.accounts import initialize_accounts, list_accounts
+from reality.services.finance.accounts import list_accounts
 from reality.services.finance.balances import party_balance_rows
 from reality.services.finance.credits import available_credit_items
 from reality.services.finance.settlement_flows import settlement_context
@@ -165,7 +165,9 @@ def test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded
     assert review["cash_direction"] == "outgoing"
     assert Decimal(review["remaining_credit"]) == 0
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
 
     refund = record_by_id(session, Document, receipt["refund"]["document_id"])
@@ -624,7 +626,9 @@ def _finance(session, business, command, arguments):
     # What the person reviewed, read before the execution receipt replaces it.
     review = json.loads(proposal.output)
     receipt = json.loads(
-        approve_and_execute_proposal(session, business.tenant.id, proposal.id).output
+        approve_and_execute_proposal(
+            session, business.tenant.id, proposal.id, confirmed=True
+        ).output
     )
     return review, receipt
 
@@ -742,7 +746,7 @@ def test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open(
 ):
     """M08: the customer keeps a marketing contribution; the invoice closes with why."""
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     invoice = core.create_document(
         session,
         tenant,
@@ -1230,10 +1234,9 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
 
 
 def _dunning_fee_account(session, business):
-    from reality.services.finance.accounts import create_account, set_default_account
 
     tenant = business.tenant.id
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="4740",
@@ -1241,7 +1244,7 @@ def _dunning_fee_account(session, business):
         role="dunning_fee_revenue",
         expected_revision=_revision(session, business),
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="dunning_fee_revenue",
@@ -1300,14 +1303,16 @@ def _run_proposal(session, business, context):
 
 def _confirm(session, business, proposal):
     return json.loads(
-        approve_and_execute_proposal(session, business.tenant.id, proposal.id).output
+        approve_and_execute_proposal(
+            session, business.tenant.id, proposal.id, confirmed=True
+        ).output
     )
 
 
 def test_three_levels_of_dunning_then_collection(session, business):
     """N04: a company schedule, runs over three customers, escalation and collection."""
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     _dunning_fee_account(session, business)
     weber = reviewed_create_party(session, tenant, "Weber AG", "customer")
     klein = reviewed_create_party(session, tenant, "Klein KG", "customer")
@@ -1420,12 +1425,11 @@ def test_three_levels_of_dunning_then_collection(session, business):
 
 
 def _payment_fee_account(session, business):
-    from reality.services.finance.accounts import create_account, set_default_account
 
     tenant = business.tenant.id
     if "payment_fee_expense" in list_accounts(session, tenant)["defaults"]:
         return
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="6855",
@@ -1433,7 +1437,7 @@ def _payment_fee_account(session, business):
         role="payment_fee_expense",
         expected_revision=_revision(session, business),
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="payment_fee_expense",
@@ -1473,7 +1477,7 @@ def test_a_returned_direct_debit_reopens_the_invoice_and_charges_the_fee(
 ):
     """C15: the debit comes back with a bank fee; the invoice is open until paid again."""
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     _payment_fee_account(session, business)
     invoice = core.create_document(
         session,
@@ -1531,7 +1535,7 @@ def test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods(
 ):
     """E08: freight and a small-quantity surcharge are their own lines; the PSP fee is a cost."""
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     _payment_fee_account(session, business)
     core.record_movement(
         session,
@@ -1978,7 +1982,7 @@ def test_a_proforma_and_an_early_invoice_are_visible_until_the_goods_ship(
     """E03: a pro-forma, then the invoice before delivery; invoiced but not
     shipped is reported until the goods leave."""
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     order, line, commitment = _stocked_order(session, business, "SO-E03")
 
     proforma = _reviewed(
@@ -2008,7 +2012,7 @@ def test_the_month_end_lists_both_directions_from_the_same_findings(session, bus
     from reality.services.month_end_billing import month_end_billing
 
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     _, shipped_line, shipped = _stocked_order(session, business, "SO-Q01-A")
     _, billed_line, billed = _stocked_order(session, business, "SO-Q01-B")
     _reviewed(session, business, *_dispatch(business, shipped, "4"), "Q01-ship-a")
@@ -2038,7 +2042,7 @@ def test_the_final_invoice_states_the_down_payment_it_deducts(session, business)
     from reality.web.api import document_inspector
 
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     order, line, _ = _stocked_order(session, business, "SO-E11")
     down_payment = _down_payment_invoice(session, business, order, "300.00", "AR-E11")
     core.post_customer_payment(
@@ -2097,7 +2101,7 @@ def test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid(
 ):
     """C14: the down payment counts, the rest is required, then it ships."""
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     order, line, commitment = _stocked_order(session, business, "SO-C14", prepay=True)
     readiness = fulfillment_readiness(session, tenant, commitment.id)
     assert "prepayment_invoice_missing" in readiness.blocker_codes
@@ -2235,13 +2239,12 @@ R04_ORDERS = 400
 
 def _provider(session, business, name, account_name):
     """A provider as a business partner, with its own cash account beside the bank."""
-    from reality.services.finance.accounts import create_account
 
     tenant = business.tenant.id
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     _payment_fee_account(session, business)
     provider = reviewed_create_party(session, tenant, name, "supplier")
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code=f"13{core.uid('x')[-6:]}",
@@ -2650,4 +2653,10 @@ def test_an_expired_authorization_shows_the_uncovered_rest_of_a_late_shipment(
     }
 
 
-from intake_review_support import reviewed_create_location, reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_location,
+    reviewed_create_party,
+    reviewed_initialize_accounts,
+    reviewed_set_default_account,
+)

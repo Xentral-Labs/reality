@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SettlementAllocation, SourceRecord
 from reality.services import core
-from reality.services.finance.accounts import initialize_accounts, list_accounts
+from reality.services.finance.accounts import list_accounts
 from reality.services.finance.credits import available_credit_items
 from reality.services.finance.opening import opening_context
 from reality.tools.application import (
@@ -40,7 +40,7 @@ def rows_for(business):
 def prepare(session, business, *, rows=None, **changes):
     tenant = business.tenant.id
     if "opening_counterpart" not in list_accounts(session, tenant)["defaults"]:
-        initialize_accounts(session, tenant)
+        reviewed_initialize_accounts(session, tenant)
     arguments = {
         "expected_revision": list_accounts(session, tenant)["revision"],
         "source_namespace": "previous_erp",
@@ -57,7 +57,11 @@ def prepare(session, business, *, rows=None, **changes):
 
 
 def confirm(session, tenant, proposal):
-    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    return json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
 
 
 def settle(session, tenant, document, **values):
@@ -218,20 +222,21 @@ def test_stale_owner_and_tenant_boundaries(session, business, monkeypatch):
     proposal = prepare(session, business)
     foreign = core.create_tenant(session, "Foreign opening")
     with pytest.raises(core.NotFound):
-        approve_and_execute_proposal(session, foreign.id, proposal.id)
+        approve_and_execute_proposal(session, foreign.id, proposal.id, confirmed=True)
     with pytest.raises(core.NotFound):
         create_change_proposal(
             session, foreign.id, "finance.opening.import", json.loads(proposal.input)
         )
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
     with pytest.raises(core.InvalidOperation, match="owner"):
-        approve_and_execute_proposal(session, tenant, proposal.id)
+        approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     monkeypatch.setenv("REALITY_AUTH_MODE", "disabled")
-    from reality.services.finance.accounts import create_account
 
-    create_account(session, tenant, code="OTHER", name="Other bank", role="cash")
+    reviewed_create_account(
+        session, tenant, code="OTHER", name="Other bank", role="cash"
+    )
     with pytest.raises(core.Conflict):
-        approve_and_execute_proposal(session, tenant, proposal.id)
+        approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 0
 
 
@@ -266,7 +271,7 @@ def test_batch_rollback_removes_every_evidence_and_entry(
 
     monkeypatch.setattr(core, "post_ledger", fail)
     with pytest.raises(RuntimeError):
-        approve_and_execute_proposal(session, tenant, proposal.id)
+        approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     assert [
         session.scalar(select(func.count()).select_from(model)) for model in models
     ] == before
@@ -379,7 +384,8 @@ def test_http_mcp_previews_and_confirmed_receipt_are_shared(session, business):
             )
             assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 0
             result = client.post(
-                base + f"/change-proposals/{response.json()['id']}/approve", json={}
+                base + f"/change-proposals/{response.json()['id']}/approve",
+                json={"confirmed": True},
             )
             assert result.status_code == 200, result.text
             assert len(result.json()["output"]["items"]) == 4
@@ -447,7 +453,9 @@ def test_opening_import_and_legacy_payment_share_lock_order(postgres_database):
                     )
                     return "paid"
                 try:
-                    approve_and_execute_proposal(session, tenant_id, proposal_id)
+                    approve_and_execute_proposal(
+                        session, tenant_id, proposal_id, confirmed=True
+                    )
                     return "imported"
                 except core.Conflict:
                     return "stale"
@@ -585,4 +593,8 @@ def test_opening_currencies_stay_separate_and_cannot_be_cross_allocated(
     assert session.scalar(select(func.count()).select_from(SettlementAllocation)) == 0
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_initialize_accounts,
+)

@@ -134,3 +134,29 @@ save; local real-stack verification passed all 27 functional checks, with its
 strict console check failing on unavailable font/network resources. Committed-head
 CI remains the required complete browser proof. The optional demo-payment harness
 has been formatted; its two-hour soak is not claimed executed.
+## Finance configuration slice (qualification in progress)
+
+The existing Finance branch retains its proposed-state row lock and atomic effect /
+executed receipt. A private scope binds actual confirmation, retained command,
+current root, principal/token and policy; it never creates an executing claim.
+Direct arbitrary account configuration and direct finance dispatch refuse.
+
+- Six valid direct/tag cases and direct proposed dispatch/absent confirmation
+  produced `DID NOT RAISE` before enforcement. Changed account input also applied
+  previously; repeat/early commit are now refused by canonical invocation/root
+  checks, rather than a later incidental stale preview.
+- Initial combined canonical/finance/master checks: 24 passed.
+- Finance regression: 431 passed, 16 failed; missing actual confirmation in positive
+  HTTP fixtures and missing existing roles in the account catalog were resolved.
+- Existing exchange-difference/down-payment role proposals failed validation
+  before catalog parity was repaired. A genuinely demoted Owner in another
+  transaction produced `DID NOT RAISE` with a cached membership; canonical checks
+  now reread its current role and serialize later changes through settlement.
+- Final affected finance/account/foreign-currency/HTTP-MCP checks: 59 passed.
+- Test fixtures use retained existing finance commands and a real named Owner;
+  no current actor/approval is added to historical migration fixtures.
+
+Full regression and committed-head CI remain required. Other canonical writer
+families and final semantic inventory closure remain pending.
+
+Final parent integration: 29 canonical finance/master/profile/token checks passed on the master CI correction parent. Frontend contracts passed all 462 checks and the production build passed; catalog generation, Ruff and spec policy passed. Full committed-head regression and CI are still pending.

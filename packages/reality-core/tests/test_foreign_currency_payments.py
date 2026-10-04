@@ -9,7 +9,6 @@ from sqlalchemy import select
 from reality.db.core import LedgerEntry
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
-from reality.services.finance.accounts import create_account, set_default_account
 from reality.services.invoice_actions import record_free_supplier_invoice
 from reality.tools.application import approve_and_execute_proposal
 
@@ -21,14 +20,14 @@ def _refused(code, call):
 
 
 def _exchange_account(session, tenant):
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="7100",
         name="Kursdifferenzen",
         role="exchange_difference",
     )
-    set_default_account(
+    reviewed_set_default_account(
         session, tenant, role="exchange_difference", account_id=account["id"]
     )
 
@@ -324,10 +323,10 @@ def test_a_reduction_then_the_last_payment_close_both_currencies(session, busine
     tenant = business.tenant.id
     _exchange_account(session, tenant)
     if "supplier_reduction" not in list_accounts(session, tenant)["defaults"]:
-        account = create_account(
+        account = reviewed_create_account(
             session, tenant, code="red", name="Reductions", role="supplier_reduction"
         )
-        set_default_account(
+        reviewed_set_default_account(
             session, tenant, role="supplier_reduction", account_id=account["id"]
         )
     invoice = _invoice(session, business)
@@ -349,7 +348,9 @@ def test_a_reduction_then_the_last_payment_close_both_currencies(session, busine
         actor_type="human",
     )
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
     reduction = session.scalars(
         select(LedgerEntry).where(
@@ -433,3 +434,6 @@ def test_a_company_that_posted_only_in_usd_may_state_usd(session, business):
         "company_currency_has_postings",
         lambda: set_company_currency(session, tenant, "EUR"),
     )
+
+
+from intake_review_support import reviewed_create_account, reviewed_set_default_account

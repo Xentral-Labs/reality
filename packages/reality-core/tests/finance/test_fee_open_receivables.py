@@ -11,9 +11,7 @@ from reality.db.core import Document, LedgerEntry, SourceRecord
 from reality.services import core, dunning
 from reality.services.credit_exposure import credit_exposure
 from reality.services.finance.accounts import (
-    create_account,
     list_accounts,
-    set_default_account,
 )
 from reality.services.finance.settlement import adjustment_context
 from reality.services.finance.settlement_flows import (
@@ -32,7 +30,11 @@ def execute(session, tenant, command, values):
     proposal = create_change_proposal(
         session, tenant, command, values, actor_type="human"
     )
-    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    return json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
 
 
 def fee_story(session, business, kind):
@@ -40,7 +42,7 @@ def fee_story(session, business, kind):
     role = "dunning_fee_revenue" if kind == "dunning" else "payment_fee_expense"
     state = list_accounts(session, tenant)
     if role not in state["defaults"]:
-        account = create_account(
+        account = reviewed_create_account(
             session,
             tenant,
             code=role,
@@ -48,7 +50,7 @@ def fee_story(session, business, kind):
             role=role,
             expected_revision=state["revision"],
         )
-        set_default_account(
+        reviewed_set_default_account(
             session,
             tenant,
             role=role,
@@ -215,11 +217,17 @@ def test_fee_payment_is_reviewed_partial_replayable_and_reversible(
     )
     assert core.open_invoice_amount(session, tenant, fee.id) == 5
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
     assert core.open_invoice_amount(session, tenant, fee.id) == 3
     assert (
-        json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+        json.loads(
+            approve_and_execute_proposal(
+                session, tenant, proposal.id, confirmed=True
+            ).output
+        )
         == receipt
     )
     core.reverse_ledger_posting_group(
@@ -393,7 +401,8 @@ def test_fee_http_and_mcp_use_same_confirmed_payment_contract(session, business,
             assert mcp["status"] == "proposed"
             assert core.open_invoice_amount(session, tenant, fee.id) == 5
             result = client.post(
-                base + f"/change-proposals/{response.json()['id']}/approve", json={}
+                base + f"/change-proposals/{response.json()['id']}/approve",
+                json={"confirmed": True},
             )
             assert result.status_code == 200, result.text
             assert core.open_invoice_amount(session, tenant, fee.id) == 0
@@ -401,4 +410,8 @@ def test_fee_http_and_mcp_use_same_confirmed_payment_contract(session, business,
         app.dependency_overrides.clear()
 
 
-from intake_review_support import reviewed_update_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_set_default_account,
+    reviewed_update_party,
+)

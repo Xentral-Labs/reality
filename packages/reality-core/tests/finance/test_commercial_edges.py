@@ -10,9 +10,7 @@ from reality.db.core import DunningNotice, LedgerEntry
 from reality.mcp.catalog import dispatch_tool
 from reality.services import core
 from reality.services.finance.accounts import (
-    create_account,
     list_accounts,
-    set_default_account,
 )
 from reality.services.finance.credits import available_credit_rows
 from reality.tools.application import (
@@ -25,7 +23,7 @@ def _account(session, tenant, role):
     state = list_accounts(session, tenant)
     if role in state["defaults"]:
         return
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code=role,
@@ -34,7 +32,7 @@ def _account(session, tenant, role):
         expected_revision=state["revision"],
     )
     state = list_accounts(session, tenant)
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role=role,
@@ -43,7 +41,9 @@ def _account(session, tenant, role):
     )
 
 
-def _invoice(session, business, *, side="customer", amount="100", number="INV-EDGE-001"):
+def _invoice(
+    session, business, *, side="customer", amount="100", number="INV-EDGE-001"
+):
     tenant = business.tenant.id
     party = business.customer if side == "customer" else business.supplier
     kind = "sales_invoice" if side == "customer" else "supplier_invoice"
@@ -64,7 +64,11 @@ def _invoice(session, business, *, side="customer", amount="100", number="INV-ED
 
 def _execute(session, tenant, command, arguments):
     proposal = create_change_proposal(session, tenant, command, arguments)
-    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    return json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
 
 
 def test_dunning_notice_keeps_invoice_and_posts_optional_fee(session, business):
@@ -140,7 +144,9 @@ def test_mcp_dunning_context_record_detail_list_and_reverse(session, business):
         allowed_access=("propose",),
     )
     assert prepared["next_step"]["required_principal"] == "authenticated_active_owner"
-    executed = approve_and_execute_proposal(session, tenant, prepared["proposal_id"])
+    executed = approve_and_execute_proposal(
+        session, tenant, prepared["proposal_id"], confirmed=True
+    )
     notice_id = json.loads(executed.output)["id"]
 
     detail = dispatch_tool(
@@ -176,14 +182,19 @@ def test_mcp_dunning_context_record_detail_list_and_reverse(session, business):
         },
         allowed_access=("propose",),
     )
-    approve_and_execute_proposal(session, tenant, reversal["proposal_id"])
-    assert dispatch_tool(
-        session,
-        tenant,
-        "finance_dunning_notice",
-        {"notice_id": notice_id},
-        allowed_access=("read",),
-    )["reversed"] is True
+    approve_and_execute_proposal(
+        session, tenant, reversal["proposal_id"], confirmed=True
+    )
+    assert (
+        dispatch_tool(
+            session,
+            tenant,
+            "finance_dunning_notice",
+            {"notice_id": notice_id},
+            allowed_access=("read",),
+        )["reversed"]
+        is True
+    )
 
 
 @pytest.mark.parametrize("side", ["customer", "supplier"])
@@ -211,7 +222,9 @@ def test_deposit_is_explicit_credit_and_clears_final_invoice(session, business, 
         },
     )
     credits, _ = available_credit_rows(session, tenant, side=side)
-    row = next(item for item in credits if item["document_id"] == deposit["document_id"])
+    row = next(
+        item for item in credits if item["document_id"] == deposit["document_id"]
+    )
     assert row["origin"] == "deposit" and Decimal(row["open"]) == 100
     clearing = _execute(
         session,
@@ -290,3 +303,6 @@ def test_higher_revision_allows_only_the_new_quantity(session, business):
     core.revise_commitment(session, tenant, commitment.id, quantity="12")
     assert core.commitment_quantity(session, tenant, commitment.id) == 12
     assert commitment.quantity == 10
+
+
+from intake_review_support import reviewed_create_account, reviewed_set_default_account

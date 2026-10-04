@@ -20,8 +20,6 @@ from reality.domain.finance import ACCOUNT_ROLES
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
 from reality.services.finance.accounts import (
-    create_account,
-    initialize_accounts,
     list_accounts,
 )
 from reality.tools.application import (
@@ -126,7 +124,7 @@ def test_the_payment_fee_role_exists_and_can_hold_an_account(session, business):
     tenant = business.tenant.id
     assert "payment_fee_expense" in ACCOUNT_ROLES
 
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="6855",
@@ -142,16 +140,15 @@ def test_the_payment_fee_role_exists_and_can_hold_an_account(session, business):
 
 
 def _fee_account(session, tenant):
-    from reality.services.finance.accounts import set_default_account
 
     state = list_accounts(session, tenant)
     if "payment_fee_expense" in state["defaults"]:
         return
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     state = list_accounts(session, tenant)
     if "payment_fee_expense" in state["defaults"]:
         return
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="6855",
@@ -159,7 +156,7 @@ def _fee_account(session, tenant):
         role="payment_fee_expense",
         expected_revision=state["revision"],
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="payment_fee_expense",
@@ -182,7 +179,9 @@ def _return(session, tenant, payment_id, **arguments):
     )
     review = json.loads(proposal.output)["payment_return"]
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
     return review, receipt
 
@@ -455,7 +454,7 @@ def test_a_returned_payment_leaves_no_unallocated_money_behind(session, business
         },
         actor_type="human",
     )
-    approve_and_execute_proposal(session, tenant, over.id)
+    approve_and_execute_proposal(session, tenant, over.id, confirmed=True)
 
     def unmatched():
         return {
@@ -515,7 +514,11 @@ def _settle_with_fee(
     proposal = create_change_proposal(
         session, tenant, "finance.settlement.apply", arguments, actor_type="human"
     )
-    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    return json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
 
 
 def _posted_invoice(session, business, number, amount="100"):
@@ -636,7 +639,11 @@ def test_a_refund_of_the_payment_is_open_again_but_not_reported_as_an_invoice(
         },
         actor_type="human",
     )
-    paid = json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    paid = json.loads(
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
+    )
     payment_id = paid["payment"]["document_id"]
     refund = create_change_proposal(
         session,
@@ -652,7 +659,7 @@ def test_a_refund_of_the_payment_is_open_again_but_not_reported_as_an_invoice(
         },
         actor_type="human",
     )
-    approve_and_execute_proposal(session, tenant, refund.id)
+    approve_and_execute_proposal(session, tenant, refund.id, confirmed=True)
 
     _, receipt = _return(session, tenant, payment_id)
 
@@ -682,7 +689,6 @@ def test_an_invoice_whose_payments_came_back_twice_is_reported_once(session, bus
 
 
 def test_the_fee_leaves_the_cash_account_the_payment_was_booked_on(session, business):
-    from reality.services.finance.accounts import set_default_account
 
     tenant = business.tenant.id
     _fee_account(session, tenant)
@@ -694,7 +700,7 @@ def test_the_fee_leaves_the_cash_account_the_payment_was_booked_on(session, busi
             LedgerEntry.account == "cash",
         )
     )
-    second = create_account(
+    second = reviewed_create_account(
         session,
         tenant,
         code="1210",
@@ -702,7 +708,7 @@ def test_the_fee_leaves_the_cash_account_the_payment_was_booked_on(session, busi
         role="cash",
         expected_revision=list_accounts(session, tenant)["revision"],
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="cash",
@@ -877,4 +883,9 @@ def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
         engine.dispose()
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_initialize_accounts,
+    reviewed_set_default_account,
+)

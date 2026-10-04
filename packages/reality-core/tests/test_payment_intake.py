@@ -16,7 +16,7 @@ from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SettlementAllocation
 from reality.services import core, payment_intake
-from reality.services.finance.accounts import list_accounts, update_account
+from reality.services.finance.accounts import list_accounts
 from reality.services.payment_intake import (
     NormalisedInvoice,
     NormalisedInvoiceLine,
@@ -358,9 +358,8 @@ def test_blocked_control_account_records_the_money_without_allocating(
     _, invoice, _, invoice_entries = _invoice(session, business)
     control = next(e for e in invoice_entries if e.account == "accounts_receivable")
     accounts = list_accounts(session, tenant)
-    from reality.services.finance.accounts import create_account, set_default_account
 
-    created = create_account(
+    created = reviewed_create_account(
         session,
         tenant,
         code="1201",
@@ -369,7 +368,7 @@ def test_blocked_control_account_records_the_money_without_allocating(
         expected_revision=accounts["revision"],
         _commit=False,
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="accounts_receivable",
@@ -377,7 +376,7 @@ def test_blocked_control_account_records_the_money_without_allocating(
         expected_revision=list_accounts(session, tenant)["revision"],
         _commit=False,
     )
-    update_account(
+    reviewed_update_account(
         session,
         tenant,
         control.account_id,
@@ -826,4 +825,9 @@ def test_the_consolidated_invoice_number_still_allocates(session, business):
     assert resolution.reasons == ()
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_set_default_account,
+    reviewed_update_account,
+)

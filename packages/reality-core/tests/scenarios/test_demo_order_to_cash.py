@@ -20,9 +20,7 @@ from reality.demo.international import DEMO_DATA_CUSTOMERS, DEMO_DATA_PAYMENT_TE
 from reality.integrations import demo_data as synthetic
 from reality.services import core, payment_intake
 from reality.services.finance.accounts import (
-    create_account,
     list_accounts,
-    set_default_account,
 )
 from reality.services.finance.credits import available_credit_items
 from reality.tools.application import (
@@ -131,14 +129,14 @@ def open_item(session, tenant, invoice):
 def test_demo_order_to_cash_business_story(session, business):
     tenant = business.tenant.id
     prepare(session, tenant)
-    reduction = create_account(
+    reduction = reviewed_create_account(
         session,
         tenant,
         code="reduction",
         name="Accepted reductions",
         role="customer_reduction",
     )
-    set_default_account(
+    reviewed_set_default_account(
         session, tenant, role="customer_reduction", account_id=reduction["id"]
     )
     gross = Decimal(25)
@@ -281,3 +279,6 @@ def test_demo_order_to_cash_business_story(session, business):
         assert source.source_system == "demo_data"
         assert source.external_id.startswith(f"{SCHEDULE}:run_")
         assert json.loads(source.payload)["synthetic"] is True
+
+
+from intake_review_support import reviewed_create_account, reviewed_set_default_account

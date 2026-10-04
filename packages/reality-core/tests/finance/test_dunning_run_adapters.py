@@ -29,7 +29,9 @@ def _mcp(session, tenant, name, arguments):
 
 def _confirm(session, tenant, proposed):
     return json.loads(
-        approve_and_execute_proposal(session, tenant, proposed["proposal_id"]).output
+        approve_and_execute_proposal(
+            session, tenant, proposed["proposal_id"], confirmed=True
+        ).output
     )
 
 
@@ -284,7 +286,9 @@ def test_the_cli_previews_proposes_and_reads(session, business, monkeypatch):
     )
     assert proposed.exit_code == 0, proposed.output
     assert _notices(session) == 0
-    approve_and_execute_proposal(session, tenant, json.loads(proposed.output)["id"])
+    approve_and_execute_proposal(
+        session, tenant, json.loads(proposed.output)["id"], confirmed=True
+    )
     assert _notices(session) == 1
 
     handovers = runner.invoke(

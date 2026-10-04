@@ -81,7 +81,9 @@ def test_an_agent_proposes_and_a_person_confirms_the_return(session, business):
     )
     assert proposed["next_step"]["required_principal"] == "authenticated_active_owner"
     assert _returns(session) == 0
-    approve_and_execute_proposal(session, tenant, proposed["proposal_id"])
+    approve_and_execute_proposal(
+        session, tenant, proposed["proposal_id"], confirmed=True
+    )
 
     listed = MCP_TOOL_REGISTRY["finance_payment_returns"].handler(session, tenant, {})
     (row,) = listed
@@ -108,7 +110,7 @@ def test_the_web_proposes_and_reads_a_return(session, business, monkeypatch):
     assert prepared.json()["preview"]["payment_return"]["reopened"][0][
         "invoice_id"
     ] == (invoice.id)
-    approve_and_execute_proposal(session, tenant, prepared.json()["id"])
+    approve_and_execute_proposal(session, tenant, prepared.json()["id"], confirmed=True)
 
     listed = client.get(f"{prefix}/finance/payment-returns")
     assert listed.status_code == 200, listed.text
@@ -140,7 +142,9 @@ def test_the_cli_proposes_and_reads_a_return(session, business, monkeypatch):
     )
     assert proposed.exit_code == 0, proposed.output
     assert _returns(session) == 0
-    approve_and_execute_proposal(session, tenant, json.loads(proposed.output)["id"])
+    approve_and_execute_proposal(
+        session, tenant, json.loads(proposed.output)["id"], confirmed=True
+    )
 
     listed = runner.invoke(
         cli_module.app, ["finance-payment-returns", "--tenant-id", tenant]

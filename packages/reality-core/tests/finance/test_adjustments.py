@@ -11,10 +11,7 @@ from sqlalchemy import func, select
 from reality.db.core import LedgerEntry, SourceRecord
 from reality.services import core
 from reality.services.finance.accounts import (
-    create_account,
     list_accounts,
-    set_default_account,
-    update_account,
 )
 from reality.services.finance.settlement import adjustment_context
 from reality.tools.application import (
@@ -27,8 +24,12 @@ def prepare(session, business, side, amount="20", **changes):
     tenant = business.tenant.id
     role = f"{side}_reduction"
     if role not in list_accounts(session, tenant)["defaults"]:
-        account = create_account(session, tenant, code=role, name=role, role=role)
-        set_default_account(session, tenant, role=role, account_id=account["id"])
+        account = reviewed_create_account(
+            session, tenant, code=role, name=role, role=role
+        )
+        reviewed_set_default_account(
+            session, tenant, role=role, account_id=account["id"]
+        )
     party = business.customer if side == "customer" else business.supplier
     kind = "sales_invoice" if side == "customer" else "supplier_invoice"
     invoice = core.create_document(
@@ -61,7 +62,7 @@ def test_confirmed_adjustment_and_independent_inverse(session, business, side):
     invoice, payment, proposal = prepare(session, business, side)
     tenant = business.tenant.id
     assert core.open_invoice_amount(session, tenant, invoice.id) == 20
-    result = approve_and_execute_proposal(session, tenant, proposal.id)
+    result = approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     receipt = json.loads(result.output)
     assert core.open_invoice_amount(session, tenant, invoice.id) == 0
     entries = list(
@@ -81,11 +82,17 @@ def test_confirmed_adjustment_and_independent_inverse(session, business, side):
     evidence = record_by_id(session, SourceRecord, receipt["source_record_id"])
     assert json.loads(evidence.payload)["reason"] == "Agreed stated discount"
     assert (
-        json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+        json.loads(
+            approve_and_execute_proposal(
+                session, tenant, proposal.id, confirmed=True
+            ).output
+        )
         == receipt
     )
     counterpart = next(e for e in entries if e.account == f"{side}_reduction")
-    update_account(session, tenant, account_id=counterpart.account_id, state="blocked")
+    reviewed_update_account(
+        session, tenant, account_id=counterpart.account_id, state="blocked"
+    )
     core.reverse_ledger_posting_group(
         session, tenant, receipt["posting_group_id"], reason="Agreement corrected"
     )
@@ -108,7 +115,9 @@ def test_stale_confirmation_has_no_partial_effect(session, business):
     core.post_customer_payment(session, business.tenant.id, invoice.id, "1")
     count = session.scalar(select(func.count()).select_from(LedgerEntry))
     with pytest.raises(core.Conflict):
-        approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+        approve_and_execute_proposal(
+            session, business.tenant.id, proposal.id, confirmed=True
+        )
     assert session.scalar(select(func.count()).select_from(LedgerEntry)) == count
     assert core.open_invoice_amount(session, business.tenant.id, invoice.id) == 19
 
@@ -123,7 +132,7 @@ def test_adjustment_tenant_boundary(session, business):
             session, foreign.id, "finance.adjustment.accept", json.loads(proposal.input)
         )
     with pytest.raises(core.NotFound):
-        approve_and_execute_proposal(session, foreign.id, proposal.id)
+        approve_and_execute_proposal(session, foreign.id, proposal.id, confirmed=True)
 
 
 def test_adjustment_rollback_removes_evidence_and_effects(
@@ -144,7 +153,9 @@ def test_adjustment_rollback_removes_evidence_and_effects(
 
     monkeypatch.setattr(core, "allocate_settlement", fail)
     with pytest.raises(RuntimeError):
-        approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+        approve_and_execute_proposal(
+            session, business.tenant.id, proposal.id, confirmed=True
+        )
     assert [
         session.scalar(select(func.count()).select_from(model)) for model in models
     ] == before
@@ -164,7 +175,7 @@ def test_external_adjustment_effect_is_consumed_once(session, business):
         source_record_id=source.id,
         source_effect_id="discount-1",
     )
-    approve_and_execute_proposal(session, tenant, proposal.id)
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     arguments = json.loads(proposal.input)
     arguments["expected_revision"] = list_accounts(session, tenant)["revision"]
     arguments["reason"] = "Changed text must not create a second effect"
@@ -203,7 +214,7 @@ def test_concurrent_adjustments_serialize_availability(postgres_database):
                 barrier.wait(timeout=10)
                 try:
                     return approve_and_execute_proposal(
-                        session, tenant_id, identity
+                        session, tenant_id, identity, confirmed=True
                     ).status
                 except core.Conflict:
                     return "stale"
@@ -280,7 +291,7 @@ def test_additive_reduction_migration_preserves_populated_accounts(
             assert {e.account_id for e in session.scalars(select(LedgerEntry))} == set(
                 identities
             )
-            create_account(
+            reviewed_create_account(
                 session,
                 tenant_id,
                 code="RED",
@@ -363,7 +374,7 @@ def test_new_source_version_cannot_repeat_accepted_effect(session, business):
         source_record_id=source.id,
         source_effect_id="discount-1",
     )
-    approve_and_execute_proposal(session, tenant, proposal.id)
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     changed, _, _ = core.store_source_record(
         session,
         tenant,
@@ -382,5 +393,10 @@ def test_new_source_version_cannot_repeat_accepted_effect(session, business):
     assert core.open_invoice_amount(session, tenant, invoice.id) == 10
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_set_default_account,
+    reviewed_update_account,
+)
 from legacy_business_support import historical_party

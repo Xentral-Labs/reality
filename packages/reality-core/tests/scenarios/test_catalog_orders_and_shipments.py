@@ -1796,14 +1796,12 @@ def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, busin
     """D07: goods gone, claim receivable, customer still served."""
     from reality.services.delivery_failures import delivery_failure_summary
     from reality.services.finance.accounts import (
-        create_account,
         list_accounts,
-        set_default_account,
     )
 
     tenant = business.tenant.id
     state = list_accounts(session, tenant)
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="4830",
@@ -1811,7 +1809,7 @@ def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, busin
         role="carrier_claim_income",
         expected_revision=state["revision"],
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="carrier_claim_income",
@@ -2267,7 +2265,9 @@ def test_a_retail_chain_order_is_delivered_to_its_stores(session, business):
 
 
 from intake_review_support import (
+    reviewed_create_account,
     reviewed_create_item,
     reviewed_create_location,
     reviewed_create_party,
+    reviewed_set_default_account,
 )

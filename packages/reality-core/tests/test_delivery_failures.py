@@ -13,9 +13,7 @@ from reality.services.delivery_failures import (
     record_delivery_failure,
 )
 from reality.services.finance.accounts import (
-    create_account,
     list_accounts,
-    set_default_account,
 )
 from reality.services.shipments import shipment_explain
 from reality.tools.application import (
@@ -69,7 +67,7 @@ def claim_account(session, tenant):
     state = list_accounts(session, tenant)
     if "carrier_claim_income" in state["defaults"]:
         return
-    account = create_account(
+    account = reviewed_create_account(
         session,
         tenant,
         code="4830",
@@ -77,7 +75,7 @@ def claim_account(session, tenant):
         role="carrier_claim_income",
         expected_revision=state["revision"],
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="carrier_claim_income",
@@ -207,7 +205,7 @@ def test_a_lost_parcel_is_written_off_and_claimed_from_the_carrier(session, busi
         },
         actor_type="human",
     )
-    approve_and_execute_proposal(session, tenant, proposal.id)
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
     assert core.open_invoice_amount(session, tenant, claim["document_id"]) == 0
 
 
@@ -353,4 +351,8 @@ def test_an_agent_records_a_lost_parcel_through_the_strict_schema(session, busin
         read.handler(session, tenant, {"shipment_id": shipment_id})
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_set_default_account,
+)

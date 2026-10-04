@@ -10,10 +10,7 @@ from reality.db.core import Document, DocumentLine, LedgerEntry, PaymentReturn
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
 from reality.services.finance.accounts import (
-    create_account,
-    initialize_accounts,
     list_accounts,
-    set_default_account,
 )
 from reality.services.payouts import payout_detail, payouts
 from reality.tools.application import (
@@ -26,10 +23,10 @@ PAID_ON = "2026-09-30"
 
 def _accounts(session, tenant):
     """The provider's cash account, beside the bank, and a fee expense default."""
-    initialize_accounts(session, tenant)
+    reviewed_initialize_accounts(session, tenant)
     state = list_accounts(session, tenant)
     if "payment_fee_expense" not in state["defaults"]:
-        fee = create_account(
+        fee = reviewed_create_account(
             session,
             tenant,
             code="6855",
@@ -37,14 +34,14 @@ def _accounts(session, tenant):
             role="payment_fee_expense",
             expected_revision=state["revision"],
         )
-        set_default_account(
+        reviewed_set_default_account(
             session,
             tenant,
             role="payment_fee_expense",
             account_id=fee["id"],
             expected_revision=list_accounts(session, tenant)["revision"],
         )
-    clearing = create_account(
+    clearing = reviewed_create_account(
         session,
         tenant,
         code=core.uid("1361")[:12],
@@ -170,7 +167,9 @@ def _settle(session, tenant, values):
     )
     review = json.loads(proposal.output)["payout"]
     receipt = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirmed=True
+        ).output
     )
     return review, receipt
 
@@ -536,4 +535,9 @@ def test_an_agent_proposes_a_payout_through_the_strict_schema(session, business)
         )
 
 
-from intake_review_support import reviewed_create_party
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_create_party,
+    reviewed_initialize_accounts,
+    reviewed_set_default_account,
+)

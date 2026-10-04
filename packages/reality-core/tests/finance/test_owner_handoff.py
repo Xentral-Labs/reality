@@ -93,6 +93,7 @@ def test_agent_owner_agent_finance_handoff_uses_one_proposal_identity(
         tenant_id,
         proposal_id,
         confirming_principal=Principal(scheduled_owner.id),
+        confirmed=True,
     )
     receipt = json.loads(executed.output)
     assert executed.id == proposal_id

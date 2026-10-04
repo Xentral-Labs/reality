@@ -58,13 +58,13 @@ def test_switch_repeat_and_stale_revision_preserve_selection_and_account_revisio
         )
     )
     destination_id, old_account_id = old.id, old.account_id
-    new = accounts.create_account(
+    new = reviewed_create_account(
         session, tenant, code="cash-2", name="Second cash", role="cash", _commit=False
     )
     revision = accounts.list_accounts(session, tenant)["revision"]
     original = accounts._get(session, tenant, old_account_id)
     old_revision = original.revision
-    accounts.set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="cash",
@@ -78,7 +78,7 @@ def test_switch_repeat_and_stale_revision_preserve_selection_and_account_revisio
     assert chosen.revision == new["revision"] and original.revision == old_revision
     assert accounts.list_accounts(session, tenant)["defaults"]["cash"] == new["id"]
     with pytest.raises(core.Conflict):
-        accounts.set_default_account(
+        reviewed_set_default_account(
             session,
             tenant,
             role="cash",
@@ -86,7 +86,7 @@ def test_switch_repeat_and_stale_revision_preserve_selection_and_account_revisio
             expected_revision=revision,
             _commit=False,
         )
-    accounts.set_default_account(
+    reviewed_set_default_account(
         session,
         tenant,
         role="cash",
@@ -104,7 +104,7 @@ def test_marker_constraints_preserve_tenant_namespaces_and_role_uniqueness(
 ):
     tenant = business.tenant.id
     chosen = accounts.resolve_account(session, tenant, "cash")
-    extra = accounts.create_account(
+    extra = reviewed_create_account(
         session, tenant, code="cash-2", name="Second", role="cash", _commit=False
     )
     with pytest.raises(DBAPIError), session.begin_nested():
@@ -127,11 +127,11 @@ def test_marker_constraints_preserve_tenant_namespaces_and_role_uniqueness(
     foreign.default_destination_id = chosen.default_destination_id
     session.flush()
     with pytest.raises(core.NotFound):
-        accounts.set_default_account(
+        reviewed_set_default_account(
             session, tenant, role="cash", account_id=foreign.id, _commit=False
         )
     with pytest.raises(core.InvalidOperation):
-        accounts.set_default_account(
+        reviewed_set_default_account(
             session, tenant, role="cash", account_id=sales.id, _commit=False
         )
 
@@ -140,7 +140,7 @@ def test_blocked_default_remains_selected_and_reads_do_not_mutate(session, busin
     tenant = business.tenant.id
     chosen = accounts.resolve_account(session, tenant, "cash")
     marker = chosen.default_destination_id
-    accounts.update_account(session, tenant, chosen.id, state="blocked", _commit=False)
+    reviewed_update_account(session, tenant, chosen.id, state="blocked", _commit=False)
     before = accounts.list_accounts(session, tenant)
     count = session.scalar(
         select(func.count())
@@ -162,7 +162,7 @@ def test_blocked_default_remains_selected_and_reads_do_not_mutate(session, busin
         )
         == count
     )
-    accounts.initialize_accounts(session, tenant, _commit=False)
+    reviewed_initialize_accounts(session, tenant, _commit=False)
     assert accounts.list_accounts(session, tenant)["defaults"]["cash"] == chosen.id
     assert chosen.default_destination_id == marker
 
@@ -178,7 +178,7 @@ def test_competing_default_changes_use_existing_finance_revision(postgres_databa
                 session, tenant, "cash"
             ).default_destination_id
             candidates = [
-                accounts.create_account(
+                reviewed_create_account(
                     session, tenant, code=f"cash-{i}", name=f"Cash {i}", role="cash"
                 )["id"]
                 for i in range(2)
@@ -190,7 +190,7 @@ def test_competing_default_changes_use_existing_finance_revision(postgres_databa
             with factory() as session:
                 barrier.wait(timeout=10)
                 try:
-                    accounts.set_default_account(
+                    reviewed_set_default_account(
                         session,
                         tenant,
                         role="cash",
@@ -241,3 +241,11 @@ def test_partial_metadata_create_drop_keeps_logical_view_contract(postgres_datab
         assert inspect(engine).get_view_names() == []
     finally:
         engine.dispose()
+
+
+from intake_review_support import (
+    reviewed_create_account,
+    reviewed_initialize_accounts,
+    reviewed_set_default_account,
+    reviewed_update_account,
+)

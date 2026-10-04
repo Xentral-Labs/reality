@@ -29,6 +29,8 @@ class CreateAccount(AccountRequest):
         "payment_fee_expense",
         "carrier_claim_income",
         "opening_counterpart",
+        "customer_down_payments",
+        "exchange_difference",
     ]
 
 
@@ -65,8 +67,16 @@ def validate_request(name, arguments):
 
 def execute_account_command(session, tenant_id, name, arguments, *, action_id):
     values = validate_request(name, arguments)
-    return ACCOUNT_COMMANDS[name][1](
-        session, tenant_id, **values, action_id=action_id, _commit=False
+    from reality.services.intake import _invoke
+
+    return _invoke(
+        f"finance_account_{name.rsplit('.', 1)[1]}",
+        ACCOUNT_COMMANDS[name][1],
+        session,
+        tenant_id,
+        **values,
+        action_id=action_id,
+        _commit=False,
     )
 
 
@@ -171,7 +181,9 @@ class PayoutReferenceRequest(BaseModel):
         "customer_reference",
         "customer_number",
         "tracking_number",
-    ] = Field(description="What the stated value identifies; a tracking number names a shipment.")
+    ] = Field(
+        description="What the stated value identifies; a tracking number names a shipment."
+    )
     value: str = Field(
         min_length=1,
         max_length=200,
@@ -209,7 +221,8 @@ class PayoutSettleRequest(BaseModel):
     # line is resolved again there (spec 336).
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     provider_party_id: str = Field(
-        min_length=1, description="The marketplace, provider or carrier Party that paid."
+        min_length=1,
+        description="The marketplace, provider or carrier Party that paid.",
     )
     payout_reference: str = Field(
         min_length=1,
@@ -217,7 +230,9 @@ class PayoutSettleRequest(BaseModel):
         description="The provider's payout identity; settling the same statement again books only unbooked lines.",
     )
     paid_on: str = Field(description="Calendar date the payout reached the bank.")
-    currency: str = Field(pattern=r"^[A-Z]{3}$", description="Currency of the payout and its lines.")
+    currency: str = Field(
+        pattern=r"^[A-Z]{3}$", description="Currency of the payout and its lines."
+    )
     amount: StrictStr | StrictInt = Field(
         description="The net payout the provider states; the lines must add up to it."
     )
@@ -240,11 +255,16 @@ class PayoutSettleRequest(BaseModel):
 class AuthorizationRecordRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     order_document_id: str = Field(
-        min_length=1, description="Opaque same-tenant identity of the authorized sales order."
+        min_length=1,
+        description="Opaque same-tenant identity of the authorized sales order.",
     )
-    amount: StrictStr | StrictInt = Field(description="The amount the provider authorized.")
+    amount: StrictStr | StrictInt = Field(
+        description="The amount the provider authorized."
+    )
     currency: str = Field(pattern=r"^[A-Z]{3}$", description="The order's currency.")
-    authorized_at: str = Field(description="When the provider authorized, as an ISO date-time.")
+    authorized_at: str = Field(
+        description="When the provider authorized, as an ISO date-time."
+    )
     valid_until: str = Field(
         description="When the authorization lapses as the provider states it, as an ISO date-time."
     )
@@ -258,14 +278,19 @@ class AuthorizationRecordRequest(BaseModel):
 class CaptureRecordRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     authorization_id: str = Field(
-        min_length=1, description="Opaque same-tenant identity of the recorded authorization."
+        min_length=1,
+        description="Opaque same-tenant identity of the recorded authorization.",
     )
     amount: StrictStr | StrictInt = Field(
         description="The amount captured; never more than is left of the authorization."
     )
-    captured_at: str = Field(description="When the provider captured, as an ISO date-time.")
+    captured_at: str = Field(
+        description="When the provider captured, as an ISO date-time."
+    )
     reference: str = Field(
-        default="", max_length=200, description="The provider's capture identity, as stated."
+        default="",
+        max_length=200,
+        description="The provider's capture identity, as stated.",
     )
 
 
@@ -489,6 +514,11 @@ def validate_finance_request(name, arguments):
 def execute_finance_command(
     session, tenant_id, name, arguments, *, action_id, actor_id=None
 ):
+    from reality.services.tenant_policy import require_finance_configuration
+
+    require_finance_configuration(
+        session, tenant_id, "execute_finance_command", locals()
+    )
     if name == "cost.change":
         from reality.services.costing import execute_cost_change
 

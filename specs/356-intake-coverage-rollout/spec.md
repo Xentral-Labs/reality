@@ -217,3 +217,11 @@ transaction. Its private authority does not permit a second partner, changed
 intent, an intermediate commit or subsequent operational writes.
 
 Canonical master effects recheck the retained confirming MCP token at the effect boundary, including current revocation and confirmation permissions. Historical token attribution remains separate from current execution authority.
+
+Finance configuration applies only within the actual confirmed retained command
+and its atomic locked transaction. Confirmation must not be inferred from an
+action ID, caller-supplied actor, an earlier source/queue permission or a fabricated
+executing claim. Fixed account defaults are initialization, and never authorize
+arbitrary later account creation, update or default changes.
+
+The confirmed account catalog preserves all existing registered account roles, including received down payments and realised exchange differences. Canonical configuration rechecks current Owner role even when an older ORM membership object remains cached.

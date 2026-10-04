@@ -1446,16 +1446,15 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
 
 
 def _exchange_account(session, business):
-    from reality.services.finance.accounts import create_account, set_default_account
 
-    account = create_account(
+    account = reviewed_create_account(
         session,
         business.tenant.id,
         code="2660",
         name="Kursdifferenzen",
         role="exchange_difference",
     )
-    set_default_account(
+    reviewed_set_default_account(
         session,
         business.tenant.id,
         role="exchange_difference",
@@ -2206,8 +2205,10 @@ def test_two_suppliers_name_one_item_by_their_own_numbers(session, business):
 
 
 from intake_review_support import (
+    reviewed_create_account,
     reviewed_create_item,
     reviewed_create_location,
     reviewed_create_party,
+    reviewed_set_default_account,
     reviewed_update_item,
 )

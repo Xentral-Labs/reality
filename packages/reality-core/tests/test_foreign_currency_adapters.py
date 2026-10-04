@@ -13,7 +13,6 @@ from reality.db.core import ChangeProposal, LedgerEntry
 from reality.mcp.catalog import MCP_TOOL_REGISTRY
 from reality.mcp.server import _reject_unknown_fields
 from reality.services import core
-from reality.services.finance.accounts import create_account, set_default_account
 from reality.services.finance.company_currency import company_currency
 from reality.tools.application import approve_and_execute_proposal
 from reality.web import api as api_module
@@ -84,10 +83,10 @@ def test_an_agent_states_the_company_currency_and_a_person_confirms(session, bus
 
 def test_an_agent_pays_a_usd_invoice_in_eur(session, business):
     tenant = business.tenant.id
-    account = create_account(
+    account = reviewed_create_account(
         session, tenant, code="7100", name="Kursdifferenzen", role="exchange_difference"
     )
-    set_default_account(
+    reviewed_set_default_account(
         session, tenant, role="exchange_difference", account_id=account["id"]
     )
     invoice = _usd_invoice(session, business)
@@ -129,10 +128,10 @@ def test_the_web_reads_and_states_the_company_currency(session, business, monkey
 
 def test_the_web_pays_a_usd_invoice_in_eur(session, business, monkeypatch):
     tenant = business.tenant.id
-    account = create_account(
+    account = reviewed_create_account(
         session, tenant, code="7100", name="Kursdifferenzen", role="exchange_difference"
     )
-    set_default_account(
+    reviewed_set_default_account(
         session, tenant, role="exchange_difference", account_id=account["id"]
     )
     invoice = _usd_invoice(session, business)
@@ -202,3 +201,6 @@ def test_the_cli_shows_and_states_after_asking(session, business, monkeypatch):
         cli_module.app, ["finance", "company-currency", "show", "--tenant", tenant]
     )
     assert json.loads(shown.output)["currency"] == "CHF"
+
+
+from intake_review_support import reviewed_create_account, reviewed_set_default_account

@@ -6861,7 +6861,24 @@ def approve_and_execute_proposal(
     if candidate is None:
         raise NotFound(code="proposal_not_found")
     if (
-        candidate.type in {"tool:demo_seed", "tool:normal_month", "tool:party_create", "tool:item_create", "tool:location_create", "tool:party_update", "tool:item_update", "tool:location_update", "tool:company_party_record"}
+        candidate.type
+        in {
+            "tool:demo_seed",
+            "tool:normal_month",
+            "tool:party_create",
+            "tool:item_create",
+            "tool:location_create",
+            "tool:party_update",
+            "tool:item_update",
+            "tool:location_update",
+            "tool:company_party_record",
+        }
+        and candidate.status != "executed"
+        and not confirmed
+    ):
+        raise InvalidOperation(code="review_confirmation_required")
+    if (
+        candidate.type.removeprefix("tool:") in FINANCE_COMMANDS
         and candidate.status != "executed"
         and not confirmed
     ):
@@ -6995,12 +7012,28 @@ def approve_and_execute_proposal(
                 return proposal
             if proposal.status != "proposed":
                 raise InvalidOperation(code="proposal_no_longer_available")
-            with executing_proposal(tenant_id, proposal.id):
-                result = execute_finance_command(
+            from reality.services.intake import _invoke
+            from reality.services.tenant_policy import _confirmed_finance_scope
+
+            with (
+                _confirmed_finance_scope(
                     session,
                     tenant_id,
-                    tool_name,
-                    arguments,
+                    proposal,
+                    confirmed=confirmed,
+                    principal=confirming_principal,
+                    token_id=settling_token_id,
+                    policy=authority_policy,
+                ),
+                executing_proposal(tenant_id, proposal.id),
+            ):
+                result = _invoke(
+                    "execute_finance_command",
+                    execute_finance_command,
+                    session,
+                    tenant_id,
+                    name=tool_name,
+                    arguments=arguments,
                     action_id=proposal.id,
                     actor_id=(
                         confirming_principal.user_id if confirming_principal else None

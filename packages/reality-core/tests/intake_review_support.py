@@ -383,10 +383,19 @@ def create_reviewed_master(session, tenant_id, family, record):
     )
 
     principal = explicit_owner(session, tenant_id)
-    proposal = create_change_proposal(session, tenant_id, f"{family}_create", {"records": [record]})
-    decided = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=principal, confirmed=True)
+    proposal = create_change_proposal(
+        session, tenant_id, f"{family}_create", {"records": [record]}
+    )
+    decided = approve_and_execute_proposal(
+        session, tenant_id, proposal.id, confirming_principal=principal, confirmed=True
+    )
     identity = json.loads(decided.output)["records"][0]["id"]
-    return core._tenant_record_read(session, {"party": Party, "item": Item, "location": Location}[family], tenant_id, identity)
+    return core._tenant_record_read(
+        session,
+        {"party": Party, "item": Item, "location": Location}[family],
+        tenant_id,
+        identity,
+    )
 
 
 def reviewed_create_party(session, tenant_id, name, party_type, **arguments):
@@ -404,7 +413,9 @@ def reviewed_create_item(session, tenant_id, sku, name, unit="pcs", **arguments)
     return create_reviewed_master(session, tenant_id, "item", record)
 
 
-def reviewed_create_location(session, tenant_id, name, location_type="warehouse", **arguments):
+def reviewed_create_location(
+    session, tenant_id, name, location_type="warehouse", **arguments
+):
     """Fixture: retain and confirm the stated location through the public catalog."""
     record = {"name": name, "type": location_type, **arguments}
     record.pop("_commit", None)
@@ -413,17 +424,40 @@ def reviewed_create_location(session, tenant_id, name, location_type="warehouse"
 
 def reviewed_update_party(session, tenant_id, party_id, name, party_type, **arguments):
     """Fixture: confirm the exact partner update through the public catalog."""
-    return _reviewed_master_update(session, tenant_id, "party", {"id": party_id, "name": name, "type": party_type, "roles": arguments.pop("roles", None) or [party_type], **arguments})
+    return _reviewed_master_update(
+        session,
+        tenant_id,
+        "party",
+        {
+            "id": party_id,
+            "name": name,
+            "type": party_type,
+            "roles": arguments.pop("roles", None) or [party_type],
+            **arguments,
+        },
+    )
 
 
 def reviewed_update_item(session, tenant_id, item_id, sku, name, unit, **arguments):
     """Fixture: confirm the exact item update through the public catalog."""
-    return _reviewed_master_update(session, tenant_id, "item", {"id": item_id, "sku": sku, "name": name, "unit": unit, **arguments})
+    return _reviewed_master_update(
+        session,
+        tenant_id,
+        "item",
+        {"id": item_id, "sku": sku, "name": name, "unit": unit, **arguments},
+    )
 
 
-def reviewed_update_location(session, tenant_id, location_id, name, location_type, **arguments):
+def reviewed_update_location(
+    session, tenant_id, location_id, name, location_type, **arguments
+):
     """Fixture: confirm the exact location update through the public catalog."""
-    return _reviewed_master_update(session, tenant_id, "location", {"id": location_id, "name": name, "type": location_type, **arguments})
+    return _reviewed_master_update(
+        session,
+        tenant_id,
+        "location",
+        {"id": location_id, "name": name, "type": location_type, **arguments},
+    )
 
 
 def _reviewed_master_update(session, tenant_id, family, record):
@@ -434,10 +468,23 @@ def _reviewed_master_update(session, tenant_id, family, record):
     )
 
     record.pop("_commit", None)
-    proposal = create_change_proposal(session, tenant_id, f"{family}_update", {"records": [record]})
-    decision = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=explicit_owner(session, tenant_id), confirmed=True)
+    proposal = create_change_proposal(
+        session, tenant_id, f"{family}_update", {"records": [record]}
+    )
+    decision = approve_and_execute_proposal(
+        session,
+        tenant_id,
+        proposal.id,
+        confirming_principal=explicit_owner(session, tenant_id),
+        confirmed=True,
+    )
     identity = json.loads(decision.output)["records"][0]["id"]
-    return core._tenant_record_read(session, {"party": Party, "item": Item, "location": Location}[family], tenant_id, identity)
+    return core._tenant_record_read(
+        session,
+        {"party": Party, "item": Item, "location": Location}[family],
+        tenant_id,
+        identity,
+    )
 
 
 def _reviewed_master_batch(session, tenant_id, family, mode, records):
@@ -449,10 +496,21 @@ def _reviewed_master_batch(session, tenant_id, family, mode, records):
         create_change_proposal,
     )
 
-    proposal = create_change_proposal(session, tenant_id, f"{family}_{mode}", {"records": _json_value(records)})
-    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=explicit_owner(session, tenant_id), confirmed=True)
+    proposal = create_change_proposal(
+        session, tenant_id, f"{family}_{mode}", {"records": _json_value(records)}
+    )
+    receipt = approve_and_execute_proposal(
+        session,
+        tenant_id,
+        proposal.id,
+        confirming_principal=explicit_owner(session, tenant_id),
+        confirmed=True,
+    )
     model = {"party": Party, "item": Item, "location": Location}[family]
-    return [core._tenant_record_read(session, model, tenant_id, row["id"]) for row in json.loads(receipt.output)["records"]]
+    return [
+        core._tenant_record_read(session, model, tenant_id, row["id"])
+        for row in json.loads(receipt.output)["records"]
+    ]
 
 
 def reviewed_create_parties(session, tenant_id, records):
@@ -477,3 +535,51 @@ def reviewed_update_items(session, tenant_id, records):
 
 def reviewed_update_locations(session, tenant_id, records):
     return _reviewed_master_batch(session, tenant_id, "location", "update", records)
+
+
+def reviewed_finance_account(session, tenant_id, command, values):
+    """Fixture: confirm one retained account command with its real named Owner."""
+    from reality.services.finance.accounts import list_accounts
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    principal = explicit_owner(session, tenant_id)
+    values = dict(values)
+    values.pop("_commit", None)
+    values.pop("action_id", None)
+    if values.get("expected_revision") is None:
+        values["expected_revision"] = list_accounts(session, tenant_id)["revision"]
+    proposal = create_change_proposal(session, tenant_id, command, values)
+    settled = approve_and_execute_proposal(
+        session, tenant_id, proposal.id, confirming_principal=principal, confirmed=True
+    )
+    return json.loads(settled.output)
+
+
+def reviewed_create_account(session, tenant_id, **values):
+    return reviewed_finance_account(
+        session, tenant_id, "finance.account.create", values
+    )
+
+
+def reviewed_update_account(session, tenant_id, account_id, **values):
+    return reviewed_finance_account(
+        session,
+        tenant_id,
+        "finance.account.update",
+        {"account_id": account_id, **values},
+    )
+
+
+def reviewed_set_default_account(session, tenant_id, **values):
+    return reviewed_finance_account(
+        session, tenant_id, "finance.account.set_default", values
+    )
+
+
+def reviewed_initialize_accounts(session, tenant_id, **values):
+    return reviewed_finance_account(
+        session, tenant_id, "finance.account.initialize", values
+    )
