@@ -133,7 +133,10 @@ try {
     return response.json();
   };
   let waiting;
-  const sourceDeadline = Date.now() + 60_000;
+  // Initial delivery is due immediately, but shares the real worker with startup
+  // projections. Spec 146 FR-028 distinguishes due time from execution time;
+  // on CI the queued projection children can take more than one minute.
+  const sourceDeadline = Date.now() + 120_000;
   while (Date.now() < sourceDeadline) {
     waiting = await get(demo);
     if (waiting.awaiting_decision >= 1) break;
