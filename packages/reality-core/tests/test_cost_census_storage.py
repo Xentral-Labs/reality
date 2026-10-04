@@ -1,6 +1,7 @@
 """Retained discovery preserves observed evidence, never financial approval."""
 
 import pytest
+from intake_review_support import reviewed_correct_manual_document_lines
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from test_cost_census import read_session, seed
@@ -184,7 +185,7 @@ def test_later_manual_values_and_source_versions_do_not_rewrite_history(
             "unit_price": "12",
             "gross_amount": "12",
         }
-        core.correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             tenant,
             invoice,
@@ -388,7 +389,7 @@ def test_retained_line_removal_has_domain_guidance_and_preserves_history(
         with pytest.raises(
             core.InvalidOperation, match="Retained census evidence cannot be removed"
         ):
-            core.correct_manual_document_lines(
+            reviewed_correct_manual_document_lines(
                 session,
                 tenant,
                 invoice,

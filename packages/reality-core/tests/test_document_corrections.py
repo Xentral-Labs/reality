@@ -4,6 +4,8 @@ import json
 import pytest
 from conftest import record_by_id
 from intake_review_support import (
+    reviewed_correct_manual_document,
+    reviewed_correct_manual_document_lines,
     reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
 )
@@ -13,8 +15,6 @@ from reality.db.core import BusinessEvent, DocumentLine, SourceRecord
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    correct_manual_document,
-    correct_manual_document_lines,
     create_commitment,
     create_document,
     create_tenant,
@@ -36,7 +36,7 @@ def test_manual_document_correction_records_typed_fields_and_event(session, busi
         "100.00",
     )
 
-    corrected = correct_manual_document(
+    corrected = reviewed_correct_manual_document(
         session,
         business.tenant.id,
         document.id,
@@ -92,7 +92,7 @@ def test_manual_document_economic_fields_lock_after_reality_is_derived(
     )
 
     with pytest.raises(InvalidOperation, match="after Reality records"):
-        correct_manual_document(
+        reviewed_correct_manual_document(
             session,
             business.tenant.id,
             document.id,
@@ -142,7 +142,7 @@ def test_external_document_correction_appends_immutable_source_version(
     )
     assert json.loads(job.input)["channel"] == "web"
     with pytest.raises(InvalidOperation, match="cannot be overwritten"):
-        correct_manual_document(
+        reviewed_correct_manual_document(
             session,
             business.tenant.id,
             document.id,
@@ -186,7 +186,7 @@ def test_manual_line_snapshot_correction_is_atomic_and_audited(session, business
     retained_id = snapshot["lines"][0]["id"]
     removed_id = next(line.id for line in original if line.id != retained_id)
 
-    result = correct_manual_document_lines(
+    result = reviewed_correct_manual_document_lines(
         session,
         business.tenant.id,
         document.id,
@@ -225,14 +225,14 @@ def test_manual_line_correction_rejects_stale_and_retries_current_state_as_noop(
     document, _ = manual_document(session, business)
     snapshot = manual_document_line_snapshot(session, business.tenant.id, document.id)
     intended = [{**line, "description": "Current"} for line in snapshot["lines"]]
-    first = correct_manual_document_lines(
+    first = reviewed_correct_manual_document_lines(
         session,
         business.tenant.id,
         document.id,
         expected_revision=snapshot["revision"],
         lines=intended,
     )
-    retry = correct_manual_document_lines(
+    retry = reviewed_correct_manual_document_lines(
         session,
         business.tenant.id,
         document.id,
@@ -241,7 +241,7 @@ def test_manual_line_correction_rejects_stale_and_retries_current_state_as_noop(
     )
     assert retry["changed"] is False
     with pytest.raises(InvalidOperation, match="stale"):
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             document.id,
@@ -268,14 +268,14 @@ def test_manual_line_economic_changes_lock_after_reality_but_description_remains
     )
     snapshot = manual_document_line_snapshot(session, business.tenant.id, document.id)
     with pytest.raises(InvalidOperation, match="Reality correction workflow"):
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             document.id,
             expected_revision=snapshot["revision"],
             lines=[{**line, "quantity": "4"} for line in snapshot["lines"]],
         )
-    result = correct_manual_document_lines(
+    result = reviewed_correct_manual_document_lines(
         session,
         business.tenant.id,
         document.id,
@@ -306,7 +306,7 @@ def test_manual_line_economic_changes_detect_document_commitment_and_ledger(
     )
     snapshot = manual_document_line_snapshot(session, business.tenant.id, document.id)
     with pytest.raises(InvalidOperation, match="Reality correction workflow"):
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             document.id,
@@ -336,7 +336,7 @@ def test_manual_line_economic_changes_detect_document_commitment_and_ledger(
         session, business.tenant.id, invoice.id
     )
     with pytest.raises(InvalidOperation, match="Reality correction workflow"):
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             invoice.id,
@@ -367,7 +367,7 @@ def test_external_line_snapshot_is_not_correctable(session, business):
     assert snapshot["correctable"] is False
     assert snapshot["lines"] == []
     with pytest.raises(InvalidOperation, match="source version"):
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             document.id,
@@ -387,7 +387,7 @@ def test_manual_line_event_failure_rolls_back_all_changes(
 
     monkeypatch.setattr("reality.services.core.emit_business_event", fail_event)
     with pytest.raises(RuntimeError, match="event unavailable"):
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             document.id,
@@ -410,7 +410,7 @@ def test_manual_line_correction_rejects_foreign_item_with_overlapping_sku(
     snapshot = manual_document_line_snapshot(session, business.tenant.id, document.id)
 
     with pytest.raises(NotFound, match="not found"):
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             document.id,

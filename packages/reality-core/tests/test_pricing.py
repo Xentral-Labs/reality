@@ -7,6 +7,7 @@ from intake_review_support import (
     reviewed_add_party_group_member,
     reviewed_assign_group_price_list,
     reviewed_assign_party_price_list,
+    reviewed_correct_manual_document_lines,
     reviewed_create_party_group,
     reviewed_create_price_list,
     reviewed_create_price_list_entry,
@@ -17,7 +18,6 @@ from intake_review_support import (
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    correct_manual_document_lines,
     create_tenant,
     historical_pricing_explanation,
     manual_document_line_snapshot,
@@ -330,7 +330,7 @@ def test_presentation_correction_keeps_historical_entry_after_default_changes(
     )
     snapshot = manual_document_line_snapshot(session, business.tenant.id, document.id)
     corrected_line = {**snapshot["lines"][0], "description": "Corrected label"}
-    result = correct_manual_document_lines(
+    result = reviewed_correct_manual_document_lines(
         session,
         business.tenant.id,
         document.id,

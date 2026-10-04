@@ -2596,3 +2596,5 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/test_party_merge_decision_boundary.py`: spec 356 FR-001–FR-003; actual reviewed party-merge parent and duplicate lifecycle require exact atomic confirmed invocation, preserving reason/source/history and refusing sibling effects. Full qualification pending.
 
 - `packages/reality-core/tests/test_fixed_profile_lifecycle_isolation.py`: spec 356 FR-003; actual confirmed fixed application profile cannot borrow new lifecycle or merge canonical authority even through a frozen invocation. Full qualification pending.
+
+- `packages/reality-core/tests/test_document_correction_decisions.py`: spec 356 FR-001–FR-003; manual header/line corrections require exact atomic retained confirmation, preserve stated values/current source/actor/replay and refuse sibling effects. Full qualification pending.

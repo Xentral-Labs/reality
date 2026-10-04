@@ -4,6 +4,7 @@ import json
 
 import pytest
 from intake_review_support import (
+    reviewed_correct_manual_document_lines,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
 )
@@ -214,7 +215,6 @@ def test_a_changed_mapping_leaves_past_lines_as_stated(session, business):
 
 def test_a_correction_that_does_not_state_the_number_keeps_it(session, business):
     from reality.services.core import (
-        correct_manual_document_lines,
         manual_document_line_snapshot,
     )
 
@@ -244,7 +244,7 @@ def test_a_correction_that_does_not_state_the_number_keeps_it(session, business)
         if key != "supplier_item_number"
     }
 
-    result = correct_manual_document_lines(
+    result = reviewed_correct_manual_document_lines(
         session,
         tenant,
         document.id,
@@ -253,7 +253,7 @@ def test_a_correction_that_does_not_state_the_number_keeps_it(session, business)
     )
     assert result["changed"] is False
     # Positive control: a real correction still keeps the stated number.
-    correct_manual_document_lines(
+    reviewed_correct_manual_document_lines(
         session,
         tenant,
         document.id,

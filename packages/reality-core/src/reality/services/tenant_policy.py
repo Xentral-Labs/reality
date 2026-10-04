@@ -174,6 +174,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
             raise InvalidOperation(code="intake_partial_commit_forbidden")
 
     fixed = authority.tool in COMMERCIAL_MASTER_OPERATIONS or authority.tool in {
+        "document_correct", "document_lines_correct",
         "party_merge",
         "document_create",
         "order_create",
@@ -1684,8 +1685,15 @@ COMMERCIAL_MASTER_OPERATIONS = {
 }
 
 
+DOCUMENT_CORRECTION_OPERATIONS = {
+    "document_correct": "correct_manual_document",
+    "document_lines_correct": "correct_manual_document_lines",
+}
+
+
 _CANONICAL_MUTATION_TOOLS = {
     **{operation: frozenset({tool}) for tool, operation in COMMERCIAL_MASTER_OPERATIONS.items()},
+    **{operation: frozenset({tool}) for tool, operation in DOCUMENT_CORRECTION_OPERATIONS.items()},
     "merge_party": frozenset({"party_merge"}),
     "set_master_data_active": frozenset({"master_data_lifecycle", "party_merge"}),
     "record_sales_credit": frozenset({"sales_credit_record"}),
@@ -1746,6 +1754,14 @@ def _require_application_decision(session, tenant_id, operation):
 
         lock_delivery_state(session, tenant_id)
         require_current_commercial_master(session, tenant_id, authority.intent)
+    if authority.tool in DOCUMENT_CORRECTION_OPERATIONS:
+        from reality.services.business_locks import lock_delivery_state
+        from reality.services.document_corrections import (
+            require_current_document_correction,
+        )
+
+        lock_delivery_state(session, tenant_id)
+        require_current_document_correction(session, tenant_id, authority.intent)
 
 
 def _require_current_application_decider(session, tenant_id, authority, proposal):
@@ -1806,6 +1822,8 @@ def _master_application_active(operation=None):
     authority = _application_authority.get()
     if authority is not None and authority.tool in COMMERCIAL_MASTER_OPERATIONS:
         return operation == COMMERCIAL_MASTER_OPERATIONS[authority.tool]
+    if authority is not None and authority.tool in DOCUMENT_CORRECTION_OPERATIONS:
+        return operation == DOCUMENT_CORRECTION_OPERATIONS[authority.tool]
     if authority is not None and authority.tool == "party_merge":
         return operation in {"merge_party", "set_master_data_active"}
     if authority is not None and authority.tool == "sales_credit_record":
@@ -1848,6 +1866,7 @@ def require_document_operation(session, tenant_id, operation):
     """A manual evidence confirmation grants no unrelated business effect."""
     authority = _application_authority.get()
     if authority is None or (authority.tool not in COMMERCIAL_MASTER_OPERATIONS and authority.tool not in {
+        "document_correct", "document_lines_correct",
         "party_merge",
         "document_create", "order_create", "sales_invoice_record",
         "supplier_invoice_record", "supplier_invoice_free_record",
@@ -1860,6 +1879,8 @@ def require_document_operation(session, tenant_id, operation):
     }
     if authority.tool in COMMERCIAL_MASTER_OPERATIONS:
         permitted.add(COMMERCIAL_MASTER_OPERATIONS[authority.tool])
+    if authority.tool in DOCUMENT_CORRECTION_OPERATIONS:
+        permitted.add(DOCUMENT_CORRECTION_OPERATIONS[authority.tool])
     if authority.tool == "party_merge":
         permitted.update({"merge_party", "set_master_data_active"})
     if authority.tool == "order_create":

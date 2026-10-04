@@ -2016,10 +2016,15 @@ export const api = {
     }),
   documentLineCorrection: (tenant: string, id: string) =>
     request<DocumentLineCorrection>(`/api/tenants/${tenant}/documents/${id}/line-correction`),
-  correctDocumentLines: (tenant: string, id: string, body: Record<string, unknown>) =>
+  correctDocumentLines: (
+    tenant: string,
+    id: string,
+    body: Record<string, unknown>,
+    confirmed: boolean,
+  ) =>
     request<DocumentLineCorrectionResult>(
       `/api/tenants/${tenant}/documents/${id}/line-correction`,
-      { method: "PUT", body: JSON.stringify(body) },
+      { method: "PUT", body: JSON.stringify({ ...body, confirmed }) },
     ),
   costReviewDraft: (
     tenant: string,

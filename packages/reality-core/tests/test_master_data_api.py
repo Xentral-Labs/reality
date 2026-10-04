@@ -548,7 +548,7 @@ def test_manual_document_line_correction_api_contract(session, business):
         assert snapshot.json()["lines"][0]["id"] == lines[0].id
 
         body = {
-            "expected_revision": snapshot.json()["revision"],
+            "confirmed": True, "expected_revision": snapshot.json()["revision"],
             "lines": [{**snapshot.json()["lines"][0], "description": "API corrected"}],
         }
         corrected = client.put(path, json=body)
@@ -569,7 +569,7 @@ def test_manual_document_line_correction_api_contract(session, business):
         retry = client.put(
             path,
             json={
-                "expected_revision": snapshot.json()["revision"],
+                "confirmed": True, "expected_revision": snapshot.json()["revision"],
                 "lines": corrected.json()["lines"],
             },
         )
@@ -579,7 +579,7 @@ def test_manual_document_line_correction_api_contract(session, business):
         stale = client.put(
             path,
             json={
-                "expected_revision": snapshot.json()["revision"],
+                "confirmed": True, "expected_revision": snapshot.json()["revision"],
                 "lines": [{**corrected.json()["lines"][0], "description": "Stale"}],
             },
         )
@@ -602,7 +602,7 @@ def test_manual_document_line_correction_api_contract(session, business):
         protected = client.put(
             path,
             json={
-                "expected_revision": protected_snapshot["revision"],
+                "confirmed": True, "expected_revision": protected_snapshot["revision"],
                 "lines": [{**protected_snapshot["lines"][0], "quantity": "3"}],
             },
         )
@@ -636,7 +636,7 @@ def test_manual_document_line_correction_api_contract(session, business):
         assert external_snapshot.json()["correctable"] is False
         assert external_snapshot.json()["lines"] == []
         external_put = client.put(
-            external_path, json={"expected_revision": "", "lines": []}
+            external_path, json={"confirmed": True, "expected_revision": "", "lines": []}
         )
         assert external_put.status_code == 400
         assert "source version" in external_put.json()["detail"].lower()

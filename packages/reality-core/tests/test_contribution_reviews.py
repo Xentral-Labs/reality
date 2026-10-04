@@ -7,6 +7,7 @@ import test_contribution_services as fixtures
 import test_costing_services as costs
 import test_inventory_costing_services as stock
 from conftest import record_by_id
+from intake_review_support import reviewed_correct_manual_document
 from sqlalchemy import func, select
 
 from reality.db.contribution import CostContributionReview, CostRevenueMatchBasis
@@ -231,7 +232,7 @@ def test_admitted_invoice_and_order_protected(session, business, cost_owner):
 
     for doc in (data[2], record_by_id(session, Document, data[1].document_id)):
         with pytest.raises(core.InvalidOperation, match="contribution"):
-            core.correct_manual_document(
+            reviewed_correct_manual_document(
                 session,
                 business.tenant.id,
                 doc.id,

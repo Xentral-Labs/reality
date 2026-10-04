@@ -111,21 +111,21 @@ by all required checks and honest unresolved-outcome reporting.
 - [x] T042 Qualify modern/legacy source values, replay, adapters and complete committed-head CI.
 ## Fixed new-company reference exception qualification
 
-- [ ] T043 Prove existing-company, changed identity, repeat, early commit and post-write failure refusal.
-- [ ] T044 Bind actual transient-company insertion and fixed references atomically across ordinary/lesson creation.
-- [ ] T045 Qualify fixed reference values, creation, historical migration compatibility and committed-head CI.
+- [x] T043 Prove existing-company, changed identity, repeat, early commit and post-write failure refusal.
+- [x] T044 Bind actual transient-company insertion and fixed references atomically across ordinary/lesson creation.
+- [x] T045 Qualify fixed reference values, creation, historical migration compatibility and committed-head CI.
 ## Commercial master data qualification
 
-- [ ] T048 Prove direct/unconfirmed/changed/repeated/early-commit/post-write failure and sibling effects for the ten existing commands.
-- [ ] T049 Freeze canonical commercial master services, preserve fixed setup and route REST/CLI through real confirmation.
-- [ ] T050 Qualify stated values, tenant/current authority, replay, commercial/setup/adapters and full committed-head CI.
-- [ ] T051 Prove changed retained commercial reference state requires renewed review, preserving current authority and exact source values.
+- [x] T048 Prove direct/unconfirmed/changed/repeated/early-commit/post-write failure and sibling effects for the ten existing commands.
+- [x] T049 Freeze canonical commercial master services, preserve fixed setup and route REST/CLI through real confirmation.
+- [x] T050 Qualify stated values, tenant/current authority, replay, commercial/setup/adapters and full committed-head CI.
+- [x] T051 Prove changed retained commercial reference state requires renewed review, preserving current authority and exact source values.
 
 ## Current fixed application authority qualification
 
-- [ ] T052 Prove real current authority changes after fixed-profile dispatch refuse the canonical write, without fabricated grants or decisions.
-- [ ] T053 Share actual current decider validation between fixed and ordinary application scopes.
-- [ ] T054 Qualify successful fixed-profile source values/receipt replay, setup compatibility and full committed-head CI.
+- [x] T052 Prove real current authority changes after fixed-profile dispatch refuse the canonical write, without fabricated grants or decisions.
+- [x] T053 Share actual current decider validation between fixed and ordinary application scopes.
+- [x] T054 Qualify successful fixed-profile source values/receipt replay, setup compatibility and full committed-head CI.
 ## Master-data lifecycle qualification
 
 - [ ] T055 Observe meaningful direct/unconfirmed/callback and complete update-rollback refusal tests for four actual families.
@@ -135,3 +135,9 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T058 Prove and freeze the existing party-merge parent and its exact duplicate lifecycle effect, preserving eligibility/source history and atomic receipt.
 
 - [ ] T059 Prove fixed application profiles cannot borrow lifecycle/merge authority and restrict direct canonical families to their actual authored definitions.
+
+## Manual document correction qualification
+
+- [ ] T060 Observe valid direct/unconfirmed/changed/repeated/early-commit/post-write/sibling refusal proofs for existing header and line corrections.
+- [ ] T061 Retain current review basis, freeze both canonical correction parents and route REST through actual explicit confirmation/root settlement.
+- [ ] T062 Qualify stated values, unchanged revisions/downstream restrictions, current references, actual person/replay, raw-only source-version exception, adapters and full committed-head CI.

@@ -760,3 +760,30 @@ def reviewed_merge_party(session, tenant_id, duplicate_party_id, surviving_party
     proposal = create_change_proposal(session, tenant_id, "party_merge", {"duplicate_party_id": duplicate_party_id, "surviving_party_id": surviving_party_id, "reason": reason}, actor_type="human")
     receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=owner, confirmed=True)
     return _tenant_record_read(session, PartyMerge, tenant_id, json.loads(receipt.output)["merge_id"])
+
+
+def _reviewed_document_correction(session, tenant_id, document_id, operation, arguments):
+    """Settle a current fixture statement through its real retained decision."""
+    from reality.db.core import Document
+    from reality.services.core import _tenant_record_read
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    if any(key.startswith("_") for key in arguments):
+        raise ValueError("Fixture correction accepts only public stated input.")
+    owner = explicit_owner(session, tenant_id)
+    proposal = create_change_proposal(session, tenant_id, operation, {"document_id": document_id, **arguments}, actor_type="human")
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=owner, confirmed=True)
+    if operation == "document_lines_correct":
+        return json.loads(receipt.output)
+    return _tenant_record_read(session, Document, tenant_id, document_id)
+
+
+def reviewed_correct_manual_document(session, tenant_id, document_id, **arguments):
+    return _reviewed_document_correction(session, tenant_id, document_id, "document_correct", arguments)
+
+
+def reviewed_correct_manual_document_lines(session, tenant_id, document_id, **arguments):
+    return _reviewed_document_correction(session, tenant_id, document_id, "document_lines_correct", arguments)

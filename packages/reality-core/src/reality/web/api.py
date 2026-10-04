@@ -79,8 +79,6 @@ from reality.services.core import (
     close_stale_promises,
     connector_shells,
     correct_lot_expiry,
-    correct_manual_document,
-    correct_manual_document_lines,
     correct_movement,
     create_chat_session,
     create_handling_unit,
@@ -3457,6 +3455,7 @@ class SourceWrite(ApiModel):
 
 
 class DocumentCorrectionWrite(ApiModel):
+    confirmed: bool = False
     type: str
     number: str
     party_id: str
@@ -3682,6 +3681,7 @@ class CustomerRefundWrite(ApiModel):
 
 
 class ManualDocumentLineCorrectionWrite(ApiModel):
+    confirmed: bool = False
     expected_revision: str
     lines: list[ManualDocumentLineWrite]
 
@@ -5769,28 +5769,32 @@ def patch_document(
     record_id: str,
     body: DocumentCorrectionWrite,
     session: DatabaseSession,
+    request: Request,
 ):
+    from reality.db.core import Document
+    from reality.services.core import _tenant_record_read
+
     try:
-        document = correct_manual_document(
-            session,
-            tenant_id,
-            record_id,
-            document_type=body.type,
-            number=body.number,
-            party_id=body.party_id,
-            amount=body.amount,
-            currency=body.currency,
-            document_date=body.document_date,
-            ordered_at=body.ordered_at,
-            requested_delivery_at=body.requested_delivery_at,
-            customer_reference=body.customer_reference,
-            sales_channel=body.sales_channel,
-            payment_term_code=body.payment_term_code,
-            ship_to_party_id=body.ship_to_party_id,
+        values = body.model_dump(mode="json", exclude={"confirmed", "type"})
+        _confirmed_document_correction(
+            session, tenant_id, request, "document_correct",
+            {"document_id": record_id, "document_type": body.type, **values},
+            confirmed=body.confirmed,
         )
+        document = _tenant_record_read(session, Document, tenant_id, record_id)
         return {"id": document.id, "status": document.status}
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
+
+
+def _confirmed_document_correction(session, tenant_id, request, tool, arguments, *, confirmed):
+    from reality.tools.application import create_change_proposal
+
+    if not confirmed:
+        raise InvalidOperation(code="review_confirmation_required")
+    proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="user")
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=optional_request_principal(request), confirmed=confirmed)
+    return json.loads(receipt.output)
 
 
 @router.get("/documents/{record_id}/line-correction")
@@ -5811,14 +5815,13 @@ def put_document_line_correction(
     record_id: str,
     body: ManualDocumentLineCorrectionWrite,
     session: DatabaseSession,
+    request: Request,
 ):
     try:
-        return correct_manual_document_lines(
-            session,
-            tenant_id,
-            record_id,
-            expected_revision=body.expected_revision,
-            lines=[line.model_dump() for line in body.lines],
+        return _confirmed_document_correction(
+            session, tenant_id, request, "document_lines_correct",
+            {"document_id": record_id, "expected_revision": body.expected_revision, "lines": [line.model_dump(mode="json") for line in body.lines]},
+            confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error

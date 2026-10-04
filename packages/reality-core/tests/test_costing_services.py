@@ -5,7 +5,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_correct_manual_document,
+    reviewed_correct_manual_document_lines,
+    reviewed_manual_document_with_lines,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import AppUser, ChangeProposal, DocumentLine, TenantMembership
@@ -412,7 +416,7 @@ def test_manual_evidence_cannot_overwrite_admitted_cost(session, business, cost_
         ),
     )
     with pytest.raises(core.InvalidOperation, match="immutable"):
-        core.correct_manual_document(
+        reviewed_correct_manual_document(
             session,
             business.tenant.id,
             doc.id,
@@ -743,7 +747,7 @@ def test_line_evidence_uses_shortest_link_and_cannot_be_overwritten(
     )
     snapshot = core.manual_document_line_snapshot(session, business.tenant.id, doc.id)
     with pytest.raises(core.InvalidOperation, match="immutable"):
-        core.correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             business.tenant.id,
             doc.id,

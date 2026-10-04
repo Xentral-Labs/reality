@@ -2,7 +2,10 @@
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_correct_manual_document,
+    reviewed_manual_document_with_lines,
+)
 
 from reality.domain.costing import SellingAssign
 
@@ -375,7 +378,7 @@ def test_selling_owner_confirmation_rollback_and_immutable_evidence(
     with pytest.raises(core.InvalidOperation, match="immutable"):
         _protect_document(session, business.tenant.id, doc.id)
     with pytest.raises(core.InvalidOperation, match="cannot be overwritten"):
-        core.correct_manual_document(
+        reviewed_correct_manual_document(
             session,
             business.tenant.id,
             doc.id,

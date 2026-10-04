@@ -1477,9 +1477,11 @@ def _document_correct(
     BUSINESS RULE application.document_correct.1:
     Route this company-scoped request to correct_manual_document. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.document_correct.1
     return _entity_result(
-        "document", correct_manual_document(session, tenant_id, **arguments)
+        "document", _invoke("correct_manual_document", correct_manual_document, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -1512,8 +1514,10 @@ def _document_lines_correct(
     BUSINESS RULE application.document_lines_correct.1:
     Route this company-scoped request to correct_manual_document_lines. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.document_lines_correct.1
-    return correct_manual_document_lines(session, tenant_id, **arguments)
+    return _invoke("correct_manual_document_lines", correct_manual_document_lines, session, tenant_id, **arguments, _commit=False)
 
 
 def _handling_unit_create(
@@ -6208,12 +6212,19 @@ def create_change_proposal(
     # reality-rule: application.create_change_proposal.2
     if not tool.mutating:
         raise InvalidOperation(code="proposal_read_tool_not_needed")
-    from reality.services.tenant_policy import COMMERCIAL_MASTER_OPERATIONS
+    from reality.services.tenant_policy import (
+        COMMERCIAL_MASTER_OPERATIONS,
+        DOCUMENT_CORRECTION_OPERATIONS,
+    )
 
     if tool_name in COMMERCIAL_MASTER_OPERATIONS:
         from reality.services.commercial_master import prepare_commercial_master
 
         arguments = prepare_commercial_master(session, tenant_id, tool_name, arguments)
+    if tool_name in DOCUMENT_CORRECTION_OPERATIONS:
+        from reality.services.document_corrections import prepare_document_correction
+
+        arguments = prepare_document_correction(session, tenant_id, tool_name, arguments)
     if tool_name in {"demo_seed", "normal_month"}:
         from reality.services.tenant_policy import _fixed_definition_input
 
@@ -6922,6 +6933,7 @@ def approve_and_execute_proposal(
     if (
         (candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
         in {
+            "tool:document_correct", "tool:document_lines_correct",
             "tool:party_merge",
             "tool:demo_seed",
             "tool:normal_month",
@@ -7019,6 +7031,12 @@ def approve_and_execute_proposal(
         )
 
         arguments.pop(COMMERCIAL_REVIEW_KEY, None)
+    if tool_name in {"document_correct", "document_lines_correct"}:
+        from reality.services.document_corrections import (
+            REVIEW_KEY as CORRECTION_REVIEW_KEY,
+        )
+
+        arguments.pop(CORRECTION_REVIEW_KEY, None)
     require_decision_authority(
         session, tenant_id, authority_policy, confirming_principal, phase="identity"
     )

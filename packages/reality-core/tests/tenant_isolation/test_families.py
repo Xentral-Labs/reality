@@ -4,7 +4,10 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_correct_manual_document_lines,
+    reviewed_manual_document_with_lines,
+)
 from sqlalchemy import select
 
 from reality.catalogs import load_tenant_isolation_catalog
@@ -22,7 +25,6 @@ from reality.services.core import (
     chat_session_count,
     chat_sessions,
     commitments,
-    correct_manual_document_lines,
     create_commitment,
     document_detail,
     financial_open_items,
@@ -104,7 +106,7 @@ def test_document_line_correction_is_non_disclosing_across_tenants(
     assert str(foreign_read.value) == str(unknown_read.value)
 
     with pytest.raises(NotFound) as foreign_write:
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             local.tenant.id,
             foreign.document.id,
@@ -112,7 +114,7 @@ def test_document_line_correction_is_non_disclosing_across_tenants(
             lines=[{"quantity": "1"}],
         )
     with pytest.raises(NotFound) as unknown_write:
-        correct_manual_document_lines(
+        reviewed_correct_manual_document_lines(
             session,
             local.tenant.id,
             "doc_unknown",

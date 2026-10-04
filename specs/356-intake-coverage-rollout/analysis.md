@@ -124,3 +124,7 @@ worker/company/lesson initializers or retroactively revoking settled receipts.
 No unresolved clarification or critical finding. The existing setter commits directly and existing REST/CLI bypass retained proposals. Existing tool uses finite public model strings while the core setter takes actual model types; normalize only those four supported types/strings for exact frozen invocation. Preserve read-only queries and existing domain tenant/membership permissions. Raw source-reference and other writers remain separate qualifications.
 
 Caller review found fixed application authority inherited every entry of the canonical mutation map. The new lifecycle/merge entries must not widen those authored definitions. A copied owned runtime snapshot reproduces four valid borrowed frozen invocations; no proposal status, grant or permission is manufactured. Use the literal currently authored direct canonical creation families rather than a generated whitelist.
+
+## Manual document corrections analysis
+
+No unresolved clarification or critical finding. Existing correction services have internal commits and direct REST writers. The two existing commands already carry actual header/line meaning; no new business model or calculation is needed. record_corrected_document_source only appends immutable source and queues preparation, so it remains raw intake rather than being relabeled as accepted business evidence. Existing received amount, revision and downstream restrictions remain authoritative.

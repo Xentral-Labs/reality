@@ -126,3 +126,14 @@ this finite command list is not universal writer certification.
 Fixed confirmed `demo_seed` and `normal_month` application profiles recheck their actual current confirming person, manual credential and interactive MCP consent before canonical writes. A fixed authored definition never replaces current consent. Separately bound company and lesson initializers retain their existing narrow authority. Successful settled receipt replay remains unchanged.
 
 The existing master-data lifecycle decision now owns the exact party/item/location/payment-term active flag and a private hash of its actual referenced record. Direct canonical writes and absent confirmation refuse; changed current records require renewed review. REST PATCH and CLI activate/deactivate prepare that same retained decision and explicitly confirm. The browser SDK requires the caller to supply confirmation rather than manufacturing it. The existing confirmed party merge owns its exact duplicate deactivation in the same frozen root transaction; it grants no unrelated business effect. Local family proofs pass; full committed-head CI and remaining writers are still pending.
+
+Manual header and line corrections now prepare a retained review of the current
+document, positions and referenced records. Their existing REST endpoints require
+explicit `confirmed: true`; an omitted flag creates no proposal or business change.
+Changed review context requires renewed review, even when the line revision itself
+has not changed. Original stale-revision and downstream Reality restrictions
+remain domain rules. Correction effects and their executed receipt share the
+application-owned transaction. Appending an immutable upstream source version and
+preparing its interpretation records raw evidence only; it does not authorize
+canonical document or Reality changes. Header-only creation and other writer
+families still require their separate coverage qualification.

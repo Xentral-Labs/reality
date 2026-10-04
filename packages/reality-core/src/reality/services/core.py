@@ -10469,6 +10469,7 @@ def correct_manual_document_lines(
     expected_revision: str,
     lines: list[dict[str, Any]],
     actor_context: dict[str, str] | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     BUSINESS PURPOSE:
@@ -10490,6 +10491,9 @@ def correct_manual_document_lines(
     Apply permitted additions, removals and updates, retain before/after evidence in the correction event and commit once; roll back on failure.
     """
     _require_business_mutation(session, tenant_id, "correct_manual_document_lines")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("correct_manual_document_lines", locals())
     document = session.scalar(
         select(Document)
         .where(Document.tenant_id == tenant_id, Document.id == document_id)
@@ -10685,7 +10689,10 @@ def correct_manual_document_lines(
         emit_business_event(
             session, tenant_id, "document.corrected", "document", document.id, payload
         )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise
@@ -10716,6 +10723,7 @@ def correct_manual_document(
     sales_channel: str = "",
     payment_term_code: str = "",
     ship_to_party_id: str | None = None,
+    _commit: bool = True,
 ) -> Document:
     """
     Correct manually recorded evidence without bypassing derived Reality.
@@ -10733,6 +10741,9 @@ def correct_manual_document(
     When fields actually change, invoke costing protection before applying corrections and recording their changed-field evidence.
     """
     _require_business_mutation(session, tenant_id, "correct_manual_document")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("correct_manual_document", locals())
     document = _tenant_record(session, Document, tenant_id, document_id)
     # reality-rule: core.correct_manual_document.1
     if document.source_record_id:
@@ -10821,7 +10832,10 @@ def correct_manual_document(
             document.id,
             {"changed_fields": changed_fields},
         )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return document
 
 
