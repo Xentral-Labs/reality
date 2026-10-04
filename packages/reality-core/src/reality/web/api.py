@@ -2664,7 +2664,9 @@ def tenant_evidence_documents(
                 "party_id": document.party_id,
                 "party": party_names.get(document.party_id, "—"),
                 "currency": document.currency,
-                "gross_amount": str(document.gross_amount),
+                "gross_amount": str(document.gross_amount)
+                if document.gross_amount is not None
+                else None,
                 "line_count": len(lines),
                 "reality_link_count": len(commitments),
                 "source": {
@@ -6470,7 +6472,8 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
         "status": humanize_api(document.status),
         "metrics": [
             inspector_row(
-                "Gross amount", money(document.gross_amount, document.currency)
+                "Gross amount",
+                money(document.gross_amount, document.currency),
             ),
             inspector_row("Lines", len(detail["lines"])),
             inspector_row("Commitments", len(detail["commitments"])),

@@ -137,7 +137,14 @@ def _validate_file_selection(session, tenant_id, manifest):
 
 
 def prepare_batch(
-    session, tenant_id, entries, *, request_id, _file_selection=None, _commit=True
+    session,
+    tenant_id,
+    entries,
+    *,
+    request_id,
+    _file_selection=None,
+    _artifact_selection=None,
+    _commit=True,
 ):
     """
     BUSINESS PURPOSE:
@@ -152,7 +159,10 @@ def prepare_batch(
         raise core.InvalidOperation(code="intake_review_invalid")
     try:
         manifest = IntakeManifest(
-            entries=entries, revision=1, file_selection=_file_selection
+            entries=entries,
+            revision=1,
+            file_selection=_file_selection,
+            artifact_selection=_artifact_selection,
         )
     except ValidationError as error:
         raise core.InvalidOperation(code="intake_review_invalid") from error
@@ -182,6 +192,9 @@ def prepare_batch(
         }:
             raise core.InvalidOperation(code="intake_review_stale")
     _validate_file_selection(session, tenant_id, manifest)
+    from reality.services.artifact_batches import _validate_selection
+
+    _validate_selection(session, tenant_id, manifest)
     batch = ChangeProposal(
         id=core.uid("act"),
         tenant_id=tenant_id,
@@ -269,6 +282,9 @@ def approve_batch(
         ):
             require_owner(session, tenant_id, principal)
     _validate_file_selection(session, tenant_id, manifest)
+    from reality.services.artifact_batches import _validate_selection
+
+    _validate_selection(session, tenant_id, manifest)
     authorization = {
         "batch_id": batch.id,
         "manifest_revision": manifest.revision,
@@ -454,6 +470,9 @@ def settle_chunk(session, tenant_id, batch_id, *, continuation_id, _commit=False
         progress["continuation_id"] = core.uid("cont")
         if progress["next_index"] == len(manifest.entries):
             batch.status = "executed"
+            from reality.services.artifact_batches import _complete_artifact_job
+
+            _complete_artifact_job(session, tenant_id, manifest, progress)
         batch.output = canonical_json(progress)
         session.flush()
     if _commit:

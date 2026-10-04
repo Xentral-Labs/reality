@@ -2550,3 +2550,10 @@ Remaining file profiles and performance acceptance remain open in the feature ta
 - Existing payment intake, foreign currency, company currency, finance atomicity, account and reversal regressions remain required.
 
 Bank-file and legacy/demo adapter cutover remains open.
+
+## Existing artifact profile admission — Spec 358
+
+- `packages/reality-core/tests/test_artifact_intake_admission.py`: pure item/party/location, bank and stock preparation; source-stated and unknown order amounts; separate complete order source identities; larger master selections; exact writer arguments and cross-package duplicate refusal.
+- `packages/reality-core/tests/test_unstated_document_totals_migration.py`: populated amount preservation, safe downgrade and refusal to replace unknown amounts.
+
+Automatic file-adapter cutover remains open until spec 361.

@@ -443,7 +443,7 @@ export type DocumentRow = {
   party_id: string | null;
   party: string;
   currency: string;
-  gross_amount: string;
+  gross_amount: string | null;
   line_count: number;
   reality_link_count: number;
   source: { system: string; type: string; external_id: string } | null;

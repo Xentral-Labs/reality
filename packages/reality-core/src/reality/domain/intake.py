@@ -45,6 +45,11 @@ class Effect(IntakeModel):
 
     operation: Literal[
         "item_package",
+        "master_item",
+        "master_party",
+        "master_location",
+        "inventory_adjustment",
+        "external_stock_statement",
         "document",
         "commitment",
         "customer_payment",
@@ -71,6 +76,7 @@ class ReferenceState(IntakeModel):
         "ledger_entry",
         "account",
         "source_artifact",
+        "customer_item_number",
     ]
     record_id: str
     digest: str
@@ -82,7 +88,13 @@ class CalendarState(IntakeModel):
 
 
 class ObservationState(IntakeModel):
-    kind: Literal["credit_exposure", "shop_order_state", "payment_state"]
+    kind: Literal[
+        "credit_exposure",
+        "shop_order_state",
+        "payment_state",
+        "stock_state",
+        "customer_item_resolution",
+    ]
     arguments: dict[str, str]
     digest: str
 
@@ -130,9 +142,18 @@ class FileSelection(IntakeModel):
     excluded_rows: tuple[FileExclusion, ...] = Field(default=(), max_length=5000)
 
 
+class ArtifactSelection(IntakeModel):
+    source_record_id: str
+    artifact_id: str
+    original_rows: int = Field(ge=1, le=5000)
+    target: str
+    column_mapping: dict[str, str]
+
+
 class IntakeManifest(IntakeModel):
     """An aggregate selection, distinct from one atomic effect package."""
 
+    artifact_selection: ArtifactSelection | None = None
     file_selection: FileSelection | None = None
     mode: Literal["independent_units"] = "independent_units"
     revision: int = Field(ge=1)

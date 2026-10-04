@@ -134,6 +134,10 @@ INTERPRETATION_CLASSIFICATIONS = {
     "failed",
 }
 INTERPRETATION_RECORD_TYPES = {
+    "party",
+    "location",
+    "movement",
+    "external_stock_statement",
     "item",
     "return_announcement",
     "commitment_hold",
@@ -2581,6 +2585,9 @@ def create_party(
     Record the selected roles separately against the new opaque partner identity.
     """
     _require_business_mutation(session, tenant_id, "create_party")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_party", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Tenant, tenant_id, tenant_id)
@@ -2790,6 +2797,9 @@ def create_location(
     Store the parent relation and stock permission exactly as supplied; this does not record any goods movement.
     """
     _require_business_mutation(session, tenant_id, "create_location")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_location", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Tenant, tenant_id, tenant_id)
@@ -6826,6 +6836,9 @@ def record_movement(
     Delegate physical validation, stock identity, commitment effects and append-only movement recording to the canonical movement service.
     """
     _require_business_mutation(session, tenant_id, "record_movement")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("record_movement", locals())
     from reality.services.tenant_policy import (
         require_decision_action,
         require_decision_movement,
@@ -9338,7 +9351,7 @@ def _preview_manual_document_input(
     number: str,
     party_id: str,
     lines: list[dict[str, Any]],
-    gross_amount: Decimal | float | str,
+    gross_amount: Decimal | float | str | None,
     *,
     _carry_unstated_price: bool = False,
     _carry_unstated_amount: bool = False,
@@ -9368,7 +9381,9 @@ def _preview_manual_document_input(
     if not lines:
         raise InvalidOperation(code="manual_document_lines_required")
 
-    if gross_amount is None or str(gross_amount).strip() == "":
+    if (gross_amount is None or str(gross_amount).strip() == "") and not (
+        _carry_unstated_amount and document_type in {"sales_order", "purchase_order"}
+    ):
         # A total that disagrees with the lines is the finding, so it is stated
         # rather than derived. See Constitution principle VIII.
         raise InvalidOperation(code="manual_document_total_required")
@@ -9409,7 +9424,7 @@ def _preview_manual_document_input(
         "number": number,
         "party_id": party_id,
         "currency": currency,
-        "gross_amount": decimal(gross_amount),
+        "gross_amount": decimal(gross_amount) if gross_amount is not None else None,
         "status": "recorded",
         "document_date": _document_day(document_date),
         "ordered_at": utc_datetime(ordered_at),
@@ -9433,7 +9448,7 @@ def create_manual_document_with_lines(
     number: str,
     party_id: str,
     lines: list[dict[str, Any]],
-    gross_amount: Decimal | float | str,
+    gross_amount: Decimal | float | str | None,
     *,
     action_id: str | None = None,
     currency: str = "EUR",

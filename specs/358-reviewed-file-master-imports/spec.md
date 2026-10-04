@@ -113,6 +113,7 @@ Distinguish a received statement from the accepted promises or stock corrections
 - **FR-006a**: The item-file review MUST expose the fixed whole-file row selection and excluded-row reasons, allow read-only navigation across all packages, show confirmed queue progress and support stopping remaining units through the shared batch service. Status reads MUST NOT settle work. Historical single-package receipts MUST remain readable.
 - **FR-007**: A changed file, mapping, defaults or partition MUST require a fresh prepared review; completed packages MUST remain unchanged on interruption, retry or response loss.
 - **FR-008**: Sales-order file profiles MUST group complete orders as semantic units and preserve customer-item mapping and unstated-price rules.
+- **FR-008a**: An unstated order total MUST remain null in accepted evidence and render as unknown in the document list and inspector. A received zero or inconsistent total MUST remain unchanged. Quantity and unit price MUST NOT supply a replacement total. The nullable Document amount requires a forward migration that leaves existing values unchanged and refuses downgrade while unknown totals exist.
 - **FR-009**: Inventory snapshot correction MUST be a separately visible authorized effect bound to current book stock; no movement may be created before approval.
 - **FR-010**: External-stock statements MUST be prepared before acceptance and MUST NOT themselves correct book stock. Bank-statement profiles MUST route to the financial intake package rather than bypass it.
 

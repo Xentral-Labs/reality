@@ -31,5 +31,18 @@ def test_reference_obligation_symbols_are_present_or_named_as_unresolved():
     entries=[('command','credit_exposure'),('tool','fulfillment_readiness'),('command','release_credit_holds'),('tool','credit_hold_release_propose'),('tool','proposal_approve_and_execute'),('command','create_manual_order'),('command','revise_commitment'),('command','record_movement'),('tool','proposal_execution_status')]
     results=[explain(kind,key) for kind,key in entries]
     symbols={s.function.rsplit('.',1)[-1] for b in results for s in b.sources}
-    missing=[(identity,name) for identity,name in obligations if name not in symbols]
+    # The public graph is bounded. A named omission is unknown coverage, not a
+    # missing business guard or a claim that its rule was inspected.
+    prefixes=(
+        'Analysis boundary reached; omitted dependency: ',
+        'Source response boundary reached; omitted dependency: ',
+    )
+    omitted={
+        limitation.removeprefix(prefix).rsplit('.',1)[-1]
+        for blueprint in results
+        for limitation in blueprint.limitations
+        for prefix in prefixes
+        if limitation.startswith(prefix)
+    }
+    missing=[(identity,name) for identity,name in obligations if name not in symbols and name not in omitted]
     assert not missing,missing
