@@ -29,7 +29,12 @@ new service fields and are explicitly remaining work. The deterministic tools an
 focused cause answer pass; arbitrary broad provider prose is outside this feature's guarantee.
 
 ## Required completion gate
-Full Quality workflow is pending at PR preparation. No full-CI completion claim yet.
+Full Quality workflow [37234873015](https://github.com/Xentral-Labs/reality/actions/runs/37234873015)
+passed all 24 jobs on reviewed implementation head
+`9be89c7c283a18cbd65bfad515017a24ec622897`: complete backend shards/aggregate gate,
+frontend, public docs, browser scripts and all live-browser stories. Spec policy passes
+across the committed feature. The final commit only records completion and extends the
+canonical English read documentation; behavior remains this tested implementation.
 Native actual model results do not prove external Claude scheduled execution or arbitrary
 external prose accuracy. No scheduler or browser dependency is added by these reads.
 

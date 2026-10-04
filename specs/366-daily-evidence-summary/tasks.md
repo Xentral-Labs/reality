@@ -23,8 +23,8 @@ Input: spec.md, plan.md, research.md. Gate: Constitution PASS; user scope accept
 - [x] T012 [DR-001] Regenerate catalog docs with `make docs-generate` and check output in `apps/docs/content/tool-usage/` and `apps/docs/.vitepress/data/tool-usage.json`.
 
 ## Final Phase: Verification and Review
-- [ ] T013 Run focused tests/lint/spec/docs/full Quality CI and record results/actual-model limitations in `verification.md`.
-- [ ] T014 Review final diff/requirements and prepare PR with `review.md`.
+- [x] T013 Run focused tests/lint/spec/docs/full Quality CI and record results/actual-model limitations in `verification.md`.
+- [x] T014 Review final diff/requirements and prepare PR with `review.md`.
 
 ## Dependencies and parallel opportunities
 T001–T003 before code. T004/T005 before T006/T007; T008 before T009; T010 before T011.
