@@ -199,3 +199,14 @@ the original four CI shards: fixed preset setup, missing positive confirmations,
 probe keyword/AST instrumentation and the misplaced annotation. This is a failed
 pre-correction run, not a passing final qualification. The corrected committed
 source still requires its complete regression and all CI jobs.
+
+The bulk browser failure reproduced twice in CI. The downloaded final-head CI
+artifact showed 24 earlier cold projection jobs across the two owned test tenants,
+zero batch members settled at the browser deadline, followed by the queued batch
+run succeeding in 2.853 seconds as stack shutdown waited for it. This was a queue
+wait race, not an authorization failure or duplicate effect. The harness now waits
+at most 120 seconds for the real cold queue, with a 240-second whole-script limit;
+execution/volume budgets and all receipt/duplicate/source assertions are unchanged.
+Failure artifacts include scoped queue types/statuses/errors, without payloads.
+
+The bounded cold-queue bulk browser qualification passed locally in 86.21 seconds. The final queue-harness correction changes no production Python or default backend tests; the complete production regression remains running on identical production source at 14ca6637. Committed-head CI remains required.

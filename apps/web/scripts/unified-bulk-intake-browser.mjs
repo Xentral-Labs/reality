@@ -86,7 +86,9 @@ try {
   await page.unroute(approvePattern);
   await panel.getByRole("button", { name: "Confirm change", exact: true }).click();
   let completed;
-  const deadline = Date.now() + 60000;
+  // Two cold companies enqueue their real projection work before this batch.
+  // Queue wait is separate from the bounded intake unit execution budget.
+  const deadline = Date.now() + 120000;
   while (Date.now() < deadline) {
     completed = await (
       await context.request.get(
