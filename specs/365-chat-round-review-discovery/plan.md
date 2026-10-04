@@ -88,3 +88,12 @@ unknown top-level names before dispatch, using existing InvalidOperation; do not
 catch arbitrary TypeError or silently translate arguments. Preserve union schemas
 and genuine handler failures. No dependency, schema or business rule change.
 Constitution Check: PASS.
+
+## Mutation-admission compatibility amendment
+
+Full CI exposed two existing Playground security assertions: applying argument-name
+validation to item_create_propose changed the refusal from Playground admission to
+input shape. Restrict FR-005 to read tools, the actual live-failure use case; leave
+proposal/confirmation dispatch and its admission precedence unchanged. Add an
+explicit mutation-handler precedence regression and rerun Playground security.
+No duplicated policy check or wider mutation validator is introduced.

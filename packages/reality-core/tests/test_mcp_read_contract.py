@@ -744,3 +744,26 @@ def test_access_refusal_precedes_argument_validation(session, business):
             {"limit": 5},
             allowed_access=("confirm",),
         )
+
+
+@pytest.mark.parametrize("access", ["propose", "confirm"])
+def test_mutating_dispatch_preserves_business_admission_refusal(
+    session,
+    business,
+    monkeypatch,
+    access,
+):
+    from dataclasses import replace
+
+    definition = MCP_TOOL_REGISTRY["shipments_list"]
+
+    def handler(*args):
+        raise InvalidOperation("Existing mutation admission refusal")
+
+    monkeypatch.setitem(
+        MCP_TOOL_REGISTRY,
+        definition.name,
+        replace(definition, access=access, handler=handler),
+    )
+    with pytest.raises(InvalidOperation, match="Existing mutation admission refusal"):
+        read(session, business, "shipments_list", limit=5)
