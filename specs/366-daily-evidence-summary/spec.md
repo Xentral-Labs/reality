@@ -84,7 +84,7 @@ The agent explains open quantities and current blockers without inventing past e
   from the unknown historical cause of remaining fulfillment; a closed/fully fulfilled
   line MUST mark such a cause not applicable. No missing record establishes a cause.
 - **FR-005**: All additions MUST use existing tenant-scoped shared read services, preserve
-  legacy output/access/confirmation semantics, and create no persisted business authority.
+  legacy list shape/access/confirmation semantics, and create no persisted business authority.
 - **DR-001**: The operational assignment, tool descriptions and native agent instructions
   MUST direct agents to retain exact summaries/coverage and avoid unsupported causes.
   Multi-stage assignments MUST request concise stage findings and avoid unrequested

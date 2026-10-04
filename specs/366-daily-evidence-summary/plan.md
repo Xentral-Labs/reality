@@ -50,3 +50,6 @@ if unavailable, state that limitation rather than substituting a prompt assertio
 
 ## Complexity Tracking
 No exceptions. Product scope accepted by user's next-point authorization.
+
+Durable existing read authority: `docs/features/mcp_reads.md`; its new Spec 366 section
+documents these additive fields and the retained legacy list shape.

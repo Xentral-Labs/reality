@@ -44,6 +44,38 @@ coverage of matching retained records under those limitations, not upstream
 completeness. Operational derivation currently reads the full relevant tenant
 state before slicing; bounded output does not promise bounded computation.
 
+## Operational evidence summaries — Spec 366
+
+`business_records_discover` page mode adds `summary` beside the existing page fields.
+`shown_record_count` counts only returned records, excluding the pagination lookahead.
+Movement `counts_by_type` separates `return` (customer return) and `supplier_return`.
+These are record counts, never quantity, order, item or customer totals. The existing
+substring query `return` matches both types.
+
+`scope: "shown_records"`, `omitted_before` (cursor excludes the earlier key range),
+`omitted_after` (has_more), and `complete_matching_selection` make coverage explicit.
+Only a first page without further results covers its matching retained selection at
+that read. A final cursor page does not cover the earlier range. Live pages are not
+snapshots and upstream freshness/completeness remain unknown. `observation` is a
+ready deterministic English description of those same counts and boundaries.
+Legacy discovery keeps its bounded list shape, without a summary envelope.
+
+Movement, Commitment and Reservation discovery records expose available canonical
+`item_name` and `item_sku` alongside their opaque reference and unit. Missing labels
+are null; labels never replace identity. The existing scoped Item lookup owns these
+labels. Quantities remain unchanged and are not summed across items or units.
+
+Each `order_explain` fulfillment line adds `unfulfilled_cause`: `unknown` for positive
+remaining fulfillment and `not_applicable` otherwise. Existing canonical blocker
+codes describe current readiness; they do not establish the historical cause of
+nonexecution. Missing outbound-delivery objects do not establish a conversion
+requirement. This read does not infer a historical cause from present blockers.
+
+These shared read additions need no new tool, permission or browser access. Native
+and external agents receive the same service evidence. Accurate tool output does not
+guarantee arbitrary free-form provider prose; the real broad daily response still
+has documented inaccuracies. See [spec366 verification](../../specs/366-daily-evidence-summary/verification.md).
+
 ## Physical shipments
 
 `shipments_list` returns tenant-scoped real consignments with Package tracking references,
