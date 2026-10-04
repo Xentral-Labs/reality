@@ -7064,7 +7064,7 @@ def reject_proposal(
     Return an already rejected proposal unchanged.
 
     BUSINESS RULE application.reject_proposal.2:
-    Refuse rejection of a proposal in any other state.
+    Reread email decisions under the shared delivery/proposal locks before checking state; refuse rejection of a proposal in any other state.
 
     BUSINESS RULE application.reject_proposal.3:
     After shared decision-policy validation, record rejected state and decision attribution and commit.
@@ -7075,6 +7075,21 @@ def reject_proposal(
             ChangeProposal.id == proposal_id,
         )
     )
+    if existing is None:
+        raise NotFound(code="proposal_not_found")
+    if existing.type == "tool:email_dispatch_authorize":
+        from reality.services.business_locks import lock_delivery_state
+
+        # Match grant acceptance/claim lock order and reread any stale ORM state.
+        lock_delivery_state(session, tenant_id)
+        existing = session.scalar(
+            select(ChangeProposal)
+            .where(
+                ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == proposal_id
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
     if existing is None:
         raise NotFound(code="proposal_not_found")
     # reality-rule: application.reject_proposal.1
