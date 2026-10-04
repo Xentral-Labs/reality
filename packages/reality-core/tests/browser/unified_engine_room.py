@@ -28,7 +28,7 @@ def test_live_monitor_shows_web_and_mcp_accesses(postgres_database, tmp_path):
     try:
         with sessionmaker(engine, expire_on_commit=False)() as session:
             tenant = core.create_tenant(session, "Engine room company")
-            core.create_item(session, tenant.id, "LAMP-1", "Desk lamp")
+            reviewed_create_item(session, tenant.id, "LAMP-1", "Desk lamp")
             owner = add_member(
                 session, tenant.id, "owner@example.test", "Olga Owner", "owner"
             )
@@ -63,3 +63,6 @@ def test_live_monitor_shows_web_and_mcp_accesses(postgres_database, tmp_path):
             artifacts,
         )
     print(f"Live monitor verified against a live stack; artifacts: {artifacts}")
+
+
+from intake_review_support import reviewed_create_item

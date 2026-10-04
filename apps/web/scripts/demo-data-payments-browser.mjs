@@ -7,14 +7,22 @@
 //           DEMO_O2C_TENANT (reuse an existing connected company instead of creating one),
 //           DEMO_O2C_RATE (300), DEMO_O2C_WAIT_MINUTES (25, first settled invoice),
 //           DEMO_O2C_DIFFERENCE_WAIT_MINUTES (150, residual and unmatched payment),
-//           DEMO_O2C_ARTIFACTS (default /private/tmp/reality-demo-o2c-browser).
+//           DEMO_O2C_ARTIFACTS (default /tmp/reality-demo-o2c-browser).
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+
+const canonicalSource = (value) => Array.isArray(value)
+  ? value.map(canonicalSource)
+  : value !== null && typeof value === "object"
+    ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalSource(value[key])]))
+    : value;
+
 import { pathToFileURL } from "node:url";
 import { mkdir, writeFile } from "node:fs/promises";
 
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const base = (process.env.DEMO_O2C_BASE_URL || "http://127.0.0.1:8080").replace(/\/$/, "");
-const out = process.env.DEMO_O2C_ARTIFACTS || "/private/tmp/reality-demo-o2c-browser";
+const out = process.env.DEMO_O2C_ARTIFACTS || "/tmp/reality-demo-o2c-browser";
 const rate = Number(process.env.DEMO_O2C_RATE || 300);
 const waitMinutes = Number(process.env.DEMO_O2C_WAIT_MINUTES || 25);
 const differenceWaitMinutes = Number(process.env.DEMO_O2C_DIFFERENCE_WAIT_MINUTES || 150);
@@ -110,11 +118,63 @@ assert.ok((await block.locator("a[href*='finance_view=journal']").count()) === 1
 await page.screenshot({ path: `${out}/01-panel-started.png`, fullPage: true });
 log("panel shows the order-to-cash block");
 
+// The explicitly invoked soak fixture supplies a bounded Owner reviewer. Production
+// source controls still grant no decision authority. Every original is read and each
+// retained exact digest is separately confirmed using the authenticated Owner cookie.
+const reviewLimit = Number(process.env.DEMO_O2C_REVIEW_LIMIT || 5000);
+assert.ok(Number.isInteger(reviewLimit) && reviewLimit > 0 && reviewLimit <= 5000);
+let reviewed = 0;
+const reviewSources = async () => {
+  const prefix = `/api/tenants/${encodeURIComponent(tenant)}`;
+  const pending = await request("GET", `${prefix}/change-proposals?status=pending&tool=intake_apply&size=25`);
+  for (const candidate of pending.items) {
+    assert.ok(reviewed < reviewLimit, "The explicitly bounded reviewer fixture is exhausted");
+    let id = candidate.id;
+    let accepted = false;
+    for (let attempt = 0; attempt < 3 && !accepted; attempt++) {
+      const review = await request("GET", `${prefix}/change-proposals/${id}/review`);
+      const plan = review.input.plan;
+      assert.equal(review.status, "proposed");
+      assert.ok(["demo.order", "sales_invoice.v1", "customer_payment.v1"].includes(plan.profile));
+      const original = await context.request.get(`${base}${prefix}/intake-units/${id}/original`);
+      assert.equal(original.status(), 200);
+      const text = await original.text();
+      assert.equal(original.headers()["x-source-digest"], plan.source_hash);
+      assert.equal(createHash("sha256").update(JSON.stringify(canonicalSource(JSON.parse(text)))).digest("hex"), plan.source_hash);
+      assert.equal(JSON.parse(text).synthetic, true);
+      const response = await context.request.post(`${base}${prefix}/change-proposals/${id}/approve`, {
+        data: { confirmed: true, review_token: review.input.digest },
+      });
+      const result = await response.json();
+      if (!response.ok()) {
+        assert.equal(result.code, "intake_review_stale", JSON.stringify(result));
+        assert.ok(attempt < 2, "Current-state changes exhausted the bounded fresh-review attempts");
+        const renewed = await request("POST", `${prefix}/intake-units/${id}/renew`, {
+          job_id: plan.import_job_id, request_id: key("fresh-review"),
+        });
+        id = renewed.id;
+        continue;
+      }
+      const receipt = await request("GET", `${prefix}/change-proposals/${id}/review`);
+      assert.equal(receipt.status, "executed");
+      assert.equal(receipt.decider.kind, "person");
+      assert.equal(receipt.receipt.source_record_id, plan.source_record_id);
+      assert.equal(receipt.receipt.digest, review.input.digest);
+      accepted = true;
+      reviewed++;
+      log("explicit Owner fixture confirmed exact synthetic source", {
+        proposal_id: id, source_record_id: plan.source_record_id, digest: review.input.digest, reviewed, reviewLimit,
+      });
+    }
+  }
+};
+
 // 4. Wait for the stream: the first booked invoice and the first settled invoice.
 const until = async (label, minutes, predicate) => {
   const deadline = Date.now() + minutes * 60_000;
   let last;
   while (Date.now() < deadline) {
+    await reviewSources();
     last = (await request("GET", demo)).order_to_cash;
     if (predicate(last)) {
       log(label, last);

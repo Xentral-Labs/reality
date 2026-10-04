@@ -182,10 +182,10 @@ def prepare_committed(factory, tenant, actor):
     with factory() as session:
         business = SimpleNamespace(
             tenant=session.get(Tenant, tenant),
-            company=core.create_party(session, tenant, "Company", "company"),
-            supplier=core.create_party(session, tenant, "Supplier", "supplier"),
-            item=core.create_item(session, tenant, "FIRST", "First"),
-            location=core.create_location(session, tenant, "Warehouse"),
+            company=reviewed_create_party(session, tenant, "Company", "company"),
+            supplier=reviewed_create_party(session, tenant, "Supplier", "supplier"),
+            item=reviewed_create_item(session, tenant, "FIRST", "First"),
+            location=reviewed_create_location(session, tenant, "Warehouse"),
         )
         action, _ = confirmed(session, business, session.get(AppUser, actor))
         session.commit()
@@ -427,3 +427,10 @@ def test_joint_disappearing_cache_never_replays_during_publication(
         ]
         == 1
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

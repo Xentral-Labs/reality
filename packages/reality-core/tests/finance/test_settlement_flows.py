@@ -366,7 +366,7 @@ def test_rejects_foreign_party_blocked_and_reversed_credit(session, business):
         propose(session, tenant, invoice.id, amount="102", allocation_amount="100"),
     )
     origin = result["payment"]["document_id"]
-    party = core.create_party(session, tenant, "Another customer", "customer")
+    party = reviewed_create_party(session, tenant, "Another customer", "customer")
     other = core.create_document(
         session, tenant, "sales_invoice", "OTHER", party.id, "10"
     )
@@ -602,7 +602,7 @@ def test_concurrent_payment_confirmations_only_consume_once(postgres_database):
     try:
         with Session(engine, expire_on_commit=False) as session:
             tenant = core.create_tenant(session, "Concurrent payments")
-            customer = core.create_party(session, tenant.id, "Customer", "customer")
+            customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
             invoice = invoice_for(
                 session, SimpleNamespace(tenant=tenant, customer=customer), "customer"
             )
@@ -730,3 +730,6 @@ def test_payment_credit_context_carries_candidate_reasons(session, business):
     )
     assert execute(session, tenant, proposal)["allocation_id"]
     assert settlement_context(session, tenant, payment.id)["candidates"] == []
+
+
+from intake_review_support import reviewed_create_party

@@ -157,7 +157,7 @@ def test_foreign_build_read_and_relation_refuse(session, business, cost_owner):
         session.execute(inventory_relation(other.id, built["generation_id"])).all()
         == []
     )
-    second = core.create_item(session, business.tenant.id, "SECOND", "Second item")
+    second = reviewed_create_item(session, business.tenant.id, "SECOND", "Second item")
     with pytest.raises(core.NotFound):
         inventory_cost_snapshot(
             session, business.tenant.id, second.id, generation_id=built["generation_id"]
@@ -343,10 +343,10 @@ def prepare_committed(factory, tenant, actor):
     with factory() as session:
         business = SimpleNamespace(
             tenant=session.get(Tenant, tenant),
-            company=core.create_party(session, tenant, "Company", "company"),
-            supplier=core.create_party(session, tenant, "Supplier", "supplier"),
-            item=core.create_item(session, tenant, "CACHE", "Cache item"),
-            location=core.create_location(session, tenant, "Warehouse"),
+            company=reviewed_create_party(session, tenant, "Company", "company"),
+            supplier=reviewed_create_party(session, tenant, "Supplier", "supplier"),
+            item=reviewed_create_item(session, tenant, "CACHE", "Cache item"),
+            location=reviewed_create_location(session, tenant, "Warehouse"),
         )
         owner = session.get(AppUser, actor)
         review = reviewed(session, business, owner)
@@ -439,7 +439,7 @@ def test_late_commit_during_build_and_atomic_visibility(
                     inventory_cost_snapshot(session, tenant, item)["freshness"]["state"]
                     == "uninitialized"
                 )
-                location = core.create_location(session, tenant, "Late arrival")
+                location = reviewed_create_location(session, tenant, "Late arrival")
                 core.record_movement(
                     session, tenant, "receipt", item, "1", to_location_id=location.id
                 )
@@ -562,3 +562,10 @@ def test_new_review_does_not_fall_back_to_previous_cached_review(
         ]
         == latest
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

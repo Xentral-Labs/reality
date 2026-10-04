@@ -2567,3 +2567,9 @@ Automatic file-adapter cutover remains open until spec 356.
 - `packages/reality-core/tests/test_bootstrap.py`: configured database bootstrap creates only the empty tenant; no unconfirmed business fixture is accepted.
 
 These proofs do not yet certify universal writer coverage or completed rollout gates.
+
+- `packages/reality-core/tests/test_canonical_master_boundary.py`: spec 356 FR-001–FR-003; direct master update and unconfirmed REST refusal leave no accepted effects, including disabled authentication.
+- `packages/reality-core/tests/test_fixed_master_intent.py`: spec 356 FR-003; confirmed fixed setup refuses changed master arguments and duplicate effects atomically.
+- `packages/reality-core/tests/legacy_business_support.py`: explicit historical test construction preserves unknown creating attribution and pinned migration rows without granting runtime authority.
+
+- `packages/reality-core/tests/test_master_token_authority.py`: spec 356 FR-003; actual confirming token revocation or loss of confirmation permission after dispatch refuses canonical master effects.

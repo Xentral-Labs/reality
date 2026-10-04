@@ -25,7 +25,7 @@ from reality.services.account_deletion import (
     application_account_id,
     delete_account,
 )
-from reality.services.core import InvalidOperation, NotFound, create_party
+from reality.services.core import InvalidOperation, NotFound
 
 
 def make_user(session, email, *, platform_admin=False):
@@ -130,7 +130,7 @@ def test_preview_names_owned_and_shared_companies(session, admin):
     applicant = make_user(session, "free5@example.com")
     make_application(session, applicant)
     owned = make_company(session, "Own Company", applicant)
-    create_party(session, owned.id, "Customer", "customer")
+    reviewed_create_party(session, owned.id, "Customer", "customer")
     shared = make_company(session, "Shared Company", applicant)
     join(session, shared, admin, role="owner")
     make_sandbox(session, "Sandbox", applicant)
@@ -152,7 +152,7 @@ def test_deletes_account_with_its_sole_owned_companies(session, admin):
     applicant = make_user(session, "free4@example.com")
     application = make_application(session, applicant)
     company = make_company(session, "Test GmbH", applicant)
-    create_party(session, company.id, "Customer", "customer")
+    reviewed_create_party(session, company.id, "Customer", "customer")
     sandbox = make_sandbox(session, "Practice", applicant)
     session.add(
         UserSession(
@@ -215,7 +215,7 @@ def test_shared_company_survives_its_deleted_owner(session, admin):
     make_application(session, applicant)
     shared = make_company(session, "Two Owners", applicant)
     join(session, shared, admin, role="owner")
-    party = create_party(session, shared.id, "Customer", "customer")
+    party = reviewed_create_party(session, shared.id, "Customer", "customer")
     joined = make_company(session, "Someone Else", admin)
     join(session, joined, applicant, role="member")
     applicant_id, shared_id, joined_id, party_id = (
@@ -297,7 +297,7 @@ def test_refusal_leaves_every_row_in_place(session, admin):
     applicant = make_user(session, "intact@example.com")
     make_application(session, applicant)
     company = make_company(session, "Still Here", applicant)
-    create_party(session, company.id, "Customer", "customer")
+    reviewed_create_party(session, company.id, "Customer", "customer")
     before = user_references(session, applicant.id)
 
     with pytest.raises(InvalidOperation):
@@ -344,3 +344,6 @@ def test_unknown_application_and_account_are_not_found(session, admin):
         application_account_id(session, "app_missing")
     with pytest.raises(NotFound):
         account_deletion_preview(session, "usr_missing")
+
+
+from intake_review_support import reviewed_create_party

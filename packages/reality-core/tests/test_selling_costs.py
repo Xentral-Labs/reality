@@ -441,7 +441,7 @@ def test_selling_foreign_links_and_historical_read_refuse(
     args, data = revenue.prepared(session, business, cost_owner)
     doc = costs.evidence(session, business, "24", "0")
     other = core.create_tenant(session, "Neighbor")
-    party = core.create_party(session, other.id, "Neighbor customer", "customer")
+    party = reviewed_create_party(session, other.id, "Neighbor customer", "customer")
     foreign_doc, lines = core.create_manual_document_with_lines(
         session,
         other.id,
@@ -683,3 +683,6 @@ def test_selling_review_requires_all_categories_and_exact_precision():
         parts[0]["source_share"] = amount
         with pytest.raises(ValueError):
             SellingAssign.model_validate(request(parts=parts))
+
+
+from intake_review_support import reviewed_create_party

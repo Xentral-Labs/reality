@@ -25,7 +25,7 @@ def ask(session, tenant, **query):
 def two_customers(session, business):
     """Two customers with an open invoice each, so a filter has something to cut."""
     tenant = business.tenant.id
-    other = core.create_party(session, tenant, "Schmidt AG", "customer")
+    other = reviewed_create_party(session, tenant, "Schmidt AG", "customer")
     for party, number in ((business.customer, "INV-A"), (other, "INV-B")):
         document = core.create_document(
             session,
@@ -190,3 +190,6 @@ def test_a_narrower_share_is_never_served_to_a_wider_question(
     )
     assert sum(row["open"] for row in one) == Decimal(100)
     assert sum(row["open"] for row in everyone) == Decimal(200)
+
+
+from intake_review_support import reviewed_create_party

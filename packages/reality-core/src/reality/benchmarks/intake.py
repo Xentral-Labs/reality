@@ -90,6 +90,8 @@ def run_trial(
         Document,
         DocumentLine,
         Item,
+        Location,
+        Party,
         TenantMembership,
     )
     from reality.db.scheduled_jobs import ScheduledJobRun
@@ -149,18 +151,25 @@ def run_trial(
                     status="active",
                 )
             )
-            company = core.create_party(session, tenant.id, "Volume company", "company")
-            customer = core.create_party(
-                session, tenant.id, "Volume customer", "customer"
-            )
-            location = core.create_location(session, tenant.id, "Volume warehouse")
-            item = (
-                core.create_item(session, tenant.id, "VOLUME-ITEM", "Volume item")
-                if workload == "orders"
-                else None
-            )
-            session.commit()
             principal = Principal(owner.id)
+
+            def reviewed_master(family, record):
+                # Finite, named benchmark-owner confirmations are fixture setup.
+                # They complete before the measured preparation/review/apply phases.
+                from reality.tools.application import (
+                    approve_and_execute_proposal,
+                    create_change_proposal,
+                )
+
+                proposal = create_change_proposal(session, tenant.id, f"{family}_create", {"records": [record]})
+                receipt = approve_and_execute_proposal(session, tenant.id, proposal.id, confirming_principal=principal, confirmed=True)
+                identity = json.loads(receipt.output)["records"][0]["id"]
+                return core._tenant_record_read(session, {"party": Party, "location": Location, "item": Item}[family], tenant.id, identity)
+
+            company = reviewed_master("party", {"name": "Volume company", "type": "company", "roles": ["company"]})
+            customer = reviewed_master("party", {"name": "Volume customer", "type": "customer", "roles": ["customer"]})
+            location = reviewed_master("location", {"name": "Volume warehouse", "type": "warehouse"})
+            item = reviewed_master("item", {"sku": "VOLUME-ITEM", "name": "Volume item", "unit": "pcs"}) if workload == "orders" else None
             start_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
             start_total = time.perf_counter()
             entries = []

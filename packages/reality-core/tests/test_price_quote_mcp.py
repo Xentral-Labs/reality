@@ -6,8 +6,6 @@ from reality.services.core import (
     add_party_group_member,
     assign_group_price_list,
     assign_party_price_list,
-    create_item,
-    create_party,
     create_party_group,
     create_price_list,
     create_price_list_entry,
@@ -134,10 +132,13 @@ def test_price_quote_exposes_group_and_default_selection_paths(session, business
 
 def test_price_quote_does_not_disclose_foreign_party_or_item(session, business):
     foreign = create_tenant(session, "Foreign pricing")
-    party = create_party(session, foreign.id, "Foreign party", "customer")
-    item = create_item(session, foreign.id, "FOREIGN", "Foreign item")
+    party = reviewed_create_party(session, foreign.id, "Foreign party", "customer")
+    item = reviewed_create_item(session, foreign.id, "FOREIGN", "Foreign item")
 
     with pytest.raises(NotFound):
         quote(session, business.tenant.id, party.id, business.item.id)
     with pytest.raises(NotFound):
         quote(session, business.tenant.id, business.customer.id, item.id)
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

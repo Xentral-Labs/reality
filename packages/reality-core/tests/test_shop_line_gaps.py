@@ -254,7 +254,7 @@ def test_an_unknown_item_without_a_price_can_still_be_assigned(session, business
     from reality.services.order_line_items import assign_line_item
 
     tenant = business.tenant.id
-    helmet = core.create_item(session, tenant, "HELMET-M", "Helmet M")
+    helmet = reviewed_create_item(session, tenant, "HELMET-M", "Helmet M")
     _, interpreted = _intake(
         session,
         business,
@@ -343,3 +343,6 @@ def test_a_file_row_stating_zero_is_a_free_line(session, business):
     assert _stated_price({"price": 3}) == Decimal(3)
     assert _stated_price({"unit_price": "", "price": None}) is None
     assert _stated_price({}) is None
+
+
+from intake_review_support import reviewed_create_item

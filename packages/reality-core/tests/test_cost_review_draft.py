@@ -386,7 +386,7 @@ def test_an_item_may_be_named_by_its_sku_or_exact_name(session, business, cost_o
     # Wildcards in the reference are literal characters, not patterns.
     with pytest.raises(core.NotFound):
         cost_review_draft(session, business.tenant.id, kind="inventory", scope_id="%")
-    core.create_item(session, business.tenant.id, "TWIN-1", business.item.name)
+    reviewed_create_item(session, business.tenant.id, "TWIN-1", business.item.name)
     with pytest.raises(core.InvalidOperation):
         cost_review_draft(
             session, business.tenant.id, kind="inventory", scope_id=business.item.name
@@ -400,3 +400,6 @@ def test_an_item_may_be_named_by_its_sku_or_exact_name(session, business, cost_o
         cost_review_draft(
             session, other.id, kind="inventory", scope_id=business.item.sku
         )
+
+
+from intake_review_support import reviewed_create_item

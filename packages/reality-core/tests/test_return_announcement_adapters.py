@@ -279,11 +279,10 @@ def test_the_cli_carries_both_references(session, business, monkeypatch):
 def test_return_disposition_web_and_shared_read_use_same_service(
     session, business, monkeypatch, disposition
 ):
-    from reality.services.core import create_location
 
     commitment, announcement = announced_delivery(session, business)
-    area = create_location(session, business.tenant.id, "Returns inspection")
-    quarantine = create_location(session, business.tenant.id, "Quarantine")
+    area = reviewed_create_location(session, business.tenant.id, "Returns inspection")
+    quarantine = reviewed_create_location(session, business.tenant.id, "Quarantine")
     arrived = record_movement(
         session,
         business.tenant.id,
@@ -411,3 +410,6 @@ def test_return_disposition_read_does_not_disclose_foreign_return(
         f"/api/tenants/{foreign.id}/return-dispositions/{arrived.id}"
     )
     assert response.status_code == 404
+
+
+from intake_review_support import reviewed_create_location

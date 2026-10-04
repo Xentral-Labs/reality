@@ -365,7 +365,7 @@ def test_source_mapping_concurrent_scope_activation(scheduled_database):
 
     _, factory, tenant, _ = scheduled_database
     with factory() as db:
-        customer = core.create_party(db, tenant, "Concurrent customer", "customer")
+        customer = reviewed_create_party(db, tenant, "Concurrent customer", "customer")
         tenant, source, case, _ = setup(
             db, SimpleNamespace(tenant=SimpleNamespace(id=tenant), customer=customer)
         )
@@ -407,7 +407,7 @@ def test_source_mapping_migration_preserves_ledger_and_history(
     try:
         with Session(engine) as db:
             tenant = create_legacy_tenant(db, "Source mapping migration").id
-            customer = core.create_party(db, tenant, "Customer", "customer")
+            customer = historical_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
                 db,
                 tenant,
@@ -421,7 +421,9 @@ def test_source_mapping_migration_preserves_ledger_and_history(
             customer = SimpleNamespace(id=customer.id)
             before = (
                 db.execute(
-                    text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
+                    text(
+                        "SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id"
+                    )
                 )
                 .scalars()
                 .all()
@@ -430,7 +432,9 @@ def test_source_mapping_migration_preserves_ledger_and_history(
         with Session(engine) as db:
             assert (
                 db.execute(
-                    text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
+                    text(
+                        "SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id"
+                    )
                 )
                 .scalars()
                 .all()
@@ -492,3 +496,7 @@ def test_source_mapping_searches_are_independent_and_group_resolution_is_exact(
     assert resolution["case"]["reference"]["id"] == case["id"]
     assert resolution["group"]["reference"]["id"] == group["id"]
     assert resolution["case"]["mapping_id"] != resolution["group"]["mapping_id"]
+
+
+from intake_review_support import reviewed_create_party
+from legacy_business_support import historical_party

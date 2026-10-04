@@ -334,7 +334,7 @@ def test_concurrent_payment_and_reversal_do_not_bypass_review(postgres_database)
             tenant = core.create_tenant(session, "Concurrent finance")
             b = SimpleNamespace(
                 tenant=tenant,
-                customer=core.create_party(session, tenant.id, "Customer", "customer"),
+                customer=reviewed_create_party(session, tenant.id, "Customer", "customer"),
             )
             invoice, ig, _ = fixture(session, b)
             first = prepare(session, b, ig)
@@ -415,3 +415,6 @@ def test_a_reversal_reviewed_before_company_amounts_still_verifies(session, busi
         delivery_proposal_detail(session, business.tenant.id, p.id)["verification"]
         == "verified"
     )
+
+
+from intake_review_support import reviewed_create_party

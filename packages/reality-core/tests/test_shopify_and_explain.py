@@ -11,7 +11,6 @@ from reality.db.core import Commitment, Document, ImportJob, SourceRecord
 from reality.services.core import (
     InvalidOperation,
     commitment_quantity,
-    create_item,
     enqueue_shopify_order,
     explain_commitment,
 )
@@ -127,7 +126,7 @@ def test_first_version_failure_retries_but_changed_version_requires_review(
 ):
 
     payload = json.loads(FIXTURE.read_text())
-    create_item(session, business.tenant.id, "LATER", "Later item")
+    reviewed_create_item(session, business.tenant.id, "LATER", "Later item")
     payload["line_items"][0]["sku"] = "LATER"
     from reality.services import shopify_intake
 
@@ -219,3 +218,6 @@ def test_stale_and_conflicting_webhooks_are_stored_but_not_interpreted(
     assert current[1].status == "recorded"
     assert session.scalar(select(func.count()).select_from(SourceRecord)) == 3
     assert session.scalar(select(func.count()).select_from(Document)) == 1
+
+
+from intake_review_support import reviewed_create_item

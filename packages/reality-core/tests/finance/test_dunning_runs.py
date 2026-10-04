@@ -459,7 +459,7 @@ def test_a_reversed_notice_does_not_count(session, business):
 
 def test_notices_group_by_customer_currency_and_level(session, business):
     tenant = _scheduled(session, business)
-    other = core.create_party(session, tenant, "Weber AG", "customer")
+    other = reviewed_create_party(session, tenant, "Weber AG", "customer")
     first = _dated_invoice(session, business, "INV-T012-A", "2026-08-01")
     second = _dated_invoice(session, business, "INV-T012-B", "2026-08-02")
     dollars = _dated_invoice(
@@ -488,7 +488,7 @@ def test_notices_group_by_customer_currency_and_level(session, business):
 
 def test_a_run_can_be_limited_to_selected_customers(session, business):
     tenant = _scheduled(session, business)
-    other = core.create_party(session, tenant, "Weber AG", "customer")
+    other = reviewed_create_party(session, tenant, "Weber AG", "customer")
     mine = _dated_invoice(session, business, "INV-T012-MINE", "2026-08-01")
     _dated_invoice(session, business, "INV-T012-THEIRS", "2026-08-01", party=other)
 
@@ -750,7 +750,7 @@ def test_a_failing_notice_leaves_the_whole_run_unrecorded(
 ):
     tenant = _scheduled(session, business)
     first = _dated_invoice(session, business, "INV-T014-ATOM-1", "2026-08-01")
-    other = core.create_party(session, tenant, "Weber AG", "customer")
+    other = reviewed_create_party(session, tenant, "Weber AG", "customer")
     second = _dated_invoice(
         session, business, "INV-T014-ATOM-2", "2026-08-01", party=other
     )
@@ -856,7 +856,7 @@ def test_collection_needs_a_level_three_notice(session, business, level):
 
 def test_collection_refusals_name_their_reason(session, business):
     tenant = _scheduled(session, business)
-    other = core.create_party(session, tenant, "Weber AG", "customer")
+    other = reviewed_create_party(session, tenant, "Weber AG", "customer")
     mine = _at_level_three(session, business, "INV-T016-MINE")
     theirs = _at_level_three(session, business, "INV-T016-THEIRS", party=other)
     paid = _at_level_three(session, business, "INV-T016-PAID")
@@ -918,7 +918,7 @@ def _statements(session, action):
 
 def test_preparing_a_run_does_not_query_per_invoice(session, business):
     tenant = _scheduled(session, business)
-    other = core.create_party(session, tenant, "Weber AG", "customer")
+    other = reviewed_create_party(session, tenant, "Weber AG", "customer")
     for index in range(2):
         invoice = _dated_invoice(session, business, f"INV-T013-A{index}", "2026-07-01")
         _notice(session, tenant, invoice, 1, "2026-08-01")
@@ -1078,7 +1078,7 @@ def test_a_run_proposal_under_a_changed_schedule_is_refused(session, business):
 
 def test_an_open_item_outside_the_run_is_not_due_rather_than_paid(session, business):
     tenant = _scheduled(session, business)
-    other = core.create_party(session, tenant, "Weber AG", "customer")
+    other = reviewed_create_party(session, tenant, "Weber AG", "customer")
     mine = _dated_invoice(session, business, "INV-T027-MINE", "2026-08-01")
     theirs = _dated_invoice(
         session, business, "INV-T027-THEIRS", "2026-08-01", party=other
@@ -1120,3 +1120,6 @@ def test_customers_of_a_run_are_a_list(session, business):
             session, tenant, run_date="2026-09-01", party_ids=business.customer.id
         )
     assert refused.value.code == "dunning_run_parties_invalid"
+
+
+from intake_review_support import reviewed_create_party

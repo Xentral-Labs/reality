@@ -9,10 +9,7 @@ from reality.services.core import (
     NotFound,
     cancel_commitment,
     create_document,
-    create_item,
-    create_location,
     create_manual_order,
-    create_party,
     create_tenant,
     post_ledger,
     record_movement,
@@ -99,7 +96,7 @@ def test_currency_balances_and_ledger_direction(session, business):
 
 def test_discovery_traverses_over_one_hundred_and_binds_cursor(session, business):
     for index in range(104):
-        create_item(session, business.tenant.id, f"PAGE-{index:03}", f"Paged {index}")
+        reviewed_create_item(session, business.tenant.id, f"PAGE-{index:03}", f"Paged {index}")
     args = {"family": "item", "query": "PAGE-", "limit": 17}
     result = read(session, business, "business_records_discover", **args)
     first_cursor = result["next_cursor"]
@@ -163,7 +160,7 @@ def test_invalid_page_arguments_refused(session, business, arguments):
 
 
 def test_inventory_location_and_aggregate_use_same_stock(session, business):
-    other = create_location(session, business.tenant.id, "Other")
+    other = reviewed_create_location(session, business.tenant.id, "Other")
     record_movement(
         session,
         business.tenant.id,
@@ -194,7 +191,7 @@ def test_inventory_location_and_aggregate_use_same_stock(session, business):
     }
     assert all(r["unit"] == "pcs" for r in all_locations["records"])
     foreign = create_tenant(session, "Other location owner")
-    foreign_location = create_location(session, foreign.id, "Foreign")
+    foreign_location = reviewed_create_location(session, foreign.id, "Foreign")
     with pytest.raises(NotFound):
         read(session, business, "inventory_read", location_id=foreign_location.id)
 
@@ -348,7 +345,7 @@ def test_mcp_page_default_and_legacy_internal_compatibility(session, business):
 def test_reserved_local_stock_and_cursor_filter_scope(session, business):
     from reality.services.core import create_commitment
 
-    other = create_location(session, business.tenant.id, "Stocked")
+    other = reviewed_create_location(session, business.tenant.id, "Stocked")
     record_movement(
         session,
         business.tenant.id,
@@ -432,7 +429,7 @@ def test_unit_mismatch_and_missing_unit_are_not_converted(session, business):
 
 def test_exact_page_end_and_live_insert_contract(session, business):
     for i in range(3):
-        create_item(session, business.tenant.id, f"EXACT-{i}", f"Exact {i}")
+        reviewed_create_item(session, business.tenant.id, f"EXACT-{i}", f"Exact {i}")
     args = {"family": "item", "query": "EXACT", "limit": 3}
     end = read(session, business, "business_records_discover", **args)
     assert (
@@ -441,7 +438,7 @@ def test_exact_page_end_and_live_insert_contract(session, business):
     first = read(
         session, business, "business_records_discover", **(args | {"limit": 1})
     )
-    created = create_item(session, business.tenant.id, "EXACT-NEW", "Exact new")
+    created = reviewed_create_item(session, business.tenant.id, "EXACT-NEW", "Exact new")
     second = read(
         session,
         business,
@@ -494,9 +491,9 @@ def test_diagnostic_services_exclude_foreign_reality(session, business):
     )
 
     foreign = create_tenant(session, "Foreign diagnostic records")
-    foreign_party = create_party(session, foreign.id, "Foreign customer", "customer")
-    foreign_item = create_item(session, foreign.id, "FOREIGN", "Foreign item")
-    foreign_location = create_location(session, foreign.id, "Foreign warehouse")
+    foreign_party = reviewed_create_party(session, foreign.id, "Foreign customer", "customer")
+    foreign_item = reviewed_create_item(session, foreign.id, "FOREIGN", "Foreign item")
+    foreign_location = reviewed_create_location(session, foreign.id, "Foreign warehouse")
     record_movement(
         session,
         foreign.id,
@@ -566,3 +563,10 @@ def test_order_explanation_keeps_closed_and_open_lines_together(session, busines
     assert Decimal(lines[deliveries[1].id]["open_quantity"]) == 1
     assert explained["fulfillment"]["readiness"] == "blocked"
     assert len(explained["document_lines"]) == 2
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

@@ -28,10 +28,7 @@ from reality.services.core import (
     connector_shells,
     correct_movement,
     create_handling_unit,
-    create_item,
-    create_location,
     create_lot,
-    create_party,
     create_party_group,
     create_payment_term,
     create_price_list,
@@ -73,9 +70,6 @@ from reality.services.core import (
     source_records,
     source_systems,
     tenants,
-    update_item,
-    update_location,
-    update_party,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -927,24 +921,12 @@ def party_create(
     default_currency: str = "EUR",
     credit_limit: str = "0",
     tax_identifier: str = "",
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            party = create_party(
-                s,
-                selected.id,
-                name,
-                party_type,
-                source_system=source_system,
-                external_id=external_id,
-                roles=role,
-                accounting_code=accounting_code,
-                payment_term_code=payment_term_code,
-                default_currency=default_currency,
-                credit_limit=credit_limit,
-                tax_identifier=tax_identifier,
-            )
+            party = _confirmed_master_record(s, selected.id, 'party', 'create', {'name': name, 'type': party_type, 'source_system': source_system, 'external_id': external_id, 'roles': role or [party_type], 'accounting_code': accounting_code, 'payment_term_code': payment_term_code, 'default_currency': default_currency, 'credit_limit': credit_limit, 'tax_identifier': tax_identifier}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(f"✓ Party created: {party.name} ({party.id})")
@@ -964,25 +946,12 @@ def party_update(
     default_currency: str | None = None,
     credit_limit: str | None = None,
     tax_identifier: str | None = None,
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            party = update_party(
-                s,
-                selected.id,
-                party_id,
-                name,
-                party_type,
-                source_system=source_system,
-                external_id=external_id,
-                roles=role,
-                accounting_code=accounting_code,
-                payment_term_code=payment_term_code,
-                default_currency=default_currency,
-                credit_limit=credit_limit,
-                tax_identifier=tax_identifier,
-            )
+            party = _confirmed_master_record(s, selected.id, 'party', 'update', {'id': party_id, 'name': name, 'type': party_type, 'source_system': source_system, 'external_id': external_id, 'roles': role or [party_type], 'accounting_code': accounting_code, 'payment_term_code': payment_term_code, 'default_currency': default_currency, 'credit_limit': credit_limit, 'tax_identifier': tax_identifier}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(f"✓ Party updated: {party.name} ({party.id})")
@@ -2301,25 +2270,12 @@ def item_create(
     purchase_unit: str | None = None,
     conversion_factor: str = "1",
     lead_time_days: int = 0,
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            item = create_item(
-                s,
-                selected.id,
-                sku,
-                name,
-                unit,
-                source_system=source_system,
-                external_id=external_id,
-                item_type=item_type,
-                tracking_type=tracking_type,
-                default_location_id=default_location_id,
-                purchase_unit=purchase_unit,
-                conversion_factor=conversion_factor,
-                lead_time_days=lead_time_days,
-            )
+            item = _confirmed_master_record(s, selected.id, 'item', 'create', {'sku': sku, 'name': name, 'unit': unit, 'source_system': source_system, 'external_id': external_id, 'item_type': item_type, 'tracking_type': tracking_type, 'default_location_id': default_location_id, 'purchase_unit': purchase_unit, 'conversion_factor': conversion_factor, 'lead_time_days': lead_time_days}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(f"✓ Item created: {item.name} · {item.sku} ({item.id})")
@@ -2340,26 +2296,12 @@ def item_update(
     purchase_unit: str | None = None,
     conversion_factor: str | None = None,
     lead_time_days: int | None = None,
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            item = update_item(
-                s,
-                selected.id,
-                item_id,
-                sku,
-                name,
-                unit,
-                source_system=source_system,
-                external_id=external_id,
-                item_type=item_type,
-                tracking_type=tracking_type,
-                default_location_id=default_location_id,
-                purchase_unit=purchase_unit,
-                conversion_factor=conversion_factor,
-                lead_time_days=lead_time_days,
-            )
+            item = _confirmed_master_record(s, selected.id, 'item', 'update', {'id': item_id, 'sku': sku, 'name': name, 'unit': unit, 'source_system': source_system, 'external_id': external_id, 'item_type': item_type, 'tracking_type': tracking_type, 'default_location_id': default_location_id, 'purchase_unit': purchase_unit, 'conversion_factor': conversion_factor, 'lead_time_days': lead_time_days}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(f"✓ Item updated: {item.name} · {item.sku} ({item.id})")
@@ -2396,20 +2338,12 @@ def location_create(
     allows_stock: bool = True,
     source_system: str = "",
     external_id: str = "",
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            location = create_location(
-                s,
-                selected.id,
-                name,
-                location_type,
-                parent_location_id=parent_location_id,
-                allows_stock=allows_stock,
-                source_system=source_system,
-                external_id=external_id,
-            )
+            location = _confirmed_master_record(s, selected.id, 'location', 'create', {'name': name, 'type': location_type, 'parent_location_id': parent_location_id, 'allows_stock': allows_stock, 'source_system': source_system, 'external_id': external_id}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(f"✓ Location created: {location.name} ({location.id})")
@@ -2425,21 +2359,12 @@ def location_update(
     allows_stock: bool | None = None,
     source_system: str | None = None,
     external_id: str | None = None,
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            location = update_location(
-                s,
-                selected.id,
-                location_id,
-                name,
-                location_type,
-                parent_location_id=parent_location_id,
-                allows_stock=allows_stock,
-                source_system=source_system,
-                external_id=external_id,
-            )
+            location = _confirmed_master_record(s, selected.id, 'location', 'update', {'id': location_id, 'name': name, 'type': location_type, 'parent_location_id': parent_location_id, 'allows_stock': allows_stock, 'source_system': source_system, 'external_id': external_id}, yes=yes)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(f"✓ Location updated: {location.name} ({location.id})")
@@ -4156,3 +4081,19 @@ def intake_stop_batch(
 
 if __name__ == "__main__":
     app()
+
+
+def _confirmed_master_record(session, tenant_id, family, mode, record, *, yes):
+    """Review one exact master-data command through the shared application executor."""
+    from reality.services.core import _tenant_record_read
+    from reality.tools.application import create_change_proposal
+
+    record = {key: value for key, value in record.items() if value is not None}
+    proposal = create_change_proposal(session, tenant_id, f"{family}_{mode}", {"records": [record]}, actor_type="human")
+    con.print_json(data=json.loads(proposal.output))
+    if not yes and not typer.confirm("Confirm these exact master-data changes?"):
+        con.print("Stopped; the proposal remains pending and no master data changed.")
+        raise typer.Exit()
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirmed=True)
+    identity = json.loads(receipt.output)["records"][0]["id"]
+    return _tenant_record_read(session, {"party": Party, "item": Item, "location": Location}[family], tenant_id, identity)

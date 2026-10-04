@@ -16,7 +16,7 @@ from reality.services.analytics.traversal import (
     TraversalRefused,
     run_traversal,
 )
-from reality.services.core import create_manual_order, create_party
+from reality.services.core import create_manual_order
 
 
 def line(item, quantity: str, amount: str) -> dict:
@@ -91,13 +91,13 @@ def sales(session, business):
 @pytest.fixture
 def neighbour(session, business):
     """A second company with a distinctive amount, to prove it never appears."""
-    from reality.services.core import create_item, create_location, create_tenant
+    from reality.services.core import create_tenant
 
     tenant = create_tenant(session, "Nachbar GmbH")
-    company = create_party(session, tenant.id, "Nachbar GmbH", "company")
-    customer = create_party(session, tenant.id, "Müller GmbH", "customer")
-    item = create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light")
-    location = create_location(session, tenant.id, "Fremdlager")
+    company = reviewed_create_party(session, tenant.id, "Nachbar GmbH", "company")
+    customer = reviewed_create_party(session, tenant.id, "Müller GmbH", "customer")
+    item = reviewed_create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light")
+    location = reviewed_create_location(session, tenant.id, "Fremdlager")
     create_manual_order(
         session,
         tenant.id,
@@ -891,3 +891,10 @@ def test_the_article_template_takes_the_line_value_not_the_order_value(
     with pytest.raises(TraversalRefused) as refusal:
         ask(session, business.tenant.id, **multiplied)
     assert refusal.value.code == "fan_out"
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

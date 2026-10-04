@@ -234,6 +234,11 @@ def test_generic_decision_path_cannot_mutate_sandbox_proposals(
             tenant.id,
             proposal.id,
             confirming_principal=memberships.Principal(user.id, is_platform_admin=True),
+            **(
+                {"confirmed": True}
+                if decision == "approve_and_execute_proposal"
+                else {}
+            ),
         )
     assert proposal.status == "proposed"
     assert proposal.decided_at is None

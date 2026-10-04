@@ -23,7 +23,6 @@ from reality.services.core import (
     create_tenant,
     record_movement,
     reserve,
-    update_item,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -176,7 +175,7 @@ def test_invalid_order_is_rejected_before_evidence(session, business, change):
 def test_stale_reference_and_unknown_recovery(session, business):
     proposal = prepare(session, business)
     item = business.item
-    update_item(
+    reviewed_update_item(
         session, business.tenant.id, item.id, item.sku, "Renamed item", item.unit
     )
     with pytest.raises(InvalidOperation, match="review"):
@@ -386,3 +385,6 @@ def test_creation_snapshot_must_prove_directed_commitments(session, business):
         ]
         == "unresolved"
     )
+
+
+from intake_review_support import reviewed_update_item

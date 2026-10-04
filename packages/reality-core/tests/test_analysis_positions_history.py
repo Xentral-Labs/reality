@@ -138,7 +138,7 @@ def test_detail_inventory_conserves_locations_and_unknown_tracking(session, busi
     from reality.services.inventory_positions import inventory_detail_rows
 
     tenant = business.tenant.id
-    second = core.create_location(session, tenant, "Other location")
+    second = reviewed_create_location(session, tenant, "Other location")
     receipt = core.record_movement(
         session,
         tenant,
@@ -260,7 +260,7 @@ def test_balances_are_not_truncated_at_register_page_size(session, business):
 
     tenant = business.tenant.id
     for i in range(101):
-        party = core.create_party(session, tenant, f"Customer {i}", "customer")
+        party = reviewed_create_party(session, tenant, f"Customer {i}", "customer")
         core.record_customer_payment(session, tenant, party.id, "1")
     assert len(party_balance_rows(session, tenant, side="customer")) == 101
     assert (
@@ -319,7 +319,7 @@ def test_lot_null_tracking_and_reservations_conserve_canonical_stock(session, bu
     from reality.services.inventory_positions import inventory_detail_rows
 
     tenant = business.tenant.id
-    item = core.create_item(
+    item = reviewed_create_item(
         session, tenant, "BATCH", "Tracked article", tracking_type="lot"
     )
     lot = core.create_lot(session, tenant, item.id, "L-1")
@@ -567,7 +567,7 @@ def test_serial_stock_keeps_each_identity_and_current_labels(session, business):
     from reality.services.inventory_positions import inventory_detail_rows
 
     tenant = business.tenant.id
-    item = core.create_item(
+    item = reviewed_create_item(
         session, tenant, "SERIAL", "Tracked serial article", tracking_type="serial"
     )
     ids = set()
@@ -630,3 +630,10 @@ def test_later_stock_compensation_does_not_rewrite_earlier_snapshot(session, bus
         )
         == 0
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

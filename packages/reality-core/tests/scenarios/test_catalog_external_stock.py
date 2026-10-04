@@ -53,8 +53,8 @@ def _differs(session, business):
 def test_a_3pl_stock_report_that_differs_is_visible_until_resolved(session, business):
     """J07: the 3PL reports 95 where Reality's movements hold 100."""
     tenant = business.tenant.id
-    three_pl = core.create_party(session, tenant, "Fulfil Logistics", "supplier")
-    warehouse = core.create_location(session, tenant, "Fulfil 3PL Leipzig")
+    three_pl = reviewed_create_party(session, tenant, "Fulfil Logistics", "supplier")
+    warehouse = reviewed_create_location(session, tenant, "Fulfil 3PL Leipzig")
     monday = core.now() - timedelta(days=3)
     core.record_movement(
         session,
@@ -114,3 +114,6 @@ def test_a_3pl_stock_report_that_differs_is_visible_until_resolved(session, busi
     (finding,) = _differs(session, business)
     assert finding.record_id == latest["statement_ids"][0]
     assert finding.causal_values["difference"] == Decimal(-2)
+
+
+from intake_review_support import reviewed_create_location, reviewed_create_party

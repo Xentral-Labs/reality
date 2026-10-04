@@ -141,7 +141,7 @@ def test_supply_assignment_enforces_bounds_shape_and_tenant(session, business):
             purpose="stock_replenishment",
             request_id="foreign",
         )
-    other_item = core.create_item(session, business.tenant.id, "OTHER", "Other item")
+    other_item = reviewed_create_item(session, business.tenant.id, "OTHER", "Other item")
     mismatched = core.create_commitment(
         session,
         business.tenant.id,
@@ -506,15 +506,15 @@ def test_concurrent_assignments_cannot_exceed_supplier_quantity(postgres_databas
     try:
         with factory() as session:
             tenant = core.create_tenant(session, "Concurrent supply")
-            company = core.create_party(session, tenant.id, "Company", "company")
-            customer_party = core.create_party(
+            company = reviewed_create_party(session, tenant.id, "Company", "company")
+            customer_party = reviewed_create_party(
                 session, tenant.id, "Customer", "customer"
             )
-            supplier_party = core.create_party(
+            supplier_party = reviewed_create_party(
                 session, tenant.id, "Supplier", "supplier"
             )
-            item = core.create_item(session, tenant.id, "SKU", "Item")
-            location = core.create_location(session, tenant.id, "Warehouse")
+            item = reviewed_create_item(session, tenant.id, "SKU", "Item")
+            location = reviewed_create_location(session, tenant.id, "Warehouse")
             business = SimpleNamespace(
                 tenant=tenant,
                 company=company,
@@ -570,3 +570,10 @@ def test_concurrent_assignments_cannot_exceed_supplier_quantity(postgres_databas
     finally:
         Base.metadata.drop_all(engine)
         engine.dispose()
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

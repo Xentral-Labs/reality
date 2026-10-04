@@ -24,7 +24,7 @@ def invoice(session, business, kind="sales_invoice", amount="100"):
 
 def test_required_ids_and_explicit_setup(session, business):
     business.tenant = core.create_tenant(session, "Fresh", _with_finance_defaults=False)
-    business.customer = core.create_party(
+    business.customer = reviewed_create_party(
         session, business.tenant.id, "Customer", "customer"
     )
     assert list_accounts(session, business.tenant.id)["accounts"] == []
@@ -193,7 +193,7 @@ def test_concurrent_consumers_cannot_spend_one_credit_twice(postgres_database):
             tenant = core.create_tenant(session, "Concurrent finance")
             tenant_id = tenant.id
             initialize_accounts(session, tenant_id)
-            customer = core.create_party(session, tenant_id, "Customer", "customer")
+            customer = reviewed_create_party(session, tenant_id, "Customer", "customer")
             payment = core.record_customer_payment(
                 session, tenant_id, customer.id, "100"
             )
@@ -310,3 +310,6 @@ def test_account_configuration_api_uses_proposal(session, business):
             )
     finally:
         app.dependency_overrides.clear()
+
+
+from intake_review_support import reviewed_create_party

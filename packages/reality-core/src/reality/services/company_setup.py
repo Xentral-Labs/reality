@@ -213,6 +213,7 @@ def create_company(
     live_simulation: bool = False,
     _initialize_inline: bool = False,
 ) -> dict:
+    from reality.services.intake import _invoke
     if type(live_simulation) is not bool or (
         live_simulation
         and (content != "international_demo" or environment != "sandbox")
@@ -278,42 +279,17 @@ def create_company(
                 "Production admission is required for an ordinary company."
             )
         tenant = create_tenant(session, name, _commit=False)
+        session.add(TenantMembership(id=uid("tmb"), tenant_id=tenant.id, user_id=actor_id, role="owner", status="active"))
+        receipt = OrdinaryCompanyCreation(id=uid("ccr"), tenant_id=tenant.id, actor_id=actor_id, request_key=request_key, request_fingerprint=digest)
+        session.add(receipt)
+        session.flush()
+        from reality.services.tenant_policy import _confirmed_company_partner_scope
+
         # Spec 289: the company is its own business partner from the start, so its stock
         # has an owner. Its source states the request; the replay marker below keeps it
         # to exactly one.
-        create_party(
-            session,
-            tenant.id,
-            name,
-            "company",
-            roles=["company"],
-            source_system="reality",
-            external_id=f"company-setup:{request_key}",
-            source_payload={
-                "name": name,
-                "roles": ["company"],
-                "request_key": request_key,
-            },
-            _commit=False,
-        )
-        session.add(
-            TenantMembership(
-                id=uid("tmb"),
-                tenant_id=tenant.id,
-                user_id=actor_id,
-                role="owner",
-                status="active",
-            )
-        )
-        session.add(
-            OrdinaryCompanyCreation(
-                id=uid("ccr"),
-                tenant_id=tenant.id,
-                actor_id=actor_id,
-                request_key=request_key,
-                request_fingerprint=digest,
-            )
-        )
+        with _confirmed_company_partner_scope(session, tenant, receipt, confirmed=confirmed):
+            _invoke('create_party', create_party, session, tenant.id, name=name, party_type='company', roles=['company'], source_system='reality', external_id=f'company-setup:{request_key}', source_payload={'name': name, 'roles': ['company'], 'request_key': request_key}, _commit=False)
         session.commit()
         return _result(session, actor_id, tenant.id)
     from reality.services.playground import start_run

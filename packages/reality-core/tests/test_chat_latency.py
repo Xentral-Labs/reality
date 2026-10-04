@@ -6,8 +6,6 @@ from reality.services.core import (
     active_reserved,
     create_chat_session,
     create_commitment,
-    create_item,
-    create_location,
     create_tenant,
     inventory_rows,
     open_quantity,
@@ -82,11 +80,11 @@ def test_inventory_reads_are_bounded_and_match_current_terms(session, business):
 
     _, single_count = measured()
     for index in range(19):
-        item = create_item(session, tenant, f"BATCH-{index}", f"Batch {index}")
+        item = reviewed_create_item(session, tenant, f"BATCH-{index}", f"Batch {index}")
         incoming[item.id] = seed(item)
     other = create_tenant(session, "Unrelated company")
-    other_item = create_item(session, other.id, "OTHER", "Other item")
-    other_location = create_location(session, other.id, "Other warehouse")
+    other_item = reviewed_create_item(session, other.id, "OTHER", "Other item")
+    other_location = reviewed_create_location(session, other.id, "Other warehouse")
     record_movement(
         session,
         other.id,
@@ -146,3 +144,6 @@ def test_provider_history_is_bounded_in_sql(session, business, monkeypatch):
     assert captured[0]["content"] == "Hello 2"
     assert captured[-2]["content"] == "Hello 7"
     assert any("LIMIT" in query for query in statements)
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

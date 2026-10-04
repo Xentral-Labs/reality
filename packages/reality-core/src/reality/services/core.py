@@ -1116,10 +1116,16 @@ def _require_business_mutation(
     # Only fixed, transaction-bound reference setup is currently admitted.
     from reality.services.tenant_policy import require_core_operation
 
-    require_core_operation(session, tenant_id, operation)
+    fixed_setup = require_core_operation(session, tenant_id, operation)
     from reality.services.intake import _require_scoped_operation
 
-    _require_scoped_operation(session, tenant_id, operation)
+    intake_approved = _require_scoped_operation(session, tenant_id, operation)
+    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location"} and not (
+        fixed_setup or intake_approved
+    ):
+        from reality.services.tenant_policy import _require_master_decision
+
+        _require_master_decision(session, tenant_id, operation)
     from reality.services.business_locks import DELIVERY_WRITERS, lock_delivery_state
 
     finance_operations = {
@@ -2547,7 +2553,7 @@ def update_master_source_reference(
     ):
         return current
     return create_master_source_record(
-        session, tenant_id, source_type, source_system, external_id, payload
+        session, tenant_id, source_type, source_system, external_id, payload, _commit=False
     )
 
 
@@ -2591,6 +2597,9 @@ def create_party(
     from reality.services.intake import require_scoped_intent
 
     require_scoped_intent("create_party", locals())
+    from reality.services.tenant_policy import require_company_partner_intent
+
+    require_company_partner_intent(locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Tenant, tenant_id, tenant_id)
@@ -2860,6 +2869,7 @@ def create_parties(
     records: list[dict[str, Any]],
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> list[Party]:
     """
     BUSINESS PURPOSE:
@@ -2869,9 +2879,10 @@ def create_parties(
     Refuse an empty batch.
 
     BUSINESS RULE core.create_parties.2:
-    Create every record without an intermediate commit; commit the batch once. IF any record fails, roll back the entire batch.
+    Create every record without an intermediate commit; commit the batch once when requested, otherwise retain it in the caller transaction. IF any record fails, roll back the entire batch.
     """
     _require_business_mutation(session, tenant_id, "create_parties")
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "party_create", records, action_id)
@@ -2886,11 +2897,11 @@ def create_parties(
         for record in records:
             roles = list(record["roles"])
             created.append(
-                create_party(
+                _invoke("create_party", create_party,
                     session,
                     tenant_id,
-                    record["name"],
-                    record.get("type") or (roles[0] if roles else ""),
+                    name=record["name"],
+                    party_type=record.get("type") or (roles[0] if roles else ""),
                     source_system=record.get("source_system") or "",
                     external_id=record.get("external_id") or "",
                     source_payload=record.get("source_payload"),
@@ -2905,7 +2916,10 @@ def create_parties(
                     action_id=action_id,
                 )
             )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise
@@ -2918,6 +2932,7 @@ def create_items(
     records: list[dict[str, Any]],
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> list[Item]:
     """
     BUSINESS PURPOSE:
@@ -2927,9 +2942,10 @@ def create_items(
     Refuse an empty batch.
 
     BUSINESS RULE core.create_items.2:
-    Create every record without an intermediate commit; commit the batch once. IF any record fails, roll back the entire batch.
+    Create every record without an intermediate commit; commit the batch once when requested, otherwise retain it in the caller transaction. IF any record fails, roll back the entire batch.
     """
     _require_business_mutation(session, tenant_id, "create_items")
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "item_create", records, action_id)
@@ -2943,12 +2959,12 @@ def create_items(
     try:
         for record in records:
             created.append(
-                create_item(
+                _invoke("create_item", create_item,
                     session,
                     tenant_id,
-                    record["sku"],
-                    record["name"],
-                    record.get("unit", "pcs"),
+                    sku=record["sku"],
+                    name=record["name"],
+                    unit=record.get("unit", "pcs"),
                     source_system=record.get("source_system") or "",
                     external_id=record.get("external_id") or "",
                     source_payload=record.get("source_payload"),
@@ -2962,7 +2978,10 @@ def create_items(
                     action_id=action_id,
                 )
             )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise
@@ -2975,6 +2994,7 @@ def create_locations(
     records: list[dict[str, Any]],
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> list[Location]:
     """
     BUSINESS PURPOSE:
@@ -2984,9 +3004,10 @@ def create_locations(
     Refuse an empty batch.
 
     BUSINESS RULE core.create_locations.2:
-    Create every record without an intermediate commit; commit the batch once. IF any record fails, roll back the entire batch.
+    Create every record without an intermediate commit; commit the batch once when requested, otherwise retain it in the caller transaction. IF any record fails, roll back the entire batch.
     """
     _require_business_mutation(session, tenant_id, "create_locations")
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "location_create", records, action_id)
@@ -3017,11 +3038,11 @@ def create_locations(
                         code="location_parent_ref_not_earlier",
                         values={"reference": parent_reference},
                     )
-            location = create_location(
+            location = _invoke("create_location", create_location,
                 session,
                 tenant_id,
-                record["name"],
-                record.get("type", "warehouse"),
+                name=record["name"],
+                location_type=record.get("type", "warehouse"),
                 parent_location_id=parent_location_id,
                 allows_stock=record.get("allows_stock", True),
                 source_system=record.get("source_system") or "",
@@ -3033,7 +3054,10 @@ def create_locations(
             created.append(location)
             if reference:
                 local_references[reference] = location.id
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise
@@ -3261,6 +3285,9 @@ def update_party(
     Emit a partner-updated event only when the before/after snapshot contains changes.
     """
     _require_business_mutation(session, tenant_id, "update_party")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("update_party", locals())
     party = _tenant_record(session, Party, tenant_id, party_id)
     before = _party_update_snapshot(session, tenant_id, party)
     name = name.strip()
@@ -3388,6 +3415,9 @@ def update_item(
     Emit an item-updated event only for actual before/after changes.
     """
     _require_business_mutation(session, tenant_id, "update_item")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("update_item", locals())
     item = _tenant_record(session, Item, tenant_id, item_id)
     before = _item_update_snapshot(item)
     sku, name, unit = sku.strip(), name.strip(), unit.strip()
@@ -3475,6 +3505,9 @@ def update_location(
     Emit a location-updated event only when the snapshot changed.
     """
     _require_business_mutation(session, tenant_id, "update_location")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("update_location", locals())
     location = _tenant_record(session, Location, tenant_id, location_id)
     before = _location_update_snapshot(location)
     name, location_type = name.strip(), location_type.strip()
@@ -3543,6 +3576,7 @@ def update_parties(
     records: list[dict[str, Any]],
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> list[Party]:
     """
     BUSINESS PURPOSE:
@@ -3552,9 +3586,10 @@ def update_parties(
     Validate the batch through the shared preview before applying changes.
 
     BUSINESS RULE core.update_parties.2:
-    Check each supplied expected revision before updating. Commit all updates once; IF any record fails, roll back the batch.
+    Check each supplied expected revision before updating. Commit all updates once when requested, otherwise retain them in the caller transaction; IF any record fails, roll back the batch.
     """
     _require_business_mutation(session, tenant_id, "update_parties")
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "party_update", records, action_id)
@@ -3568,27 +3603,12 @@ def update_parties(
         for record in records:
             _assert_update_revision(session, tenant_id, "party", record)
             updated.append(
-                update_party(
-                    session,
-                    tenant_id,
-                    record["id"],
-                    record["name"],
-                    record["type"],
-                    source_system=record.get("source_system"),
-                    external_id=record.get("external_id"),
-                    source_payload=record.get("source_payload"),
-                    roles=record["roles"],
-                    accounting_code=record.get("accounting_code"),
-                    payment_term_code=record.get("payment_term_code"),
-                    default_currency=record.get("default_currency"),
-                    credit_limit=record.get("credit_limit"),
-                    tax_identifier=record.get("tax_identifier"),
-                    emails=record.get("emails"),
-                    action_id=action_id,
-                    _commit=False,
-                )
+                _invoke("update_party", update_party, session, tenant_id, party_id=record['id'], name=record['name'], party_type=record['type'], source_system=record.get('source_system'), external_id=record.get('external_id'), source_payload=record.get('source_payload'), roles=record['roles'], accounting_code=record.get('accounting_code'), payment_term_code=record.get('payment_term_code'), default_currency=record.get('default_currency'), credit_limit=record.get('credit_limit'), tax_identifier=record.get('tax_identifier'), emails=record.get('emails'), action_id=action_id, _commit=False)
             )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise
@@ -3601,6 +3621,7 @@ def update_items(
     records: list[dict[str, Any]],
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> list[Item]:
     """
     BUSINESS PURPOSE:
@@ -3610,9 +3631,10 @@ def update_items(
     Validate the batch through the shared preview before applying changes.
 
     BUSINESS RULE core.update_items.2:
-    Check each supplied expected revision before updating. Commit all updates once; IF any record fails, roll back the batch.
+    Check each supplied expected revision before updating. Commit all updates once when requested, otherwise retain them in the caller transaction; IF any record fails, roll back the batch.
     """
     _require_business_mutation(session, tenant_id, "update_items")
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "item_update", records, action_id)
@@ -3626,27 +3648,12 @@ def update_items(
         for record in records:
             _assert_update_revision(session, tenant_id, "item", record)
             updated.append(
-                update_item(
-                    session,
-                    tenant_id,
-                    record["id"],
-                    record["sku"],
-                    record["name"],
-                    record["unit"],
-                    source_system=record.get("source_system"),
-                    external_id=record.get("external_id"),
-                    source_payload=record.get("source_payload"),
-                    item_type=record.get("item_type"),
-                    tracking_type=record.get("tracking_type"),
-                    default_location_id=record.get("default_location_id"),
-                    purchase_unit=record.get("purchase_unit"),
-                    conversion_factor=record.get("conversion_factor"),
-                    lead_time_days=record.get("lead_time_days"),
-                    action_id=action_id,
-                    _commit=False,
-                )
+                _invoke("update_item", update_item, session, tenant_id, item_id=record['id'], sku=record['sku'], name=record['name'], unit=record['unit'], source_system=record.get('source_system'), external_id=record.get('external_id'), source_payload=record.get('source_payload'), item_type=record.get('item_type'), tracking_type=record.get('tracking_type'), default_location_id=record.get('default_location_id'), purchase_unit=record.get('purchase_unit'), conversion_factor=record.get('conversion_factor'), lead_time_days=record.get('lead_time_days'), action_id=action_id, _commit=False)
             )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise
@@ -3659,6 +3666,7 @@ def update_locations(
     records: list[dict[str, Any]],
     *,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> list[Location]:
     """
     BUSINESS PURPOSE:
@@ -3668,9 +3676,10 @@ def update_locations(
     Validate the batch through the shared preview before applying changes.
 
     BUSINESS RULE core.update_locations.2:
-    Check each supplied expected revision before updating. Commit all updates once; IF any record fails, roll back the batch.
+    Check each supplied expected revision before updating. Commit all updates once when requested, otherwise retain them in the caller transaction; IF any record fails, roll back the batch.
     """
     _require_business_mutation(session, tenant_id, "update_locations")
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "location_update", records, action_id)
@@ -3687,24 +3696,12 @@ def update_locations(
                 session, tenant_id, "location", record["id"]
             )
             updated.append(
-                update_location(
-                    session,
-                    tenant_id,
-                    record["id"],
-                    record["name"],
-                    record["type"],
-                    parent_location_id=record.get(
-                        "parent_location_id", current["parent_location_id"]
-                    ),
-                    allows_stock=record.get("allows_stock", current["allows_stock"]),
-                    source_system=record.get("source_system"),
-                    external_id=record.get("external_id"),
-                    source_payload=record.get("source_payload"),
-                    action_id=action_id,
-                    _commit=False,
-                )
+                _invoke("update_location", update_location, session, tenant_id, location_id=record['id'], name=record['name'], location_type=record['type'], parent_location_id=record.get('parent_location_id', current['parent_location_id']), allows_stock=record.get('allows_stock', current['allows_stock']), source_system=record.get('source_system'), external_id=record.get('external_id'), source_payload=record.get('source_payload'), action_id=action_id, _commit=False)
             )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
     except Exception:
         session.rollback()
         raise
@@ -17970,23 +17967,18 @@ def _ingest_authored_setup_order(
 
 
 def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import _require_fixed_setup
 
     _, definition = _require_fixed_setup(session, tenant.id, "demo_seed")
     _require_business_mutation(session, tenant.id, "ensure_demo")
     if session.scalar(select(func.count(Party.id)).where(Party.tenant_id == tenant.id)):
         return
-    company = create_party(
-        session, tenant.id, "Acme Bikes GmbH", "company", _commit=False
-    )
-    customer = create_party(
-        session, tenant.id, "Müller GmbH", "customer", _commit=False
-    )
-    supplier = create_party(
-        session, tenant.id, "Bike Parts GmbH", "supplier", _commit=False
-    )
-    location = create_location(session, tenant.id, "Augsburg Warehouse", _commit=False)
-    item = create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light", _commit=False)
+    company = _invoke('create_party', create_party, session, tenant.id, name='Acme Bikes GmbH', party_type='company', _commit=False)
+    customer = _invoke('create_party', create_party, session, tenant.id, name='Müller GmbH', party_type='customer', _commit=False)
+    supplier = _invoke('create_party', create_party, session, tenant.id, name='Bike Parts GmbH', party_type='supplier', _commit=False)
+    location = _invoke('create_location', create_location, session, tenant.id, name='Augsburg Warehouse', _commit=False)
+    item = _invoke('create_item', create_item, session, tenant.id, sku='BIKE-LIGHT', name='Bike Light', _commit=False)
     record_movement(
         session,
         tenant.id,

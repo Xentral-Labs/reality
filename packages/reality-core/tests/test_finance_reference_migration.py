@@ -36,10 +36,10 @@ def legacy_catalogs(postgres_database, monkeypatch):
             company = SimpleNamespace(
                 tenant=core.create_tenant(session, "Catalog migration")
             )
-            company.customer = core.create_party(
+            company.customer = reviewed_create_party(
                 session, company.tenant.id, "Customer", "customer"
             )
-            company.supplier = core.create_party(
+            company.supplier = reviewed_create_party(
                 session, company.tenant.id, "Supplier", "supplier"
             )
             tenant, target, account, case = setup(session, company)
@@ -199,3 +199,6 @@ def test_populated_catalog_roundtrip_exact_values_authorities_and_schema(
     command.upgrade(config, "0119_finance_references")
     with engine.connect() as connection:
         assert _all_records(connection, names) == changed
+
+
+from intake_review_support import reviewed_create_party

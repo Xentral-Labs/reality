@@ -227,7 +227,7 @@ def test_terms_name_a_quantity_below_the_minimum_or_off_the_multiple(session, bu
     )
     assert (fine["below_minimum"], fine["off_multiple"]) == (False, False)
     # Another supplier has no terms.
-    other = core.create_party(session, tenant, "Other Supplier", "supplier")
+    other = reviewed_create_party(session, tenant, "Other Supplier", "supplier")
     assert (
         order_terms_check(session, tenant, other.id, business.item.id, Decimal(1))
         is None
@@ -482,8 +482,8 @@ def test_the_migration_guards_its_downgrade(postgres_database, monkeypatch):
         command.upgrade(config, "head")
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration 310")
-            supplier = core.create_party(session, tenant.id, "Supplier", "supplier")
-            item = core.create_item(session, tenant.id, "M310", "Item 310")
+            supplier = reviewed_create_party(session, tenant.id, "Supplier", "supplier")
+            item = reviewed_create_item(session, tenant.id, "M310", "Item 310")
             set_supplier_item_terms(session, tenant.id, supplier.id, item.id, "5")
         with pytest.raises(Exception, match="supplier item terms"):
             command.downgrade(config, "0121_census_members")
@@ -521,7 +521,7 @@ def test_terms_compare_a_line_in_the_stock_unit_through_the_items_factor(
     session, business
 ):
     tenant = business.tenant.id
-    item = core.create_item(session, tenant, "BOX-310", "Boxed 310")
+    item = reviewed_create_item(session, tenant, "BOX-310", "Boxed 310")
     item.purchase_unit, item.conversion_factor = "box", Decimal(12)
     session.flush()
     set_supplier_item_terms(session, tenant, business.supplier.id, item.id, "5")
@@ -559,3 +559,6 @@ def test_a_price_is_confirmed_after_everything_arrived(session, business):
         "commitment_price_invalid",
         lambda: core.revise_commitment(session, tenant, promise.id, unit_price="1e15"),
     )
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

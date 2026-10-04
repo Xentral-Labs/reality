@@ -192,11 +192,11 @@ def committed(factory, tenant, actor):
     with factory() as session:
         business = SimpleNamespace(
             tenant=session.get(Tenant, tenant),
-            company=core.create_party(session, tenant, "Company", "company"),
-            customer=core.create_party(session, tenant, "Customer", "company"),
-            supplier=core.create_party(session, tenant, "Supplier", "company"),
-            item=core.create_item(session, tenant, "FIRST", "First"),
-            location=core.create_location(session, tenant, "Warehouse"),
+            company=reviewed_create_party(session, tenant, "Company", "company"),
+            customer=reviewed_create_party(session, tenant, "Customer", "company"),
+            supplier=reviewed_create_party(session, tenant, "Supplier", "company"),
+            item=reviewed_create_item(session, tenant, "FIRST", "First"),
+            location=reviewed_create_location(session, tenant, "Warehouse"),
         )
         action, _ = confirmed(session, business, session.get(AppUser, actor))
         session.commit()
@@ -461,3 +461,10 @@ def test_cached_fixture_a_preserves_direct_and_allocated_selling(
     assert row["db2_rate"] == "38.0000"
     assert result["groups"][0]["db2_total"] is None
     assert result["groups"][0]["db2_known"] == "456.0000"
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

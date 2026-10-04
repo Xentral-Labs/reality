@@ -8,7 +8,6 @@ from reality.services.core import (
     activity_signal,
     business_events,
     create_commitment,
-    create_item,
     create_tenant,
     emit_business_event,
     record_movement,
@@ -236,7 +235,7 @@ def test_domain_changes_emit_ordered_tenant_scoped_events(session, business):
 
 
 def test_business_event_rolls_back_with_business_transaction(session, business):
-    item = create_item(session, business.tenant.id, "ROLLBACK", "Rollback item")
+    item = reviewed_create_item(session, business.tenant.id, "ROLLBACK", "Rollback item")
     before = len(business_events(session, business.tenant.id))
     item.name = "Uncommitted"
     emit_business_event(
@@ -300,3 +299,6 @@ def test_cached_progress_cannot_reuse_a_sequence_after_another_writer(
             assert held.last_event_sequence == 3
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_item

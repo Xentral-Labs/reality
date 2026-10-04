@@ -82,7 +82,7 @@ def test_the_mcp_schemas_carry_the_new_fields_strictly():
 
 def test_an_agent_proposes_a_substitute_and_a_person_confirms(session, business):
     tenant = business.tenant.id
-    successor = core.create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
+    successor = reviewed_create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
     promise = _purchase(session, business)
     definition = MCP_TOOL_REGISTRY["commitment_substitute_accept_propose"]
     arguments = {
@@ -136,8 +136,8 @@ def test_an_agent_advises_and_receives_beyond_order(session, business):
 
 def test_the_web_and_the_cli_accept_a_substitute(session, business, monkeypatch):
     tenant = business.tenant.id
-    successor = core.create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
-    other = core.create_item(session, tenant, "BIKE-LIGHT-3", "Bike light v3")
+    successor = reviewed_create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
+    other = reviewed_create_item(session, tenant, "BIKE-LIGHT-3", "Bike light v3")
     promise = _purchase(session, business, "PO-338-C")
     session.commit()
     factory = sessionmaker(session.bind, expire_on_commit=False)
@@ -177,3 +177,6 @@ def test_the_web_and_the_cli_accept_a_substitute(session, business, monkeypatch)
     assert result.exit_code == 0, result.output
     # The web proposal waits for its confirmation; the CLI confirmed its own.
     assert [row.item_id for row in _substitutes(session, tenant)] == [other.id]
+
+
+from intake_review_support import reviewed_create_item

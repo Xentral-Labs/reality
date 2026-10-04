@@ -32,9 +32,6 @@ from reality.web.warehouse_reads import warehouse_register
 def sandbox_business(session, scheduled_owner, monkeypatch):
     from reality.services.company_setup import create_company
     from reality.services.core import (
-        create_item,
-        create_location,
-        create_party,
         get_tenant,
     )
 
@@ -50,11 +47,11 @@ def sandbox_business(session, scheduled_owner, monkeypatch):
     tid = result["tenant_id"]
     return SimpleNamespace(
         tenant=get_tenant(session, tid),
-        company=create_party(session, tid, "Company", "company"),
-        customer=create_party(session, tid, "Customer", "customer"),
-        supplier=create_party(session, tid, "Supplier", "supplier"),
-        item=create_item(session, tid, "ITEM", "Item"),
-        location=create_location(session, tid, "Warehouse"),
+        company=reviewed_create_party(session, tid, "Company", "company"),
+        customer=reviewed_create_party(session, tid, "Customer", "customer"),
+        supplier=reviewed_create_party(session, tid, "Supplier", "supplier"),
+        item=reviewed_create_item(session, tid, "ITEM", "Item"),
+        location=reviewed_create_location(session, tid, "Warehouse"),
     )
 
 
@@ -227,3 +224,10 @@ def test_sandbox_csv_preview_and_original_preserve_bytes_and_isolation(
     with pytest.raises(HTTPException) as error:
         get_item_csv_original(other.id, staged["id"], session)
     assert error.value.status_code == 404
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

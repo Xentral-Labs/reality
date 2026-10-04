@@ -91,10 +91,10 @@ def _balance(session, business):
 def test_a_guest_order_later_with_an_account(session, business):
     """L10: the guest's history moves under the account, and the next order lands there."""
     tenant = business.tenant.id
-    guest = core.create_party(
+    guest = reviewed_create_party(
         session, tenant, "Anna Schmidt (guest checkout)", "customer"
     )
-    account = core.create_party(session, tenant, "Anna Schmidt", "customer")
+    account = reviewed_create_party(session, tenant, "Anna Schmidt", "customer")
     guest_order = _shop_order(session, business, 7001, guest.id)
     _invoice(session, business, "INV-7001", "49.00", guest.id)
     account_order = _shop_order(session, business, 7002, account.id)
@@ -130,11 +130,11 @@ def test_a_guest_order_later_with_an_account(session, business):
 def test_two_partners_merged_as_duplicates(session, business):
     """O02: both histories are kept and read under the survivor; no chains."""
     tenant = business.tenant.id
-    survivor = core.create_party(
+    survivor = reviewed_create_party(
         session, tenant, "Bäckerei Huber", "customer", credit_limit="1000"
     )
-    duplicate = core.create_party(session, tenant, "Baeckerei Huber", "customer")
-    third = core.create_party(session, tenant, "Huber KG", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Baeckerei Huber", "customer")
+    third = reviewed_create_party(session, tenant, "Huber KG", "customer")
     _invoice(session, business, "INV-H1", "600", survivor.id)
     _invoice(session, business, "INV-H2", "700", duplicate.id)
     # Positive control: each half alone stays inside the limit.
@@ -159,3 +159,6 @@ def test_two_partners_merged_as_duplicates(session, business):
         merge_party(session, tenant, third.id, duplicate.id, "Also Huber")
     assert refused.value.code == "party_merge_already_merged"
     assert session.get(Party, (tenant, third.id)).is_active is True
+
+
+from intake_review_support import reviewed_create_party

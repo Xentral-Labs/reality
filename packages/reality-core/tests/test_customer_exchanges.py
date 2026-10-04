@@ -237,7 +237,7 @@ def _credit(session, business, invoice_line_id, quantity, unit_price="20.00"):
 
 
 def _variant(session, business, sku="BIKE-LIGHT-XL"):
-    return core.create_item(session, business.tenant.id, sku, "Bike Light XL")
+    return reviewed_create_item(session, business.tenant.id, sku, "Bike Light XL")
 
 
 def _exchange(session, business, **values):
@@ -459,7 +459,7 @@ def test_the_review_states_what_the_exchange_creates_and_that_no_money_moves(
     review = json.loads(proposal.input)["_delivery_review"]
     assert review["effect"] == {
         "returned_delivery_id": commitment.id,
-        "return": {"kind": "movement", "id": goods_back.id, "exchangeable": "1"},
+        "return": {"kind": "movement", "id": goods_back.id, "exchangeable": "1.0000"},
         "exchanged_quantity": "1",
         "replacement": {
             "item_id": larger.id,
@@ -790,3 +790,6 @@ def test_an_unreadable_due_date_is_refused(session, business):
             session, business, return_movement_id=goods_back.id, due_at="next Tuesday"
         )
     assert refused.value.code == "datetime_not_iso8601"
+
+
+from intake_review_support import reviewed_create_item

@@ -19,7 +19,7 @@ def test_options_are_scoped_bounded_and_not_cache_readiness(
     tenant = business.tenant.id
     older, _ = fixtures.confirmed(session, business, cost_owner)
     other = SimpleNamespace(**vars(business))
-    other.item = core.create_item(session, tenant, "THIRD", "Third")
+    other.item = reviewed_create_item(session, tenant, "THIRD", "Third")
     newer, _ = fixtures.confirmed(session, other, cost_owner)
 
     def forbidden(*args, **kwargs):
@@ -97,3 +97,6 @@ def test_http_metadata_and_foreign_cursor(session, business, cost_owner):
             params={"cursor": action},
         )
         assert hidden.status_code == 404
+
+
+from intake_review_support import reviewed_create_item

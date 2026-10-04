@@ -12,9 +12,9 @@ file holds are the ones that make remembering it safe — not that it is fast.
 import pytest
 from sqlalchemy import event
 
+from reality.services import tenant_policy
 from reality.services.core import (
     NotFound,
-    create_party,
     create_tenant,
 )
 
@@ -51,8 +51,13 @@ def test_four_service_calls_do_not_ask_four_times(session, business):
     """
     tenant = business.tenant.id
     with purpose_reads(session) as counted:
-        for name in ("Eins", "Zwei", "Drei", "Vier"):
-            create_party(session, tenant, name, "customer", _commit=False)
+        for operation in (
+            "party_create",
+            "item_create",
+            "location_create",
+            "party_update",
+        ):
+            tenant_policy.require_business_operation(session, tenant, operation)
     assert counted[0] <= 2, f"asked {counted[0]} times in one transaction"
 
 
@@ -66,11 +71,12 @@ def test_a_savepoint_asks_again_on_purpose(session, business):
     outlive what it rests on.
     """
     tenant = business.tenant.id
+    session.commit()  # Start a fresh purpose-cache scope after reviewed fixture setup.
     with purpose_reads(session) as counted:
-        create_party(session, tenant, "Vor dem Savepoint", "customer", _commit=False)
+        tenant_policy.require_business_operation(session, tenant, "party_create")
         with session.begin_nested():
-            create_party(session, tenant, "Im Savepoint", "customer", _commit=False)
-            create_party(session, tenant, "Auch darin", "customer", _commit=False)
+            tenant_policy.require_business_operation(session, tenant, "party_create")
+            tenant_policy.require_business_operation(session, tenant, "item_create")
     assert counted[0] == 2, f"expected one read per scope, got {counted[0]}"
 
 
@@ -78,8 +84,10 @@ def test_a_second_company_is_asked_about_on_its_own(session, business):
     """The answer belongs to the company it was read for, not to the transaction."""
     other = create_tenant(session, "Zweite Firma", _commit=False)
     with purpose_reads(session) as counted:
-        create_party(session, business.tenant.id, "Kunde A", "customer", _commit=False)
-        create_party(session, other.id, "Kunde B", "customer", _commit=False)
+        tenant_policy.require_business_operation(
+            session, business.tenant.id, "party_create"
+        )
+        tenant_policy.require_business_operation(session, other.id, "party_create")
     assert counted[0] == 2
 
 

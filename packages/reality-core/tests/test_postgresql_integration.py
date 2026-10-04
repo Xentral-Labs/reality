@@ -43,9 +43,6 @@ from reality.services.core import (
     InvalidOperation,
     cancel_commitment,
     create_commitment,
-    create_item,
-    create_location,
-    create_party,
     create_tenant,
     enqueue_shopify_order,
     record_movement,
@@ -295,10 +292,10 @@ def test_all_migrations_on_disposable_postgresql(
         factory = sessionmaker(database_engine, expire_on_commit=False)
         with factory() as session:
             tenant = create_tenant(session, "Concurrent Imports GmbH")
-            company = create_party(session, tenant.id, "Company", "company")
-            customer = create_party(session, tenant.id, "Customer", "customer")
-            item = create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light")
-            location = create_location(session, tenant.id, "Warehouse")
+            company = reviewed_create_party(session, tenant.id, "Company", "company")
+            customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
+            item = reviewed_create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light")
+            location = reviewed_create_location(session, tenant.id, "Warehouse")
             ids = (tenant.id, company.id, customer.id, item.id, location.id)
         payload = json.loads(FIXTURE.read_text())
 
@@ -918,11 +915,11 @@ def operational_race_session_factory(postgres_database: str):
 def _operational_race_fixture(factory: sessionmaker) -> tuple[str, str, str, str, str, str]:
     with factory() as session:
         tenant = create_tenant(session, f"Operational race {uid('run')}")
-        company = create_party(session, tenant.id, "Race Company", "company")
-        customer = create_party(session, tenant.id, "Race Customer", "customer")
-        item = create_item(session, tenant.id, uid("sku"), "Race item")
-        warehouse = create_location(session, tenant.id, "Race warehouse")
-        returns = create_location(session, tenant.id, "Race returns")
+        company = reviewed_create_party(session, tenant.id, "Race Company", "company")
+        customer = reviewed_create_party(session, tenant.id, "Race Customer", "customer")
+        item = reviewed_create_item(session, tenant.id, uid("sku"), "Race item")
+        warehouse = reviewed_create_location(session, tenant.id, "Race warehouse")
+        returns = reviewed_create_location(session, tenant.id, "Race returns")
         record_movement(
             session,
             tenant.id,
@@ -1101,3 +1098,10 @@ def test_concurrent_cancellations_record_one_effect(
                 BusinessEvent.subject_id == commitment_id,
             )
         ) == 1
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

@@ -79,13 +79,13 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
         password = secrets.token_urlsafe(24)
         with factory() as session:
             tenant = core.create_tenant(session, "Journey test company")
-            company = core.create_party(
+            company = reviewed_create_party(
                 session, tenant.id, "Journey company", "company"
             )
-            customer = core.create_party(
+            customer = reviewed_create_party(
                 session, tenant.id, "Journey customer", "customer"
             )
-            supplier = core.create_party(
+            supplier = reviewed_create_party(
                 session, tenant.id, "Journey supplier", "supplier"
             )
             core.record_customer_payment(
@@ -205,10 +205,10 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                 source_record_id=source.id,
             )
             core.post_sales_invoice(session, tenant.id, attribution_invoice.id)
-            opening_customer = core.create_party(
+            opening_customer = reviewed_create_party(
                 session, tenant.id, "Opening customer", "customer"
             )
-            opening_supplier = core.create_party(
+            opening_supplier = reviewed_create_party(
                 session, tenant.id, "Opening supplier", "supplier"
             )
             opening_account = create_account(
@@ -224,8 +224,8 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                 role="opening_counterpart",
                 account_id=opening_account["id"],
             )
-            item = core.create_item(session, tenant.id, "JOURNEY-LAMP", "Journey lamp")
-            warehouse = core.create_location(session, tenant.id, "Journey warehouse")
+            item = reviewed_create_item(session, tenant.id, "JOURNEY-LAMP", "Journey lamp")
+            warehouse = reviewed_create_location(session, tenant.id, "Journey warehouse")
             core.record_movement(
                 session,
                 tenant.id,
@@ -465,3 +465,10 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
             output.close()
         if engine:
             engine.dispose()
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

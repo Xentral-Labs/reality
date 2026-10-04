@@ -177,10 +177,10 @@ def test_another_company_never_counts(session, business):
     other = core.create_tenant(session, "Other GmbH")
     _stock(session, business, "4")
     _sell(session, business, "SO-OWN", "4", "shopify")
-    stranger = core.create_party(session, other.id, "Fremd GmbH", "customer")
-    company = core.create_party(session, other.id, "Other GmbH", "company")
-    location = core.create_location(session, other.id, "Other Lager")
-    item = core.create_item(session, other.id, business.item.sku, "Same SKU")
+    stranger = reviewed_create_party(session, other.id, "Fremd GmbH", "customer")
+    company = reviewed_create_party(session, other.id, "Other GmbH", "company")
+    location = reviewed_create_location(session, other.id, "Other Lager")
+    item = reviewed_create_item(session, other.id, business.item.sku, "Same SKU")
     core.create_manual_order(
         session,
         other.id,
@@ -202,7 +202,7 @@ def test_the_statement_count_does_not_grow_with_items(session, business):
 
     def statements(items):
         for index in range(items):
-            item = core.create_item(session, tenant, f"SKU-N-{items}-{index}", "N")
+            item = reviewed_create_item(session, tenant, f"SKU-N-{items}-{index}", "N")
             _stock(session, business, "1", item=item)
             _sell(session, business, f"SO-N-{items}-{index}", "2", "shopify", item=item)
         count = 0
@@ -270,7 +270,7 @@ def test_supply_in_the_purchase_unit_counts_by_the_items_factor(session, busines
 
 def test_a_service_is_never_oversold(session, business):
     tenant = business.tenant.id
-    service = core.create_item(
+    service = reviewed_create_item(
         session, tenant, "SRV-INSTALL", "Installation", item_type="service"
     )
     _stock(session, business, "1")
@@ -298,3 +298,10 @@ def test_every_finding_appears_once(session, business):
     assert {"item_oversold", "outgoing_commitment_due_soon"} <= {
         row.class_id for row in rows
     }
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

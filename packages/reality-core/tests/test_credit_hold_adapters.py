@@ -19,7 +19,7 @@ from reality.web import app as web_module
 
 def _held_order(session, business, number="SO-CA-1"):
     tenant = business.tenant.id
-    party = core.create_party(
+    party = reviewed_create_party(
         session, tenant, f"Adapter Kunde {number}", "customer", credit_limit="100"
     )
     _, order, _, commitments = core.create_manual_order(
@@ -275,3 +275,6 @@ def test_the_party_inspector_shows_the_exposure_for_a_limited_customer(
         "Credit limit",
     ]
     assert "Above the limit" in labels
+
+
+from intake_review_support import reviewed_create_party

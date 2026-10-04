@@ -189,9 +189,6 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
     from reality.db.core import Base, Reservation, build_engine
     from reality.services.core import (
         create_commitment,
-        create_item,
-        create_location,
-        create_party,
         create_tenant,
         reserve,
     )
@@ -202,10 +199,10 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
     try:
         with factory() as session:
             tenant = create_tenant(session, "Concurrent deliveries")
-            company = create_party(session, tenant.id, "Company", "company")
-            customer = create_party(session, tenant.id, "Customer", "customer")
-            item = create_item(session, tenant.id, "LAMP", "Lamp")
-            location = create_location(session, tenant.id, "Warehouse")
+            company = reviewed_create_party(session, tenant.id, "Company", "company")
+            customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
+            item = reviewed_create_item(session, tenant.id, "LAMP", "Lamp")
+            location = reviewed_create_location(session, tenant.id, "Warehouse")
             record_movement(
                 session, tenant.id, "receipt", item.id, "10", to_location_id=location.id
             )
@@ -244,7 +241,7 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
                 == 10
             )
             # A separate stock pool proves exact-review competition, not only core capping.
-            item2 = create_item(session, tenant.id, "SECOND", "Second lamp")
+            item2 = reviewed_create_item(session, tenant.id, "SECOND", "Second lamp")
             record_movement(
                 session,
                 tenant.id,
@@ -403,9 +400,6 @@ def test_direct_writer_changes_invalidate_exact_review(postgres_database, change
     from reality.db.core import Base, build_engine
     from reality.services.core import (
         correct_movement,
-        create_item,
-        create_location,
-        create_party,
         create_tenant,
         hold_commitment,
         revise_commitment,
@@ -419,10 +413,10 @@ def test_direct_writer_changes_invalidate_exact_review(postgres_database, change
             tenant = create_tenant(session, "Concurrent state changes")
             business = SimpleNamespace(
                 tenant=tenant,
-                company=create_party(session, tenant.id, "Company", "company"),
-                customer=create_party(session, tenant.id, "Customer", "customer"),
-                item=create_item(session, tenant.id, "LAMP", "Lamp"),
-                location=create_location(session, tenant.id, "Warehouse"),
+                company=reviewed_create_party(session, tenant.id, "Company", "company"),
+                customer=reviewed_create_party(session, tenant.id, "Customer", "customer"),
+                item=reviewed_create_item(session, tenant.id, "LAMP", "Lamp"),
+                location=reviewed_create_location(session, tenant.id, "Warehouse"),
             )
             fixture = delivery_fixture(session, business)
             tid, cid = business.tenant.id, fixture.commitment.id
@@ -504,7 +498,7 @@ def test_transaction_guard_releases_on_rollback_and_blocks_direct_writer(
 
     from reality.db.core import Base, build_engine
     from reality.services.business_locks import lock_delivery_state
-    from reality.services.core import create_item, create_location, create_tenant
+    from reality.services.core import create_tenant
 
     engine = build_engine(postgres_database)
     Base.metadata.create_all(engine)
@@ -513,25 +507,28 @@ def test_transaction_guard_releases_on_rollback_and_blocks_direct_writer(
     try:
         with factory() as setup:
             tenant = create_tenant(setup, "Rollback guard")
-            item = create_item(setup, tenant.id, "LOCK", "Guard test")
-            location = create_location(setup, tenant.id, "Warehouse")
+            tenant_id = tenant.id
+            item = reviewed_create_item(setup, tenant_id, "LOCK", "Guard test")
+            item_id = item.id
+            location = reviewed_create_location(setup, tenant_id, "Warehouse")
+            location_id = location.id
 
         def writer():
             with factory() as session:
                 started.set()
                 result = record_movement(
                     session,
-                    tenant.id,
+                    tenant_id,
                     "receipt",
-                    item.id,
+                    item_id,
                     "1",
-                    to_location_id=location.id,
+                    to_location_id=location_id,
                 )
                 completed.set()
                 return result.id
 
         with factory() as held:
-            lock_delivery_state(held, tenant.id)
+            lock_delivery_state(held, tenant_id)
             with ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(writer)
                 assert started.wait(5)
@@ -541,7 +538,7 @@ def test_transaction_guard_releases_on_rollback_and_blocks_direct_writer(
                 held.rollback()
                 assert future.result(timeout=5)
         with factory() as session:
-            assert stock_at(session, tenant.id, item.id, location.id) == 1
+            assert stock_at(session, tenant_id, item_id, location_id) == 1
     finally:
         engine.dispose()
 
@@ -696,3 +693,10 @@ def test_approval_never_renews_the_review_it_checks(session, business):
         )
     assert _review(proposal)["token"] == token
     assert proposal.status == "proposed"
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

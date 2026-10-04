@@ -73,7 +73,7 @@ def test_a_manual_line_resolves_by_the_customers_number(session, business):
 
 
 def test_an_unknown_or_conflicting_number_is_refused_in_entry(session, business):
-    lamp = core.create_item(session, business.tenant.id, "LAMP-308", "Lamp 308")
+    lamp = reviewed_create_item(session, business.tenant.id, "LAMP-308", "Lamp 308")
     _map(session, business)
 
     _refused(
@@ -201,7 +201,7 @@ def test_an_imported_order_resolves_known_numbers_and_keeps_unknown_lines(
     (finding,) = _order_line_item_unknown_exceptions(session, tenant, None)
     assert finding.trace["customer_item_number"] == "K-9999"
 
-    lamp = core.create_item(session, tenant, "LAMP-308I", "Lamp import")
+    lamp = reviewed_create_item(session, tenant, "LAMP-308I", "Lamp import")
     assign_line_item(
         session,
         tenant,
@@ -220,7 +220,7 @@ def test_an_imported_order_resolves_known_numbers_and_keeps_unknown_lines(
 def test_a_file_line_stating_our_item_has_its_number_checked(
     session, business, tmp_path, monkeypatch
 ):
-    lamp = core.create_item(session, business.tenant.id, "LAMP-308F", "Lamp file")
+    lamp = reviewed_create_item(session, business.tenant.id, "LAMP-308F", "Lamp file")
     _map(session, business)
 
     with pytest.raises(core.InvalidOperation) as refused:
@@ -336,7 +336,7 @@ def test_the_stated_number_shows_on_order_delivery_and_invoice(session, business
 
 def test_a_changed_mapping_leaves_past_lines_as_stated(session, business):
     tenant = business.tenant.id
-    lamp = core.create_item(session, tenant, "LAMP-308C", "Lamp changed")
+    lamp = reviewed_create_item(session, tenant, "LAMP-308C", "Lamp changed")
     _map(session, business)
     _, _, (line,), _ = _manual_order(
         session, business, "SO-308-6", [({"customer_item_number": "K-4711"}, "1")]
@@ -358,7 +358,7 @@ def test_remembering_shows_a_remap_and_refuses_one_made_since_the_review(
     from reality.tools.application import approve_and_execute_proposal
 
     tenant = business.tenant.id
-    lamp = core.create_item(session, tenant, "LAMP-308R", "Lamp remap")
+    lamp = reviewed_create_item(session, tenant, "LAMP-308R", "Lamp remap")
     _import(
         session, business, tmp_path, monkeypatch, [("K-7", "1")], order_id="EDI-308R"
     )
@@ -442,3 +442,6 @@ def test_a_correction_that_does_not_state_the_number_keeps_it(session, business)
     )
     session.refresh(line)
     assert json.loads(line.payload)["customer_item_number"] == "K-4711"
+
+
+from intake_review_support import reviewed_create_item

@@ -58,7 +58,7 @@ def test_one_point_per_item_and_location_with_values_in_range(session, business)
     insert(point="0")
     with pytest.raises(IntegrityError, match="uq_item_reorder_point_item_location"):
         insert()
-    other = core.create_location(session, tenant, "Second store")
+    other = reviewed_create_location(session, tenant, "Second store")
     with pytest.raises(IntegrityError, match="ck_item_reorder_point_values"):
         insert(quantity="0", location=other.id)
     with pytest.raises(IntegrityError, match="ck_item_reorder_point_values"):
@@ -200,10 +200,10 @@ def test_only_a_stocked_active_item_at_a_stock_location_takes_a_point(
     session, business
 ):
     tenant = business.tenant.id
-    service = core.create_item(
+    service = reviewed_create_item(
         session, tenant, "SRV-302", "Assembly", item_type="service"
     )
-    virtual = core.create_location(session, tenant, "In transit")
+    virtual = reviewed_create_location(session, tenant, "In transit")
     virtual.allows_stock = False
     session.commit()
 
@@ -443,3 +443,6 @@ def test_the_migration_gives_every_stated_point_its_evidence(
         command.upgrade(config, "head")
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

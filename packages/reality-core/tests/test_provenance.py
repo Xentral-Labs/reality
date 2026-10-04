@@ -97,9 +97,8 @@ def test_unknown_upstream_document_label_remains_lossless_source_evidence(
 
 
 def imported_party(session, tenant_id, *, system="shopify_de", external_id="cust-1"):
-    from reality.services.core import create_party
 
-    return create_party(
+    return historical_party(
         session,
         tenant_id,
         "Imported Customer",
@@ -153,7 +152,6 @@ def test_origin_of_a_manually_created_record_names_the_deciding_user(
     session, business, scheduled_owner
 ):
     from reality.db.core import ChangeProposal, now, uid
-    from reality.services.core import create_party
     from reality.services.provenance import record_origins
 
     proposal = ChangeProposal(
@@ -166,7 +164,7 @@ def test_origin_of_a_manually_created_record_names_the_deciding_user(
     )
     session.add(proposal)
     session.flush()
-    party = create_party(
+    party = historical_party(
         session,
         business.tenant.id,
         "Walk-in Customer",
@@ -185,10 +183,9 @@ def test_origin_of_a_manually_created_record_names_the_deciding_user(
 def test_origin_of_a_manual_record_without_a_decision_states_no_actor(
     session, business
 ):
-    from reality.services.core import create_party
     from reality.services.provenance import record_origins
 
-    party = create_party(session, business.tenant.id, "Hand entered", "customer")
+    party = historical_party(session, business.tenant.id, "Hand entered", "customer")
     origin = record_origins(session, business.tenant.id, [party], subject_type="party")[
         party.id
     ]
@@ -254,12 +251,12 @@ def vendor_sourced_party(session, tenant_id, source_type, external_id):
     source type (`party`), which is not a vendor type and therefore addresses
     nothing. A record that arrived through ingestion keeps the vendor's type.
     """
-    from reality.services.core import create_party, enqueue_source
+    from reality.services.core import enqueue_source
 
     source, _ = enqueue_source(
         session, tenant_id, "shopify_de", source_type, external_id, {"id": external_id}
     )
-    return create_party(
+    return historical_party(
         session,
         tenant_id,
         f"From {source_type}",
@@ -418,7 +415,6 @@ def test_a_template_may_only_interpolate_the_external_reference():
 
 def test_a_hand_created_system_resolves_no_template(session, business):
     from reality.services.core import (
-        create_party,
         create_source_system,
         set_source_system_base_url,
     )
@@ -430,7 +426,7 @@ def test_a_hand_created_system_resolves_no_template(session, business):
     set_source_system_base_url(
         session, business.tenant.id, system.id, "https://legacy.example/records"
     )
-    party = create_party(
+    party = historical_party(
         session,
         business.tenant.id,
         "From the old server",
@@ -775,13 +771,12 @@ def _executed_decision(session, tenant_id, **values):
 def test_origin_links_the_decision_that_created_a_record(
     session, business, scheduled_owner
 ):
-    from reality.services.core import create_party
     from reality.services.provenance import record_origins
 
     proposal = _executed_decision(
         session, business.tenant.id, decided_by_user_id=scheduled_owner.id
     )
-    party = create_party(
+    party = historical_party(
         session, business.tenant.id, "Decided", "customer", action_id=proposal.id
     )
 
@@ -803,7 +798,6 @@ def test_origin_of_an_agent_confirmed_record_names_the_token_not_a_person(
     session, business, scheduled_owner
 ):
     from reality.mcp.auth import create_mcp_access_token
-    from reality.services.core import create_party
     from reality.services.provenance import record_origins
 
     token, _ = create_mcp_access_token(
@@ -812,7 +806,7 @@ def test_origin_of_an_agent_confirmed_record_names_the_token_not_a_person(
     proposal = _executed_decision(
         session, business.tenant.id, decided_via_token_id=token.id
     )
-    party = create_party(
+    party = historical_party(
         session, business.tenant.id, "Agent made", "customer", action_id=proposal.id
     )
 
@@ -829,10 +823,10 @@ def test_a_later_decision_is_not_presented_as_the_creating_one(
     session, business, scheduled_owner
 ):
     """Spec 263 A2: only a record's first event can name the decision that made it."""
-    from reality.services.core import create_party, emit_business_event
+    from reality.services.core import emit_business_event
     from reality.services.provenance import record_origins
 
-    party = create_party(session, business.tenant.id, "Hand entered", "customer")
+    party = historical_party(session, business.tenant.id, "Hand entered", "customer")
     later = _executed_decision(
         session, business.tenant.id, decided_by_user_id=scheduled_owner.id
     )
@@ -856,14 +850,13 @@ def test_a_later_decision_is_not_presented_as_the_creating_one(
 def test_decision_origins_stay_bounded_per_page(session, business, scheduled_owner):
     from sqlalchemy import event
 
-    from reality.services.core import create_party
     from reality.services.provenance import record_origins
 
     proposal = _executed_decision(
         session, business.tenant.id, decided_by_user_id=scheduled_owner.id
     )
     parties = [
-        create_party(
+        historical_party(
             session, business.tenant.id, f"P{index}", "customer", action_id=proposal.id
         )
         for index in range(40)
@@ -895,3 +888,6 @@ def test_decision_origins_stay_bounded_per_page(session, business, scheduled_own
 
     assert counts[0] == counts[1]
     assert counts[1] <= 7
+
+
+from legacy_business_support import historical_party

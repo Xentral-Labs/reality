@@ -570,7 +570,7 @@ def test_a_shop_order_with_an_unknown_item_keeps_the_known_lines(session, busine
     ]
     assert [row.record_id for row in findings] == [unknown.id]
 
-    helmet = core.create_item(session, tenant, "HELMET-M-01", "Helmet M")
+    helmet = reviewed_create_item(session, tenant, "HELMET-M-01", "Helmet M")
     proposal = prepare_delivery_action(
         session,
         tenant,
@@ -913,3 +913,6 @@ def _reviewed_revision(session, business, commitment, legacy_source):
         session, business.tenant.id, proposal.id, review_token=token, confirmed=True
     )
     return {"status": executed.status}
+
+
+from intake_review_support import reviewed_create_item

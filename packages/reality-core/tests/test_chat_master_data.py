@@ -16,7 +16,6 @@ from reality.mcp.catalog import dispatch_tool
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    create_location,
     create_tenant,
 )
 
@@ -219,7 +218,7 @@ def test_incomplete_source_identity_rejects_complete_batch(session, business):
 
 def test_foreign_location_relationship_rejects_complete_batch(session, business):
     foreign = create_tenant(session, "Foreign company")
-    foreign_parent = create_location(session, foreign.id, "Foreign warehouse")
+    foreign_parent = reviewed_create_location(session, foreign.id, "Foreign warehouse")
     before = _count(session, Location, business.tenant.id)
     proposal = dispatch_tool(
         session,
@@ -316,3 +315,6 @@ def test_invalid_location_local_references_reject_complete_batch(
         )
 
     assert _count(session, Location, business.tenant.id) == before
+
+
+from intake_review_support import reviewed_create_location

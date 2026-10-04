@@ -502,13 +502,13 @@ def test_agent_proposes_future_prepayment_and_partial_shipment_without_self_exec
 
 def test_agent_readiness_matrix_distinguishes_multiple_customers(session, business):
     tenant_id = business.tenant.id
-    customer_paid = core.create_party(
+    customer_paid = reviewed_create_party(
         session, tenant_id, "Ready Industries", "customer"
     )
-    customer_unpaid = core.create_party(
+    customer_unpaid = reviewed_create_party(
         session, tenant_id, "Prepay Wholesale", "customer"
     )
-    customer_partial = core.create_party(
+    customer_partial = reviewed_create_party(
         session, tenant_id, "Partial Components", "customer"
     )
     core.create_payment_term(session, tenant_id, "MATRIX-NET", "Net", 14)
@@ -528,7 +528,7 @@ def test_agent_readiness_matrix_distinguishes_multiple_customers(session, busine
         "20",
         to_location_id=business.location.id,
     )
-    partial_item = core.create_item(
+    partial_item = reviewed_create_item(
         session, tenant_id, "MATRIX-PART", "Partially stocked assembly"
     )
     core.record_movement(
@@ -597,3 +597,6 @@ def test_agent_readiness_matrix_distinguishes_multiple_customers(session, busine
         )
         assert agent_read["commitment_id"] == commitment.id
         assert agent_read["order_id"] == commitment.document_id
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

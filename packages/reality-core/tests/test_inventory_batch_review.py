@@ -29,7 +29,7 @@ cost_owner = fixtures.cost_owner
 def prepared(session, business, owner):
     first, _, _ = fixtures.prepared(session, business, owner)
     second_business = SimpleNamespace(**vars(business))
-    second_business.item = core.create_item(
+    second_business.item = reviewed_create_item(
         session, business.tenant.id, "SECOND", "Second", unit="kg"
     )
     second, _, _ = fixtures.prepared(session, second_business, owner)
@@ -217,7 +217,7 @@ def test_batch_foreign_or_absent_member_refuses_without_writes(
     tenant = business.tenant.id
     args = prepared(session, business, cost_owner)
     foreign = core.create_tenant(session, "Foreign")
-    foreign_item = core.create_item(session, foreign.id, "FOREIGN", "Foreign")
+    foreign_item = reviewed_create_item(session, foreign.id, "FOREIGN", "Foreign")
     before = counts(session, tenant)
     for item in (foreign_item.id, "absent"):
         invalid = copy.deepcopy(args)
@@ -311,3 +311,6 @@ def test_batch_domain_refuses_incompatible_scope(mutation):
                 "scopes": scopes,
             }
         )
+
+
+from intake_review_support import reviewed_create_item

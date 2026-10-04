@@ -603,11 +603,11 @@ def test_guard_validation_and_invoice_commit_serialize_a_concurrent_return(
             tenant = core.create_tenant(session, "Invoice guard concurrency")
             b = Business(
                 tenant=tenant,
-                company=core.create_party(session, tenant.id, "Company", "company"),
-                customer=core.create_party(session, tenant.id, "Customer", "customer"),
-                supplier=core.create_party(session, tenant.id, "Supplier", "supplier"),
-                item=core.create_item(session, tenant.id, "GUARD", "Guard item"),
-                location=core.create_location(session, tenant.id, "Warehouse"),
+                company=reviewed_create_party(session, tenant.id, "Company", "company"),
+                customer=reviewed_create_party(session, tenant.id, "Customer", "customer"),
+                supplier=reviewed_create_party(session, tenant.id, "Supplier", "supplier"),
+                item=reviewed_create_item(session, tenant.id, "GUARD", "Guard item"),
+                location=reviewed_create_location(session, tenant.id, "Warehouse"),
             )
             line_id, commitment_id, guard = delivered_invoice(session, b)
             proposal = prepare(
@@ -690,3 +690,10 @@ def test_guard_validation_and_invoice_commit_serialize_a_concurrent_return(
     finally:
         release.set()
         engine.dispose()
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

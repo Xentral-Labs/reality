@@ -42,8 +42,8 @@ def test_a_number_resolves_for_its_customer_ignoring_case_and_spaces(session, bu
 
 def test_the_same_number_at_another_customer_is_its_own(session, business):
     tenant = business.tenant.id
-    other = core.create_party(session, tenant, "Nordrad KG", "customer")
-    lamp = core.create_item(session, tenant, "LAMP-308", "Lamp 308")
+    other = reviewed_create_party(session, tenant, "Nordrad KG", "customer")
+    lamp = reviewed_create_item(session, tenant, "LAMP-308", "Lamp 308")
     set_customer_item_number(
         session, tenant, business.customer.id, business.item.id, "A-1", "Rad"
     )
@@ -58,7 +58,7 @@ def test_the_same_number_at_another_customer_is_its_own(session, business):
 
 def test_restating_and_removing_are_versions_of_one_stream(session, business):
     tenant = business.tenant.id
-    lamp = core.create_item(session, tenant, "LAMP-308B", "Lamp 308 B")
+    lamp = reviewed_create_item(session, tenant, "LAMP-308B", "Lamp 308 B")
     first = set_customer_item_number(
         session, tenant, business.customer.id, business.item.id, "K-1", "Rad"
     )
@@ -178,3 +178,6 @@ def test_the_table_refuses_a_blank_number_and_a_second_mapping(session, business
             )
         )
         session.flush()
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

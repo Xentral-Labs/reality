@@ -131,6 +131,7 @@ class _ApplicationAuthority:
     proposal_id: str
     tool: str
     intent: str
+    confirmed: bool
 
 
 _application_authority: ContextVar[_ApplicationAuthority | None] = ContextVar(
@@ -138,8 +139,13 @@ _application_authority: ContextVar[_ApplicationAuthority | None] = ContextVar(
 )
 
 
+_master_consumed: ContextVar[set[object] | None] = ContextVar(
+    "master_invocations", default=None
+)
+
+
 @contextmanager
-def _confirmed_application_scope(session, tenant_id, proposal):
+def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=False):
     current = session.scalar(
         select(ChangeProposal).where(
             ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == proposal.id
@@ -154,14 +160,26 @@ def _confirmed_application_scope(session, tenant_id, proposal):
         current.id,
         current.type.removeprefix("tool:"),
         current.input,
+        confirmed,
     )
     token = _application_authority.set(authority)
+    consumed_token = _master_consumed.set(set())
 
     def deny_setup_commit(db):
         if not db.in_nested_transaction():
             raise InvalidOperation(code="intake_partial_commit_forbidden")
 
-    fixed = authority.tool in {"demo_seed", "normal_month"}
+    fixed = authority.tool in {
+        "demo_seed",
+        "normal_month",
+        "party_create",
+        "item_create",
+        "location_create",
+        "party_update",
+        "item_update",
+        "location_update",
+        "company_party_record",
+    }
     if fixed:
         event.listen(session, "before_commit", deny_setup_commit)
     try:
@@ -173,6 +191,7 @@ def _confirmed_application_scope(session, tenant_id, proposal):
     finally:
         if fixed:
             event.remove(session, "before_commit", deny_setup_commit)
+        _master_consumed.reset(consumed_token)
         _application_authority.reset(token)
 
 
@@ -725,6 +744,38 @@ def require_master_call(
     action_id: str | None,
 ) -> None:
     """Recheck exact intent at the shared service, before any record is changed."""
+    authority = _application_authority.get()
+    if authority is not None and authority.tool in {
+        *MASTER_TOOLS,
+        "company_party_record",
+    }:
+        expected = json.loads(authority.intent)
+        expected_records = expected.get("records")
+        if authority.tool == "company_party_record":
+            expected_records = [
+                {
+                    "name": expected["name"],
+                    "type": "company",
+                    "roles": expected["roles"],
+                }
+            ]
+        if (
+            authority.session is not session
+            or authority.transaction is not session.get_transaction()
+            or authority.tenant_id != tenant_id
+            or action_id != authority.proposal_id
+            or records != expected_records
+            or tool
+            not in {
+                authority.tool,
+                *(
+                    {"party_create"}
+                    if authority.tool == "company_party_record"
+                    else set()
+                ),
+            }
+        ):
+            raise InvalidOperation(code="intake_approval_required")
     decision = _current_decision(session, tenant_id)
     if decision is not None and (
         _master_execution.get() != (session, decision.proposal_id)
@@ -810,8 +861,25 @@ def _opening_with_cost(session: Session, tenant_id: str, proposal_id: str) -> bo
     )
 
 
-def require_core_operation(session: Session, tenant_id: str, operation: str) -> None:
+def require_core_operation(session: Session, tenant_id: str, operation: str) -> bool:
     """Permit only private initial reference setup; egress has no such exception."""
+    creation = _company_creation_authority.get()
+    if creation is not None:
+        if (
+            creation.session is not session
+            or creation.transaction is not session.get_transaction()
+            or creation.tenant_id != tenant_id
+            or operation
+            not in {
+                "create_party",
+                "create_master_source_record",
+                "store_source_record",
+                "emit_business_event",
+            }
+        ):
+            raise InvalidOperation(code="intake_approval_required")
+        _current_company_creation(session, creation)
+        return True
     profile_cost = _profile_cost_authority.get()
     if (
         profile_cost is not None
@@ -823,7 +891,7 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
         run = require_playground_run(session, profile_cost[2], profile_cost[3])
         tenant = session.get(Tenant, tenant_id)
         if run.status == "initializing" and tenant.archived_at is None:
-            return
+            return True
         raise PlaygroundOperationDenied(code="playground_costing_authority_unavailable")
     profile = _profile_authority.get()
     if (
@@ -834,7 +902,7 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
         and operation in profile[5]
         and _profile_authority_holds(session, profile, tenant_id)
     ):
-        return
+        return True
     if profile is not None:
         raise PlaygroundOperationDenied(code="playground_profile_operation_denied")
     decision = _current_decision(session, tenant_id)
@@ -867,7 +935,7 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
             )
         )
         if status == "executing":
-            return
+            return True
     if decision and decision.operation == "proposal_execute":
         proposal_type = session.scalar(
             select(ChangeProposal.type).where(
@@ -896,7 +964,7 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
                 )
                 == "executing"
             ):
-                return
+                return True
         if proposal_type == "tool:order_create" and operation in {
             "create_manual_order",
             "store_source_record",
@@ -905,17 +973,17 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
             "create_commitment",
             "emit_business_event",
         }:
-            return
+            return True
         if proposal_type == "tool:reserve" and operation in {
             "reserve",
             "emit_business_event",
         }:
-            return
+            return True
         if proposal_type == "tool:reservation_release" and operation in {
             "release_reservation",
             "emit_business_event",
         }:
-            return
+            return True
         financial_operations = {
             "tool:sales_credit_record": {
                 "record_sales_credit",
@@ -973,7 +1041,7 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
             )
             == "executing"
         ):
-            return
+            return True
     authority = _seed_authority.get()
     if (
         authority is not None
@@ -985,8 +1053,9 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
         run = require_playground_run(session, authority.run_id, authority.user_id)
         tenant = session.get(Tenant, tenant_id)
         if run.status == "initializing" and tenant.archived_at is None:
-            return
+            return True
     require_business_operation(session, tenant_id, operation)
+    return False
 
 
 class PlaygroundOperationDenied(InvalidOperation):
@@ -1533,9 +1602,11 @@ def storyline_seed_scope(session: Session, run_id: str, actor_id: str):
             _PRACTICE_APP_OPERATIONS | _PROFILE_OPERATIONS,
         )
     )
+    consumed_token = _master_consumed.set(set())
     try:
         yield
     finally:
+        _master_consumed.reset(consumed_token)
         _profile_authority.reset(token)
 
 
@@ -1556,10 +1627,12 @@ def _bound_profile_scope(
         raise PlaygroundOperationDenied("Profile operation must commit atomically.")
 
     event.listen(session, "before_commit", deny_commit)
+    consumed_token = _master_consumed.set(set())
     try:
         yield
     finally:
         event.remove(session, "before_commit", deny_commit)
+        _master_consumed.reset(consumed_token)
         _profile_authority.reset(token)
 
 
@@ -1568,3 +1641,208 @@ def require_demo_intake(
 ) -> None:
     """Retired mutating interpreters cannot reuse raw source connection authority."""
     raise InvalidOperation(code="intake_approval_required")
+
+
+_MASTER_MUTATION_TOOLS = {
+    "create_party": frozenset({"party_create", "company_party_record"}),
+    "create_item": frozenset({"item_create"}),
+    "create_location": frozenset({"location_create"}),
+    "update_party": frozenset({"party_update"}),
+    "update_item": frozenset({"item_update"}),
+    "update_location": frozenset({"location_update"}),
+}
+
+
+def _require_master_decision(session, tenant_id, operation):
+    """Consume only the retained confirmation for this canonical master family."""
+    authority = _application_authority.get()
+    if authority is not None and authority.tool in _FIXED_DEFINITIONS:
+        _require_fixed_setup(session, tenant_id, authority.tool)
+        return
+    if (
+        authority is None
+        or authority.session is not session
+        or authority.transaction is not session.get_transaction()
+        or authority.tenant_id != tenant_id
+        or not authority.confirmed
+        or authority.tool not in _MASTER_MUTATION_TOOLS.get(operation, ())
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    proposal = session.scalar(
+        select(ChangeProposal)
+        .where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.id == authority.proposal_id,
+        )
+        .execution_options(populate_existing=True)
+    )
+    if (
+        proposal is None
+        or proposal.status != "executing"
+        or proposal.type != f"tool:{authority.tool}"
+        or proposal.input != authority.intent
+        or proposal.decided_at is None
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+    from reality.db.core import MCPAccessToken
+    from reality.services.delivery_actions import require_delivery_principal
+    from reality.services.memberships import Principal
+
+    if proposal.decided_via_token_id is not None:
+        credential = session.scalar(
+            select(MCPAccessToken)
+            .where(
+                MCPAccessToken.tenant_id == tenant_id,
+                MCPAccessToken.id == proposal.decided_via_token_id,
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        try:
+            permissions = json.loads(credential.allowed_tools) if credential else []
+        except (TypeError, ValueError):
+            permissions = []
+        if (
+            credential is None
+            or credential.revoked_at is not None
+            or not isinstance(permissions, list)
+            or not (
+                {"*", "proposal_approve_and_execute"}
+                & {
+                    permission
+                    for permission in permissions
+                    if isinstance(permission, str)
+                }
+            )
+        ):
+            raise InvalidOperation(code="intake_approval_required")
+    if proposal.decided_by_user_id is not None:
+        require_delivery_principal(
+            session, tenant_id, Principal(proposal.decided_by_user_id)
+        )
+
+
+def _master_application_active(operation=None):
+    authority = _application_authority.get()
+    if authority is not None and authority.tool in {
+        *MASTER_TOOLS,
+        "company_party_record",
+    }:
+        return True
+    return operation in _MASTER_MUTATION_TOOLS and (
+        authority is not None
+        and authority.tool in _FIXED_DEFINITIONS
+        or _profile_authority.get() is not None
+    )
+
+
+def _consume_master_invocation(nonce):
+    consumed = _master_consumed.get()
+    if nonce is None or consumed is None or nonce in consumed:
+        raise InvalidOperation(code="intake_approval_required")
+    consumed.add(nonce)
+
+
+@dataclass(frozen=True)
+class _CompanyCreationAuthority:
+    session: Session
+    transaction: object
+    tenant_id: str
+    creation_id: str
+    actor_id: str
+    request_key: str
+    fingerprint: str
+    name: str
+
+
+_company_creation_authority: ContextVar[_CompanyCreationAuthority | None] = ContextVar(
+    "confirmed_company_partner", default=None
+)
+_company_partner_used: ContextVar[bool] = ContextVar(
+    "company_partner_consumed", default=False
+)
+
+
+def _current_company_creation(session, authority):
+    from reality.db.company_setup import OrdinaryCompanyCreation
+    from reality.services.memberships import Principal, require_owner
+
+    receipt = session.scalar(
+        select(OrdinaryCompanyCreation)
+        .where(
+            OrdinaryCompanyCreation.tenant_id == authority.tenant_id,
+            OrdinaryCompanyCreation.id == authority.creation_id,
+            OrdinaryCompanyCreation.actor_id == authority.actor_id,
+            OrdinaryCompanyCreation.request_key == authority.request_key,
+            OrdinaryCompanyCreation.request_fingerprint == authority.fingerprint,
+        )
+        .execution_options(populate_existing=True)
+    )
+    if receipt is None:
+        raise InvalidOperation(code="intake_approval_required")
+    require_owner(session, authority.tenant_id, Principal(authority.actor_id))
+    return receipt
+
+
+@contextmanager
+def _confirmed_company_partner_scope(session, tenant, receipt, *, confirmed):
+    if not confirmed:
+        raise InvalidOperation(code="review_confirmation_required")
+    authority = _CompanyCreationAuthority(
+        session,
+        session.get_transaction(),
+        tenant.id,
+        receipt.id,
+        receipt.actor_id,
+        receipt.request_key,
+        receipt.request_fingerprint,
+        tenant.name,
+    )
+    _current_company_creation(session, authority)
+    token = _company_creation_authority.set(authority)
+    used_token = _company_partner_used.set(False)
+
+    def deny_commit(db):
+        if not db.in_nested_transaction():
+            raise InvalidOperation(code="intake_partial_commit_forbidden")
+
+    event.listen(session, "before_commit", deny_commit)
+    try:
+        yield
+    except BaseException:
+        session.rollback()
+        raise
+    finally:
+        event.remove(session, "before_commit", deny_commit)
+        _company_partner_used.reset(used_token)
+        _company_creation_authority.reset(token)
+
+
+def require_company_partner_intent(actual):
+    authority = _company_creation_authority.get()
+    if authority is None:
+        return
+    from reality.domain.intake import canonical_json
+    from reality.services.intake import _INTENT_DEFAULTS
+
+    expected = {
+        **_INTENT_DEFAULTS["create_party"],
+        "name": authority.name,
+        "party_type": "company",
+        "roles": ["company"],
+        "source_system": "reality",
+        "external_id": f"company-setup:{authority.request_key}",
+        "source_payload": {
+            "name": authority.name,
+            "roles": ["company"],
+            "request_key": authority.request_key,
+        },
+        "_commit": False,
+    }
+    if canonical_json({key: actual.get(key) for key in expected}) != canonical_json(
+        expected
+    ):
+        raise InvalidOperation(code="intake_review_invalid")
+    if _company_partner_used.get():
+        raise InvalidOperation(code="intake_approval_required")
+    _company_partner_used.set(True)

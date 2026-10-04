@@ -27,10 +27,10 @@ def test_the_tables_come_and_go_and_recorded_rows_block_a_rollback(
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration GmbH")
-            supplier = core.create_party(session, tenant.id, "Supplier", "supplier")
-            company = core.create_party(session, tenant.id, "Migration GmbH", "company")
-            item = core.create_item(session, tenant.id, "SKU", "Item")
-            location = core.create_location(session, tenant.id, "Warehouse")
+            supplier = reviewed_create_party(session, tenant.id, "Supplier", "supplier")
+            company = reviewed_create_party(session, tenant.id, "Migration GmbH", "company")
+            item = reviewed_create_item(session, tenant.id, "SKU", "Item")
+            location = reviewed_create_location(session, tenant.id, "Warehouse")
             promise = core.create_commitment(
                 session,
                 tenant.id,
@@ -65,3 +65,10 @@ def test_the_tables_come_and_go_and_recorded_rows_block_a_rollback(
         assert TABLES <= set(inspect(engine).get_table_names())
     finally:
         engine.dispose()
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

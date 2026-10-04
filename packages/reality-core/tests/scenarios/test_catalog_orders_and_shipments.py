@@ -25,7 +25,6 @@ from reality.services.core import (
     announce_customer_return,
     commitment_quantity,
     create_commitment,
-    create_item,
     fulfilled_quantity,
     open_quantity,
     record_movement,
@@ -231,7 +230,7 @@ def test_one_shipment_fulfils_two_orders_of_the_same_customer(session, business)
 def test_one_package_carries_several_commitments_of_one_customer(session, business):
     """D03: does one package fulfil several commitments, each by its own quantity?"""
     tenant_id = business.tenant.id
-    pump = create_item(session, tenant_id, "BIKE-PUMP", "Bike Pump")
+    pump = reviewed_create_item(session, tenant_id, "BIKE-PUMP", "Bike Pump")
     _receive(session, business, business.item.id, "10", business.location.id)
     _receive(session, business, pump.id, "10", business.location.id)
     commitments = [
@@ -308,7 +307,7 @@ def test_shopify_free_promotion_item_is_its_own_zero_price_line_and_commitment(
 ):
     """L09: is a free promotion item kept as its own zero-price line and promise?"""
     tenant_id = business.tenant.id
-    gift = create_item(session, tenant_id, "GIFT-BELL", "Gift Bell")
+    gift = reviewed_create_item(session, tenant_id, "GIFT-BELL", "Gift Bell")
     payload = {
         "id": 5837291099,
         "order_number": 10499,
@@ -551,7 +550,7 @@ def test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock(
 ):
     """A07: a whole order cancelled line by line leaves no reservation behind."""
     tenant_id = business.tenant.id
-    pump = create_item(session, tenant_id, "PUMP-A07", "Mini Pump")
+    pump = reviewed_create_item(session, tenant_id, "PUMP-A07", "Mini Pump")
     _receive(session, business, business.item.id, "10", business.location.id)
     _receive(session, business, pump.id, "10", business.location.id)
     receipt = _order(
@@ -591,7 +590,7 @@ def test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock(
 def test_a_zero_price_line_ships_and_is_invoiced_without_revenue(session, business):
     """A19: a free line is committed, shipped and invoiced at zero next to a priced one."""
     tenant_id = business.tenant.id
-    gift = create_item(session, tenant_id, "GIFT-A19", "Gift Bell")
+    gift = reviewed_create_item(session, tenant_id, "GIFT-A19", "Gift Bell")
     _receive(session, business, business.item.id, "10", business.location.id)
     _receive(session, business, gift.id, "10", business.location.id)
     free = {
@@ -809,7 +808,7 @@ def test_a_renamed_item_number_keeps_every_record_on_the_same_item(session, busi
         },
         request_id="rename-o01",
     )
-    approve_and_execute_proposal(session, tenant, proposal.id)
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
 
     session.refresh(item)
     assert item.sku == "BIKE-LIGHT-2027"
@@ -1128,7 +1127,7 @@ def _from(business, commitment_id, location, quantity, item_id=None):
 def test_two_warehouses_ship_one_order_line_as_two_parcels(session, business):
     """D02: movements per location, one commitment?"""
     tenant = business.tenant.id
-    munich = core.create_location(session, tenant, "Munich Warehouse")
+    munich = reviewed_create_location(session, tenant, "Munich Warehouse")
     _receive(session, business, business.item.id, "6", business.location.id)
     _receive(session, business, business.item.id, "40", munich.id)
     (promise_id,) = _order(
@@ -1181,7 +1180,7 @@ def test_stock_in_the_wrong_warehouse_is_transferred_and_then_reserved(
 ):
     """B06: is a transfer needed, and is availability per location?"""
     tenant = business.tenant.id
-    munich = core.create_location(session, tenant, "Munich Warehouse")
+    munich = reviewed_create_location(session, tenant, "Munich Warehouse")
     _receive(session, business, business.item.id, "40", munich.id)
     (promise_id,) = _order(session, business, "SO-B06", [_line(business.item.id, "5")])[
         "commitment_ids"
@@ -1220,9 +1219,9 @@ def test_stock_in_the_wrong_warehouse_is_transferred_and_then_reserved(
 def test_an_order_with_many_lines_is_served_from_two_warehouses(session, business):
     """A02: what is open per line and per location?"""
     tenant = business.tenant.id
-    munich = core.create_location(session, tenant, "Munich Warehouse")
+    munich = reviewed_create_location(session, tenant, "Munich Warehouse")
     items = [business.item] + [
-        core.create_item(session, tenant, f"A02-{index}", f"Part {index}")
+        reviewed_create_item(session, tenant, f"A02-{index}", f"Part {index}")
         for index in range(1, 12)
     ]
     # Even items are stocked at home, odd ones in Munich.
@@ -1302,7 +1301,7 @@ def test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once(
 ):
     """B10: reserved goods wait, the reason is named, and the whole order ships together."""
     tenant = business.tenant.id
-    lamp = core.create_item(session, tenant, "LAMP-B10", "Lamp B10")
+    lamp = reviewed_create_item(session, tenant, "LAMP-B10", "Lamp B10")
     _receive(session, business, business.item.id, "5", business.location.id)
     _receive(session, business, lamp.id, "1", business.location.id)
     order = _order(
@@ -1473,7 +1472,7 @@ def test_a_customer_orders_by_its_own_item_numbers(
     """M02: the customer's numbers name our items, by hand, by file and once assigned."""
     monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
     tenant = business.tenant.id
-    lamp = core.create_item(session, tenant, "LAMP-M02", "Lamp M02")
+    lamp = reviewed_create_item(session, tenant, "LAMP-M02", "Lamp M02")
     _customer_number(session, business, "K-4711", business.item.id, "Laufrad 28 Zoll")
 
     # By hand: the clerk types the customer's number and gets our item.
@@ -1819,7 +1818,7 @@ def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, busin
         account_id=account["id"],
         expected_revision=list_accounts(session, tenant)["revision"],
     )
-    carrier = core.create_party(session, tenant, "DHL Paket GmbH", "supplier")
+    carrier = reviewed_create_party(session, tenant, "DHL Paket GmbH", "supplier")
     _receive(session, business, business.item.id, "4", business.location.id)
     order = _order(session, business, "SO-D07", [_line(business.item.id, "2")])
     (promise,) = order["commitment_ids"]
@@ -1860,7 +1859,7 @@ def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, busin
         },
         actor_type="human",
     )
-    approve_and_execute_proposal(session, tenant, payment.id)
+    approve_and_execute_proposal(session, tenant, payment.id, confirmed=True)
     assert core.open_invoice_amount(session, tenant, claim["document_id"]) == 0
 
     # The customer is still served: the order ships again.
@@ -1909,7 +1908,7 @@ def _ship_delivery(session, business, delivery_id, **extra):
 
 
 def _staging(session, business):
-    return core.create_location(session, business.tenant.id, "Packing zone")
+    return reviewed_create_location(session, business.tenant.id, "Packing zone")
 
 
 def test_an_order_cancelled_after_picking_goes_back_to_its_bin(session, business):
@@ -2208,9 +2207,9 @@ def test_pallet_freight_ships_with_its_booked_slot(session, business):
 def test_a_retail_chain_order_is_delivered_to_its_stores(session, business):
     """M05: one order from the central buyer, delivered to two stores."""
     tenant = business.tenant.id
-    north = core.create_party(session, tenant, "Müller Filiale Nord", "customer")
-    south = core.create_party(session, tenant, "Müller Filiale Süd", "customer")
-    other_item = create_item(session, tenant, "BIKE-BELL", "Bike Bell")
+    north = reviewed_create_party(session, tenant, "Müller Filiale Nord", "customer")
+    south = reviewed_create_party(session, tenant, "Müller Filiale Süd", "customer")
+    other_item = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike Bell")
     _receive(session, business, business.item.id, "8", business.location.id)
     _receive(session, business, other_item.id, "4", business.location.id)
     order = _order(
@@ -2265,3 +2264,10 @@ def test_a_retail_chain_order_is_delivered_to_its_stores(session, business):
     } == {"Müller Filiale Nord", "Müller Filiale Süd"}
     for promise in (lights, bells):
         assert record_by_id(session, Commitment, promise).status == "fulfilled"
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

@@ -14,7 +14,7 @@ from reality.tools.application import approve_and_execute_proposal, reject_propo
 def _held_release(session, business):
     from reality.mcp.catalog import MCP_TOOL_REGISTRY
 
-    party = core.create_party(
+    party = reviewed_create_party(
         session,
         business.tenant.id,
         "Credit policy customer",
@@ -503,3 +503,6 @@ def test_private_report_requires_original_author_but_rejection_does_not(
         ).status
         == "rejected"
     )
+
+
+from intake_review_support import reviewed_create_party

@@ -15,8 +15,6 @@ from reality.db.core import (
 from reality.services.core import (
     active_reserved,
     create_commitment,
-    create_item,
-    create_location,
     create_lot,
     record_movement,
     reserve,
@@ -52,11 +50,11 @@ def test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly(
     session, business
 ):
     tenant_id = business.tenant.id
-    item = create_item(
+    item = reviewed_create_item(
         session, tenant_id, "B2B-LOT", "B2B lot item", tracking_type="lot"
     )
     lot = create_lot(session, tenant_id, item.id, "B2B-LOT-2026")
-    returns = create_location(session, tenant_id, "Returns inspection")
+    returns = reviewed_create_location(session, tenant_id, "Returns inspection")
     record_movement(
         session,
         tenant_id,
@@ -224,3 +222,6 @@ def test_integrity_actions_reuse_existing_authorities_without_schema_shortcuts()
     assert {"status", "cancelled_at"} <= commitment_columns
     assert {"resolves_movement_id", "lot_id", "serial_unit_id", "handling_unit_id"} <= movement_columns
     assert {"status", "input", "output"} <= proposal_columns
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

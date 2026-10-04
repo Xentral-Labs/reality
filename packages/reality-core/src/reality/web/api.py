@@ -87,12 +87,9 @@ from reality.services.core import (
     correct_movement,
     create_chat_session,
     create_handling_unit,
-    create_item,
-    create_location,
     create_lot,
     create_manual_document_with_lines,
     create_manual_order,
-    create_party,
     create_party_group,
     create_payment_term,
     create_price_list,
@@ -171,9 +168,6 @@ from reality.services.core import (
     tenant_usage_summaries,
     tenants,
     timeline_activity,
-    update_item,
-    update_location,
-    update_party,
     update_party_group,
     update_payment_term,
     update_price_list,
@@ -3194,6 +3188,10 @@ class PartyWrite(ApiModel):
     tax_identifier: str = ""
 
 
+class PartyMutation(PartyWrite):
+    confirmed: bool = False
+
+
 class PartyRead(PartyWrite):
     id: str
     tenant_id: str
@@ -3216,6 +3214,10 @@ class ItemWrite(ApiModel):
     lead_time_days: int = 0
 
 
+class ItemMutation(ItemWrite):
+    confirmed: bool = False
+
+
 class ItemRead(ItemWrite):
     id: str
     tenant_id: str
@@ -3231,6 +3233,10 @@ class LocationWrite(ApiModel):
     source_system: str | None = None
     external_id: str | None = None
     source_payload: dict | None = None
+
+
+class LocationMutation(LocationWrite):
+    confirmed: bool = False
 
 
 class LocationRead(LocationWrite):
@@ -4566,23 +4572,9 @@ def list_parties(tenant_id: str, session: DatabaseSession):
 
 
 @router.post("/parties", response_model=PartyRead, status_code=status.HTTP_201_CREATED)
-def post_party(tenant_id: str, body: PartyWrite, session: DatabaseSession):
+def post_party(tenant_id: str, body: PartyMutation, session: DatabaseSession, request: Request):
     try:
-        party = create_party(
-            session,
-            tenant_id,
-            body.name,
-            body.type,
-            source_system=body.source_system or "",
-            external_id=body.external_id or "",
-            source_payload=body.source_payload,
-            roles=body.roles,
-            accounting_code=body.accounting_code,
-            payment_term_code=body.payment_term_code,
-            default_currency=body.default_currency,
-            credit_limit=body.credit_limit,
-            tax_identifier=body.tax_identifier,
-        )
+        party = _confirmed_master_request(session, tenant_id, 'party', 'create', body, request, None)
         return party_response(session, party)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4600,25 +4592,10 @@ def get_party(tenant_id: str, record_id: str, session: DatabaseSession):
 
 @router.put("/parties/{record_id}", response_model=PartyRead)
 def put_party(
-    tenant_id: str, record_id: str, body: PartyWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: PartyMutation, session: DatabaseSession, request: Request
 ):
     try:
-        party = update_party(
-            session,
-            tenant_id,
-            record_id,
-            body.name,
-            body.type,
-            source_system=body.source_system,
-            external_id=body.external_id,
-            source_payload=body.source_payload,
-            roles=body.roles,
-            accounting_code=body.accounting_code,
-            payment_term_code=body.payment_term_code,
-            default_currency=body.default_currency,
-            credit_limit=body.credit_limit,
-            tax_identifier=body.tax_identifier,
-        )
+        party = _confirmed_master_request(session, tenant_id, 'party', 'update', body, request, record_id)
         return party_response(session, party)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4654,24 +4631,9 @@ def list_items(tenant_id: str, session: DatabaseSession):
 
 
 @router.post("/items", response_model=ItemRead, status_code=status.HTTP_201_CREATED)
-def post_item(tenant_id: str, body: ItemWrite, session: DatabaseSession):
+def post_item(tenant_id: str, body: ItemMutation, session: DatabaseSession, request: Request):
     try:
-        item = create_item(
-            session,
-            tenant_id,
-            body.sku,
-            body.name,
-            body.unit,
-            source_system=body.source_system or "",
-            external_id=body.external_id or "",
-            source_payload=body.source_payload,
-            item_type=body.item_type,
-            tracking_type=body.tracking_type,
-            default_location_id=body.default_location_id,
-            purchase_unit=body.purchase_unit,
-            conversion_factor=body.conversion_factor,
-            lead_time_days=body.lead_time_days,
-        )
+        item = _confirmed_master_request(session, tenant_id, 'item', 'create', body, request, None)
         return item_response(session, item)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4688,25 +4650,9 @@ def get_item(tenant_id: str, record_id: str, session: DatabaseSession):
 
 
 @router.put("/items/{record_id}", response_model=ItemRead)
-def put_item(tenant_id: str, record_id: str, body: ItemWrite, session: DatabaseSession):
+def put_item(tenant_id: str, record_id: str, body: ItemMutation, session: DatabaseSession, request: Request):
     try:
-        item = update_item(
-            session,
-            tenant_id,
-            record_id,
-            body.sku,
-            body.name,
-            body.unit,
-            source_system=body.source_system,
-            external_id=body.external_id,
-            source_payload=body.source_payload,
-            item_type=body.item_type,
-            tracking_type=body.tracking_type,
-            default_location_id=body.default_location_id,
-            purchase_unit=body.purchase_unit,
-            conversion_factor=body.conversion_factor,
-            lead_time_days=body.lead_time_days,
-        )
+        item = _confirmed_master_request(session, tenant_id, 'item', 'update', body, request, record_id)
         return item_response(session, item)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4746,19 +4692,9 @@ def list_locations(tenant_id: str, session: DatabaseSession):
 @router.post(
     "/locations", response_model=LocationRead, status_code=status.HTTP_201_CREATED
 )
-def post_location(tenant_id: str, body: LocationWrite, session: DatabaseSession):
+def post_location(tenant_id: str, body: LocationMutation, session: DatabaseSession, request: Request):
     try:
-        location = create_location(
-            session,
-            tenant_id,
-            body.name,
-            body.type,
-            parent_location_id=body.parent_location_id,
-            allows_stock=body.allows_stock,
-            source_system=body.source_system or "",
-            external_id=body.external_id or "",
-            source_payload=body.source_payload,
-        )
+        location = _confirmed_master_request(session, tenant_id, 'location', 'create', body, request, None)
         return location_response(session, location)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4782,21 +4718,10 @@ def get_location(tenant_id: str, record_id: str, session: DatabaseSession):
 
 @router.put("/locations/{record_id}", response_model=LocationRead)
 def put_location(
-    tenant_id: str, record_id: str, body: LocationWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: LocationMutation, session: DatabaseSession, request: Request
 ):
     try:
-        location = update_location(
-            session,
-            tenant_id,
-            record_id,
-            body.name,
-            body.type,
-            parent_location_id=body.parent_location_id,
-            allows_stock=body.allows_stock,
-            source_system=body.source_system,
-            external_id=body.external_id,
-            source_payload=body.source_payload,
-        )
+        location = _confirmed_master_request(session, tenant_id, 'location', 'update', body, request, record_id)
         return location_response(session, location)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -9608,3 +9533,24 @@ def post_intake_review_renew(
         return {"id": proposal.id, "status": proposal.status}
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
+
+
+def _confirmed_master_request(session, tenant_id, family, mode, body, request, record_id):
+    """Carry an explicitly confirmed request through the shared catalog decision."""
+    from reality.services.core import _tenant_record_read
+    from reality.tools.application import create_change_proposal
+
+    if not body.confirmed:
+        raise InvalidOperation(code="review_confirmation_required")
+    record = body.model_dump(exclude={"confirmed"}, exclude_none=True)
+    if family == "party":
+        record["roles"] = record.get("roles") or [record["type"]]
+    if mode == "create":
+        record["source_system"] = record.get("source_system") or ""
+        record["external_id"] = record.get("external_id") or ""
+    else:
+        record["id"] = record_id
+    proposal = create_change_proposal(session, tenant_id, f"{family}_{mode}", {"records": [record]}, actor_type="user")
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=optional_request_principal(request), confirmed=body.confirmed)
+    identity = json.loads(receipt.output)["records"][0]["id"]
+    return _tenant_record_read(session, {"party": Party, "item": Item, "location": Location}[family], tenant_id, identity)

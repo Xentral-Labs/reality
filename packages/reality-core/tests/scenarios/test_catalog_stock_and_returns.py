@@ -22,10 +22,7 @@ from reality.services.core import (
     arrived_against_announcement,
     business_events,
     create_commitment,
-    create_item,
-    create_location,
     create_lot,
-    create_party,
     fulfilled_quantity,
     location_detail,
     open_invoice_amount,
@@ -115,7 +112,7 @@ def test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one(
     followed by a new reservation, and the two are recorded as separate events.
     """
     tenant = business.tenant.id
-    important = create_party(session, tenant, "Key Account AG", "customer")
+    important = reviewed_create_party(session, tenant, "Key Account AG", "customer")
     opening_stock(session, business, 10)
     for_a = customer_commitment(
         session, business, business.customer, business.location, 10
@@ -171,7 +168,7 @@ def test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one(
 def test_a_different_item_returned_does_not_fulfil_the_announcement(session, business):
     """F03: a return of another item leaves the announcement open and stands unexplained."""
     tenant = business.tenant.id
-    other = create_item(session, tenant, "BIKE-BELL", "Bike Bell")
+    other = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike Bell")
     opening_stock(session, business, 10)
     delivery = customer_commitment(
         session, business, business.customer, business.location, 5
@@ -266,7 +263,7 @@ def test_a_different_item_returned_does_not_fulfil_the_announcement(session, bus
 def test_consignment_stock_at_a_customer_site_stays_counted_as_ours(session, business):
     """J08: stock moved to a customer's site stays in the company total and is held there."""
     tenant = business.tenant.id
-    site = create_location(session, tenant, "Müller GmbH consignment", "consignment")
+    site = reviewed_create_location(session, tenant, "Müller GmbH consignment", "consignment")
     opening_stock(session, business, 20)
 
     record_movement(
@@ -317,7 +314,7 @@ def test_consignment_stock_at_a_customer_site_stays_counted_as_ours(session, bus
 def test_stock_at_an_external_fulfilment_location_is_sold_from_there(session, business):
     """L01: stock sent to an FBA-style location is counted there and ships the order."""
     tenant = business.tenant.id
-    fba = create_location(session, tenant, "Amazon FBA DE", "external_fulfillment")
+    fba = reviewed_create_location(session, tenant, "Amazon FBA DE", "external_fulfillment")
     opening_stock(session, business, 30)
     record_movement(
         session,
@@ -336,7 +333,7 @@ def test_stock_at_an_external_fulfilment_location_is_sold_from_there(session, bu
         "available": Decimal("12.0000"),
     }
 
-    marketplace_buyer = create_party(session, tenant, "Amazon customer", "customer")
+    marketplace_buyer = reviewed_create_party(session, tenant, "Amazon customer", "customer")
     order = customer_commitment(session, business, marketplace_buyer, fba, 5)
     assert reserve(session, tenant, order.id).reserved == Decimal("5.0000")
     assert position(session, business, fba)["available"] == Decimal("7.0000")
@@ -568,7 +565,7 @@ def test_a_damaged_return_is_disposed_and_credited_independently(session, busine
     """F05: what happens to the goods and what the customer gets back are separate."""
     tenant = business.tenant.id
     opening_stock(session, business, 10)
-    returns_area = create_location(session, tenant, "Returns Area")
+    returns_area = reviewed_create_location(session, tenant, "Returns Area")
     commitment, order_line_id = _sales_order(session, business, "SO-F05", "5", "20.00")
     _deliver(session, business, commitment, 5, days_ago=20)
     invoice_id, invoice_line_id = _invoice(
@@ -699,7 +696,7 @@ def test_an_exchange_returns_one_unit_and_sends_another_without_money(
     """
     tenant = business.tenant.id
     opening_stock(session, business, 10)
-    larger = create_item(session, tenant, "BIKE-LIGHT-XL", "Bike Light XL")
+    larger = reviewed_create_item(session, tenant, "BIKE-LIGHT-XL", "Bike Light XL")
     opening_stock(session, business, 5, item=larger)
     commitment, order_line_id = _sales_order(session, business, "SO-F07", "1", "20.00")
     _deliver(session, business, commitment, 1, days_ago=20)
@@ -1131,7 +1128,7 @@ def test_an_expired_lot_is_blocked_from_its_finding_and_scrapped(session, busine
     from datetime import date
 
     tenant = business.tenant.id
-    item = create_item(session, tenant, "MILK-J05", "Milk", tracking_type="lot")
+    item = reviewed_create_item(session, tenant, "MILK-J05", "Milk", tracking_type="lot")
     lot = create_lot(session, tenant, item.id, "J05-1", expires_at=date(2020, 1, 1))
     record_movement(
         session,
@@ -1201,11 +1198,11 @@ def _count(session, business, lines, note="Count"):
 
 def test_a_count_posts_its_gain_and_its_loss(session, business):
     """J02: a count finds 3 missing of one item and 1 more of another."""
-    from reality.services.core import create_item, record_movement, stock_at
+    from reality.services.core import record_movement, stock_at
     from reality.services.stock_counts import stock_count_detail
 
     tenant = business.tenant.id
-    lamp = create_item(session, tenant, "LAMP-J02", "Lamp J02")
+    lamp = reviewed_create_item(session, tenant, "LAMP-J02", "Lamp J02")
     for item, quantity in ((business.item, "20"), (lamp, "8")):
         record_movement(
             session,
@@ -1361,3 +1358,10 @@ def test_a_month_end_loss_uncovers_three_reservations_and_releases_none(
             for promise in promises
         )
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

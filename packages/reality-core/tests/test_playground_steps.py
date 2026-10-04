@@ -927,7 +927,7 @@ def test_opening_execution_permission_is_narrow(
         elif attempt == "extra":
             arguments["source_record_id"] = "forged"
         elif attempt == "core":
-            return core.create_item(session, tenant_id, "WRONG", "Unapproved item")
+            return reviewed_create_item(session, tenant_id, "WRONG", "Unapproved item")
         elif attempt == "event":
             return core.emit_business_event(
                 session,
@@ -1274,7 +1274,7 @@ def test_prepare_opening_state_guards(durable_playground, monkeypatch, state):
     from sqlalchemy.orm import Session
 
     from reality.db.core import Item, PlaygroundRun
-    from reality.services.core import Conflict, InvalidOperation, create_item
+    from reality.services.core import Conflict, InvalidOperation
     from reality.services.playground import _mutation_session, prepare_step
 
     engine, owner_id, run_id = durable_playground
@@ -1295,7 +1295,7 @@ def test_prepare_opening_state_guards(durable_playground, monkeypatch, state):
             record_by_id(setup, Item, args["item_id"]).is_active = False
         elif state == "foreign":
             production = create_tenant(setup, "Production fixture")
-            args["item_id"] = create_item(
+            args["item_id"] = reviewed_create_item(
                 setup, production.id, "REAL", "Real article"
             ).id
         setup.commit()
@@ -1946,3 +1946,6 @@ def test_confirmed_release_is_correlated(session, business):
     assert [(event.event_type, event.subject_id) for event in events] == [
         ("reservation.released", reservation_id)
     ]
+
+
+from intake_review_support import reviewed_create_item

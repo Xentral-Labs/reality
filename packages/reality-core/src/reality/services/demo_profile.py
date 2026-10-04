@@ -159,6 +159,7 @@ def _finance_action(
 def seed_profile(
     session: Session, run: PlaygroundRun, anchor: datetime, *, execution: bool = False
 ) -> dict:
+    from reality.services.intake import _invoke
     tenant = run.tenant_id
     payment_term = session.scalar(
         select(PaymentTerm).where(
@@ -189,51 +190,13 @@ def seed_profile(
     vocabulary += [(f"C{i}", name, "customer") for i, name in enumerate(CUSTOMERS, 1)]
     vocabulary += [(f"S{i}", name, "supplier") for i, name in enumerate(SUPPLIERS, 1)]
     for key, name, role in vocabulary[:2] if execution else vocabulary:
-        parties[key] = core.create_party(
-            session,
-            tenant,
-            name,
-            role,
-            source_system="demo_profile",
-            external_id=key,
-            source_payload={"key": key, "name": name, "role": role, "synthetic": True},
-            _commit=False,
-        ).id
+        parties[key] = _invoke('create_party', core.create_party, session, tenant, name=name, party_type=role, source_system='demo_profile', external_id=key, source_payload={'key': key, 'name': name, 'role': role, 'synthetic': True}, _commit=False).id
     for key, name in zip(("A", "B"), LOCATIONS, strict=True):
         if execution and key == "B":
             continue
-        locations[key] = core.create_location(
-            session,
-            tenant,
-            name,
-            source_system="demo_profile",
-            external_id=key,
-            source_payload={"key": key, "name": name, "synthetic": True},
-            _commit=False,
-        ).id
+        locations[key] = _invoke('create_location', core.create_location, session, tenant, name=name, source_system='demo_profile', external_id=key, source_payload={'key': key, 'name': name, 'synthetic': True}, _commit=False).id
     for key, name, unit, category in ITEMS[:2] if execution else ITEMS:
-        items[key] = core.create_item(
-            session,
-            tenant,
-            item_number(key),
-            name,
-            unit,
-            source_system="demo_profile",
-            external_id=key,
-            source_payload={
-                "key": key,
-                "name": name,
-                "unit": unit,
-                "category": category,
-                "synthetic": True,
-                "cost_basis": None,
-            },
-            default_location_id=locations["A"],
-            tracking_type=(
-                "lot" if key == "P17" else "serial" if key == "P18" else "none"
-            ),
-            _commit=False,
-        ).id
+        items[key] = _invoke('create_item', core.create_item, session, tenant, sku=item_number(key), name=name, unit=unit, source_system='demo_profile', external_id=key, source_payload={'key': key, 'name': name, 'unit': unit, 'category': category, 'synthetic': True, 'cost_basis': None}, default_location_id=locations['A'], tracking_type='lot' if key == 'P17' else 'serial' if key == 'P18' else 'none', _commit=False).id
 
     def source(kind: str, key: str, payload: dict):
         return core.store_source_record(

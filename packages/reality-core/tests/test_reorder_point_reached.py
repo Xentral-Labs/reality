@@ -117,7 +117,7 @@ def test_at_or_below_the_point_is_reported_and_above_is_not(session, business):
 
 def test_only_the_location_below_its_point_is_reported(session, business):
     tenant = business.tenant.id
-    munich = core.create_location(session, tenant, "Munich")
+    munich = reviewed_create_location(session, tenant, "Munich")
     _stock(session, business, "12")
     _stock(session, business, "100", location=munich)
     _point(session, business)
@@ -153,7 +153,7 @@ def test_active_reservations_reduce_what_is_available(session, business):
 
 def test_an_open_purchase_to_the_location_counts_as_incoming(session, business):
     tenant = business.tenant.id
-    elsewhere = core.create_location(session, tenant, "Munich")
+    elsewhere = reviewed_create_location(session, tenant, "Munich")
     _stock(session, business, "12")
     _point(session, business, point="20")
     # A purchase to another location does not help this one.
@@ -313,7 +313,7 @@ def test_several_or_no_suppliers_name_none(session, business):
     assert "unit_price" not in row.causal_values
 
     _purchase_list(session, business, business.supplier, code="PL-A")
-    second = core.create_party(session, tenant, "Lights Wholesale GmbH", "supplier")
+    second = reviewed_create_party(session, tenant, "Lights Wholesale GmbH", "supplier")
     _purchase_list(session, business, second, price="4.20", code="PL-B")
     row = _reached(session, tenant)[(business.item.id, business.location.id)]
     assert (row.causal_values["supplier_choice"], row.causal_values["supplier"]) == (
@@ -357,11 +357,11 @@ def test_the_statement_count_does_not_grow_with_points(session, business):
     from reality.services.exceptions import _reorder_point_reached_exceptions
 
     tenant = business.tenant.id
-    second = core.create_party(session, tenant, "Lights Wholesale GmbH", "supplier")
+    second = reviewed_create_party(session, tenant, "Lights Wholesale GmbH", "supplier")
 
     def statements(points):
         for index in range(points):
-            item = core.create_item(session, tenant, f"SKU-R-{points}-{index}", "R")
+            item = reviewed_create_item(session, tenant, f"SKU-R-{points}-{index}", "R")
             _stock(session, business, "1", item=item)
             _point(session, business, point="5", quantity="10", item=item)
             # Two suppliers price each item: named as several, priced by nobody.
@@ -565,7 +565,7 @@ def test_each_priced_entry_costs_the_same_fixed_price_lookup(session, business):
     def statements(points):
         nonlocal made
         for _ in range(points - made):
-            item = core.create_item(session, tenant, f"SKU-P-{made}", "P")
+            item = reviewed_create_item(session, tenant, f"SKU-P-{made}", "P")
             _stock(session, business, "1", item=item)
             _point(session, business, point="5", quantity="10", item=item)
             core.create_price_list_entry(
@@ -594,3 +594,10 @@ def test_each_priced_entry_costs_the_same_fixed_price_lookup(session, business):
     assert twenty - two == 18 * per_entry
     # resolve_price: party, item, own links, group links, defaults, list, entries.
     assert per_entry == 7
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

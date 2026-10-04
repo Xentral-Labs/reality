@@ -59,7 +59,7 @@ def _merge(session, business, duplicate, survivor, reason="Same customer"):
 
 def test_a_merge_keeps_both_histories_under_the_survivor(session, business):
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Müller GmbH (Gast)", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Müller GmbH (Gast)", "customer")
     _invoice(session, business, "INV-DUP", "100", duplicate.id)
     _invoice(session, business, "INV-SUR", "50", business.customer.id)
     # Positive control: before the merge each partner answers for itself.
@@ -121,7 +121,7 @@ def test_a_merge_keeps_both_histories_under_the_survivor(session, business):
 
 def test_the_credit_exposure_counts_the_merged_partner(session, business):
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Müller (Shop)", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Müller (Shop)", "customer")
     _invoice(session, business, "INV-1", "300", duplicate.id)
     _invoice(session, business, "INV-2", "200", business.customer.id)
     assert credit_exposure(session, tenant, business.customer.id)["exposure"] == 200
@@ -138,13 +138,13 @@ def test_the_credit_exposure_counts_the_merged_partner(session, business):
 
 def test_every_refusal_changes_nothing(session, business):
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Dublette", "customer")
-    supplier_too = core.create_party(
+    duplicate = reviewed_create_party(session, tenant, "Dublette", "customer")
+    supplier_too = reviewed_create_party(
         session, tenant, "Beides GmbH", "customer", roles=["customer", "supplier"]
     )
-    held = core.create_party(session, tenant, "Gesperrt", "customer")
+    held = reviewed_create_party(session, tenant, "Gesperrt", "customer")
     core.hold_party_delivery(session, tenant, held.id, "collection")
-    inactive = core.create_party(session, tenant, "Alt", "customer")
+    inactive = reviewed_create_party(session, tenant, "Alt", "customer")
     core.set_master_data_active(session, tenant, Party, inactive.id, False)
 
     _refused(
@@ -196,10 +196,10 @@ def test_every_refusal_changes_nothing(session, business):
 
 def test_another_company_sees_nothing(session, business):
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Dublette", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Dublette", "customer")
     merge_party(session, tenant, duplicate.id, business.customer.id, "Same")
     other = core.create_tenant(session, "Other GmbH")
-    stranger = core.create_party(session, other.id, "Fremd", "customer")
+    stranger = reviewed_create_party(session, other.id, "Fremd", "customer")
 
     assert party_merges(session, other.id) == []
     _refused(
@@ -225,14 +225,14 @@ def test_merged_reads_cost_the_same_however_much_the_duplicate_holds(session, bu
             event.remove(session.bind, "before_cursor_execute", counter)
         return count
 
-    small = core.create_party(session, tenant, "Klein", "customer")
+    small = reviewed_create_party(session, tenant, "Klein", "customer")
     _invoice(session, business, "INV-S1", "10", small.id)
     merge_party(session, tenant, small.id, business.customer.id, "Same")
     detail_small = statements(
         lambda: core.party_detail(session, tenant, business.customer.id)
     )
 
-    big = core.create_party(session, tenant, "Gross", "customer")
+    big = reviewed_create_party(session, tenant, "Gross", "customer")
     for number in range(5):
         _invoice(session, business, f"INV-B{number}", "10", big.id)
     merge_party(session, tenant, big.id, business.customer.id, "Same")
@@ -247,7 +247,7 @@ def test_a_file_row_naming_the_duplicate_lands_on_the_survivor(session, business
     from reality.services.file_interpreters import _party
 
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Müller GmbH", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Müller GmbH", "customer")
     # Positive control: two partners of one name are ambiguous before the merge.
     _refused_text = pytest.raises(core.InvalidOperation)
     with _refused_text:
@@ -258,3 +258,6 @@ def test_a_file_row_naming_the_duplicate_lands_on_the_survivor(session, business
     assert _party(session, tenant, {"party_name": "Müller GmbH"}).id == (
         business.customer.id
     )
+
+
+from intake_review_support import reviewed_create_party

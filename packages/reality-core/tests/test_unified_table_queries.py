@@ -3,7 +3,6 @@ from sqlalchemy import select
 from test_unified_source_api import client_for
 
 from reality.db.core import Party
-from reality.services.core import create_party
 from reality.services.projections import OPEN_FINANCIAL_ITEMS, rebuild_projections
 
 
@@ -35,7 +34,7 @@ def test_register_rejects_unknown_sort(session, business, path):
 def test_master_sort_applies_before_paging_and_retains_scope(session, business):
     tid = business.tenant.id
     for index in range(28):
-        create_party(session, tid, f"Table sample {index:02}", "customer")
+        reviewed_create_party(session, tid, f"Table sample {index:02}", "customer")
     with client_for(session) as client:
         base = f"/api/tenants/{tid}/master-data?family=customer&q=Table%20sample&sort=name&sort_direction=desc&size=25"
         first = client.get(base).json()
@@ -75,7 +74,6 @@ def test_numeric_sorts_use_full_canonical_amounts_and_keep_totals(session, busin
 
     from reality.services.core import (
         create_document,
-        create_item,
         post_sales_invoice,
         record_movement,
     )
@@ -86,7 +84,7 @@ def test_numeric_sorts_use_full_canonical_amounts_and_keep_totals(session, busin
             session, tid, "sales_invoice", f"TABLE-{i}", business.customer.id, amount
         )
         post_sales_invoice(session, tid, invoice.id)
-        item = create_item(session, tid, f"TABLE-{i}", f"Table quantity {i}")
+        item = reviewed_create_item(session, tid, f"TABLE-{i}", f"Table quantity {i}")
         record_movement(
             session,
             tid,
@@ -153,3 +151,6 @@ def test_open_items_default_to_newest_document_first(session, business):
             "ORDER-MIDDLE",
             "ORDER-NEWEST",
         ]
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

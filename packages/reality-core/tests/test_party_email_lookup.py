@@ -7,9 +7,7 @@ from reality.db.core import BusinessEvent
 from reality.mcp.catalog import dispatch_tool
 from reality.services.core import (
     InvalidOperation,
-    create_party,
     create_tenant,
-    update_party,
 )
 
 
@@ -23,7 +21,7 @@ def discover(session, tenant_id, query=""):
 
 
 def test_party_discovery_matches_normalized_email_and_returns_labels(session, business):
-    create_party(
+    reviewed_create_party(
         session,
         business.tenant.id,
         "Email customer",
@@ -45,7 +43,7 @@ def test_shared_email_is_ambiguous_inside_tenant_and_isolated_across_tenants(
     session, business
 ):
     for name in ("First", "Second"):
-        create_party(
+        reviewed_create_party(
             session,
             business.tenant.id,
             name,
@@ -53,7 +51,7 @@ def test_shared_email_is_ambiguous_inside_tenant_and_isolated_across_tenants(
             emails=[{"email": "shared@example.com"}],
         )
     foreign = create_tenant(session, "Foreign")
-    create_party(
+    reviewed_create_party(
         session,
         foreign.id,
         "Foreign match",
@@ -74,7 +72,7 @@ def test_shared_email_is_ambiguous_inside_tenant_and_isolated_across_tenants(
 
 
 def test_party_update_replaces_and_removes_emails(session, business):
-    party = create_party(
+    party = reviewed_create_party(
         session,
         business.tenant.id,
         "Mutable",
@@ -82,7 +80,7 @@ def test_party_update_replaces_and_removes_emails(session, business):
         emails=[{"email": "old@example.com"}],
     )
 
-    update_party(
+    reviewed_update_party(
         session,
         business.tenant.id,
         party.id,
@@ -95,7 +93,7 @@ def test_party_update_replaces_and_removes_emails(session, business):
         {"email": "new@example.com", "label": "New"}
     ]
 
-    update_party(
+    reviewed_update_party(
         session,
         business.tenant.id,
         party.id,
@@ -192,4 +190,7 @@ def test_confirmed_party_proposals_persist_and_replace_emails(session, business)
 )
 def test_invalid_party_email_lists_are_refused(session, business, emails, message):
     with pytest.raises(InvalidOperation, match=message):
-        create_party(session, business.tenant.id, "Invalid", "customer", emails=emails)
+        reviewed_create_party(session, business.tenant.id, "Invalid", "customer", emails=emails)
+
+
+from intake_review_support import reviewed_create_party, reviewed_update_party

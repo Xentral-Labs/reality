@@ -49,9 +49,10 @@ def test_historical_provenance_is_honest(session, business):
     session.commit()
     original = (source.payload, job.input, job.completed_at, job.attempts)
     events = session.scalar(select(func.count()).select_from(BusinessEvent))
+    proposals_before = session.scalar(select(func.count()).select_from(ChangeProposal))
     assert core.process_import_job(session, business.tenant.id, job.id) is None
     assert (source.payload, job.input, job.completed_at, job.attempts) == original
-    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == 0
+    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == proposals_before
     assert session.scalar(select(func.count()).select_from(InterpretationOutcome)) == 0
     assert session.scalar(select(func.count()).select_from(BusinessEvent)) == events
     assert session.scalar(select(func.count()).select_from(Document)) == 0
@@ -363,6 +364,7 @@ def test_explicit_normalized_financial_profile_keeps_its_source_origin(
 def test_unknown_declared_profile_keeps_raw_without_prepared_or_accepted_effects(
     session, business
 ):
+    proposals_before = session.scalar(select(func.count()).select_from(ChangeProposal))
     payload = {"amount": "17.19", "arbitrary_instruction": "approve this payment"}
     source, job = core.enqueue_source(
         session,
@@ -380,7 +382,7 @@ def test_unknown_declared_profile_keeps_raw_without_prepared_or_accepted_effects
     )
     assert json.loads(source.payload) == payload
     assert session.scalar(select(func.count()).select_from(Document)) == 0
-    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == 0
+    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == proposals_before
 
 
 def test_completed_fixed_setup_receipt_replays_without_new_confirmation(session):
@@ -398,3 +400,123 @@ def test_completed_fixed_setup_receipt_replays_without_new_confirmation(session)
     replay = approve_and_execute_proposal(session, tenant.id, proposal.id)
     assert replay.id == first.id and replay.output == retained
     assert session.scalar(select(func.count()).select_from(Document)) == 1
+
+
+def test_retired_external_stock_file_writer_cannot_accept_raw(session, business):
+    from reality.db.core import ExternalStockStatement
+    from reality.services.core import executing_proposal
+    from reality.services.external_stock import _record_file_rows
+
+    rows = [
+        {"sku": business.item.sku, "location": business.location.name, "quantity": "7"}
+    ]
+    source, _, _ = core.store_source_record(
+        session,
+        business.tenant.id,
+        "csv",
+        "external_stock",
+        "retired-stock",
+        {"rows": rows},
+    )
+    for action in [None, "forged-stock-approval"]:
+        with executing_proposal(business.tenant.id, action):
+            with pytest.raises(core.InvalidOperation) as refusal:
+                _record_file_rows(session, business.tenant.id, source, rows)
+            assert refusal.value.code == "intake_approval_required"
+        assert (
+            session.scalar(select(func.count()).select_from(ExternalStockStatement))
+            == 0
+        )
+
+
+@pytest.mark.parametrize(
+    "operation,model,args",
+    [
+        ("create_party", "Party", ("Unapproved customer", "customer")),
+        ("create_item", "Item", ("UNAPPROVED-SKU", "Unapproved item")),
+        ("create_location", "Location", ("Unapproved warehouse",)),
+    ],
+)
+@pytest.mark.parametrize("auth_mode", ["enabled", "disabled"])
+def test_direct_canonical_master_calls_require_a_decision(
+    session, business, monkeypatch, operation, model, args, auth_mode
+):
+    from reality.db import core as records
+
+    monkeypatch.setenv("REALITY_AUTH_MODE", auth_mode)
+    table = getattr(records, model)
+    before = session.scalar(select(func.count()).select_from(table))
+    with core.executing_proposal(business.tenant.id, "arbitrary-action-tag"):
+        with pytest.raises(core.InvalidOperation) as refusal:
+            getattr(core, operation)(session, business.tenant.id, *args, _commit=False)
+        assert refusal.value.code == "intake_approval_required"
+    assert session.scalar(select(func.count()).select_from(table)) == before
+
+
+@pytest.mark.parametrize("attack", ["replace_intent", "repeat_effect", "commit_midway"])
+def test_master_confirmation_cannot_authorize_callback_changes(session, business, monkeypatch, attack):
+    from intake_review_support import explicit_owner
+
+    from reality.db.core import Party, SourceRecord
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    before = {model: session.scalar(select(func.count()).select_from(model)) for model in [Party, SourceRecord]}
+    proposal = create_change_proposal(session, business.tenant.id, "party_create", {"records": [{"name": "Exact reviewed partner", "roles": ["customer"]}]})
+    original = core.create_party
+
+    def changed(db, tenant, **arguments):
+        if attack == "replace_intent":
+            arguments["name"] = "Different unreviewed partner"
+        if attack == "repeat_effect":
+            original(db, tenant, **arguments)
+        result = original(db, tenant, **arguments)
+        if attack == "commit_midway":
+            db.commit()
+        return result
+
+    monkeypatch.setattr(core, "create_party", changed)
+    with pytest.raises(core.InvalidOperation) as refusal:
+        approve_and_execute_proposal(session, business.tenant.id, proposal.id, confirming_principal=explicit_owner(session, business.tenant.id), confirmed=True)
+    assert refusal.value.code == {"replace_intent": "intake_review_invalid", "repeat_effect": "intake_approval_required", "commit_midway": "intake_partial_commit_forbidden"}[attack]
+    for model, count in before.items():
+        assert session.scalar(select(func.count()).select_from(model)) == count
+    assert session.get(ChangeProposal, (business.tenant.id, proposal.id)).status == "failed"
+
+
+@pytest.mark.parametrize("attack", ["replace_intent", "repeat_effect", "commit_midway"])
+def test_confirmed_company_creation_cannot_authorize_extra_effects(
+    session, scheduled_owner, monkeypatch, attack
+):
+    from reality.db.core import Party, SourceRecord, Tenant
+    from reality.services import company_setup
+
+    models = [Tenant, Party, SourceRecord]
+    before = {model: session.scalar(select(func.count()).select_from(model)) for model in models}
+    original = core.create_party
+
+    def changed(db, tenant, **arguments):
+        if attack == "replace_intent":
+            arguments["name"] = "Unreviewed company partner"
+        if attack == "repeat_effect":
+            original(db, tenant, **arguments)
+        result = original(db, tenant, **arguments)
+        if attack == "commit_midway":
+            db.commit()
+        return result
+
+    monkeypatch.setattr(company_setup, "create_party", changed)
+    with pytest.raises(core.InvalidOperation) as refusal:
+        company_setup.create_company(
+            session, scheduled_owner.id, f"boundary-company-{attack}",
+            "Exactly confirmed company", "business", "empty", confirmed=True,
+        )
+    assert refusal.value.code == {
+        "replace_intent": "intake_review_invalid",
+        "repeat_effect": "intake_approval_required",
+        "commit_midway": "intake_partial_commit_forbidden",
+    }[attack]
+    for model, count in before.items():
+        assert session.scalar(select(func.count()).select_from(model)) == count

@@ -430,7 +430,7 @@ def test_unposted_wrong_party_wrong_currency_and_customer_number_never_allocate(
         _commit=False,
     )
     # A posted invoice of another customer with the same number pattern.
-    other = core.create_party(session, tenant, "Other GmbH", "customer")
+    other = reviewed_create_party(session, tenant, "Other GmbH", "customer")
     _invoice(session, business, "sch:b", "INV-OTHER", customer=other, party_id=other.id)
     # A posted USD invoice of the customer.
     _invoice(session, business, "sch:c", "INV-USD", currency="USD")
@@ -824,3 +824,6 @@ def test_the_consolidated_invoice_number_still_allocates(session, business):
     assert allocation is not None
     assert allocation.amount == Decimal(100)
     assert resolution.reasons == ()
+
+
+from intake_review_support import reviewed_create_party

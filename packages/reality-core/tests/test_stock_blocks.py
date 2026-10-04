@@ -323,7 +323,7 @@ def test_a_block_is_refused_with_its_reason(session, business):
     """
     tenant = business.tenant.id
     _stock(session, business, "20")
-    service = core.create_item(
+    service = reviewed_create_item(
         session, tenant, "SRV-304", "Repair", item_type="service"
     )
 
@@ -360,7 +360,7 @@ def test_a_lot_is_blocked_exactly(session, business):
     Lot is required, excessive block is refused and only bad lot becomes blocked.
     """
     tenant = business.tenant.id
-    item = core.create_item(session, tenant, "LOT-304", "Lot item", tracking_type="lot")
+    item = reviewed_create_item(session, tenant, "LOT-304", "Lot item", tracking_type="lot")
     good = core.create_lot(session, tenant, item.id, "L-GOOD")
     bad = core.create_lot(session, tenant, item.id, "L-BAD")
     _stock(session, business, "10", item=item, lot_id=good.id)
@@ -707,3 +707,6 @@ def test_the_migration_folds_split_blocks_into_what_was_stated(
             command.downgrade(config, "0108_stock_block")
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_item

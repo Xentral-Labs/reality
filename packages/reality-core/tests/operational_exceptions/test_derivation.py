@@ -21,11 +21,8 @@ from reality.services.core import (
     allocate_supplier_credit_note,
     create_commitment,
     create_document,
-    create_item,
-    create_location,
     create_manual_document_with_lines,
     create_manual_order,
-    create_party,
     create_payment_term,
     create_price_list,
     create_price_list_entry,
@@ -51,8 +48,6 @@ from reality.services.core import (
     retry_import_job,
     reverse_ledger_posting_group,
     revise_commitment,
-    update_item,
-    update_party,
 )
 from reality.services.exceptions import operational_exceptions
 
@@ -466,7 +461,7 @@ def test_reservation_exceeds_stock(session, business):
     )
     assert "reservation_exceeds_stock" not in by_class(session, tenant_id)
 
-    elsewhere = create_location(session, tenant_id, "Munich Warehouse")
+    elsewhere = reviewed_create_location(session, tenant_id, "Munich Warehouse")
     record_movement(
         session,
         tenant_id,
@@ -483,7 +478,7 @@ def test_reservation_exceeds_stock(session, business):
     # An item reserved without any recorded movement has no backing at all. The
     # reservation is written directly because reserve() allocates nothing when
     # no stock exists.
-    spare = create_item(session, tenant_id, "BIKE-BELL", "Bike Bell")
+    spare = reviewed_create_item(session, tenant_id, "BIKE-BELL", "Bike Bell")
     spare_commitment = promise(
         session,
         tenant_id,
@@ -600,7 +595,7 @@ def both_new_classes(session, tenant_id, company_id, customer_id, item_id, locat
         4,
         AS_OF - timedelta(days=2),
     )
-    other = create_item(session, tenant_id, "BIKE-BELL", "Bike Bell")
+    other = reviewed_create_item(session, tenant_id, "BIKE-BELL", "Bike Bell")
     record_movement(
         session, tenant_id, "opening_stock", other.id, 8, to_location_id=location_id
     )
@@ -713,10 +708,10 @@ def test_new_classes_are_tenant_scoped(session, business):
     both_new_classes(
         session,
         other_tenant.id,
-        create_party(session, other_tenant.id, "Nordwind Handel GmbH", "company").id,
-        create_party(session, other_tenant.id, "Schmidt AG", "customer").id,
-        create_item(session, other_tenant.id, "BIKE-LIGHT", "Bike Light").id,
-        create_location(session, other_tenant.id, "Bremen Warehouse").id,
+        reviewed_create_party(session, other_tenant.id, "Nordwind Handel GmbH", "company").id,
+        reviewed_create_party(session, other_tenant.id, "Schmidt AG", "customer").id,
+        reviewed_create_item(session, other_tenant.id, "BIKE-LIGHT", "Bike Light").id,
+        reviewed_create_location(session, other_tenant.id, "Bremen Warehouse").id,
     )
 
     for class_id in (
@@ -913,7 +908,7 @@ def test_overdue_receivable_is_tenant_scoped(session, business):
     tenant_id = business.tenant.id
     mine, _ = overdue_invoice(session, business)
     other_tenant = create_tenant(session, "Nordwind Handel GmbH")
-    other_customer = create_party(session, other_tenant.id, "Schmidt AG", "customer")
+    other_customer = reviewed_create_party(session, other_tenant.id, "Schmidt AG", "customer")
     create_payment_term(session, other_tenant.id, "NET30", "Net 30 days", 30)
     theirs = create_document(
         session,
@@ -1243,11 +1238,11 @@ def other_business(session, name):
     tenant = create_tenant(session, name)
     return SimpleNamespace(
         tenant=tenant,
-        company=create_party(session, tenant.id, name, "company"),
-        customer=create_party(session, tenant.id, f"{name} Kunde", "customer"),
-        supplier=create_party(session, tenant.id, f"{name} Lieferant", "supplier"),
-        item=create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light"),
-        location=create_location(session, tenant.id, f"{name} Warehouse"),
+        company=reviewed_create_party(session, tenant.id, name, "company"),
+        customer=reviewed_create_party(session, tenant.id, f"{name} Kunde", "customer"),
+        supplier=reviewed_create_party(session, tenant.id, f"{name} Lieferant", "supplier"),
+        item=reviewed_create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light"),
+        location=reviewed_create_location(session, tenant.id, f"{name} Warehouse"),
     )
 
 
@@ -1296,7 +1291,7 @@ def test_payable_and_receivable_share_one_rule(session, business):
     create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     # Neither invoice carries a term of its own; both parties do. The cascade
     # has to work identically on both sides or the two disagree about "due".
-    update_party(
+    reviewed_update_party(
         session,
         tenant_id,
         business.customer.id,
@@ -1304,7 +1299,7 @@ def test_payable_and_receivable_share_one_rule(session, business):
         "customer",
         payment_term_code="NET30",
     )
-    update_party(
+    reviewed_update_party(
         session,
         tenant_id,
         business.supplier.id,
@@ -1971,7 +1966,7 @@ def test_line_classes_are_tenant_scoped(session, business):
 
 
 def customer(session, business, *, limit="1000", currency="EUR", name="Limited GmbH"):
-    return create_party(
+    return reviewed_create_party(
         session,
         business.tenant.id,
         name,
@@ -2141,7 +2136,7 @@ def test_duplicate_supplier_invoice(session, business):
 
 
 def test_the_same_number_from_two_suppliers_is_not_a_duplicate(session, business):
-    other = create_party(session, business.tenant.id, "Second Parts GmbH", "supplier")
+    other = reviewed_create_party(session, business.tenant.id, "Second Parts GmbH", "supplier")
     invoice(
         session,
         business,
@@ -2873,10 +2868,10 @@ def test_norms_are_learned_per_tenant(session, business):
     fast, _ = thresholds(session, business)
 
     other = create_tenant(session, "Slow neighbour")
-    slow_company = create_party(session, other.id, "Slow GmbH", "company")
-    slow_customer = create_party(session, other.id, "Slow Customer GmbH", "customer")
-    slow_item = create_item(session, other.id, "SLOW-1", "Slow Item")
-    slow_location = create_location(session, other.id, "Slow Warehouse")
+    slow_company = reviewed_create_party(session, other.id, "Slow GmbH", "company")
+    slow_customer = reviewed_create_party(session, other.id, "Slow Customer GmbH", "customer")
+    slow_item = reviewed_create_item(session, other.id, "SLOW-1", "Slow Item")
+    slow_location = reviewed_create_location(session, other.id, "Slow Warehouse")
     record_movement(
         session,
         other.id,
@@ -3259,7 +3254,7 @@ def test_lag_classes_use_the_shared_movement_quantity(session, business):
 
 
 def area(session, business):
-    return create_location(session, business.tenant.id, "Returns Area")
+    return reviewed_create_location(session, business.tenant.id, "Returns Area")
 
 
 def goods_back(session, business, commitment, quantity, returns, *, days_ago):
@@ -3837,7 +3832,7 @@ def test_the_pricing_class_is_tenant_scoped(session, business):
 
 def states_a_conversion(session, business, *, purchase_unit="box", factor="12"):
     """The company says how many pieces are in one of what it buys."""
-    return update_item(
+    return reviewed_update_item(
         session,
         business.tenant.id,
         business.item.id,
@@ -4173,8 +4168,8 @@ def test_the_units_entry_clears_through_reality(session, business):
 
 
 def test_the_units_entry_orders_deterministically(session, business):
-    bell = create_item(session, business.tenant.id, "BIKE-BELL", "Bike Bell")
-    chain = create_item(session, business.tenant.id, "BIKE-CHAIN", "Bike Chain")
+    bell = reviewed_create_item(session, business.tenant.id, "BIKE-BELL", "Bike Bell")
+    chain = reviewed_create_item(session, business.tenant.id, "BIKE-CHAIN", "Bike Chain")
     sold_in_boxes(session, business, chain, number="SO-087-CHAIN", billed="108")
     sold_in_boxes(session, business, bell, number="SO-087-BELL", billed="90")
 
@@ -5869,7 +5864,7 @@ def lifted_holds(session, business, count, *, party=False, days=1):
     for index in range(count):
         raised = AS_OF - timedelta(days=200 + index * 3)
         if party:
-            target = create_party(
+            target = reviewed_create_party(
                 session, business.tenant.id, f"Lifted Party {index}", "customer"
             )
             hold = core.hold_party_delivery(
@@ -5993,7 +5988,7 @@ def test_party_hold_unreleased(session, business):
 
     # A hold blocking nothing is still reported, because it will refuse the
     # next order too.
-    quiet = create_party(session, business.tenant.id, "Quiet GmbH", "customer")
+    quiet = reviewed_create_party(session, business.tenant.id, "Quiet GmbH", "customer")
     idle = core.hold_party_delivery(
         session, business.tenant.id, quiet.id, "manual_review"
     )
@@ -6119,7 +6114,7 @@ def test_holds_are_tenant_scoped(session, business):
 
 
 def perishable(session, business, sku="PERISH"):
-    return core.create_item(
+    return reviewed_create_item(
         session, business.tenant.id, sku, "Perishable", tracking_type="lot"
     )
 
@@ -6243,7 +6238,7 @@ def test_expired_lots_are_ordered_by_the_day_they_expired(session, business):
 def test_the_quantity_held_is_the_one_stock_rule(session, business):
     """One count, so this can never disagree with the inventory register."""
     item = perishable(session, business)
-    elsewhere = core.create_location(session, business.tenant.id, "Cold Store")
+    elsewhere = reviewed_create_location(session, business.tenant.id, "Cold Store")
     lot = batch(session, business, item, "LOT-SPLIT", "2026-08-01", quantity=2)
     record_movement(
         session,
@@ -6603,3 +6598,12 @@ def test_goods_after_a_withdrawal_are_settled_by_the_advance_exchange(
     assert by_class(session, business.tenant.id)["returned_not_credited"].record_id == (
         line.id
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+    reviewed_update_item,
+    reviewed_update_party,
+)

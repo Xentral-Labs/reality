@@ -106,7 +106,7 @@ def test_noop_foreign_noncustomer_and_stale_reference(session, business):
     with pytest.raises(core.NotFound):
         prepare(session, business, party_id=business.supplier.id)
     foreign = core.create_tenant(session, "Other")
-    customer = core.create_party(session, foreign.id, "Other customer", "customer")
+    customer = reviewed_create_party(session, foreign.id, "Other customer", "customer")
     with pytest.raises(core.NotFound):
         prepare(session, business, party_id=customer.id)
     proposal = prepare(session, business)
@@ -283,7 +283,7 @@ def test_concurrent_placement_has_one_effect(postgres_database):
             tenant = core.create_tenant(connection, "Concurrent holds")
             business = SimpleNamespace(
                 tenant=tenant,
-                customer=core.create_party(
+                customer=reviewed_create_party(
                     connection, tenant.id, "Customer", "customer"
                 ),
             )
@@ -513,3 +513,6 @@ def test_customer_hold_http_actor_and_practice(session, business):
             {"party_id": business.customer.id, "reason_code": "manual_review"},
             request_id="practice",
         )
+
+
+from intake_review_support import reviewed_create_party

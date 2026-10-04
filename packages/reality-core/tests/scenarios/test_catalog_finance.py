@@ -199,7 +199,7 @@ def test_invoice_billed_to_the_orderer_keeps_a_different_ship_to_party(
     both parties; the invoice and its receivable name the orderer, and the
     ship-to stays readable through the invoice line's order."""
     tenant = business.tenant.id
-    recipient = core.create_party(session, tenant, "Filiale Nord KG", "customer")
+    recipient = reviewed_create_party(session, tenant, "Filiale Nord KG", "customer")
     _, order, order_lines, commitments = _sales_order(
         session,
         business,
@@ -868,7 +868,7 @@ def test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case(
 ):
     """N01: zero tax, the EU case and the customer's VAT ID are kept as stated."""
     tenant = business.tenant.id
-    customer = core.create_party(
+    customer = reviewed_create_party(
         session, tenant, "Lyon Cycles SARL", "customer", tax_identifier="FR12345678901"
     )
     _, _, lines, _ = core.create_manual_order(
@@ -1165,7 +1165,7 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
     # 2 come back damaged and are scrapped.
     from reality.services.return_dispositions import record_return_disposition
 
-    returns_area = core.create_location(session, tenant, "R01 Returns")
+    returns_area = reviewed_create_location(session, tenant, "R01 Returns")
     goods_back = core.record_movement(
         session,
         tenant,
@@ -1309,8 +1309,8 @@ def test_three_levels_of_dunning_then_collection(session, business):
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     _dunning_fee_account(session, business)
-    weber = core.create_party(session, tenant, "Weber AG", "customer")
-    klein = core.create_party(session, tenant, "Klein KG", "customer")
+    weber = reviewed_create_party(session, tenant, "Weber AG", "customer")
+    klein = reviewed_create_party(session, tenant, "Klein KG", "customer")
     _finance(
         session,
         business,
@@ -1651,7 +1651,7 @@ def test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods(
 
 
 def _limited_customer(session, business, name, limit="1000", roles=None):
-    return core.create_party(
+    return reviewed_create_party(
         session,
         business.tenant.id,
         name,
@@ -2240,7 +2240,7 @@ def _provider(session, business, name, account_name):
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     _payment_fee_account(session, business)
-    provider = core.create_party(session, tenant, name, "supplier")
+    provider = reviewed_create_party(session, tenant, name, "supplier")
     account = create_account(
         session,
         tenant,
@@ -2648,3 +2648,6 @@ def test_an_expired_authorization_shows_the_uncovered_rest_of_a_late_shipment(
         for row in operational_exceptions(session, tenant)
         if row.class_id == "payment_authorization_expired"
     }
+
+
+from intake_review_support import reviewed_create_location, reviewed_create_party

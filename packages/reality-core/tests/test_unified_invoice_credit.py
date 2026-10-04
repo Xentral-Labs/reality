@@ -437,10 +437,10 @@ def test_concurrent_direct_and_reviewed_credit(postgres_database):
             tenant = core.create_tenant(s, "Concurrent credits")
             b = SimpleNamespace(
                 tenant=tenant,
-                company=core.create_party(s, tenant.id, "Company", "company"),
-                customer=core.create_party(s, tenant.id, "Customer", "customer"),
-                item=core.create_item(s, tenant.id, "SKU", "Item"),
-                location=core.create_location(s, tenant.id, "Warehouse"),
+                company=reviewed_create_party(s, tenant.id, "Company", "company"),
+                customer=reviewed_create_party(s, tenant.id, "Customer", "customer"),
+                item=reviewed_create_item(s, tenant.id, "SKU", "Item"),
+                location=reviewed_create_location(s, tenant.id, "Warehouse"),
             )
             doc, lines = fixture(s, b)
             args = arguments(doc, lines, gross_amount="150", allocation_amount="0")
@@ -517,3 +517,10 @@ def test_credit_inspector_follows_invoice_then_order(session, business):
         row.get("link") for section in detail["sections"] for row in section["rows"]
     ]
     assert {"kind": "document_line", "id": lines[0].billed_document_line_id} in links
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

@@ -78,7 +78,7 @@ def test_revised_partly_received_supply_agrees_on_every_surface(session, busines
 
 def test_location_scope_applies_to_every_contribution(session, business):
     tenant = business.tenant.id
-    other = core.create_location(session, tenant, "Other warehouse")
+    other = reviewed_create_location(session, tenant, "Other warehouse")
     for location, quantity in ((business.location, "20"), (other, "30")):
         core.record_movement(
             session,
@@ -132,8 +132,8 @@ def test_transfer_conserves_stock_and_numeric_sort_precedes_pagination(
     session, business
 ):
     tenant = business.tenant.id
-    other = core.create_location(session, tenant, "Transfer destination")
-    second = core.create_item(session, tenant, "SECOND", "Second item")
+    other = reviewed_create_location(session, tenant, "Transfer destination")
+    second = reviewed_create_item(session, tenant, "SECOND", "Second item")
     core.record_movement(
         session,
         tenant,
@@ -201,3 +201,6 @@ def test_projection_catalog_names_stock_block_input(name):
     if name == "inventory":
         assert "blocked" in projection["outputs"]
         assert "block" in projection["calculation"].lower()
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

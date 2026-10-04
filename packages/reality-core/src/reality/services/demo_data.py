@@ -288,41 +288,15 @@ def _atomic_control(operation):
 
 def _materialize(session: Session, run: PlaygroundRun, actor_id: str, proposed: dict):
     """Create the previewed missing references; the intake itself never may."""
+    from reality.services.intake import _invoke
     tenant_id = run.tenant_id
     with _bound_profile_scope(session, run, actor_id, _CONNECT_OPERATIONS):
         for row in proposed["add"]["parties"]:
-            core.create_party(
-                session,
-                tenant_id,
-                row["name"],
-                row["role"],
-                source_system="demo_data",
-                external_id=f"master:{row['key']}",
-                source_payload={**row, "synthetic": True},
-                _commit=False,
-            )
+            _invoke('create_party', core.create_party, session, tenant_id, name=row['name'], party_type=row['role'], source_system='demo_data', external_id=f"master:{row['key']}", source_payload={**row, 'synthetic': True}, _commit=False)
         for row in proposed["add"]["locations"]:
-            core.create_location(
-                session,
-                tenant_id,
-                row["name"],
-                source_system="demo_data",
-                external_id=f"master:{row['key']}",
-                source_payload={**row, "synthetic": True},
-                _commit=False,
-            )
+            _invoke('create_location', core.create_location, session, tenant_id, name=row['name'], source_system='demo_data', external_id=f"master:{row['key']}", source_payload={**row, 'synthetic': True}, _commit=False)
         for row in proposed["add"]["items"]:
-            core.create_item(
-                session,
-                tenant_id,
-                item_number(row["key"]),
-                row["name"],
-                row["unit"],
-                source_system="demo_data",
-                external_id=f"master:{row['key']}",
-                source_payload={**row, "synthetic": True},
-                _commit=False,
-            )
+            _invoke('create_item', core.create_item, session, tenant_id, sku=item_number(row['key']), name=row['name'], unit=row['unit'], source_system='demo_data', external_id=f"master:{row['key']}", source_payload={**row, 'synthetic': True}, _commit=False)
         for row in proposed["add"].get("payment_terms", []):
             core.create_payment_term(
                 session,

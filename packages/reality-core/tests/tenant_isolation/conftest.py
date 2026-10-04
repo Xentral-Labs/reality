@@ -9,10 +9,7 @@ from reality.services.core import (
     create_chat_session,
     create_commitment,
     create_document,
-    create_item,
-    create_location,
     create_master_source_record,
-    create_party,
     create_source_capability,
     create_source_system,
     create_tenant,
@@ -44,10 +41,10 @@ class TwoTenantGraph:
 
 def _graph(session, label: str, quantity: Decimal) -> TenantGraph:
     tenant = create_tenant(session, f"{label} Company")
-    company = create_party(session, tenant.id, "Shared Company", "company")
-    customer = create_party(session, tenant.id, "Shared Customer", "customer")
-    item = create_item(session, tenant.id, "SHARED-SKU", "Shared Item")
-    location = create_location(session, tenant.id, "Shared Warehouse")
+    company = reviewed_create_party(session, tenant.id, "Shared Company", "company")
+    customer = reviewed_create_party(session, tenant.id, "Shared Customer", "customer")
+    item = reviewed_create_item(session, tenant.id, "SHARED-SKU", "Shared Item")
+    location = reviewed_create_location(session, tenant.id, "Shared Warehouse")
     source = create_master_source_record(
         session,
         tenant.id,
@@ -124,3 +121,10 @@ def two_tenant_graph(session) -> TwoTenantGraph:
         local=_graph(session, "Local", Decimal(3)),
         foreign=_graph(session, "Foreign", Decimal(11)),
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

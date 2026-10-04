@@ -3,7 +3,7 @@
 import pytest
 
 from reality.domain.search import RecordTarget, SearchRequest
-from reality.services.core import NotFound, create_item, create_tenant
+from reality.services.core import NotFound, create_tenant
 from reality.services.global_search import resolve_search_targets, search_company
 from reality.services.memberships import Principal
 
@@ -11,9 +11,9 @@ from reality.services.memberships import Principal
 def test_exact_prefix_typo_and_complete_pagination(session, business):
     tenant = business.tenant.id
     for i in range(55):
-        create_item(session, tenant, f"WARE-{i:03}", f"Warehouse {i:03}")
+        reviewed_create_item(session, tenant, f"WARE-{i:03}", f"Warehouse {i:03}")
     other = create_tenant(session, "Other")
-    hidden = create_item(session, other.id, "WARE-SECRET", "Warehouse secret")
+    hidden = reviewed_create_item(session, other.id, "WARE-SECRET", "Warehouse secret")
     seen = []
     cursor = None
     while True:
@@ -275,7 +275,7 @@ def test_every_materialized_search_cte_carries_its_own_name(session, business):
         session, tenant, "sales_invoice", "INV-CTE", business.customer.id, 100
     )
     post_sales_invoice(session, tenant, invoice.id)
-    create_item(session, tenant, "CTE-ITEM", "Named cte item")
+    reviewed_create_item(session, tenant, "CTE-ITEM", "Named cte item")
     session.flush()
 
     seen: list[str] = []
@@ -300,3 +300,6 @@ def test_every_materialized_search_cte_carries_its_own_name(session, business):
         assert "anon_" not in statement.split(" AS MATERIALIZED")[0], (
             "a materialized search CTE is still unnamed"
         )
+
+
+from intake_review_support import reviewed_create_item

@@ -31,9 +31,6 @@ os.environ["REALITY_DATABASE_URL"] = test_url.render_as_string(hide_password=Fal
 
 from reality.db.core import Base, build_engine
 from reality.services.core import (
-    create_item,
-    create_location,
-    create_party,
     create_tenant,
 )
 
@@ -135,14 +132,16 @@ class Business:
 
 @pytest.fixture
 def business(session):
+    from intake_review_support import create_reviewed_master
+
     tenant = create_tenant(session, "Acme Bikes GmbH")
     return Business(
         tenant=tenant,
-        company=create_party(session, tenant.id, "Acme Bikes GmbH", "company"),
-        customer=create_party(session, tenant.id, "Müller GmbH", "customer"),
-        supplier=create_party(session, tenant.id, "Bike Parts GmbH", "supplier"),
-        item=create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light"),
-        location=create_location(session, tenant.id, "Augsburg Warehouse"),
+        company=create_reviewed_master(session, tenant.id, "party", {"name": "Acme Bikes GmbH", "roles": ["company"]}),
+        customer=create_reviewed_master(session, tenant.id, "party", {"name": "Müller GmbH", "roles": ["customer"]}),
+        supplier=create_reviewed_master(session, tenant.id, "party", {"name": "Bike Parts GmbH", "roles": ["supplier"]}),
+        item=create_reviewed_master(session, tenant.id, "item", {"sku": "BIKE-LIGHT", "name": "Bike Light"}),
+        location=create_reviewed_master(session, tenant.id, "location", {"name": "Augsburg Warehouse"}),
     )
 
 

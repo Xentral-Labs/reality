@@ -9,7 +9,7 @@ from reality.db.core import ProjectionCheckpoint, ProjectionRow, now
 from reality.db.scheduled_jobs import ScheduledJobRun
 from reality.jobs.registry import JobError
 from reality.services import projections, scheduled_jobs
-from reality.services.core import create_item, record_movement
+from reality.services.core import record_movement
 
 
 def dispatch(session, tenant_id):
@@ -204,7 +204,7 @@ def test_pending_snapshot_retains_completed_rows_and_is_tenant_scoped(
     complete_all(session, tenant)
     ready = projections.projection_snapshot(session, tenant, projections.INVENTORY)
     assert ready["metadata"]["state"] == "ready"
-    create_item(session, tenant, "NEW", "New item")
+    reviewed_create_item(session, tenant, "NEW", "New item")
     old = projections.projection_snapshot(session, tenant, projections.INVENTORY)
     assert old["items"] == ready["items"]
     assert old["metadata"]["state"] == "pending"
@@ -254,7 +254,7 @@ def test_real_scheduler_and_worker_publish_without_a_user_actor(scheduled_databa
 
     engine, factory, tenant, _actor = scheduled_database
     with factory() as db:
-        create_item(db, tenant, "AUTO", "Automatic inventory")
+        reviewed_create_item(db, tenant, "AUTO", "Automatic inventory")
     # One run per projection behind (spec 181 FR-004), so the scheduler reports
     # what it enqueued and the worker has that many to do.
     enqueued = ProcessLoop("scheduler", tenant_id=tenant).sweep(
@@ -299,7 +299,7 @@ def test_repeatable_publication_does_not_swallow_concurrent_business_event(
 
     engine, factory, tenant, _actor = scheduled_database
     with factory() as db:
-        create_item(db, tenant, "BEFORE", "Before snapshot")
+        reviewed_create_item(db, tenant, "BEFORE", "Before snapshot")
     started, release = Event(), Event()
     original = projections.derive_projection_rows
 
@@ -323,7 +323,7 @@ def test_repeatable_publication_does_not_swallow_concurrent_business_event(
         try:
             assert started.wait(10)
             with factory() as db:
-                create_item(db, tenant, "DURING", "Committed during calculation")
+                reviewed_create_item(db, tenant, "DURING", "Committed during calculation")
         finally:
             release.set()
         future.result(timeout=10)
@@ -351,7 +351,7 @@ def test_rolled_back_event_and_failed_publication_leave_no_progress(
 
     _engine, factory, tenant, _actor = scheduled_database
     with factory() as db:
-        create_item(db, tenant, "RETAINED", "Retained item")
+        reviewed_create_item(db, tenant, "RETAINED", "Retained item")
         projections.rebuild_projections(db, tenant, [projections.INVENTORY])
         db.commit()
         before = projections.projection_snapshot(db, tenant, projections.INVENTORY)
@@ -404,7 +404,7 @@ def test_a_failure_is_recorded_against_one_projection_and_not_its_neighbours(
     tenant = business.tenant.id
     dispatch(session, tenant)
     complete_all(session, tenant)
-    create_item(session, tenant, "LATER", "Later")
+    reviewed_create_item(session, tenant, "LATER", "Later")
     queued = dispatch(session, tenant)
     assert len(queued) > 1, "one new article is behind on several projections"
 
@@ -438,7 +438,7 @@ def test_a_failure_is_recorded_against_one_projection_and_not_its_neighbours(
 
     projections.rebuild_projections(session, tenant, [broken], force=True)
     assert state(broken) == "ready"
-    create_item(session, tenant, "RECOVERED", "Recovered")
+    reviewed_create_item(session, tenant, "RECOVERED", "Recovered")
     assert broken in dispatch_names(session, tenant)
 
 
@@ -503,7 +503,7 @@ def test_projection_services_keep_other_tenant_untouched(session, business):
 
     local = business.tenant.id
     foreign = create_tenant(session, "Foreign projection scope").id
-    create_item(session, foreign, "FOREIGN", "Private foreign item")
+    reviewed_create_item(session, foreign, "FOREIGN", "Private foreign item")
     projections.rebuild_projections(session, foreign, [projections.INVENTORY])
     before = projections.projection_snapshot(session, foreign, projections.INVENTORY)
     runs = enqueue_due_projections(session, local)
@@ -703,7 +703,7 @@ def test_metadata_explains_each_state_with_catalog_guidance(session, business):
     # Positive control: a current result carries no guidance.
     assert metadata()["state"] == "ready" and metadata()["guidance"] is None
 
-    create_item(session, tenant, "LATER", "Later")
+    reviewed_create_item(session, tenant, "LATER", "Later")
     dispatch(session, tenant)
     run = scheduled_jobs.claim_next(session, tenant)
     broken = run.configuration["arguments"]["names"][0]
@@ -714,3 +714,6 @@ def test_metadata_explains_each_state_with_catalog_guidance(session, business):
     assert failed["state"] == "failed"
     assert failed["failure_code"] == "handler_timeout"
     assert failed["guidance"]["reason_code"] == "handler_timeout"
+
+
+from intake_review_support import reviewed_create_item

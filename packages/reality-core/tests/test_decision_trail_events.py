@@ -225,7 +225,7 @@ def test_a_new_tool_on_the_generic_path_is_linked_without_being_listed(
     session.commit()
     since = _last_sequence(session, business.tenant.id)
 
-    approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+    approve_and_execute_proposal(session, business.tenant.id, proposal.id, confirmed=True)
 
     events = _events(session, business.tenant.id, since)
     assert [event.action_id for event in events] == ["act_probe"]
@@ -248,7 +248,7 @@ def test_the_master_data_path_is_linked(session, business, monkeypatch):
     )
     since = _last_sequence(session, business.tenant.id)
 
-    approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+    approve_and_execute_proposal(session, business.tenant.id, proposal.id, confirmed=True)
 
     events = _events(session, business.tenant.id, since)
     assert events and {event.action_id for event in events} == {proposal.id}
@@ -276,7 +276,7 @@ def test_the_finance_path_is_linked(session, business, monkeypatch):
     session.commit()
     since = _last_sequence(session, business.tenant.id)
 
-    approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+    approve_and_execute_proposal(session, business.tenant.id, proposal.id, confirmed=True)
 
     events = _events(session, business.tenant.id, since)
     assert [event.action_id for event in events] == ["act_finance_probe"]

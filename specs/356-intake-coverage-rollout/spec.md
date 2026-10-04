@@ -192,3 +192,28 @@ continues to derive operational stock/reservation conditions; a prepayment polic
 blocks with `prepayment_amount_unstated` until reviewed stated evidence exists.
 Required and remaining amounts remain null, never reconstructed from line prices.
 The regression proof is `test_unstated_order_total_stays_unknown_in_delivery_readiness`.
+
+### Canonical master-data confirmation (FR-001–FR-003)
+
+Party, Item and Location creation and updates cross the approved-effect boundary
+at their canonical single-record writers, including callers that supply an
+arbitrary action tag or run with authentication disabled. A private execution
+scope binds the retained proposal, exact input, company, Session and root
+transaction to the actual explicit confirmation; it must not authorize changed
+callback arguments, a repeated canonical invocation or an intermediate commit.
+Bulk master operations retain all records and their execution receipt in the
+same root transaction. CLI create/update commands display the proposal and require
+confirmation; `--yes` states the operator's explicit confirmation for scripted use.
+
+Existing application identity policy remains in force. Named approvers are
+rechecked against their current membership. A trusted local CLI confirmation
+retains its real decision time and leaves unavailable person identity unnamed;
+no synthetic person is invented. Authentication-disabled context alone grants
+no canonical write authority.
+
+Confirmed ordinary company creation may record exactly its own company partner
+with the exact confirmed request and durable creation receipt in the same root
+transaction. Its private authority does not permit a second partner, changed
+intent, an intermediate commit or subsequent operational writes.
+
+Canonical master effects recheck the retained confirming MCP token at the effect boundary, including current revocation and confirmation permissions. Historical token attribution remains separate from current execution authority.

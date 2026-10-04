@@ -676,6 +676,7 @@ def confirm_step(
                         run.tenant_id,
                         proposal.id,
                         confirming_principal=Principal(user_id),
+                        confirmed=confirmed,
                     )
             except Exception:
                 logger.exception(
@@ -1549,28 +1550,14 @@ def list_runs(
 
 def _seed_references(session: Session, run: PlaygroundRun) -> dict:
     """Create the entire fixed preset without an internal commit or source fiction."""
+    from reality.services.intake import _invoke
     parties = {
-        key: create_party(
-            session,
-            run.tenant_id,
-            session.get(Tenant, run.tenant_id).name
-            if key == "company" and run.sandbox_kind == "practice"
-            else name,
-            role,
-            _commit=False,
-        ).id
+        key: _invoke('create_party', create_party, session, run.tenant_id, name=session.get(Tenant, run.tenant_id).name if key == 'company' and run.sandbox_kind == 'practice' else name, party_type=role, _commit=False).id
         for key, name, role in catalog.PARTIES
     }
-    location = create_location(session, run.tenant_id, catalog.WAREHOUSE, _commit=False)
+    location = _invoke('create_location', create_location, session, run.tenant_id, name=catalog.WAREHOUSE, _commit=False)
     items = {
-        sku: create_item(
-            session,
-            run.tenant_id,
-            sku,
-            name,
-            default_location_id=location.id,
-            _commit=False,
-        ).id
+        sku: _invoke('create_item', create_item, session, run.tenant_id, sku=sku, name=name, default_location_id=location.id, _commit=False).id
         for sku, name in catalog.ITEMS
     }
     return {"parties": parties, "locations": {"warehouse": location.id}, "items": items}

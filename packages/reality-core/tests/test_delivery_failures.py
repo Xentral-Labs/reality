@@ -163,7 +163,7 @@ def test_a_refusal_keeps_its_reason(session, business):
 def test_a_lost_parcel_is_written_off_and_claimed_from_the_carrier(session, business):
     tenant = business.tenant.id
     claim_account(session, tenant)
-    carrier = core.create_party(session, tenant, "Parcel Carrier GmbH", "supplier")
+    carrier = reviewed_create_party(session, tenant, "Parcel Carrier GmbH", "supplier")
     promise, shipment_id = _shipped(
         session, business, carrier="DHL", tracking_number="LOST-1"
     )
@@ -214,7 +214,7 @@ def test_a_lost_parcel_is_written_off_and_claimed_from_the_carrier(session, busi
 def test_what_is_refused(session, business):
     tenant = business.tenant.id
     promise, shipment_id = _shipped(session, business)
-    carrier = core.create_party(session, tenant, "Carrier", "supplier")
+    carrier = reviewed_create_party(session, tenant, "Carrier", "supplier")
 
     def record(**values):
         return lambda: record_delivery_failure(
@@ -333,7 +333,7 @@ def test_an_agent_records_a_lost_parcel_through_the_strict_schema(session, busin
 
     tenant = business.tenant.id
     claim_account(session, tenant)
-    carrier = core.create_party(session, tenant, "Insurer AG", "supplier")
+    carrier = reviewed_create_party(session, tenant, "Insurer AG", "supplier")
     _, shipment_id = _shipped(session, business)
     arguments = {
         "shipment_id": shipment_id,
@@ -351,3 +351,6 @@ def test_an_agent_records_a_lost_parcel_through_the_strict_schema(session, busin
     read = MCP_TOOL_REGISTRY["delivery_failure_summary"]
     with pytest.raises(core.NotFound):
         read.handler(session, tenant, {"shipment_id": shipment_id})
+
+
+from intake_review_support import reviewed_create_party

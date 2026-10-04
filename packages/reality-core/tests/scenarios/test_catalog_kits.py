@@ -43,9 +43,9 @@ def _confirmed(session, business, tool, arguments):
 def _bike_kit(session, business, *, shares=True):
     """A bike kit of one frame and two wheels; the frame carries 60 % of the price."""
     tenant = business.tenant.id
-    kit = core.create_item(session, tenant, "KIT-BIKE", "Bike kit")
-    frame = core.create_item(session, tenant, "FRAME", "Frame")
-    wheel = core.create_item(session, tenant, "WHEEL", "Wheel")
+    kit = reviewed_create_item(session, tenant, "KIT-BIKE", "Bike kit")
+    frame = reviewed_create_item(session, tenant, "FRAME", "Frame")
+    wheel = reviewed_create_item(session, tenant, "WHEEL", "Wheel")
     _confirmed(
         session,
         business,
@@ -383,3 +383,6 @@ def test_a_single_component_comes_back_from_a_kit(session, business):
     # The recorded K03 finding.
     assert returned.id in _classes(session, business, "unexplained_movement")
     assert promise.id not in _classes(session, business, "returned_not_credited")
+
+
+from intake_review_support import reviewed_create_item

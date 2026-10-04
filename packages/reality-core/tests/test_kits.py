@@ -30,9 +30,9 @@ def _refused(code, call):
 def _bike(session, business, shares=("0.6", "0.4")):
     """A kit of one frame and two wheels."""
     tenant = business.tenant.id
-    kit = core.create_item(session, tenant, "KIT-BIKE", "Bike kit")
-    frame = core.create_item(session, tenant, "FRAME", "Frame")
-    wheel = core.create_item(session, tenant, "WHEEL", "Wheel")
+    kit = reviewed_create_item(session, tenant, "KIT-BIKE", "Bike kit")
+    frame = reviewed_create_item(session, tenant, "FRAME", "Frame")
+    wheel = reviewed_create_item(session, tenant, "WHEEL", "Wheel")
     define_kit(
         session,
         tenant,
@@ -180,7 +180,7 @@ def test_assembly_refusals(session, business):
     kit, frame, wheel = _bike(session, business)
     _stock(session, business, frame, "5")
     _stock(session, business, wheel, "10")
-    loose = core.create_item(session, tenant, "LOOSE", "Not a kit")
+    loose = reviewed_create_item(session, tenant, "LOOSE", "Not a kit")
     location = business.location.id
     _refused(
         "kit_not_defined",
@@ -221,9 +221,9 @@ def test_assembly_refusals(session, business):
 def test_definition_refusals(session, business):
     tenant = business.tenant.id
     kit, frame, wheel = _bike(session, business)
-    other = core.create_item(session, tenant, "KIT-2", "Second kit")
-    service = core.create_item(session, tenant, "SRV", "Assembly", item_type="service")
-    lot = core.create_item(session, tenant, "LOT", "Lot item", tracking_type="lot")
+    other = reviewed_create_item(session, tenant, "KIT-2", "Second kit")
+    service = reviewed_create_item(session, tenant, "SRV", "Assembly", item_type="service")
+    lot = reviewed_create_item(session, tenant, "LOT", "Lot item", tracking_type="lot")
 
     def define(target, components):
         return lambda: define_kit(session, tenant, target.id, components)
@@ -523,3 +523,6 @@ def test_another_company_sees_no_kit(session, business):
     )
     assert len(kits(session, tenant)) == 1
     assert json.dumps(kits(session, tenant), default=str)
+
+
+from intake_review_support import reviewed_create_item

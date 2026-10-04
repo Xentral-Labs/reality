@@ -27,7 +27,7 @@ def _found(session, tenant_id):
 
 
 def _location(session, business, name):
-    return core.create_location(session, business.tenant.id, name)
+    return reviewed_create_location(session, business.tenant.id, name)
 
 
 def _stock(session, business, quantity, location, item=None):
@@ -238,7 +238,7 @@ def test_the_statement_count_does_not_grow_with_promises(session, business):
     def statements(promises):
         nonlocal made
         for _ in range(promises - made):
-            item = core.create_item(session, tenant, f"SKU-W-{made}", "W")
+            item = reviewed_create_item(session, tenant, f"SKU-W-{made}", "W")
             _stock(session, business, "5", munich, item=item)
             _promise(session, business, "2", item=item)
             made += 1
@@ -269,3 +269,6 @@ def test_another_company_sees_none_of_it(session, business):
 
     assert _found(session, other.id) == {}
     assert promise.id in _found(session, tenant)
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

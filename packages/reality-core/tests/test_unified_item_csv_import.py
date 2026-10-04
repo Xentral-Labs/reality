@@ -140,7 +140,7 @@ def test_stale_existing_inactive_sku_and_foreign_artifact_are_rejected(
 ):
     config = fixture_file(session, business, tmp_path, monkeypatch)
     proposal = prepare(session, business, config)
-    item = core.create_item(session, business.tenant.id, "CSV-A", "Concurrent item")
+    item = reviewed_create_item(session, business.tenant.id, "CSV-A", "Concurrent item")
     item.is_active = False
     session.commit()
     with pytest.raises(core.InvalidOperation, match="exists"):
@@ -432,7 +432,7 @@ def test_direct_creation_keeps_tenant_lock_through_item_insert(
 
         def direct():
             with factory() as connection:
-                core.create_item(connection, business.tenant.id, "CSV-A", "Direct item")
+                reviewed_create_item(connection, business.tenant.id, "CSV-A", "Direct item")
 
         def imported():
             with factory() as connection:
@@ -461,3 +461,6 @@ def test_direct_creation_keeps_tenant_lock_through_item_insert(
             assert items(connection, business) == 1
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_item

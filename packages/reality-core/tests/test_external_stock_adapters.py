@@ -154,9 +154,9 @@ def test_a_file_states_external_stock_and_moves_nothing(
         to_location_id=business.location.id,
         occurred_at=stated - timedelta(hours=1),
     )
-    three_pl = core.create_party(
-        session, tenant, "Fulfil GmbH", "supplier", accounting_code="3PL-1"
-    )
+    from intake_review_support import create_reviewed_master
+
+    three_pl = create_reviewed_master(session, tenant, "party", {"name": "Fulfil GmbH", "roles": ["supplier"], "accounting_code": "3PL-1"})
     before = _movements(session, tenant)
     path = tmp_path / "3pl-stock.csv"
     with path.open("w", encoding="utf-8", newline="") as handle:

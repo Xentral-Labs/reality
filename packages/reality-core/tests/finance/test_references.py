@@ -216,7 +216,7 @@ def test_reference_migration_preserves_postings_and_blocks_destructive_downgrade
     try:
         with Session(engine) as db:
             tenant = create_legacy_tenant(db, "Preserved finance").id
-            party = core.create_party(db, tenant, "Customer", "customer")
+            party = historical_party(db, tenant, "Customer", "customer")
             invoice = core.create_document(
                 db,
                 tenant,
@@ -413,3 +413,6 @@ def test_reference_cli_reads_and_proposal_use_shared_services(
     )
     assert result.exit_code == 0, result.output
     assert json.loads(result.output)["items"][0]["action_id"] == proposal_id
+
+
+from legacy_business_support import historical_party

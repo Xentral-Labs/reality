@@ -146,7 +146,6 @@ def test_everyday_predicates_describe_documents_lines_lots_and_movements(
     session, business
 ):
     from reality.services.core import (
-        create_item,
         create_lot,
         create_manual_document_with_lines,
         record_movement,
@@ -164,7 +163,7 @@ def test_everyday_predicates_describe_documents_lines_lots_and_movements(
         gross_amount="10",
     )
     line = lines[0]
-    tracked = create_item(
+    tracked = reviewed_create_item(
         session, business.tenant.id, "BATCH-TEA", "Batch Tea", tracking_type="lot"
     )
     lot = create_lot(session, business.tenant.id, tracked.id, "4711")
@@ -255,7 +254,6 @@ def test_everyday_predicates_describe_documents_lines_lots_and_movements(
 
 def test_everyday_predicates_keep_their_value_and_subject_contracts(session, business):
     from reality.services.core import (
-        create_item,
         create_lot,
         create_manual_document_with_lines,
     )
@@ -271,7 +269,7 @@ def test_everyday_predicates_keep_their_value_and_subject_contracts(session, bus
         [{"quantity": "1", "unit": "pcs", "unit_price": "10", "gross_amount": "10"}],
         gross_amount="10",
     )
-    tracked = create_item(
+    tracked = reviewed_create_item(
         session, business.tenant.id, "BATCH-COFFEE", "Batch Coffee", tracking_type="lot"
     )
     lot = create_lot(session, business.tenant.id, tracked.id, "4712")
@@ -315,3 +313,6 @@ def test_everyday_predicates_keep_their_value_and_subject_contracts(session, bus
             "end of month",
             "k9",
         )
+
+
+from intake_review_support import reviewed_create_item

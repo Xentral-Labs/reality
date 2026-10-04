@@ -201,12 +201,10 @@ def _unmatched(session, tenant):
     }
 
 
-def test_a_payout_pays_each_order_and_books_its_fee_and_the_deposit(
-    session, business
-):
+def test_a_payout_pays_each_order_and_books_its_fee_and_the_deposit(session, business):
     tenant = business.tenant.id
     clearing, bank = _accounts(session, tenant)
-    other = core.create_party(session, tenant, "Weber KG", "customer")
+    other = reviewed_create_party(session, tenant, "Weber KG", "customer")
     _, first = _invoiced_order(session, business, "AMZ-1", "100")
     _, second = _invoiced_order(session, business, "AMZ-2", "50", customer=other)
     bank_before = _account_balance(session, tenant, bank)
@@ -260,7 +258,10 @@ def test_a_refund_settles_the_credit_note_of_its_order(session, business):
         _statement(
             business,
             clearing,
-            [_line("1", "charge", "100", "AMZ-10"), _line("2", "refund", "20", "AMZ-10")],
+            [
+                _line("1", "charge", "100", "AMZ-10"),
+                _line("2", "refund", "20", "AMZ-10"),
+            ],
             "80",
         ),
     )
@@ -353,9 +354,7 @@ def test_a_statement_that_does_not_add_up_is_refused(session, business):
     )
 
 
-def test_an_unmatched_line_waits_and_settling_again_books_only_it(
-    session, business
-):
+def test_an_unmatched_line_waits_and_settling_again_books_only_it(session, business):
     tenant = business.tenant.id
     clearing, _ = _accounts(session, tenant)
     _, held = _invoiced_order(session, business, "AMZ-40", "100")
@@ -410,9 +409,7 @@ def test_an_unmatched_line_waits_and_settling_again_books_only_it(
     )
 
 
-def test_a_changed_statement_is_refused_and_a_replay_books_nothing(
-    session, business
-):
+def test_a_changed_statement_is_refused_and_a_replay_books_nothing(session, business):
     tenant = business.tenant.id
     clearing, _ = _accounts(session, tenant)
     _invoiced_order(session, business, "AMZ-50", "100")
@@ -446,9 +443,7 @@ def test_a_changed_statement_is_refused_and_a_replay_books_nothing(
     )
 
 
-def test_the_provider_account_is_a_cash_account_apart_from_the_bank(
-    session, business
-):
+def test_the_provider_account_is_a_cash_account_apart_from_the_bank(session, business):
     tenant = business.tenant.id
     clearing, bank = _accounts(session, tenant)
     _invoiced_order(session, business, "AMZ-60", "100")
@@ -539,3 +534,6 @@ def test_an_agent_proposes_a_payout_through_the_strict_schema(session, business)
         _reject_unknown_fields(
             definition.input_schema, {**arguments, "clearing_account": clearing}
         )
+
+
+from intake_review_support import reviewed_create_party

@@ -11,7 +11,7 @@ from reality.services.exceptions import operational_exceptions
 
 @pytest.fixture
 def lamp(session, business):
-    return core.create_item(session, business.tenant.id, "LAMP-306E", "Lamp 306")
+    return reviewed_create_item(session, business.tenant.id, "LAMP-306E", "Lamp 306")
 
 
 def _order(session, business, number, lines):
@@ -189,3 +189,6 @@ def test_an_order_kept_back_by_a_hold_is_not_waiting_for_the_rule(
     core.hold_commitment(session, tenant, lamps.id, "customer_request")
 
     assert document.id not in _rows(session, business, "order_waiting_for_completeness")
+
+
+from intake_review_support import reviewed_create_item

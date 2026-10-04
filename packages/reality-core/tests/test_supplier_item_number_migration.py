@@ -28,8 +28,8 @@ def test_the_table_comes_and_goes_and_stated_numbers_block_a_rollback(
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration GmbH")
-            supplier = core.create_party(session, tenant.id, "Lindner", "supplier")
-            item = core.create_item(session, tenant.id, "SKU", "Item")
+            supplier = reviewed_create_party(session, tenant.id, "Lindner", "supplier")
+            item = reviewed_create_item(session, tenant.id, "SKU", "Item")
             set_supplier_item_number(
                 session, tenant.id, supplier.id, item.id, "LF-1", "Rad"
             )
@@ -43,3 +43,6 @@ def test_the_table_comes_and_goes_and_stated_numbers_block_a_rollback(
         assert TABLE in inspect(engine).get_table_names()
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

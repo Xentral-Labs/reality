@@ -26,9 +26,9 @@ def _schema(name):
 
 def _parts(session, business):
     tenant = business.tenant.id
-    kit = core.create_item(session, tenant, "KIT-BIKE", "Bike kit")
-    frame = core.create_item(session, tenant, "FRAME", "Frame")
-    wheel = core.create_item(session, tenant, "WHEEL", "Wheel")
+    kit = reviewed_create_item(session, tenant, "KIT-BIKE", "Bike kit")
+    frame = reviewed_create_item(session, tenant, "FRAME", "Frame")
+    wheel = reviewed_create_item(session, tenant, "WHEEL", "Wheel")
     for item, quantity in ((frame, "2"), (wheel, "4")):
         core.record_movement(
             session,
@@ -299,3 +299,6 @@ def test_the_cli_defines_assembles_shows_and_declines(session, business, monkeyp
     shown = runner.invoke(cli_module.app, ["kit", "show", "--tenant", tenant])
     assert shown.exit_code == 0, shown.output
     assert json.loads(shown.output)[0]["availability"][0]["kits_on_hand"] == "1"
+
+
+from intake_review_support import reviewed_create_item

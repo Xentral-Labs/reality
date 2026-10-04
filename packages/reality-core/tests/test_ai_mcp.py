@@ -1050,7 +1050,7 @@ async def test_mcp_tools_read_and_only_propose_mutations(
         )
 
         proposal = (
-            session.query(ChangeProposal).filter_by(tenant_id=business.tenant.id).one()
+            session.query(ChangeProposal).filter_by(tenant_id=business.tenant.id, type="tool:reserve", status="proposed").one()
         )
         assert proposal.status == "proposed"
         assert proposal.type == "tool:reserve"

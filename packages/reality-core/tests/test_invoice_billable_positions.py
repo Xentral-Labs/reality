@@ -93,7 +93,7 @@ def test_delivered_and_unbilled_positions_are_listed_by_order(session, business)
     doc_a, a, a_promise = placed(session, business, day="2026-09-01")
     _, billed, billed_promise = placed(session, business)
     _, unshipped, _ = placed(session, business)
-    other = core.create_party(session, business.tenant.id, "Other KG", "customer")
+    other = reviewed_create_party(session, business.tenant.id, "Other KG", "customer")
     _, foreign, foreign_promise = placed(session, business, party=other)
     _, swiss, swiss_promise = placed(session, business, currency="CHF")
     for promise, quantity in (
@@ -268,3 +268,6 @@ def test_the_read_tool_and_http_route_answer_the_same(session, business):
             assert body["total"] == 1
     finally:
         app.dependency_overrides.clear()
+
+
+from intake_review_support import reviewed_create_party

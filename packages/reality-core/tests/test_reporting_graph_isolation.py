@@ -18,10 +18,7 @@ from reality.domain.traversal import Traversal
 from reality.services.analytics.compile_sql import build
 from reality.services.analytics.traversal import TraversalRefused, plan, run_traversal
 from reality.services.core import (
-    create_item,
-    create_location,
     create_manual_order,
-    create_party,
     create_tenant,
     record_movement,
 )
@@ -48,10 +45,10 @@ def two_companies(session, business):
     data differs is not a boundary.
     """
     other = create_tenant(session, "Acme Bikes GmbH")
-    company = create_party(session, other.id, "Acme Bikes GmbH", "company")
-    customer = create_party(session, other.id, "Müller GmbH", "customer")
-    item = create_item(session, other.id, "BIKE-LIGHT", "Bike Light")
-    location = create_location(session, other.id, "Augsburg Warehouse")
+    company = reviewed_create_party(session, other.id, "Acme Bikes GmbH", "company")
+    customer = reviewed_create_party(session, other.id, "Müller GmbH", "customer")
+    item = reviewed_create_item(session, other.id, "BIKE-LIGHT", "Bike Light")
+    location = reviewed_create_location(session, other.id, "Augsburg Warehouse")
     create_manual_order(
         session,
         other.id,
@@ -92,7 +89,7 @@ def warehouse(session, business):
         parent = None
         levels = []
         for depth in range(6):
-            parent = create_location(
+            parent = reviewed_create_location(
                 session,
                 tenant_id,
                 f"Ebene {depth}",
@@ -431,10 +428,10 @@ def test_the_catalog_lists_only_the_asking_company_s_vocabulary(
     """
     from reality.services.analytics.graph_model import reporting_catalog
 
-    neighbour = create_party(session, two_companies.id, "Acme Bikes GmbH", "company")
-    buyer = create_party(session, two_companies.id, "Müller GmbH", "customer")
-    item = create_item(session, two_companies.id, "BIKE-BELL", "Bike Bell")
-    location = create_location(session, two_companies.id, "Ingolstadt Warehouse")
+    neighbour = reviewed_create_party(session, two_companies.id, "Acme Bikes GmbH", "company")
+    buyer = reviewed_create_party(session, two_companies.id, "Müller GmbH", "customer")
+    item = reviewed_create_item(session, two_companies.id, "BIKE-BELL", "Bike Bell")
+    location = reviewed_create_location(session, two_companies.id, "Ingolstadt Warehouse")
     create_manual_order(
         session,
         two_companies.id,
@@ -466,3 +463,10 @@ def test_the_catalog_lists_only_the_asking_company_s_vocabulary(
     assert "fahrradladen" not in channels(business.tenant.id), (
         "a word only the neighbour's records use must not appear here"
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

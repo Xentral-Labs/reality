@@ -12,9 +12,9 @@ from reality.services import core, costing
 def seed(scheduled_database):
     _, factory, tenant, _ = scheduled_database
     with factory() as session:
-        party = core.create_party(session, tenant, "Customer", "customer")
-        item = core.create_item(session, tenant, "CENSUS", "Unreviewed item")
-        location = core.create_location(session, tenant, "Warehouse")
+        party = reviewed_create_party(session, tenant, "Customer", "customer")
+        item = reviewed_create_item(session, tenant, "CENSUS", "Unreviewed item")
+        location = reviewed_create_location(session, tenant, "Warehouse")
         cutoff = now()
         movement = core.record_movement(
             session,
@@ -249,7 +249,7 @@ def test_source_supersession_and_credit_lines_stay_distinct(scheduled_database):
             "source",
             {"received": "replacement"},
         )
-        party = core.create_party(session, tenant, "Second customer", "customer")
+        party = reviewed_create_party(session, tenant, "Second customer", "customer")
         _, lines = core.create_manual_document_with_lines(
             session,
             tenant,
@@ -277,3 +277,10 @@ def test_source_supersession_and_credit_lines_stay_distinct(scheduled_database):
     assert line_id in {row["document_line_id"] for row in result["contribution"]}
     assert result["counts"]["contribution_candidates"] == 2
     assert result["sources"][0]["version"] == 2
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

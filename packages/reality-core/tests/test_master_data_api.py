@@ -28,7 +28,6 @@ from reality.services.core import (
     active_reserved,
     create_commitment,
     create_document,
-    create_item,
     create_manual_document_with_lines,
     create_price_list,
     create_price_list_entry,
@@ -57,7 +56,7 @@ app = web_module.app
 
 
 def api_client(session):
-    factory = sessionmaker(session.bind, expire_on_commit=False)
+    factory = sessionmaker(session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint")
 
     def override_session():
         with factory() as api_session:
@@ -1482,7 +1481,7 @@ def test_frontend_integrations_registry_and_activation(session):
 
 def test_frontend_explorer_is_bounded_searchable_and_tenant_scoped(session, business):
     other = create_tenant(session, "Explorer Other")
-    create_item(session, other.id, "SECRET-SKU", "Invisible item")
+    reviewed_create_item(session, other.id, "SECRET-SKU", "Invisible item")
     client = api_client(session)
     try:
         result = client.get(
@@ -1585,7 +1584,7 @@ def test_frontend_copilot_requires_explicit_proposal_approval(session, business)
 
 
 def test_copilot_http_uses_authenticated_user_presentation(session, monkeypatch):
-    factory = sessionmaker(session.bind, expire_on_commit=False)
+    factory = sessionmaker(session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint")
     monkeypatch.setattr(web_module, "Session", factory)
     monkeypatch.setattr(auth_module, "Session", factory)
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
@@ -1663,7 +1662,7 @@ def test_copilot_http_uses_authenticated_user_presentation(session, monkeypatch)
 def test_membership_proposal_http_confirmation_propagates_owner_actor(
     session, monkeypatch
 ):
-    factory = sessionmaker(session.bind, expire_on_commit=False)
+    factory = sessionmaker(session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint")
     monkeypatch.setattr(web_module, "Session", factory)
     monkeypatch.setattr(auth_module, "Session", factory)
     monkeypatch.setattr(api_module, "Session", factory)
@@ -1870,7 +1869,7 @@ def test_json_api_master_data_lifecycle(session, business):
     ]
     try:
         for collection, create_body, update_body in cases:
-            created = client.post(f"{tenant_path}/{collection}", json=create_body)
+            created = client.post(f"{tenant_path}/{collection}", json={"confirmed": True, **create_body})
             assert created.status_code == 201
             record_id = created.json()["id"]
             assert created.json()["tenant_id"] == business.tenant.id
@@ -1885,7 +1884,7 @@ def test_json_api_master_data_lifecycle(session, business):
             assert record_id in {row["id"] for row in listed.json()}
 
             updated = client.put(
-                f"{tenant_path}/{collection}/{record_id}", json=update_body
+                f"{tenant_path}/{collection}/{record_id}", json={"confirmed": True, **update_body}
             )
             assert updated.status_code == 200
             assert updated.json()["name"] == update_body["name"]
@@ -1912,6 +1911,7 @@ def test_location_update_api_preserves_shared_source_versioning(session, busines
         response = client.put(
             path,
             json={
+                "confirmed": True,
                 "name": "Sourced Warehouse",
                 "type": "warehouse",
                 "source_system": "wms",
@@ -1933,11 +1933,11 @@ def test_json_api_rejects_invalid_and_cross_tenant_mutations(session, business):
     try:
         invalid = client.post(
             f"/api/tenants/{business.tenant.id}/parties",
-            json={"name": "", "type": "customer"},
+            json={"confirmed": True, "name": "", "type": "customer"},
         )
         cross_tenant = client.put(
             f"/api/tenants/{other.id}/items/{business.item.id}",
-            json={"sku": "WRONG", "name": "Wrong", "unit": "pcs"},
+            json={"confirmed": True, "sku": "WRONG", "name": "Wrong", "unit": "pcs"},
         )
 
         assert invalid.status_code == 400
@@ -2429,7 +2429,7 @@ def test_company_lifecycle_endpoints_require_owner_membership(
     """Spec 186 FR-009: members see the danger zone but the API refuses their actions."""
     from reality.db.core import Tenant
 
-    factory = sessionmaker(session.bind, expire_on_commit=False)
+    factory = sessionmaker(session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint")
     monkeypatch.setattr(web_module, "Session", factory)
     monkeypatch.setattr(auth_module, "Session", factory)
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
@@ -2493,7 +2493,7 @@ def test_company_settings_read_uses_public_mcp_address_in_production(
 def test_company_ai_settings_read_preserves_owner_boundary(
     session, company_setup_login, monkeypatch
 ):
-    factory = sessionmaker(session.bind, expire_on_commit=False)
+    factory = sessionmaker(session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint")
     monkeypatch.setattr(web_module, "Session", factory)
     monkeypatch.setattr(auth_module, "Session", factory)
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
@@ -2516,3 +2516,6 @@ def test_company_ai_settings_read_preserves_owner_boundary(
         assert allowed.json()["mcp_url"] == "https://mcp.example.test/"
     finally:
         app.dependency_overrides.clear()
+
+
+from intake_review_support import reviewed_create_item

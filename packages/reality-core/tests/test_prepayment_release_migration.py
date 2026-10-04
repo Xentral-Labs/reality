@@ -27,7 +27,7 @@ def test_the_table_comes_and_goes_and_recorded_rows_block_a_rollback(
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration GmbH")
-            party = core.create_party(session, tenant.id, "Kunde", "customer")
+            party = reviewed_create_party(session, tenant.id, "Kunde", "customer")
             order = core.create_document(
                 session, tenant.id, "sales_order", "SO-MIG", party.id, "100.00"
             )
@@ -45,3 +45,6 @@ def test_the_table_comes_and_goes_and_recorded_rows_block_a_rollback(
         assert TABLE in inspect(engine).get_table_names()
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_party

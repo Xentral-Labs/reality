@@ -23,8 +23,8 @@ def test_history_register_reads_by_business_names(postgres_database, tmp_path):
     try:
         with sessionmaker(engine, expire_on_commit=False)() as session:
             tenant = core.create_tenant(session, "History company")
-            item = core.create_item(session, tenant.id, "LAMP-1", "Desk lamp")
-            warehouse = core.create_location(session, tenant.id, "Main warehouse")
+            item = reviewed_create_item(session, tenant.id, "LAMP-1", "Desk lamp")
+            warehouse = reviewed_create_location(session, tenant.id, "Main warehouse")
             core.record_movement(
                 session, tenant.id, "receipt", item.id, "5", to_location_id=warehouse.id
             )
@@ -45,3 +45,6 @@ def test_history_register_reads_by_business_names(postgres_database, tmp_path):
             artifacts,
         )
     print(f"History register verified against a live stack; artifacts: {artifacts}")
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

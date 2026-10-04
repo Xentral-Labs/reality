@@ -28,7 +28,7 @@ def outgoing_obligation(postgres_database, request):
     with Session(engine, expire_on_commit=False) as session:
         tenant = core.create_tenant(session, "Outgoing finance example")
         initialize_accounts(session, tenant.id)
-        party = core.create_party(
+        party = reviewed_create_party(
             session, tenant.id, "Counterparty", "supplier" if supplier else "customer"
         )
         document = core.create_document(
@@ -174,7 +174,7 @@ def posted_invoice(postgres_database):
     with Session(engine, expire_on_commit=False) as session:
         tenant = core.create_tenant(session, "Atomic finance example")
         initialize_accounts(session, tenant.id)
-        customer = core.create_party(session, tenant.id, "Customer", "customer")
+        customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
         invoice = core.create_document(
             session, tenant.id, "sales_invoice", "INV-1", customer.id, "300"
         )
@@ -453,3 +453,6 @@ def test_shared_invoice_preserves_stated_amount_and_rolls_back(
     )
     assert invoice_line.billed_document_line_id == lines[0].id
     assert order.gross_amount == 300
+
+
+from intake_review_support import reviewed_create_party

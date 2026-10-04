@@ -65,7 +65,7 @@ def test_a_statement_that_differs_is_reported_and_moves_nothing(session, busines
     tenant = business.tenant.id
     yesterday = core.now() - timedelta(days=1)
     _stock(session, business, "100", yesterday - timedelta(hours=1))
-    three_pl = core.create_party(session, tenant, "Fulfil GmbH", "supplier")
+    three_pl = reviewed_create_party(session, tenant, "Fulfil GmbH", "supplier")
     before = _movements(session, business)
 
     # Positive control: a matching statement gives no finding.
@@ -229,7 +229,7 @@ def test_the_comparison_reads_every_statement_in_bounded_queries(session, busine
     tenant = business.tenant.id
     stated = core.now() - timedelta(days=1)
     locations = [business.location] + [
-        core.create_location(session, tenant, f"3PL {n}") for n in range(5)
+        reviewed_create_location(session, tenant, f"3PL {n}") for n in range(5)
     ]
 
     def compare():
@@ -275,3 +275,6 @@ def test_the_comparison_reads_every_statement_in_bounded_queries(session, busine
         )
 
     assert compare() == few
+
+
+from intake_review_support import reviewed_create_location, reviewed_create_party

@@ -70,7 +70,7 @@ def test_party_rows_sum_open_items_and_credits(session, business):
     )
     core.post_sales_credit_note(session, tenant, note.id)
     _invoice(session, business, "INV-USD", "500", currency="USD")
-    other = core.create_party(session, tenant, "Zweit GmbH", "customer")
+    other = reviewed_create_party(session, tenant, "Zweit GmbH", "customer")
     settled = _invoice(session, business, "INV-Z", "70", party=other.id)
     _pay(session, business, settled, "70", "70", party=other.id, number="PAY-Z")
 
@@ -118,7 +118,7 @@ def test_credit_only_lists_each_party_once(session, business):
         session, tenant, "credit_note", "CN-2", business.customer.id, "15"
     )
     core.post_sales_credit_note(session, tenant, note.id)
-    other = core.create_party(session, tenant, "Nur Offen GmbH", "customer")
+    other = reviewed_create_party(session, tenant, "Nur Offen GmbH", "customer")
     _invoice(session, business, "INV-O", "80", party=other.id)
 
     result = party_balances(
@@ -173,3 +173,6 @@ def test_tool_matches_view_and_is_tenant_scoped(session, business):
         session, tenant, "finance.party_balances.list", {"side": "supplier"}
     )
     assert supplier["items"] == []
+
+
+from intake_review_support import reviewed_create_party

@@ -296,7 +296,6 @@ def test_inspector_does_not_present_missing_source_amount_as_money(session, busi
 
 
 def test_unknown_item_does_not_rematch_at_confirmation(session, business):
-    from reality.services import core
 
     payload = json.loads(FIXTURE.read_text())
     payload["line_items"][0]["sku"] = "UNKNOWN-AT-REVIEW"
@@ -310,9 +309,12 @@ def test_unknown_item_does_not_rematch_at_confirmation(session, business):
     )
     proposal = prepare_intake(session, business.tenant.id, job.id)
     digest = review_intake(session, business.tenant.id, proposal.id)["digest"]
-    core.create_item(session, business.tenant.id, "UNKNOWN-AT-REVIEW", "Added later")
+    reviewed_create_item(session, business.tenant.id, "UNKNOWN-AT-REVIEW", "Added later")
     apply_prepared_intake(
         session, business.tenant.id, proposal.id, digest, confirmed=True
     )
     assert session.scalar(select(DocumentLine)).item_id is None
     assert session.scalar(select(Commitment)) is None
+
+
+from intake_review_support import reviewed_create_item

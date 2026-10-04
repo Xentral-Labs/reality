@@ -11,7 +11,6 @@ from reality.services.core import (
     allocate_supplier_credit_note,
     create_document,
     create_manual_document_with_lines,
-    create_party,
     create_payment_term,
     create_tenant,
     open_invoice_amount,
@@ -257,7 +256,7 @@ def test_a_supplier_credit_note_posts_once_and_for_something(session, business):
 
 def test_a_supplier_credit_settles_only_its_own_supplier(session, business):
     tenant_id = business.tenant.id
-    other = create_party(session, tenant_id, "Other Supplier GmbH", "supplier")
+    other = reviewed_create_party(session, tenant_id, "Other Supplier GmbH", "supplier")
     theirs = create_document(
         session,
         tenant_id,
@@ -388,3 +387,6 @@ def test_supplier_credit_operations_are_tenant_scoped(session, business):
 
     # The positive control: its own tenant can still do both.
     assert open_invoice_amount(session, tenant_id, note.id) == Decimal(50)
+
+
+from intake_review_support import reviewed_create_party

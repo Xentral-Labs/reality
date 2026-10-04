@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, ChangeProposal, now, uid
-from reality.services.core import create_party, create_tenant, emit_business_event
+from reality.services.core import create_tenant, emit_business_event
 from reality.services.decision_attribution import record_decisions
 from tests.test_decision_trail_surfaces import _person, api_client, app
 
@@ -29,7 +29,7 @@ def test_a_record_names_the_decision_that_created_it_and_those_that_changed_it(
 ):
     anna = _person(session, "anna@example.com", "Anna Owner")
     created = _decision(session, business.tenant.id, anna.id)
-    party = create_party(
+    party = historical_party(
         session, business.tenant.id, "Decided", "customer", action_id=created.id
     )
     changed = _decision(session, business.tenant.id, anna.id, "party_update")
@@ -56,7 +56,7 @@ def test_a_hand_entered_record_changed_later_claims_no_creating_decision(
     session, business
 ):
     anna = _person(session, "anna@example.com", "Anna Owner")
-    party = create_party(session, business.tenant.id, "Hand entered", "customer")
+    party = historical_party(session, business.tenant.id, "Hand entered", "customer")
     changed = _decision(session, business.tenant.id, anna.id, "party_update")
     emit_business_event(
         session,
@@ -78,7 +78,7 @@ def test_a_hand_entered_record_changed_later_claims_no_creating_decision(
 def test_an_event_names_the_decision_that_caused_it(session, business):
     anna = _person(session, "anna@example.com", "Anna Owner")
     created = _decision(session, business.tenant.id, anna.id)
-    party = create_party(
+    party = historical_party(
         session, business.tenant.id, "Decided", "customer", action_id=created.id
     )
     event_id = session.scalar(
@@ -97,28 +97,27 @@ def test_an_event_names_the_decision_that_caused_it(session, business):
     ]
 
 
-def test_records_without_decisions_and_other_companies_read_nothing(
-    session, business
-):
+def test_records_without_decisions_and_other_companies_read_nothing(session, business):
     anna = _person(session, "anna@example.com", "Anna Owner")
-    plain = create_party(session, business.tenant.id, "Plain", "customer")
+    plain = historical_party(session, business.tenant.id, "Plain", "customer")
     other = create_tenant(session, "Other company")
     theirs = _decision(session, other.id, anna.id)
-    their_party = create_party(
+    their_party = historical_party(
         session, other.id, "Theirs", "customer", action_id=theirs.id
     )
 
     assert record_decisions(session, business.tenant.id, "party", plain.id) == []
-    assert (
-        record_decisions(session, business.tenant.id, "party", their_party.id) == []
-    )
+    assert record_decisions(session, business.tenant.id, "party", their_party.id) == []
 
 
 def test_the_inspector_carries_the_decisions_of_its_record(session, business):
     anna = _person(session, "anna@example.com", "Anna Owner")
     created = _decision(session, business.tenant.id, anna.id)
-    party = create_party(
+    party = historical_party(
         session, business.tenant.id, "Decided", "customer", action_id=created.id
+    )
+    plain_party = historical_party(
+        session, business.tenant.id, "Unknown historical customer", "customer"
     )
     client = api_client(session)
     try:
@@ -126,7 +125,7 @@ def test_the_inspector_carries_the_decisions_of_its_record(session, business):
             f"/api/tenants/{business.tenant.id}/inspector/party/{party.id}"
         ).json()
         plain = client.get(
-            f"/api/tenants/{business.tenant.id}/inspector/party/{business.customer.id}"
+            f"/api/tenants/{business.tenant.id}/inspector/party/{plain_party.id}"
         ).json()
     finally:
         app.dependency_overrides.clear()
@@ -135,3 +134,6 @@ def test_the_inspector_carries_the_decisions_of_its_record(session, business):
         ("created", created.id)
     ]
     assert plain["decisions"] == []
+
+
+from legacy_business_support import historical_party

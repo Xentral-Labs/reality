@@ -56,10 +56,10 @@ def test_cli_tenant_context_and_master_data_commands(session, business, monkeypa
     use = runner.invoke(cli_module.app, ["tenant", "use", business.tenant.id])
     current = runner.invoke(cli_module.app, ["tenant", "current"])
     party = runner.invoke(
-        cli_module.app, ["party", "create", "New Customer", "customer"]
+        cli_module.app, ["party", "create", "New Customer", "customer", "--yes"]
     )
-    item = runner.invoke(cli_module.app, ["item", "create", "NEW-1", "New Item"])
-    location = runner.invoke(cli_module.app, ["location", "create", "Second Warehouse"])
+    item = runner.invoke(cli_module.app, ["item", "create", "NEW-1", "New Item", "--yes"])
+    location = runner.invoke(cli_module.app, ["location", "create", "Second Warehouse", "--yes"])
 
     assert use.exit_code == current.exit_code == 0
     assert business.tenant.id in current.stdout
@@ -96,7 +96,7 @@ def test_cli_updates_and_changes_master_data_lifecycle(session, business, monkey
     for command, model, record_id, update_args in cases:
         updated = runner.invoke(
             cli_module.app,
-            [command, "update", *update_args, "--tenant", business.tenant.id],
+            [command, "update", *update_args, "--tenant", business.tenant.id, "--yes"],
         )
         deactivated = runner.invoke(
             cli_module.app,

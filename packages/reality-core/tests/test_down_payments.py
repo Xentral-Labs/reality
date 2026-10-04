@@ -160,7 +160,7 @@ def test_a_document_names_only_an_order_of_its_own_company(session, business):
     document.order_document_id = order.id
     session.flush()
 
-    stranger = core.create_party(session, other.id, "Fremd GmbH", "customer")
+    stranger = reviewed_create_party(session, other.id, "Fremd GmbH", "customer")
     foreign = core.create_document(
         session, other.id, "proforma_invoice", "PF-T004-X", stranger.id, "10"
     )
@@ -381,7 +381,7 @@ def test_the_migration_upgrades_downgrades_and_keeps_recorded_down_payments(
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration down payment")
-            party = core.create_party(session, tenant.id, "Customer", "customer")
+            party = reviewed_create_party(session, tenant.id, "Customer", "customer")
             core.create_document(
                 session, tenant.id, "down_payment_invoice", "AR-M", party.id, "10"
             )
@@ -1207,3 +1207,6 @@ def test_the_narrowed_queue_follows_an_invoice_and_its_payment(
     projections.refresh_operational_projections(session, tenant, force=True)
     assert narrowed == _queued(session, tenant, order.id)
     assert "prepayment_required" in narrowed
+
+
+from intake_review_support import reviewed_create_party

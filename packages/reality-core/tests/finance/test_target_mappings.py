@@ -189,7 +189,7 @@ def test_real_component_resolution_is_read_only_and_does_not_infer(scheduled_dat
 
     _, factory, tenant, _ = scheduled_database
     with factory() as db:
-        customer = core.create_party(db, tenant, "Mapping customer", "customer")
+        customer = reviewed_create_party(db, tenant, "Mapping customer", "customer")
         business = SimpleNamespace(tenant=SimpleNamespace(id=tenant), customer=customer)
         tenant, target, account, case = setup(db, business)
         doc, _ids = fixture(db, business, detail={"net": "1000", "tax": "190"})
@@ -379,7 +379,7 @@ def test_target_migration_preserves_ledger_and_refuses_history_loss(
     try:
         with Session(engine) as db:
             tenant = create_legacy_tenant(db, "Target migration").id
-            customer = core.create_party(db, tenant, "Customer", "customer")
+            customer = historical_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
                 db,
                 tenant,
@@ -391,13 +391,17 @@ def test_target_migration_preserves_ledger_and_refuses_history_loss(
             )
             core.post_sales_invoice(db, tenant, doc.id)
             before = db.scalars(
-                text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
+                text(
+                    "SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id"
+                )
             ).all()
         command.upgrade(config, "head")
         with Session(engine) as db:
             assert (
                 db.scalars(
-                    text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
+                    text(
+                        "SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id"
+                    )
                 ).all()
                 == before
             )
@@ -695,3 +699,7 @@ def test_target_preview_refuses_assignment_from_previous_evidence(session, busin
     )
     assert result["items"][0]["status"] == "stale_assignment"
     assert result["items"][0]["received"]["amounts"]["net"] == "1100"
+
+
+from intake_review_support import reviewed_create_party
+from legacy_business_support import historical_party

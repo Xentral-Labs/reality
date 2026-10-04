@@ -354,7 +354,6 @@ def test_concurrent_reviews_cannot_silently_spend_changed_capacity(postgres_data
     from sqlalchemy.orm import sessionmaker
 
     from reality.db.core import Base, build_engine
-    from reality.services.core import create_party
 
     engine = build_engine(postgres_database)
     Base.metadata.create_all(engine)
@@ -362,7 +361,7 @@ def test_concurrent_reviews_cannot_silently_spend_changed_capacity(postgres_data
     try:
         with factory() as session:
             tenant = create_tenant(session, "Concurrent payment test")
-            party = create_party(session, tenant.id, "Customer", "customer")
+            party = reviewed_create_party(session, tenant.id, "Customer", "customer")
             business = SimpleNamespace(tenant=tenant, customer=party)
             invoice = obligation(session, business)
             first = prepare(session, business, invoice, request="first", amount="100")
@@ -414,3 +413,6 @@ def test_supported_payment_precision_is_preserved(session, business, amount):
             amount
         )
     assert Decimal(detail["observation"]["open"]) == Decimal(300) - Decimal(amount)
+
+
+from intake_review_support import reviewed_create_party

@@ -9,7 +9,6 @@ from reality.services.core import (
     NotFound,
     create_commitment,
     create_document,
-    create_item,
     create_payment_term,
     create_tenant,
     post_customer_payment,
@@ -115,7 +114,7 @@ def test_new_class_explanation_and_not_found_parity(session, business):
         "customer_delivery",
         business.company.id,
         business.customer.id,
-        create_item(session, tenant_id, "BIKE-CHAIN", "Bike Chain").id,
+        reviewed_create_item(session, tenant_id, "BIKE-CHAIN", "Bike Chain").id,
         business.location.id,
         3,
         due_at,
@@ -158,7 +157,7 @@ def test_shared_consumer_parity_includes_new_classes(session, business):
         4,
         datetime(2026, 8, 1, 12, tzinfo=UTC),
     )
-    other = create_item(session, tenant_id, "BIKE-BELL", "Bike Bell")
+    other = reviewed_create_item(session, tenant_id, "BIKE-BELL", "Bike Bell")
     record_movement(
         session,
         tenant_id,
@@ -829,7 +828,7 @@ def units_that_do_not_meet(session, business):
         create_manual_order,
     )
 
-    item = create_item(session, business.tenant.id, "BIKE-CRATE", "Bike Crate")
+    item = reviewed_create_item(session, business.tenant.id, "BIKE-CRATE", "Bike Crate")
     _, _document, lines, _commitments = create_manual_order(
         session,
         business.tenant.id,
@@ -873,7 +872,6 @@ def units_that_do_not_meet(session, business):
 
 
 def test_units_class_explanation_and_not_found_parity(session, business):
-    from reality.services.core import update_item
 
     tenant_id = business.tenant.id
     item = units_that_do_not_meet(session, business)
@@ -897,7 +895,7 @@ def test_units_class_explanation_and_not_found_parity(session, business):
         explain_operational_exception(session, foreign.id, row.id)
 
     # Stating the relation clears it, and its identity stops explaining.
-    update_item(
+    reviewed_update_item(
         session,
         tenant_id,
         item.id,
@@ -1261,3 +1259,6 @@ def test_unposted_invoice_explanation_and_not_found_parity(session, business):
     post_sales_invoice(session, tenant_id, forgotten.id)
     with pytest.raises(NotFound):
         explain_operational_exception(session, tenant_id, row.id)
+
+
+from intake_review_support import reviewed_create_item, reviewed_update_item

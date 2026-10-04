@@ -28,7 +28,6 @@ from reality.services.core import (
     post_supplier_invoice,
     post_supplier_payment,
     record_customer_payment,
-    update_party,
 )
 
 
@@ -275,7 +274,7 @@ def test_invoice_term_cascades_from_the_document_to_the_party(session, business)
     net30 = create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     net7 = create_payment_term(session, tenant_id, "NET7", "Net 7 days", 7)
     terms = {net30.id: net30, net7.id: net7}
-    update_party(
+    reviewed_update_party(
         session,
         tenant_id,
         business.customer.id,
@@ -372,3 +371,6 @@ def test_one_aging_rule_serves_every_consumer(session, business):
     source = inspect.getsource(aging_page)
     assert "timedelta" not in source
     assert "fromisoformat" not in source
+
+
+from intake_review_support import reviewed_update_party

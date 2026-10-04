@@ -15,7 +15,6 @@ from reality.services.core import (
     create_tenant,
     record_movement,
     stock_at,
-    update_item,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -132,7 +131,7 @@ def test_stale_stock_references_and_foreign_scope(session, business):
     with pytest.raises(InvalidOperation):
         confirm(session, business, proposal)
     fresh = prepare(session, business, "fresh")
-    update_item(
+    reviewed_update_item(
         session,
         business.tenant.id,
         business.item.id,
@@ -217,7 +216,6 @@ def test_two_independent_reviews_cannot_both_use_old_balance(postgres_database):
     from types import SimpleNamespace
 
     from reality.db.core import Base, build_engine
-    from reality.services.core import create_item, create_location
 
     engine = build_engine(postgres_database)
     Base.metadata.create_all(engine)
@@ -226,8 +224,8 @@ def test_two_independent_reviews_cannot_both_use_old_balance(postgres_database):
             tenant = create_tenant(session, "Concurrent opening")
             business = SimpleNamespace(
                 tenant=tenant,
-                item=create_item(session, tenant.id, "OPEN", "Opening item"),
-                location=create_location(session, tenant.id, "Main"),
+                item=reviewed_create_item(session, tenant.id, "OPEN", "Opening item"),
+                location=reviewed_create_location(session, tenant.id, "Main"),
             )
             proposals = [prepare(session, business, name) for name in ("one", "two")]
             identities = [
@@ -266,9 +264,8 @@ def test_two_independent_reviews_cannot_both_use_old_balance(postgres_database):
     [("lot", "stocked"), ("serial", "stocked"), ("none", "service")],
 )
 def test_unsupported_item_is_inert(session, business, tracking, item_type):
-    from reality.services.core import create_item
 
-    item = create_item(
+    item = reviewed_create_item(
         session,
         business.tenant.id,
         "OTHER",
@@ -282,9 +279,8 @@ def test_unsupported_item_is_inert(session, business, tracking, item_type):
 
 
 def test_destination_must_allow_stock(session, business):
-    from reality.services.core import create_location
 
-    location = create_location(session, business.tenant.id, "Group", allows_stock=False)
+    location = reviewed_create_location(session, business.tenant.id, "Group", allows_stock=False)
     with pytest.raises(InvalidOperation):
         prepare(session, business, to_location_id=location.id)
 
@@ -296,7 +292,6 @@ def test_unresolved_pool_overlap_is_mutual(
 ):
     from unified_fixtures import delivery_fixture
 
-    from reality.services.core import create_location
 
     tid = business.tenant.id
     commitment = delivery_fixture(session, business).commitment
@@ -328,7 +323,7 @@ def test_unresolved_pool_overlap_is_mutual(
         prepare_delivery_action(
             session, tid, second_tool, second_args, request_id="blocked"
         )
-    location = create_location(session, tid, "Unrelated")
+    location = reviewed_create_location(session, tid, "Unrelated")
     assert (
         prepare(session, business, "unrelated", to_location_id=location.id).status
         == "proposed"
@@ -452,10 +447,9 @@ def test_raw_opening_refuses_an_unsupported_item_when_proposed(
     created a decision a person could open, read and never approve.
     """
     from reality.db.core import ChangeProposal
-    from reality.services.core import create_item
 
     tid = business.tenant.id
-    item = create_item(
+    item = reviewed_create_item(
         session, tid, "OTHER", "Other", tracking_type=tracking, item_type=item_type
     )
     decisions = (
@@ -476,11 +470,17 @@ def test_raw_opening_refuses_a_destination_that_holds_no_stock_when_proposed(
     session, business
 ):
     """Spec 132 FR-002: the destination is proved as the decision is proposed."""
-    from reality.services.core import create_location
 
     tid = business.tenant.id
-    location = create_location(session, tid, "Group", allows_stock=False)
+    location = reviewed_create_location(session, tid, "Group", allows_stock=False)
     with pytest.raises(InvalidOperation):
         create_change_proposal(
             session, tid, "movement_create", args(business, to_location_id=location.id)
         )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_update_item,
+)

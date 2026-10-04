@@ -16,7 +16,6 @@ from reality.services.core import (
     aging_register,
     business_events,
     create_document,
-    create_party,
     create_payment_term,
     create_tenant,
     duplicate_supplier_invoices,
@@ -355,7 +354,7 @@ def test_the_discount_is_named_never_applied(session, business):
 
 def test_the_preview_totals_per_supplier_and_overall(session, business):
     net(session, business)
-    other = create_party(session, business.tenant.id, "Rahmen AG", "supplier")
+    other = reviewed_create_party(session, business.tenant.id, "Rahmen AG", "supplier")
     supplier_invoice(session, business, "ER-098-S1", "2026-08-01", amount="100.00")
     supplier_invoice(session, business, "ER-098-S2", "2026-08-02", amount="250.00")
     supplier_invoice(
@@ -693,7 +692,7 @@ def test_a_run_is_tenant_scoped(session, business):
     invoice = supplier_invoice(session, business, "ER-098-TEN", "2026-08-01")
 
     other = create_tenant(session, "Foreign GmbH")
-    create_party(session, other.id, "Foreign Supplier", "supplier")
+    reviewed_create_party(session, other.id, "Foreign Supplier", "supplier")
 
     # Another tenant can neither see nor pay this invoice.
     assert (
@@ -725,3 +724,6 @@ def test_a_run_is_tenant_scoped(session, business):
         == 1
     )
     assert open_invoice_amount(session, business.tenant.id, invoice.id) == Decimal(990)
+
+
+from intake_review_support import reviewed_create_party

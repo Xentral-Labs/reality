@@ -400,7 +400,7 @@ def test_a_change_to_a_closed_line_waits(session, business):
 
 def test_a_reduction_needing_a_reservation_choice_waits(session, business):
     tenant = business.tenant.id
-    tracked = core.create_item(
+    tracked = reviewed_create_item(
         session, tenant, "TRACKED-LIGHT", "Tracked light", tracking_type="lot"
     )
     lots = [core.create_lot(session, tenant, tracked.id, name) for name in ("A", "B")]
@@ -586,3 +586,6 @@ def test_a_refunded_shipped_line_does_not_block_later_versions(session, business
 
     assert _outcome(session, business, source).classification == "interpreted"
     assert _quantity(session, business, second) == 3
+
+
+from intake_review_support import reviewed_create_item

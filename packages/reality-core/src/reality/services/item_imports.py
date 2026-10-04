@@ -256,6 +256,7 @@ def assert_import_overlap(
 def record_item_import(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
+    from reality.services.intake import _invoke
     lock_delivery_state(session, tenant_id)
     session.expire_all()
     creation = preview_item_import(session, tenant_id, arguments["import_file"])
@@ -290,16 +291,7 @@ def record_item_import(
             action_id=action_id,
         )
         ids = [
-            create_item(
-                session,
-                tenant_id,
-                row["sku"],
-                row["name"],
-                row["unit"],
-                source_record_id=source.id,
-                action_id=action_id,
-                _commit=False,
-            ).id
+            _invoke('create_item', create_item, session, tenant_id, sku=row['sku'], name=row['name'], unit=row['unit'], source_record_id=source.id, action_id=action_id, _commit=False).id
             for row in creation["rows"]
         ]
         mark_artifact_attached(artifact)

@@ -218,7 +218,7 @@ def test_the_assigned_promise_stands_first_even_if_due_later(session, business):
 def test_stated_lines_are_checked(session, business):
     first = _promise(session, business, "3", due="2026-10-15")
     second = _promise(session, business, "3", due="2026-10-16")
-    other = core.create_location(session, business.tenant.id, "Elsewhere")
+    other = reviewed_create_location(session, business.tenant.id, "Elsewhere")
     elsewhere = _promise(session, business, "3", location=other)
     _stock(session, business, "4")
 
@@ -298,7 +298,7 @@ def test_blocked_stock_is_not_served(session, business):
 
 
 def test_a_tracked_item_is_refused(session, business):
-    item = core.create_item(
+    item = reviewed_create_item(
         session, business.tenant.id, "LOT-305", "Lot item", tracking_type="lot"
     )
     try:
@@ -600,3 +600,6 @@ def test_a_purchase_held_in_its_line_unit_is_left_out(session, business):
 
     answer = _atp(session, business)
     assert (answer["purchases"], answer["not_in_stock_unit"]) == ([], [purchase.id])
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

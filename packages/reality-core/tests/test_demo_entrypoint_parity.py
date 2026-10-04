@@ -30,7 +30,6 @@ from reality.db.core import (
     Tenant,
 )
 from reality.services.core import (
-    create_party,
     create_tenant,
     inventory_rows,
 )
@@ -346,10 +345,12 @@ def test_confirmed_web_population_failure_is_truthful_and_not_destructive(
 ):
     _, _ = clients_for(session, monkeypatch)
 
+    from reality.tools import application as core_module
+
+    original = core_module.ensure_demo
+
     def fail_after_one_record(api_session, tenant):
-        create_party(
-            api_session, tenant.id, "Partial Demo Company", "company", _commit=False
-        )
+        original(api_session, tenant)
         raise RuntimeError("injected demo population failure")
 
     from reality.tools import application as core_module

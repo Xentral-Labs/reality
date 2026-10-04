@@ -129,9 +129,6 @@ def test_master_exact_service_authority(durable_playground, monkeypatch, tamper)
 )
 def test_master_create_edit_review_and_stale(durable_playground, family, model, record):
     from reality.services.core import (
-        create_items,
-        create_locations,
-        create_parties,
         create_tenant,
     )
 
@@ -223,11 +220,9 @@ def test_master_create_edit_review_and_stale(durable_playground, family, model, 
         ]
     with Session(engine) as session:
         other = create_tenant(session, "Unrelated company")
-        foreign = {
-            "party": create_parties,
-            "item": create_items,
-            "location": create_locations,
-        }[family](session, other.id, [record])[0]
+        from intake_review_support import create_reviewed_master
+
+        foreign = create_reviewed_master(session, other.id, family, record)
         foreign_id = foreign.id
     with pytest.raises(NotFound):
         prepare("foreign", "update", {**changed, "id": foreign_id})

@@ -167,7 +167,7 @@ def test_an_over_delivery_goes_back_to_the_supplier(session, business):
 def test_a_wrong_item_is_tied_to_its_purchase_and_sent_back(session, business):
     """H06: the supplier sent bells for an order of lights."""
     tenant = business.tenant.id
-    bell = core.create_item(session, tenant, "BIKE-BELL", "Bike bell")
+    bell = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike bell")
     _, promise = _order(session, business, "purchase", "PO-H06", "20")
 
     received = _receive(
@@ -218,7 +218,7 @@ def test_a_wrong_item_is_tied_to_its_purchase_and_sent_back(session, business):
 def test_a_successor_item_is_accepted_against_the_purchase(session, business):
     """H07: the supplier delivers the successor model; the buyer accepts it."""
     tenant = business.tenant.id
-    successor = core.create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
+    successor = reviewed_create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
     document, promise = _order(session, business, "purchase", "PO-H07", "12")
     proposal = create_change_proposal(
         session,
@@ -332,7 +332,7 @@ def test_one_container_shows_in_transit_per_purchase(session, business):
 def test_a_picking_error_found_by_the_customer(session, business):
     """D05: the customer received bells; the lights are still owed."""
     tenant = business.tenant.id
-    bell = core.create_item(session, tenant, "BIKE-BELL", "Bike bell")
+    bell = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike bell")
     for item in (business.item, bell):
         core.record_movement(
             session,
@@ -429,3 +429,6 @@ def test_a_picking_error_found_by_the_customer(session, business):
     )
     session.refresh(promise)
     assert promise.status == "fulfilled"
+
+
+from intake_review_support import reviewed_create_item

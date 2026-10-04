@@ -359,7 +359,6 @@ def test_concurrent_reviews_cannot_silently_spend_changed_capacity(postgres_data
     from sqlalchemy.orm import sessionmaker
 
     from reality.db.core import Base, build_engine
-    from reality.services.core import create_party
 
     engine = build_engine(postgres_database)
     Base.metadata.create_all(engine)
@@ -367,7 +366,7 @@ def test_concurrent_reviews_cannot_silently_spend_changed_capacity(postgres_data
     try:
         with factory() as session:
             tenant = create_tenant(session, "Concurrent refund test")
-            party = create_party(session, tenant.id, "Customer", "customer")
+            party = reviewed_create_party(session, tenant.id, "Customer", "customer")
             business = SimpleNamespace(tenant=tenant, customer=party)
             invoice = obligation(session, business)
             first = prepare(session, business, invoice, request="first", amount="100")
@@ -585,7 +584,6 @@ def test_direct_refund_and_netting_serialize_shared_credit_capacity(postgres_dat
     from reality.db.core import Base, build_engine
     from reality.services.core import (
         allocate_credit_note,
-        create_party,
         post_customer_refund,
         post_sales_invoice,
     )
@@ -596,7 +594,7 @@ def test_direct_refund_and_netting_serialize_shared_credit_capacity(postgres_dat
     try:
         with factory() as connection:
             tenant = create_tenant(connection, "Concurrent refund and netting")
-            party = create_party(connection, tenant.id, "Customer", "customer")
+            party = reviewed_create_party(connection, tenant.id, "Customer", "customer")
             context = SimpleNamespace(tenant=tenant, customer=party)
             credit = obligation(connection, context)
             invoice = create_document(
@@ -694,3 +692,6 @@ def test_credit_register_paging_sorting_and_reversed_exclusion(session, business
     reversed_row = next(row for row in rows["items"] if row["document_id"] == second.id)
     assert reversed_row["status"] == "reversed"
     assert Decimal(reversed_row["open"]) == 0
+
+
+from intake_review_support import reviewed_create_party

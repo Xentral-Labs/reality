@@ -182,11 +182,11 @@ _active_effect: ContextVar[str | None] = ContextVar(
 )
 
 
-def _require_scoped_operation(session: Session, tenant_id: str, operation: str) -> None:
+def _require_scoped_operation(session: Session, tenant_id: str, operation: str) -> bool:
     """An approved package grants only its currently dispatched canonical effect."""
     scope = _approved.get()
     if scope is None:
-        return
+        return False
     nested = session.get_nested_transaction()
     while nested is not None and nested is not scope.nested_transaction:
         nested = nested.parent
@@ -198,6 +198,7 @@ def _require_scoped_operation(session: Session, tenant_id: str, operation: str) 
         or operation not in _EFFECT_OPERATIONS.get(_active_effect.get(), ())
     ):
         raise core.InvalidOperation(code="intake_approval_required")
+    return True
 
 
 @contextmanager
@@ -219,6 +220,9 @@ _call_intent: ContextVar[tuple[str, str] | None] = ContextVar(
 )
 
 
+_call_nonce: ContextVar[object | None] = ContextVar("canonical_call_nonce", default=None)
+
+
 # Omitted optional parameters still have exact canonical invocation values.
 # Capture the definitions before an adapter/callback can wrap them.
 _INTENT_DEFAULTS = {
@@ -231,6 +235,9 @@ _INTENT_DEFAULTS = {
         "create_item",
         "create_party",
         "create_location",
+        "update_party",
+        "update_item",
+        "update_location",
         "record_movement",
         "record_supplier_payment",
         "post_ledger",
@@ -255,17 +262,22 @@ def _invoke(
     token = _call_intent.set(
         (operation, canonical_json({**_INTENT_DEFAULTS[operation], **arguments}))
     )
+    nonce_token = _call_nonce.set(object())
     document_token = _payment_document.set(None)
     try:
         return handler(session, tenant_id, **arguments)
     finally:
         _payment_document.reset(document_token)
+        _call_nonce.reset(nonce_token)
         _call_intent.reset(token)
 
 
 def require_scoped_intent(operation: str, actual: dict[str, Any]) -> None:
     if _approved.get() is None:
-        return
+        from reality.services.tenant_policy import _master_application_active
+
+        if not _master_application_active(operation):
+            return
     intent = _call_intent.get()
     if intent is None:
         raise core.InvalidOperation(code="intake_approval_required")
@@ -277,6 +289,10 @@ def require_scoped_intent(operation: str, actual: dict[str, Any]) -> None:
     }
     supplier = expected_operation == "record_supplier_payment"
     control_role = "accounts_payable" if supplier else "accounts_receivable"
+    if _approved.get() is None and operation == expected_operation:
+        from reality.services.tenant_policy import _consume_master_invocation
+
+        _consume_master_invocation(_call_nonce.get())
     if operation == expected_operation:
         offered = {key: actual.get(key) for key in expected}
         if canonical_json(offered) != canonical_json(expected):

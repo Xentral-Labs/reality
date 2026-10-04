@@ -33,7 +33,12 @@ def test_practice_company_is_shared_with_app(session, playground_http, monkeypat
     assert company["purpose"] == "playground"
     response = client.post(
         f"/api/tenants/{tenant.id}/items",
-        json={"sku": "APP-ITEM", "name": "Shared item", "unit": "pcs"},
+        json={
+            "sku": "APP-ITEM",
+            "name": "Shared item",
+            "unit": "pcs",
+            "confirmed": True,
+        },
     )
     assert response.status_code == 201, response.text
     item_id = response.json()["id"]
@@ -125,10 +130,7 @@ def test_practice_app_uses_normal_source_goods_and_finance_services(
     session, playground_http
 ):
     from reality.services.core import (
-        create_item,
-        create_location,
         create_manual_order,
-        create_party,
         post_ledger,
         record_movement,
     )
@@ -136,10 +138,10 @@ def test_practice_app_uses_normal_source_goods_and_finance_services(
     client, tenant, user, run, login = playground_http
     run.sandbox_kind = "practice"
     session.flush()
-    company = create_party(session, tenant.id, "Practice company", "company")
-    customer = create_party(session, tenant.id, "Customer", "customer")
-    location = create_location(session, tenant.id, "Practice warehouse")
-    item = create_item(session, tenant.id, "SHARED", "Shared item", "pcs")
+    company = reviewed_create_party(session, tenant.id, "Practice company", "company")
+    customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
+    location = reviewed_create_location(session, tenant.id, "Practice warehouse")
+    item = reviewed_create_item(session, tenant.id, "SHARED", "Shared item", "pcs")
     movement = record_movement(
         session, tenant.id, "receipt", item.id, "12", to_location_id=location.id
     )
@@ -941,3 +943,10 @@ def test_sandbox_archive_and_restore_are_confirmed_owner_actions(playground_http
         f"/api/playground/runs/{uid('pgr')}/archive", json={"confirmed": True}
     )
     assert missing.status_code == 404
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

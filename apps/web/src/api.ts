@@ -2354,12 +2354,12 @@ export const api = {
   createParty: (tenant: string, body: Record<string, unknown>) =>
     request<PartyRow>(`/api/tenants/${tenant}/parties`, {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, confirmed: true }),
     }),
   updateParty: (tenant: string, id: string, body: Record<string, unknown>) =>
     request<PartyRow>(`/api/tenants/${tenant}/parties/${id}`, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, confirmed: true }),
     }),
   setPartyActive: (tenant: string, id: string, isActive: boolean) =>
     request<PartyRow>(`/api/tenants/${tenant}/parties/${id}/active`, {
@@ -2370,12 +2370,12 @@ export const api = {
   createItem: (tenant: string, body: Record<string, unknown>) =>
     request<ItemRow>(`/api/tenants/${tenant}/items`, {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, confirmed: true }),
     }),
   updateItem: (tenant: string, id: string, body: Record<string, unknown>) =>
     request<ItemRow>(`/api/tenants/${tenant}/items/${id}`, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, confirmed: true }),
     }),
   setItemActive: (tenant: string, id: string, isActive: boolean) =>
     request<ItemRow>(`/api/tenants/${tenant}/items/${id}/active`, {
@@ -2386,12 +2386,12 @@ export const api = {
   createLocation: (tenant: string, body: Record<string, unknown>) =>
     request<LocationRow>(`/api/tenants/${tenant}/locations`, {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, confirmed: true }),
     }),
   updateLocation: (tenant: string, id: string, body: Record<string, unknown>) =>
     request<LocationRow>(`/api/tenants/${tenant}/locations/${id}`, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, confirmed: true }),
     }),
   setLocationActive: (tenant: string, id: string, isActive: boolean) =>
     request<LocationRow>(`/api/tenants/${tenant}/locations/${id}/active`, {

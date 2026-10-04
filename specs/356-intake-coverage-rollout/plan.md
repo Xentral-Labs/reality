@@ -137,3 +137,22 @@ Shopify-shaped examples use the shared pure planner and exact scoped effect
 dispatch; no retired interpreter or derived line total is reused. Setup effects
 and its receipt commit together. Raw-only source scopes cannot enter this setup
 scope. Configuration-only empty-database bootstrap creates no business demo data.
+
+## Canonical master boundary slice
+
+Enforce Party/Item/Location creation and updates independently of authentication
+mode. The existing confirmed proposal executor owns the exact retained input,
+current transaction and current named person/token authority. Freeze canonical
+handler calls before invoking callbacks, consume each call once and refuse a root
+commit before the receipt. Fixed initialization uses the same exact invocation
+proof and never authorizes later arbitrary master changes. Ordinary company-partner
+creation is bounded to the confirmed creation receipt and transaction.
+
+REST form saves and CLI create/update submit existing catalog proposals and convey
+actual confirmation; unconfirmed requests have no proposal or accepted effect.
+Historical provenance and pinned migration fixtures explicitly represent retained
+rows without manufacturing current decisions. This slice completes no unrelated
+writer family; their semantic classification and enforcement remain required.
+
+Qualification tasks T019–T022 cover direct/auth-disabled refusal, callback/root
+attacks, transport parity, current token revocation and full committed-head checks.

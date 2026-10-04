@@ -8,7 +8,6 @@ from reality.services.core import (
     NotFound,
     aging_register,
     create_document,
-    create_party,
     create_payment_term,
     payment_terms,
     post_supplier_invoice,
@@ -27,7 +26,7 @@ def test_payment_terms_are_tenant_scoped_master_data(session, business):
         source_system="erp",
         external_id="ZB30",
     )
-    party = create_party(
+    party = reviewed_create_party(
         session,
         business.tenant.id,
         "Terms Customer",
@@ -41,7 +40,7 @@ def test_payment_terms_are_tenant_scoped_master_data(session, business):
 
     set_master_data_active(session, business.tenant.id, PaymentTerm, term.id, False)
     with pytest.raises(NotFound, match="Active payment term"):
-        create_party(
+        reviewed_create_party(
             session,
             business.tenant.id,
             "Blocked Assignment",
@@ -231,3 +230,6 @@ def test_the_discount_deadline_is_one_shared_rule(session, business):
     assert invoice_due_date(invoice, plain) == date(2026, 8, 8)
     assert invoice_discount_date(invoice, plain) is None
     assert invoice_discount_date(invoice, None) is None
+
+
+from intake_review_support import reviewed_create_party

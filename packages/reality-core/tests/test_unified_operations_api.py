@@ -8,7 +8,6 @@ from unified_fixtures import delivery_fixture
 from reality.db.core import ChangeProposal, Movement, Reservation
 from reality.services.core import (
     correct_movement,
-    create_item,
     create_tenant,
     record_movement,
     reserve,
@@ -24,7 +23,7 @@ def test_warehouse_reads_filter_exact_item_before_paging_without_effects(
     fixture = delivery_fixture(session, business)
     tid = business.tenant.id
     reserve(session, tid, fixture.commitment.id, "12")
-    other_item = create_item(session, tid, "OTHER", business.item.name, unit="kg")
+    other_item = reviewed_create_item(session, tid, "OTHER", business.item.name, unit="kg")
     record_movement(
         session,
         tid,
@@ -149,7 +148,7 @@ def test_warehouse_state_filters_and_non_customer_targets(session, business):
     fixture = delivery_fixture(session, business)
     tid = business.tenant.id
     reserve(session, tid, fixture.commitment.id, "12")
-    extra = create_item(session, tid, "EMPTY", "Empty item")
+    extra = reviewed_create_item(session, tid, "EMPTY", "Empty item")
     result = warehouse_register(session, tid, "stock", state="fully_allocated", size=1)
     assert result["page"]["total"] == 1 and result["items"][0]["id"] == extra.id
     active = warehouse_register(session, tid, "reservations", state="active")
@@ -236,3 +235,6 @@ def test_attention_detail_classifies_a_cleared_finding_over_http(session, busine
             assert "code" not in client.get(f"{base}/attention/exc__invented__x").json()
     finally:
         app.dependency_overrides.clear()
+
+
+from intake_review_support import reviewed_create_item

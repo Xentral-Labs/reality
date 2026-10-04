@@ -629,10 +629,10 @@ def test_correcting_a_movement_onto_another_article_reaches_both(session, busine
     name a *different* article. Narrowing on the named movement alone leaves that
     article's stock stale.
     """
-    from reality.services.core import correct_movement, create_item
+    from reality.services.core import correct_movement
 
     tenant = business.tenant.id
-    other = create_item(session, tenant, "BIKE-BELL", "Bike Bell")
+    other = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike Bell")
     a_little_business(session, business)
     wrong = record_movement(
         session,
@@ -703,11 +703,10 @@ def test_stock_declines_an_observation_about_a_document(session, business):
 def test_a_narrowed_stock_refresh_writes_only_the_articles_that_changed(
     session, business
 ):
-    from reality.services.core import create_item
 
     tenant = business.tenant.id
-    create_item(session, tenant, "BIKE-PUMP", "Bike Pump")
-    create_item(session, tenant, "BIKE-LOCK", "Bike Lock")
+    reviewed_create_item(session, tenant, "BIKE-PUMP", "Bike Pump")
+    reviewed_create_item(session, tenant, "BIKE-LOCK", "Bike Lock")
     a_little_business(session, business)
     projections.refresh_operational_projections(session, tenant)
     whole_company = projections.rebuild_projections(
@@ -877,11 +876,10 @@ def test_closing_promises_names_the_company_and_is_declined(session, business):
 def test_a_narrowed_supply_and_demand_refresh_writes_only_the_articles_that_changed(
     session, business
 ):
-    from reality.services.core import create_item
 
     tenant = business.tenant.id
-    create_item(session, tenant, "BIKE-PUMP", "Bike Pump")
-    create_item(session, tenant, "BIKE-LOCK", "Bike Lock")
+    reviewed_create_item(session, tenant, "BIKE-PUMP", "Bike Pump")
+    reviewed_create_item(session, tenant, "BIKE-LOCK", "Bike Lock")
     a_little_business(session, business)
     projections.refresh_operational_projections(session, tenant)
     whole_company = projections.rebuild_projections(
@@ -1230,7 +1228,7 @@ def test_a_cancelled_promise_keeps_its_row_and_says_so(session, business):
 def test_renaming_an_article_reaches_every_promise_that_prints_it(session, business):
     """An article is one record and many rows, and the register is not bounded by
     open work: the promise that was fulfilled prints the new name too."""
-    from reality.services.core import record_movement, update_item
+    from reality.services.core import record_movement
 
     tenant = business.tenant.id
     _, first = _promise(session, business, "ORD-241-RN1", "2")
@@ -1255,7 +1253,7 @@ def test_renaming_an_article_reaches_every_promise_that_prints_it(session, busin
     projections.refresh_operational_projections(session, tenant)
     assert _promises(session, tenant)[first.id]["status"] == "fulfilled"
 
-    update_item(
+    reviewed_update_item(
         session,
         tenant,
         business.item.id,
@@ -1501,14 +1499,13 @@ def test_a_window_that_changes_nothing_the_timeline_shows_writes_nothing(
     produces no rows and speaks for none. It must not fall back to reading the
     company's whole history for it.
     """
-    from reality.services.core import update_party
 
     tenant = business.tenant.id
     a_little_business(session, business)
     projections.refresh_operational_projections(session, tenant)
     before = _timeline(session, tenant)
 
-    update_party(
+    reviewed_update_party(
         session,
         tenant,
         business.customer.id,
@@ -1530,7 +1527,6 @@ def test_a_window_that_changes_nothing_the_timeline_shows_writes_nothing(
 def test_renaming_an_article_reaches_every_timeline_row_that_prints_it(
     session, business
 ):
-    from reality.services.core import update_item
 
     tenant = business.tenant.id
     a_little_business(session, business)
@@ -1540,7 +1536,7 @@ def test_renaming_an_article_reaches_every_timeline_row_that_prints_it(
         for payload in _timeline(session, tenant).values()
     )
 
-    update_item(
+    reviewed_update_item(
         session,
         tenant,
         business.item.id,
@@ -1710,12 +1706,12 @@ def test_a_reversal_is_the_row_it_changes(session, business):
 def test_a_payment_term_reaches_the_documents_of_the_parties_that_inherit_it(
     session, business
 ):
-    from reality.services.core import create_payment_term, update_party
+    from reality.services.core import create_payment_term
 
     tenant = business.tenant.id
     a_little_business(session, business)
     term = create_payment_term(session, tenant, "NET30", "30 Tage netto", 30)
-    update_party(
+    reviewed_update_party(
         session,
         tenant,
         business.customer.id,
@@ -2140,3 +2136,10 @@ def test_a_cleared_exception_of_an_evaluated_class_is_removed(session, business)
 
     projections.refresh_operational_projections(session, tenant, force=True)
     assert narrowed == _exceptions(session, tenant)
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_update_item,
+    reviewed_update_party,
+)

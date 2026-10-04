@@ -157,8 +157,11 @@ def test_the_agent_status_read_states_the_decision(session, business):
 
 
 def test_an_activity_names_the_decision_that_caused_it(session, business):
+    from legacy_business_support import historical_party
+
     from reality.services.core import timeline_activity
 
+    historical_party(session, business.tenant.id, "Unknown historical actor", "customer")
     by_person, by_token, _, token = _three_decisions(session, business)
 
     events = timeline_activity(session, business.tenant.id, hours=0)["events"]
@@ -170,5 +173,5 @@ def test_an_activity_names_the_decision_that_caused_it(session, business):
     assert decided[by_token.id]["decider"] == _token_decider(token)
     assert decided[by_token.id]["tool"] == "payment_term_create"
     undecided = [event for event in events if not event["action_id"]]
-    # The fixture's own records were entered without a decision and claim none.
+    # The explicitly retained historical record claims no creating decision.
     assert undecided and all(event["decision"] is None for event in undecided)

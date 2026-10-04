@@ -19,7 +19,7 @@ def test_nullable_total_upgrade_preserves_values_and_refuses_lossy_downgrade(
     try:
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Received values migration")
-            party = core.create_party(
+            party = reviewed_create_party(
                 session, tenant.id, "Received customer", "customer"
             )
             document = core.create_document(
@@ -56,3 +56,6 @@ def test_nullable_total_upgrade_preserves_values_and_refuses_lossy_downgrade(
             )
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_party

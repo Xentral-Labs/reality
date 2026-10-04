@@ -673,7 +673,7 @@ def test_unstated_source_amount_migration_roundtrip_and_safe_refusal(
         command.upgrade(config, "0139_unstated_source_amounts")
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration proof")
-            party = core.create_party(session, tenant.id, "Customer", "customer")
+            party = reviewed_create_party(session, tenant.id, "Customer", "customer")
             document = core.create_document(
                 session, tenant.id, "sales_order", "M1", party.id, "1"
             )
@@ -707,3 +707,6 @@ def test_unstated_source_amount_migration_roundtrip_and_safe_refusal(
             )
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_party

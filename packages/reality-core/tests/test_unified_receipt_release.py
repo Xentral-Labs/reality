@@ -301,10 +301,9 @@ def test_receipt_and_release_http_review_round_trip(session, business):
 
 
 def test_receipt_guards_actual_destination_pool(session, business):
-    from reality.services.core import create_location
 
     tid = business.tenant.id
-    alternate = create_location(session, tid, "Second warehouse")
+    alternate = reviewed_create_location(session, tid, "Second warehouse")
     prior = create_commitment(
         session,
         tid,
@@ -334,3 +333,6 @@ def test_receipt_guards_actual_destination_pool(session, business):
             {**receipt_args(business, current), "to_location_id": alternate.id},
             request_id="same-destination",
         )
+
+
+from intake_review_support import reviewed_create_location

@@ -141,7 +141,7 @@ def test_a_confirmation_after_the_point_changed_is_refused(session, business):
 
 def test_an_invalid_point_is_refused_before_anything_is_proposed(session, business):
     tenant = business.tenant.id
-    service = core.create_item(
+    service = reviewed_create_item(
         session, tenant, "SRV-302", "Assembly", item_type="service"
     )
     try:
@@ -413,3 +413,6 @@ def test_declining_in_the_cli_withdraws_the_review(session, business, monkeypatc
     ).all()
     assert proposal.status == "rejected"
     assert _points(session, tenant) == []
+
+
+from intake_review_support import reviewed_create_item

@@ -12,7 +12,6 @@ from reality.services.core import (
     correct_lot_expiry,
     create_commitment,
     create_handling_unit,
-    create_item,
     create_lot,
     create_serial_unit,
     create_tenant,
@@ -43,7 +42,7 @@ def customer_commitment(session, business, item_id, quantity):
 def test_lot_quantity_can_be_received_reserved_and_shipped_on_a_pallet(
     session, business
 ):
-    item = create_item(
+    item = reviewed_create_item(
         session, business.tenant.id, "LOT-ITEM", "Lot item", tracking_type="lot"
     )
     lot = create_lot(session, business.tenant.id, item.id, "LOT-2026-01")
@@ -88,7 +87,7 @@ def test_lot_quantity_can_be_received_reserved_and_shipped_on_a_pallet(
 
 
 def test_lot_tracked_item_requires_lot_for_movement_and_reservation(session, business):
-    item = create_item(
+    item = reviewed_create_item(
         session, business.tenant.id, "LOT-REQ", "Lot required", tracking_type="lot"
     )
     commitment = customer_commitment(session, business, item.id, 1)
@@ -107,7 +106,7 @@ def test_lot_tracked_item_requires_lot_for_movement_and_reservation(session, bus
 
 
 def test_serial_reservation_identifies_exact_unit_and_quantity_one(session, business):
-    item = create_item(
+    item = reviewed_create_item(
         session,
         business.tenant.id,
         "SERIAL-ITEM",
@@ -156,7 +155,7 @@ def test_serial_reservation_identifies_exact_unit_and_quantity_one(session, busi
 
 
 def test_untracked_item_rejects_lot_identity(session, business):
-    tracked = create_item(
+    tracked = reviewed_create_item(
         session, business.tenant.id, "LOT-SOURCE", "Lot source", tracking_type="lot"
     )
     lot = create_lot(session, business.tenant.id, tracked.id, "LOT-X")
@@ -173,7 +172,7 @@ def test_untracked_item_rejects_lot_identity(session, business):
 
 
 def test_api_uses_same_lot_reservation_flow(session, business, monkeypatch):
-    item = create_item(
+    item = reviewed_create_item(
         session, business.tenant.id, "API-LOT", "API lot", tracking_type="lot"
     )
     commitment = customer_commitment(session, business, item.id, 2)
@@ -212,7 +211,7 @@ def test_api_uses_same_lot_reservation_flow(session, business, monkeypatch):
 
 
 def test_confirmed_chat_tool_reserves_exact_serial_unit(session, business):
-    item = create_item(
+    item = reviewed_create_item(
         session,
         business.tenant.id,
         "CHAT-SERIAL",
@@ -258,7 +257,7 @@ def test_confirmed_chat_tool_reserves_exact_serial_unit(session, business):
 
 
 def lot_tracked_item(session, business, sku="LOT-EXPIRY"):
-    return create_item(
+    return reviewed_create_item(
         session, business.tenant.id, sku, "Perishable", tracking_type="lot"
     )
 
@@ -621,3 +620,6 @@ def test_correcting_expiry_is_tenant_scoped(session, business):
         expected_expires_at="2026-10-15",
         reason="Mine",
     ).expires_at == date(2026, 10, 16)
+
+
+from intake_review_support import reviewed_create_item

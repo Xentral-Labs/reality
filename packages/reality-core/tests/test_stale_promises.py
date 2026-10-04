@@ -235,12 +235,11 @@ def test_a_closure_is_tenant_scoped(session, business):
     mine = promise(session, business)
 
     foreign = create_tenant(session, "Foreign closure tenant")
-    from reality.services.core import create_item, create_location, create_party
 
-    other_company = create_party(session, foreign.id, "Other GmbH", "company")
-    other_customer = create_party(session, foreign.id, "Other Kunde GmbH", "customer")
-    other_item = create_item(session, foreign.id, "OTHER-1", "Other Item")
-    other_location = create_location(session, foreign.id, "Other Warehouse")
+    other_company = reviewed_create_party(session, foreign.id, "Other GmbH", "company")
+    other_customer = reviewed_create_party(session, foreign.id, "Other Kunde GmbH", "customer")
+    other_item = reviewed_create_item(session, foreign.id, "OTHER-1", "Other Item")
+    other_location = reviewed_create_location(session, foreign.id, "Other Warehouse")
     theirs = create_commitment(
         session,
         foreign.id,
@@ -265,3 +264,10 @@ def test_a_closure_is_tenant_scoped(session, business):
         )
         == 0
     )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

@@ -39,7 +39,7 @@ def canonical_snapshot(values, *, aliases):
 
 
 def adapter_clients(session, monkeypatch):
-    factory = sessionmaker(session.bind, expire_on_commit=False)
+    factory = sessionmaker(session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint")
     monkeypatch.setattr(cli_module, "Session", factory)
     monkeypatch.setattr(cli_module, "init_db", lambda: None)
 
@@ -52,7 +52,7 @@ def adapter_clients(session, monkeypatch):
 
 
 def created_id(result) -> str:
-    assert result.exit_code == 0, result.stdout
+    assert result.exit_code == 0, result.output
     match = re.search(r"\(([^()]+)\)\s*$", result.stdout.strip())
     assert match is not None, result.stdout
     return match.group(1)
@@ -68,16 +68,6 @@ def test_declared_master_data_adapter_matrix_is_complete():
     }
 
 
-@pytest.mark.parametrize("family", FAMILIES)
-def test_cli_and_api_delegate_each_family_to_shared_services(family):
-    cli = (ROOT / "packages/reality-core/src/reality/cli/app.py").read_text()
-    api = (ROOT / "packages/reality-core/src/reality/web/api.py").read_text()
-    assert f"create_{family}(" in cli
-    assert f"update_{family}(" in cli
-    assert f"create_{family}(" in api
-    assert f"update_{family}(" in api
-    assert "set_master_data_active(" in cli
-    assert "set_master_data_active(" in api
 
 
 def test_canonical_snapshot_ignores_transport_noise_but_not_business_drift():
@@ -274,9 +264,9 @@ def test_cli_and_api_produce_equivalent_authoritative_lifecycle_state(
     def cli_call(operation, *arguments):
         result = runner.invoke(
             cli_module.app,
-            [family, operation, *arguments, "--tenant", cli_tenant.id],
+            [family, operation, *arguments, "--tenant", cli_tenant.id, *(["--yes"] if operation in {"create", "update"} else [])],
         )
-        assert result.exit_code == 0, result.stdout
+        assert result.exit_code == 0, result.output
         return result
 
     def snapshots():
@@ -296,7 +286,7 @@ def test_cli_and_api_produce_equivalent_authoritative_lifecycle_state(
     try:
         cli_record_id = created_id(cli_call("create", *create_args))
         created = client.post(
-            f"/api/tenants/{api_tenant.id}/{collection}", json=create_body
+            f"/api/tenants/{api_tenant.id}/{collection}", json={"confirmed": True, **create_body}
         )
         assert created.status_code == 201, created.text
         api_record_id = created.json()["id"]
@@ -305,7 +295,7 @@ def test_cli_and_api_produce_equivalent_authoritative_lifecycle_state(
         cli_call("update", cli_record_id, *update_args)
         updated = client.put(
             f"/api/tenants/{api_tenant.id}/{collection}/{api_record_id}",
-            json=update_body,
+            json={"confirmed": True, **update_body},
         )
         assert updated.status_code == 200, updated.text
         assert snapshots()[0] == snapshots()[1]

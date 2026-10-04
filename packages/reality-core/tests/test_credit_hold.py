@@ -21,7 +21,7 @@ from reality.tools.application import approve_and_execute_proposal
 
 
 def _customer(session, business, limit="1000", currency="EUR"):
-    return core.create_party(
+    return reviewed_create_party(
         session,
         business.tenant.id,
         "Credit Kunde GmbH",
@@ -421,7 +421,7 @@ def test_an_assigned_line_of_a_credit_held_order_is_held(session, business):
 
     tenant = business.tenant.id
     party = _customer(session, business, limit="100")
-    helmet = core.create_item(session, tenant, "HELMET-C", "Helmet")
+    helmet = reviewed_create_item(session, tenant, "HELMET-C", "Helmet")
     payload = _shop_order(9902, business.item.sku)
     payload["line_items"].append(
         {"id": 99021, "sku": "HELMET-C?", "quantity": 1, "price": "10.00"}
@@ -1078,3 +1078,6 @@ def test_the_delivery_case_says_which_hold_only_an_owner_releases(session, busin
         ("Credit", True),
         ("Placed", False),
     ]
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

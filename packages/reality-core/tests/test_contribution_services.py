@@ -306,7 +306,7 @@ def test_preview_foreign_customer_link_is_not_disclosed(session, business, cost_
 
     _, _, invoice, _, _, _ = prepared(session, business, cost_owner)
     other = core.create_tenant(session, "Other")
-    foreign = core.create_party(session, other.id, "Private", "customer")
+    foreign = reviewed_create_party(session, other.id, "Private", "customer")
     # The service used to be asked to refuse this; since spec 181 FR-005 the
     # schema refuses it first, because a reference between two company-scoped
     # tables carries the company and cannot name another company's party.
@@ -320,3 +320,6 @@ def test_preview_unreviewed_stock_is_unknown(session, business, cost_owner):
     result = contribution_preview(session, business.tenant.id, billed.id)
     assert result["known_db1"] is None
     assert result["missing_basis"] == ["inventory_scope_not_reviewed"]
+
+
+from intake_review_support import reviewed_create_party

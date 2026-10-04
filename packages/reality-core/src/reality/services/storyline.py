@@ -584,6 +584,7 @@ def _seed(
     """
     from sqlalchemy.orm import Session as OrmSession
 
+    from reality.services.intake import _invoke
     from reality.tools.application import TOOLS, _json_value
 
     tenant_id = run.tenant_id
@@ -602,9 +603,7 @@ def _seed(
     )
     try:
         with storyline_seed_scope(inner, run.id, user_id):
-            company = create_party(
-                inner, tenant_id, tenant_name, "company", _commit=False
-            )
+            company = _invoke('create_party', create_party, inner, tenant_id, name=tenant_name, party_type='company', _commit=False)
             for name, term in seed.terms.items():
                 create_payment_term(
                     inner,
@@ -622,29 +621,12 @@ def _seed(
                 if party.payment_term:
                     term_name = party.payment_term.removeprefix("$ref.terms.")
                     term_code = refs["terms"].get(term_name, "")
-                refs["parties"][name] = create_party(
-                    inner,
-                    tenant_id,
-                    party.name,
-                    party.role,
-                    payment_term_code=term_code,
-                    _commit=False,
-                ).id
+                refs["parties"][name] = _invoke('create_party', create_party, inner, tenant_id, name=party.name, party_type=party.role, payment_term_code=term_code, _commit=False).id
             for name, location in seed.locations.items():
-                refs["locations"][name] = create_location(
-                    inner, tenant_id, location.name, _commit=False
-                ).id
+                refs["locations"][name] = _invoke('create_location', create_location, inner, tenant_id, name=location.name, _commit=False).id
             default_location = next(iter(refs["locations"].values()), None)
             for name, item in seed.items.items():
-                refs["items"][name] = create_item(
-                    inner,
-                    tenant_id,
-                    item.sku,
-                    item.name,
-                    item.unit,
-                    default_location_id=default_location,
-                    _commit=False,
-                ).id
+                refs["items"][name] = _invoke('create_item', create_item, inner, tenant_id, sku=item.sku, name=item.name, unit=item.unit, default_location_id=default_location, _commit=False).id
             company_party_id = company.id
             inner.flush()
         context = ResolutionContext(

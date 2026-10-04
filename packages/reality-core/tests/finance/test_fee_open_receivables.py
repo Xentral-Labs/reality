@@ -151,7 +151,7 @@ def test_fee_has_no_inherited_aging_discount_or_dunning(session, business, kind)
         discount_percent="2",
         discount_days=10,
     )
-    core.update_party(
+    reviewed_update_party(
         session,
         tenant,
         business.customer.id,
@@ -399,3 +399,6 @@ def test_fee_http_and_mcp_use_same_confirmed_payment_contract(session, business,
             assert core.open_invoice_amount(session, tenant, fee.id) == 0
     finally:
         app.dependency_overrides.clear()
+
+
+from intake_review_support import reviewed_update_party

@@ -8,7 +8,6 @@ from reality.services.core import (
     InvalidOperation,
     archive_tenant,
     create_document,
-    create_party,
     create_tenant,
     permanently_delete_tenant,
     restore_tenant,
@@ -43,9 +42,9 @@ def test_last_active_tenant_cannot_be_archived(session):
 def test_usage_projection_distinguishes_empty_configured_and_in_use(session):
     empty = create_tenant(session, "Empty")
     configured = create_tenant(session, "Configured")
-    create_party(session, configured.id, "Configured Company", "company")
+    reviewed_create_party(session, configured.id, "Configured Company", "company")
     active = create_tenant(session, "In Use")
-    party = create_party(session, active.id, "Customer", "customer")
+    party = reviewed_create_party(session, active.id, "Customer", "customer")
     create_document(session, active.id, "sales_order", "SO-1", party.id, "10")
 
     result = tenant_usage_summaries(session)
@@ -60,7 +59,7 @@ def test_usage_projection_distinguishes_empty_configured_and_in_use(session):
 def test_permanent_deletion_requires_archival_and_two_exact_confirmations(session):
     active = create_tenant(session, "Active Company")
     doomed = create_tenant(session, "Delete Me GmbH")
-    create_party(session, doomed.id, "Customer", "customer")
+    reviewed_create_party(session, doomed.id, "Customer", "customer")
 
     with pytest.raises(InvalidOperation, match="Archive"):
         permanently_delete_tenant(
@@ -221,3 +220,6 @@ def test_the_usage_summary_agrees_with_the_tables_it_summarises(session, busines
     # The company-by-company call and the whole-instance call ask differently and
     # must answer the same.
     assert tenant_usage_summaries(session)[tenant] == summary
+
+
+from intake_review_support import reviewed_create_party

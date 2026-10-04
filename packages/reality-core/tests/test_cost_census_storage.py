@@ -573,7 +573,7 @@ def test_a_line_cannot_name_another_company_s_header_at_all(
     factory, tenant, _cutoff, _, _, _, _, _, line, *_ = data
     with factory() as session:
         other = core.create_tenant(session, "Other").id
-        party = core.create_party(session, other, "Other customer", "customer")
+        party = reviewed_create_party(session, other, "Other customer", "customer")
         document = core.create_document(
             session, other, "sales_invoice", "PRIVATE", party.id, "0"
         )
@@ -590,3 +590,6 @@ def test_a_line_cannot_name_another_company_s_header_at_all(
             )
             session.flush()
         session.commit()
+
+
+from intake_review_support import reviewed_create_party

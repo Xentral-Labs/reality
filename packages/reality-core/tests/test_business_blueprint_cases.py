@@ -26,7 +26,7 @@ def test_case_dimensions_and_decimal_equivalence(session,business,monkeypatch):
 def test_other_company_record_is_not_read(session,business,monkeypatch):
     monkeypatch.setattr(service,"explain",lambda *a,**k:blueprint())
     other=core.create_tenant(session,"Other blueprint company")
-    party=core.create_party(session,other.id,"Other customer","customer")
+    party=reviewed_create_party(session,other.id,"Other customer","customer")
     with pytest.raises(core.NotFound):
         service.compare(session,business.tenant.id,{"kind":"tool","key":"credit_exposure","record":{"kind":"party","id":party.id}})
     from reality.mcp.catalog import MCP_TOOL_CATALOG
@@ -57,3 +57,6 @@ def test_authorized_current_read_creates_no_business_authority(session,business,
     assert result['historical_rule_version']=='unknown'
     assert any(f['name']=='credit_limit' for f in result['case_facts'])
     assert counts()==before
+
+
+from intake_review_support import reviewed_create_party

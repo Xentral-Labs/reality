@@ -16,7 +16,6 @@ from reality.services.core import (
     preview_movement_correction,
     record_movement,
     stock_at,
-    update_item,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -224,10 +223,10 @@ def test_canonical_chat_proposal_has_common_review(session, business):
 
 
 def test_serial_replacement_validates_after_inverse_without_writes(session, business):
-    from reality.services.core import create_item, create_serial_unit
+    from reality.services.core import create_serial_unit
 
     tid = business.tenant.id
-    item = create_item(
+    item = reviewed_create_item(
         session, tid, "SERIAL-CORRECT", "Serialized", tracking_type="serial"
     )
     serial = create_serial_unit(session, tid, item.id, "ONE")
@@ -276,10 +275,10 @@ def test_serial_replacement_validates_after_inverse_without_writes(session, busi
 
 
 def test_tracked_inverse_cannot_use_another_lots_stock(session, business):
-    from reality.services.core import create_item, create_lot
+    from reality.services.core import create_lot
 
     tid = business.tenant.id
-    item = create_item(session, tid, "LOT-CORRECT", "Tracked", tracking_type="lot")
+    item = reviewed_create_item(session, tid, "LOT-CORRECT", "Tracked", tracking_type="lot")
     lot = create_lot(session, tid, item.id, "A")
     other = create_lot(session, tid, item.id, "B")
     original = record_movement(
@@ -497,8 +496,11 @@ def test_review_refreshes_cached_master_references(session, business):
     with Session(
         bind=session.connection(), join_transaction_mode="create_savepoint"
     ) as other:
-        update_item(other, tid, item_id, sku, name + " renamed", unit)
+        reviewed_update_item(other, tid, item_id, sku, name + " renamed", unit)
     assert item.name == name  # The confirmation session still holds the old instance.
     with pytest.raises(InvalidOperation, match="review"):
         confirm(session, tid, proposal)
     assert stock_at(session, tid, item_id, business.location.id) == 10
+
+
+from intake_review_support import reviewed_create_item, reviewed_update_item

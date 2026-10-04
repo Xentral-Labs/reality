@@ -3,11 +3,7 @@ import pytest
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    create_item,
-    create_location,
-    create_party,
     create_tenant,
-    update_item,
 )
 from reality.services.reference_workspace import (
     prepare_reference,
@@ -49,9 +45,10 @@ def test_reference_create_replay_and_confirmation_are_one_effect(
             {**record, "name": "Different"},
             request_id="new-reference",
         )
-    result = approve_and_execute_proposal(session, tid, proposal.id)
+    result = approve_and_execute_proposal(session, tid, proposal.id, confirmed=True)
     assert (
-        approve_and_execute_proposal(session, tid, proposal.id).output == result.output
+        approve_and_execute_proposal(session, tid, proposal.id, confirmed=True).output
+        == result.output
     )
     detail = reference_proposal(session, tid, proposal.id)
     assert detail["status"] == "executed"
@@ -60,8 +57,8 @@ def test_reference_create_replay_and_confirmation_are_one_effect(
 
 def test_edit_preserves_advanced_fields_and_refuses_stale_snapshot(session, business):
     tid = business.tenant.id
-    location = create_location(session, tid, "Default bin")
-    item = create_item(
+    location = reviewed_create_location(session, tid, "Default bin")
+    item = reviewed_create_item(
         session,
         tid,
         "SPECIAL",
@@ -82,7 +79,7 @@ def test_edit_preserves_advanced_fields_and_refuses_stale_snapshot(session, busi
     proposal = prepare_reference(
         session, tid, "item", "update", body, request_id="rename"
     )
-    approve_and_execute_proposal(session, tid, proposal.id)
+    approve_and_execute_proposal(session, tid, proposal.id, confirmed=True)
     session.refresh(item)
     assert item.name == "Renamed lamp"
     assert item.tracking_type == "lot" and item.default_location_id == location.id
@@ -98,15 +95,15 @@ def test_edit_preserves_advanced_fields_and_refuses_stale_snapshot(session, busi
         {**body, "expected_revision": fresh["expected_revision"], "name": "Second"},
         request_id="second",
     )
-    update_item(session, tid, item.id, item.sku, "Concurrent", item.unit)
+    reviewed_update_item(session, tid, item.id, item.sku, "Concurrent", item.unit)
     with pytest.raises(InvalidOperation):
-        approve_and_execute_proposal(session, tid, second.id)
+        approve_and_execute_proposal(session, tid, second.id, confirmed=True)
     assert second.status == "proposed"
 
 
 def test_register_roles_paging_and_foreign_reference(session, business):
     tid = business.tenant.id
-    party = create_party(
+    party = reviewed_create_party(
         session, tid, "Shared name", "customer", roles=["customer", "supplier"]
     )
     for family in ["customer", "supplier"]:
@@ -123,12 +120,12 @@ def test_basic_rename_preserves_roles_commercial_values_and_hierarchy(
 ):
     tid = business.tenant.id
     if family == "location":
-        parent = create_location(session, tid, "Parent warehouse")
-        target = create_location(
+        parent = reviewed_create_location(session, tid, "Parent warehouse")
+        target = reviewed_create_location(
             session, tid, "Child", location_type="bin", parent_location_id=parent.id
         )
     else:
-        target = create_party(
+        target = reviewed_create_party(
             session,
             tid,
             "Partner",
@@ -152,7 +149,7 @@ def test_basic_rename_preserves_roles_commercial_values_and_hierarchy(
         },
         request_id="preservation",
     )
-    approve_and_execute_proposal(session, tid, proposal.id)
+    approve_and_execute_proposal(session, tid, proposal.id, confirmed=True)
     after = reference_detail(session, tid, family, target.id)
     assert after["name"] == "New label"
     assert {
@@ -171,7 +168,7 @@ def test_register_filters_before_count_and_pagination(session, business):
 
     tid = business.tenant.id
     rows = [
-        create_item(session, tid, f"SEARCH-{index}", f"Search {index}")
+        reviewed_create_item(session, tid, f"SEARCH-{index}", f"Search {index}")
         for index in range(3)
     ]
     from reality.db.core import Item
@@ -203,7 +200,7 @@ def test_two_connections_serialize_stale_reference_updates(postgres_database):
     try:
         with factory() as connection:
             tid = create_tenant(connection, "Concurrent references").id
-            item = create_item(connection, tid, "ORIGINAL", "Original")
+            item = reviewed_create_item(connection, tid, "ORIGINAL", "Original")
             snapshot = reference_detail(connection, tid, "item", item.id)
             proposals = [
                 prepare_reference(
@@ -228,7 +225,7 @@ def test_two_connections_serialize_stale_reference_updates(postgres_database):
                 barrier.wait(timeout=5)
                 try:
                     return approve_and_execute_proposal(
-                        connection, tid, identity
+                        connection, tid, identity, confirmed=True
                     ).status
                 except InvalidOperation:
                     return "stale"
@@ -261,7 +258,7 @@ def _confirm(session, tid, family, operation, record, request_id):
     proposal = prepare_reference(
         session, tid, family, operation, record, request_id=request_id
     )
-    approve_and_execute_proposal(session, tid, proposal.id)
+    approve_and_execute_proposal(session, tid, proposal.id, confirmed=True)
     return proposal
 
 
@@ -272,7 +269,7 @@ def test_full_party_edit_changes_commercial_defaults_roles_and_provenance(
 
     tid = business.tenant.id
     create_payment_term(session, tid, "NET30", "Net 30", 30)
-    party = create_party(
+    party = reviewed_create_party(
         session, tid, "Maple", "customer", source_system="shop", external_id="c-1"
     )
     before = reference_detail(session, tid, "customer", party.id)
@@ -344,6 +341,11 @@ def test_register_role_guard_and_invalid_values_leave_no_proposal(session, busin
     from reality.db.core import ChangeProposal
 
     tid = business.tenant.id
+    before = session.scalar(
+        select(func.count())
+        .select_from(ChangeProposal)
+        .where(ChangeProposal.tenant_id == tid)
+    )
     party = business.customer
     detail = reference_detail(session, tid, "customer", party.id)
     base = {"id": party.id, "expected_revision": detail["expected_revision"]}
@@ -388,7 +390,7 @@ def test_register_role_guard_and_invalid_values_leave_no_proposal(session, busin
             .select_from(ChangeProposal)
             .where(ChangeProposal.tenant_id == tid)
         )
-        == 0
+        == before
     )
 
 
@@ -396,7 +398,7 @@ def test_full_item_edit_changes_inventory_behaviour(session, business):
     from decimal import Decimal
 
     tid = business.tenant.id
-    bin_location = create_location(session, tid, "Bin A")
+    bin_location = reviewed_create_location(session, tid, "Bin A")
     item = business.item
     detail = reference_detail(session, tid, "item", item.id)
     _confirm(
@@ -458,7 +460,7 @@ def test_full_item_edit_changes_inventory_behaviour(session, business):
 
 def test_full_location_edit_changes_type_parent_and_stock(session, business):
     tid = business.tenant.id
-    parent = create_location(session, tid, "Main hall")
+    parent = reviewed_create_location(session, tid, "Main hall")
     location = business.location
     detail = reference_detail(session, tid, "location", location.id)
     _confirm(
@@ -596,7 +598,7 @@ def test_business_preview_names_fields_and_preserves_revision(session, business)
 
     tid = business.tenant.id
     create_payment_term(session, tid, "NET209", "Thirty days", due_days=30)
-    party = create_party(
+    party = reviewed_create_party(
         session,
         tid,
         "Preview customer",
@@ -620,10 +622,10 @@ def test_business_preview_names_fields_and_preserves_revision(session, business)
         master_data_update_snapshot(session, tid, "party", party.id)
     )
     assert detail["roles"] == ["customer", "supplier"]
-    item = create_item(
+    item = reviewed_create_item(
         session, tid, "SKU209", "Named item", default_location_id=business.location.id
     )
-    child = create_location(
+    child = reviewed_create_location(
         session,
         tid,
         "Named bin",
@@ -645,3 +647,11 @@ def test_business_preview_names_fields_and_preserves_revision(session, business)
     for family, record in [("customer", party), ("item", item), ("location", child)]:
         with pytest.raises(NotFound):
             reference_detail(session, foreign.id, family, record.id)
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+    reviewed_update_item,
+)

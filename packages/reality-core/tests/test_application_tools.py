@@ -27,8 +27,6 @@ from reality.services.core import (
     NotFound,
     active_reserved,
     create_commitment,
-    create_item,
-    create_location,
     create_payment_term,
     create_tenant,
     record_movement,
@@ -592,8 +590,8 @@ def test_rejection_cannot_rewrite_execution_lifecycle(session, business, status)
 def test_read_tool_excludes_populated_foreign_tenant(session, business):
     commitment_with_stock(session, business)
     other = create_tenant(session, "Tool Boundary Other")
-    other_item = create_item(session, other.id, business.item.sku, business.item.name)
-    other_location = create_location(session, other.id, business.location.name)
+    other_item = reviewed_create_item(session, other.id, business.item.sku, business.item.name)
+    other_location = reviewed_create_location(session, other.id, business.location.name)
     record_movement(
         session,
         other.id,
@@ -912,3 +910,6 @@ def test_the_invoice_reaches_every_surface_the_credit_note_does(session, busines
         "post_supplier_invoice",
         "create_manual_document_with_lines",
     } <= services
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

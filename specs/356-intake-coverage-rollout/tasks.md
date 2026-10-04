@@ -62,3 +62,10 @@ proves the mechanism, not all-path coverage. Do not deploy a migrated adapter wh
 old write-capable workers can still bypass its boundary. Completion remains gated
 by all required checks and honest unresolved-outcome reporting.
 
+
+## Canonical master-data boundary qualification (FR-001–FR-003)
+
+- [ ] T019 Prove direct create/update refusal with arbitrary action tags in enabled/disabled authentication, then enforce exact canonical Party/Item/Location invocation authority.
+- [ ] T020 Prove changed callback arguments, repeat invocation and premature root commit leave no partial source/master records; qualify confirmed ordinary company-partner creation and retained replay.
+- [ ] T021 Route CLI master create/update through retained catalog proposals and explicit confirmation; migrate legitimate test setup to real named Owner decisions and verify transport/lesson parity.
+- [ ] T022 Complete master-family source, annotation/catalog, full regression and committed-head CI evidence without claiming remaining writer families are covered.

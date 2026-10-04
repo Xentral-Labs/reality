@@ -12,7 +12,6 @@ from reality.services.core import (
     correct_manual_document_lines,
     create_commitment,
     create_document,
-    create_item,
     create_manual_document_with_lines,
     create_payment_term,
     create_tenant,
@@ -404,7 +403,7 @@ def test_manual_line_correction_rejects_foreign_item_with_overlapping_sku(
 ):
     document, _ = manual_document(session, business)
     other = create_tenant(session, "Foreign line item tenant")
-    foreign_item = create_item(session, other.id, business.item.sku, "Foreign item")
+    foreign_item = reviewed_create_item(session, other.id, business.item.sku, "Foreign item")
     snapshot = manual_document_line_snapshot(session, business.tenant.id, document.id)
 
     with pytest.raises(NotFound, match="not found"):
@@ -415,3 +414,6 @@ def test_manual_line_correction_rejects_foreign_item_with_overlapping_sku(
             expected_revision=snapshot["revision"],
             lines=[{**snapshot["lines"][0], "item_id": foreign_item.id}],
         )
+
+
+from intake_review_support import reviewed_create_item

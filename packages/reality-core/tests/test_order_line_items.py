@@ -73,7 +73,7 @@ def _findings(session, business):
 
 
 def _helmet(session, business):
-    return core.create_item(session, business.tenant.id, "HELMET-M-01", "Helmet M")
+    return reviewed_create_item(session, business.tenant.id, "HELMET-M-01", "Helmet M")
 
 
 def test_known_lines_are_interpreted_and_the_unknown_one_is_kept(session, business):
@@ -337,7 +337,7 @@ def test_an_inactive_item_cannot_be_assigned_and_the_unit_follows_the_item(
 ):
     _intake(session, business, _payload())
     unknown = _unknown_line(session, business)
-    helmet = core.create_item(
+    helmet = reviewed_create_item(
         session, business.tenant.id, "HELMET-BOX", "Helmet box", unit="box"
     )
     helmet.is_active = False
@@ -355,3 +355,6 @@ def test_an_inactive_item_cannot_be_assigned_and_the_unit_follows_the_item(
         session, business.tenant.id, document_line_id=unknown.id, item_id=helmet.id
     )
     assert record_by_id(session, DocumentLine, unknown.id).unit == "box"
+
+
+from intake_review_support import reviewed_create_item

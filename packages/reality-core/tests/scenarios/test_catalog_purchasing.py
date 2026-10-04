@@ -75,7 +75,7 @@ def test_two_suppliers_purchases_together_protect_one_customer_promise(
     session, business
 ):
     """G14: two suppliers' purchases together protect one customer promise."""
-    second_supplier = core.create_party(
+    second_supplier = reviewed_create_party(
         session, business.tenant.id, "Light Works AG", "supplier"
     )
     _, _, customer = _order(
@@ -575,7 +575,7 @@ def test_a_carrier_freight_invoice_is_attributed_to_the_receipt_cost(
 ):
     """I07: freight billed by a third party adds to the cost of the goods it carried."""
     tenant = business.tenant.id
-    carrier = core.create_party(session, tenant, "Speedy Freight GmbH", "supplier")
+    carrier = reviewed_create_party(session, tenant, "Speedy Freight GmbH", "supplier")
     _, _, purchase = _order(
         session, business, "purchase", "PO-I07", business.supplier.id, "10", "10"
     )
@@ -665,7 +665,7 @@ def test_variants_bought_together_each_hold_and_reserve_their_own_stock(
     """K05: three sizes on one purchase are three items with three stocks."""
     tenant = business.tenant.id
     sizes = [
-        core.create_item(session, tenant, f"JERSEY-{size}", f"Jersey {size}")
+        reviewed_create_item(session, tenant, f"JERSEY-{size}", f"Jersey {size}")
         for size in ("S", "M", "L")
     ]
     _, _, _, purchases = core.create_manual_order(
@@ -1154,7 +1154,7 @@ def test_bought_in_cartons_of_twelve_and_held_in_pieces(session, business):
 
     tenant = business.tenant.id
     item = business.item
-    core.update_item(
+    reviewed_update_item(
         session,
         tenant,
         item.id,
@@ -1302,7 +1302,7 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
     """G02: stock at a location falls to its reorder point; a buyer orders from it."""
     tenant = business.tenant.id
     item = business.item
-    core.update_item(
+    reviewed_update_item(
         session,
         tenant,
         item.id,
@@ -1312,7 +1312,7 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
         purchase_unit="box",
         conversion_factor="12",
     )
-    munich = core.create_location(session, tenant, "Munich Warehouse")
+    munich = reviewed_create_location(session, tenant, "Munich Warehouse")
     for location, quantity in ((business.location, "12"), (munich, "100")):
         core.record_movement(
             session,
@@ -1605,7 +1605,7 @@ def test_an_import_container_lands_in_eur_with_freight_and_duty(
     receipt's landed cost reads in EUR from its invoice rate, freight and duty, and
     the two waiting customer orders are served from the arrival."""
     tenant = business.tenant.id
-    second = core.create_party(session, tenant, "Shenzhen Parts Ltd.", "supplier")
+    second = reviewed_create_party(session, tenant, "Shenzhen Parts Ltd.", "supplier")
     waiting = [
         _sales(session, business, "SO-R06-1", "30", "2026-10-01"),
         _sales(session, business, "SO-R06-2", "20", "2026-10-03"),
@@ -2125,7 +2125,7 @@ def _purchase_by_number(session, business, supplier_id, number, quoted, request_
 def test_two_suppliers_name_one_item_by_their_own_numbers(session, business):
     """O06: each supplier's own number resolves to our item, on order and invoice."""
     tenant = business.tenant.id
-    velo = core.create_party(session, tenant, "Velo Import AG", "supplier")
+    velo = reviewed_create_party(session, tenant, "Velo Import AG", "supplier")
     _state_supplier_number(
         session, business, business.supplier.id, "LF900-12", "Laufrad 28 Lindner"
     )
@@ -2203,3 +2203,11 @@ def test_two_suppliers_name_one_item_by_their_own_numbers(session, business):
             session, business, business.supplier.id, "PO-O06-C", "VI-77", "o06-c"
         )
     assert refused.value.code == "supplier_item_number_unknown"
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+    reviewed_update_item,
+)

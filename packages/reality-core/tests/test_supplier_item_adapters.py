@@ -84,7 +84,7 @@ def test_an_agent_proposes_and_a_person_confirms(session, business):
 
 def test_a_number_changed_after_its_review_is_refused(session, business):
     tenant = business.tenant.id
-    lamp = core.create_item(session, tenant, "LAMP-345A", "Lamp")
+    lamp = reviewed_create_item(session, tenant, "LAMP-345A", "Lamp")
     stale = create_change_proposal(
         session,
         tenant,
@@ -257,3 +257,6 @@ def test_an_agent_orders_by_the_suppliers_number(session, business):
         business.item.id,
         "LF900-12",
     )
+
+
+from intake_review_support import reviewed_create_item

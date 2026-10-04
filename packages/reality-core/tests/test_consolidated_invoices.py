@@ -129,7 +129,7 @@ def test_positions_of_another_party_currency_or_direction_are_refused(
     """FR-001: grouping is one direction, one party and one currency; nothing is written."""
     first = order(session, business)[0]
     if mismatch == "party":
-        other_party = core.create_party(
+        other_party = reviewed_create_party(
             session, business.tenant.id, "Other Customer KG", "customer"
         )
         other = order(session, business, party=other_party)[0]
@@ -456,3 +456,6 @@ def test_a_cancelled_promise_changes_nothing_as_for_a_single_order_invoice(
     assert core._order_line_billing(session, business.tenant.id, single_line.id)[
         "invoiced"
     ] == Decimal(1)
+
+
+from intake_review_support import reviewed_create_party

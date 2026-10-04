@@ -83,7 +83,7 @@ def test_component_cli_proposal_and_history_use_shared_services(
 
     _, factory, tenant, _ = scheduled_database
     with factory() as db:
-        customer = core.create_party(db, tenant, "CLI customer", "customer")
+        customer = reviewed_create_party(db, tenant, "CLI customer", "customer")
         doc, _ = fixture(
             db, SimpleNamespace(tenant=SimpleNamespace(id=tenant), customer=customer)
         )
@@ -125,3 +125,6 @@ def test_component_cli_proposal_and_history_use_shared_services(
     )
     assert result.exit_code == 0, result.output
     assert json.loads(result.output)["items"][0]["reason"] == "CLI classification"
+
+
+from intake_review_support import reviewed_create_party

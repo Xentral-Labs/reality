@@ -176,7 +176,7 @@ def test_an_agent_prepares_a_collection_handover(session, business):
 def test_the_web_reads_schedule_run_and_handovers(session, business, monkeypatch):
     tenant = business.tenant.id
     _schedule(session, tenant)
-    other_customer = core.create_party(session, tenant, "Weber AG", "customer")
+    other_customer = reviewed_create_party(session, tenant, "Weber AG", "customer")
     mine = _overdue(session, business, "INV-T019-WEB")
     _overdue(session, business, "INV-T019-WEB-2", party=other_customer)
     factory = sessionmaker(session.bind, expire_on_commit=False)
@@ -305,3 +305,6 @@ def test_the_cli_help_lists_the_dunning_commands():
         "finance-dunning-collection",
     ):
         assert command in result.output
+
+
+from intake_review_support import reviewed_create_party

@@ -971,6 +971,7 @@ def _party_create(session: Session, tenant_id: str, arguments: dict[str, Any]) -
                 tenant_id,
                 arguments["records"],
                 action_id=arguments.get("_action_id"),
+                _commit=False,
             )
         ]
     }
@@ -1015,6 +1016,7 @@ def _item_create(session: Session, tenant_id: str, arguments: dict[str, Any]) ->
                 tenant_id,
                 arguments["records"],
                 action_id=arguments.get("_action_id"),
+                _commit=False,
             )
         ]
     }
@@ -1039,6 +1041,7 @@ def _location_create(
                 tenant_id,
                 arguments["records"],
                 action_id=arguments.get("_action_id"),
+                _commit=False,
             )
         ]
     }
@@ -1064,6 +1067,7 @@ def _party_update(session: Session, tenant_id: str, arguments: dict[str, Any]) -
             tenant_id,
             arguments["records"],
             action_id=arguments.get("_action_id"),
+            _commit=False,
         ),
     )
 
@@ -1084,6 +1088,7 @@ def _item_update(session: Session, tenant_id: str, arguments: dict[str, Any]) ->
             tenant_id,
             arguments["records"],
             action_id=arguments.get("_action_id"),
+            _commit=False,
         ),
     )
 
@@ -1106,6 +1111,7 @@ def _location_update(
             tenant_id,
             arguments["records"],
             action_id=arguments.get("_action_id"),
+            _commit=False,
         ),
     )
 
@@ -6855,7 +6861,7 @@ def approve_and_execute_proposal(
     if candidate is None:
         raise NotFound(code="proposal_not_found")
     if (
-        candidate.type in {"tool:demo_seed", "tool:normal_month"}
+        candidate.type in {"tool:demo_seed", "tool:normal_month", "tool:party_create", "tool:item_create", "tool:location_create", "tool:party_update", "tool:item_update", "tool:location_update", "tool:company_party_record"}
         and candidate.status != "executed"
         and not confirmed
     ):
@@ -7155,6 +7161,7 @@ def approve_and_execute_proposal(
         "supplier_item_terms_set",
         "supplier_item_terms_remove",
         "company_currency_set",
+        "company_party_record",
         "company_time_zone_set",
         "down_payment_invoice_record",
         "proforma_invoice_record",
@@ -7179,7 +7186,9 @@ def approve_and_execute_proposal(
         from reality.services.analytics.proposals import execute_request
 
         with (
-            _confirmed_application_scope(session, tenant_id, proposal),
+            _confirmed_application_scope(
+                session, tenant_id, proposal, confirmed=confirmed
+            ),
             executing_proposal(tenant_id, proposal.id),
         ):
             result = execute_request(
@@ -7190,7 +7199,9 @@ def approve_and_execute_proposal(
 
         try:
             with (
-                _confirmed_application_scope(session, tenant_id, proposal),
+                _confirmed_application_scope(
+                    session, tenant_id, proposal, confirmed=confirmed
+                ),
                 executing_proposal(tenant_id, proposal.id),
             ):
                 result = execute_change(
@@ -7214,12 +7225,18 @@ def approve_and_execute_proposal(
             session.commit()
             raise
     elif tool_name in MASTER_TOOLS:
-        with (
-            master_tool_execution(session, tenant_id, tool_name, arguments),
-            _confirmed_application_scope(session, tenant_id, proposal),
-            executing_proposal(tenant_id, proposal.id),
-        ):
-            result = tool.handler(session, tenant_id, arguments)
+        try:
+            with (
+                master_tool_execution(session, tenant_id, tool_name, arguments),
+                _confirmed_application_scope(
+                    session, tenant_id, proposal, confirmed=confirmed
+                ),
+                executing_proposal(tenant_id, proposal.id),
+            ):
+                result = tool.handler(session, tenant_id, arguments)
+        except (InvalidOperation, NotFound) as error:
+            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
+            raise
     else:
         try:
             if tool_name in {"intake_mandate_grant", "intake_mandate_revoke"}:
@@ -7229,13 +7246,17 @@ def approve_and_execute_proposal(
                     _mandate_change_scope(
                         session, tenant_id, proposal, confirming_principal, arguments
                     ),
-                    _confirmed_application_scope(session, tenant_id, proposal),
+                    _confirmed_application_scope(
+                        session, tenant_id, proposal, confirmed=confirmed
+                    ),
                     executing_proposal(tenant_id, proposal.id),
                 ):
                     result = tool.handler(session, tenant_id, arguments)
             else:
                 with (
-                    _confirmed_application_scope(session, tenant_id, proposal),
+                    _confirmed_application_scope(
+                        session, tenant_id, proposal, confirmed=confirmed
+                    ),
                     executing_proposal(tenant_id, proposal.id),
                 ):
                     result = tool.handler(session, tenant_id, arguments)

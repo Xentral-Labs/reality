@@ -25,7 +25,7 @@ hooks are configured. Spec-Kit prerequisites are checked per feature.
 ## Coverage summary
 
 - 10 functional and 3 domain requirements; three acceptance stories.
-- 16 ordered implementation tasks, all intentionally unchecked.
+- 22 ordered implementation tasks; completion is recorded only with executed evidence.
 - Every FR/DR has scenario and planned executable proof; spec task IDs resolve.
 - Constitution check passes at design level with no proposed exception.
 - Local document links and dependency references resolve; unresolved template or
@@ -45,3 +45,5 @@ The static writer inventory intentionally includes read/audit candidates and doe
 not prove every dynamically registered or nested writer is covered. Spec 356 owns
 final semantic closure. Automated agent verdict fixtures prove pipeline behavior,
 not independent model quality or live-provider cost.
+
+Master slice: existing confirmation policy and exact canonical invocation proofs are reused; historical fixture construction grants no runtime authority. No schema change or constitutional exception is introduced. Remaining writer-family closure is explicitly pending.

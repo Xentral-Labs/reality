@@ -57,6 +57,7 @@ def _summary(
 
 def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
     """Run the fixed September 2026 story once; reruns return the same derived result."""
+    from reality.services.intake import _invoke
     from reality.services.tenant_policy import _require_fixed_setup
 
     _require_fixed_setup(session, tenant_id, "normal_month")
@@ -74,28 +75,22 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
     if session.scalar(select(Party.id).where(Party.tenant_id == tenant_id).limit(1)):
         raise InvalidOperation("Normal month requires an empty tenant.")
 
-    company = create_party(
-        session, tenant_id, "Acme Bikes GmbH", "company", _commit=False
-    )
-    customer = create_party(
-        session, tenant_id, "Müller GmbH", "customer", _commit=False
-    )
-    create_party(session, tenant_id, "Huber Handel GmbH", "customer", _commit=False)
-    create_party(session, tenant_id, "Velo Store GmbH", "customer", _commit=False)
-    supplier = create_party(
-        session, tenant_id, "Bike Parts GmbH", "supplier", _commit=False
-    )
-    create_party(session, tenant_id, "LightWorks AG", "supplier", _commit=False)
-    warehouse = create_location(session, tenant_id, "Augsburg Warehouse", _commit=False)
-    returns = create_location(session, tenant_id, "Returns Area", _commit=False)
-    item = create_item(session, tenant_id, "BIKE-LIGHT", "Bike Light", _commit=False)
+    company = _invoke('create_party', create_party, session, tenant_id, name='Acme Bikes GmbH', party_type='company', _commit=False)
+    customer = _invoke('create_party', create_party, session, tenant_id, name='Müller GmbH', party_type='customer', _commit=False)
+    _invoke('create_party', create_party, session, tenant_id, name='Huber Handel GmbH', party_type='customer', _commit=False)
+    _invoke('create_party', create_party, session, tenant_id, name='Velo Store GmbH', party_type='customer', _commit=False)
+    supplier = _invoke('create_party', create_party, session, tenant_id, name='Bike Parts GmbH', party_type='supplier', _commit=False)
+    _invoke('create_party', create_party, session, tenant_id, name='LightWorks AG', party_type='supplier', _commit=False)
+    warehouse = _invoke('create_location', create_location, session, tenant_id, name='Augsburg Warehouse', _commit=False)
+    returns = _invoke('create_location', create_location, session, tenant_id, name='Returns Area', _commit=False)
+    item = _invoke('create_item', create_item, session, tenant_id, sku='BIKE-LIGHT', name='Bike Light', _commit=False)
     for sku, name in [
         ("BIKE-BELL", "Bike Bell"),
         ("HELMET-M", "Helmet M"),
         ("HELMET-L", "Helmet L"),
         ("LOCK-01", "Bike Lock"),
     ]:
-        create_item(session, tenant_id, sku, name, _commit=False)
+        _invoke('create_item', create_item, session, tenant_id, sku=sku, name=name, _commit=False)
 
     record_movement(
         session,

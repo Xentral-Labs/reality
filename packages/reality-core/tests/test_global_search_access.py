@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from reality.db.analytics import AnalyticsReport
 from reality.db.core import AppUser, PartyRole, SourceRecord, TenantMembership, now
 from reality.domain.search import RecordTarget, SearchRequest
-from reality.services.core import NotFound, create_document, create_party, create_tenant
+from reality.services.core import NotFound, create_document, create_tenant
 from reality.services.global_search import resolve_search_targets, search_company
 from reality.services.memberships import Principal
 
@@ -15,7 +15,7 @@ def test_joined_aliases_are_tenant_scoped_and_dual_roles_do_not_duplicate(
     session, business
 ):
     other = create_tenant(session, "Other")
-    secret = create_party(session, other.id, "Never disclose", "customer")
+    secret = reviewed_create_party(session, other.id, "Never disclose", "customer")
     document = create_document(
         session,
         business.tenant.id,
@@ -204,3 +204,6 @@ def test_lesson_search_restricts_evidence_and_private_run_ownership(
             Principal("other"),
             SearchRequest(provider="partners", query="anything"),
         )
+
+
+from intake_review_support import reviewed_create_party

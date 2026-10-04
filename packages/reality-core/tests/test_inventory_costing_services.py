@@ -1802,7 +1802,7 @@ def test_retained_unit_and_mcp_scope_after_master_data_change(
         tool.handler(session, business.tenant.id, {"item_id": business.item.id})
         == result
     )
-    core.update_item(
+    reviewed_update_item(
         session,
         business.tenant.id,
         business.item.id,
@@ -1955,7 +1955,7 @@ def test_inventory_cutoff_offsets_are_canonical_and_foreign_review_is_hidden(
     assert result["effective_at"].endswith("+00:00")
     assert inventory_cost(session, business.tenant.id, business.item.id) == result
     other = core.create_tenant(session, "Other reviewed inventory")
-    item = core.create_item(session, other.id, "other", "Other item", "piece")
+    item = reviewed_create_item(session, other.id, "other", "Other item", "piece")
     with pytest.raises(core.NotFound):
         MCP_TOOL_REGISTRY["cost_inventory_get"].handler(
             session, other.id, {"item_id": item.id, "review_id": result["review_id"]}
@@ -1976,3 +1976,6 @@ def test_inventory_cutoff_offsets_are_canonical_and_foreign_review_is_hidden(
             )
         )
         session.flush()
+
+
+from intake_review_support import reviewed_create_item, reviewed_update_item

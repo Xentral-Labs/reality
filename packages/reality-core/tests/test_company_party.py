@@ -119,8 +119,10 @@ def company_input(session, business):
 
 
 def confirm(session, business, proposal):
+    from intake_review_support import explicit_owner
+
     return approve_and_execute_proposal(
-        session, business.tenant.id, proposal.id, confirmed=True
+        session, business.tenant.id, proposal.id, confirming_principal=explicit_owner(session, business.tenant.id), confirmed=True
     )
 
 
@@ -168,12 +170,12 @@ def test_draft_names_the_waiting_proposal(session, business, cost_owner):
 
 
 def test_confirmation_is_refused_once_a_partner_exists(session, business, cost_owner):
-    from reality.services.core import create_party
+    from intake_review_support import create_reviewed_master
 
     stock.prepared(session, business, cost_owner)
     without_company_partner(session, business)
     proposal = company_party.propose_company_party(session, business.tenant.id)
-    create_party(session, business.tenant.id, "Recorded meanwhile", "company")
+    create_reviewed_master(session, business.tenant.id, "party", {"name": "Recorded meanwhile", "type": "company", "roles": ["company"]})
     with pytest.raises(InvalidOperation, match="already exists") as refused:
         confirm(session, business, proposal)
     assert refused.value.code == "company_party_exists"
@@ -183,10 +185,10 @@ def test_confirmation_is_refused_once_a_partner_exists(session, business, cost_o
 
 
 def test_several_partners_keep_the_choice(session, business, cost_owner):
-    from reality.services.core import create_party
+    from intake_review_support import create_reviewed_master
 
     stock.prepared(session, business, cost_owner)
-    create_party(session, business.tenant.id, "Second company", "company")
+    create_reviewed_master(session, business.tenant.id, "party", {"name": "Second company", "type": "company", "roles": ["company"]})
     entry = company_input(session, business)
     assert set(entry) == {"code", "choices"} and len(entry["choices"]) == 2
 

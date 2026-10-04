@@ -9,12 +9,8 @@ from reality.services.core import (
     cancel_commitment,
     create_commitment,
     create_document,
-    create_item,
-    create_location,
-    create_party,
     create_payment_term,
     record_movement,
-    update_location,
 )
 
 
@@ -74,7 +70,7 @@ def test_document_line_correction_adds_no_operational_or_revision_state():
 
 def test_master_data_fields_roles_and_constraints(session, business):
     term = create_payment_term(session, business.tenant.id, "NET_30", "Net 30 days", 30)
-    party = create_party(
+    party = reviewed_create_party(
         session,
         business.tenant.id,
         "Dual Role GmbH",
@@ -89,7 +85,7 @@ def test_master_data_fields_roles_and_constraints(session, business):
     roles = set(
         session.scalars(select(PartyRole.role).where(PartyRole.party_id == party.id))
     )
-    item = create_item(
+    item = reviewed_create_item(
         session,
         business.tenant.id,
         "BOX-1",
@@ -101,7 +97,7 @@ def test_master_data_fields_roles_and_constraints(session, business):
         conversion_factor="20",
         lead_time_days=7,
     )
-    virtual = create_location(
+    virtual = reviewed_create_location(
         session,
         business.tenant.id,
         "Virtual",
@@ -126,14 +122,14 @@ def test_master_data_fields_roles_and_constraints(session, business):
 
 
 def test_location_hierarchy_rejects_cycles(session, business):
-    child = create_location(
+    child = reviewed_create_location(
         session,
         business.tenant.id,
         "Shelf",
         parent_location_id=business.location.id,
     )
     with pytest.raises(InvalidOperation, match="cycle"):
-        update_location(
+        reviewed_update_location(
             session,
             business.tenant.id,
             business.location.id,
@@ -141,3 +137,11 @@ def test_location_hierarchy_rejects_cycles(session, business):
             business.location.type,
             parent_location_id=child.id,
         )
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+    reviewed_update_location,
+)

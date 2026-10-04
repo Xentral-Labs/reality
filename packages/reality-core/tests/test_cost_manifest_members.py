@@ -51,9 +51,9 @@ def seed_members(session):
 
     business = SimpleNamespace(tenant=core.create_tenant(session, "Manifest members"))
     tenant = business.tenant.id
-    business.supplier = core.create_party(session, tenant, "Supplier", "supplier")
-    business.item = core.create_item(session, tenant, "ITEM", "Item")
-    business.location = core.create_location(session, tenant, "Warehouse")
+    business.supplier = reviewed_create_party(session, tenant, "Supplier", "supplier")
+    business.item = reviewed_create_item(session, tenant, "ITEM", "Item")
+    business.location = reviewed_create_location(session, tenant, "Warehouse")
     owner = cost_owner.__wrapped__(session, business)
     movement = receipt(session, business)
     first = execute(
@@ -371,3 +371,10 @@ def assert_database_fk_indexes(connection):
     for fk in inspector.get_foreign_keys(name):
         columns = tuple(fk["constrained_columns"])
         assert any(index[: len(columns)] == columns for index in covered), columns
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

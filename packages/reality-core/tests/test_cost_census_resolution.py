@@ -99,7 +99,7 @@ def test_later_live_events_do_not_change_old_captured_answer(scheduled_database)
     tenant = business.tenant.id
     old = capture(factory, tenant, cutoff)
     with factory() as session:
-        core.create_item(session, tenant, "NEW", "Later item")
+        reviewed_create_item(session, tenant, "NEW", "Later item")
         core.emit_business_event(session, tenant, "test.later", "tenant", tenant, {})
         session.commit()
     new = capture(factory, tenant, cutoff, "later")
@@ -294,3 +294,6 @@ def test_economic_activity_after_cutoff_is_not_invented_as_current(scheduled_dat
         )["contribution"][0]
     assert row["result"] is None and row["basis_result"]["db1"] == "570.0000"
     assert "economic_activity_after_capture_cutoff" in row["gaps"]
+
+
+from intake_review_support import reviewed_create_item

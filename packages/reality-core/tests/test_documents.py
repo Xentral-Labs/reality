@@ -6,7 +6,6 @@ from reality.services.core import (
     InvalidOperation,
     NotFound,
     create_manual_document_with_lines,
-    create_party,
     create_tenant,
 )
 
@@ -190,7 +189,7 @@ def test_invoice_line_reference_is_validated(session, business):
 
     # Another tenant's line is not reachable at all.
     foreign = create_tenant(session, "Foreign billing tenant")
-    stranger = create_party(session, foreign.id, "Stranger GmbH", "customer")
+    stranger = reviewed_create_party(session, foreign.id, "Stranger GmbH", "customer")
     with pytest.raises(NotFound):
         create_manual_document_with_lines(
             session,
@@ -229,3 +228,6 @@ def test_invoice_line_reference_is_validated(session, business):
             direction="purchase",
             number="ER-WRONG-SIDE",
         )
+
+
+from intake_review_support import reviewed_create_party

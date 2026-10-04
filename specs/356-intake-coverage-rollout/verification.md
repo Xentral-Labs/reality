@@ -94,3 +94,28 @@ in its own disposable service container before testing. Deployment configuration
 is unchanged. Both affected migration proofs passed concurrently against the
 local disposable database configured at that capacity (13.60s). Required
 committed-head CI remains the completion gate.
+
+## Canonical master decision slice (qualification in progress)
+
+- Valid direct create/update and unconfirmed REST requests fail without accepted
+  effects in both authentication modes. Changed/repeated canonical callbacks and
+  premature root commits refuse atomically; confirmed company creation is limited
+  to its exact creation receipt.
+- Fixed compact/profile master callbacks are frozen: two valid changed/repeated
+  callbacks failed before enforcement; 40 fixed/setup/playground checks passed
+  afterward.
+- Current confirming token revocation and loss of confirmation permission each
+  produced `DID NOT RAISE` before enforcement. Both now refuse accepted masters;
+  token attribution remains distinct from human attribution.
+- Focused history, migration, isolation, reference and CSV checks: 97 passed,
+  four fixture expectations corrected. A second batch passed 32 checks; remaining
+  expectation/fixture errors were corrected. The final affected batch passed all
+  38 checks, including CLI, MCP, web interaction attribution, token refusal,
+  delivery locking, exchange previews and fixed/canonical master attacks.
+- Real small single/bulk volume setup: six checks passed. Catalog generation and
+  specification policy passed. Full regression and committed-head CI remain
+  required; no result from an earlier source snapshot certifies this slice.
+
+Historical fixture rows explicitly preserve retained creating relationships or
+unknown attribution. Test-only reflected migration inserts grant no runtime
+permission. No unrelated writer family is marked complete by this slice.

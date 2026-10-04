@@ -28,8 +28,8 @@ def test_the_table_comes_and_goes_and_recorded_rows_block_a_rollback(
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration GmbH")
-            item = core.create_item(session, tenant.id, "SKU", "Item")
-            location = core.create_location(session, tenant.id, "3PL")
+            item = reviewed_create_item(session, tenant.id, "SKU", "Item")
+            location = reviewed_create_location(session, tenant.id, "3PL")
             record_external_stock(
                 session,
                 tenant.id,
@@ -45,3 +45,6 @@ def test_the_table_comes_and_goes_and_recorded_rows_block_a_rollback(
         assert TABLE in inspect(engine).get_table_names()
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

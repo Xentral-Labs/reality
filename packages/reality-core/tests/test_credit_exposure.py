@@ -17,7 +17,7 @@ AS_OF = datetime(2026, 9, 30, 12, tzinfo=UTC)
 
 
 def _customer(session, business, limit="1000", name="Limited GmbH"):
-    return core.create_party(
+    return reviewed_create_party(
         session,
         business.tenant.id,
         name,
@@ -282,3 +282,6 @@ def test_the_exposure_is_tenant_scoped(session, business):
 
     with pytest.raises(core.NotFound):
         credit_exposure(session, other.id, party.id, as_of=AS_OF)
+
+
+from intake_review_support import reviewed_create_party

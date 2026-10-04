@@ -8,7 +8,6 @@ from reality.services.core import (
     InvalidOperation,
     create_commitment,
     create_manual_document_with_lines,
-    create_party,
     create_payment_term,
     create_tenant,
     hold_commitment,
@@ -148,7 +147,7 @@ def test_reversed_and_foreign_payment_evidence_does_not_satisfy_prepayment(
     payment_entries = post_customer_payment(session, tenant_id, invoice.id, "100")
     assert fulfillment_readiness(session, tenant_id, commitment.id).ship_ready is True
 
-    other_customer = create_party(session, tenant_id, "Other customer", "customer")
+    other_customer = reviewed_create_party(session, tenant_id, "Other customer", "customer")
     payment_control = next(
         row for row in payment_entries if row.account == "accounts_receivable"
     )
@@ -203,7 +202,7 @@ def test_invoice_line_of_another_partys_order_blocks_without_guessing(
         Document,
         next(row["id"] for row in receipt["records"] if row["family"] == "document"),
     )
-    other_customer = create_party(session, tenant_id, "Other customer", "customer")
+    other_customer = reviewed_create_party(session, tenant_id, "Other customer", "customer")
     other_order, other_lines = create_manual_document_with_lines(
         session,
         tenant_id,
@@ -443,3 +442,6 @@ def test_fulfillment_readiness_refuses_foreign_and_unknown_commitments_equally(
         fulfillment_readiness(session, other.id, "com_unknown")
 
     assert str(foreign.value) == str(unknown.value)
+
+
+from intake_review_support import reviewed_create_party

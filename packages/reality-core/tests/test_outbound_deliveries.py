@@ -27,7 +27,7 @@ ADDRESS = {"name": "Müller GmbH", "street": "Hafenstr. 1", "city": "Hamburg"}
 
 def _setup(session, business, quantity="10", stock="20"):
     tenant = business.tenant.id
-    staging = core.create_location(session, tenant, "Packing zone")
+    staging = reviewed_create_location(session, tenant, "Packing zone")
     core.record_movement(
         session,
         tenant,
@@ -93,7 +93,7 @@ def _dispatch(session, business, detail, **extra):
 def test_a_delivery_states_its_recipient_address_and_slot(session, business):
     tenant = business.tenant.id
     staging, promise = _setup(session, business)
-    store = core.create_party(session, tenant, "Müller Store Bremen", "customer")
+    store = reviewed_create_party(session, tenant, "Müller Store Bremen", "customer")
     slot = {"from": "2026-10-08T08:00:00+00:00", "until": "2026-10-08T10:00:00+00:00"}
 
     delivery = _plan(
@@ -121,7 +121,7 @@ def test_planned_quantities_stay_within_what_is_open(session, business):
         "outbound_delivery_quantity_beyond_open",
         lambda: _plan(session, business, promise, quantity="1"),
     )
-    other = core.create_party(session, tenant, "Other Customer", "customer")
+    other = reviewed_create_party(session, tenant, "Other Customer", "customer")
     _refused(
         "outbound_delivery_promise_other_customer",
         lambda: plan_outbound_delivery(
@@ -390,3 +390,6 @@ def test_another_company_sees_nothing(session, business):
     )
     assert outbound_deliveries(session, tenant)[0]["id"] == delivery.id
     assert Decimal(outbound_deliveries(session, tenant)[0]["lines"][0]["planned"]) == 10
+
+
+from intake_review_support import reviewed_create_location, reviewed_create_party

@@ -8,9 +8,7 @@ from reality.mcp.catalog import dispatch_tool
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    create_item,
     create_tenant,
-    update_item,
 )
 
 
@@ -74,7 +72,7 @@ def test_item_update_proposal_rejects_stale_confirmation(session, business):
         {"records": [_item_record(business.item, name="Proposed Name")]},
         allowed_access=("propose",),
     )
-    update_item(
+    reviewed_update_item(
         session,
         business.tenant.id,
         business.item.id,
@@ -177,7 +175,7 @@ def test_item_update_batch_is_atomic(session, business):
 
 def test_update_proposal_does_not_disclose_foreign_target(session, business):
     other = create_tenant(session, "Other update tenant")
-    foreign = create_item(session, other.id, "SECRET", "Foreign item")
+    foreign = reviewed_create_item(session, other.id, "SECRET", "Foreign item")
 
     with pytest.raises(NotFound):
         dispatch_tool(
@@ -187,3 +185,6 @@ def test_update_proposal_does_not_disclose_foreign_target(session, business):
             {"records": [_item_record(foreign, name="Forbidden")]},
             allowed_access=("propose",),
         )
+
+
+from intake_review_support import reviewed_create_item, reviewed_update_item

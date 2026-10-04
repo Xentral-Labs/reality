@@ -92,7 +92,7 @@ def test_releasing_a_block_makes_it_reservable_again(session, business):
 
 def test_blocked_stock_does_not_move(session, business):
     tenant = business.tenant.id
-    munich = core.create_location(session, tenant, "Munich")
+    munich = reviewed_create_location(session, tenant, "Munich")
     _stock(session, business, "10")
     _block(session, business, "8")
 
@@ -127,7 +127,7 @@ def test_blocked_stock_does_not_move(session, business):
 
 def test_a_blocked_lot_does_not_move_while_another_does(session, business):
     tenant = business.tenant.id
-    item = core.create_item(
+    item = reviewed_create_item(
         session, tenant, "LOT-304R", "Lot item", tracking_type="lot"
     )
     good = core.create_lot(session, tenant, item.id, "R-GOOD")
@@ -244,7 +244,7 @@ def test_a_reorder_point_counts_blocked_stock_as_gone(session, business):
 
 def test_blocked_stock_elsewhere_is_not_offered(session, business):
     tenant = business.tenant.id
-    munich = core.create_location(session, tenant, "Munich")
+    munich = reviewed_create_location(session, tenant, "Munich")
     _stock(session, business, "4", location=munich)
     promise = _promise(session, business, "4")
     assert promise.id in _classes(session, business, "stock_in_another_location")
@@ -255,7 +255,7 @@ def test_blocked_stock_elsewhere_is_not_offered(session, business):
 
 def test_expired_stock_that_is_blocked_is_no_longer_reported(session, business):
     tenant = business.tenant.id
-    item = core.create_item(session, tenant, "LOT-304E", "Milk", tracking_type="lot")
+    item = reviewed_create_item(session, tenant, "LOT-304E", "Milk", tracking_type="lot")
     lot = core.create_lot(session, tenant, item.id, "E-1", expires_at=date(2020, 1, 1))
     _stock(session, business, "6", item=item, lot_id=lot.id)
 
@@ -331,7 +331,7 @@ def test_a_scrap_is_not_undone_by_correcting_it(session, business):
 
 def test_a_lot_block_holds_inside_a_pallet(session, business):
     tenant = business.tenant.id
-    item = core.create_item(
+    item = reviewed_create_item(
         session, tenant, "LOT-304H", "Lot item", tracking_type="lot"
     )
     blocked_lot = core.create_lot(session, tenant, item.id, "H-L")
@@ -421,3 +421,6 @@ def test_every_reader_counts_only_what_is_still_open(session, business):
     assert Decimal(line["physical_quantity"]) == 13
     oversold = _classes(session, business, "item_oversold")[business.item.id]
     assert oversold.causal_values["on_hand_quantity"] == 13
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

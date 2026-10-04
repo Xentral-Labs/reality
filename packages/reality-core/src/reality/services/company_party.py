@@ -34,7 +34,9 @@ def proposal_arguments(
     tenant = core._tenant_record(session, Tenant, tenant_id, tenant_id)
     if not _ordinary(session, tenant):
         raise core.InvalidOperation(code="company_party_business_only")
-    core._require_business_mutation(session, tenant_id, "create_party")
+    from reality.services.tenant_policy import require_core_operation
+
+    require_core_operation(session, tenant_id, "create_party")
     if company_party_ids(session, tenant_id):
         raise core.InvalidOperation(code="company_party_exists")
     return {"name": tenant.name, "roles": ["company"]}
@@ -116,5 +118,6 @@ def record_company_party(
         tenant_id,
         [{"name": arguments["name"], "type": "company", "roles": ["company"]}],
         action_id=action_id,
+        _commit=False,
     )
     return {"records": [{"family": "party", "id": party.id}]}

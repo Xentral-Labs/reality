@@ -82,7 +82,7 @@ def test_the_mcp_schemas_are_strict():
 def test_an_agent_plans_picks_and_dispatches(session, business):
     tenant = business.tenant.id
     promise = _promise(session, business)
-    staging = core.create_location(session, tenant, "Packing zone")
+    staging = reviewed_create_location(session, tenant, "Packing zone")
 
     proposed = MCP_TOOL_REGISTRY["outbound_delivery_plan_propose"].handler(
         session,
@@ -127,7 +127,7 @@ def test_an_agent_plans_picks_and_dispatches(session, business):
 def test_the_web_prepares_confirms_and_reads(session, business, monkeypatch):
     tenant = business.tenant.id
     promise = _promise(session, business)
-    staging = core.create_location(session, tenant, "Packing zone")
+    staging = reviewed_create_location(session, tenant, "Packing zone")
     client = _client(session, monkeypatch)
     prefix = f"/api/tenants/{tenant}"
 
@@ -266,3 +266,6 @@ def test_the_cli_plans_after_asking(session, business, monkeypatch):
         cli_module.app, ["outbound-delivery", "show", row["id"], "--tenant", tenant]
     )
     assert json.loads(shown.output)["lines"][0]["planned"] == "3"
+
+
+from intake_review_support import reviewed_create_location

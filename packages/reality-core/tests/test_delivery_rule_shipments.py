@@ -18,7 +18,7 @@ from reality.tools.application import (
 
 @pytest.fixture
 def lamp(session, business):
-    return core.create_item(session, business.tenant.id, "LAMP-306", "Lamp 306")
+    return reviewed_create_item(session, business.tenant.id, "LAMP-306", "Lamp 306")
 
 
 def _order(session, business, number, lines):
@@ -299,7 +299,7 @@ def test_the_fulfillment_queue_names_the_rule(session, business, lamp):
 
 def test_a_line_split_across_two_warehouses_ships_complete(session, business, lamp):
     tenant = business.tenant.id
-    munich = core.create_location(session, tenant, "Munich 306")
+    munich = reviewed_create_location(session, tenant, "Munich 306")
     _, (bikes,) = _order(session, business, "SO-306-SPLIT", [(business.item, "5")])
     _stock(session, business, business.item, "3")
     core.record_movement(
@@ -371,3 +371,6 @@ def test_a_quantity_that_is_no_number_keeps_its_own_refusal(session, business, l
     # The movement's own quantity check answers, as it does without a rule.
     with pytest.raises(ArithmeticError):
         _dispatch(session, business, "TRK-NAN", [(bikes, business.item, "abc")])
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

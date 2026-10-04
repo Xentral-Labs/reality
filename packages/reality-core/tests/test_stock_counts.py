@@ -20,7 +20,7 @@ from reality.services.stock_counts import (
 
 @pytest.fixture
 def lamp(session, business):
-    return core.create_item(session, business.tenant.id, "LAMP-307", "Lamp 307")
+    return reviewed_create_item(session, business.tenant.id, "LAMP-307", "Lamp 307")
 
 
 def _stock(session, business, item, quantity, at=None, lot=None):
@@ -222,7 +222,7 @@ def test_a_loss_beyond_what_is_there_now_is_refused(session, business):
 
 def test_a_lot_is_counted_by_its_lot(session, business):
     tenant = business.tenant.id
-    item = core.create_item(session, tenant, "LOT-307", "Lot 307", tracking_type="lot")
+    item = reviewed_create_item(session, tenant, "LOT-307", "Lot 307", tracking_type="lot")
     first = core.create_lot(session, tenant, item.id, "L-1")
     second = core.create_lot(session, tenant, item.id, "L-2")
     _stock(session, business, item, "5", lot=first)
@@ -293,7 +293,7 @@ def test_the_review_names_the_reservations_a_loss_leaves_uncovered(session, busi
 
 def test_counts_are_refused_with_their_code(session, business, lamp):
     tenant = business.tenant.id
-    serial = core.create_item(
+    serial = reviewed_create_item(
         session, tenant, "SER-307", "Serial 307", tracking_type="serial"
     )
     future = (datetime.now(UTC) + timedelta(days=1)).isoformat()
@@ -321,7 +321,7 @@ def test_counts_are_refused_with_their_code(session, business, lamp):
         ),
     ):
         _refused(code, lambda lines=lines: _review(session, business, lines))
-    other = core.create_location(session, tenant, "Transit", allows_stock=False)
+    other = reviewed_create_location(session, tenant, "Transit", allows_stock=False)
     _refused(
         "stock_count_location_not_stock",
         lambda: review_stock_count(
@@ -560,3 +560,6 @@ def test_a_loss_into_blocks_with_nothing_reserved_names_no_reservation(
 
     assert preview["lines"][0]["from_blocks"] == "1"
     assert preview["uncovered"] == []
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

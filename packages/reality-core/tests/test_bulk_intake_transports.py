@@ -214,7 +214,7 @@ def test_api_renewal_requires_fresh_review_and_preserves_old_plan(session, busin
 
     _, job, prior = prepare(session, business)
     original_plan = prior.input
-    fresh_location = core.create_location(
+    fresh_location = reviewed_create_location(
         session, business.tenant.id, "New reviewed destination"
     )
     config = json.loads(job.input)
@@ -239,3 +239,6 @@ def test_api_renewal_requires_fresh_review_and_preserves_old_plan(session, busin
     assert prior.input == original_plan
     assert review_intake(session, business.tenant.id, prior.id)["status"] == "stale"
     assert session.scalar(select(Document)) is None
+
+
+from intake_review_support import reviewed_create_location

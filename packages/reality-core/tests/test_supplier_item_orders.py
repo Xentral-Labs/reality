@@ -74,7 +74,7 @@ def test_a_purchase_line_resolves_by_the_suppliers_number(session, business):
 
 def test_two_suppliers_name_the_same_item_by_their_own_numbers(session, business):
     tenant = business.tenant.id
-    other = core.create_party(session, tenant, "Velo Import AG", "supplier")
+    other = reviewed_create_party(session, tenant, "Velo Import AG", "supplier")
     _map(session, business)
     set_supplier_item_number(session, tenant, other.id, business.item.id, "VI-77", "")
 
@@ -103,7 +103,7 @@ def test_two_suppliers_name_the_same_item_by_their_own_numbers(session, business
 
 
 def test_an_unknown_or_conflicting_number_is_refused_in_entry(session, business):
-    lamp = core.create_item(session, business.tenant.id, "LAMP-345", "Lamp 345")
+    lamp = reviewed_create_item(session, business.tenant.id, "LAMP-345", "Lamp 345")
     _map(session, business)
 
     _refused(
@@ -193,7 +193,7 @@ def test_the_stated_number_shows_on_order_invoice_and_match(session, business):
 
 def test_a_changed_mapping_leaves_past_lines_as_stated(session, business):
     tenant = business.tenant.id
-    lamp = core.create_item(session, tenant, "LAMP-345C", "Lamp changed")
+    lamp = reviewed_create_item(session, tenant, "LAMP-345C", "Lamp changed")
     _map(session, business)
     _, _, (line,), _ = _purchase_order(
         session, business, "PO-345-9", [({"supplier_item_number": "LF900-12"}, "1")]
@@ -258,3 +258,6 @@ def test_a_correction_that_does_not_state_the_number_keeps_it(session, business)
     )
     session.refresh(line)
     assert json.loads(line.payload)["supplier_item_number"] == "LF900-12"
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

@@ -48,7 +48,7 @@ def test_stock_matches_canonical_and_warehouse_through_reservation_lifecycle(
         "2026-09-01",
     )
     reservation = core.reserve(session, tenant, promise.id).reservation
-    second = core.create_location(session, tenant, "Second")
+    second = reviewed_create_location(session, tenant, "Second")
     core.record_movement(
         session,
         tenant,
@@ -191,9 +191,9 @@ def test_shortage_template_and_movement_corrections_preserve_observations(
 def test_stock_units_and_cost_do_not_depend_on_item_count(session, business):
     tenant = business.tenant.id
     before = ask(session, tenant, **stock_question())
-    core.create_item(session, tenant, "KG-1", "Bulk", unit="kg")
+    reviewed_create_item(session, tenant, "KG-1", "Bulk", unit="kg")
     for n in range(8):
-        core.create_item(session, tenant, f"EA-{n}", f"Article {n}")
+        reviewed_create_item(session, tenant, f"EA-{n}", f"Article {n}")
     after = ask(session, tenant, **stock_question())
     assert len(after.rows) == len(before.rows) + 9
     assert after.statements == before.statements
@@ -263,3 +263,6 @@ def test_supplier_commitment_bound_keeps_bulk_bind_parameters_bounded(
     with pytest.raises(TraversalRefused) as failure:
         ask(session, business.tenant.id, **stock_question())
     assert failure.value.code == "inventory_limit"
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

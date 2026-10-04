@@ -9,7 +9,6 @@ from reality.services.core import (
     NotFound,
     correct_movement,
     create_commitment,
-    create_item,
     create_lot,
     create_manual_document_with_lines,
     fulfilled_quantity,
@@ -247,9 +246,8 @@ def test_a_credit_note_line_credits_an_order_line(session, business):
 
 
 def returns_area(session, business):
-    from reality.services.core import create_location
 
-    return create_location(session, business.tenant.id, "Returns Area")
+    return reviewed_create_location(session, business.tenant.id, "Returns Area")
 
 
 def came_back(session, business, commitment, quantity, area):
@@ -317,7 +315,7 @@ def test_a_movement_may_resolve_a_return(session, business):
 
 
 def test_a_resolution_is_validated(session, business):
-    from reality.services.core import create_item, create_location, create_tenant
+    from reality.services.core import create_tenant
 
     stocked(session, business)
     area = returns_area(session, business)
@@ -361,7 +359,7 @@ def test_a_resolution_is_validated(session, business):
         )
 
     # Another item never came back in this return.
-    other_item = create_item(session, business.tenant.id, "BIKE-BELL", "Bike Bell")
+    other_item = reviewed_create_item(session, business.tenant.id, "BIKE-BELL", "Bike Bell")
     record_movement(
         session,
         business.tenant.id,
@@ -382,7 +380,7 @@ def test_a_resolution_is_validated(session, business):
         )
 
     # And a movement that does not leave the place the goods came back to.
-    elsewhere = create_location(session, business.tenant.id, "Other Warehouse")
+    elsewhere = reviewed_create_location(session, business.tenant.id, "Other Warehouse")
     record_movement(
         session,
         business.tenant.id,
@@ -440,11 +438,10 @@ def test_a_return_may_be_resolved_in_parts(session, business):
 
 
 def test_return_disposition_reconciles_four_partial_outcomes(session, business):
-    from reality.services.core import create_location
 
     stocked(session, business)
     area = returns_area(session, business)
-    quarantine = create_location(session, business.tenant.id, "Quarantine")
+    quarantine = reviewed_create_location(session, business.tenant.id, "Quarantine")
     commitment = delivery(session, business, 5)
     goods_back = came_back(session, business, commitment, 5, area)
 
@@ -533,7 +530,7 @@ def test_return_disposition_refuses_missing_or_incompatible_relationships(
         return_disposition_summary(session, business.tenant.id, missing_destination.id)
 
     incompatible_tracking = came_back(session, business, commitment, 1, area)
-    tracked_item = create_item(
+    tracked_item = reviewed_create_item(
         session,
         business.tenant.id,
         "OTHER-RETURN-LOT",
@@ -559,7 +556,7 @@ def test_return_disposition_refuses_missing_or_incompatible_relationships(
 def test_return_disposition_inherits_lot_and_only_changes_arrival_location(
     session, business
 ):
-    item = create_item(
+    item = reviewed_create_item(
         session,
         business.tenant.id,
         "RETURN-LOT",
@@ -823,7 +820,6 @@ def test_goods_go_back_to_the_supplier(session, business):
 
 
 def test_a_supplier_return_is_refused_without_its_delivery(session, business):
-    from reality.services.core import create_item
 
     tenant_id = business.tenant.id
     stocked(session, business, 50)
@@ -837,7 +833,7 @@ def test_a_supplier_return_is_refused_without_its_delivery(session, business):
     # A commitment for another item is not this item's delivery. The other item
     # is stocked first, so what refuses this is the commitment rule rather than
     # the physical-stock rule that would otherwise answer first.
-    other = create_item(session, tenant_id, "BIKE-BELL-090", "Bike Bell")
+    other = reviewed_create_item(session, tenant_id, "BIKE-BELL-090", "Bike Bell")
     record_movement(
         session,
         tenant_id,
@@ -967,3 +963,6 @@ def test_supplier_returns_are_tenant_scoped(session, business):
 
     # The positive control: its own tenant records it.
     assert send_back_to_supplier(session, business, commitment, 1) is not None
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

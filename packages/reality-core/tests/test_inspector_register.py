@@ -1,17 +1,17 @@
 import pytest
 from test_http_boundary import client_for
 
-from reality.services.core import InvalidOperation, create_item, create_tenant
+from reality.services.core import InvalidOperation, create_tenant
 from reality.services.inspector_register import inspector_records
 
 
 def test_record_register_pages_searches_and_isolates(session, business):
     for index in range(27):
-        create_item(
+        reviewed_create_item(
             session, business.tenant.id, f"SCAN-{index:02}", f"Scanner {index:02}"
         )
     other = create_tenant(session, "Other company")
-    foreign = create_item(session, other.id, "FOREIGN", "Secret scanner")
+    foreign = reviewed_create_item(session, other.id, "FOREIGN", "Secret scanner")
     page1 = inspector_records(session, business.tenant.id, kind="item", size=25)
     page2 = inspector_records(session, business.tenant.id, kind="item", size=25, page=2)
     assert page1["page"]["total"] == 28
@@ -53,3 +53,6 @@ def test_record_register_http_boundary(session, business, monkeypatch):
     assert client.get(url + "?kind=app_user").status_code == 422
     assert client.get(url + "?size=1000").status_code == 422
     assert client.get(url + "?page=0").status_code == 422
+
+
+from intake_review_support import reviewed_create_item

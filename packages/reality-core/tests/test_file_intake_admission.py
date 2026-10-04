@@ -123,7 +123,7 @@ def test_master_package_refuses_current_conflict_atomically(
         request_id="conflict",
     )
     child = prepared["entries"][0]
-    core.create_item(
+    reviewed_create_item(
         session, business.tenant.id, "FILE-B", "Concurrent existing", "pcs"
     )
     with pytest.raises(core.InvalidOperation):
@@ -439,3 +439,6 @@ def test_foreign_company_cannot_prepare_or_read_item_file(
     ):
         with pytest.raises(core.NotFound):
             operation()
+
+
+from intake_review_support import reviewed_create_item

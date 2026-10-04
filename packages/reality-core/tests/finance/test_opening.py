@@ -424,8 +424,8 @@ def test_opening_import_and_legacy_payment_share_lock_order(postgres_database):
     try:
         with Session(engine, expire_on_commit=False) as session:
             tenant = core.create_tenant(session, "Opening race")
-            customer = core.create_party(session, tenant.id, "Customer", "customer")
-            supplier = core.create_party(session, tenant.id, "Supplier", "supplier")
+            customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
+            supplier = reviewed_create_party(session, tenant.id, "Supplier", "supplier")
             business = SimpleNamespace(
                 tenant=tenant, customer=customer, supplier=supplier
             )
@@ -583,3 +583,6 @@ def test_opening_currencies_stay_separate_and_cannot_be_cross_allocated(
             amount="10",
         )
     assert session.scalar(select(func.count()).select_from(SettlementAllocation)) == 0
+
+
+from intake_review_support import reviewed_create_party

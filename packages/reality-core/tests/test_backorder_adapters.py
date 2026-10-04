@@ -158,10 +158,10 @@ def test_another_company_cannot_serve_or_read(session, business, monkeypatch):
     assert _reserved(session, business, promise) == 0
 
     # Foreign identities inside the company's own request are refused too.
-    foreign_item = core.create_item(session, other.id, "SECRET-305", "Secret lamp")
-    foreign_place = core.create_location(session, other.id, "Secret store")
-    foreign_party = core.create_party(session, other.id, "Secret AG", "customer")
-    foreign_company = core.create_party(session, other.id, "Other GmbH", "company")
+    foreign_item = reviewed_create_item(session, other.id, "SECRET-305", "Secret lamp")
+    foreign_place = reviewed_create_location(session, other.id, "Secret store")
+    foreign_party = reviewed_create_party(session, other.id, "Secret AG", "customer")
+    foreign_company = reviewed_create_party(session, other.id, "Other GmbH", "company")
     foreign_promise = core.create_commitment(
         session,
         other.id,
@@ -240,3 +240,10 @@ def test_the_cli_serves_after_asking(session, business, monkeypatch):
     )
     assert promised.exit_code == 0, promised.output
     assert json.loads(promised.output)["now"]["reserved"] == "2"
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

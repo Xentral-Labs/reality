@@ -23,10 +23,14 @@ def test_competing_connections_charge_one_exact_accepted_receipt(
     with factory() as session:
         business = SimpleNamespace(
             tenant=core.get_tenant(session, tenant_id),
-            company=core.create_party(session, tenant_id, "Quota company", "company"),
-            customer=core.create_party(session, tenant_id, "Quota customer", "customer"),
-            item=core.create_item(session, tenant_id, "QUOTA-ITEM", "Quota item"),
-            location=core.create_location(session, tenant_id, "Quota warehouse"),
+            company=reviewed_create_party(
+                session, tenant_id, "Quota company", "company"
+            ),
+            customer=reviewed_create_party(
+                session, tenant_id, "Quota customer", "customer"
+            ),
+            item=reviewed_create_item(session, tenant_id, "QUOTA-ITEM", "Quota item"),
+            location=reviewed_create_location(session, tenant_id, "Quota warehouse"),
         )
         owner = session.get(AppUser, actor_id)
         mandate_id, token = owner_mandate(session, business, owner, daily_units=1)
@@ -85,3 +89,10 @@ def test_competing_connections_charge_one_exact_accepted_receipt(
                 review for review in evidence if review["proposal_id"] == accepted[0].id
             )
             assert submit_agent_review(session, tenant_id, exact).id == accepted[0].id
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

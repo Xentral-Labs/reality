@@ -20,7 +20,7 @@ from reality.web import app as web_module
 
 
 def _setup(session, business):
-    munich = core.create_location(session, business.tenant.id, "Munich")
+    munich = reviewed_create_location(session, business.tenant.id, "Munich")
     core.record_movement(
         session,
         business.tenant.id,
@@ -145,7 +145,7 @@ def test_the_web_reserves_elsewhere_and_refuses_a_place_without_stock(
     session, business, monkeypatch
 ):
     munich, promise = _setup(session, business)
-    transit = core.create_location(session, business.tenant.id, "In transit")
+    transit = reviewed_create_location(session, business.tenant.id, "In transit")
     transit.allows_stock = False
     session.commit()
     client = _client(session, monkeypatch)
@@ -219,3 +219,6 @@ def test_the_cli_reserves_at_a_named_warehouse(session, business, monkeypatch):
     )
     assert result.exit_code == 0, result.output
     assert _reserved(session, business, promise) == [(munich.id, Decimal("4.0000"))]
+
+
+from intake_review_support import reviewed_create_location

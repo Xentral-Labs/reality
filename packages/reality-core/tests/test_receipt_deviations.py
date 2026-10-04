@@ -185,7 +185,7 @@ def test_beyond_order_is_for_purchase_receipts_only(session, business):
 
 def test_a_wrong_item_names_its_line_and_fulfils_nothing(session, business):
     tenant = business.tenant.id
-    wrong = core.create_item(session, tenant, "BIKE-BELL", "Bike bell")
+    wrong = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike bell")
     _, promise = _purchase(session, business, "PO-338-4", "10")
 
     movement = _receipt(
@@ -216,7 +216,7 @@ def test_a_wrong_item_names_its_line_and_fulfils_nothing(session, business):
 
 def test_wrong_goods_go_back_against_the_same_line(session, business):
     tenant = business.tenant.id
-    wrong = core.create_item(session, tenant, "BIKE-BELL", "Bike bell")
+    wrong = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike bell")
     _, promise = _purchase(session, business, "PO-338-5", "10")
     _receipt(
         session,
@@ -246,7 +246,7 @@ def test_wrong_goods_go_back_against_the_same_line(session, business):
 
 def test_a_wrong_item_must_be_another_item_on_the_right_kind(session, business):
     tenant = business.tenant.id
-    wrong = core.create_item(session, tenant, "BIKE-BELL", "Bike bell")
+    wrong = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike bell")
     _, promise = _purchase(session, business, "PO-338-6", "10")
     _refused(
         "misdelivery_same_item",
@@ -278,7 +278,7 @@ def test_a_wrong_item_must_be_another_item_on_the_right_kind(session, business):
 def test_a_picking_error_is_corrected_into_a_wrong_item(session, business):
     """D05: the customer got another item than the shipment says."""
     tenant = business.tenant.id
-    wrong = core.create_item(session, tenant, "BIKE-BELL", "Bike bell")
+    wrong = reviewed_create_item(session, tenant, "BIKE-BELL", "Bike bell")
     for item in (business.item, wrong):
         _receipt(session, business, None, "5", item_id=item.id)
     _, promise = _sale(session, business, "SO-338-2", "2")
@@ -332,7 +332,7 @@ def test_a_picking_error_is_corrected_into_a_wrong_item(session, business):
 
 def test_an_accepted_substitute_fulfils_the_line(session, business):
     tenant = business.tenant.id
-    successor = core.create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
+    successor = reviewed_create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
     _, promise = _purchase(session, business, "PO-338-7", "10")
     # Positive control: before it is accepted the successor does not match.
     _refused(
@@ -354,7 +354,7 @@ def test_a_substitute_that_arrived_as_a_wrong_item_is_moved_onto_the_line(
     session, business
 ):
     tenant = business.tenant.id
-    successor = core.create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
+    successor = reviewed_create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
     _, promise = _purchase(session, business, "PO-338-8", "10")
     arrived = _receipt(
         session,
@@ -388,9 +388,9 @@ def test_a_substitute_that_arrived_as_a_wrong_item_is_moved_onto_the_line(
 
 def test_a_substitute_is_refused_where_it_cannot_stand(session, business):
     tenant = business.tenant.id
-    boxed = core.create_item(session, tenant, "LIGHT-BOX", "Light box", unit="box")
-    service = core.create_item(session, tenant, "FIT", "Fitting", item_type="service")
-    successor = core.create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
+    boxed = reviewed_create_item(session, tenant, "LIGHT-BOX", "Light box", unit="box")
+    service = reviewed_create_item(session, tenant, "FIT", "Fitting", item_type="service")
+    successor = reviewed_create_item(session, tenant, "BIKE-LIGHT-2", "Bike light v2")
     _, promise = _purchase(session, business, "PO-338-9", "10")
     _, sale = _sale(session, business, "SO-338-3", "1")
     for code, args in (
@@ -517,7 +517,7 @@ def test_advice_and_receiving_into_a_shipment_are_bounded(session, business):
     tenant = business.tenant.id
     _, promise = _purchase(session, business, "PO-338-11", "10")
     _, sale = _sale(session, business, "SO-338-4", "1")
-    other = core.create_party(session, tenant, "Other Parts GmbH", "supplier")
+    other = reviewed_create_party(session, tenant, "Other Parts GmbH", "supplier")
     notice = {
         "direction": "inbound",
         "purpose": "supplier_delivery",
@@ -570,3 +570,6 @@ def test_advice_and_receiving_into_a_shipment_are_bounded(session, business):
             },
         ),
     )
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

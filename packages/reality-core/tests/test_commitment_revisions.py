@@ -14,7 +14,6 @@ from reality.services.core import (
     commitment_quantity,
     commitment_revisions,
     create_commitment,
-    create_item,
     create_lot,
     create_tenant,
     fulfilled_quantity,
@@ -333,7 +332,7 @@ def test_downward_revision_requires_and_applies_explicit_heterogeneous_retention
     session, business
 ):
     tenant_id = business.tenant.id
-    tracked_item = create_item(
+    tracked_item = reviewed_create_item(
         session, tenant_id, "TRACKED-REVISION", "Tracked revision item", tracking_type="lot"
     )
     first_lot = create_lot(session, tenant_id, tracked_item.id, "LOT-A")
@@ -399,3 +398,6 @@ def test_downward_revision_requires_and_applies_explicit_heterogeneous_retention
         (second_lot.id, Decimal(20)),
     }
     assert sum((Decimal(row.quantity) for row in active), Decimal(0)) == Decimal(60)
+
+
+from intake_review_support import reviewed_create_item

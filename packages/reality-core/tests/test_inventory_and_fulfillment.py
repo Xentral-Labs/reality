@@ -9,7 +9,6 @@ from reality.services.core import (
     business_events,
     cancel_commitment,
     create_commitment,
-    create_location,
     fulfilled_quantity,
     inventory_rows,
     open_quantity,
@@ -144,7 +143,7 @@ def test_shipment_consumes_only_the_reservation_at_its_own_location(session, bus
 
     What it leaves reserved here beyond the open quantity is released, not consumed.
     """
-    second = create_location(session, business.tenant.id, "Munich Warehouse")
+    second = reviewed_create_location(session, business.tenant.id, "Munich Warehouse")
     for location, quantity in ((business.location, 12), (second, 8)):
         record_movement(
             session,
@@ -247,7 +246,7 @@ def test_cannot_ship_more_than_stock(session, business):
 def test_transfer_return_and_reasoned_adjustment_reconcile_by_location(
     session, business
 ):
-    returns = create_location(session, business.tenant.id, "Returns Area")
+    returns = reviewed_create_location(session, business.tenant.id, "Returns Area")
     record_movement(
         session,
         business.tenant.id,
@@ -302,3 +301,6 @@ def test_adjustment_requires_reason(session, business):
             1,
             to_location_id=business.location.id,
         )
+
+
+from intake_review_support import reviewed_create_location

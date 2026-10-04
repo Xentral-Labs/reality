@@ -26,7 +26,7 @@ def test_selection_retains_distinct_item_bases(
     tenant = business.tenant.id
     first = build(session, business, cost_owner)
     other = SimpleNamespace(**vars(business))
-    other.item = core.create_item(session, tenant, "SECOND", "Second item")
+    other.item = reviewed_create_item(session, tenant, "SECOND", "Second item")
     second = build(session, other, cost_owner)
     expected = sorted(
         [
@@ -101,7 +101,7 @@ def test_selection_two_queries_without_flush_or_replay(session, business, cost_o
     tenant = business.tenant.id
     first = build(session, business, cost_owner)
     other = SimpleNamespace(**vars(business))
-    other.item = core.create_item(session, tenant, "SECOND", "Second item")
+    other.item = reviewed_create_item(session, tenant, "SECOND", "Second item")
     second = build(session, other, cost_owner)
     pending = Item(
         id=core.uid("itm"), tenant_id=tenant, sku="PENDING", name="Pending", unit="pcs"
@@ -176,3 +176,6 @@ def test_selection_accepts_upper_bound_without_silent_truncation(session, busine
         costing.inventory_cost_snapshots(
             session, business.tenant.id, [f"absent-{index}" for index in range(100)]
         )
+
+
+from intake_review_support import reviewed_create_item

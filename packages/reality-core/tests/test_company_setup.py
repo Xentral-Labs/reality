@@ -102,12 +102,12 @@ def test_failed_seed_rolls_back_all_evidence_and_explicit_retry_reuses_tenant(
     session, scheduled_owner, monkeypatch
 ):
     from reality.db.core import Party, SourceRecord
-    from reality.services import core, demo_profile
+    from reality.services import demo_profile
 
     original = demo_profile.seed_profile
 
     def fail_after_write(db, run, anchor, **kwargs):
-        core.create_party(db, run.tenant_id, "Temporary", "customer", _commit=False)
+        original(db, run, anchor, **kwargs)
         raise RuntimeError("private diagnostic detail")
 
     monkeypatch.setattr(demo_profile, "seed_profile", fail_after_write)

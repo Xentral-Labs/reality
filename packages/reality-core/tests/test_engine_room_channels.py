@@ -23,7 +23,7 @@ from reality.db.interactions import Interaction
 from reality.mcp import server as mcp_module
 from reality.mcp.auth import create_mcp_access_token
 from reality.services import interaction_recorder as interactions
-from reality.services.core import create_item, create_tenant
+from reality.services.core import create_tenant
 from reality.tools.application import create_change_proposal
 from reality.web import api as api_module
 from reality.web import app as web_module
@@ -102,7 +102,7 @@ def web(committed_engine, monkeypatch):
 
     with factory() as db, interactions.use_session_factory(factory):
         tenant = create_tenant(db, f"Engine Room {uid('co')}")
-        create_item(db, tenant.id, "BIKE-LIGHT", "Bike Light")
+        reviewed_create_item(db, tenant.id, "BIKE-LIGHT", "Bike Light")
         db.commit()
         yield Web(db, tenant.id, sign_in)
 
@@ -128,11 +128,12 @@ def test_a_web_write_links_the_events_it_committed(web):
     owner = member(web.db, web.tenant_id)
     response = web.sign_in(owner).post(
         f"/api/tenants/{web.tenant_id}/items",
-        json={"sku": "SECRET-SKU-4711", "name": "Lamp for Müller"},
+        json={"sku": "SECRET-SKU-4711", "name": "Lamp for Müller", "confirmed": True},
     )
     assert response.status_code == 201, response.text
     [row] = rows(web.db, web.tenant_id)
-    assert (row.operation, row.kind) == ("POST /items", "write")
+    assert (row.operation, row.kind) == ("POST /items", "decide")
+    assert row.proposal_id is not None
     assert row.event_ranges and row.event_first_sequence is not None
     # FR-003: nothing the caller sent reaches the row.
     stored = json.dumps(
@@ -161,7 +162,10 @@ def test_web_approval_is_a_decision_linked_to_its_proposal(web):
 
 
 def test_chat_approval_is_a_decision_linked_to_its_proposal(
-    session, business, scheduled_owner, recording  # noqa: F811
+    session,
+    business,
+    scheduled_owner,
+    recording,  # noqa: F811
 ):
     tenant = business.tenant.id
     proposal = create_change_proposal(
@@ -431,3 +435,6 @@ def test_no_argument_value_reaches_any_row_across_the_read_catalog(web):
             {c.name: getattr(row, c.name) for c in Interaction.__table__.columns}
         )
         assert SENTINEL not in values, row.operation
+
+
+from intake_review_support import reviewed_create_item

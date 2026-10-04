@@ -19,7 +19,7 @@ def test_options_are_scoped_bounded_and_not_cache_readiness(
     tenant = business.tenant.id
     older, _ = fixtures.confirmed(session, business, cost_owner)
     other = SimpleNamespace(**vars(business))
-    other.item = core.create_item(session, tenant, "THIRD", "Third")
+    other.item = reviewed_create_item(session, tenant, "THIRD", "Third")
     newer, _ = fixtures.confirmed(session, other, cost_owner)
 
     def forbidden(*args, **kwargs):
@@ -110,3 +110,6 @@ def test_single_item_confirmation_is_not_offered_as_joint_scope(
         inventory_options.inventory_review_options(
             session, business.tenant.id, cursor=action.id
         )
+
+
+from intake_review_support import reviewed_create_item

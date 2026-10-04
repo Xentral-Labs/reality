@@ -33,7 +33,7 @@ def prepared(session, business, owner, *, second_unit="kg"):
     for index in range(2):
         current = SimpleNamespace(**vars(business))
         if index:
-            current.item = core.create_item(
+            current.item = reviewed_create_item(
                 session,
                 business.tenant.id,
                 "SECOND-SALE",
@@ -253,7 +253,7 @@ def test_joint_stale_revoked_and_foreign_refuse(session, business, cost_owner):
         )
     foreign = core.create_tenant(session, "Other company")
     before = counts(session, tenant)
-    foreign_party = core.create_party(
+    foreign_party = reviewed_create_party(
         session, foreign.id, "Foreign customer", "company"
     )
     _, foreign_lines = core.create_manual_document_with_lines(
@@ -443,3 +443,6 @@ def test_joint_guard_requires_compatible_inventory_and_disjoint_shipments(
         core.InvalidOperation, match="shipment binding|compatible confirmed inventory"
     ):
         contribution_reviews._check_batch(None, "tenant", request)
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_party

@@ -422,7 +422,7 @@ def test_component_concurrent_replay_and_reference_change(scheduled_database):
 
     _, factory, tenant, _ = scheduled_database
     with factory() as db:
-        customer = core.create_party(db, tenant, "Concurrent customer", "customer")
+        customer = reviewed_create_party(db, tenant, "Concurrent customer", "customer")
         doc, ids = fixture(
             db, SimpleNamespace(tenant=SimpleNamespace(id=tenant), customer=customer)
         )
@@ -477,7 +477,7 @@ def test_component_migration_preserves_postings_and_guards_history(
     try:
         with Session(engine) as db:
             tenant = create_legacy_tenant(db, "Component migration").id
-            party = core.create_party(db, tenant, "Customer", "customer")
+            party = historical_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
                 db,
                 tenant,
@@ -524,3 +524,7 @@ def test_component_migration_preserves_postings_and_guards_history(
             command.downgrade(config, "0051_finance_references")
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_party
+from legacy_business_support import historical_party

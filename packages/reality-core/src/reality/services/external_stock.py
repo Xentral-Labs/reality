@@ -573,53 +573,10 @@ def _record_file_rows(
     source: SourceRecord,
     rows: list[dict[str, Any]],
 ) -> list[ExternalStockStatement]:
-    """A file of external stock: each row a statement, the file its source.
+    """Retired direct file writer; require the reviewed intake statement path."""
+    from reality.services.core import InvalidOperation
 
-    Rows name the item by SKU and the location by name, as the stock snapshot
-    file does; a row without a time is stated as of the file's arrival.
-    """
-    from reality.services.file_interpreters import _item as item_by_sku
-    from reality.services.file_interpreters import _location as location_by_name
-    from reality.services.file_interpreters import _party, _value
-
-    arrived = source.received_at or now()
-    checked = []
-    reporters: set[str | None] = set()
-    for row in rows:
-        item = item_by_sku(session, tenant_id, str(_value(row, "sku")).strip())
-        location = location_by_name(
-            session, tenant_id, str(_value(row, "location")).strip()
-        )
-        line = _checked_lines(
-            session,
-            tenant_id,
-            [
-                {
-                    "item_id": item.id,
-                    "location_id": location.id,
-                    "quantity": _value(row, "quantity"),
-                    "stated_at": _value(row, "stated_at", None) or None,
-                }
-            ],
-            arrived,
-        )[0]
-        reporter = (
-            _party(session, tenant_id, row).id
-            if row.get("party_accounting_code") or row.get("party_name")
-            else None
-        )
-        reporters.add(reporter)
-        checked.append((line, reporter))
-    stored = []
-    for reporter in reporters:
-        stored += _store(
-            session,
-            tenant_id,
-            [line for line, by in checked if by == reporter],
-            reporter,
-            source.id,
-        )
-    return stored
+    raise InvalidOperation(code="intake_approval_required")
 
 
 def _record_received_source(

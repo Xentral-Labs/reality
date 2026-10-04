@@ -315,7 +315,7 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
     try:
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration 309")
-            supplier = core.create_party(session, tenant.id, "Supplier", "supplier")
+            supplier = reviewed_create_party(session, tenant.id, "Supplier", "supplier")
             tenant_id, supplier_id = tenant.id, supplier.id
         # Create canonical references with the current service, then restore the
         # actual predecessor before posting the unconverted historical entries.
@@ -384,3 +384,6 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
     finally:
         engine.dispose()
         command.upgrade(config, "head")
+
+
+from intake_review_support import reviewed_create_party

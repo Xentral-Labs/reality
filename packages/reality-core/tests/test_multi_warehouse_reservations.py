@@ -16,7 +16,7 @@ from reality.tools.application import approve_and_execute_proposal
 
 
 def _munich(session, business, name="Munich Warehouse"):
-    return core.create_location(session, business.tenant.id, name)
+    return reviewed_create_location(session, business.tenant.id, name)
 
 
 def _stock(session, business, quantity, location, item=None, **identity):
@@ -151,7 +151,7 @@ def test_a_location_that_cannot_serve_is_refused(session, business):
         assert refused.value.code == "reservation_location_not_stock"
 
     other = core.create_tenant(session, "Other GmbH")
-    foreign = core.create_location(session, other.id, "Foreign warehouse")
+    foreign = reviewed_create_location(session, other.id, "Foreign warehouse")
     with pytest.raises(core.NotFound):
         core.reserve(session, tenant, promise.id, location_id=foreign.id)
     assert _reservations(session, business, promise) == []
@@ -159,7 +159,7 @@ def test_a_location_that_cannot_serve_is_refused(session, business):
 
 def test_a_lot_is_reserved_where_it_lies(session, business):
     tenant = business.tenant.id
-    item = core.create_item(session, tenant, "LOT-303", "Lot item", tracking_type="lot")
+    item = reviewed_create_item(session, tenant, "LOT-303", "Lot item", tracking_type="lot")
     lot = core.create_lot(session, tenant, item.id, "L-303")
     munich = _munich(session, business)
     _stock(session, business, "5", munich, item=item, lot_id=lot.id)
@@ -516,3 +516,6 @@ def test_a_promise_without_a_warehouse_reads_as_before(session, business):
     # The company's stock, as before, and only the reservation is missing.
     assert readiness.physical_quantity == 10
     assert readiness.blocker_codes == ("insufficient_reservation",)
+
+
+from intake_review_support import reviewed_create_item, reviewed_create_location

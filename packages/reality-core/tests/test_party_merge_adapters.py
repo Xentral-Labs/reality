@@ -50,7 +50,7 @@ def test_the_mcp_schemas_are_strict():
 
 def test_an_agent_proposes_and_a_person_confirms(session, business):
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Müller (Gast)", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Müller (Gast)", "customer")
 
     proposed = MCP_TOOL_REGISTRY["party_merge_propose"].handler(
         session,
@@ -77,7 +77,7 @@ def test_an_agent_proposes_and_a_person_confirms(session, business):
 
 def test_the_web_reads_prepares_and_confirms(session, business, monkeypatch):
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Müller GmbH 2", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Müller GmbH 2", "customer")
     client = _client(session, monkeypatch)
     prefix = f"/api/tenants/{tenant}"
 
@@ -118,7 +118,7 @@ def test_the_web_reads_prepares_and_confirms(session, business, monkeypatch):
 
 
 def test_another_company_cannot_read_or_merge(session, business, monkeypatch):
-    duplicate = core.create_party(session, business.tenant.id, "Dublette", "customer")
+    duplicate = reviewed_create_party(session, business.tenant.id, "Dublette", "customer")
     other = core.create_tenant(session, "Other GmbH")
     client = _client(session, monkeypatch)
 
@@ -140,7 +140,7 @@ def test_the_cli_merges_lists_and_declines(session, business, monkeypatch):
     monkeypatch.setattr(cli_module, "Session", factory)
     monkeypatch.setattr(cli_module, "init_db", lambda: None)
     tenant = business.tenant.id
-    duplicate = core.create_party(session, tenant, "Dublette", "customer")
+    duplicate = reviewed_create_party(session, tenant, "Dublette", "customer")
     runner = CliRunner()
     arguments = [
         "party",
@@ -163,3 +163,6 @@ def test_the_cli_merges_lists_and_declines(session, business, monkeypatch):
     shown = runner.invoke(cli_module.app, ["party", "merges", "--tenant", tenant])
     assert shown.exit_code == 0, shown.output
     assert json.loads(shown.output)[0]["duplicate_party_id"] == duplicate.id
+
+
+from intake_review_support import reviewed_create_party

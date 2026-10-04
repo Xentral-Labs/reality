@@ -131,7 +131,7 @@ def test_invalid_is_inert(session, business, bad):
     if bad == "mixed":
         # Spec 283: another order of the same party is a consolidated invoice; another
         # party's order stays refused.
-        other = core.create_party(session, business.tenant.id, "Other KG", "customer")
+        other = reviewed_create_party(session, business.tenant.id, "Other KG", "customer")
         foreign = core.create_manual_order(
             session,
             business.tenant.id,
@@ -292,10 +292,10 @@ def test_overlapping_concurrent_multi_and_single_review(postgres_database):
             tenant = core.create_tenant(session, "Concurrent invoices")
             b = SimpleNamespace(
                 tenant=tenant,
-                company=core.create_party(session, tenant.id, "Company", "company"),
-                customer=core.create_party(session, tenant.id, "Customer", "customer"),
-                item=core.create_item(session, tenant.id, "SKU", "Item"),
-                location=core.create_location(session, tenant.id, "Warehouse"),
+                company=reviewed_create_party(session, tenant.id, "Company", "company"),
+                customer=reviewed_create_party(session, tenant.id, "Customer", "customer"),
+                item=reviewed_create_item(session, tenant.id, "SKU", "Item"),
+                location=reviewed_create_location(session, tenant.id, "Warehouse"),
             )
             lines = order(session, b)
             first = prepare(session, b, intent(lines))
@@ -355,3 +355,10 @@ def test_overlapping_concurrent_multi_and_single_review(postgres_database):
             assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 2
     finally:
         engine.dispose()
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_create_party,
+)

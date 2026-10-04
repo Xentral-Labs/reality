@@ -43,7 +43,7 @@ def _order_with_unknown_item(session, business):
             DocumentLine.sku == "HELMET-M",
         )
     ).one()
-    item = core.create_item(session, business.tenant.id, "HELMET-M-01", "Helmet M")
+    item = reviewed_create_item(session, business.tenant.id, "HELMET-M-01", "Helmet M")
     return line, item
 
 
@@ -177,3 +177,6 @@ def test_the_cli_help_lists_the_assignment_commands():
     result = CliRunner().invoke(cli_module.app, ["--help"])
     for command in ("order-line-item-assign-propose", "order-line-item-assign-confirm"):
         assert command in result.output
+
+
+from intake_review_support import reviewed_create_item

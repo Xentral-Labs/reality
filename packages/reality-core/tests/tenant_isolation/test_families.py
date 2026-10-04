@@ -280,6 +280,11 @@ def test_membership_access_collection_is_scoped_and_non_disclosing(
 ):
     local = two_tenant_graph.local
     foreign = two_tenant_graph.foreign
+    from intake_review_support import explicit_owner
+
+    fixture_owner = session.get(
+        AppUser, explicit_owner(session, local.tenant.id).user_id
+    )
     local_owner = AppUser(
         id=uid("usr"),
         email="isolation-local-owner@example.com",
@@ -345,7 +350,10 @@ def test_membership_access_collection_is_scoped_and_non_disclosing(
     )
 
     summary = access_summary(session, local.tenant.id, Principal(local_owner.id))
-    assert {row["email"] for row in summary["members"]} == {local_owner.email}
+    assert {row["email"] for row in summary["members"]} == {
+        local_owner.email,
+        fixture_owner.email,
+    }
     assert foreign_owner.email not in {row["email"] for row in summary["members"]}
     assert inspect_invitation(session, local_token)["company_name"] == local.tenant.name
     assert (

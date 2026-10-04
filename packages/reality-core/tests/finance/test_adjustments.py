@@ -188,7 +188,7 @@ def test_concurrent_adjustments_serialize_availability(postgres_database):
     try:
         with Session(engine, expire_on_commit=False) as session:
             tenant = core.create_tenant(session, "Concurrent reductions")
-            customer = core.create_party(session, tenant.id, "Customer", "customer")
+            customer = reviewed_create_party(session, tenant.id, "Customer", "customer")
             invoice, _, first = prepare(
                 session, SimpleNamespace(tenant=tenant, customer=customer), "customer"
             )
@@ -234,7 +234,7 @@ def test_additive_reduction_migration_preserves_populated_accounts(
     try:
         with Session(engine, expire_on_commit=False) as session:
             tenant = create_legacy_tenant(session, "Migration claim")
-            party = core.create_party(session, tenant.id, "Customer", "customer")
+            party = historical_party(session, tenant.id, "Customer", "customer")
             invoice = core.create_document(
                 session,
                 tenant.id,
@@ -380,3 +380,7 @@ def test_new_source_version_cannot_repeat_accepted_effect(session, business):
     with pytest.raises(core.Conflict, match="already been accepted"):
         create_change_proposal(session, tenant, "finance.adjustment.accept", arguments)
     assert core.open_invoice_amount(session, tenant, invoice.id) == 10
+
+
+from intake_review_support import reviewed_create_party
+from legacy_business_support import historical_party

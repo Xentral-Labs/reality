@@ -7,8 +7,6 @@ from reality.db.core import BusinessEvent, Item, Party, SourceRecord
 from reality.services.core import (
     InvalidOperation,
     set_master_data_active,
-    update_item,
-    update_party,
 )
 
 
@@ -30,7 +28,7 @@ def test_party_update_event_records_every_effective_normalized_change(
     original_id = party.id
     original_name = party.name
 
-    update_party(
+    reviewed_update_party(
         session,
         business.tenant.id,
         party.id,
@@ -63,7 +61,7 @@ def test_item_noop_emits_no_update_event(session, business):
         .order_by(BusinessEvent.sequence.desc())
     )
 
-    update_item(
+    reviewed_update_item(
         session,
         business.tenant.id,
         item.id,
@@ -99,7 +97,7 @@ def test_failed_update_does_not_persist_state_or_success_event(session, business
     item = business.item
     original_name = item.name
     try:
-        update_item(
+        reviewed_update_item(
             session,
             business.tenant.id,
             item.id,
@@ -122,7 +120,7 @@ def test_sourced_update_versions_changed_payload_and_audits_source_link(
     session, business
 ):
     item = business.item
-    update_item(
+    reviewed_update_item(
         session,
         business.tenant.id,
         item.id,
@@ -134,7 +132,7 @@ def test_sourced_update_versions_changed_payload_and_audits_source_link(
         source_payload={"version": 1},
     )
     first_source_id = item.source_record_id
-    update_item(
+    reviewed_update_item(
         session,
         business.tenant.id,
         item.id,
@@ -154,3 +152,6 @@ def test_sourced_update_versions_changed_payload_and_audits_source_link(
         "before": first_source_id,
         "after": source.id,
     }
+
+
+from intake_review_support import reviewed_update_item, reviewed_update_party

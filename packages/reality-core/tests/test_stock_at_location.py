@@ -9,11 +9,8 @@ from sqlalchemy import event
 from reality.services.core import (
     NotFound,
     create_commitment,
-    create_item,
-    create_location,
     record_movement,
     reserve,
-    update_location,
 )
 from reality.services.operational_previews import operational_preview
 from reality.services.read_contracts import location_inventory_rows
@@ -26,7 +23,7 @@ def places(session, business):
     """Three pieces received in Rotterdam, one transferred on, one reserved here."""
     tenant = business.tenant.id
     rotterdam = business.location
-    singapore = create_location(session, tenant, "Singapore Warehouse")
+    singapore = reviewed_create_location(session, tenant, "Singapore Warehouse")
     item = business.item
     record_movement(session, tenant, "receipt", item.id, 3, to_location_id=rotterdam.id)
     record_movement(
@@ -93,7 +90,7 @@ def test_pair_quantities_equal_the_shared_contract(session, places):
 
 
 def test_pair_holds_only_this_item_at_this_location(session, places):
-    other = create_item(session, places["tenant"], "OTHER-1", "Other item")
+    other = reviewed_create_item(session, places["tenant"], "OTHER-1", "Other item")
     record_movement(
         session,
         places["tenant"],
@@ -198,7 +195,7 @@ def test_a_location_that_stopped_allowing_stock_still_answers_for_its_records(
     session, places
 ):
     """Configuration changes later than records do; the records stay readable."""
-    staging = create_location(session, places["tenant"], "Staging")
+    staging = reviewed_create_location(session, places["tenant"], "Staging")
     record_movement(
         session,
         places["tenant"],
@@ -208,7 +205,7 @@ def test_a_location_that_stopped_allowing_stock_still_answers_for_its_records(
         from_location_id=places["rotterdam"].id,
         to_location_id=staging.id,
     )
-    update_location(
+    reviewed_update_location(
         session,
         places["tenant"],
         staging.id,
@@ -225,7 +222,7 @@ def test_a_location_that_stopped_allowing_stock_still_answers_for_its_records(
 
 
 def test_quantities_stay_at_the_exact_location(session, places):
-    bin_a = create_location(
+    bin_a = reviewed_create_location(
         session,
         places["tenant"],
         "Rotterdam Bin A",
@@ -289,7 +286,7 @@ def test_scoped_stock_reports_the_quantities_of_that_location(session, places):
 
 
 def test_scoped_stock_lists_only_items_with_records_there(session, places):
-    quiet = create_item(session, places["tenant"], "QUIET-1", "Never moved")
+    quiet = reviewed_create_item(session, places["tenant"], "QUIET-1", "Never moved")
     scoped = register(session, places, "stock", location_id=places["rotterdam"].id)
     assert quiet.id not in {row["id"] for row in scoped["items"]}
     assert quiet.id in {
@@ -335,7 +332,7 @@ def test_scoped_movements_match_either_side(session, places):
 
 
 def test_item_and_location_scope_combine(session, places):
-    other = create_item(session, places["tenant"], "OTHER-2", "Other item")
+    other = reviewed_create_item(session, places["tenant"], "OTHER-2", "Other item")
     record_movement(
         session,
         places["tenant"],
@@ -400,7 +397,7 @@ def test_a_scoped_stock_page_keeps_the_unscoped_query_shape(session, places):
 def location_queries(session, places, item_count):
     """Statements one location read issues, with the company grown by item_count."""
     for index in range(item_count):
-        extra = create_item(
+        extra = reviewed_create_item(
             session, places["tenant"], f"EXTRA-{index}", f"Extra {index}"
         )
         record_movement(
@@ -484,3 +481,10 @@ def test_location_stock_counts_what_it_only_counts(session, places):
     shown = {row["label"]: row["value"] for row in payload["metrics"]}
     assert shown["Stocked items"] == 1
     assert shown["Movements"] == 2
+
+
+from intake_review_support import (
+    reviewed_create_item,
+    reviewed_create_location,
+    reviewed_update_location,
+)

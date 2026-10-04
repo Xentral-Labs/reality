@@ -825,7 +825,7 @@ def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
             tenant = core.create_tenant(session, "Migration 322")
             business = SimpleNamespace(
                 tenant=tenant,
-                customer=core.create_party(session, tenant.id, "Kunde", "customer"),
+                customer=reviewed_create_party(session, tenant.id, "Kunde", "customer"),
             )
             _fee_account(session, tenant.id)
             _, entry = _paid_invoice(session, business)
@@ -875,3 +875,6 @@ def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
         assert dict(zip(links, restored)) == stated
     finally:
         engine.dispose()
+
+
+from intake_review_support import reviewed_create_party
