@@ -21577,7 +21577,7 @@
       "key": "email_workflow",
       "label": "Email handoff contract",
       "area": "cross_functional",
-      "summary": "Read this before handling email. Discover capture, file staging, exact send decisions, claim/report permissions and uncertainty reconciliation. Reality never sends mail.",
+      "summary": "Read this before handling email. Discover capture, file staging, exact send decisions, claim/report permissions and uncertainty reconciliation. Reality never sends mail. Discover provider-independent external archiving, explicit uncertain retry risks, party-resolution and current retention limitations.",
       "access": "read",
       "group": "Email",
       "synopsis": "email_workflow",
@@ -21705,7 +21705,11 @@
         "purpose": "Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.",
         "use_when": ["An agent handles correspondence or needs its evidence trail."],
         "do_not_use_when": ["The request requires sending mail or approving a proposal."],
-        "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
+        "limitations": [
+          "Provider acceptance is reported evidence, not verified delivery.",
+          "Direct outbound capture is external evidence without a documented Reality approval.",
+          "Unresolved sends require reconciliation or a new member-reviewed risk acknowledgement; never retry automatically."
+        ],
         "empty_result": "Unknown references are refused rather than inferred.",
         "freshness": "Reads held immutable evidence and current dispatch authorization."
       },
@@ -21728,10 +21732,10 @@
       "key": "email_dispatch_propose",
       "label": "Propose an outgoing email",
       "area": "cross_functional",
-      "summary": "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
+      "summary": "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it. If prior execution is uncertain, retry_acknowledgements must bind every unresolved attempt and current report snapshot with an explicit duplicate-send risk acceptance; only signed-in member/trusted-local review may confirm that exception, never an MCP token or built-in Chat.",
       "access": "propose",
       "group": "Email",
-      "synopsis": "email_dispatch_propose business_references message rationale [supporting_source_ids] [fingerprint]",
+      "synopsis": "email_dispatch_propose business_references [retry_acknowledgements] message rationale [supporting_source_ids] [fingerprint]",
       "parameters": [
         {
           "name": "business_references",
@@ -21766,6 +21770,41 @@
         {
           "name": "business_references[].id",
           "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "retry_acknowledgements",
+          "type": "array",
+          "required": false,
+          "description": "Explicit human-reviewed duplicate-send risk exceptions for currently unresolved same-payload executions. Bind every execution and its exact current report Source IDs; no timeout release.",
+          "depth": 0
+        },
+        {
+          "name": "retry_acknowledgements[].execution_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "retry_acknowledgements[].report_source_ids",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "retry_acknowledgements[].reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 1
+        },
+        {
+          "name": "retry_acknowledgements[].accept_duplicate_send_risk",
+          "type": "boolean",
           "required": true,
           "description": "",
           "depth": 1
@@ -22113,7 +22152,7 @@
       "key": "email_capture",
       "label": "Capture original email evidence",
       "area": "cross_functional",
-      "summary": "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key. business_references is mandatory: resolve existing same-company business objects first, including supplier/other partner roles. Never guess a link from an address or number.",
+      "summary": "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key. business_references is mandatory: resolve existing same-company business objects first, including supplier/other partner roles. A unique recorded exact address may resolve an existing party ID; domain match alone is insufficient. Outbound capture is external_unverified evidence with no retroactive Reality approval, even when external approval evidence is retained. Capture creates no Facts and is not source_ingest_propose.",
       "access": "confirm",
       "group": "Email",
       "synopsis": "email_capture business_references origin retry_key direction message",
@@ -22705,7 +22744,7 @@
       "related_services": [],
       "tools": ["email_dispatch_propose"],
       "synopses": [
-        "email_dispatch_propose business_references message rationale [supporting_source_ids] [fingerprint]"
+        "email_dispatch_propose business_references [retry_acknowledgements] message rationale [supporting_source_ids] [fingerprint]"
       ],
       "events": [],
       "actions": [],
@@ -22770,7 +22809,11 @@
         "purpose": "Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.",
         "use_when": ["An agent handles correspondence or needs its evidence trail."],
         "do_not_use_when": ["The request requires sending mail or approving a proposal."],
-        "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
+        "limitations": [
+          "Provider acceptance is reported evidence, not verified delivery.",
+          "Direct outbound capture is external evidence without a documented Reality approval.",
+          "Unresolved sends require reconciliation or a new member-reviewed risk acknowledgement; never retry automatically."
+        ],
         "empty_result": "Unknown references are refused rather than inferred.",
         "freshness": "Reads held immutable evidence and current dispatch authorization."
       },

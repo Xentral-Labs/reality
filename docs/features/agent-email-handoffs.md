@@ -76,8 +76,9 @@ approval. Provider-added transport headers/Message-ID are retained without being
 mistaken for content edits. Changes to approved content are visible deviations.
 
 Timeout or a crash after provider acceptance means **unknown**, not failed. Keep
-the claim; query the provider and submit a new report key with the reconciliation
-evidence. A claim is never automatically released, even after definitive failure.
+the claim; query the provider where possible and submit a new report key with the reconciliation
+evidence. Where the outcome cannot be established, the separately reviewed risk
+exception described below is required for any further dispatch. A claim is never automatically released, even after definitive failure.
 A further send requires a separately reviewed proposal. Conflicting results or
 receipts remain visible. No exactly-once delivery guarantee is claimed.
 
@@ -161,7 +162,8 @@ service suppliers such as carriers. This feature adds no new partner-role taxono
 `lot`, `shipment`, `shipment_package`, `fact` and `business_event`.
 
 Resolve existing business records first and include every relevant known object.
-An address, name or order number is not identity. If context is unresolved, keep the
+An address, name or order number is not opaque identity. A uniquely recorded
+party address may resolve an existing party ID; domain alignment alone is insufficient. If context is unresolved, keep the
 original message in the agent's intake and resolve it before submitting; capture and
 proposal reject absent, empty, duplicate, unsupported, missing or foreign context
 before writing evidence. Use the same references for a reply unless the reviewed
@@ -212,3 +214,84 @@ the same reader used for proposal execution status. It preserves `person`,
 `mcp_token`, `chat_agent` and `unknown` distinctions and existing name-disclosure
 rules. A token issuer is not asserted to be the acting person. Pending or legacy
 unattributed decisions stay unknown; an executor is never inferred as the approver.
+
+## Provider-independent integration paths
+
+The same API/MCP contract applies to Atlas, a Grok application and other agents.
+The application needs mailbox transport and Reality integration; a model name
+alone provides neither. Choose one of two currently supported outgoing paths:
+
+1. Reality review: propose the exact payload, review/approve the Decision, claim
+   it with the authenticated executor, then report actual message and outcome.
+2. External archive: an application obtains its own approval, sends externally,
+   then calls `email_capture` with `direction=outbound` and all explicit business
+   references. Reality retains immutable evidence and returns
+   `authorization=external_unverified`. Inspector labels it as externally sent
+   with no Reality approval documented. External payload may retain the original
+   approval evidence, but does not become a verified Reality authorization.
+
+A typed, executor-bound dispatch receipt connects actual outgoing evidence to
+a Reality Decision (`authorization=reality_decision`). Never infer this link
+from origin names or caller claims. These labels do not prove recipient delivery.
+Provider-independent verified grant recognition is separately drafted in
+[spec 353](../../specs/353-external-email-approval-grants/spec.md); it is not available.
+
+Capture is a direct permissioned `confirm` mutation, because it archives evidence.
+It does not require a separate `source_ingest_propose` and does not create Facts,
+approve a draft or change business reality. Generic Chat confirmation boundaries
+still apply; individual capture permission never grants send approval.
+
+## Resolving business partners
+
+A recorded exact address may automatically resolve an existing party ID only
+when it uniquely identifies a party within the selected company (for example
+through `party_email_address`/existing partner reads). Do not guess new IDs or
+resolve ambiguity by choosing the first record. Shared mailboxes, multiple
+partners or conflicting evidence need clarification before capture. A domain
+match or domain authentication alone cannot establish the business partner.
+Address matching is record resolution, not authentication of the actual sender.
+Orders, commitments and invoices need independently resolved explicit IDs;
+linking a party does not implicitly link all of its business objects.
+
+## Reviewed retry of an unresolved send
+
+A missing SMTP/provider query is not proof the send failed. Never automatically
+release a claim or turn unknown into failed after a timeout. If definitive
+evidence becomes available, the original authenticated executor reports it.
+
+If no definitive outcome can be established, a signed-in company member may
+review a new exact-message send accepting the possibility of duplicate delivery:
+
+1. Read `email_history` with each prior `execution_id` and retain `retry_snapshot`.
+2. Prepare a new `email_dispatch_propose` with one `retry_acknowledgements` entry
+   per unresolved same-fingerprint execution: its `execution_id`, exact current
+   `report_source_ids`, nonempty reason and `accept_duplicate_send_risk=true`.
+3. Review the full message and all acknowledgements in Decisions. The UI warns
+   that the previous outcome remains uncertain and the new send may duplicate it.
+4. A signed-in member confirms through the existing review path. MCP-token and
+   built-in Chat confirmation cannot approve this risk exception. Existing trusted
+   local integration authority remains supported, without claiming proven human
+   involvement when attribution is unknown.
+5. Claim the new execution. Approval and claim recheck the snapshot under the
+   shared delivery lock. New reports, changed outcomes or another unresolved
+   attempt invalidate it; prepare a new reviewed proposal instead.
+
+The previous outcome, receipts and claim remain immutable and discoverable.
+This is a new risk decision, not a fabricated resolution or reuse of approval.
+Reasons and acknowledgements are retained in the Decision history.
+
+## Retention and deletion boundary
+
+Existing confirmed company-deletion operations apply to company email records
+and existing artifact lifecycle handling. Targeted email/attachment erasure,
+redaction, automatic retention schedules, subject-based deletion, legal holds
+and backup-expiry policy are not implemented by this feature. Deferral of
+correspondence analytics is not a complete privacy design.
+
+The company operator determines lawful intake and retention and initiates the
+existing company-deletion process where appropriate. Agents should keep personal
+or unmatched correspondence outside Reality and must not promise targeted deletion
+that the system cannot perform. A follow-up lifecycle specification must define
+operator authority, attachment sharing, retained Decision evidence, audit/redaction
+semantics, backup/storage cleanup and bounded verified deletion workflows before
+introducing granular retention/deletion features.

@@ -4448,7 +4448,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_workflow",
         "Email handoff contract",
-        "Read this before handling email. Discover capture, file staging, exact send decisions, claim/report permissions and uncertainty reconciliation. Reality never sends mail.",
+        "Read this before handling email. Discover capture, file staging, exact send decisions, claim/report permissions and uncertainty reconciliation. Reality never sends mail. Discover provider-independent external archiving, explicit uncertain retry risks, party-resolution and current retention limitations.",
         "read",
         "Email",
         _object_schema(),
@@ -4466,7 +4466,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_dispatch_propose",
         "Propose an outgoing email",
-        "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
+        "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it. If prior execution is uncertain, retry_acknowledgements must bind every unresolved attempt and current report snapshot with an explicit duplicate-send risk acceptance; only signed-in member/trusted-local review may confirm that exception, never an MCP token or built-in Chat.",
         "propose",
         "Email",
         DispatchProposal.model_json_schema(),
@@ -4493,7 +4493,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_capture",
         "Capture original email evidence",
-        "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key. business_references is mandatory: resolve existing same-company business objects first, including supplier/other partner roles. Never guess a link from an address or number.",
+        "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key. business_references is mandatory: resolve existing same-company business objects first, including supplier/other partner roles. A unique recorded exact address may resolve an existing party ID; domain match alone is insufficient. Outbound capture is external_unverified evidence with no retroactive Reality approval, even when external approval evidence is retained. Capture creates no Facts and is not source_ingest_propose.",
         "confirm",
         "Email",
         CaptureEmail.model_json_schema(),

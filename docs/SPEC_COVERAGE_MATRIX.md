@@ -2476,3 +2476,9 @@ Table `company_time_zone`: the IANA zone a company states; business days derived
 - `packages/reality-core/tests/test_company_time_zone_migration.py`: the table comes and goes, and a stated zone blocks a rollback.
 - `packages/reality-core/tests/scenarios/test_catalog_time.py::test_an_order_at_half_past_eleven_in_new_york_is_dated_that_day` (Q05).
 - `packages/reality-core/tests/test_reporting_graph_coverage.py`: `company_time_zone` is a deferred operational workflow record.
+
+Provider-independent email integration: spec 351 FR-019–021 maps to
+`test_agent_email_business_context.py` evidence labels and uncertain-retry
+actor/tenant/snapshot/competing-claim stories and
+`agent-email-handoffs-browser.mjs` external-evidence/risk-warning navigation.
+Spec 353 is a draft external-grant contract, with no implementation claims.

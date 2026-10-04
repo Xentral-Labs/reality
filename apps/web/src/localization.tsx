@@ -13,6 +13,10 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Externally sent; no Reality approval is documented.":
+      "Extern versendet; keine Freigabe durch Reality dokumentiert.",
+    "A previous send remains uncertain. Sending again may deliver this email twice.":
+      "Ein früherer Versand bleibt unklar. Erneutes Senden kann diese E-Mail doppelt zustellen.",
     "Email decision pending": "E-Mail-Entscheidung ausstehend",
     "Email decision rejected": "E-Mail-Entscheidung abgelehnt",
     "Email decision failed": "E-Mail-Entscheidung fehlgeschlagen",
@@ -2174,6 +2178,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Externally sent; no Reality approval is documented.":
+      "Extern verzonden; er is geen goedkeuring door Reality vastgelegd.",
+    "A previous send remains uncertain. Sending again may deliver this email twice.":
+      "Een eerdere verzending blijft onzeker. Opnieuw verzenden kan deze e-mail tweemaal bezorgen.",
     "Email decision pending": "E-mailbeslissing in behandeling",
     "Email decision rejected": "E-mailbeslissing afgewezen",
     "Email decision failed": "E-mailbeslissing mislukt",
@@ -4030,6 +4038,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Externally sent; no Reality approval is documented.":
+      "Enviado externamente; no hay aprobación de Reality documentada.",
+    "A previous send remains uncertain. Sending again may deliver this email twice.":
+      "Un envío anterior sigue siendo incierto. Enviarlo de nuevo puede entregar este correo dos veces.",
     "Email decision pending": "Decisión del correo pendiente",
     "Email decision rejected": "Decisión del correo rechazada",
     "Email decision failed": "Decisión del correo fallida",

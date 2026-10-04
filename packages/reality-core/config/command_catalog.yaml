@@ -2114,6 +2114,8 @@ capability_guidance:
     - email_dispatch
     limitations:
     - Provider acceptance is reported evidence, not verified delivery.
+    - Direct outbound capture is external evidence without a documented Reality approval.
+    - Unresolved sends require reconciliation or a new member-reviewed risk acknowledgement; never retry automatically.
     freshness: Reads held immutable evidence and current dispatch authorization.
     empty_result: Unknown references are refused rather than inferred.
     confirmation: none

@@ -38,3 +38,10 @@ Each FR/DR maps to the story/test tasks above and the specification traceability
 - [x] T019 Prove shared approval attribution and explicit summary/detail handoffs with tenant-scoped regression tests (FR-017/018).
 - [x] T020 Reuse shared attribution, expose next-read selectors and update workflow/schema/canonical documentation (FR-017/018).
 - T021 Completion gate: regenerate catalogs, verify locally and pass full checks on the final rebased PR head (FR-017/018). The live PR verification section records the current head and the final completion evidence; a pending or failed run is not completion.
+
+## Provider-independent follow-up
+
+- [x] T022 Add evidence-label and explicit uncertain-retry actor/tenant/snapshot/concurrency regression tests (FR-019/020).
+- [x] T023 Implement shared derived authorization labels, immutable risk acknowledgements and locked revalidation; show labels and risk in Inspector/review (FR-019/020).
+- [x] T024 Publish provider-independent integration, linking, capture and retention guidance and draft external-grant spec 353 (FR-021).
+- T025 Completion gate: local verification, generated catalogs and final current-head full-suite checks are recorded in the PR verification section. Pending checks are not completion.

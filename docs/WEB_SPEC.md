@@ -3566,3 +3566,11 @@ Email and decision lists have independent pagination, original-source/file
 navigation and safe plain-text rendering. The panel states its explicit-membership
 scope and has an empty state; source views label historical missing context.
 Correspondence is read when opening the object detail and is not an inferred Fact.
+
+## Provider-independent email evidence and uncertain retries (351)
+
+Inspector correspondence summaries and source details label externally archived
+outgoing mail with no documented Reality approval. Typed dispatch receipts retain
+the distinct Reality Decision trail. Email reviews show risk acknowledgements
+and an explicit duplicate-delivery warning for a new send whose earlier outcome
+is unresolved. The browser never guesses authorization or resolves uncertainty.

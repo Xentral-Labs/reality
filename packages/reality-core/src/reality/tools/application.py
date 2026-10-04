@@ -6699,6 +6699,11 @@ def approve_and_execute_proposal(
     authority_policy = resolve_decision_policy(
         candidate.type.removeprefix("tool:"), json.loads(candidate.input)
     )
+    if "email_retry_review" in authority_policy.checks and (
+        settling_token_id or settling_channel == "chat"
+    ):
+        # Risk exceptions require the observed member/trusted-local review boundary.
+        raise InvalidOperation(code="email_decision_required")
     # reality-rule: application.approve_and_execute_proposal.1
     require_decision_authority(
         session,

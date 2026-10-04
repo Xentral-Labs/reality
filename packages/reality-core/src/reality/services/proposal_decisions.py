@@ -58,6 +58,8 @@ def resolve_decision_policy(
         authority = "account_user"
         checks.append("account_identity")
     if tool == "email_dispatch_authorize":
+        if arguments.get("retry_acknowledgements"):
+            checks.append("email_retry_review")
         authority = "company_member"
         checks.append("reviewed_member")
         exceptions.extend(["delivery_platform_admin", "delivery_trusted_local"])

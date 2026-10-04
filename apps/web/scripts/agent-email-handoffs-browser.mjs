@@ -50,6 +50,14 @@ const proposal = {
     rationale: "Acknowledge the question",
     supporting_source_ids: ["incoming-source"],
     fingerprint: "b".repeat(64),
+    retry_acknowledgements: [
+      {
+        execution_id: "smtp-uncertain",
+        report_source_ids: ["unknown-receipt"],
+        reason: "Person explicitly accepts duplicate delivery",
+        accept_duplicate_send_risk: true,
+      },
+    ],
   },
   preview: {},
   receipt: {},
@@ -120,7 +128,8 @@ await page.route("**/api/**", async (route) => {
                   source_id: "older-source",
                   subject: "Earlier supplier question",
                   sender: "supplier@example.test",
-                  direction: "inbound",
+                  direction: "outbound",
+                  authorization: "external_unverified",
                   received_at: "2026-10-02T10:00:00Z",
                 },
               ],
@@ -139,6 +148,10 @@ await page.route("**/api/**", async (route) => {
     if (url.searchParams.has("source_id"))
       return reply({
         business_references: businessReferences,
+        authorization:
+          url.searchParams.get("source_id") === "older-source"
+            ? "external_unverified"
+            : "inbound_evidence",
         source: {
           id: "incoming-source",
           payload: {
@@ -160,6 +173,7 @@ await page.route("**/api/**", async (route) => {
       });
     return reply({
       business_references: businessReferences,
+      decision: { duplicate_send_risk: true },
       state: {
         proposed: "decision_pending",
         executed: "dispatch_authorized",
@@ -247,11 +261,26 @@ try {
   await correspondence.getByRole("button", { name: "Back to linked correspondence" }).click();
   await correspondence.getByRole("button", { name: "Next", exact: true }).first().click();
   await correspondence.getByRole("button", { name: /Earlier supplier question/ }).waitFor();
+  await correspondence
+    .locator("[data-email-external-authorization]")
+    .getByText("Externally sent; no Reality approval is documented.", { exact: true })
+    .waitFor();
+  await correspondence.getByRole("button", { name: /Earlier supplier question/ }).click();
+  await correspondence
+    .locator("[data-email-external-authorization]")
+    .getByText("Externally sent; no Reality approval is documented.", { exact: true })
+    .waitFor();
+  await correspondence.getByRole("button", { name: "Back to linked correspondence" }).click();
   await correspondence.getByRole("link", { name: "Delivery question", exact: true }).click();
   await page
     .getByRole("dialog")
     .locator("[data-email-outcome]")
     .getByText("Email decision rejected", { exact: true })
+    .waitFor();
+  await page.getByRole("dialog").locator("[data-email-retry-risk]").waitFor();
+  await page
+    .getByRole("dialog")
+    .getByText("Person explicitly accepts duplicate delivery", { exact: true })
     .waitFor();
   assert.deepEqual(errors, []);
   console.log(

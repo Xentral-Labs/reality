@@ -110,7 +110,9 @@ propose exact outgoing payloads in Decisions; claim only approved versions and r
 actual external outcomes. Evidence/claim/report permissions never grant proposal approval.
 Capture and outgoing proposals require explicit existing same-company business
 references, including suppliers and every supported partner/object role. Resolve
-context first; never guess associations from addresses or human numbers. Use
+context first; never invent associations from addresses or human numbers. A unique recorded
+party address may resolve an existing ID; domain alignment alone is insufficient. Use
 `email_history` with a business reference to read object-linked correspondence.
-Never redispatch an uncertain send; reconcile it first. Reality does not own mailbox
+Never automatically redispatch an uncertain send. Reconcile it first or obtain
+a new member-reviewed exact-message risk acknowledgement under FR-020. Reality does not own mailbox
 transport and provider acceptance is not verified recipient delivery.
