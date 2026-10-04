@@ -6,6 +6,7 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  previous_proposal_id: Exact prior pending or rejected source review being explicitly renewed; completed receipts cannot be renewed.
   artifact_id: Opaque identity of the retained original upload within this company.
   config: Explicit artifact, source code, column mapping and default unit to freeze in review.
   content: Original CSV bytes before normalized rows or business interpretation.
@@ -400,7 +401,7 @@ commands:
     effect: Explain applied, replayed, refused and stopped units separately through bounded pagination.
   - name: Prepare source interpretation
     service: prepare_intake
-    related_services: [stage_reviewed_item_csv, capture_reviewed_item_artifact, prepare_reviewed_item_file, prepare_reviewed_item_import, prepare_item_package]
+    related_services: [renew_prepared_intake, stage_reviewed_item_csv, capture_reviewed_item_artifact, prepare_reviewed_item_file, prepare_reviewed_item_import, prepare_item_package]
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
     reads: [source_record, source_stream, import_job, party, item, location]
@@ -6425,7 +6426,7 @@ agent_command_coverage:
   prepare_batch: {classification: eligible, tools: [intake_batch_prepare_propose]}
   review_batch: {classification: eligible, tools: [intake_batch_review]}
   batch_status: {classification: eligible, tools: [intake_batch_status]}
-  prepare_intake: {classification: eligible, tools: [intake_prepare_propose]}
+  prepare_intake: {classification: eligible, tools: [intake_prepare_propose, intake_reprepare_propose]}
   review_intake: {classification: eligible, tools: [intake_review]}
   apply_prepared_intake: {classification: eligible, tools: [proposal_approve_and_execute]}
   enqueue_source: {classification: eligible, tools: [source_ingest_propose, source_record_ingest_propose]}

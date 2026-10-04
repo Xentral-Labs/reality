@@ -693,12 +693,128 @@ def prepare_intake(
 ) -> ChangeProposal:
     """
     BUSINESS PURPOSE:
-    Retain the current source interpretation without accepted business effects.
+    Retain source meaning or a safe preparation-phase refusal without accepted business effects.
 
     BUSINESS RULE intake.prepare_exact:
-    Lock and validate current source identity, retain exact meaning and append its prepared outcome.
+    Lock the owning source/job, isolate preparation, and retain exact meaning or its phase failure.
     """
+    from pydantic import ValidationError
+
     # reality-rule: intake.prepare_exact
+    lock_delivery_state(session, tenant_id)
+    job = core._tenant_record_read(session, ImportJob, tenant_id, job_id)
+    source = core._tenant_record_read(
+        session, SourceRecord, tenant_id, job.source_record_id
+    )
+    current_id = json.loads(job.input).get("intake_proposal_id")
+    if current_id:
+        return core._tenant_record_read(session, ChangeProposal, tenant_id, current_id)
+    try:
+        with session.begin_nested():
+            proposal = _prepare_intake(session, tenant_id, job_id, _commit=False)
+    except (core.RealityError, ValidationError) as error:
+        code = (
+            error.code
+            if isinstance(error, core.RealityError) and error.coded
+            else "intake_review_invalid"
+        )
+        job.status = "failed"
+        job.error = canonical_json({"phase": "prepare", "reason_code": code})
+        job.next_attempt_at = None
+        job.completed_at = None
+        _outcome(
+            session,
+            tenant_id,
+            source,
+            job,
+            "failed",
+            interpreter_name="intake.prepare",
+            reason_code=code,
+            summary="The source could not be prepared; no business effects were accepted.",
+        )
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
+        raise
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
+    return proposal
+
+
+def renew_prepared_intake(
+    session: Session,
+    tenant_id: str,
+    job_id: str,
+    *,
+    previous_proposal_id: str,
+    request_id: str,
+    _commit: bool = True,
+) -> ChangeProposal:
+    """
+    BUSINESS PURPOSE:
+    Prepare a fresh interpretation after explicit renewed review, without changing old accepted intent.
+
+    BUSINESS RULE intake.renew_exact:
+    Bind renewal to the current pending review and request identity; preserve old plans and completed receipts.
+    """
+    # reality-rule: intake.renew_exact
+    lock_delivery_state(session, tenant_id)
+    job = core._tenant_record_read(session, ImportJob, tenant_id, job_id)
+    previous = core._tenant_record_read(
+        session, ChangeProposal, tenant_id, previous_proposal_id
+    )
+    if not isinstance(request_id, str) or not 1 <= len(request_id) <= 128:
+        raise core.InvalidOperation(code="intake_review_invalid")
+    context = json.loads(job.input)
+    renewals = context.get("intake_renewals", {})
+    if request_id in renewals:
+        held = renewals[request_id]
+        if held["previous_proposal_id"] != previous_proposal_id:
+            raise core.InvalidOperation(code="intake_review_stale")
+        return core._tenant_record_read(
+            session, ChangeProposal, tenant_id, held["proposal_id"]
+        )
+    if len(renewals) >= 500:
+        raise core.InvalidOperation(code="intake_package_too_large")
+    if (
+        context.get("intake_proposal_id") != previous.id
+        or previous.type != INTAKE_TYPE
+        or previous.status not in {"proposed", "rejected"}
+        or job.status == "completed"
+    ):
+        raise core.InvalidOperation(code="intake_review_stale")
+    with session.begin_nested():
+        job.input = canonical_json(
+            {
+                key: value
+                for key, value in context.items()
+                if key != "intake_proposal_id"
+            }
+        )
+        proposal = prepare_intake(session, tenant_id, job_id, _commit=False)
+        current_context = json.loads(job.input)
+        current_context["intake_renewals"] = {
+            **renewals,
+            request_id: {
+                "previous_proposal_id": previous.id,
+                "proposal_id": proposal.id,
+            },
+        }
+        job.input = canonical_json(current_context)
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
+    return proposal
+
+
+def _prepare_intake(
+    session: Session, tenant_id: str, job_id: str, *, _commit: bool = True
+) -> ChangeProposal:
+    """Build retained meaning inside the caller-owned preparation savepoint."""
     lock_delivery_state(session, tenant_id)
     finance = lock_finance(session, tenant_id)
     job = core._tenant_record_read(session, ImportJob, tenant_id, job_id)
@@ -765,7 +881,16 @@ def prepare_intake(
         plan = _payment_plan(session, tenant_id, source, job, finance.revision)
     else:
         raise core.InvalidOperation(code="intake_profile_unsupported")
-    plan = _freeze_effect_defaults(plan).model_copy(update={"calendar": calendar})
+    plan = _freeze_effect_defaults(plan).model_copy(
+        update={
+            "calendar": calendar,
+            "mapping": {
+                key: value
+                for key, value in plan.mapping.items()
+                if key not in {"intake_proposal_id", "intake_renewals"}
+            },
+        }
+    )
     retained = {"plan": plan.model_dump(mode="json"), "digest": plan.review_digest()}
     if len(canonical_json(retained).encode("utf-8")) > PACKAGE_BYTES:
         raise core.InvalidOperation(code="intake_package_too_large")
@@ -819,7 +944,14 @@ def review_intake(session: Session, tenant_id: str, proposal_id: str) -> dict[st
     plan = PreparedIntake.model_validate(review["plan"])
     if plan.tenant_id != tenant_id or plan.review_digest() != review["digest"]:
         raise core.InvalidOperation(code="intake_review_invalid")
-    return {**review, "proposal_id": proposal.id, "status": proposal.status}
+    job = core._tenant_record_read(session, ImportJob, tenant_id, plan.import_job_id)
+    current_id = json.loads(job.input).get("intake_proposal_id")
+    status = (
+        "stale"
+        if proposal.status == "proposed" and current_id != proposal.id
+        else proposal.status
+    )
+    return {**review, "proposal_id": proposal.id, "status": status}
 
 
 def _apply_effects(
@@ -1053,15 +1185,106 @@ def apply_prepared_intake(
 ) -> ChangeProposal:
     """
     BUSINESS PURPOSE:
-    Accept only the confirmed unchanged interpretation with its decision and receipt.
+    Accept only confirmed unchanged meaning, retaining atomic results or safe phase refusals.
 
     BUSINESS RULE intake.accept_exact:
-    Recheck current authority and source, mapping and reference state before atomically dispatching canonical effects.
+    Authenticate an exact current decision, isolate application, and retain success or no-effect failure.
     """
+    from reality.services.tenant_policy import require_proposal_decision
+
+    # reality-rule: intake.accept_exact
+    lock_delivery_state(session, tenant_id)
+    lock_finance(session, tenant_id)
+    require_delivery_principal(session, tenant_id, principal)
+    require_proposal_decision(session, tenant_id, proposal_id, "proposal_execute")
+    proposal = core._tenant_record_read(session, ChangeProposal, tenant_id, proposal_id)
+    if proposal.type != INTAKE_TYPE:
+        raise core.NotFound(code="proposal_not_found")
+    review = review_intake(session, tenant_id, proposal_id)
+    plan = PreparedIntake.model_validate(review["plan"])
+    if plan.finance_revision is not None or plan.profile in _FINANCIAL_PROFILES:
+        if principal is not None:
+            require_owner(session, tenant_id, principal)
+        elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
+            raise core.InvalidOperation(code="company_owner_access_required")
+    if not confirmed or digest != review["digest"]:
+        raise core.InvalidOperation(code="review_confirmation_required")
+    if proposal.status == "executed":
+        return proposal
+    if proposal.status != "proposed":
+        raise core.InvalidOperation(code="proposal_no_longer_available")
+    try:
+        with session.begin_nested():
+            result = _apply_prepared_intake(
+                session,
+                tenant_id,
+                proposal_id,
+                digest,
+                confirmed=True,
+                principal=principal,
+                settling_token_id=settling_token_id,
+                settling_channel=settling_channel,
+                _commit=False,
+            )
+    except core.RealityError as error:
+        _retain_apply_failure(session, tenant_id, proposal_id, error)
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
+        raise
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
+    return result
+
+
+def _retain_apply_failure(session, tenant_id, proposal_id, error):
+    """Retain technical phase evidence after the failing business savepoint rolled back."""
+    proposal = core._tenant_record_read(session, ChangeProposal, tenant_id, proposal_id)
+    plan = PreparedIntake.model_validate(json.loads(proposal.input)["plan"])
+    job = core._tenant_record_read(session, ImportJob, tenant_id, plan.import_job_id)
+    source = core._tenant_record_read(
+        session, SourceRecord, tenant_id, plan.source_record_id
+    )
+    if proposal.status == "executed" or job.status == "completed":
+        return
+    code = error.code if error.coded else "intake_review_invalid"
+    job.status = "awaiting_decision"
+    job.completed_at = None
+    job.next_attempt_at = None
+    job.error = canonical_json(
+        {"phase": "apply", "reason_code": code, "proposal_id": proposal.id}
+    )
+    _outcome(
+        session,
+        tenant_id,
+        source,
+        job,
+        "stale" if code == "intake_review_stale" else "failed",
+        interpreter_name="intake.apply",
+        reason_code=code,
+        summary="The reviewed unit was refused without accepted business effects; review remains required.",
+    )
+
+
+def _apply_prepared_intake(
+    session: Session,
+    tenant_id: str,
+    proposal_id: str,
+    digest: str,
+    *,
+    confirmed: bool,
+    principal: Principal | None = None,
+    settling_token_id: str | None = None,
+    settling_channel: str | None = None,
+    _commit: bool = True,
+) -> ChangeProposal:
+    """Execute exact accepted intent within the caller-owned apply savepoint."""
     from reality.services.tenant_policy import require_proposal_decision
     from reality.tools.application import _record_decision
 
-    # reality-rule: intake.accept_exact
     lock_delivery_state(session, tenant_id)
     finance = lock_finance(session, tenant_id)
     require_delivery_principal(session, tenant_id, principal)
@@ -1111,7 +1334,7 @@ def apply_prepared_intake(
         or {
             key: value
             for key, value in json.loads(job.input).items()
-            if key != "intake_proposal_id"
+            if key not in {"intake_proposal_id", "intake_renewals"}
         }
         != plan.mapping
     ):

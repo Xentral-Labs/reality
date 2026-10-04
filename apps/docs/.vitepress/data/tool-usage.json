@@ -2160,6 +2160,47 @@
       "resources": ["source"]
     },
     {
+      "id": "tool:intake_reprepare_propose",
+      "kind": "tool",
+      "key": "intake_reprepare_propose",
+      "label": "Prepare renewed source review",
+      "area": "cross_functional",
+      "summary": "Explicitly prepare fresh meaning for a retained pending source review. Name the prior proposal and a stable renewal request ID; review and confirm the new proposal separately. Completed receipts are never reinterpreted.",
+      "access": "propose",
+      "group": "Sources",
+      "synopsis": "intake_reprepare_propose job_id previous_proposal_id request_id",
+      "parameters": [
+        {
+          "name": "job_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque source import job identity.",
+          "depth": 0
+        },
+        {
+          "name": "previous_proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Exact prior pending or rejected proposal identity.",
+          "depth": 0
+        },
+        {
+          "name": "request_id",
+          "type": "string",
+          "required": true,
+          "description": "Stable renewal request identity reused after response loss.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "prepare_intake",
+      "projections": [],
+      "links": ["command:prepare_intake"],
+      "label_de": "Prepare renewed source review",
+      "resources": ["source"]
+    },
+    {
       "id": "tool:intake_review",
       "kind": "tool",
       "key": "intake_review",
@@ -23213,18 +23254,22 @@
       "writes": ["action", "import_job", "interpretation_outcome"],
       "confirmation": null,
       "related_services": [
+        "renew_prepared_intake",
         "stage_reviewed_item_csv",
         "capture_reviewed_item_artifact",
         "prepare_reviewed_item_file",
         "prepare_reviewed_item_import",
         "prepare_item_package"
       ],
-      "tools": ["intake_prepare_propose"],
-      "synopses": ["intake_prepare_propose job_id"],
+      "tools": ["intake_prepare_propose", "intake_reprepare_propose"],
+      "synopses": [
+        "intake_prepare_propose job_id",
+        "intake_reprepare_propose job_id previous_proposal_id request_id"
+      ],
       "events": [],
       "actions": [],
       "guidance": {},
-      "links": ["tool:intake_prepare_propose"],
+      "links": ["tool:intake_prepare_propose", "tool:intake_reprepare_propose"],
       "label_de": "Quellinterpretation vorbereiten",
       "resources": ["source"]
     },

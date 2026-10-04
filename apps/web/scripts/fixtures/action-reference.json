@@ -46,6 +46,7 @@
       "name": "Prepare source interpretation",
       "service": "prepare_intake",
       "related_services": [
+        "renew_prepared_intake",
         "stage_reviewed_item_csv",
         "capture_reviewed_item_artifact",
         "prepare_reviewed_item_file",

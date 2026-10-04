@@ -71,7 +71,7 @@ angegeben.
 | [`payouts`](#command-payouts)                                                     | List payouts                                 | Bereichsübergreifend    | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
 | [`merge_party`](#command-merge_party)                                             | Merge a duplicate business partner           | Bereichsübergreifend    | `party_merge_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`prepare_batch`](#command-prepare_batch)                                         | Prepare selected intake batch                | Bereichsübergreifend    | `intake_batch_prepare_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
-| [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Bereichsübergreifend    | `intake_prepare_propose`                                                                                                                                                                     | CLI · Web · API · MCP · Chat            |
+| [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Bereichsübergreifend    | `intake_prepare_propose`, `intake_reprepare_propose`                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Bereichsübergreifend    | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Bereichsübergreifend    | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Bereichsübergreifend    | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
@@ -9377,6 +9377,7 @@ records.
 
 ```text
 intake_prepare_propose job_id
+intake_reprepare_propose job_id previous_proposal_id request_id
 ```
 
 **Erreichbar über:** CLI · Web · API · MCP · Chat
@@ -9384,7 +9385,8 @@ intake_prepare_propose job_id
 **Wirkung:** Liest: `source_record`, `source_stream`, `import_job`, `party`, `item`, `location` ·
 Schreibt: `action`, `import_job`, `interpretation_outcome`
 
-**Siehe auch:** Agent Tool [`intake_prepare_propose`](./commands#tool-intake_prepare_propose)
+**Siehe auch:** Agent Tool [`intake_prepare_propose`](./commands#tool-intake_prepare_propose), Agent
+Tool [`intake_reprepare_propose`](./commands#tool-intake_reprepare_propose)
 
 #### `intake_prepare_propose` — Prepare source interpretation {#tool-intake_prepare_propose}
 
@@ -9404,6 +9406,30 @@ intake_prepare_propose job_id
 | Name     | Typ      | Pflicht | Beschreibung                                         | Standard |
 | -------- | -------- | ------- | ---------------------------------------------------- | -------- |
 | `job_id` | `string` | ja      | Opaque identity of the queued source-processing job. | —        |
+
+**Siehe auch:** Command [`prepare_intake`](./commands#command-prepare_intake)
+
+#### `intake_reprepare_propose` — Prepare renewed source review {#tool-intake_reprepare_propose}
+
+Explicitly prepare fresh meaning for a retained pending source review. Name the prior proposal and a
+stable renewal request ID; review and confirm the new proposal separately. Completed receipts are
+never reinterpreted.
+
+**Aufruf**
+
+```text
+intake_reprepare_propose job_id previous_proposal_id request_id
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                   | Typ      | Pflicht | Beschreibung                                                | Standard |
+| ---------------------- | -------- | ------- | ----------------------------------------------------------- | -------- |
+| `job_id`               | `string` | ja      | Opaque source import job identity.                          | —        |
+| `previous_proposal_id` | `string` | ja      | Exact prior pending or rejected proposal identity.          | —        |
+| `request_id`           | `string` | ja      | Stable renewal request identity reused after response loss. | —        |
 
 **Siehe auch:** Command [`prepare_intake`](./commands#command-prepare_intake)
 
