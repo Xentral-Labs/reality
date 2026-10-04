@@ -8024,7 +8024,9 @@ intake_agent_batch_review_and_queue [schema_version] batch_id manifest_digest ma
 #### `proposal_approve_and_execute` — Approve and execute a proposal {#tool-proposal_approve_and_execute}
 
 Settle one exact proposal by explicit authorized decision and execute it through the shared
-application boundary.
+application boundary. Use proposal_review confirmation.arguments only after a human decision. Legacy
+review preparation does not execute: reread and obtain a new explicit decision. Current MCP
+verification guidance is beside the original receipt.
 
 **Aufruf**
 
@@ -12962,7 +12964,9 @@ Keine Parameter.
 ### `proposal_review` — Review an exact proposal {#tool-proposal_review}
 
 Read the company's exact safe proposal, retained preview or receipt, decision policy and
-confirmation inputs without executing or refreshing it. Review does not grant confirmation rights.
+confirmation inputs without executing or refreshing it. confirmation.arguments contains the complete
+human-approved call template; review_preparation_required names legacy preparation followed by
+reread and a new decision. Review does not grant confirmation rights.
 
 **Aufruf**
 
@@ -12999,6 +13003,7 @@ Read the exact safe retained proposal and company context before an explicit dec
 ### `proposal_execution_status` — Reconcile proposal execution {#tool-proposal_execution_status}
 
 Read one proposal lifecycle and verify its stored receipt against authoritative Reality records.
+next_step.verification_reads names callable MCP tools beside the unchanged recorded receipt.
 
 **Aufruf**
 

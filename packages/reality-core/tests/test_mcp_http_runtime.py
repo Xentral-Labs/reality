@@ -144,6 +144,11 @@ def test_http_tools_list_serializes_complete_shipment_execution_contracts(
     tools = {
         row["name"]: row["inputSchema"] for row in response.json()["result"]["tools"]
     }
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+    for name in ("business_records_discover", "inventory_read", "reservation_propose"):
+        assert tools[name] == MCP_TOOL_REGISTRY[name].input_schema
+
     for name, purposes in {
         "shipment_dispatch_propose": {"customer_delivery", "supplier_return"},
         "shipment_receive_propose": {"supplier_delivery", "customer_return"},

@@ -106,6 +106,17 @@ _proposal_authority: ContextVar[_ProposalAuthority | None] = ContextVar(
 )
 
 
+def playground_proposal_active(session: Session, tenant_id: str) -> bool:
+    """Recognize an authored lesson's existing transaction-bound proposal boundary."""
+    authority = _proposal_authority.get()
+    return bool(
+        authority
+        and authority.session is session
+        and authority.transaction is session.get_transaction()
+        and authority.tenant_id == tenant_id
+    )
+
+
 @dataclass(frozen=True)
 class _DecisionAuthority:
     session: Session

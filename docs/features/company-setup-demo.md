@@ -170,8 +170,8 @@ pulse; narrow headers retain an accessible compact link outside the overflow men
 
 Demo profiles and continuous synthetic intake use the production application tools and
 services. They must not register demo-only mutations, write business tables directly, or
-bypass proposal review. A mutation proposed through MCP is reviewed and confirmed in Web
-through the same tenant-scoped production boundary as a mutation in an ordinary company.
+bypass proposal review. A mutation proposed through MCP is reviewed and confirmed through MCP or Web
+using the same tenant-scoped production boundary as a mutation in an ordinary company.
 
 ## A live source that stopped (spec 256)
 
@@ -220,3 +220,26 @@ Legacy import work now reports prepared sources separately from completed busine
 acceptance. Historical completed jobs are never reinterpreted to fabricate a
 proposal or decision. API, scheduler and workers must use the same fenced revision;
 rolling back to a direct-writing interpreter is unsupported.
+
+
+## Complete agent review and read-first contracts (spec 364)
+
+Fresh eligible reservation proposals in practice companies retain the canonical delivery review
+at creation, with current state, proposed effect and review fingerprint. Existing transaction-bound
+authored lesson proposals retain their separate lesson preview/decision boundary. No new admission,
+profile, seed authority, business schema or source lifecycle is introduced.
+
+MCP `proposal_review` is non-persisting and exposes complete `confirmation.arguments`. A legacy
+generic delivery proposal explicitly reports that its first authorized call prepares a review
+without executing, and requires reread and a new human decision. Current execution/status guidance
+names callable MCP reads beside the immutable receipt; `confirmable` never grants credential rights.
+The actual HTTP tools/list preserves registered enum, nested and nullable input contracts.
+
+Internal Chat narrows schema advertisement and dispatch to reads for explicit EN/DE current-turn
+read-first instructions. Shipping questions preload at most five tenant-scoped movement-discovery
+records with completeness metadata, independent of consignment objects. This is a company-wide
+sample, not a total or exact-order proof. Refused evidence stays unknown. Provider output remains
+generative; deterministic tests establish supplied evidence and zero proposals, not answer accuracy.
+
+Evidence: `tests/test_demo_mcp_workflow.py`, `tests/test_chat_scope_security.py`,
+`tests/test_mcp_http_runtime.py`; verification is tracked in spec 364.

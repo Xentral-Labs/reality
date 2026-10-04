@@ -261,6 +261,45 @@ def _private_review(
     return {"state": "readable", "details": _safe(details)}
 
 
+def mcp_verification_guidance(basis: list[str]) -> dict[str, Any]:
+    """Resolve recorded/catalog projection bases to callable current MCP reads."""
+    from reality.catalogs import runtime_tool_catalog
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+    callable_reads: set[str] = set()
+    unavailable: list[str] = []
+    catalog = runtime_tool_catalog()
+    for name in basis:
+        candidates = {name}
+        for entry in catalog["entries"]:
+            if any(name in entry[key] for key in ("commands", "views", "projections")):
+                candidates.update(entry["mcp"])
+        matches = {
+            candidate
+            for candidate in candidates
+            if candidate in MCP_TOOL_REGISTRY
+            and MCP_TOOL_REGISTRY[candidate].access == "read"
+        }
+        callable_reads.update(matches)
+        if not matches:
+            unavailable.append(name)
+    return {
+        "verification_basis": list(basis),
+        "verification_reads": sorted(callable_reads),
+        "unavailable_verification_reads": unavailable,
+    }
+
+
+def proposal_mcp_next_step(proposal: ChangeProposal) -> dict[str, Any]:
+    """Keep the shared policy while naming MCP decision and verification tools."""
+    step = proposal_next_step(proposal)
+    return {
+        **step,
+        "decision_handoff": step["confirmation_tool"],
+        **mcp_verification_guidance(step["verification_reads"]),
+    }
+
+
 def proposal_mcp_review(
     session: Session, tenant_id: str, proposal_id: str
 ) -> dict[str, Any]:
@@ -298,39 +337,42 @@ def proposal_mcp_review(
             and result["confirmable"]
             else None
         )
-        from reality.catalogs import runtime_tool_catalog
-        from reality.mcp.catalog import MCP_TOOL_REGISTRY
-
-        basis = result["next_step"]["verification_reads"]
-        callable_reads: set[str] = set()
-        unavailable: list[str] = []
-        catalog = runtime_tool_catalog()
-        for name in basis:
-            candidates = {name}
-            for entry in catalog["entries"]:
-                if any(
-                    name in entry[key] for key in ("commands", "views", "projections")
-                ):
-                    candidates.update(entry["mcp"])
-            matches = {
-                candidate
-                for candidate in candidates
-                if candidate in MCP_TOOL_REGISTRY
-                and MCP_TOOL_REGISTRY[candidate].access == "read"
-            }
-            callable_reads.update(matches)
-            if not matches:
-                unavailable.append(name)
-        result["next_step"]["decision_handoff"] = result["next_step"][
-            "confirmation_tool"
-        ]
-        result["next_step"]["verification_basis"] = basis
-        result["next_step"]["verification_reads"] = sorted(callable_reads)
-        result["next_step"]["unavailable_verification_reads"] = unavailable
+        result["next_step"] = proposal_mcp_next_step(proposal)
+        preparation = (
+            result["status"] == "proposed"
+            and result["review_kind"] == "delivery"
+            and not isinstance(retained, dict)
+        )
+        confirmation_arguments = {
+            "proposal_id": proposal_id,
+            "approved": True,
+            **({"review_token": review_token} if isinstance(review_token, str) else {}),
+        }
         result["confirmation"] = {
             "tool": "proposal_approve_and_execute",
             "proposal_id": proposal_id,
             "explicit_approval_required": True,
             "review_token": review_token if isinstance(review_token, str) else None,
+            "arguments": confirmation_arguments if result["confirmable"] else None,
+            "review_preparation_required": preparation,
+            "execution_expected": result["confirmable"] and not preparation,
+            "instruction": (
+                "Only an authorized human decision may send these arguments. "
+                "Preparation does not execute: reread the exact review and obtain a new explicit decision."
+                if preparation
+                else "Only an authorized human decision may send these exact reviewed arguments. "
+                "Confirmable describes proposal state, not this credential's permission."
+            ),
+            **(
+                {
+                    "after_preparation": {
+                        "tool": "proposal_review",
+                        "arguments": {"proposal_id": proposal_id},
+                        "requires_new_explicit_approval": True,
+                    }
+                }
+                if preparation
+                else {}
+            ),
         }
         return result

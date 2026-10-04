@@ -287,11 +287,12 @@ def build_server(
             name=definition.name,
             annotations=_annotations(definition),
         )
-        if "oneOf" in definition.input_schema:
-            registered = server._tool_manager.get_tool(definition.name)
-            if registered is None:  # pragma: no cover - registration invariant
-                raise RuntimeError(f"MCP tool registration failed: {definition.name}")
-            registered.parameters = definition.input_schema
+        # Typed Python signatures validate calls; the executable catalog owns the
+        # complete wire schema, including primitive enums and nested constraints.
+        registered = server._tool_manager.get_tool(definition.name)
+        if registered is None:  # pragma: no cover - registration invariant
+            raise RuntimeError(f"MCP tool registration failed: {definition.name}")
+        registered.parameters = definition.input_schema
     return server
 
 

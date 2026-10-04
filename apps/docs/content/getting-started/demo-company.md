@@ -92,13 +92,14 @@ has been executed.
 ```text
 Prepare a reservation proposal for the open order we inspected. Check available stock,
 eligibility and pending proposals with Reality tools. Use actual record IDs and show
-quantity, location, effect and review link. Do not execute it or create duplicates.
+quantity, location, effect and the proposal_review tool call; include an optional review link.
+Do not execute it or create duplicates.
 If blocked, explain why and inspect one other suitable open order. Invent no stock.
 ```
 
-Open the review link or proposal under **Decisions**. Check records and effect, then approve only
-the specific change you want; otherwise reject it. Reserving does not ship goods.
-[Prepare your first action](./first-action) explains the individual checks.
+Read `proposal_review` in your agent, or open the optional review link under **Decisions**. Check
+records and effect, then approve only the specific change you want; otherwise reject it. Reserving
+does not ship goods. [Prepare your first action](./first-action) explains the individual checks.
 
 Then return to the agent:
 
@@ -292,6 +293,22 @@ proposal does not reserve or move stock. Only after explicit authorized approval
 `confirmation.review_token` when present. Use `proposal_execution_status` to reconcile execution,
 then read the named operational records. A read/propose-only connection cannot confirm; review does
 not elevate its rights. A browser review link is optional; the decision cycle works through MCP.
+
+Use the complete `confirmation.arguments` only after that decision; it includes the required
+`approved: true`. Fresh demo reservations already retain their full review. If an older proposal
+reports `confirmation.review_preparation_required`, the first approved call only prepares the
+review. Follow `confirmation.after_preparation`, inspect the new exact review and obtain a new
+explicit decision before execution. Reads never prepare or refresh a review.
+
+Execution and status responses expose current callable MCP reads in `next_step.verification_reads`.
+The receipt keeps its original `verification_reads` projection names; use the separate guidance for
+tool calls. Check current connection permissions as well: `confirmable` describes proposal state,
+not a grant of confirmation rights.
+
+Internal Chat honors explicit current-turn read-only instructions for both advertised tools and
+execution. Shipping questions receive a bounded company-wide sample of retained shipment Movements;
+follow its completeness and `has_more`, and use `order_explain` for the exact order. This context
+does not guarantee every model answer or establish a company shipment total.
 
 `shipments_list` holds consignments and packages. An empty list does not exclude shipment Movements;
 use `order_explain` and discovery family `movement` to inspect held shipping evidence. For invoice
