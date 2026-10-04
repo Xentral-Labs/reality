@@ -2437,7 +2437,7 @@ See spec 151 FR-001–002.
 
 ## Inspector navigation (spec138 FR-029)
 
-The four Inspector destinations are Business Graph, Business Facts, Event history and Available actions (spec 218). Business Graph offers Timeline then Record graph. Business Facts is one paginated register with a type filter; a secondary, lazy Technical record overview retains raw grouped records. Its tabs are All records, Calculated views and Fact rules; calculated views are explicitly derived results, not newly stored facts. Exception rules are a tab of Exceptions beside Open exceptions. Old records links resolve to the unified register with their query and tenant preserved.
+The four Inspector destinations are Business Recorder, Business Facts, Event history and Available actions (spec 218). Business Recorder offers Timeline then Record graph. Business Facts is one paginated register with a type filter; a secondary, lazy Technical record overview retains raw grouped records. Its tabs are All records, Calculated views and Fact rules; calculated views are explicitly derived results, not newly stored facts. Exception rules are a tab of Exceptions beside Open exceptions. Old records links resolve to the unified register with their query and tenant preserved.
 
 Facts is an umbrella navigation term for recorded business information, not a change to the typed Fact model. The technical Fact family is labelled Additional facts in the type filter; sources, evidence and operational records retain their distinct identities and authority. The rules that create those records follow the same label: the Business Facts rule tab is Fact rules (German Fact-Regeln, spec 218), and every UI sentence about such a rule says Additional fact rule, so the register and the rules that fill it use one name (spec 191). The rule type itself, its commands and its tool descriptions keep the technical name Fact rule.
 
@@ -3069,7 +3069,7 @@ Registered sources visibly offer Settings and Received data; received source ver
 
 ## Business Inspector names (spec 216)
 
-The former Context Graph area is named Business Graph; the Facts navigation area is Business Facts. Both names are invariant product labels in every language. Use the same names in shared section/page titles, tooltips, standalone facts-page headings and Storyline graph headings/captions/accessibility labels. Fact/Facts remain data-type names in selectors, individual records and Storyline fact counts. Existing routes, tabs, filters and technical identifiers remain unchanged. This updates only the area/product naming portion of spec208; spec215 remains applicable.
+The former Context Graph area is named Business Recorder; the Facts navigation area is Business Facts. Both names are invariant product labels in every language. Use the same names in shared section/page titles, tooltips, standalone facts-page headings and Storyline graph headings/captions/accessibility labels. Fact/Facts remain data-type names in selectors, individual records and Storyline fact counts. Existing routes, tabs, filters and technical identifiers remain unchanged. This updates only the area/product naming portion of spec208; spec215 remains applicable.
 
 ## Source labels (spec 217)
 
@@ -3398,7 +3398,7 @@ The filter row explicitly shows an unrestricted state when no additional filters
 
 ## Order journey timeline (spec 233, extended by spec 277)
 
-Business Graph's Timeline now uses Facts, Commitments, Reservations, Movements and
+Business Recorder's Timeline now uses Facts, Commitments, Reservations, Movements and
 Ledger entries lanes. Each point is a recorded change; same-position collisions expose
 all members. A compact sales-order search selects an exact service-owned journey
 through document/line, commitment, reservation and movement relationships. Shared

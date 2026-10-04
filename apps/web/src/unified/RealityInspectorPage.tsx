@@ -117,6 +117,13 @@ export function RealityInspectorPage({
           </nav>
         </RegisterHeader>
       )}
+      {["overview", "graph"].includes(tab) && (
+        <p className="text-sm text-fg-muted">
+          {t(
+            "The Business Recorder works like a flight recorder for your company: it shows what Reality has recorded, when it happened and how it connects to its sources.",
+          )}
+        </p>
+      )}
       {tab === "overview" && <OrderJourneyTimeline key={tenant} tenant={tenant} />}
       {tab === "facts" && (
         <TableProvider

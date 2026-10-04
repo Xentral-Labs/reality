@@ -17,7 +17,10 @@ Bewegungen und Buchungen. Diese Datensätze ermöglichen Aktionen und erklären 
 Belege liefern Evidence; Liefer- und Zahlungszustand werden aus den operativen Datensätzen
 abgeleitet statt als Belegstatus gespeichert.
 
-### Business Graph
+### Business Recorder
+
+Der Business Recorder funktioniert wie ein Flugschreiber für dein Unternehmen: Er zeigt, was Reality
+erfasst hat, wann es passiert ist und welche Quellen dahinterstehen.
 
 Beziehungen und die Timeline zusammengehöriger Geschäftsdaten. Verfolge zum Beispiel einen Auftrag
 über seine Positionen zu Lieferzusagen und Versandbewegungen. Der Graph zeigt den Kontext, den
@@ -306,7 +309,7 @@ autorisiert keine nachgelagerten Änderungen.
 
 ### Analytics
 
-Der Analyseeditor und die Agentenfunktionen zum Abfragen des Business Graph über vorhandenen
+Der Analyseeditor und die Agentenfunktionen zum Abfragen des Business Recorder über vorhandenen
 Reality-Datensätzen. Abfragen nutzen deklarierte Beziehungen, Kennzahlen sowie gemeinsame Bestands-
 oder Finanzberechnungen. Eine Analyse kann nur die tatsächlich vorhandenen Daten und unterstützten
 Beobachtungsarten erklären. [Analytics-Anleitung](/de/analytics/).

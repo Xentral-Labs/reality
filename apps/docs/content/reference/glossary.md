@@ -16,7 +16,10 @@ postings. These records support action and explain the current position. Documen
 delivery and payment state are derived from the operational records rather than stored as document
 status.
 
-### Business Graph
+### Business Recorder
+
+The Business Recorder works like a flight recorder for your company: it shows what Reality has
+recorded, when it happened and how it connects to its sources.
 
 Relationships and the timeline of related business records. For example, follow an order to its
 lines, delivery commitments and shipments. It exposes the context Reality holds; it does not promise
@@ -287,7 +290,7 @@ preserve scope and approval rules; source intake does not authorize downstream m
 
 ### Analytics
 
-The analysis editor and agent capabilities for querying the business graph over existing Reality
+The analysis editor and agent capabilities for querying the Business Recorder over existing Reality
 records. Queries use declared relationships, measures and shared stock or finance calculations. An
 analysis can explain only the data and observation coverage actually available.
 [Analytics guide](/analytics/).

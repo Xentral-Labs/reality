@@ -3875,7 +3875,7 @@ def finance_target_propose(
         con.print_json(data={"id": proposal.id, "preview": json.loads(proposal.output)})
 
 
-analytics_app = typer.Typer(help="Ask the business graph and read its catalog.")
+analytics_app = typer.Typer(help="Ask the Business Recorder and read its catalog.")
 app.add_typer(analytics_app, name="analytics")
 
 graph_app = typer.Typer(help="Ask the reporting graph a question.")

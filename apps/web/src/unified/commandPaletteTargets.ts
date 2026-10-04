@@ -127,7 +127,7 @@ const pages: Page[] = [
   { key: "facts", label: "Business Facts", destination: { route: "facts" } },
   {
     key: "graph",
-    label: "Business Graph",
+    label: "Business Recorder",
     destination: { route: "inspector", inspectorView: "graph" },
   },
   {

@@ -860,7 +860,7 @@ if (process.env.NAVIGATION_ONLY === "1") {
       await page.locator("[data-rules-register]").waitFor();
       assert.deepEqual(
         (await sidebar().getByRole("link").allTextContents()).map((x) => x.trim()),
-        ["Business Graph", "Business Facts", tr("Activities"), "Tools"],
+        ["Business Recorder", "Business Facts", tr("Activities"), "Tools"],
       );
       assert.equal(
         await sidebar()
@@ -1044,13 +1044,13 @@ try {
   await inspectorNav.getByRole("link").first().waitFor();
   assert.deepEqual(
     (await inspectorNav.getByRole("link").allTextContents()).map((s) => s.trim()),
-    ["Business Graph", "Business Facts", "Activities", "Tools"],
+    ["Business Recorder", "Business Facts", "Activities", "Tools"],
   );
   assert.equal(
     await page.getByRole("link", { name: "Technology & system", exact: true }).count(),
     0,
   );
-  // The Inspector opens on the Business Graph's Timeline.
+  // The Inspector opens on the Business Recorder's Timeline.
   await page.getByRole("heading", { name: "Timeline", exact: true }).waitFor();
   await page.locator('[data-journey-history="evt1"]').waitFor();
   await tab("Reality records");

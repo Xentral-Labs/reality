@@ -11660,9 +11660,9 @@ Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Informat
 | [`graph_captured_reports_list`](#tool-graph_captured_reports_list)                               | List captured report generations               | `read`    | —                      |
 | [`graph_contribution_reviews_list`](#tool-graph_contribution_reviews_list)                       | List confirmed contribution valuations         | `read`    | —                      |
 | [`graph_inventory_reviews_list`](#tool-graph_inventory_reviews_list)                             | List confirmed inventory valuations            | `read`    | —                      |
-| [`graph_catalog`](#tool-graph_catalog)                                                           | Discover the business graph                    | `read`    | —                      |
+| [`graph_catalog`](#tool-graph_catalog)                                                           | Discover the Business Recorder                 | `read`    | —                      |
 | [`graph_templates`](#tool-graph_templates)                                                       | List report templates                          | `read`    | —                      |
-| [`graph_ask`](#tool-graph_ask)                                                                   | Ask the business graph                         | `read`    | —                      |
+| [`graph_ask`](#tool-graph_ask)                                                                   | Ask the Business Recorder                      | `read`    | —                      |
 | [`graph_format`](#tool-graph_format)                                                             | Format an analysis query                       | `read`    | —                      |
 | [`graph_interpret`](#tool-graph_interpret)                                                       | Interpret an analysis question                 | `read`    | —                      |
 | [`graph_reports_list`](#tool-graph_reports_list)                                                 | List my graph reports                          | `read`    | —                      |
@@ -13384,7 +13384,7 @@ Discover retained joint inventory confirmations for explicit historical report s
 | `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | `20`     |
 | `cursor` | `string`  | nein    | —                                                               | `None`   |
 
-### `graph_catalog` — Discover the business graph {#tool-graph_catalog}
+### `graph_catalog` — Discover the Business Recorder {#tool-graph_catalog}
 
 Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
 cannot be added, and is more useful than a total that is wrong.
@@ -13460,7 +13460,7 @@ List the questions worth starting from, each already resolved against the declar
 | ---------- | -------- | ------- | ------------------------------------------------- | -------- |
 | `language` | `string` | nein    | Language for the template names and explanations. | `en`     |
 
-### `graph_ask` — Ask the business graph {#tool-graph_ask}
+### `graph_ask` — Ask the Business Recorder {#tool-graph_ask}
 
 Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
 cannot be added, and is more useful than a total that is wrong.

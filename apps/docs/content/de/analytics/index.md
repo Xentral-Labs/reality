@@ -1,6 +1,6 @@
 # Analytics auf deiner Geschäftsrealität
 
-Reality verbindet operative Datensätze zu einem abfragbaren Business Graph. Untersuche Aufträge,
+Reality verbindet operative Datensätze zu einem abfragbaren Business Recorder. Untersuche Aufträge,
 Bestände und Zahlungen, folge ihren Beziehungen und erstelle Berichte über die Daten, die Reality
 bereits enthält. Deine Agenten nutzen dasselbe Modell und dieselben Prüfungen wie der Analyseeditor.
 
