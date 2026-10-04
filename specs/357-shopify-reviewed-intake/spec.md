@@ -161,3 +161,11 @@ ShopOrderPlan: one source version, resolved parties/location, evidence lines and
 | FR-010 | US3 | `packages/reality-core/tests/test_shopify_intake_admission.py::test_refund_is_not_payment_authority` | T009, T010, T011 |
 | DR-001, DR-002, DR-003, SC-001 | US1–US3, edge cases | `packages/reality-core/tests/test_shopify_intake_admission.py` source/attribution, derived-state and tenant refusal matrix | T001, T002, T012, T013 |
 | SC-002 | All | Required gates and final evidence review | T014 |
+
+### User audit review clarification (2026-10-04)
+
+FR-002 review proof presents each prepared business effect once, preserving all
+arguments and collapsed technical inspection. Single-source review and selected
+batch children expose original source/file downloads. Known line-level missing
+amounts/prices and unknown items use readable notices and one-based line positions;
+unknown issue codes remain visible. Exact digest confirmation is unchanged.
