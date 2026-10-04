@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_create_payment_term
 from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SourceRecord
@@ -144,7 +145,7 @@ def test_historical_fee_is_a_separate_claim_on_shared_and_web_reads(
 def test_fee_has_no_inherited_aging_discount_or_dunning(session, business, kind):
     tenant = business.tenant.id
     _, fee = fee_story(session, business, kind)
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session,
         tenant,
         "FEE-TERM",

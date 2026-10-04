@@ -1894,9 +1894,11 @@ def _payment_term_create(
     BUSINESS RULE application.payment_term_create.1:
     Route this company-scoped request to create_payment_term. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.payment_term_create.1
     return _entity_result(
-        "payment_term", create_payment_term(session, tenant_id, **arguments)
+        "payment_term", _invoke("create_payment_term", create_payment_term, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -1910,9 +1912,11 @@ def _payment_term_update(
     BUSINESS RULE application.payment_term_update.1:
     Route this company-scoped request to update_payment_term. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.payment_term_update.1
     return _entity_result(
-        "payment_term", update_payment_term(session, tenant_id, **arguments)
+        "payment_term", _invoke("update_payment_term", update_payment_term, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -1926,9 +1930,11 @@ def _price_list_create(
     BUSINESS RULE application.price_list_create.1:
     Route this company-scoped request to create_price_list. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.price_list_create.1
     return _entity_result(
-        "price_list", create_price_list(session, tenant_id, **arguments)
+        "price_list", _invoke("create_price_list", create_price_list, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -1942,9 +1948,11 @@ def _price_list_update(
     BUSINESS RULE application.price_list_update.1:
     Route this company-scoped request to update_price_list. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.price_list_update.1
     return _entity_result(
-        "price_list", update_price_list(session, tenant_id, **arguments)
+        "price_list", _invoke("update_price_list", update_price_list, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -1958,9 +1966,11 @@ def _price_tier_create(
     BUSINESS RULE application.price_tier_create.1:
     Route this company-scoped request to create_price_list_entry. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.price_tier_create.1
     return _entity_result(
-        "price_list_entry", create_price_list_entry(session, tenant_id, **arguments)
+        "price_list_entry", _invoke("create_price_list_entry", create_price_list_entry, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -1974,9 +1984,11 @@ def _party_price_list_assign(
     BUSINESS RULE application.party_price_list_assign.1:
     Route this company-scoped request to assign_party_price_list. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.party_price_list_assign.1
     return _entity_result(
-        "party_price_list", assign_party_price_list(session, tenant_id, **arguments)
+        "party_price_list", _invoke("assign_party_price_list", assign_party_price_list, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -1990,9 +2002,11 @@ def _party_group_create(
     BUSINESS RULE application.party_group_create.1:
     Route this company-scoped request to create_party_group. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.party_group_create.1
     return _entity_result(
-        "party_group", create_party_group(session, tenant_id, **arguments)
+        "party_group", _invoke("create_party_group", create_party_group, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -2006,9 +2020,11 @@ def _party_group_update(
     BUSINESS RULE application.party_group_update.1:
     Route this company-scoped request to update_party_group. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.party_group_update.1
     return _entity_result(
-        "party_group", update_party_group(session, tenant_id, **arguments)
+        "party_group", _invoke("update_party_group", update_party_group, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -2041,9 +2057,11 @@ def _party_group_member_add(
     BUSINESS RULE application.party_group_member_add.1:
     Route this company-scoped request to add_party_group_member. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.party_group_member_add.1
     return _entity_result(
-        "party_group_member", add_party_group_member(session, tenant_id, **arguments)
+        "party_group_member", _invoke("add_party_group_member", add_party_group_member, session, tenant_id, **arguments, _commit=False)
     )
 
 
@@ -2057,10 +2075,12 @@ def _group_price_list_assign(
     BUSINESS RULE application.group_price_list_assign.1:
     Route this company-scoped request to assign_group_price_list. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
     # reality-rule: application.group_price_list_assign.1
     return _entity_result(
         "party_group_price_list",
-        assign_group_price_list(session, tenant_id, **arguments),
+        _invoke("assign_group_price_list", assign_group_price_list, session, tenant_id, **arguments, _commit=False),
     )
 
 
@@ -6185,6 +6205,12 @@ def create_change_proposal(
     # reality-rule: application.create_change_proposal.2
     if not tool.mutating:
         raise InvalidOperation(code="proposal_read_tool_not_needed")
+    from reality.services.tenant_policy import COMMERCIAL_MASTER_OPERATIONS
+
+    if tool_name in COMMERCIAL_MASTER_OPERATIONS:
+        from reality.services.commercial_master import prepare_commercial_master
+
+        arguments = prepare_commercial_master(session, tenant_id, tool_name, arguments)
     if tool_name in {"demo_seed", "normal_month"}:
         from reality.services.tenant_policy import _fixed_definition_input
 
@@ -6888,8 +6914,10 @@ def approve_and_execute_proposal(
     )
     if candidate is None:
         raise NotFound(code="proposal_not_found")
+    from reality.services.tenant_policy import COMMERCIAL_MASTER_OPERATIONS
+
     if (
-        candidate.type
+        (candidate.type.removeprefix("tool:") in COMMERCIAL_MASTER_OPERATIONS or candidate.type
         in {
             "tool:demo_seed",
             "tool:normal_month",
@@ -6901,7 +6929,7 @@ def approve_and_execute_proposal(
             "tool:location_update",
             "tool:company_party_record",
             "tool:document_create",
-        }
+        })
         and candidate.status != "executed"
         and not confirmed
     ):
@@ -6981,6 +7009,12 @@ def approve_and_execute_proposal(
     if tool is None or not tool.mutating:
         raise InvalidOperation(code="proposal_mutation_tool_invalid")
     arguments = json.loads(candidate.input)
+    if tool_name in COMMERCIAL_MASTER_OPERATIONS:
+        from reality.services.commercial_master import (
+            REVIEW_KEY as COMMERCIAL_REVIEW_KEY,
+        )
+
+        arguments.pop(COMMERCIAL_REVIEW_KEY, None)
     require_decision_authority(
         session, tenant_id, authority_policy, confirming_principal, phase="identity"
     )

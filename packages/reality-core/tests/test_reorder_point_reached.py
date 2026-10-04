@@ -3,6 +3,12 @@
 from decimal import Decimal
 
 from intake_review_support import (
+    reviewed_add_party_group_member,
+    reviewed_assign_group_price_list,
+    reviewed_assign_party_price_list,
+    reviewed_create_party_group,
+    reviewed_create_price_list,
+    reviewed_create_price_list_entry,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
 )
@@ -73,12 +79,12 @@ def _purchase_list(
     session, business, supplier=None, price="4.50", unit="pcs", code="PL"
 ):
     tenant = business.tenant.id
-    price_list = core.create_price_list(session, tenant, code, code, "purchase", "EUR")
-    core.create_price_list_entry(
+    price_list = reviewed_create_price_list(session, tenant, code, code, "purchase", "EUR")
+    reviewed_create_price_list_entry(
         session, tenant, price_list.id, business.item.id, "1", price, unit
     )
     if supplier is not None:
-        core.assign_party_price_list(session, tenant, supplier.id, price_list.id)
+        reviewed_assign_party_price_list(session, tenant, supplier.id, price_list.id)
     return price_list
 
 
@@ -281,9 +287,9 @@ def test_a_supplier_reached_through_its_group_is_named(session, business):
     tenant = business.tenant.id
     _point(session, business)
     price_list = _purchase_list(session, business, price="4.00")
-    group = core.create_party_group(session, tenant, "SUP", "Suppliers")
-    core.add_party_group_member(session, tenant, group.id, business.supplier.id)
-    core.assign_group_price_list(session, tenant, group.id, price_list.id)
+    group = reviewed_create_party_group(session, tenant, "SUP", "Suppliers")
+    reviewed_add_party_group_member(session, tenant, group.id, business.supplier.id)
+    reviewed_assign_group_price_list(session, tenant, group.id, price_list.id)
 
     row = _reached(session, tenant)[(business.item.id, business.location.id)]
     assert (row.causal_values["supplier_choice"], row.causal_values["unit_price"]) == (
@@ -330,11 +336,11 @@ def test_several_or_no_suppliers_name_none(session, business):
 def test_a_sales_list_never_names_a_supplier(session, business):
     tenant = business.tenant.id
     _point(session, business)
-    sales = core.create_price_list(session, tenant, "SL", "Retail", "sales", "EUR")
-    core.create_price_list_entry(
+    sales = reviewed_create_price_list(session, tenant, "SL", "Retail", "sales", "EUR")
+    reviewed_create_price_list_entry(
         session, tenant, sales.id, business.item.id, "1", "9.90", "pcs"
     )
-    core.assign_party_price_list(session, tenant, business.supplier.id, sales.id)
+    reviewed_assign_party_price_list(session, tenant, business.supplier.id, sales.id)
 
     row = _reached(session, tenant)[(business.item.id, business.location.id)]
     assert row.causal_values["supplier_choice"] == "none"
@@ -370,7 +376,7 @@ def test_the_statement_count_does_not_grow_with_points(session, business):
             _point(session, business, point="5", quantity="10", item=item)
             # Two suppliers price each item: named as several, priced by nobody.
             for supplier in (business.supplier, second):
-                price_list = core.create_price_list(
+                price_list = reviewed_create_price_list(
                     session,
                     tenant,
                     f"PL-{points}-{index}-{supplier.id}",
@@ -378,10 +384,10 @@ def test_the_statement_count_does_not_grow_with_points(session, business):
                     "purchase",
                     "EUR",
                 )
-                core.create_price_list_entry(
+                reviewed_create_price_list_entry(
                     session, tenant, price_list.id, item.id, "1", "1", "pcs"
                 )
-                core.assign_party_price_list(
+                reviewed_assign_party_price_list(
                     session, tenant, supplier.id, price_list.id
                 )
         count = 0
@@ -492,20 +498,20 @@ def test_the_supplier_own_list_is_priced_before_its_group_list(session, business
     """The price rule tries a supplier's own lists first; so does the currency asked."""
     tenant = business.tenant.id
     _point(session, business)
-    own = core.create_price_list(session, tenant, "OWN", "Own", "purchase", "EUR")
-    core.create_price_list_entry(
+    own = reviewed_create_price_list(session, tenant, "OWN", "Own", "purchase", "EUR")
+    reviewed_create_price_list_entry(
         session, tenant, own.id, business.item.id, "1", "4.50", "pcs"
     )
-    core.assign_party_price_list(
+    reviewed_assign_party_price_list(
         session, tenant, business.supplier.id, own.id, priority=5
     )
-    shared = core.create_price_list(session, tenant, "GRP", "Group", "purchase", "USD")
-    core.create_price_list_entry(
+    shared = reviewed_create_price_list(session, tenant, "GRP", "Group", "purchase", "USD")
+    reviewed_create_price_list_entry(
         session, tenant, shared.id, business.item.id, "1", "3.90", "pcs"
     )
-    group = core.create_party_group(session, tenant, "SUP", "Suppliers")
-    core.add_party_group_member(session, tenant, group.id, business.supplier.id)
-    core.assign_group_price_list(session, tenant, group.id, shared.id, priority=1)
+    group = reviewed_create_party_group(session, tenant, "SUP", "Suppliers")
+    reviewed_add_party_group_member(session, tenant, group.id, business.supplier.id)
+    reviewed_assign_group_price_list(session, tenant, group.id, shared.id, priority=1)
 
     row = _reached(session, tenant)[(business.item.id, business.location.id)]
     assert (row.causal_values["currency"], row.causal_values["unit_price"]) == (
@@ -562,8 +568,8 @@ def test_each_priced_entry_costs_the_same_fixed_price_lookup(session, business):
     from reality.services.exceptions import _reorder_point_reached_exceptions
 
     tenant = business.tenant.id
-    price_list = core.create_price_list(session, tenant, "PL-P", "P", "purchase", "EUR")
-    core.assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
+    price_list = reviewed_create_price_list(session, tenant, "PL-P", "P", "purchase", "EUR")
+    reviewed_assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
     made = 0
 
     def statements(points):
@@ -572,7 +578,7 @@ def test_each_priced_entry_costs_the_same_fixed_price_lookup(session, business):
             item = reviewed_create_item(session, tenant, f"SKU-P-{made}", "P")
             _stock(session, business, "1", item=item)
             _point(session, business, point="5", quantity="10", item=item)
-            core.create_price_list_entry(
+            reviewed_create_price_list_entry(
                 session, tenant, price_list.id, item.id, "1", "1", "pcs"
             )
             made += 1

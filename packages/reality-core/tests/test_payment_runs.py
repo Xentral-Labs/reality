@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_create_payment_term
 
 from reality.services.core import (
     PAYMENT_RUN_WITHHELD_REASONS,
@@ -16,7 +17,6 @@ from reality.services.core import (
     aging_register,
     business_events,
     create_document,
-    create_payment_term,
     create_tenant,
     duplicate_supplier_invoices,
     execute_payment_run,
@@ -46,7 +46,7 @@ def skonto(session, business, code="SK2_10", *, percent="2", days=10, due=30):
     ]
     if existing:
         return existing[0]
-    return create_payment_term(
+    return reviewed_create_payment_term(
         session,
         business.tenant.id,
         code,
@@ -65,7 +65,7 @@ def net(session, business, code="NET30", *, due=30):
     ]
     if existing:
         return existing[0]
-    return create_payment_term(
+    return reviewed_create_payment_term(
         session, business.tenant.id, code, f"Net {due} days", due
     )
 

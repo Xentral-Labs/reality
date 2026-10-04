@@ -1,3 +1,4 @@
+
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
@@ -6,7 +7,11 @@ from conftest import record_by_id
 from fastapi.testclient import TestClient
 from intake_review_support import accept_demo_setup as ensure_demo
 from intake_review_support import accept_shopify_order as ingest_shopify_order
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_create_price_list,
+    reviewed_create_price_list_entry,
+    reviewed_manual_document_with_lines,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -29,8 +34,6 @@ from reality.services.core import (
     active_reserved,
     create_commitment,
     create_document,
-    create_price_list,
-    create_price_list_entry,
     create_source_capability,
     create_source_system,
     create_tenant,
@@ -640,7 +643,7 @@ def test_manual_document_line_correction_api_contract(session, business):
 
 
 def test_document_api_transports_and_explains_selected_price_entry(session, business):
-    price_list = create_price_list(
+    price_list = reviewed_create_price_list(
         session,
         business.tenant.id,
         "WEB-PRICE",
@@ -649,7 +652,7 @@ def test_document_api_transports_and_explains_selected_price_entry(session, busi
         "EUR",
         is_default=True,
     )
-    entry = create_price_list_entry(
+    entry = reviewed_create_price_list_entry(
         session, business.tenant.id, price_list.id, business.item.id, 1, 10, "pcs"
     )
     client = api_client(session)
@@ -701,11 +704,11 @@ def test_company_settings_api_exposes_commercial_and_agent_configuration(
     try:
         term = client.post(
             f"/api/tenants/{tenant_id}/payment-terms",
-            json={"code": "NET14", "name": "Net 14", "due_days": 14},
+            json={"confirmed": True, "code": "NET14", "name": "Net 14", "due_days": 14},
         )
         price_list = client.post(
             f"/api/tenants/{tenant_id}/price-lists",
-            json={
+            json={"confirmed": True,
                 "code": "D2C",
                 "name": "Direct customers",
                 "direction": "sales",
@@ -714,7 +717,7 @@ def test_company_settings_api_exposes_commercial_and_agent_configuration(
         )
         group = client.post(
             f"/api/tenants/{tenant_id}/pricing-groups",
-            json={"code": "VIP", "name": "VIP customers"},
+            json={"confirmed": True, "code": "VIP", "name": "VIP customers"},
         )
 
         assert term.status_code == 201
@@ -750,11 +753,11 @@ def test_company_settings_api_exposes_commercial_and_agent_configuration(
 
         updated_term = client.put(
             f"/api/tenants/{tenant_id}/payment-terms/{term.json()['id']}",
-            json={"code": "NET30", "name": "Net 30", "due_days": 30},
+            json={"confirmed": True, "code": "NET30", "name": "Net 30", "due_days": 30},
         )
         updated_price_list = client.put(
             f"/api/tenants/{tenant_id}/price-lists/{price_list.json()['id']}",
-            json={
+            json={"confirmed": True,
                 "code": "D2C",
                 "name": "Direct sales",
                 "direction": "sales",
@@ -763,7 +766,7 @@ def test_company_settings_api_exposes_commercial_and_agent_configuration(
         )
         updated_group = client.put(
             f"/api/tenants/{tenant_id}/pricing-groups/{group.json()['id']}",
-            json={"code": "VIP", "name": "Preferred customers"},
+            json={"confirmed": True, "code": "VIP", "name": "Preferred customers"},
         )
 
         assert updated_term.status_code == 200
@@ -2092,7 +2095,7 @@ def test_payment_term_api_records_an_early_payment_discount(session, business):
     try:
         created = client.post(
             f"/api/tenants/{tenant_id}/payment-terms",
-            json={
+            json={"confirmed": True,
                 "code": "SK2_10",
                 "name": "2% 10 days, net 30",
                 "due_days": 30,
@@ -2114,7 +2117,7 @@ def test_payment_term_api_records_an_early_payment_discount(session, business):
         # service, rather than being half-stored.
         half = client.post(
             f"/api/tenants/{tenant_id}/payment-terms",
-            json={
+            json={"confirmed": True,
                 "code": "HALF",
                 "name": "Rate only",
                 "due_days": 30,
@@ -2127,14 +2130,14 @@ def test_payment_term_api_records_an_early_payment_discount(session, business):
         # exactly as it did, through the same endpoint.
         plain = client.post(
             f"/api/tenants/{tenant_id}/payment-terms",
-            json={"code": "NET7", "name": "Net 7", "due_days": 7},
+            json={"confirmed": True, "code": "NET7", "name": "Net 7", "due_days": 7},
         )
         assert plain.status_code == 201
         assert plain.json()["discount_percent"] is None
 
         updated = client.put(
             f"/api/tenants/{tenant_id}/payment-terms/{plain.json()['id']}",
-            json={
+            json={"confirmed": True,
                 "code": "NET7",
                 "name": "Net 7",
                 "due_days": 7,
@@ -2154,7 +2157,7 @@ def test_payment_term_api_round_trips_explicit_prepayment_policy(session, busine
     try:
         created = client.post(
             f"/api/tenants/{tenant_id}/payment-terms",
-            json={
+            json={"confirmed": True,
                 "code": "PREPAY",
                 "name": "Pay before dispatch",
                 "due_days": 0,
@@ -2166,7 +2169,7 @@ def test_payment_term_api_round_trips_explicit_prepayment_policy(session, busine
 
         plain = client.post(
             f"/api/tenants/{tenant_id}/payment-terms",
-            json={"code": "VORKASSE", "name": "Vorkasse", "due_days": 0},
+            json={"confirmed": True, "code": "VORKASSE", "name": "Vorkasse", "due_days": 0},
         )
         assert plain.status_code == 201
         assert plain.json()["requires_prepayment"] is False
@@ -2366,7 +2369,7 @@ def test_booking_makes_the_money_classes_reachable(session, business):
     try:
         client.post(
             f"/api/tenants/{tenant_id}/payment-terms",
-            json={
+            json={"confirmed": True,
                 "code": "SK2_10",
                 "name": "2% 10 days, net 30",
                 "due_days": 30,

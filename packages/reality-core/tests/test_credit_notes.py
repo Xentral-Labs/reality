@@ -1,8 +1,12 @@
+
 from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_manual_document_with_lines,
+)
 
 from reality.services.core import (
     InvalidOperation,
@@ -11,7 +15,6 @@ from reality.services.core import (
     allocate_settlement,
     allocate_supplier_credit_note,
     create_document,
-    create_payment_term,
     create_tenant,
     open_invoice_amount,
     post_customer_payment,
@@ -329,7 +332,7 @@ def test_a_supplier_refund_settles_the_credit(session, business):
 
 def test_a_credit_takes_a_payable_off_the_overdue_queue(session, business):
     tenant_id = business.tenant.id
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     overdue = create_document(
         session,
         tenant_id,

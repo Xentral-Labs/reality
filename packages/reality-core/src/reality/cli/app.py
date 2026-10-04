@@ -22,17 +22,10 @@ from reality.db.core import (
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    add_party_group_member,
-    assign_group_price_list,
-    assign_party_price_list,
     connector_shells,
     correct_movement,
     create_handling_unit,
     create_lot,
-    create_party_group,
-    create_payment_term,
-    create_price_list,
-    create_price_list_entry,
     create_serial_unit,
     create_source_capability,
     create_source_system,
@@ -2018,6 +2011,23 @@ def kit_assemble(
     con.print(f"✓ Assembled: {quantity} × {kit_item_id} at {location_id}")
 
 
+def _confirmed_commercial_cli(session, tenant_id, tool, arguments, *, yes):
+    """Review the stated CLI input before its real retained confirmation."""
+    from reality.db import core as records
+    from reality.services.core import _tenant_record_read
+    from reality.tools.application import create_change_proposal
+
+    proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="human")
+    con.print_json(data={"tool": tool, "input": arguments, "review": json.loads(proposal.output)})
+    if not yes and not typer.confirm("Confirm these exact commercial master changes?"):
+        con.print("Stopped; the proposal remains pending and no commercial master data changed.")
+        raise typer.Exit()
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirmed=True)
+    result = json.loads(receipt.output)["records"][0]
+    models = {"payment_term": records.PaymentTerm, "price_list": records.PriceList, "price_list_entry": records.PriceListEntry, "party_price_list": records.PartyPriceList, "party_group": records.PartyGroup, "party_group_member": records.PartyGroupMember, "party_group_price_list": records.PartyGroupPriceList}
+    return _tenant_record_read(session, models[result["family"]], tenant_id, result["id"])
+
+
 @payment_term_app.command("create")
 def payment_term_create(
     code: str,
@@ -2029,23 +2039,20 @@ def payment_term_create(
     discount_percent: str = "",
     discount_days: int = -1,
     requires_prepayment: bool = False,
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            term = create_payment_term(
-                s,
-                selected.id,
-                code,
-                name,
-                due_days,
-                source_system=source_system,
-                external_id=external_id,
-                discount_percent=discount_percent or None,
+            term = _confirmed_commercial_cli(
+                s, selected.id, "payment_term_create",
+                {"code": code, "name": name, "due_days": due_days,
+                "source_system": source_system, "external_id": external_id,
+                "discount_percent": discount_percent or None,
                 # A negative default is how "not stated" reaches a typed CLI
                 # flag that cannot carry None.
-                discount_days=None if discount_days < 0 else discount_days,
-                requires_prepayment=requires_prepayment,
+                "discount_days": None if discount_days < 0 else discount_days,
+                "requires_prepayment": requires_prepayment}, yes=yes,
             )
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
@@ -2129,12 +2136,14 @@ def pricing_create_list(
     currency: str,
     tenant: str | None = None,
     is_default: bool = False,
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            row = create_price_list(
-                s, selected.id, code, name, direction, currency, is_default=is_default
+            row = _confirmed_commercial_cli(
+                s, selected.id, "price_list_create",
+                {"code": code, "name": name, "direction": direction, "currency": currency, "is_default": is_default}, yes=yes,
             )
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
@@ -2149,12 +2158,14 @@ def pricing_add_tier(
     unit_price: str,
     unit: str,
     tenant: str | None = None,
+    yes: bool = False,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
-            row = create_price_list_entry(
-                s, selected.id, price_list_id, item_id, min_quantity, unit_price, unit
+            row = _confirmed_commercial_cli(
+                s, selected.id, "price_tier_create",
+                {"price_list_id": price_list_id, "item_id": item_id, "min_quantity": min_quantity, "unit_price": unit_price, "unit": unit}, yes=yes,
             )
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
@@ -2163,29 +2174,29 @@ def pricing_add_tier(
 
 @pricing_app.command("assign-party")
 def pricing_assign_party(
-    party_id: str, price_list_id: str, priority: int = 100, tenant: str | None = None
+    party_id: str, price_list_id: str, priority: int = 100, tenant: str | None = None, yes: bool = False
 ):
     with Session() as s:
         selected = selected_tenant(s, tenant)
-        row = assign_party_price_list(s, selected.id, party_id, price_list_id, priority)
+        row = _confirmed_commercial_cli(s, selected.id, "party_price_list_assign", {"party_id": party_id, "price_list_id": price_list_id, "priority": priority}, yes=yes)
     con.print(f"✓ Party price list assigned: {row.id}")
 
 
 @pricing_app.command("create-group")
-def pricing_create_group(code: str, name: str, tenant: str | None = None):
+def pricing_create_group(code: str, name: str, tenant: str | None = None, yes: bool = False):
     with Session() as s:
         selected = selected_tenant(s, tenant)
-        row = create_party_group(s, selected.id, code, name)
+        row = _confirmed_commercial_cli(s, selected.id, "party_group_create", {"code": code, "name": name}, yes=yes)
     con.print(f"✓ Pricing group created: {row.code} ({row.id})")
 
 
 @pricing_app.command("add-group-member")
 def pricing_add_group_member(
-    party_group_id: str, party_id: str, tenant: str | None = None
+    party_group_id: str, party_id: str, tenant: str | None = None, yes: bool = False
 ):
     with Session() as s:
         selected = selected_tenant(s, tenant)
-        row = add_party_group_member(s, selected.id, party_group_id, party_id)
+        row = _confirmed_commercial_cli(s, selected.id, "party_group_member_add", {"party_group_id": party_group_id, "party_id": party_id}, yes=yes)
     con.print(f"✓ Pricing group member added: {row.id}")
 
 
@@ -2195,11 +2206,12 @@ def pricing_assign_group(
     price_list_id: str,
     priority: int = 100,
     tenant: str | None = None,
+    yes: bool = False,
 ):
     with Session() as s:
         selected = selected_tenant(s, tenant)
-        row = assign_group_price_list(
-            s, selected.id, party_group_id, price_list_id, priority
+        row = _confirmed_commercial_cli(
+            s, selected.id, "group_price_list_assign", {"party_group_id": party_group_id, "price_list_id": price_list_id, "priority": priority}, yes=yes,
         )
     con.print(f"✓ Group price list assigned: {row.id}")
 

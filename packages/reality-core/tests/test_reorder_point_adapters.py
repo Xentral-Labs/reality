@@ -4,6 +4,11 @@ import json
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import (
+    reviewed_assign_party_price_list,
+    reviewed_create_price_list,
+    reviewed_create_price_list_entry,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -325,13 +330,13 @@ def test_an_agent_orders_from_the_entry_and_the_entry_clears(session, business):
     set_reorder_point(
         session, tenant, business.item.id, business.location.id, "20", "48"
     )
-    price_list = core.create_price_list(
+    price_list = reviewed_create_price_list(
         session, tenant, "PL", "Parts", "purchase", "EUR"
     )
-    core.create_price_list_entry(
+    reviewed_create_price_list_entry(
         session, tenant, price_list.id, business.item.id, "1", "4.50", "pcs"
     )
-    core.assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
+    reviewed_assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
 
     (entry,) = [
         row

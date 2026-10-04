@@ -1,6 +1,8 @@
+
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_create_payment_term
 from sqlalchemy import select
 
 from reality.db.core import Document, DocumentLine, PartyRole
@@ -9,13 +11,12 @@ from reality.services.core import (
     cancel_commitment,
     create_commitment,
     create_document,
-    create_payment_term,
     record_movement,
 )
 
 
 def test_document_and_commitment_operational_fields(session, business):
-    term = create_payment_term(session, business.tenant.id, "NET_30", "Net 30 days", 30)
+    term = reviewed_create_payment_term(session, business.tenant.id, "NET_30", "Net 30 days", 30)
     document = create_document(
         session,
         business.tenant.id,
@@ -69,7 +70,7 @@ def test_document_line_correction_adds_no_operational_or_revision_state():
 
 
 def test_master_data_fields_roles_and_constraints(session, business):
-    term = create_payment_term(session, business.tenant.id, "NET_30", "Net 30 days", 30)
+    term = reviewed_create_payment_term(session, business.tenant.id, "NET_30", "Net 30 days", 30)
     party = reviewed_create_party(
         session,
         business.tenant.id,

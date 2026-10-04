@@ -10,7 +10,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import Movement
@@ -21,7 +25,7 @@ from reality.tools.application import approve_and_execute_proposal
 
 def _prepayment_order(session, business, *, reserve=True):
     tenant = business.tenant.id
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
     )
     core.record_movement(

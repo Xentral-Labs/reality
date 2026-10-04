@@ -65,52 +65,58 @@ by all required checks and honest unresolved-outcome reporting.
 
 ## Canonical master-data boundary qualification (FR-001–FR-003)
 
-- [ ] T019 Prove direct create/update refusal with arbitrary action tags in enabled/disabled authentication, then enforce exact canonical Party/Item/Location invocation authority.
-- [ ] T020 Prove changed callback arguments, repeat invocation and premature root commit leave no partial source/master records; qualify confirmed ordinary company-partner creation and retained replay.
-- [ ] T021 Route CLI master create/update through retained catalog proposals and explicit confirmation; migrate legitimate test setup to real named Owner decisions and verify transport/lesson parity.
-- [ ] T022 Complete master-family source, annotation/catalog, full regression and committed-head CI evidence without claiming remaining writer families are covered.
+- [x] T019 Prove direct create/update refusal with arbitrary action tags in enabled/disabled authentication, then enforce exact canonical Party/Item/Location invocation authority.
+- [x] T020 Prove changed callback arguments, repeat invocation and premature root commit leave no partial source/master records; qualify confirmed ordinary company-partner creation and retained replay.
+- [x] T021 Route CLI master create/update through retained catalog proposals and explicit confirmation; migrate legitimate test setup to real named Owner decisions and verify transport/lesson parity.
+- [x] T022 Complete master-family source, annotation/catalog, full regression and committed-head CI evidence without claiming remaining writer families are covered.
 
 ## Canonical finance configuration boundary qualification (FR-001–FR-003)
 
-- [ ] T023 Prove valid direct finance/account calls, action tags and unconfirmed dispatch cannot authorize accepted configuration.
-- [ ] T024 Bind the existing atomic proposed Finance branch to actual confirmation under its existing delivery/finance/proposal locks, without changing claim state or committing an intermediate decision.
-- [ ] T025 Freeze exact account calls, recheck the current confirming person/token and reject changed/repeated callbacks and premature root commits; preserve fixed default-account bootstrap and historical migration fixtures explicitly.
-- [ ] T026 Route legitimate account tests/adapters through confirmed existing commands; complete focused/full regression and committed-head CI evidence, with remaining business writer coverage pending.
+- [x] T023 Prove valid direct finance/account calls, action tags and unconfirmed dispatch cannot authorize accepted configuration.
+- [x] T024 Bind the existing atomic proposed Finance branch to actual confirmation under its existing delivery/finance/proposal locks, without changing claim state or committing an intermediate decision.
+- [x] T025 Freeze exact account calls, recheck the current confirming person/token and reject changed/repeated callbacks and premature root commits; preserve fixed default-account bootstrap and historical migration fixtures explicitly.
+- [x] T026 Route legitimate account tests/adapters through confirmed existing commands; complete focused/full regression and committed-head CI evidence, with remaining business writer coverage pending.
 
 ## Normalized document boundary qualification (FR-001–FR-003)
 
-- [ ] T027 Add meaningful direct/tag and absent-confirmation refusal proofs for normalized Document/DocumentLine creation.
-- [ ] T028 Enforce current finite command/root authority, frozen single-use child calls and atomic receipt/evidence settlement.
-- [ ] T029 Route the manual-document Web adapter and legitimate fixtures through actual confirmed existing commands; preserve historical evidence without backfilled consent.
-- [ ] T030 Qualify document/order/invoice/credit scenarios, browser and full committed-head CI; keep header/correction writer closure pending.
+- [x] T027 Add meaningful direct/tag and absent-confirmation refusal proofs for normalized Document/DocumentLine creation.
+- [x] T028 Enforce current finite command/root authority, frozen single-use child calls and atomic receipt/evidence settlement.
+- [x] T029 Route the manual-document Web adapter and legitimate fixtures through actual confirmed existing commands; preserve historical evidence without backfilled consent.
+- [x] T030 Qualify document/order/invoice/credit scenarios, browser and full committed-head CI; keep header/correction writer closure pending.
 
 ## Atomic order boundary qualification (FR-001–FR-003)
 
-- [ ] T031 Observe meaningful changed/repeated/early-commit/post-write-failure proofs on valid orders.
-- [ ] T032 Freeze and consume the actual canonical order invocation and settle source/evidence/promises with its receipt atomically.
-- [ ] T033 Qualify both directions, current authority, replay, catalog/browser and committed-head CI.
+- [x] T031 Observe meaningful changed/repeated/early-commit/post-write-failure proofs on valid orders.
+- [x] T032 Freeze and consume the actual canonical order invocation and settle source/evidence/promises with its receipt atomically.
+- [x] T033 Qualify both directions, current authority, replay, catalog/browser and committed-head CI.
 
 ## Atomic invoice boundary qualification (FR-001–FR-003)
 
-- [ ] T034 Observe valid changed/repeated/early-commit/post-write failure proofs for sales, supplier and free supplier invoices.
-- [ ] T035 Freeze canonical parent calls and settle retained source/evidence/postings/offsets with their actual receipt.
-- [ ] T036 Qualify invoice variants, fixed setup, adapters and complete committed-head CI.
+- [x] T034 Observe valid changed/repeated/early-commit/post-write failure proofs for sales, supplier and free supplier invoices.
+- [x] T035 Freeze canonical parent calls and settle retained source/evidence/postings/offsets with their actual receipt.
+- [x] T036 Qualify invoice variants, fixed setup, adapters and complete committed-head CI.
 ## Current MCP authority qualification (FR-003)
 
-- [ ] T037 Prove real interactive grant/credential revocation, expiry and permission changes after dispatch refuse master/Finance effects.
-- [ ] T038 Bind the actual verified MCP principal to existing scopes and check its current persisted authority before effects.
-- [ ] T039 Qualify positive real OAuth confirmation, manual/interactive parity, adapters and full committed-head CI.
+- [x] T037 Prove real interactive grant/credential revocation, expiry and permission changes after dispatch refuse master/Finance effects.
+- [x] T038 Bind the actual verified MCP principal to existing scopes and check its current persisted authority before effects.
+- [x] T039 Qualify positive real OAuth confirmation, manual/interactive parity, adapters and full committed-head CI.
 ## Live source control lock-order regression qualification
 
-- [ ] T046 Correct the real production/settlement worker and Pause schedule cycle.
-- [ ] T047 Qualify shared scheduling/demo semantics, PostgreSQL lock order and real company setup browser.
+- [x] T046 Correct the real production/settlement worker and Pause schedule cycle.
+- [x] T047 Qualify shared scheduling/demo semantics, PostgreSQL lock order and real company setup browser.
 ## Atomic customer credit boundary qualification
 
-- [ ] T040 Prove changed/repeated parent and ledger/allocation calls, early commit, post-write failure and unrelated effects.
-- [ ] T041 Freeze both existing credit recorders and their posting/allocation inside actual retained confirmation.
-- [ ] T042 Qualify modern/legacy source values, replay, adapters and complete committed-head CI.
+- [x] T040 Prove changed/repeated parent and ledger/allocation calls, early commit, post-write failure and unrelated effects.
+- [x] T041 Freeze both existing credit recorders and their posting/allocation inside actual retained confirmation.
+- [x] T042 Qualify modern/legacy source values, replay, adapters and complete committed-head CI.
 ## Fixed new-company reference exception qualification
 
 - [ ] T043 Prove existing-company, changed identity, repeat, early commit and post-write failure refusal.
 - [ ] T044 Bind actual transient-company insertion and fixed references atomically across ordinary/lesson creation.
 - [ ] T045 Qualify fixed reference values, creation, historical migration compatibility and committed-head CI.
+## Commercial master data qualification
+
+- [ ] T048 Prove direct/unconfirmed/changed/repeated/early-commit/post-write failure and sibling effects for the ten existing commands.
+- [ ] T049 Freeze canonical commercial master services, preserve fixed setup and route REST/CLI through real confirmation.
+- [ ] T050 Qualify stated values, tenant/current authority, replay, commercial/setup/adapters and full committed-head CI.
+- [ ] T051 Prove changed retained commercial reference state requires renewed review, preserving current authority and exact source values.

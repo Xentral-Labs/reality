@@ -6,12 +6,12 @@ import ast
 import inspect
 
 import pytest
+from intake_review_support import reviewed_create_price_list
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, ChangeProposal
 from reality.services.core import (
     InvalidOperation,
-    create_price_list,
     create_tenant,
     emit_business_event,
     executing_proposal,
@@ -165,7 +165,7 @@ def test_a_confirmed_price_list_references_its_decision(session, business):
 def test_a_confirmed_price_tier_and_assignment_reference_their_decisions(
     session, business
 ):
-    price_list = create_price_list(
+    price_list = reviewed_create_price_list(
         session, business.tenant.id, "VK", "Sales", "sales", "EUR"
     )
     tier, tier_events = _confirm(

@@ -8,7 +8,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -28,7 +32,7 @@ def _order(session, business, number="SO-299", total="1000.00", prepay=False):
             core.PaymentTerm.tenant_id == tenant, core.PaymentTerm.code == "PREPAY"
         )
     ):
-        core.create_payment_term(
+        reviewed_create_payment_term(
             session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
         )
     _, order, lines, commitments = reviewed_manual_order(

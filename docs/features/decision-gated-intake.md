@@ -109,3 +109,16 @@ Customer credit qualification now freezes both existing sales_credit_record
 variants and their exact credit posting and explicit netting. Receipt settlement
 owns the root transaction; a credit confirmation grants no refund or stock effect.
 Full committed-head qualification and remaining writer closure are still pending.
+
+Commercial master commands now retain explicit confirmation for payment-term
+create/update, price-list create/update, price tiers, party/group price-list
+assignments and party-group create/update/membership. REST requires an explicit
+confirmed flag and records the actual authenticated person. CLI presents the
+exact statement before confirmation; an unauthenticated local CLI decision does
+not invent a person or channel attribution. Canonical callbacks are frozen,
+consumed once and committed with their receipt. Opaque reference IDs and hashes
+of their current stored state require renewed review after another real decision
+changes that state. Price, quantity, discount and priority statements are recorded
+as received. Fixed declared setup calls retain their existing profile authority.
+Lifecycle/source-reference and other operational writers remain separate tasks;
+this finite command list is not universal writer certification.

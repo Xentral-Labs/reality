@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from intake_review_support import reviewed_create_payment_term
 from sqlalchemy import func, select
 from test_intake_admission import FIXTURE
 
@@ -259,7 +260,7 @@ def test_unstated_order_total_stays_unknown_in_delivery_readiness(
 
     tenant = business.tenant.id
     if prepayment:
-        term = core.create_payment_term(
+        term = reviewed_create_payment_term(
             session,
             tenant,
             "UNSTATED-PREPAY",

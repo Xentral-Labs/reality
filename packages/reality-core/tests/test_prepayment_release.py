@@ -4,7 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order
+from intake_review_support import reviewed_create_payment_term, reviewed_manual_order
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -50,7 +50,7 @@ def _order(session, business, number, *, prepaid=True, paid="80.00"):
             core.PaymentTerm.tenant_id == tenant, core.PaymentTerm.code == code
         )
     ):
-        core.create_payment_term(
+        reviewed_create_payment_term(
             session,
             tenant,
             code,

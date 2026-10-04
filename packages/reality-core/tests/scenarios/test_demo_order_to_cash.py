@@ -12,6 +12,7 @@ from intake_review_support import (
     accept_import_job,
     accept_normalized_invoice,
     accept_normalized_payment,
+    reviewed_create_payment_term,
 )
 from sqlalchemy import func, select
 
@@ -46,7 +47,7 @@ def references(business):
 
 def prepare(session, tenant):
     term = dict(DEMO_DATA_PAYMENT_TERM)
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session,
         tenant,
         term["code"],

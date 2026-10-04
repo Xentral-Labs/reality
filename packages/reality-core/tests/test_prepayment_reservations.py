@@ -4,6 +4,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from intake_review_support import (
+    reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_record_sales_invoice,
 )
@@ -18,8 +19,8 @@ CLASS = "reservation_awaiting_prepayment"
 
 def _terms(session, business):
     tenant = business.tenant.id
-    core.create_payment_term(session, tenant, "NET14", "Net 14", 14)
-    core.create_payment_term(
+    reviewed_create_payment_term(session, tenant, "NET14", "Net 14", 14)
+    reviewed_create_payment_term(
         session, tenant, "PREPAY", "Pay before dispatch", 0, requires_prepayment=True
     )
     core.record_movement(

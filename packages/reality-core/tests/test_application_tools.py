@@ -1,9 +1,11 @@
+
 import json
 from datetime import timedelta
 from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_create_payment_term
 
 from reality.db.core import (
     AppUser,
@@ -27,7 +29,6 @@ from reality.services.core import (
     NotFound,
     active_reserved,
     create_commitment,
-    create_payment_term,
     create_tenant,
     record_movement,
     reserve,
@@ -404,7 +405,7 @@ def test_executing_proposal_requires_reconciliation_without_reexecution(
 def test_deterministic_unreviewed_refusal_is_terminal_and_retryable_as_new_proposal(
     session, business
 ):
-    create_payment_term(session, business.tenant.id, "DUP", "Existing", 30)
+    reviewed_create_payment_term(session, business.tenant.id, "DUP", "Existing", 30)
     proposal = propose_tool(
         session,
         business.tenant.id,
@@ -413,7 +414,7 @@ def test_deterministic_unreviewed_refusal_is_terminal_and_retryable_as_new_propo
     )
 
     with pytest.raises(InvalidOperation, match="already exists"):
-        confirm_tool(session, business.tenant.id, proposal.id)
+        confirm_tool(session, business.tenant.id, proposal.id, confirmed=True)
 
     status = run_read_tool(
         session,

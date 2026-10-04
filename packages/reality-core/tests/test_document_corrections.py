@@ -1,8 +1,12 @@
+
 import json
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_manual_document_with_lines,
+)
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, DocumentLine, SourceRecord
@@ -13,7 +17,6 @@ from reality.services.core import (
     correct_manual_document_lines,
     create_commitment,
     create_document,
-    create_payment_term,
     create_tenant,
     enqueue_source,
     manual_document_line_snapshot,
@@ -23,7 +26,7 @@ from reality.services.core import (
 
 
 def test_manual_document_correction_records_typed_fields_and_event(session, business):
-    term = create_payment_term(session, business.tenant.id, "NET14", "Net 14", 14)
+    term = reviewed_create_payment_term(session, business.tenant.id, "NET14", "Net 14", 14)
     document = create_document(
         session,
         business.tenant.id,

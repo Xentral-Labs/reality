@@ -1,9 +1,10 @@
 """Spec 349: the company time zone business days are counted in."""
+
 from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
 import pytest
-from intake_review_support import accept_import_job
+from intake_review_support import accept_import_job, reviewed_create_payment_term
 from sqlalchemy import select
 
 from reality.db.core import Document, SourceRecord
@@ -43,7 +44,7 @@ def _shop_order(order_id, sku, created_at):
 
 def _net30(session, tenant):
     """Thirty days from 1 October: due 31 October."""
-    core.create_payment_term(session, tenant, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant, "NET30", "Net 30 days", 30)
     return "NET30"
 
 

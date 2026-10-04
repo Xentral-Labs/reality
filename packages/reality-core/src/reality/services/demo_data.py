@@ -301,12 +301,13 @@ def _materialize(session: Session, run: PlaygroundRun, actor_id: str, proposed: 
         for row in proposed["add"]["items"]:
             _invoke('create_item', core.create_item, session, tenant_id, sku=item_number(row['key']), name=row['name'], unit=row['unit'], source_system='demo_data', external_id=f"master:{row['key']}", source_payload={**row, 'synthetic': True}, _commit=False)
         for row in proposed["add"].get("payment_terms", []):
-            core.create_payment_term(
+            _invoke(
+                "create_payment_term", core.create_payment_term,
                 session,
                 tenant_id,
-                row["code"],
-                row["name"],
-                row["due_days"],
+                code=row["code"],
+                name=row["name"],
+                due_days=row["due_days"],
                 source_system="demo_data",
                 external_id=f"master:term:{row['code']}",
                 source_payload={**row, "synthetic": True},

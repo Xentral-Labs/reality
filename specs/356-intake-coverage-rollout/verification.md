@@ -387,3 +387,33 @@ both its benchmark and control companies; it receives no manufactured person
 decision or production admission bypass. All 13 fixed-reference/large-register
 contract checks passed (6.83 seconds). Ruff passes for the complete package.
 Updated-head full CI remains required.
+
+## Commercial master qualification in progress
+
+On the unchanged parent, the first callback suite failed 57 checks; three
+post-write update cases initially compared counts rather than full stored state.
+After correcting that proof to compare all stored columns, all ten post-write
+failure cases failed meaningfully. The additional 37 unconfirmed/private-input/
+changed-reference cases also failed on the frozen parent. After finite canonical
+freezing and application-owned settlement, the initial 60 checks and expanded
+107 checks passed (8.16 and 13.35 seconds respectively). Current reference
+changes were made through a second real retained confirmation, not synthetic
+authority or an invented executing proposal.
+
+The first broader follow-up had 249 passes and five positive adapter failures:
+older positive commercial API requests and one duplicate-term confirmation did
+not explicitly confirm. Those fixtures now supply actual positive confirmation;
+the invalid discount request still reaches the original domain validator.
+The expanded authenticated HTTP and CLI run had 228 passes and two new CLI
+test failures caused by querying a nonexistent proposal.tool attribute; its
+actual persisted field is type. Both CLI commands themselves returned success.
+The assertion now queries the actual tool-prefixed type. Final adapter, setup,
+source preservation, annotation, catalog and committed-head CI checks remain
+required. No universal writer closure is claimed.
+
+The corrected final commercial/adapters/finance/purchasing/demo/company/setup/
+Playground/Storyline/business-annotation run passed all 404 tests in 236.40
+seconds. It includes all 20 actual authenticated-person HTTP cases and both CLI
+confirmation/decline cases. Ruff, business annotation audit and spec policy pass.
+Complete committed-head CI remains required; lifecycle and other writer families
+remain open.

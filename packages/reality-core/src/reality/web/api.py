@@ -65,13 +65,10 @@ from reality.services.core import (
     NotFound,
     activity_signal,
     add_chat_assistant_message,
-    add_party_group_member,
     allocate_credit_note,
     allocate_supplier_credit_note,
     announce_customer_return,
     archive_tenant,
-    assign_group_price_list,
-    assign_party_price_list,
     change_proposal_count,
     change_proposals,
     chat_message_counts,
@@ -88,10 +85,6 @@ from reality.services.core import (
     create_chat_session,
     create_handling_unit,
     create_lot,
-    create_party_group,
-    create_payment_term,
-    create_price_list,
-    create_price_list_entry,
     create_serial_unit,
     create_source_capability,
     create_source_system,
@@ -166,9 +159,6 @@ from reality.services.core import (
     tenant_usage_summaries,
     tenants,
     timeline_activity,
-    update_party_group,
-    update_payment_term,
-    update_price_list,
     withdraw_return_announcement,
 )
 from reality.services.inspector_presentation import (
@@ -3430,6 +3420,30 @@ class GroupMemberWrite(ApiModel):
     party_id: str
 
 
+class PaymentTermMutation(PaymentTermWrite):
+    confirmed: bool = False
+
+
+class PriceListMutation(PriceListWrite):
+    confirmed: bool = False
+
+
+class PriceTierMutation(PriceTierWrite):
+    confirmed: bool = False
+
+
+class PricingAssignmentMutation(PricingAssignmentWrite):
+    confirmed: bool = False
+
+
+class PricingGroupMutation(PricingGroupWrite):
+    confirmed: bool = False
+
+
+class GroupMemberMutation(GroupMemberWrite):
+    confirmed: bool = False
+
+
 class SourceWrite(ApiModel):
     source_system: str
     source_type: str
@@ -4225,40 +4239,41 @@ def list_payment_terms(tenant_id: str, session: DatabaseSession):
     response_model=PaymentTermRead,
     status_code=status.HTTP_201_CREATED,
 )
-def post_payment_term(tenant_id: str, body: PaymentTermWrite, session: DatabaseSession):
+def post_payment_term(tenant_id: str, body: PaymentTermMutation, session: DatabaseSession, request: Request):
     try:
-        return create_payment_term(
-            session,
-            tenant_id,
-            body.code,
-            body.name,
-            body.due_days,
-            source_system=body.source_system or "",
-            external_id=body.external_id or "",
-            source_payload=body.source_payload,
-            discount_percent=body.discount_percent,
-            discount_days=body.discount_days,
-            requires_prepayment=body.requires_prepayment,
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "payment_term_create",
+            {**body.model_dump(mode="json", exclude={"confirmed"}), "source_system": body.source_system or "", "external_id": body.external_id or ""},
+            confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
+def _confirmed_commercial_record(session, tenant_id, request, tool, arguments, *, confirmed):
+    """Confirm the actual request and return its retained canonical record."""
+    from reality.db import core as records
+    from reality.services.core import _tenant_record_read
+    from reality.tools.application import create_change_proposal
+
+    if not confirmed:
+        raise InvalidOperation(code="review_confirmation_required")
+    proposal = create_change_proposal(session, tenant_id, tool, arguments, actor_type="user")
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=optional_request_principal(request), confirmed=confirmed)
+    result = json.loads(receipt.output)["records"][0]
+    models = {"payment_term": records.PaymentTerm, "price_list": records.PriceList, "price_list_entry": records.PriceListEntry, "party_price_list": records.PartyPriceList, "party_group": records.PartyGroup, "party_group_member": records.PartyGroupMember, "party_group_price_list": records.PartyGroupPriceList}
+    return _tenant_record_read(session, models[result["family"]], tenant_id, result["id"])
+
+
 @router.put("/payment-terms/{record_id}", response_model=PaymentTermRead)
 def put_payment_term(
-    tenant_id: str, record_id: str, body: PaymentTermWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: PaymentTermMutation, session: DatabaseSession, request: Request
 ):
     try:
-        return update_payment_term(
-            session,
-            tenant_id,
-            record_id,
-            body.code,
-            body.name,
-            body.due_days,
-            discount_percent=body.discount_percent,
-            discount_days=body.discount_days,
-            requires_prepayment=body.requires_prepayment,
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "payment_term_update",
+            {"payment_term_id": record_id, **body.model_dump(mode="json", exclude={"confirmed", "source_system", "external_id", "source_payload"})},
+            confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4290,16 +4305,11 @@ def list_price_lists(tenant_id: str, session: DatabaseSession):
 
 
 @router.post("/price-lists", response_model=PriceListRead, status_code=201)
-def post_price_list(tenant_id: str, body: PriceListWrite, session: DatabaseSession):
+def post_price_list(tenant_id: str, body: PriceListMutation, session: DatabaseSession, request: Request):
     try:
-        return create_price_list(
-            session,
-            tenant_id,
-            body.code,
-            body.name,
-            body.direction,
-            body.currency,
-            is_default=body.is_default,
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "price_list_create",
+            body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4307,18 +4317,12 @@ def post_price_list(tenant_id: str, body: PriceListWrite, session: DatabaseSessi
 
 @router.put("/price-lists/{record_id}", response_model=PriceListRead)
 def put_price_list(
-    tenant_id: str, record_id: str, body: PriceListWrite, session: DatabaseSession
+    tenant_id: str, record_id: str, body: PriceListMutation, session: DatabaseSession, request: Request
 ):
     try:
-        return update_price_list(
-            session,
-            tenant_id,
-            record_id,
-            body.code,
-            body.name,
-            body.direction,
-            body.currency,
-            is_default=body.is_default,
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "price_list_update",
+            {"price_list_id": record_id, **body.model_dump(mode="json", exclude={"confirmed"})}, confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4330,16 +4334,11 @@ def list_price_tiers(tenant_id: str, session: DatabaseSession):
 
 
 @router.post("/price-tiers", status_code=201)
-def post_price_tier(tenant_id: str, body: PriceTierWrite, session: DatabaseSession):
+def post_price_tier(tenant_id: str, body: PriceTierMutation, session: DatabaseSession, request: Request):
     try:
-        return create_price_list_entry(
-            session,
-            tenant_id,
-            body.price_list_id,
-            body.item_id,
-            body.min_quantity,
-            body.unit_price,
-            body.unit,
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "price_tier_create",
+            body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4349,12 +4348,14 @@ def post_price_tier(tenant_id: str, body: PriceTierWrite, session: DatabaseSessi
 def post_party_price_list(
     tenant_id: str,
     party_id: str,
-    body: PricingAssignmentWrite,
+    body: PricingAssignmentMutation,
     session: DatabaseSession,
+    request: Request,
 ):
     try:
-        return assign_party_price_list(
-            session, tenant_id, party_id, body.price_list_id, body.priority
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "party_price_list_assign",
+            {"party_id": party_id, **body.model_dump(mode="json", exclude={"confirmed"})}, confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4362,20 +4363,20 @@ def post_party_price_list(
 
 @router.post("/pricing-groups", status_code=201)
 def post_pricing_group(
-    tenant_id: str, body: PricingGroupWrite, session: DatabaseSession
+    tenant_id: str, body: PricingGroupMutation, session: DatabaseSession, request: Request
 ):
     try:
-        return create_party_group(session, tenant_id, body.code, body.name)
+        return _confirmed_commercial_record(session, tenant_id, request, "party_group_create", body.model_dump(mode="json", exclude={"confirmed"}), confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
 @router.put("/pricing-groups/{group_id}")
 def put_pricing_group(
-    tenant_id: str, group_id: str, body: PricingGroupWrite, session: DatabaseSession
+    tenant_id: str, group_id: str, body: PricingGroupMutation, session: DatabaseSession, request: Request
 ):
     try:
-        return update_party_group(session, tenant_id, group_id, body.code, body.name)
+        return _confirmed_commercial_record(session, tenant_id, request, "party_group_update", {"party_group_id": group_id, **body.model_dump(mode="json", exclude={"confirmed"})}, confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -4395,10 +4396,10 @@ def list_pricing_groups(tenant_id: str, session: DatabaseSession):
 
 @router.post("/pricing-groups/{group_id}/members", status_code=201)
 def post_pricing_group_member(
-    tenant_id: str, group_id: str, body: GroupMemberWrite, session: DatabaseSession
+    tenant_id: str, group_id: str, body: GroupMemberMutation, session: DatabaseSession, request: Request
 ):
     try:
-        return add_party_group_member(session, tenant_id, group_id, body.party_id)
+        return _confirmed_commercial_record(session, tenant_id, request, "party_group_member_add", {"party_group_id": group_id, **body.model_dump(mode="json", exclude={"confirmed"})}, confirmed=body.confirmed)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -4407,12 +4408,14 @@ def post_pricing_group_member(
 def post_group_price_list(
     tenant_id: str,
     group_id: str,
-    body: PricingAssignmentWrite,
+    body: PricingAssignmentMutation,
     session: DatabaseSession,
+    request: Request,
 ):
     try:
-        return assign_group_price_list(
-            session, tenant_id, group_id, body.price_list_id, body.priority
+        return _confirmed_commercial_record(
+            session, tenant_id, request, "group_price_list_assign",
+            {"party_group_id": group_id, **body.model_dump(mode="json", exclude={"confirmed"})}, confirmed=body.confirmed,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error

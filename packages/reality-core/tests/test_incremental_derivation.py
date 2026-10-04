@@ -14,6 +14,7 @@ not known to be a net.
 import json
 from decimal import Decimal
 
+from intake_review_support import reviewed_create_payment_term
 from sqlalchemy import select
 
 from reality.db.core import ProjectionRow
@@ -1706,11 +1707,10 @@ def test_a_reversal_is_the_row_it_changes(session, business):
 def test_a_payment_term_reaches_the_documents_of_the_parties_that_inherit_it(
     session, business
 ):
-    from reality.services.core import create_payment_term
 
     tenant = business.tenant.id
     a_little_business(session, business)
-    term = create_payment_term(session, tenant, "NET30", "30 Tage netto", 30)
+    term = reviewed_create_payment_term(session, tenant, "NET30", "30 Tage netto", 30)
     reviewed_update_party(
         session,
         tenant,

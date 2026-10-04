@@ -14,6 +14,7 @@ import pytest
 from conftest import record_by_id
 from intake_review_support import (
     accept_normalized_payment,
+    reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
     reviewed_record_sales_credit,
@@ -671,7 +672,7 @@ def _invoice_line(session, business, order_line_id, quantity, gross, number, **e
 def test_one_payment_releases_two_prepaid_orders(session, business):
     """C04: one transfer pays both prepayment invoices and both orders may ship."""
     tenant = business.tenant.id
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
     )
     core.record_movement(
@@ -809,7 +810,7 @@ def test_the_party_balance_counts_credits_deposits_and_prepayments_once(
 ):
     """N06: open invoices, a credit note, a deposit and prepayments in one balance."""
     tenant = business.tenant.id
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
     )
 
@@ -1011,7 +1012,7 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
     from reality.services.memberships import Principal
 
     tenant = business.tenant.id
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
     )
     core.record_movement(
@@ -1727,7 +1728,7 @@ def test_an_order_over_the_limit_is_held_and_released_by_an_owner(session, busin
     from reality.services.memberships import Principal
 
     tenant = business.tenant.id
-    core.create_payment_term(session, tenant, "NET30", "Net 30", 30)
+    reviewed_create_payment_term(session, tenant, "NET30", "Net 30", 30)
     core.record_movement(
         session,
         tenant,
@@ -1837,7 +1838,7 @@ def test_the_credit_hold_names_the_overdue_items_behind_it(session, business):
     from reality.services.exceptions import operational_exceptions
 
     tenant = business.tenant.id
-    core.create_payment_term(session, tenant, "NET30", "Net 30", 30)
+    reviewed_create_payment_term(session, tenant, "NET30", "Net 30", 30)
     party = _limited_customer(session, business, "Velo Nord")
     late = [
         _posted(session, business, "sales_invoice", number, party, amount, day)
@@ -1882,7 +1883,7 @@ def test_a_customer_who_is_also_a_supplier_is_held_with_every_fact(session, busi
     from reality.services.credit_exposure import credit_exposure
 
     tenant = business.tenant.id
-    core.create_payment_term(session, tenant, "NET30", "Net 30", 30)
+    reviewed_create_payment_term(session, tenant, "NET30", "Net 30", 30)
     party = _limited_customer(
         session, business, "Kurbelwerk GmbH", roles=["customer", "supplier"]
     )
@@ -1916,7 +1917,7 @@ def test_a_customer_who_is_also_a_supplier_is_held_with_every_fact(session, busi
 def _stocked_order(session, business, number, *, prepay=False, quantity="10"):
     tenant = business.tenant.id
     if prepay:
-        core.create_payment_term(
+        reviewed_create_payment_term(
             session, tenant, f"PRE-{number}", "Prepayment", 0, requires_prepayment=True
         )
     core.record_movement(

@@ -1,3 +1,4 @@
+
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
@@ -6,6 +7,9 @@ import pytest
 from conftest import record_by_id
 from intake_review_support import accept_import_job as process_import_job
 from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_create_price_list,
+    reviewed_create_price_list_entry,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
 )
@@ -25,9 +29,6 @@ from reality.services.core import (
     allocate_supplier_credit_note,
     create_commitment,
     create_document,
-    create_payment_term,
-    create_price_list,
-    create_price_list_entry,
     create_source_capability,
     create_source_system,
     create_tenant,
@@ -771,7 +772,7 @@ def sales_invoice(
 
 def overdue_invoice(session, business, number="RE-9001", amount="1000.00"):
     """A posted sales invoice due 2026-07-31, so overdue at AS_OF."""
-    create_payment_term(session, business.tenant.id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, business.tenant.id, "NET30", "Net 30 days", 30)
     invoice = sales_invoice(
         session, business, number, "2026-07-01", amount, term_code="NET30"
     )
@@ -797,7 +798,7 @@ def test_overdue_receivable(session, business):
 
 def test_overdue_receivable_boundaries(session, business):
     tenant_id = business.tenant.id
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     overdue = sales_invoice(session, business, "RE-1", "2026-07-01", term_code="NET30")
     not_yet_due = sales_invoice(
         session, business, "RE-2", "2026-08-30", term_code="NET30"
@@ -911,7 +912,7 @@ def test_overdue_receivable_is_tenant_scoped(session, business):
     mine, _ = overdue_invoice(session, business)
     other_tenant = create_tenant(session, "Nordwind Handel GmbH")
     other_customer = reviewed_create_party(session, other_tenant.id, "Schmidt AG", "customer")
-    create_payment_term(session, other_tenant.id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, other_tenant.id, "NET30", "Net 30 days", 30)
     theirs = create_document(
         session,
         other_tenant.id,
@@ -1265,7 +1266,7 @@ def supplier_invoice_with_term(
 
 def overdue_supplier_invoice(session, business, number="ER-9001", amount="600.00"):
     """A posted supplier invoice due 2026-07-31, so overdue at AS_OF."""
-    create_payment_term(session, business.tenant.id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, business.tenant.id, "NET30", "Net 30 days", 30)
     invoice = supplier_invoice_with_term(
         session, business, number, "2026-07-01", amount
     )
@@ -1290,7 +1291,7 @@ def test_overdue_payable(session, business):
 
 def test_payable_and_receivable_share_one_rule(session, business):
     tenant_id = business.tenant.id
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     # Neither invoice carries a term of its own; both parties do. The cascade
     # has to work identically on both sides or the two disagree about "due".
     reviewed_update_party(
@@ -1340,7 +1341,7 @@ def test_payable_and_receivable_share_one_rule(session, business):
 
 def test_overdue_payable_boundaries(session, business):
     tenant_id = business.tenant.id
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     overdue = supplier_invoice_with_term(session, business, "ER-1", "2026-07-01")
     not_yet_due = supplier_invoice_with_term(session, business, "ER-2", "2026-08-30")
     no_date = supplier_invoice_with_term(session, business, "ER-3", "")
@@ -1379,7 +1380,7 @@ def test_overdue_payable_boundaries(session, business):
 
 def test_overdue_payable_orders_longest_first(session, business):
     tenant_id = business.tenant.id
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     older = supplier_invoice_with_term(session, business, "ER-8000", "2026-05-01")
     newer = supplier_invoice_with_term(session, business, "ER-8001", "2026-07-01")
     post_supplier_invoice(session, tenant_id, older.id)
@@ -3616,7 +3617,7 @@ def test_credit_note_classes_are_tenant_scoped(session, business):
 
 def purchase_price(session, business, amount, *, unit="pcs", currency="EUR", item=None):
     """What the company says the item costs it, on its default purchase list."""
-    price_list = create_price_list(
+    price_list = reviewed_create_price_list(
         session,
         business.tenant.id,
         f"BUY-{uid('l')[-6:]}",
@@ -3625,7 +3626,7 @@ def purchase_price(session, business, amount, *, unit="pcs", currency="EUR", ite
         currency,
         is_default=True,
     )
-    create_price_list_entry(
+    reviewed_create_price_list_entry(
         session,
         business.tenant.id,
         price_list.id,
@@ -4209,7 +4210,7 @@ def skonto_term(session, business, code="SK2_10", *, percent="2", days=10, due=3
     ]
     if existing:
         return existing[0]
-    return create_payment_term(
+    return reviewed_create_payment_term(
         session,
         business.tenant.id,
         code,
@@ -4268,7 +4269,7 @@ def test_purchase_discount_available(session, business):
     # The positive control: the same invoice under a term granting no discount
     # says nothing, so the silence is the rule speaking rather than the class
     # being absent.
-    create_payment_term(session, business.tenant.id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, business.tenant.id, "NET30", "Net 30 days", 30)
     plain = supplier_invoice_under(
         session, business, "ER-088-PLAIN", "2026-08-25", "NET30"
     )

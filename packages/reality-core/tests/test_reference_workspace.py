@@ -1,4 +1,6 @@
+
 import pytest
+from intake_review_support import reviewed_create_payment_term
 
 from reality.services.core import (
     InvalidOperation,
@@ -265,10 +267,9 @@ def _confirm(session, tid, family, operation, record, request_id):
 def test_full_party_edit_changes_commercial_defaults_roles_and_provenance(
     session, business
 ):
-    from reality.services.core import create_payment_term
 
     tid = business.tenant.id
-    create_payment_term(session, tid, "NET30", "Net 30", 30)
+    reviewed_create_payment_term(session, tid, "NET30", "Net 30", 30)
     party = reviewed_create_party(
         session, tid, "Maple", "customer", source_system="shop", external_id="c-1"
     )
@@ -507,10 +508,9 @@ def test_full_location_edit_changes_type_parent_and_stock(session, business):
 
 
 def test_full_field_creation_records_every_value(session, business):
-    from reality.services.core import create_payment_term
 
     tid = business.tenant.id
-    create_payment_term(session, tid, "NET14", "Net 14", 14)
+    reviewed_create_payment_term(session, tid, "NET14", "Net 14", 14)
     parent = business.location
 
     def created(family, record, request_id):
@@ -592,12 +592,11 @@ def test_full_field_creation_records_every_value(session, business):
 def test_business_preview_names_fields_and_preserves_revision(session, business):
     from reality.services.core import (
         _snapshot_revision,
-        create_payment_term,
         master_data_update_snapshot,
     )
 
     tid = business.tenant.id
-    create_payment_term(session, tid, "NET209", "Thirty days", due_days=30)
+    reviewed_create_payment_term(session, tid, "NET209", "Thirty days", due_days=30)
     party = reviewed_create_party(
         session,
         tid,

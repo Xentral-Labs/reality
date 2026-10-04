@@ -3,6 +3,8 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from intake_review_support import reviewed_create_payment_term
+
 from reality.mcp.catalog import MCP_TOOL_NAMES
 from reality.services import core
 from reality.services.finance.balances import party_balances
@@ -92,7 +94,7 @@ def test_party_rows_sum_open_items_and_credits(session, business):
 
 def test_overdue_follows_original_due_date_and_as_of(session, business):
     tenant = business.tenant.id
-    core.create_payment_term(session, tenant, "NET14", "Net 14", 14)
+    reviewed_create_payment_term(session, tenant, "NET14", "Net 14", 14)
     _invoice(session, business, "INV-DUE", "100", date="2026-08-01", term="NET14")
     _invoice(session, business, "INV-NODATE", "30", date="")
 

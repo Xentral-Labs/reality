@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from conftest import record_by_id
 from intake_review_support import (
+    reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_record_sales_invoice,
 )
@@ -75,7 +76,7 @@ def test_a_reservation_waiting_for_an_unpaid_prepayment_is_put_to_a_person(
 ):
     """B12: the stock is reserved, the prepayment does not come, a person decides."""
     tenant = business.tenant.id
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session, tenant, "VORKASSE", "Vorkasse", 0, requires_prepayment=True
     )
     core.record_movement(

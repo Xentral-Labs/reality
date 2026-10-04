@@ -8,7 +8,11 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import Document, DocumentLine, LedgerEntry
@@ -25,7 +29,7 @@ from reality.web.api import document_inspector
 def _order(session, business, number="SO-PF", prepay=False):
     tenant = business.tenant.id
     if prepay:
-        core.create_payment_term(
+        reviewed_create_payment_term(
             session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
         )
     _, order, lines, commitments = reviewed_manual_order(

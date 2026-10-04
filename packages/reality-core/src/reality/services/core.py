@@ -1131,7 +1131,9 @@ def _require_business_mutation(
     from reality.services.intake import _require_scoped_operation
 
     intake_approved = _require_scoped_operation(session, tenant_id, operation)
-    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines", "create_manual_order", "record_sales_invoice", "record_supplier_invoice", "record_free_supplier_invoice", "record_sales_credit"} and not (
+    from reality.services.tenant_policy import _CANONICAL_MUTATION_TOOLS
+
+    if operation in _CANONICAL_MUTATION_TOOLS and not (
         fixed_setup or intake_approved
     ):
         from reality.services.tenant_policy import _require_application_decision
@@ -1483,6 +1485,9 @@ def create_payment_term(
     Validate the stated discount rate and discount window together through the shared discount helper.
     """
     _require_business_mutation(session, tenant_id, "create_payment_term")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_payment_term", locals())
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     code, name = code.strip().upper(), name.strip()
     # reality-rule: core.create_payment_term.1
@@ -1558,6 +1563,7 @@ def update_payment_term(
     discount_percent: Decimal | float | str | None = None,
     discount_days: int | None = None,
     requires_prepayment: bool = False,
+    _commit: bool = True,
 ) -> PaymentTerm:
     """
     BUSINESS PURPOSE:
@@ -1573,6 +1579,9 @@ def update_payment_term(
     Validate the stated discount rate and discount window together through the shared discount helper.
     """
     _require_business_mutation(session, tenant_id, "update_payment_term")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("update_payment_term", locals())
     term = _tenant_record(session, PaymentTerm, tenant_id, payment_term_id)
     code, name = code.strip().upper(), name.strip()
     # reality-rule: core.update_payment_term.1
@@ -1609,7 +1618,10 @@ def update_payment_term(
         },
         source_record_id=term.source_record_id,
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return term
 
 
@@ -1677,6 +1689,7 @@ def create_price_list(
     source_system: str = "",
     external_id: str = "",
     source_payload: dict[str, Any] | None = None,
+    _commit: bool = True,
 ) -> PriceList:
     """
     BUSINESS PURPOSE:
@@ -1692,6 +1705,9 @@ def create_price_list(
     IF this list is to be the default, refuse another active default for the same direction and currency.
     """
     _require_business_mutation(session, tenant_id, "create_price_list")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_price_list", locals())
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     code, name = code.strip().upper(), name.strip()
     direction, currency = direction.strip().lower(), currency.strip().upper()
@@ -1756,7 +1772,10 @@ def create_price_list(
         {"code": result.code, "direction": direction, "currency": currency},
         source_record_id=result.source_record_id,
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return result
 
 
@@ -1770,6 +1789,7 @@ def update_price_list(
     currency: str,
     *,
     is_default: bool = False,
+    _commit: bool = True,
 ) -> PriceList:
     """
     BUSINESS PURPOSE:
@@ -1785,6 +1805,9 @@ def update_price_list(
     IF this list is to be the default, refuse another active default for the same direction and currency.
     """
     _require_business_mutation(session, tenant_id, "update_price_list")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("update_price_list", locals())
     result = _tenant_record(session, PriceList, tenant_id, price_list_id)
     code, name = code.strip().upper(), name.strip()
     direction, currency = direction.strip().lower(), currency.strip().upper()
@@ -1842,7 +1865,10 @@ def update_price_list(
         },
         source_record_id=result.source_record_id,
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return result
 
 
@@ -1857,6 +1883,7 @@ def create_price_list_entry(
     *,
     valid_from: datetime | str | None = None,
     valid_until: datetime | str | None = None,
+    _commit: bool = True,
 ) -> PriceListEntry:
     """
     BUSINESS PURPOSE:
@@ -1872,6 +1899,9 @@ def create_price_list_entry(
     Refuse an existing tier for the same price list, item and minimum quantity.
     """
     _require_business_mutation(session, tenant_id, "create_price_list_entry")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_price_list_entry", locals())
     _tenant_record(session, PriceList, tenant_id, price_list_id)
     _tenant_record(session, Item, tenant_id, item_id)
     # reality-rule: core.create_price_list_entry.1
@@ -1922,7 +1952,10 @@ def create_price_list_entry(
             "unit": unit,
         },
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return entry
 
 
@@ -1932,6 +1965,8 @@ def assign_party_price_list(
     party_id: str,
     price_list_id: str,
     priority: int = 100,
+    *,
+    _commit: bool = True,
 ) -> PartyPriceList:
     """
     BUSINESS PURPOSE:
@@ -1941,6 +1976,9 @@ def assign_party_price_list(
     Create a separate assignment retaining both opaque identities and the stated priority; no price is copied to the partner or group.
     """
     _require_business_mutation(session, tenant_id, "assign_party_price_list")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("assign_party_price_list", locals())
     _tenant_record(session, Party, tenant_id, party_id)
     _tenant_record(session, PriceList, tenant_id, price_list_id)
     # reality-rule: core.assign_party_price_list.1
@@ -1960,12 +1998,15 @@ def assign_party_price_list(
         assignment.id,
         {"party_id": party_id, "price_list_id": price_list_id, "priority": priority},
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return assignment
 
 
 def create_party_group(
-    session: OrmSession, tenant_id: str, code: str, name: str
+    session: OrmSession, tenant_id: str, code: str, name: str, *, _commit: bool = True
 ) -> PartyGroup:
     """
     BUSINESS PURPOSE:
@@ -1978,6 +2019,9 @@ def create_party_group(
     Refuse another group using the same code in this company.
     """
     _require_business_mutation(session, tenant_id, "create_party_group")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("create_party_group", locals())
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     code, name = code.strip().upper(), name.strip()
     # reality-rule: core.create_party_group.1
@@ -2000,12 +2044,15 @@ def create_party_group(
         group.id,
         {"code": group.code, "name": group.name},
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return group
 
 
 def update_party_group(
-    session: OrmSession, tenant_id: str, party_group_id: str, code: str, name: str
+    session: OrmSession, tenant_id: str, party_group_id: str, code: str, name: str, *, _commit: bool = True
 ) -> PartyGroup:
     """
     BUSINESS PURPOSE:
@@ -2018,6 +2065,9 @@ def update_party_group(
     Refuse another group using the same code in this company.
     """
     _require_business_mutation(session, tenant_id, "update_party_group")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("update_party_group", locals())
     group = _tenant_record(session, PartyGroup, tenant_id, party_group_id)
     code, name = code.strip().upper(), name.strip()
     # reality-rule: core.update_party_group.1
@@ -2043,12 +2093,15 @@ def update_party_group(
         {"code": code, "name": name},
         source_record_id=group.source_record_id,
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return group
 
 
 def add_party_group_member(
-    session: OrmSession, tenant_id: str, party_group_id: str, party_id: str
+    session: OrmSession, tenant_id: str, party_group_id: str, party_id: str, *, _commit: bool = True
 ) -> PartyGroupMember:
     """
     BUSINESS PURPOSE:
@@ -2061,6 +2114,9 @@ def add_party_group_member(
     Store membership as a relation between the group and partner; their records remain separate.
     """
     _require_business_mutation(session, tenant_id, "add_party_group_member")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("add_party_group_member", locals())
     group = _tenant_record(session, PartyGroup, tenant_id, party_group_id)
     # reality-rule: core.add_party_group_member.1
     if not group.is_active:
@@ -2082,7 +2138,10 @@ def add_party_group_member(
         member.id,
         {"party_group_id": party_group_id, "party_id": party_id},
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return member
 
 
@@ -2092,6 +2151,8 @@ def assign_group_price_list(
     party_group_id: str,
     price_list_id: str,
     priority: int = 100,
+    *,
+    _commit: bool = True,
 ) -> PartyGroupPriceList:
     """
     BUSINESS PURPOSE:
@@ -2101,6 +2162,9 @@ def assign_group_price_list(
     Create a separate assignment retaining both opaque identities and the stated priority; no price is copied to the partner or group.
     """
     _require_business_mutation(session, tenant_id, "assign_group_price_list")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("assign_group_price_list", locals())
     _tenant_record(session, PartyGroup, tenant_id, party_group_id)
     _tenant_record(session, PriceList, tenant_id, price_list_id)
     # reality-rule: core.assign_group_price_list.1
@@ -2124,7 +2188,10 @@ def assign_group_price_list(
             "priority": priority,
         },
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return assignment
 
 

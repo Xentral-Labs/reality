@@ -1,8 +1,10 @@
+
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
 from intake_review_support import (
+    reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
 )
@@ -13,7 +15,6 @@ from reality.services.core import (
     NotFound,
     create_commitment,
     create_document,
-    create_payment_term,
     create_tenant,
     post_customer_payment,
     post_sales_invoice,
@@ -236,7 +237,7 @@ def test_shared_consumer_parity_includes_new_classes(session, business):
     sales_invoice_unposted(session, business)
     supplier_invoice_unposted(session, business)
 
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     payable = create_document(
         session,
         tenant_id,
@@ -311,7 +312,7 @@ def test_shared_consumer_parity_includes_new_classes(session, business):
 def test_overdue_receivable_explanation_and_not_found_parity(session, business):
     tenant_id = business.tenant.id
     as_of = datetime(2026, 8, 31, 12, tzinfo=UTC)
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     invoice = create_document(
         session,
         tenant_id,
@@ -914,9 +915,8 @@ def test_units_class_explanation_and_not_found_parity(session, business):
 
 def discount_still_available(session, business):
     """An unpaid supplier invoice whose discount window is still open."""
-    from reality.services.core import create_payment_term
 
-    create_payment_term(
+    reviewed_create_payment_term(
         session,
         business.tenant.id,
         "SK2_10_EXPL",

@@ -7,6 +7,7 @@ from intake_review_support import (
     accept_import_job,
     accept_normalized_invoice,
     accept_normalized_payment,
+    reviewed_create_payment_term,
 )
 
 from reality.demo.international import DEMO_DATA_CUSTOMERS, DEMO_DATA_PAYMENT_TERM
@@ -48,7 +49,7 @@ def _story(session, business, index, *, payments=None):
     try:
         core.payment_term_by_code(session, tenant, term["code"])
     except core.NotFound:
-        core.create_payment_term(
+        reviewed_create_payment_term(
             session,
             tenant,
             term["code"],

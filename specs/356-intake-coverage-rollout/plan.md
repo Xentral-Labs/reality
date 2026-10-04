@@ -245,3 +245,14 @@ The low-level bootstrap refuses calls outside that narrow scope. Reuse it in the
 three actual company creation paths; preserve historical migration helpers.
 Test existing-company refusal, repeat/identity/commit/failure callbacks first,
 then ordinary/lesson/setup and migration compatibility before full CI.
+## Confirmed commercial master data plan
+
+Constitution Check: PASS. No schema expansion. Extend the finite canonical
+operation/tool mapping for the ten existing commercial master commands; reuse
+current principal checks, frozen invocation nonces and root commit denial. Carry
+private _commit=False through canonical services and exact application callbacks.
+Reject caller private execution fields. Route REST and CLI through actual retained
+proposals, preserving response records and explicit human confirmation. Fixed
+profile/lesson callers freeze their authored input under existing setup authority.
+Test direct/confirmation/callback/refusal/rollback first, then positive stated
+values, replay, source attribution, setup, adapters and full committed-head CI.

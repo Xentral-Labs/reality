@@ -1,8 +1,10 @@
+
 from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
 from intake_review_support import (
+    reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_record_sales_invoice,
 )
@@ -11,7 +13,6 @@ from reality.db.core import Document, DocumentLine, uid
 from reality.services.core import (
     InvalidOperation,
     create_commitment,
-    create_payment_term,
     create_tenant,
     hold_commitment,
     post_customer_payment,
@@ -24,7 +25,7 @@ from reality.services.fulfillment_readiness import fulfillment_readiness
 
 def _prepayment_order(session, business):
     tenant_id = business.tenant.id
-    create_payment_term(
+    reviewed_create_payment_term(
         session,
         tenant_id,
         "PREPAY",

@@ -103,3 +103,11 @@ All three production callers insert an actual new Tenant and need the same
 transaction-bound initializer; only one current test creates its lesson Tenant
 by direct ORM and must use the actual initializer. Legacy bootstrap migration
 helpers remain pinned to their old schema and do not receive invented authority.
+## Commercial master data analysis
+
+No unresolved clarification or critical design finding. All ten existing command
+families already have public catalog/record meanings; adding a separate decision
+store or recomputing prices is unnecessary. Some core writers currently commit
+internally and legacy REST/CLI bypass proposals. Preserve actual fixed setup,
+normal receipt identities and caller authorization rather than requiring blanket
+Owner access or inventing approval for historical fixtures.

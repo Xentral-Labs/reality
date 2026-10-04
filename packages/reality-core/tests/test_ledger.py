@@ -1,8 +1,10 @@
+
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_create_payment_term
 
 from reality.db.core import Document, SettlementAllocation
 from reality.services.core import (
@@ -12,7 +14,6 @@ from reality.services.core import (
     allocate_credit_note,
     allocate_settlement,
     create_document,
-    create_payment_term,
     create_tenant,
     financial_open_items,
     journal_rows,
@@ -271,8 +272,8 @@ def test_invoice_term_cascades_from_the_document_to_the_party(session, business)
     )
 
     tenant_id = business.tenant.id
-    net30 = create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
-    net7 = create_payment_term(session, tenant_id, "NET7", "Net 7 days", 7)
+    net30 = reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    net7 = reviewed_create_payment_term(session, tenant_id, "NET7", "Net 7 days", 7)
     terms = {net30.id: net30, net7.id: net7}
     reviewed_update_party(
         session,
@@ -310,8 +311,8 @@ def test_invoice_due_date_rule(session, business):
     from reality.services.core import invoice_days_overdue, invoice_due_date
 
     tenant_id = business.tenant.id
-    net30 = create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
-    immediate = create_payment_term(session, tenant_id, "NET0", "Due on receipt", 0)
+    net30 = reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    immediate = reviewed_create_payment_term(session, tenant_id, "NET0", "Due on receipt", 0)
 
     with_term = invoice_with_term(
         session, business, "RE-1", "2026-07-01", term_code="NET30"
@@ -348,7 +349,7 @@ def test_one_aging_rule_serves_every_consumer(session, business):
     from reality.web.read_models import aging_page
 
     tenant_id = business.tenant.id
-    create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     invoice = invoice_with_term(
         session, business, "RE-2001", "2026-07-01", term_code="NET30"
     )

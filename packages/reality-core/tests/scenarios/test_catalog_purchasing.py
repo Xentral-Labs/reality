@@ -8,6 +8,9 @@ import pytest
 import test_costing_services as cost_fixtures
 from conftest import record_by_id
 from intake_review_support import (
+    reviewed_assign_party_price_list,
+    reviewed_create_price_list,
+    reviewed_create_price_list_entry,
     reviewed_manual_order,
     reviewed_record_supplier_invoice,
 )
@@ -411,16 +414,16 @@ def test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported(
 ):
     """G07: the tier the supplier states for the quantity is the agreed price."""
     tenant = business.tenant.id
-    tiers = core.create_price_list(
+    tiers = reviewed_create_price_list(
         session, tenant, "SUP-TIERS", "Supplier tiers", "purchase", "EUR"
     )
-    core.create_price_list_entry(
+    reviewed_create_price_list_entry(
         session, tenant, tiers.id, business.item.id, 1, "5.00", "pcs"
     )
-    ten_or_more = core.create_price_list_entry(
+    ten_or_more = reviewed_create_price_list_entry(
         session, tenant, tiers.id, business.item.id, 10, "4.00", "pcs"
     )
-    core.assign_party_price_list(session, tenant, business.supplier.id, tiers.id)
+    reviewed_assign_party_price_list(session, tenant, business.supplier.id, tiers.id)
     _, _, lines, _ = reviewed_manual_order(
         session,
         tenant,
@@ -1327,13 +1330,13 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
             quantity,
             to_location_id=location.id,
         )
-    price_list = core.create_price_list(
+    price_list = reviewed_create_price_list(
         session, tenant, "PL-PARTS", "Parts purchase", "purchase", "EUR"
     )
-    core.create_price_list_entry(
+    reviewed_create_price_list_entry(
         session, tenant, price_list.id, item.id, "1", "54.00", "box"
     )
-    core.assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
+    reviewed_assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
 
     # Both points are stated through the reviewed tool, nothing before confirming.
     for location in (business.location, munich):

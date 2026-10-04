@@ -603,12 +603,13 @@ def _seed(
         with storyline_seed_scope(inner, run.id, user_id):
             company = _invoke('create_party', create_party, inner, tenant_id, name=tenant_name, party_type='company', _commit=False)
             for name, term in seed.terms.items():
-                create_payment_term(
+                _invoke(
+                    "create_payment_term", create_payment_term,
                     inner,
                     tenant_id,
-                    term.code,
-                    term.name or term.code,
-                    term.days,
+                    code=term.code,
+                    name=term.name or term.code,
+                    due_days=term.days,
                     discount_percent=term.discount_percent,
                     discount_days=term.discount_days,
                     _commit=False,

@@ -660,3 +660,72 @@ def reviewed_record_sales_credit(session, tenant_id, *positional, **arguments):
 
 def reviewed_record_free_supplier_invoice(session, tenant_id, **arguments):
     return _confirm_document_fixture(session, tenant_id, "supplier_invoice_free_record", arguments)
+def reviewed_commercial_master(session, tenant_id, operation, *positional, **arguments):
+    """Create current fixture data through an actual retained human decision."""
+    import inspect
+
+    from reality.db import core as records
+    from reality.services.tenant_policy import COMMERCIAL_MASTER_OPERATIONS
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    core._tenant_record_read(session, records.Tenant, tenant_id, tenant_id)
+    from reality.services.tenant_policy import _profile_authority
+
+    if _profile_authority.get() is not None:
+        from reality.services.intake import _invoke
+
+        bound = inspect.signature(getattr(core, operation)).bind(session, tenant_id, *positional, **arguments)
+        values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id"}}
+        return _invoke(operation, getattr(core, operation), session, tenant_id, **values)
+    bound = inspect.signature(getattr(core, operation)).bind(session, tenant_id, *positional, **arguments)
+    values = {key: value for key, value in bound.arguments.items() if key not in {"session", "tenant_id", "_commit"}}
+    tool = next(tool for tool, canonical in COMMERCIAL_MASTER_OPERATIONS.items() if canonical == operation)
+    owner = explicit_owner(session, tenant_id)
+    proposal = create_change_proposal(session, tenant_id, tool, _document_fixture_json(values), actor_type="human")
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=owner, confirmed=True)
+    record = json.loads(receipt.output)["records"][0]
+    models = {"payment_term": records.PaymentTerm, "price_list": records.PriceList, "price_list_entry": records.PriceListEntry, "party_price_list": records.PartyPriceList, "party_group": records.PartyGroup, "party_group_member": records.PartyGroupMember, "party_group_price_list": records.PartyGroupPriceList}
+    return core._tenant_record_read(session, models[record["family"]], tenant_id, record["id"])
+
+
+def reviewed_create_payment_term(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "create_payment_term", *args, **kwargs)
+
+
+def reviewed_update_payment_term(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "update_payment_term", *args, **kwargs)
+
+
+def reviewed_create_price_list(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "create_price_list", *args, **kwargs)
+
+
+def reviewed_update_price_list(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "update_price_list", *args, **kwargs)
+
+
+def reviewed_create_price_list_entry(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "create_price_list_entry", *args, **kwargs)
+
+
+def reviewed_assign_party_price_list(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "assign_party_price_list", *args, **kwargs)
+
+
+def reviewed_create_party_group(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "create_party_group", *args, **kwargs)
+
+
+def reviewed_update_party_group(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "update_party_group", *args, **kwargs)
+
+
+def reviewed_add_party_group_member(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "add_party_group_member", *args, **kwargs)
+
+
+def reviewed_assign_group_price_list(session, tenant_id, *args, **kwargs):
+    return reviewed_commercial_master(session, tenant_id, "assign_group_price_list", *args, **kwargs)

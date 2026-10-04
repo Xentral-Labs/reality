@@ -291,3 +291,19 @@ repeated initialization, early root commit and post-write failure. Ordinary and
 Playground/storyline creation use the same initializer. This structural exception
 creates no financial posting, person approval or authority for later account
 configuration. Historical migration specimens remain historical.
+## Confirmed commercial master data (FR-001–FR-003)
+
+Payment term and price-list creation/update, price tiers, pricing groups and
+their membership/list assignments must use the existing retained application
+decision. Direct canonical writes, absent confirmation, changed/repeated calls,
+early root commits, post-write failures and unrelated business effects refuse.
+REST and CLI must prepare the actual stated input and confirm using the actual
+request principal or explicit CLI action. Keep existing identifiers, stated
+discount/maturity/price/quantity/priority values, tenant scope and receipt replay.
+Fixed confirmed demo/lesson reference definitions use their existing narrow scope
+and frozen authored invocation; they never fabricate a person approval. Raw
+source references, lifecycle activation and other writer families remain separate
+qualifications, not claimed complete by this group.
+Commercial proposals also retain the exact current tenant-scoped referenced
+records as non-authoritative review basis. Changed references require renewed
+review before any effect; callers may not supply or overwrite that private basis.

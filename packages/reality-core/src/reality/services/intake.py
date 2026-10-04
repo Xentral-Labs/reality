@@ -235,6 +235,9 @@ _INTENT_DEFAULTS = {
         if parameter.default is not Parameter.empty
     }
     for name in (
+        "create_payment_term", "update_payment_term", "create_price_list", "update_price_list",
+        "create_price_list_entry", "assign_party_price_list", "create_party_group",
+        "update_party_group", "add_party_group_member", "assign_group_price_list",
         "create_item",
         "create_party",
         "create_location",

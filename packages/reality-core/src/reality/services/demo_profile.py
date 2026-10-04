@@ -170,7 +170,8 @@ def seed_profile(
         )
     )
     if payment_term is None:
-        payment_term = core.create_payment_term(
+        payment_term = _invoke(
+            "create_payment_term", core.create_payment_term,
             session,
             tenant,
             **DEMO_DATA_PAYMENT_TERM,

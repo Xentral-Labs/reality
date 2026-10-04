@@ -14,6 +14,7 @@ import pytest
 from intake_review_support import (
     accept_normalized_invoice,
     accept_normalized_payment,
+    reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_manual_order,
     reviewed_record_sales_invoice,
@@ -79,7 +80,7 @@ def _term(session, tenant):
     try:
         core.payment_term_by_code(session, tenant, TERM[0])
     except core.NotFound:
-        core.create_payment_term(
+        reviewed_create_payment_term(
             session, tenant, *TERM, discount_percent="2", discount_days=7
         )
 

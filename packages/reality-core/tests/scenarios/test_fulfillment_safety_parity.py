@@ -1,9 +1,11 @@
+
 import json
 from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
 from intake_review_support import (
+    reviewed_create_payment_term,
     reviewed_manual_document_with_lines,
     reviewed_record_sales_invoice,
 )
@@ -113,8 +115,8 @@ def _dispatch(session, business, commitment):
 
 def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business):
     tenant_id = business.tenant.id
-    core.create_payment_term(session, tenant_id, "NET14", "Net 14", 14)
-    core.create_payment_term(
+    reviewed_create_payment_term(session, tenant_id, "NET14", "Net 14", 14)
+    reviewed_create_payment_term(
         session,
         tenant_id,
         "PREPAY",
@@ -284,7 +286,7 @@ def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business)
 
 def test_exact_stocked_and_reserved_partial_quantity_can_ship(session, business):
     tenant_id = business.tenant.id
-    core.create_payment_term(session, tenant_id, "NET30", "Net 30", 30)
+    reviewed_create_payment_term(session, tenant_id, "NET30", "Net 30", 30)
     core.record_movement(
         session,
         tenant_id,
@@ -340,7 +342,7 @@ def test_agent_proposes_future_prepayment_and_partial_shipment_without_self_exec
     session, business
 ):
     tenant_id = business.tenant.id
-    core.create_payment_term(
+    reviewed_create_payment_term(
         session,
         tenant_id,
         "AGENT-PREPAY",
@@ -515,8 +517,8 @@ def test_agent_readiness_matrix_distinguishes_multiple_customers(session, busine
     customer_partial = reviewed_create_party(
         session, tenant_id, "Partial Components", "customer"
     )
-    core.create_payment_term(session, tenant_id, "MATRIX-NET", "Net", 14)
-    core.create_payment_term(
+    reviewed_create_payment_term(session, tenant_id, "MATRIX-NET", "Net", 14)
+    reviewed_create_payment_term(
         session,
         tenant_id,
         "MATRIX-PREPAY",

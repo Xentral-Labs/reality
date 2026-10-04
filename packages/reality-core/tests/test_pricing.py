@@ -1,38 +1,41 @@
+
 from datetime import date
 from decimal import Decimal
 
 import pytest
-from intake_review_support import reviewed_manual_document_with_lines
+from intake_review_support import (
+    reviewed_add_party_group_member,
+    reviewed_assign_group_price_list,
+    reviewed_assign_party_price_list,
+    reviewed_create_party_group,
+    reviewed_create_price_list,
+    reviewed_create_price_list_entry,
+    reviewed_manual_document_with_lines,
+    reviewed_update_price_list,
+)
 
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    add_party_group_member,
-    assign_group_price_list,
-    assign_party_price_list,
     correct_manual_document_lines,
-    create_party_group,
-    create_price_list,
-    create_price_list_entry,
     create_tenant,
     historical_pricing_explanation,
     manual_document_line_snapshot,
     resolve_price,
-    update_price_list,
 )
 
 
 def add_tiers(session, business, price_list, low, high):
-    create_price_list_entry(
+    reviewed_create_price_list_entry(
         session, business.tenant.id, price_list.id, business.item.id, 1, low, "pcs"
     )
-    return create_price_list_entry(
+    return reviewed_create_price_list_entry(
         session, business.tenant.id, price_list.id, business.item.id, 10, high, "pcs"
     )
 
 
 def test_pricing_resolves_direct_group_default_and_quantity_tiers(session, business):
-    default = create_price_list(
+    default = reviewed_create_price_list(
         session,
         business.tenant.id,
         "SALES",
@@ -57,15 +60,15 @@ def test_pricing_resolves_direct_group_default_and_quantity_tiers(session, busin
     assert result.price_list_entry_id == default_tier.id
     assert result.source == "default"
 
-    group_list = create_price_list(
+    group_list = reviewed_create_price_list(
         session, business.tenant.id, "GOLD", "Gold", "sales", "EUR"
     )
     add_tiers(session, business, group_list, "9", "8")
-    group = create_party_group(
+    group = reviewed_create_party_group(
         session, business.tenant.id, "DEALER_GOLD", "Gold dealers"
     )
-    add_party_group_member(session, business.tenant.id, group.id, business.customer.id)
-    assign_group_price_list(session, business.tenant.id, group.id, group_list.id)
+    reviewed_add_party_group_member(session, business.tenant.id, group.id, business.customer.id)
+    reviewed_assign_group_price_list(session, business.tenant.id, group.id, group_list.id)
     assert resolve_price(
         session,
         business.tenant.id,
@@ -77,11 +80,11 @@ def test_pricing_resolves_direct_group_default_and_quantity_tiers(session, busin
         "pcs",
     ).unit_price == Decimal("8.0000")
 
-    direct = create_price_list(
+    direct = reviewed_create_price_list(
         session, business.tenant.id, "CUSTOMER", "Customer", "sales", "EUR"
     )
     add_tiers(session, business, direct, "7", "6")
-    assign_party_price_list(
+    reviewed_assign_party_price_list(
         session, business.tenant.id, business.customer.id, direct.id
     )
     selected = resolve_price(
@@ -99,7 +102,7 @@ def test_pricing_resolves_direct_group_default_and_quantity_tiers(session, busin
 
 
 def test_sales_and_purchase_lists_do_not_mix(session, business):
-    purchase = create_price_list(
+    purchase = reviewed_create_price_list(
         session,
         business.tenant.id,
         "PURCHASE",
@@ -108,7 +111,7 @@ def test_sales_and_purchase_lists_do_not_mix(session, business):
         "EUR",
         is_default=True,
     )
-    create_price_list_entry(
+    reviewed_create_price_list_entry(
         session, business.tenant.id, purchase.id, business.item.id, 1, 4, "pcs"
     )
     assert (
@@ -139,10 +142,10 @@ def test_sales_and_purchase_lists_do_not_mix(session, business):
 def test_document_line_retains_agreed_entry_when_current_price_changes(
     session, business
 ):
-    original = create_price_list(
+    original = reviewed_create_price_list(
         session, business.tenant.id, "OLD", "Old", "sales", "EUR", is_default=True
     )
-    original_entry = create_price_list_entry(
+    original_entry = reviewed_create_price_list_entry(
         session, business.tenant.id, original.id, business.item.id, 1, 10, "pcs"
     )
     document, lines = reviewed_manual_document_with_lines(
@@ -165,13 +168,13 @@ def test_document_line_retains_agreed_entry_when_current_price_changes(
         ordered_at="2026-01-01T10:00:00Z",
     )
 
-    update_price_list(
+    reviewed_update_price_list(
         session, business.tenant.id, original.id, "OLD", "Old", "sales", "EUR"
     )
-    current = create_price_list(
+    current = reviewed_create_price_list(
         session, business.tenant.id, "NEW", "New", "sales", "EUR", is_default=True
     )
-    current_entry = create_price_list_entry(
+    current_entry = reviewed_create_price_list_entry(
         session, business.tenant.id, current.id, business.item.id, 1, 12, "pcs"
     )
 
@@ -189,10 +192,10 @@ def test_document_line_retains_agreed_entry_when_current_price_changes(
 
 
 def test_selected_entry_must_reproduce_document_context_atomically(session, business):
-    price_list = create_price_list(
+    price_list = reviewed_create_price_list(
         session, business.tenant.id, "VALID", "Valid", "sales", "EUR", is_default=True
     )
-    entry = create_price_list_entry(
+    entry = reviewed_create_price_list_entry(
         session, business.tenant.id, price_list.id, business.item.id, 1, 10, "pcs"
     )
     with pytest.raises(InvalidOperation, match="does not reproduce"):
@@ -286,7 +289,7 @@ def test_a_period_label_is_not_a_document_date(session, business):
 def test_presentation_correction_keeps_historical_entry_after_default_changes(
     session, business
 ):
-    price_list = create_price_list(
+    price_list = reviewed_create_price_list(
         session,
         business.tenant.id,
         "HISTORY",
@@ -295,7 +298,7 @@ def test_presentation_correction_keeps_historical_entry_after_default_changes(
         "EUR",
         is_default=True,
     )
-    entry = create_price_list_entry(
+    entry = reviewed_create_price_list_entry(
         session, business.tenant.id, price_list.id, business.item.id, 1, 10, "pcs"
     )
     document, lines = reviewed_manual_document_with_lines(
@@ -315,7 +318,7 @@ def test_presentation_correction_keeps_historical_entry_after_default_changes(
         ],
         "10",
     )
-    update_price_list(
+    reviewed_update_price_list(
         session,
         business.tenant.id,
         price_list.id,

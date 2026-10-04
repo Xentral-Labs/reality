@@ -1,6 +1,11 @@
+
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_create_payment_term,
+    reviewed_update_payment_term,
+)
 
 from reality.db.core import PaymentTerm
 from reality.services.core import (
@@ -8,16 +13,14 @@ from reality.services.core import (
     NotFound,
     aging_register,
     create_document,
-    create_payment_term,
     payment_terms,
     post_supplier_invoice,
     set_master_data_active,
-    update_payment_term,
 )
 
 
 def test_payment_terms_are_tenant_scoped_master_data(session, business):
-    term = create_payment_term(
+    term = reviewed_create_payment_term(
         session,
         business.tenant.id,
         "net_30",
@@ -50,17 +53,17 @@ def test_payment_terms_are_tenant_scoped_master_data(session, business):
 
 
 def test_payment_term_validates_code_and_due_days(session, business):
-    create_payment_term(session, business.tenant.id, "DUE", "Due now", 0)
+    reviewed_create_payment_term(session, business.tenant.id, "DUE", "Due now", 0)
     with pytest.raises(InvalidOperation, match="already exists"):
-        create_payment_term(session, business.tenant.id, "due", "Duplicate", 1)
+        reviewed_create_payment_term(session, business.tenant.id, "due", "Duplicate", 1)
     with pytest.raises(InvalidOperation, match="cannot be negative"):
-        create_payment_term(session, business.tenant.id, "BAD", "Bad", -1)
+        reviewed_create_payment_term(session, business.tenant.id, "BAD", "Bad", -1)
 
 
 def test_prepayment_is_an_explicit_policy_not_a_name_or_due_day_inference(
     session, business
 ):
-    explicit = create_payment_term(
+    explicit = reviewed_create_payment_term(
         session,
         business.tenant.id,
         "ADVANCE",
@@ -68,14 +71,14 @@ def test_prepayment_is_an_explicit_policy_not_a_name_or_due_day_inference(
         0,
         requires_prepayment=True,
     )
-    misleading = create_payment_term(
+    misleading = reviewed_create_payment_term(
         session, business.tenant.id, "VORKASSE", "Prepayment", 0
     )
 
     assert explicit.requires_prepayment is True
     assert misleading.requires_prepayment is False
 
-    updated = update_payment_term(
+    updated = reviewed_update_payment_term(
         session,
         business.tenant.id,
         explicit.id,
@@ -91,7 +94,7 @@ def test_prepayment_is_an_explicit_policy_not_a_name_or_due_day_inference(
 
 
 def test_a_payment_term_can_state_a_discount(session, business):
-    term = create_payment_term(
+    term = reviewed_create_payment_term(
         session,
         business.tenant.id,
         "SKONTO",
@@ -107,11 +110,11 @@ def test_a_payment_term_can_state_a_discount(session, business):
 
     # The positive control for the other direction: a term that states neither
     # figure carries neither, and nothing about it has changed.
-    plain = create_payment_term(session, business.tenant.id, "NET14", "Net 14", 14)
+    plain = reviewed_create_payment_term(session, business.tenant.id, "NET14", "Net 14", 14)
     assert plain.discount_percent is None
     assert plain.discount_days is None
 
-    updated = update_payment_term(
+    updated = reviewed_update_payment_term(
         session,
         business.tenant.id,
         plain.id,
@@ -132,7 +135,7 @@ def test_a_discount_rate_and_window_are_validated(session, business):
     # cent off is not a payment condition.
     for rate in ("0", "-1", "100", "150"):
         with pytest.raises(InvalidOperation, match="discount"):
-            create_payment_term(
+            reviewed_create_payment_term(
                 session,
                 tenant_id,
                 f"BAD{rate}",
@@ -142,7 +145,7 @@ def test_a_discount_rate_and_window_are_validated(session, business):
                 discount_days=10,
             )
     with pytest.raises(InvalidOperation, match="discount"):
-        create_payment_term(
+        reviewed_create_payment_term(
             session,
             tenant_id,
             "BADDAYS",
@@ -155,18 +158,18 @@ def test_a_discount_rate_and_window_are_validated(session, business):
     # Half a discount condition is not a condition. Either half alone leaves
     # every derivation guessing what the other one was meant to be.
     with pytest.raises(InvalidOperation, match="discount"):
-        create_payment_term(
+        reviewed_create_payment_term(
             session, tenant_id, "HALF1", "Rate only", 30, discount_percent="2"
         )
     with pytest.raises(InvalidOperation, match="discount"):
-        create_payment_term(
+        reviewed_create_payment_term(
             session, tenant_id, "HALF2", "Days only", 30, discount_days=10
         )
 
     # The positive control: the same figures together are accepted, and a term
     # stating neither is accepted as it always was.
     assert (
-        create_payment_term(
+        reviewed_create_payment_term(
             session,
             tenant_id,
             "GOOD",
@@ -177,7 +180,7 @@ def test_a_discount_rate_and_window_are_validated(session, business):
         ).discount_days
         == 10
     )
-    assert create_payment_term(session, tenant_id, "PLAIN", "Plain", 30) is not None
+    assert reviewed_create_payment_term(session, tenant_id, "PLAIN", "Plain", 30) is not None
 
 
 def test_the_discount_deadline_is_one_shared_rule(session, business):
@@ -188,7 +191,7 @@ def test_the_discount_deadline_is_one_shared_rule(session, business):
         invoice_due_date,
     )
 
-    term = create_payment_term(
+    term = reviewed_create_payment_term(
         session,
         business.tenant.id,
         "SK10",
@@ -226,7 +229,7 @@ def test_the_discount_deadline_is_one_shared_rule(session, business):
 
     # The positive control for the silence: a term granting no discount places
     # no window, while still placing a due date.
-    plain = create_payment_term(session, business.tenant.id, "NET7", "Net 7", 7)
+    plain = reviewed_create_payment_term(session, business.tenant.id, "NET7", "Net 7", 7)
     assert invoice_due_date(invoice, plain) == date(2026, 8, 8)
     assert invoice_discount_date(invoice, plain) is None
     assert invoice_discount_date(invoice, None) is None

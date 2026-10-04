@@ -1,14 +1,17 @@
+
 import pytest
+from intake_review_support import (
+    reviewed_add_party_group_member,
+    reviewed_assign_group_price_list,
+    reviewed_assign_party_price_list,
+    reviewed_create_party_group,
+    reviewed_create_price_list,
+    reviewed_create_price_list_entry,
+)
 
 from reality.mcp.catalog import dispatch_tool
 from reality.services.core import (
     NotFound,
-    add_party_group_member,
-    assign_group_price_list,
-    assign_party_price_list,
-    create_party_group,
-    create_price_list,
-    create_price_list_entry,
     create_tenant,
     resolve_price,
 )
@@ -35,10 +38,10 @@ def quote(session, tenant_id, party_id, item_id, quantity="12"):
 def test_price_quote_matches_canonical_service_and_exposes_direct_provenance(
     session, business
 ):
-    price_list = create_price_list(
+    price_list = reviewed_create_price_list(
         session, business.tenant.id, "DIRECT", "Direct", "sales", "EUR"
     )
-    entry = create_price_list_entry(
+    entry = reviewed_create_price_list_entry(
         session,
         business.tenant.id,
         price_list.id,
@@ -47,7 +50,7 @@ def test_price_quote_matches_canonical_service_and_exposes_direct_provenance(
         "8.50",
         "pcs",
     )
-    assignment = assign_party_price_list(
+    assignment = reviewed_assign_party_price_list(
         session, business.tenant.id, business.customer.id, price_list.id
     )
 
@@ -92,7 +95,7 @@ def test_price_quote_returns_explicit_no_match(session, business):
 
 
 def test_price_quote_exposes_group_and_default_selection_paths(session, business):
-    default = create_price_list(
+    default = reviewed_create_price_list(
         session,
         business.tenant.id,
         "DEFAULT",
@@ -101,7 +104,7 @@ def test_price_quote_exposes_group_and_default_selection_paths(session, business
         "EUR",
         is_default=True,
     )
-    create_price_list_entry(
+    reviewed_create_price_list_entry(
         session, business.tenant.id, default.id, business.item.id, 1, "10", "pcs"
     )
     default_result = quote(
@@ -110,15 +113,15 @@ def test_price_quote_exposes_group_and_default_selection_paths(session, business
     assert default_result["source"] == "default"
     assert default_result["assignment_id"] is None
 
-    group_list = create_price_list(
+    group_list = reviewed_create_price_list(
         session, business.tenant.id, "GROUP", "Group", "sales", "EUR"
     )
-    create_price_list_entry(
+    reviewed_create_price_list_entry(
         session, business.tenant.id, group_list.id, business.item.id, 1, "8", "pcs"
     )
-    group = create_party_group(session, business.tenant.id, "GROUP", "Group")
-    add_party_group_member(session, business.tenant.id, group.id, business.customer.id)
-    assignment = assign_group_price_list(
+    group = reviewed_create_party_group(session, business.tenant.id, "GROUP", "Group")
+    reviewed_add_party_group_member(session, business.tenant.id, group.id, business.customer.id)
+    assignment = reviewed_assign_group_price_list(
         session, business.tenant.id, group.id, group_list.id
     )
 
