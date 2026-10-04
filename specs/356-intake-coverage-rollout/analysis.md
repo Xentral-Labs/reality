@@ -74,3 +74,11 @@ Explicit parent invocation and existing executor-owned settlement are sufficient
 no new decision type or artificial executing claim is needed. Credit, header and
 correction paths remain separately tracked. Critical design findings resolved;
 implementation and qualification pending.
+## Interactive MCP authority analysis
+
+Canonical person checks retain the real interactive user but currently lose the
+credential/grant authority that transported the confirmation. Dispatch checks are
+a snapshot; post-dispatch revocation/expiry must be observed before business
+effects. Existing rows and private scope capture suffice. Calling the OAuth
+resolver inside settlement would commit prematurely and is explicitly rejected.
+Critical design findings resolved; implementation and qualification pending.

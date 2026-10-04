@@ -254,3 +254,12 @@ with their executed receipts; callbacks cannot change/repeat a parent invocation
 or commit accepted evidence before receipt completion. Callback failure leaves
 no new accepted evidence, postings or manual source. Credit families remain a
 separate qualification slice.
+## Current interactive MCP confirmation authority (FR-003)
+
+A synchronous confirmation received through interactive MCP retains its actual
+verified request principal within the application transaction. Before canonical
+effects, its credential and consent grant must still be current, unrevoked,
+unexpired, belong to the same real user/company/client and permit the actual
+confirmation tool/scope. Dispatch-time authentication alone is insufficient.
+HTTP/CLI and existing manual-token decision behavior remains unchanged. No
+credential, grant, principal or consent is manufactured.

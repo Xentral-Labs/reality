@@ -132,6 +132,7 @@ class _ApplicationAuthority:
     tool: str
     intent: str
     confirmed: bool
+    mcp_principal: object
 
 
 _application_authority: ContextVar[_ApplicationAuthority | None] = ContextVar(
@@ -146,6 +147,8 @@ _master_consumed: ContextVar[set[object] | None] = ContextVar(
 
 @contextmanager
 def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=False):
+    from reality.mcp.principal import current_mcp_principal
+
     current = session.scalar(
         select(ChangeProposal).where(
             ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == proposal.id
@@ -161,6 +164,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
         current.type.removeprefix("tool:"),
         current.input,
         confirmed,
+        current_mcp_principal(),
     )
     token = _application_authority.set(authority)
     consumed_token = _master_consumed.set(set())
@@ -1713,6 +1717,11 @@ def _require_application_decision(session, tenant_id, operation):
         require_delivery_principal(
             session, tenant_id, Principal(proposal.decided_by_user_id)
         )
+    from reality.services.mcp_authorization import _require_current_mcp_decision
+
+    _require_current_mcp_decision(
+        session, tenant_id, authority.mcp_principal, proposal.decided_by_user_id
+    )
 
 
 def _require_confirming_token(session, tenant_id, token_id):
@@ -1940,6 +1949,7 @@ class _FinanceAuthority:
     token_id: str | None
     policy: object
     defaults: tuple[tuple[str, str], ...]
+    mcp_principal: object
 
 
 _finance_authority: ContextVar[_FinanceAuthority | None] = ContextVar(
@@ -1953,6 +1963,7 @@ def _confirmed_finance_scope(
 ):
     """Bind actual consent to the existing locked proposed-state transaction."""
     from reality.domain.finance import ACCOUNT_ROLES
+    from reality.mcp.principal import current_mcp_principal
     from reality.tools.finance import FINANCE_COMMANDS
 
     if not confirmed:
@@ -1973,6 +1984,7 @@ def _confirmed_finance_scope(
         token_id if principal is None else None,
         policy,
         tuple(ACCOUNT_ROLES.items()),
+        current_mcp_principal(),
     )
     token = _finance_authority.set(proof)
     consumed_token = _master_consumed.set(set())
@@ -2094,6 +2106,12 @@ def require_finance_configuration(session, tenant_id, operation, actual=None):
             raise InvalidOperation(code="company_owner_access_required")
     if proof.token_id is not None:
         _require_confirming_token(session, tenant_id, proof.token_id)
+    from reality.services.mcp_authorization import _require_current_mcp_decision
+
+    _require_current_mcp_decision(
+        session, tenant_id, proof.mcp_principal,
+        proof.principal.user_id if proof.principal is not None else None,
+    )
     if actual is None:
         return
     if operation == "execute_finance_command":

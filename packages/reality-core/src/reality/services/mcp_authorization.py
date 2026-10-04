@@ -665,6 +665,42 @@ def resolve_interactive_principal(session, token: str) -> MCPPrincipal | None:
     )
 
 
+def _require_current_mcp_decision(session, tenant_id, principal, confirming_user_id):
+    """Check the actual interactive confirmation credential without committing."""
+    if principal is None or principal.authentication_kind != "interactive":
+        return
+    row = session.execute(
+        select(MCPUserCredential, MCPClientGrant)
+        .join(
+            MCPClientGrant,
+            (MCPClientGrant.tenant_id == MCPUserCredential.tenant_id)
+            & (MCPClientGrant.id == MCPUserCredential.grant_id),
+        )
+        .where(
+            MCPUserCredential.tenant_id == tenant_id,
+            MCPUserCredential.id == principal.credential_id,
+            MCPClientGrant.id == principal.grant_id,
+        )
+        .with_for_update(of=(MCPUserCredential, MCPClientGrant))
+        .execution_options(populate_existing=True)
+    ).one_or_none()
+    if row is None:
+        raise InvalidOperation(code="intake_approval_required")
+    credential, grant = row
+    if (
+        principal.tenant_id != tenant_id
+        or principal.user_id != confirming_user_id
+        or grant.user_id != principal.user_id
+        or grant.client_id != principal.client_id
+        or credential.revoked_at is not None
+        or credential.access_expires_at <= now()
+        or grant.revoked_at is not None
+        or "proposal_approve_and_execute" not in grant.allowed_tools
+        or "reality:confirm" not in grant.scopes
+    ):
+        raise InvalidOperation(code="intake_approval_required")
+
+
 def revoke_grant(
     session, *, tenant_id: str, grant_id: str, actor_user_id: str, reason: str = "user"
 ) -> None:

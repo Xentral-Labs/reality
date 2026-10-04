@@ -2583,3 +2583,4 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/test_canonical_order_boundary.py`: spec 356 FR-001–FR-003; changed/repeated/early-commit/failure and sibling-effect refusal in both directions, exact stated source values and actual retained receipt replay. Full qualification pending.
 
 - `packages/reality-core/tests/test_canonical_invoice_boundary.py`: spec 356 FR-001–FR-003; actual invoice parent and ledger callback changed/repeat/early-commit/failure/sibling refusal, atomic source/evidence/postings and retained receipt replay in three existing families. Full qualification pending.
+- `packages/reality-core/tests/test_current_mcp_decision_authority.py`: spec 356 FR-003; real PKCE consent and credential confirmation, current revocation/expiry/tool/scope refusal after dispatch, actual person attribution and receipt replay. Full qualification pending.

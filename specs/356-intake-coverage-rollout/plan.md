@@ -210,3 +210,12 @@ owns the root commit. Preserve previews, locking, down-payment offsets, stated
 amounts and receipt shape. Fixed setup remains tied to actual authored intent.
 Constitution: PASS; no schema, tool or invented source/approval. Qualify both
 order-linked directions and free supplier invoices, then affected full CI.
+## Interactive MCP authority implementation slice
+
+Issue a real authorization interaction, consent grant and PKCE credential in
+tests, resolve its actual principal, dispatch explicit approval, then change
+credential/grant authority in the canonical callback. Observe valid refusal
+proofs first. Capture the real request principal in existing application/Finance
+scopes and reread the exact credential/grant rows under settlement locks without
+calling the resolver that commits. Preserve current person/Owner and manual token
+checks. Constitution: PASS; no schema, fake actor, manufactured grant or consent.

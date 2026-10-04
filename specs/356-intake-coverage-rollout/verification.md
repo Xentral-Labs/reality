@@ -301,3 +301,20 @@ posting adapter now preserves that actual canonical parameter; the existing
 post-write failure/rollback proof exercises it. All 92 final invoice/rebilling/
 payment-atomicity/credit/return checks passed after correction (43.88 seconds).
 Committed-head CI is still required.
+## Current interactive MCP authority qualification in progress
+
+Five real master grant/credential revocation/expiry/tool/scope callbacks produced
+DID NOT RAISE before current credential enforcement. The first Finance proof
+patched a module attribute while the catalog retained its registered callback;
+that was not a meaningful Finance authority proof. After patching the actual
+registered callback, all five Finance cases produced DID NOT RAISE on the frozen
+pre-enforcement parent. No principal, consent grant or credential was fabricated:
+all came from actual authorization interaction, consent and PKCE exchange.
+The current row checks run without invoking the resolver's internal commit.
+All 45 authority/manual-token/OAuth/configuration checks passed after enforcement;
+positive final/full and committed-head CI qualification remain required.
+
+Final real positive OAuth person attribution and replay, current authority,
+manual token, OAuth HTTP/service and canonical document/order checks all passed:
+88 tests in 14.83 seconds. Complete final-parent and committed-head CI remain
+required. No grant authority is manufactured to repair a refused call.

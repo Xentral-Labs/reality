@@ -95,3 +95,8 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T034 Observe valid changed/repeated/early-commit/post-write failure proofs for sales, supplier and free supplier invoices.
 - [ ] T035 Freeze canonical parent calls and settle retained source/evidence/postings/offsets with their actual receipt.
 - [ ] T036 Qualify invoice variants, fixed setup, adapters and complete committed-head CI.
+## Current MCP authority qualification (FR-003)
+
+- [ ] T037 Prove real interactive grant/credential revocation, expiry and permission changes after dispatch refuse master/Finance effects.
+- [ ] T038 Bind the actual verified MCP principal to existing scopes and check its current persisted authority before effects.
+- [ ] T039 Qualify positive real OAuth confirmation, manual/interactive parity, adapters and full committed-head CI.
