@@ -12,6 +12,7 @@ from reality.catalogs import (
     runtime_application_catalog,
     runtime_tool_catalog,
 )
+from reality.db.core import Tenant, uid
 from reality.mcp.catalog import (
     MCP_TOOL_CATALOG,
     MCP_TOOL_NAMES,
@@ -488,3 +489,38 @@ def test_generic_confirmation_is_independently_discoverable_in_review(
         name in {tool["name"] for tool in row["tools"]}
         for row in evidence["capabilities"]
     )
+
+
+# --- Spec 362: the tenant purpose ---------------------------------------------
+
+
+def _sandbox(session):
+    tenant = Tenant(id=uid("ten"), name="Practice Bikes", purpose="playground")
+    session.add(tenant)
+    session.flush()
+    return tenant
+
+
+def test_topic_index_names_the_tenant_purpose(session, business):
+    sandbox = _sandbox(session)
+
+    assert topic_index(session, business.tenant.id)["tenant"] == {"purpose": "business"}
+    assert topic_index(session, sandbox.id)["tenant"] == {"purpose": "playground"}
+
+
+def test_the_token_reads_only_its_own_tenant_purpose(session, business):
+    sandbox = _sandbox(session)
+
+    with mcp_principal_context(_manual(sandbox.id, {"capability_catalog"})):
+        sandbox_answer = run_read_tool(
+            session, sandbox.id, "capability_catalog", {}
+        )
+    with mcp_principal_context(_manual(business.tenant.id, {"capability_catalog"})):
+        business_answer = run_read_tool(
+            session, business.tenant.id, "capability_catalog", {}
+        )
+
+    assert sandbox_answer["tenant"] == {"purpose": "playground"}
+    assert business_answer["tenant"] == {"purpose": "business"}
+    assert sandbox.id not in json.dumps(business_answer)
+    assert "Practice Bikes" not in json.dumps(business_answer)

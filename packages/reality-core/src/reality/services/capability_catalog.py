@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from reality.catalogs import runtime_tool_catalog
+from reality.db.core import Tenant
 from reality.db.mcp_authorization import MCPClientGrant
 from reality.mcp.principal import MCPPrincipal, current_mcp_principal
 from reality.services.core import InvalidOperation
@@ -43,6 +44,7 @@ def topic_index(session: Session, tenant_id: str) -> dict[str, Any]:
             not state(name, access[name])[0] for name in entry["mcp"]
         )
     return {
+        "tenant": _tenant(session, tenant_id),
         "credential": _credential(limited),
         "external_agent_runtime": external_agent_runtime(),
         "topics": [
@@ -109,6 +111,14 @@ def _capability_entries(catalog: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _access_classes(catalog: dict[str, Any]) -> dict[str, str]:
     return {tool["name"]: tool["access"] for tool in catalog["mcp_tools"]}
+
+
+def _tenant(session: Session, tenant_id: str) -> dict[str, str]:
+    """Say whether this company is a sandbox, which changes how proposals preview."""
+    purpose = session.scalar(select(Tenant.purpose).where(Tenant.id == tenant_id))
+    if purpose is None:
+        raise InvalidOperation("Company not found.")
+    return {"purpose": purpose}
 
 
 def _credential(limits_tools: bool) -> dict[str, Any]:
