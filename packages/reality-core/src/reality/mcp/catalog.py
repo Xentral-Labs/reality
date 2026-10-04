@@ -4457,7 +4457,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_history",
         "Email evidence and decision history",
-        "Read one source, proposal or execution and its original evidence, attachment download links and reported outcome. Provider acceptance is not recipient delivery.",
+        "Read one source/proposal/execution or independently page explicitly linked correspondence and decisions by existing business reference. All partner roles, including suppliers, are supported. Provider acceptance is not recipient delivery.",
         "read",
         "Email",
         {**EmailHistory.model_json_schema(), "required": []},
@@ -4466,7 +4466,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_dispatch_propose",
         "Propose an outgoing email",
-        "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
+        "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources and mandatory existing same-company business_references. Include every relevant known business object. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
         "propose",
         "Email",
         DispatchProposal.model_json_schema(),
@@ -4493,7 +4493,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "email_capture",
         "Capture original email evidence",
-        "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key.",
+        "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key. business_references is mandatory: resolve existing same-company business objects first, including supplier/other partner roles. Never guess a link from an address or number.",
         "confirm",
         "Email",
         CaptureEmail.model_json_schema(),

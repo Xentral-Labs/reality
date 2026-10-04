@@ -1021,6 +1021,11 @@ export type BillingAvailability = {
   }[];
 };
 export type InspectorData = {
+  email_history_identity?: {
+    source_id?: string;
+    business_kind?: string;
+    business_id?: string;
+  } | null;
   /** The decisions behind this record, for its detail view only (spec 263 FR-013). */
   decisions?: (import("./unified/decisionTrail").DecisionAttribution & {
     role: "created" | "changed" | "caused";
@@ -2308,7 +2313,36 @@ export const api = {
       original_file?: { download_url: string };
       outgoing_files?: { part_id: string; filename: string; download_url: string }[];
       state?: string;
+      business_references?: { kind: string; id: string; label: string }[];
+      context_missing?: boolean;
+      related_decisions?: { proposal_id: string; status: string; review_url: string }[];
     }>(`/api/tenants/${tenant}/email/history?${new URLSearchParams(identity)}`),
+  emailCorrespondence: (
+    tenant: string,
+    kind: string,
+    id: string,
+    page: number,
+    decisionPage: number,
+  ) =>
+    request<{
+      items: {
+        source_id: string;
+        subject: string;
+        sender: string;
+        direction: string;
+        received_at: string;
+      }[];
+      page: Page;
+      related_decisions: {
+        proposal_id: string;
+        subject: string;
+        status: string;
+        review_url: string;
+      }[];
+      decision_page: Page;
+    }>(
+      `/api/tenants/${tenant}/email/history?${new URLSearchParams({ business_kind: kind, business_id: id, page: String(page), decision_page: String(decisionPage), size: "25" })}`,
+    ),
   proposalReview: (tenant: string, proposalId: string) =>
     shareInFlight(proposalReviewReads, `${tenant}:${proposalId}`, () =>
       request<ProposalReview>(

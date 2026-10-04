@@ -655,10 +655,11 @@ def delivery_evidence(
     session: Session, tenant_id: str, kind: str, record_id: str
 ) -> dict[str, Any]:
     """Inspect exact evidence/event records through their existing shortest links."""
-    from reality.db.core import Fact, ImportJob, LedgerEntry, SourceRecord
+    from reality.db.core import Fact, ImportJob, LedgerEntry, Lot, SourceRecord
 
     models = {
         "document_line": DocumentLine,
+        "lot": Lot,
         "source_record": SourceRecord,
         "business_event": BusinessEvent,
     }
@@ -717,6 +718,20 @@ def delivery_evidence(
                         else None,
                     )
                 )
+    elif kind == "lot":
+        rows = [
+            value("Lot", record.lot_number),
+            value("Item", record.item_id, {"kind": "item", "id": record.item_id}),
+            value("Best-before date", record.expires_at),
+        ]
+        if record.source_record_id:
+            rows.append(
+                value(
+                    "Original source",
+                    record.source_record_id,
+                    {"kind": "source_record", "id": record.source_record_id},
+                )
+            )
     elif kind == "source_record":
         from reality.db.core import InterpretationOutcome, SourceSystem
         from reality.services.provenance import external_link

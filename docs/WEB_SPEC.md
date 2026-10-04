@@ -3556,3 +3556,13 @@ Storyline retain their own behavior. This supersedes narrower desktop docking ru
 ## Live business logic inspection
 
 See [the live business logic contract](features/business-logic-blueprints.md) for spec 343: request-time running-source provenance, shared rule graphs, raw synthetic test evidence, read-only case comparison, and public/private boundaries. No stored explanation, business schema or scheduled job is introduced.
+
+## Explicit email business context — Spec 351
+
+Email decision/evidence views show named business-context links. The business-object
+Inspector exposes a shared-service **Linked correspondence** panel for all supported
+partner roles (including suppliers) and supported operational/evidence records.
+Email and decision lists have independent pagination, original-source/file
+navigation and safe plain-text rendering. The panel states its explicit-membership
+scope and has an empty state; source views label historical missing context.
+Correspondence is read when opening the object detail and is not an inferred Fact.

@@ -278,3 +278,51 @@ by these requirements.
 | FR-010, DR-005 | US3.5 | Read-tool and browser provenance navigation proof |
 | FR-011 | US4.1–2 | Discoverability, schema and complete external-client examples |
 | FR-012 | US2.5; US4.3; edge cases | Adapter parity, tenant isolation and safe evidence-rendering proofs |
+
+## Mandatory business context extension (owner approved 2026-10-04)
+
+The owner requires every newly captured email and every outgoing proposal to have
+explicit business-object context. Business partners include suppliers, customers,
+carriers and other partner roles; this is not a customer/order-only feature.
+
+- **FR-013**: Require one or more distinct existing same-company business references
+  (`kind`, opaque `id`) for email capture and dispatch proposals. Support parties of
+  every role, items, locations, documents/lines, commitments, reservations, movements,
+  ledger entries (payments), lots, shipments/packages, facts and business events.
+  Resolve and validate references before any evidence write. Never infer identity
+  from an email address, a name or a human document number. Agents must include all
+  relevant known objects; unresolved context blocks capture/proposal until resolved.
+- **FR-014**: Preserve context in immutable source versions and the approved proposal;
+  retain indexed source-to-object memberships. Actual outgoing messages inherit the
+  approved context from the proposal, never from executor-supplied overrides. Context
+  changes require a new proposal; source correction creates a new source version.
+- **FR-015**: Extend `email_history` with a mutually exclusive business-reference
+  selector and bounded pagination. Return only explicitly linked emails and related
+  decisions, with navigable source IDs, original content/file routes and context.
+  Return counts/empty state; never silently drop older pages or cross companies.
+  Existing source/proposal/execution selectors remain available. Context is not an
+  inferred Fact and does not change stock, fulfilment, money or business authority.
+- **FR-016**: Show linked correspondence on supported business-object Inspector detail
+  views and show named business references on email reviews/evidence. Read after
+  returning to an object or completing a decision; preserve original text safely.
+  Agents discover required context and object queries through the same running
+  workflow/schema. No automatic inclusion in unrelated read responses is promised.
+- **DR-006**: One tenant-scoped `email_business_link` membership stores source ID,
+  business kind and business ID with a composite source FK, unique membership and
+  object-lookup index. The shared service validates polymorphic targets against a
+  closed model map under the tenant boundary, as existing Fact subjects do.
+
+### Extension acceptance and traceability
+
+| Requirement | Acceptance / executable proof | Tasks |
+|---|---|---|
+| FR-013 | Missing/duplicate/unknown/cross-company context is rejected atomically; supplier and non-order objects work | T014, T015, T016 |
+| FR-014, DR-006 | Capture replay is stable, context correction versions original; claimed/reported context matches approval; populated-link downgrade refused | T014, T015, T016 |
+| FR-015 | Object history includes only explicit memberships and pending/settled proposals; bounded stable pages and tenant isolation | T014, T016, T017 |
+| FR-016 | Supplier/object Inspector opens linked originals/files; outgoing review names context and updates after decisions | T014, T017, T018 |
+
+Historical sources without verified context are preserved and readable by ID,
+explicitly flagged as missing context; they are not assigned a guessed partner.
+Re-capture with verified context creates a linked immutable version. Generic source
+imports cannot manufacture authoritative correspondence memberships. Original file
+and attachment-only Sources reach business context through the email message.

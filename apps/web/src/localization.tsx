@@ -27619,3 +27619,52 @@ Object.assign(dictionaries.es, { "All companies": "Gestionar todas las empresas"
 Object.assign(dictionaries.de, { "Logic section": "Abschnitt der Logik" });
 Object.assign(dictionaries.nl, { "Logic section": "Logicaonderdeel" });
 Object.assign(dictionaries.es, { "Logic section": "Sección de lógica" });
+
+Object.assign(dictionaries.de, {
+  "Business context": "Geschäftsbezug",
+  "Linked correspondence": "Verknüpfte Korrespondenz",
+  "Back to linked correspondence": "Zurück zur verknüpften Korrespondenz",
+  "Only emails explicitly linked to this business record are shown.":
+    "Es werden nur E-Mails mit einer ausdrücklichen Verknüpfung zu diesem Geschäftsdatensatz angezeigt.",
+  "No linked emails on this page.": "Keine verknüpften E-Mails auf dieser Seite.",
+  "Related email decisions": "Zugehörige E-Mail-Entscheidungen",
+  "Incoming email": "Eingegangene E-Mail",
+  "Outgoing email": "Ausgehende E-Mail",
+  "Open decision": "Entscheidung öffnen",
+  "This historical email has no verified business context. Capture a new version with existing business references.":
+    "Diese historische E-Mail hat keinen verifizierten Geschäftsbezug. Eine neue Version muss mit vorhandenen Geschäftsdatensätzen verknüpft werden.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Business context": "Zakelijke context",
+  "Linked correspondence": "Gekoppelde correspondentie",
+  "Back to linked correspondence": "Terug naar gekoppelde correspondentie",
+  "Only emails explicitly linked to this business record are shown.":
+    "Alleen e-mails die expliciet aan dit zakelijke record zijn gekoppeld worden getoond.",
+  "No linked emails on this page.": "Geen gekoppelde e-mails op deze pagina.",
+  "Related email decisions": "Bijbehorende e-mailbeslissingen",
+  "Incoming email": "Inkomende e-mail",
+  "Outgoing email": "Uitgaande e-mail",
+  "Open decision": "Beslissing openen",
+  "This historical email has no verified business context. Capture a new version with existing business references.":
+    "Deze historische e-mail heeft geen geverifieerde zakelijke context. Leg een nieuwe versie vast met bestaande zakelijke verwijzingen.",
+});
+
+Object.assign(dictionaries.es, {
+  "Business context": "Contexto de negocio",
+  "Linked correspondence": "Correspondencia vinculada",
+  "Back to linked correspondence": "Volver a la correspondencia vinculada",
+  "Only emails explicitly linked to this business record are shown.":
+    "Solo se muestran correos vinculados explícitamente a este registro de negocio.",
+  "No linked emails on this page.": "No hay correos vinculados en esta página.",
+  "Related email decisions": "Decisiones de correo relacionadas",
+  "Incoming email": "Correo entrante",
+  "Outgoing email": "Correo saliente",
+  "Open decision": "Abrir decisión",
+  "This historical email has no verified business context. Capture a new version with existing business references.":
+    "Este correo histórico no tiene contexto de negocio verificado. Registre una nueva versión con referencias de negocio existentes.",
+});
+
+Object.assign(dictionaries.de, { Lots: "Chargen" });
+Object.assign(dictionaries.nl, { Lots: "Partijen" });
+Object.assign(dictionaries.es, { Lots: "Lotes" });

@@ -75,3 +75,31 @@ Graph analytics intentionally defers the personal-correspondence execution slice
 its privacy policy and report grain are separate from this operational handoff.
 The graph completeness audit explicitly names both dispatch tables and the reason;
 this does not remove email_history/Decisions access or hide a coverage gap.
+
+## Mandatory business context extension
+
+Owner approval on 2026-10-04 covers mandatory explicit linking for all relevant
+business-partner roles and business objects in this same PR. No clarification or
+constitutional exception is needed. Add one minimal indexed polymorphic membership
+with source FK and composite tenant scope; reuse the validated-object boundary used
+by Fact observations. This schema is proven by repeated object-filtered reads and
+bidirectional original-evidence navigation. JSON-only payload search was rejected:
+it cannot provide authoritative indexed memberships separate from arbitrary imports.
+
+Domain requires bounded distinct references on capture and proposal. Services
+validate target existence before writing, normalize reference order, persist source
+memberships idempotently, inherit proposal context for actual reports, and expose
+paged object history including proposals. Context is separate from original message
+content and source-supported business observations; no business Facts are invented.
+Existing evidence versions are not rewritten and historical context is not guessed.
+A new migration follows the email dispatch migration; downgrade refuses populated
+memberships. Graph analytics explicitly defers this correspondence membership slice.
+
+API/MCP use the existing history tool and capture/proposal schemas. Inspector object
+views load object-filtered correspondence through the shared read; email evidence
+shows names and object routes, with full source/file navigation. Contract and schema
+examples must require returned existing object IDs. Tests precede implementation.
+Constitution Check remains PASS: lossless source, shortest relationship, demonstrated
+schema need, tenant/service validation, accepted scope/test trace, shared UI reads,
+one PostgreSQL membership table, no recomputed source values. Manual analysis finds
+no unresolved critical requirement/plan/task conflicts.

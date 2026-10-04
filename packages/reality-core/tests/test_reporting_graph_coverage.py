@@ -95,7 +95,7 @@ INFRASTRUCTURE = {
 DEFERRED = {
     "agent_email_execution": (
         "Email dispatch authorizations and executor-bound receipt links expose personal correspondence. Their reporting grain and privacy policy need a separately reviewed analytics design; email_history and Decisions provide the operational evidence trail (spec 351).",
-        {"email_dispatch", "email_dispatch_receipt"},
+        {"email_dispatch", "email_dispatch_receipt", "email_business_link"},
         set(),
     ),
     "party_correspondence": (

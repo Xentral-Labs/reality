@@ -24,3 +24,11 @@ Each FR/DR maps to the story/test tasks above and the specification traceability
 - [x] T011 Preserve the FR-009 reconciliation guard for uncertain or conflicting reports with approval deviations; cover proposals and claims.
 - [x] T012 Refresh FR-010 email history after approval and rejection without reopening the review; verify both browser journeys.
 - [x] T013 Validate the review fixes locally and publish full-suite PR check links; the PR records the current head and final check status.
+
+## Mandatory business context extension
+
+- [ ] T014 Add failing mandatory-context, supplier/object-history, tenant, version/dispatch and browser stories (FR-013–016; DR-006).
+- [ ] T015 Add closed reference envelopes, indexed tenant/source membership and protected migration (FR-013–014; DR-006).
+- [ ] T016 Implement validation, immutable memberships, approved context inheritance and paged object history in shared services (FR-013–015).
+- [ ] T017 Extend existing MCP/API history and Inspector/email review UI; verify object/source/file/decision navigation (FR-015–016).
+- [ ] T018 Update canonical contracts, discoverable examples, catalogs and verification; complete full PR checks on the final linear branch (FR-013–016).

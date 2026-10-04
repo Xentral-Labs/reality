@@ -10,9 +10,14 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from reality.db.core import EmailDispatch, SourceRecord
+from reality.db.core import EmailDispatch, Party, SourceRecord
 from reality.services.artifacts import materialize_artifact, stage_artifact
-from reality.services.core import InvalidOperation, NotFound, create_tenant
+from reality.services.core import (
+    InvalidOperation,
+    NotFound,
+    create_party,
+    create_tenant,
+)
 from reality.services.emails import (
     capture_email,
     claim_dispatch,
@@ -46,11 +51,21 @@ def files(monkeypatch, tmp_path):
     monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path))
 
 
+def business_references(session, tenant_id):
+    party = session.scalar(
+        select(Party).where(Party.tenant_id == tenant_id).order_by(Party.id)
+    )
+    if party is None:
+        party = create_party(session, tenant_id, "Correspondence partner", "supplier")
+    return [{"kind": "party", "id": party.id}]
+
+
 def capture(session, tenant_id, **overrides):
     return capture_email(
         session,
         tenant_id,
         {
+            "business_references": business_references(session, tenant_id),
             "origin": "mail_agent",
             "retry_key": "inbound-1",
             "direction": "inbound",
@@ -69,6 +84,7 @@ def proposal(session, tenant_id, **overrides):
             "message": message(
                 sender="support@example.test", to=["customer@example.test"]
             ),
+            "business_references": business_references(session, tenant_id),
             "rationale": "Answer the received question",
             "supporting_source_ids": [],
             **overrides,
@@ -379,6 +395,7 @@ def test_mcp_permissions_and_server_derived_executor(session, business):
         "email_capture",
         {
             "origin": "mail_agent",
+            "business_references": business_references(session, tid),
             "retry_key": "incoming",
             "direction": "inbound",
             "message": message(),
@@ -396,6 +413,7 @@ def test_mcp_permissions_and_server_derived_executor(session, business):
         "email_dispatch_propose",
         {
             "message": message(),
+            "business_references": business_references(session, tid),
             "rationale": "Reply",
             "supporting_source_ids": [incoming["source_id"]],
         },
@@ -446,6 +464,7 @@ def test_api_evidence_review_and_file_round_trip(session, business, files):
             base = f"/api/tenants/{business.tenant.id}"
             args = {
                 "origin": "mail_agent",
+                "business_references": business_references(session, business.tenant.id),
                 "retry_key": "api-in",
                 "direction": "inbound",
                 "message": message(),
@@ -461,6 +480,9 @@ def test_api_evidence_review_and_file_round_trip(session, business, files):
                 base + "/email/dispatch-proposals",
                 json={
                     "message": message(bcc=["audit@example.test"]),
+                    "business_references": business_references(
+                        session, business.tenant.id
+                    ),
                     "rationale": "Answer",
                     "supporting_source_ids": [incoming.json()["source_id"]],
                 },

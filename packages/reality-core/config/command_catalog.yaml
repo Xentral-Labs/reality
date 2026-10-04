@@ -2099,14 +2099,15 @@ capability_guidance:
   email_history:
     kind: read
     application_tool: email_history
-    purpose: Read the canonical email evidence, decision and external execution contract.
+    purpose: Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.
     use_when:
     - An agent handles correspondence or needs its evidence trail.
     do_not_use_when:
     - The request requires sending mail or approving a proposal.
     required_context:
-    - Selected company and the operation schema.
+    - Selected company and exactly one source, proposal, execution or existing business reference; object queries accept separate email and decision pages.
     data_basis:
+    - email_business_link
     - source_record
     - source_artifact
     - action
@@ -2140,14 +2141,15 @@ capability_guidance:
   email_workflow:
     kind: read
     application_tool: email_workflow
-    purpose: Read the canonical email evidence, decision and external execution contract.
+    purpose: Read email evidence by source or decision, or page correspondence explicitly linked to any supported business object.
     use_when:
     - An agent handles correspondence or needs its evidence trail.
     do_not_use_when:
     - The request requires sending mail or approving a proposal.
     required_context:
-    - Selected company and the operation schema.
+    - Selected company and exactly one source, proposal, execution or existing business reference; object queries accept separate email and decision pages.
     data_basis:
+    - email_business_link
     - source_record
     - source_artifact
     - action
@@ -2181,7 +2183,7 @@ capability_guidance:
     do_not_use_when:
     - The email has already been sent or execution is uncertain.
     required_context:
-    - Complete message and stored attachment bytes plus supporting source IDs.
+    - Complete message and stored attachment bytes plus supporting source IDs and one or more existing same-company business references.
     preconditions:
     - Every reference belongs to the company and every outgoing attachment has durable
       contents.

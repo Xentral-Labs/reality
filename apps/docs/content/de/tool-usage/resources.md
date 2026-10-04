@@ -45,8 +45,8 @@ melden den externen Versand.
 - [E-Mail-Verlauf lesen](./commands#command-email_history) (`email_history`)
 - [E-Mail-Ablauf lesen](./commands#command-email_workflow) (`email_workflow`)
 
-**Darunter:** Tabellen: `email_dispatch`, `email_dispatch_receipt` · Agent Tools ohne
-Geschäftsaktion: [`email_file_chunk`](./commands#tool-email_file_chunk),
+**Darunter:** Tabellen: `email_dispatch`, `email_dispatch_receipt`, `email_business_link` · Agent
+Tools ohne Geschäftsaktion: [`email_file_chunk`](./commands#tool-email_file_chunk),
 [`email_file_complete`](./commands#tool-email_file_complete),
 [`email_capture`](./commands#tool-email_capture),
 [`email_dispatch_claim`](./commands#tool-email_dispatch_claim),

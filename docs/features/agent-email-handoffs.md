@@ -19,6 +19,11 @@ company authority and truthful decision attribution remain authoritative.
 
 ## Receive and archive
 
+Before capture, resolve existing same-company business objects and retain their
+opaque IDs. Every capture and proposal requires `business_references`; include all
+relevant known partner, order, invoice or other supported records. Unresolved context
+blocks submission until resolved.
+
 1. Preserve the complete received message, not just a summary. Include account,
    sender, To/CC/BCC where supplied, subject, plain text, HTML, headers, external
    payload, provider message/thread identity and supplied timestamps.
@@ -86,6 +91,7 @@ read operation; read `email_history` before taking any further action.
 
 ```json
 {
+  "business_references": [{"kind": "party", "id": "EXISTING_BUSINESS_PARTNER_ID"}],
   "origin": "support_agent",
   "retry_key": "account-inbox-provider-123",
   "direction": "inbound",
@@ -113,6 +119,7 @@ read operation; read `email_history` before taking any further action.
     "text": "We will confirm the delivery date shortly.",
     "in_reply_to": "<provider-123@example.test>"
   },
+  "business_references": [{"kind": "party", "id": "EXISTING_BUSINESS_PARTNER_ID"}],
   "rationale": "Acknowledge the received question without inventing a delivery promise.",
   "supporting_source_ids": ["SOURCE_ID_RETURNED_BY_CAPTURE"]
 }
@@ -143,3 +150,45 @@ Reality cannot prevent a separately credentialed external agent from bypassing
 this workflow. Such a send can be retained as outbound evidence, but cannot gain a
 retroactive matching approval. [Specification 351](../../specs/351-agent-email-handoffs/spec.md)
 defines acceptance and verification requirements.
+
+## Required business context and object history
+
+Every new `email_capture` and `email_dispatch_propose` requires
+`business_references`, a distinct list of one to fifty `{ "kind": "party", "id":
+"RETURNED_EXISTING_PARTNER_ID" }` references. Every existing Party role is supported: company, customer and supplier, including
+service suppliers such as carriers. This feature adds no new partner-role taxonomy. Other supported kinds are `item`, `location`, `document`,
+`document_line`, `commitment`, `reservation`, `movement`, `ledger_entry` (payments),
+`lot`, `shipment`, `shipment_package`, `fact` and `business_event`.
+
+Resolve existing business records first and include every relevant known object.
+An address, name or order number is not identity. If context is unresolved, keep the
+original message in the agent's intake and resolve it before submitting; capture and
+proposal reject absent, empty, duplicate, unsupported, missing or foreign context
+before writing evidence. Use the same references for a reply unless the reviewed
+business context intentionally changes. Actual outgoing evidence inherits the
+approved proposal context; an executor cannot supply an alternative association.
+
+Context is retained outside the original message in immutable source versions and
+indexed authoritative memberships. Same-content/context replay returns the same
+source; a verified context correction creates a new version. It does not turn an
+email statement into a Fact or change orders, stock or money. Generic source import
+labels/payloads cannot manufacture these memberships. Historical unlinked sources
+stay readable by source ID and explicitly report `context_missing`; no association
+is guessed or backfilled. Re-capture the original identity with verified references
+to retain a linked new version.
+
+Query `email_history` with `business_reference: {"kind": "party", "id":
+"RETURNED_EXISTING_PARTNER_ID"}` and `page`, `decision_page`, `size` (1–100,
+default 25). It returns explicit email memberships (`items`, `page`) and proposals
+(`related_decisions`, `decision_page`) with independently navigable pages. It never
+infers additional memberships from object ownership, sender addresses or email
+threads: link both partner and order when both are relevant. Source/proposal/
+execution selectors remain mutually exclusive with the business selector.
+The API uses `GET /email/history?business_kind=party&business_id=...&page=1&decision_page=1`.
+
+Supported business-object Inspector details show **Linked correspondence**, with
+source/file navigation and links to Decisions. Email reviews and original evidence
+show named **Business context** links back to the Inspector. Email Source records
+also expose the email evidence panel from Inspector → Business Facts → Source
+records. This is a shared-service read on opening the detail; unrelated operational
+read responses do not silently add full personal correspondence.
