@@ -307,13 +307,23 @@ def test_concurrent_identical_acceptance_one_decision(postgres_database, monkeyp
         with Session(engine) as concurrent:
             return accept_grant(concurrent, tenant_id, args)
 
+    stale = Session(engine)
+    stale_proposal = stale.get(
+        ChangeProposal, {"tenant_id": tenant_id, "id": args["proposal_id"]}
+    )
     try:
         with ThreadPoolExecutor(max_workers=2) as pool:
             results = list(pool.map(run, range(2)))
         assert results[0] == results[1]
+        assert stale_proposal.status == "proposed"
+        from reality.tools.application import reject_proposal
+
+        with pytest.raises(InvalidOperation):
+            reject_proposal(stale, tenant_id, args["proposal_id"])
         with Session(engine) as db:
             assert counts(db, tenant_id)[1] == 1
     finally:
+        stale.close()
         engine.dispose()
 
 

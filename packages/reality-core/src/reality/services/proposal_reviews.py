@@ -142,6 +142,8 @@ def proposal_next_step(proposal: ChangeProposal) -> dict[str, Any]:
                 }
             }
             if tool == "email_dispatch_authorize"
+            and proposal.status == "proposed"
+            and stored_arguments is not None
             and not arguments.get("retry_acknowledgements")
             else {}
         ),
