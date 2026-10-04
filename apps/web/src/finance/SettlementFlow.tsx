@@ -151,7 +151,7 @@ export function SettlementFlow({
     try {
       const result = await request<{ output: Review }>(
         `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
-        {},
+        approve ? { confirmed: true } : {},
       );
       sessionStorage.removeItem(key);
       setPending(null);

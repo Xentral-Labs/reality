@@ -365,7 +365,7 @@ function TargetBody({
     await run(async () => {
       await targetCall(
         `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
-        {},
+        approve ? { confirmed: true } : {},
       );
       sessionStorage.removeItem(storage);
       setPending(null);

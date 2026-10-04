@@ -211,7 +211,7 @@ def test_demo_order_to_cash_business_story(session, business):
         actor_type="human",
     )
     outcome = json.loads(
-        approve_and_execute_proposal(session, tenant, proposal.id).output
+        approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True).output
     )
     assert outcome["allocation_id"]
     assert open_item(session, tenant, invoice)["status"] == "paid"
@@ -235,7 +235,7 @@ def test_demo_order_to_cash_business_story(session, business):
         },
         actor_type="human",
     )
-    approve_and_execute_proposal(session, tenant, accepted.id)
+    approve_and_execute_proposal(session, tenant, accepted.id, confirmed=True)
     row = open_item(session, tenant, invoice)
     assert row["status"] == "paid" and row["open"] == 0
     cash = session.scalar(

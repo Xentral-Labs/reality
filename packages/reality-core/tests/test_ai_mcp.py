@@ -743,7 +743,7 @@ def test_new_external_agent_surfaces_use_opaque_ids_and_refuse_foreign_records(
         },
         allowed_access=("propose",),
     )
-    executed = approve_and_execute_proposal(session, tenant, prepared["proposal_id"])
+    executed = approve_and_execute_proposal(session, tenant, prepared["proposal_id"], confirmed=True)
     notice_id = json.loads(executed.output)["id"]
     for tool_name, arguments, access in (
         ("finance_dunning_notice", {"notice_id": notice_id}, "read"),

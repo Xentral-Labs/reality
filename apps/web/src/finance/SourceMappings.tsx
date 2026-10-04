@@ -180,7 +180,10 @@ function MappingBody({ tenantId, canManage }: { tenantId: string; canManage: boo
   async function decide(approve: boolean) {
     if (!pending) return;
     await run(async () => {
-      await call(`${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`, {});
+      await call(
+        `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
+        approve ? { confirmed: true } : {},
+      );
       setPending(null);
       setEditorOpen(false);
       setData(null);

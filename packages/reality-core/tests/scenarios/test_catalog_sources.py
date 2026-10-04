@@ -716,7 +716,7 @@ def test_records_arriving_before_their_order_are_linked_once_it_is_in(
         },
         actor_type="human",
     )
-    approve_and_execute_proposal(session, tenant, proposal.id)
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
 
     assert payment_intake.unallocated_amount(session, tenant, payment.id) == 0
     assert core.open_invoice_amount(session, tenant, invoice_id) == 2

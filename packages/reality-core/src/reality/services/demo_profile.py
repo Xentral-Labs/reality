@@ -120,6 +120,7 @@ def _finance_action(
     import json
 
     from reality.services.analytics.reports import caller
+    from reality.services.intake import _invoke
     from reality.services.memberships import Principal
     from reality.services.tenant_policy import profile_finance_action_scope
     from reality.tools.application import create_change_proposal
@@ -141,11 +142,12 @@ def _finance_action(
                 actor_type="system",
                 _commit=False,
             )
-        result = execute_finance_command(
+        result = _invoke(
+            "execute_finance_command", execute_finance_command,
             session,
             run.tenant_id,
-            tool_name,
-            arguments,
+            name=tool_name,
+            arguments=arguments,
             action_id=action.id,
             actor_id=run.owner_user_id,
         )
@@ -540,16 +542,16 @@ def seed_profile(
             ("dunning_fee_revenue", "Dunning fee revenue"),
             ("payment_fee_expense", "Payment fees"),
         ):
-            account = create_account(
-                session,
+            account = _invoke(
+                "finance_account_create", create_account, session,
                 tenant,
                 code=role,
                 name=name,
                 role=role,
                 _commit=False,
             )
-            set_default_account(
-                session,
+            _invoke(
+                "finance_account_set_default", set_default_account, session,
                 tenant,
                 role=role,
                 account_id=account["id"],

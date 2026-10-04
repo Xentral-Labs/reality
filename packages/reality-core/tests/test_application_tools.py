@@ -811,13 +811,14 @@ def test_agent_prepares_finance_but_only_authenticated_owner_confirms(
     assert proposal.status == "proposed"
 
     with pytest.raises(InvalidOperation, match="confirming company owner"):
-        confirm_tool(session, business.tenant.id, proposal.id)
+        confirm_tool(session, business.tenant.id, proposal.id, confirmed=True)
 
     executed = confirm_tool(
         session,
         business.tenant.id,
         proposal.id,
         confirming_principal=Principal(scheduled_owner.id),
+        confirmed=True,
     )
     assert executed.status == "executed"
     assert executed.decided_by_user_id == scheduled_owner.id

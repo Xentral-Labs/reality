@@ -167,3 +167,35 @@ confirmed account transaction now grants account maintenance/audit only, while
 lossless raw source capture remains an explicit non-business-effect exception.
 All 55 affected account/canonical/intake checks passed; the final 17 configuration
 proofs also passed, including raw preservation without accepted Documents.
+
+Finance CI integration correction: the original committed-head run found explicit
+confirmation missing in Finance Web forms and positive browser/story fixtures,
+and fixed initial profile account configuration was incorrectly refused. Finance
+forms now send confirmation only after the user's confirmation action; rejecting
+still sends no approval. The fixed setup path retains its actual company/run/root
+and closed authored account definitions plus frozen, single-use invocations. Its
+profile finance dispatcher checks the exact retained proposed command and authored
+intent instead of manufacturing an executing claim. The meaningful pre-fix proof
+refused two valid preset account calls; all 31 canonical/configuration/execution/
+profile-security checks passed after correction. Other CI failures and the complete
+regression remain under investigation.
+
+The complete company setup/international demo/order-to-cash affected scenarios passed: 30 tests in 155.53 seconds. The initial Finance CI backend shard also identified positive allocation and owner-refusal fixtures missing their intended explicit confirmation; those inputs are being corrected without changing permissions.
+
+Final affected positive Owner/allocation and initialization follow-ups: 18 passed.
+All four previously failing real browser journeys passed locally with actual Web/API/
+worker/PostgreSQL: company setup, Finance rollout, unified business journey and bulk
+intake (514.29 seconds). All 462 frontend contracts and the production build passed.
+The bulk browser failure did not reproduce; committed-head CI still must prove it.
+The existing attribution instrument now names the frozen dispatcher parameters and
+recognizes that actual dispatcher call inside its executing-proposal context. The
+account-initialization annotation is attached to the invocation, not its import.
+
+Final attribution, opaque-ID MCP boundary and repository annotation audit: 15 passed. Catalog generation and spec policy passed. The original complete regression remains running on its frozen source; its discovered profile/confirmation/instrumentation issues have the affected passing proofs above. Final-head CI is still required.
+
+The complete frozen pre-correction regression finished with 42 failed, 6,158
+passed, 10 skipped and 19 setup errors in 1,570.32 seconds. Its failing set matches
+the original four CI shards: fixed preset setup, missing positive confirmations,
+probe keyword/AST instrumentation and the misplaced annotation. This is a failed
+pre-correction run, not a passing final qualification. The corrected committed
+source still requires its complete regression and all CI jobs.

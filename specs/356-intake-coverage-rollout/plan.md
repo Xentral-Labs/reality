@@ -164,8 +164,9 @@ finance lock, proposed row lock, execution and executed receipt in one transacti
 A private scope records only the actual confirmed retained command, current root,
 principal/token and exact input. It must accept the existing proposed state and
 must never force an executing claim. Freeze account calls before callbacks and
-recheck current authority at canonical configuration writers. Only fixed default
-account bootstrap remains a narrowly classified initialization exception; direct
+recheck current authority at canonical configuration writers. Fixed new-company defaults and the five authored initial preset account roles
+remain narrowly classified initialization exceptions bound to the actual preset,
+company/run/root and frozen single-use invocation; direct
 arbitrary account changes and action tags refuse. Verify no-effect rollback,
 callback duplication, altered arguments, current authority, stale configuration,
 replay and transports before full CI qualification. Other finance/business writer

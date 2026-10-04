@@ -1731,6 +1731,10 @@ def _require_confirming_token(session, tenant_id, token_id):
 
 
 def _master_application_active(operation=None):
+    if operation == "execute_finance_command" and _profile_finance_authority.get() is not None:
+        return True
+    if operation in {"finance_account_create", "finance_account_set_default"} and _profile_authority.get() is not None:
+        return True
     if _finance_authority.get() is not None and operation in {
         "execute_finance_command",
         *_FINANCE_CONFIGURATION_TOOLS,
@@ -1940,6 +1944,41 @@ def _confirmed_finance_scope(
 
 def require_finance_configuration(session, tenant_id, operation, actual=None):
     """Refuse direct configuration and recheck exact actual confirmation authority."""
+    profile = _profile_authority.get()
+    if profile is not None and operation in {"finance_account_create", "finance_account_set_default"}:
+        if not require_core_operation(session, tenant_id, "finance_account_maintain"):
+            raise InvalidOperation(code="intake_approval_required")
+        definitions = {
+            "customer_reduction": "Customer reductions",
+            "supplier_reduction": "Supplier reductions",
+            "bad_debt_expense": "Customer bad-debt expense",
+            "dunning_fee_revenue": "Dunning fee revenue",
+            "payment_fee_expense": "Payment fees",
+        }
+        if actual is None or actual["role"] not in definitions:
+            raise InvalidOperation(code="intake_review_invalid")
+        if operation == "finance_account_create":
+            if actual["code"] != actual["role"] or actual["name"] != definitions[actual["role"]]:
+                raise InvalidOperation(code="intake_review_invalid")
+        else:
+            from reality.db.core import SubledgerAccount
+            account = session.scalar(select(SubledgerAccount).where(SubledgerAccount.tenant_id == tenant_id, SubledgerAccount.id == actual["account_id"]))
+            if account is None or account.role != actual["role"] or account.code != actual["role"] or account.name != definitions[actual["role"]]:
+                raise InvalidOperation(code="intake_review_invalid")
+        from reality.services.intake import require_scoped_intent
+        require_scoped_intent(operation, actual)
+        return
+    profile_finance = _profile_finance_authority.get()
+    if profile_finance is not None and operation == "execute_finance_command":
+        if actual is None or profile_finance[0] is not session or profile_finance[1] is not session.get_transaction() or profile_finance[4] != tenant_id:
+            raise InvalidOperation(code="intake_approval_required")
+        run = require_playground_run(session, profile_finance[2], profile_finance[3])
+        proposal = session.scalar(select(ChangeProposal).where(ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == actual["action_id"]))
+        if run.status != "initializing" or actual["name"] not in {"finance.dunning.record", "finance.deposit.record", "finance.deposit.clear"} or actual["name"] != profile_finance[5] or actual["actor_id"] != profile_finance[3] or json.dumps(actual["arguments"], sort_keys=True, allow_nan=False) != profile_finance[6] or proposal is None or proposal.status != "proposed" or proposal.type != f'tool:{actual["name"]}' or proposal.input != profile_finance[6]:
+            raise InvalidOperation(code="intake_review_invalid")
+        from reality.services.intake import require_scoped_intent
+        require_scoped_intent(operation, actual)
+        return
     proof = _finance_authority.get()
     if (
         proof is None

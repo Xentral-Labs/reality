@@ -220,7 +220,7 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
     const decided = await run(() =>
       call<{ output?: Receipt }>(
         `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
-        {},
+        approve ? { confirmed: true } : {},
       ),
     );
     if (decided === undefined) return;

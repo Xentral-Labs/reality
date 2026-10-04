@@ -170,7 +170,7 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                 attribution_centers.append(
                     json.loads(
                         approve_and_execute_proposal(
-                            session, tenant.id, proposal.id
+                            session, tenant.id, proposal.id, confirmed=True
                         ).output
                     )["id"]
                 )

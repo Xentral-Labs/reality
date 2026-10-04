@@ -95,7 +95,10 @@ export function PaymentReturn({
     setBusy(true);
     setError("");
     try {
-      await call(`${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`, {});
+      await call(
+        `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
+        approve ? { confirmed: true } : {},
+      );
       if (!approve) return close();
       window.dispatchEvent(new Event("reality:delivery-settled"));
       setDone(true);

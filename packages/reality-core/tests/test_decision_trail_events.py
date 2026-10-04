@@ -259,7 +259,7 @@ def test_the_finance_path_is_linked(session, business, monkeypatch):
 
     name = min(FINANCE_COMMANDS - {"cost.change"})
 
-    def execute(session, tenant_id, _name, _arguments, *, action_id, actor_id=None):
+    def execute(session, tenant_id, name, arguments, *, action_id, actor_id=None):
         return _emitting_handler("probe.recorded")(session, tenant_id, {})
 
     monkeypatch.setattr(application_module, "execute_finance_command", execute)
@@ -295,6 +295,10 @@ def _called_name(call: ast.Call) -> str | None:
     if isinstance(function, ast.Attribute):
         return function.attr
     if isinstance(function, ast.Name):
+        if function.id == "_invoke" and len(call.args) >= 2:
+            operation, handler = call.args[:2]
+            if isinstance(operation, ast.Constant) and operation.value == "execute_finance_command" and isinstance(handler, ast.Name) and handler.id == "execute_finance_command":
+                return handler.id
         return function.id
     return None
 

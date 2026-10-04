@@ -181,7 +181,7 @@ export function ReferenceSettings({
     try {
       const result = await call<{ output: Reference }>(
         `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
-        {},
+        approve ? { confirmed: true } : {},
       );
       setPending(null);
       setEditorOpen(false);

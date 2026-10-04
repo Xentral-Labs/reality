@@ -94,7 +94,10 @@ export function DunningNotice({
     setBusy(true);
     setError("");
     try {
-      await call(`${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`, {});
+      await call(
+        `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
+        approve ? { confirmed: true } : {},
+      );
       if (approve) window.dispatchEvent(new Event("reality:delivery-settled"));
       close();
     } catch (e) {

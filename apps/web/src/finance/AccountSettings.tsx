@@ -111,7 +111,7 @@ export function AccountSettings({
     setBusy(true);
     setError("");
     try {
-      await call(`${base}/change-proposals/${pending.id}/approve`, {});
+      await call(`${base}/change-proposals/${pending.id}/approve`, { confirmed: true });
       setPending(null);
       setEditorOpen(false);
       setEditing(null);

@@ -381,9 +381,9 @@ def initialize_accounts(
             )
             if dest is not None:
                 continue
-            # reality-rule: services.finance.accounts.initialize_accounts.effect-40
             from reality.services.intake import _invoke
 
+            # reality-rule: services.finance.accounts.initialize_accounts.effect-40
             account = _invoke(
                 "finance_account_create",
                 create_account,

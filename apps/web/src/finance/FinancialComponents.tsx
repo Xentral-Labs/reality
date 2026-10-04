@@ -385,7 +385,7 @@ export function FinancialComponents({
     try {
       const result = await call<{ output: Assignment }>(
         `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
-        {},
+        approve ? { confirmed: true } : {},
       );
       setPending(null);
       setHistory(null);

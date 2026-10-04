@@ -104,7 +104,10 @@ export function SettlementReduction({
     setBusy(true);
     setError("");
     try {
-      await call(`${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`, {});
+      await call(
+        `${base}/change-proposals/${pending.id}/${approve ? "approve" : "reject"}`,
+        approve ? { confirmed: true } : {},
+      );
       sessionStorage.removeItem(storageKey);
       setPending(null);
       if (approve) {
