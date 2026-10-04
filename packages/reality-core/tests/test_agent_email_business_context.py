@@ -286,3 +286,25 @@ def test_imported_context_cannot_fabricate_memberships(session, business):
         )["items"]
         == []
     )
+
+
+def test_attachment_context_uses_its_linked_original_message(session, business):
+    stored = capture(
+        session,
+        business.tenant.id,
+        business_references=refs(business),
+        message=message(
+            attachments=[
+                {
+                    "part_id": "missing-file",
+                    "filename": "Original.pdf",
+                    "missing_reason": "Not supplied",
+                }
+            ]
+        ),
+    )
+    attachment = email_history(
+        session, business.tenant.id, {"source_id": stored["attachment_source_ids"][0]}
+    )
+    assert attachment["business_references"][0]["id"] == business.supplier.id
+    assert attachment["context_missing"] is False

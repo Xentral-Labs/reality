@@ -87,3 +87,12 @@ approved context. Legacy evidence is preserved and populated-link downgrade refu
 Browser proof covers supplier object history, pagination, original files, Decisions
 and decision-status refresh. Four-language audits and 145 documentation contracts
 pass. The PR verification section records full-suite status for the final head.
+
+Full extension baseline `efc7004c87a8c0a2ff050ef88f80f7c69dc7e5de` passed all
+22 quality jobs ([run 1001](https://github.com/Xentral-Labs/reality/actions/runs/37176017182))
+and installer2 ([run 236](https://github.com/Xentral-Labs/reality/actions/runs/37176017149)).
+The four backend shards total 6,053 passed and 10 existing skips.
+Final attachment-context refinement passes all 12 context integration tests: attachment
+Sources inherit explicit memberships through their original email Sources. The complete
+frontend contract suite passes 462 tests, and the refined correspondence browser journey
+passes. Final current-head CI proof is maintained in the linked PR verification section.
