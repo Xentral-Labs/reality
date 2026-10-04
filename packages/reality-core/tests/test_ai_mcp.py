@@ -385,7 +385,7 @@ def test_proposal_result_names_review_principal_and_verification(session, busine
     assert result["next_step"] == {
         "review_required": True,
         "review_read": "proposal_review",
-        "decision_handoff": "proposal-review",
+        "decision_handoff": "proposal_approve_and_execute",
         "required_principal": "authenticated_active_member",
         "decision_policy": {
             "approval": {
@@ -403,7 +403,9 @@ def test_proposal_result_names_review_principal_and_verification(session, busine
         "explicit_confirmation": True,
         "confirmation_tool": "proposal_approve_and_execute",
         "reconciliation_read": "proposal_execution_status",
-        "verification_reads": ["inventory", "commitment_register"],
+        "verification_reads": ["commitments_list", "inventory_read"],
+        "verification_basis": ["inventory", "commitment_register"],
+        "unavailable_verification_reads": [],
     }
 
 

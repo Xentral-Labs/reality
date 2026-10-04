@@ -30,7 +30,7 @@ Existing full Quality workflow remains required, including four database shards.
 ## Repository Structure and Layer Changes
 
 - `services/proposal_reviews.py`: complete safe handoff template; derive callable guidance
-  from the executable catalog through a reusable helper.
+  from the executable catalog and existing bound handler metadata through a reusable helper.
 - `services/tenant_policy.py`: recognize only the existing transaction-bound authored
   lesson proposal context; do not grant new authority or change admission.
 - `tools/application.py`: create the ordinary retained review for fresh eligible demo
@@ -83,7 +83,7 @@ never treat it as an empty set. No access grant follows from a copyable call tem
 |---|---|---|
 | FR-001 | provider + real DB, `tests/test_chat_scope_security.py` | No retained shipping context when no model lookup occurs |
 | FR-002 | both providers / actual dispatch, same file | Published read-first request still permits timezone proposals |
-| FR-003 | authenticated HTTP, `tests/test_mcp_http_runtime.py` | Real enums/defaults/nested constraints lost |
+| FR-003 | authenticated HTTP and existing adapter, `tests/test_mcp_http_runtime.py` / `tests/test_ai_mcp.py` | Real enums/defaults/nested constraints lost |
 | FR-004 | shared service and HTTP, `tests/test_demo_mcp_workflow.py` | Playground review generic until confirmation |
 | FR-005 | exact review/legacy/authority, same file | No complete arguments/preparation state |
 | FR-006 | execution/status/immutable receipt, same file | Follow-ups expose projection names only |
@@ -112,3 +112,6 @@ retained snapshots and original receipts remain compatible. Generated docs must 
 ## Complexity Tracking
 
 None: no constitutional exception or new infrastructure.
+
+HTTP schemas reuse the existing local-reference expansion so nested flat client contracts
+remain valid while enum, nullable, required and bounds constraints stay authoritative.

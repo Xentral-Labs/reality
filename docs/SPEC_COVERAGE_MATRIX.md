@@ -2636,10 +2636,12 @@ no Finance-allocation expansion, new scheduling, deployment or third-party right
 - FR-001/002: `tests/test_chat_scope_security.py` — both provider loops, retained shipment
   Movements without consignments or model lookup, explicit current read-first enforcement,
   no persisted mutation, and historical instructions do not constrain a new authorized request.
-- FR-003: `tests/test_mcp_http_runtime.py` — authenticated tools/list preserves registered
+- FR-003: `tests/test_mcp_http_runtime.py` / `tests/test_ai_mcp.py` — authenticated tools/list preserves registered
   schemas; existing typed calls, nullable/union arguments and transport validation remain gates.
 - FR-004/005/006: `tests/test_demo_mcp_workflow.py` — real practice-company creation,
   initial full review, exact approval arguments, execution/reconciliation, immutable original
   receipt, replay/stale refusal and legacy preparation without read-time mutation.
+- FR-006: `tests/finance/test_owner_handoff.py` retains the existing owner-only Finance
+  decision policy and original receipt while MCP guidance resolves the existing context read.
 - DR-001/002/003: existing Playground lesson/admission, proposal privacy/decision, MCP permission
   and company-setup tests remain required. No migration; live model accuracy is not claimed.

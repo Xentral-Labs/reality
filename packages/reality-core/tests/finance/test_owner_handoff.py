@@ -49,7 +49,7 @@ def test_agent_owner_agent_finance_handoff_uses_one_proposal_identity(
     assert prepared["next_step"] == {
         "review_required": True,
         "review_read": "proposal_review",
-        "decision_handoff": "proposal-review",
+        "decision_handoff": "proposal_approve_and_execute",
         "required_principal": "authenticated_active_owner",
         "decision_policy": {
             "approval": {
@@ -67,13 +67,23 @@ def test_agent_owner_agent_finance_handoff_uses_one_proposal_identity(
         "explicit_confirmation": True,
         "confirmation_tool": "proposal_approve_and_execute",
         "reconciliation_read": "proposal_execution_status",
-        "verification_reads": ["finance.settlement.context"],
+        "verification_reads": ["finance_settlement_context"],
+        "verification_basis": ["finance.settlement.context"],
+        "unavailable_verification_reads": [],
     }
     assert core.open_invoice_amount(session, tenant_id, invoice.id) == Decimal(100)
 
     review = proposal_review(session, tenant_id, proposal_id)
     assert review["id"] == proposal_id
-    assert review["next_step"] == prepared["next_step"]
+    assert review["next_step"]["decision_handoff"] == "proposal-review"
+    assert (
+        review["next_step"]["verification_reads"]
+        == prepared["next_step"]["verification_basis"]
+    )
+    assert (
+        review["next_step"]["decision_policy"]
+        == prepared["next_step"]["decision_policy"]
+    )
     assert review["confirmable"] is True
     assert review["preview"]["settlement"]["remaining_claim"] == "0.0000"
 
