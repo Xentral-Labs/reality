@@ -71,6 +71,9 @@ def test_inventory_reads_are_bounded_and_match_current_terms(session, business):
         statements.append(statement)
 
     def measured():
+        # Compare equally cold identity maps and already-open transactions.
+        session.expire_all()
+        session.connection()
         statements.clear()
         event.listen(session.get_bind(), "before_cursor_execute", collect)
         try:

@@ -215,6 +215,7 @@ def test_the_cli_reserves_at_a_named_warehouse(session, business, monkeypatch):
             business.tenant.id,
             "--location-id",
             munich.id,
+            "--yes",
         ],
     )
     assert result.exit_code == 0, result.output

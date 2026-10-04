@@ -534,3 +534,6 @@ The real business/company browser pair passed 2/2 (352.79 seconds). Broader busi
 
 
 Initial reservation-head CI exposed a persisted Decimal representation assertion and the stock-capping concurrency fixture encountering a real competing executing claim. The exact quantity assertion now matches its received stored scale. Both concurrent attempts settle before a refused caller explicitly prepares and confirms a fresh current review; capping and the separate exact retained-review competition assertions remain intact. All 26 affected commitment/delivery/concurrency checks pass (19.19 seconds). Runtime source is unchanged; full corrected-head CI remains required.
+
+
+The corrected reservation-head full CI exposed two additional old adapter/performance assumptions: a named-warehouse CLI fixture omitted explicit --yes, and the constant-query comparison counted transaction setup differently after real committed fixture decisions. The CLI fixture now confirms explicitly. Query measurement opens the transaction and expires the identity map before the query listener, retaining equal-query and exact-value assertions. All eight affected warehouse/latency checks pass (8.80 seconds). No runtime source was changed; full final-head CI remains required.
