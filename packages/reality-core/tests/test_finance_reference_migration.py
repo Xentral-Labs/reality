@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from alembic import command
 from alembic.config import Config
+from intake_review_support import reviewed_post_sales_invoice
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
@@ -63,7 +64,7 @@ def legacy_catalogs(postgres_database, monkeypatch):
                     {"t": tenant, "target": target["id"]},
                 )
             doc, ids = fixture(session, company)
-            core.post_sales_invoice(session, tenant, doc.id)
+            reviewed_post_sales_invoice(session, tenant, doc.id)
             confirm(
                 session,
                 tenant,
