@@ -22,7 +22,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
-| [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
+| [Beleg und Quellsystem](#resource-source)                      | 3      | 15       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 5        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
@@ -967,6 +967,9 @@ Nachweis, Quelle
 
 **Aktionen**
 
+- [Quellinterpretation vorbereiten](./commands#command-prepare_intake) (`prepare_intake`)
+- [Geprüfte Quellinterpretation übernehmen](./commands#command-apply_prepared_intake)
+  (`apply_prepared_intake`)
 - [Quellcode zuordnen](./commands#command-set_source_mapping) (`set_source_mapping`)
 - [Fact erfassen](./commands#command-observe_fact) (`observe_fact`)
 - [Connector einrichten](./commands#command-install_connector_shell) (`install_connector_shell`)
@@ -988,6 +991,7 @@ Nachweis, Quelle
 
 **Nachschlagen**
 
+- [Quellinterpretation prüfen](./commands#command-review_intake) (`review_intake`)
 - [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
 - [Belegzuordnung vorschauen](./commands#command-preview_document) (`preview_document`)
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
@@ -1093,7 +1097,6 @@ Freigabe, Abweichung, Klärfall, Timeline, Verlauf
 [`exception_explain`](./commands#tool-exception_explain),
 [`proposals_awaiting_approval`](./commands#tool-proposals_awaiting_approval),
 [`proposal_execution_status`](./commands#tool-proposal_execution_status),
-[`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute),
 [`proposal_reject`](./commands#tool-proposal_reject),
 [`reality_gaps`](./commands#tool-reality_gaps),
 [`reality_gap_get`](./commands#tool-reality_gap_get),

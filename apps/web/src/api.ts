@@ -2380,10 +2380,15 @@ export const api = {
       },
       onEvent,
     ),
-  approveProposal: (tenant: string, proposalId: string, sessionId: string | null) =>
+  approveProposal: (
+    tenant: string,
+    proposalId: string,
+    sessionId: string | null,
+    reviewToken?: string,
+  ) =>
     request(`/api/tenants/${tenant}/change-proposals/${proposalId}/approve`, {
       method: "POST",
-      body: JSON.stringify({ session_id: sessionId, confirmed: true }),
+      body: JSON.stringify({ session_id: sessionId, confirmed: true, review_token: reviewToken }),
     }),
   rejectProposal: (tenant: string, proposalId: string, sessionId: string | null) =>
     request(`/api/tenants/${tenant}/change-proposals/${proposalId}/reject`, {

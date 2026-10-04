@@ -313,7 +313,10 @@
     "change_graph_report": "reports",
     "email_dispatch_authorize": "intake",
     "email_history": "intake",
-    "email_workflow": "intake"
+    "email_workflow": "intake",
+    "prepare_intake": "intake",
+    "review_intake": "intake",
+    "apply_prepared_intake": "intake"
   },
   "entries": [
     {

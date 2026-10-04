@@ -256,3 +256,47 @@ def test_business_event_rolls_back_with_business_transaction(session, business):
         ).event_type
         == "item.created"
     )
+
+
+def test_cached_progress_cannot_reuse_a_sequence_after_another_writer(
+    postgres_database, monkeypatch
+):
+    """Spec 181 FR-004: the event and current tenant progress advance together."""
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    from reality.db.core import TenantEventProgress
+
+    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", postgres_database)
+    command.upgrade(config, "head")
+    engine = create_engine(postgres_database)
+    try:
+        with Session(engine) as setup:
+            tenant = create_tenant(setup, "Concurrent event proof")
+            tenant_id = tenant.id
+            emit_business_event(
+                setup, tenant_id, "proof.first", "tenant", tenant_id, {}
+            )
+            setup.commit()
+        with (
+            Session(engine, expire_on_commit=False) as first,
+            Session(engine) as second,
+        ):
+            held = first.get(TenantEventProgress, tenant_id)
+            assert held.last_event_sequence == 1
+            emit_business_event(
+                second, tenant_id, "proof.second", "tenant", tenant_id, {}
+            )
+            second.commit()
+            event = emit_business_event(
+                first, tenant_id, "proof.third", "tenant", tenant_id, {}
+            )
+            first.commit()
+            assert event.sequence == 3
+            assert held.last_event_sequence == 3
+    finally:
+        engine.dispose()

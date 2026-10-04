@@ -680,6 +680,24 @@ PAGE_PROPERTIES = {
 
 MCP_TOOL_CATALOG = (
     MCPToolDefinition(
+        "intake_prepare_propose",
+        "Prepare source interpretation",
+        "Prepare exact meaning of a retained source job without accepting business effects. Review and confirm the returned proposal separately.",
+        "propose",
+        "Sources",
+        _object_schema({"job_id": STRING}, required=("job_id",)),
+        _propose("intake_apply"),
+    ),
+    MCPToolDefinition(
+        "intake_review",
+        "Review source interpretation",
+        "Read the retained interpretation, exact digest and decision status without changing source meaning.",
+        "read",
+        "Sources",
+        _object_schema({"proposal_id": STRING}, required=("proposal_id",)),
+        _read("intake_review"),
+    ),
+    MCPToolDefinition(
         "business_journey_guide",
         "Ask about Reality capabilities",
         "Answer whether Reality supports a business situation using cited, release-reviewed Business Journey Guide entries.",

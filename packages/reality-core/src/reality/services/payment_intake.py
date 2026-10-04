@@ -826,3 +826,67 @@ def payment_candidates(
                 )
             )
     return candidates
+
+
+def prepare_customer_payment(
+    session: Session, tenant_id: str, source: SourceRecord, payment: NormalisedPayment
+) -> dict[str, Any]:
+    """Resolve a posting and optional exact allocation without recording either."""
+    core._tenant_record_read(session, SourceRecord, tenant_id, source.id)
+    core._tenant_record_read(session, Party, tenant_id, payment.party_id)
+    resolution = resolve_references(
+        session,
+        tenant_id,
+        payment.party_id,
+        payment.currency,
+        payment.references,
+        source_system=source.source_system,
+    )
+    invoice = resolution.unambiguous
+    control = _posted_control(session, tenant_id, invoice) if invoice else None
+    issues = list(resolution.reasons)
+    if control is not None:
+        try:
+            account = resolve_account(
+                session, tenant_id, "accounts_receivable", control.account_id
+            )
+        except core.InvalidOperation:
+            control = None
+            issues.append(
+                "Matched invoice account is blocked; no allocation is proposed."
+            )
+    if control is None:
+        account = resolve_account(session, tenant_id, "accounts_receivable")
+    cash = resolve_account(session, tenant_id, "cash")
+    arguments = {
+        "party_id": payment.party_id,
+        "amount": str(payment.amount),
+        "currency": payment.currency,
+        "payment_number": payment.payment_number or None,
+        "source_record_id": source.id,
+        "effective_at": payment.effective_at.isoformat(),
+        "_control_account_id": account.id,
+        "_cash_account_id": cash.id,
+    }
+    references = [
+        ("party", payment.party_id),
+        ("account", account.id),
+        ("account", cash.id),
+    ]
+    allocation = None
+    if control is not None:
+        open_amount = core.open_invoice_amount(session, tenant_id, invoice.id)
+        amount = min(payment.amount, open_amount)
+        references.extend([("document", invoice.id), ("ledger_entry", control.id)])
+        if amount > 0:
+            allocation = {"invoice_ledger_entry_id": control.id, "amount": str(amount)}
+        else:
+            issues.append(
+                "Matched invoice is already settled; no allocation is proposed."
+            )
+    return {
+        "arguments": arguments,
+        "allocation": allocation,
+        "references": references,
+        "issues": issues,
+    }
