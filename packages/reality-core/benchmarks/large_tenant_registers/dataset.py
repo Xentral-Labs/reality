@@ -23,7 +23,10 @@ from reality.db.core import (
     SourceRecord,
     Tenant,
 )
-from reality.services.finance.accounts import _bootstrap_accounts, resolve_account
+from reality.services.finance.accounts import (
+    _initialize_new_company_references,
+    resolve_account,
+)
 from reality.services.projections import refresh_operational_projections
 
 DEFINITION_VERSION = "large-tenant-registers-v1"
@@ -307,15 +310,8 @@ def build_dataset(session: Session, profile: DatasetProfile) -> DatasetHandle:
     company_id = _id("pty", tag, 0)
     customer_id = _id("pty", tag, 1)
     location_id = _id("loc", tag, 0)
-    session.add_all(
-        [
-            Tenant(id=tenant_id, name=f"Benchmark Tenant {profile.seed}"),
-            Tenant(id=control_tenant_id, name=f"Control Tenant {profile.seed}"),
-        ]
-    )
-    session.flush()
-    _bootstrap_accounts(session, tenant_id)
-    _bootstrap_accounts(session, control_tenant_id)
+    _initialize_new_company_references(session, Tenant(id=tenant_id, name=f"Benchmark Tenant {profile.seed}"))
+    _initialize_new_company_references(session, Tenant(id=control_tenant_id, name=f"Control Tenant {profile.seed}"))
     account_ids = {
         role: resolve_account(session, tenant_id, role).id
         for role in ("accounts_receivable", "cash", "sales_revenue")

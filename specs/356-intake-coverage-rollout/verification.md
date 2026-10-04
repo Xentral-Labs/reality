@@ -380,3 +380,10 @@ Final parent integration with confirmed credit, invoice, actual MCP/OAuth,
 PostgreSQL shared schedule locking, Playground and business annotations passed
 all 146 checks (35.79 seconds). Ruff, annotation audit and spec policy passed.
 Committed-head full CI and remaining universal writer qualification are pending.
+Committed-head CI found two large-register benchmark fixture builders still
+calling the low-level bootstrap after inserting their Tenant rows. The actual
+disposable dataset builder now uses the same transient-company initializer for
+both its benchmark and control companies; it receives no manufactured person
+decision or production admission bypass. All 13 fixed-reference/large-register
+contract checks passed (6.83 seconds). Ruff passes for the complete package.
+Updated-head full CI remains required.
