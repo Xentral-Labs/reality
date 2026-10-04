@@ -91,6 +91,26 @@ jobs:
           cache-dependency-path: packages/reality-core/pyproject.toml
       - name: Install shared core
         run: python -m pip install -e './packages/reality-core[dev]'
+      - name: Configure disposable PostgreSQL migration lock capacity
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          # Parallel full-schema upgrade/downgrade proofs exceed the image default.
+          # This container exists only for this test shard; deployment is unchanged.
+          docker exec --user postgres "$POSTGRES_CONTAINER" \
+            psql -v ON_ERROR_STOP=1 -U reality -d reality \
+              -c "ALTER SYSTEM SET max_locks_per_transaction = 1024"
+          docker restart "$POSTGRES_CONTAINER"
+          for attempt in $(seq 1 30)
+          do
+            if docker exec "$POSTGRES_CONTAINER" pg_isready -q -U reality -d reality
+            then
+              break
+            fi
+            sleep 1
+          done
+          test "$(docker exec --user postgres "$POSTGRES_CONTAINER" \
+            psql -At -U reality -d reality -c 'SHOW max_locks_per_transaction')" = 1024
       - name: Ruff shared core
         run: cd packages/reality-core && ruff check .
       - name: PostgreSQL test suite

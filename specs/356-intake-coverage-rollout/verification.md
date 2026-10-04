@@ -80,3 +80,14 @@ explicit pause request. It retries only the documented `unfinished_run` conflict
 with the same request key and a bounded five attempts; other refusals still fail
 the proof. The actual PostgreSQL/worker/browser journey passed again (89.32s),
 including exact original payload, digest, decider and one applied document.
+
+## Disposable CI database capacity
+
+Quality run 37168058421 exhausted PostgreSQL's default shared lock table in
+parallel full-schema migration tests (`test_all_migrations_on_disposable_postgresql`
+and `test_target_migration_preserves_ledger_and_refuses_history_loss`). The
+backend-test job now explicitly sets and verifies `max_locks_per_transaction=1024`
+in its own disposable service container before testing. Deployment configuration
+is unchanged. Both affected migration proofs passed concurrently against the
+local disposable database configured at that capacity (13.60s). Required
+committed-head CI remains the completion gate.
