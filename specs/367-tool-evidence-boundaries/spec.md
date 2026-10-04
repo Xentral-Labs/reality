@@ -3,7 +3,7 @@
 **Feature Branch**: `codex/367-tool-evidence-boundaries`
 **Created**: 2026-10-04
 **Language**: English
-**Status**: Accepted scope
+**Status**: Implemented and verified; free-form acceptance limitations documented
 **Input**: The owner approved fixing the five observed existing-tool gaps in a new PR after PR 372 merged.
 
 ## Context and Intent
