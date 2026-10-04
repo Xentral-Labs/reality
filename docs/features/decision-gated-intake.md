@@ -90,3 +90,18 @@ Canonical business defaults are now part of retained preparation, so a later
 canonical default does not silently change approved meaning. Historical reviews
 keep their original digests. Legacy/demo and bank-file adapters still require the
 tracked cutover before this is described as all-path admission.
+
+## Canonical evidence transactions (qualification in progress)
+
+The existing manual normalized-document, manual-order, sales-invoice,
+order-linked supplier-invoice and free supplier-invoice commands bind accepted
+effects to their actual retained confirmation. An action tag alone grants no
+authority. Canonical parent inputs and invoice posting calls are frozen before
+callbacks and consumed once; each planned child keeps its own invocation.
+Evidence, promises/postings where applicable, and the executed receipt settle
+in the application-owned transaction. Premature root commits and unrelated
+header/stock effects refuse. Source values remain as stated.
+
+These command families do not establish universal writer coverage. Credits,
+header-only evidence, corrections and remaining configuration/operational
+writers retain separate spec 356 tasks and require final coverage/CI evidence.

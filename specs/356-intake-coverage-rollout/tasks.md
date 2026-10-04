@@ -89,3 +89,9 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T031 Observe meaningful changed/repeated/early-commit/post-write-failure proofs on valid orders.
 - [ ] T032 Freeze and consume the actual canonical order invocation and settle source/evidence/promises with its receipt atomically.
 - [ ] T033 Qualify both directions, current authority, replay, catalog/browser and committed-head CI.
+
+## Atomic invoice boundary qualification (FR-001–FR-003)
+
+- [ ] T034 Observe valid changed/repeated/early-commit/post-write failure proofs for sales, supplier and free supplier invoices.
+- [ ] T035 Freeze canonical parent calls and settle retained source/evidence/postings/offsets with their actual receipt.
+- [ ] T036 Qualify invoice variants, fixed setup, adapters and complete committed-head CI.

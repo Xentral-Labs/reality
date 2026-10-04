@@ -244,3 +244,13 @@ its immutable source, normalized evidence, line-linked promises and applicable
 credit holds. Its handler cannot change the payload, repeat the invocation, add
 unrelated effects or commit before the executed receipt is ready. A callback
 failure rolls back all new source/evidence/promises. No source value is derived.
+
+## Atomic invoice qualification (FR-001–FR-003)
+
+Existing sales_invoice_record, supplier_invoice_record and
+supplier_invoice_free_record confirmations cover the exact retained payload and
+its source, evidence, postings and offsets. These database-only commands settle
+with their executed receipts; callbacks cannot change/repeat a parent invocation
+or commit accepted evidence before receipt completion. Callback failure leaves
+no new accepted evidence, postings or manual source. Credit families remain a
+separate qualification slice.

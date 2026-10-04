@@ -2581,3 +2581,5 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/test_canonical_document_boundary.py`: spec 356 FR-001–FR-003; direct/action-tag and unconfirmed normalized evidence refusal, valid changed callback/repeat/commit/sibling attacks, actual stated amounts and retained replay, forbidden private execution fields and explicit HTTP consent.
 
 - `packages/reality-core/tests/test_canonical_order_boundary.py`: spec 356 FR-001–FR-003; changed/repeated/early-commit/failure and sibling-effect refusal in both directions, exact stated source values and actual retained receipt replay. Full qualification pending.
+
+- `packages/reality-core/tests/test_canonical_invoice_boundary.py`: spec 356 FR-001–FR-003; actual invoice parent and ledger callback changed/repeat/early-commit/failure/sibling refusal, atomic source/evidence/postings and retained receipt replay in three existing families. Full qualification pending.

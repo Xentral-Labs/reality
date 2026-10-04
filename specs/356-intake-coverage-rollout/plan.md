@@ -199,3 +199,14 @@ proposal fields cannot set it. Preserve real delivery review tokens, source
 values, existing locks, credit-hold rules and receipt shapes. Test both directions,
 then the affected order/catalog/credit/profile/transport scenarios and full CI.
 Constitution: PASS; no schema, new command, fabricated source or authority.
+
+## Atomic invoice implementation slice
+
+Observe valid changed/repeated/early-commit/post-write failure callbacks for the
+three existing invoice commands first. Freeze each existing canonical parent
+writer, require its real retained confirmation, and pass a private commit option
+through its existing single/multi-position recorder. The application executor
+owns the root commit. Preserve previews, locking, down-payment offsets, stated
+amounts and receipt shape. Fixed setup remains tied to actual authored intent.
+Constitution: PASS; no schema, tool or invented source/approval. Qualify both
+order-linked directions and free supplier invoices, then affected full CI.

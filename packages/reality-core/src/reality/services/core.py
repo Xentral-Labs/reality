@@ -1126,7 +1126,7 @@ def _require_business_mutation(
     from reality.services.intake import _require_scoped_operation
 
     intake_approved = _require_scoped_operation(session, tenant_id, operation)
-    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines", "create_manual_order"} and not (
+    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines", "create_manual_order", "record_sales_invoice", "record_supplier_invoice", "record_free_supplier_invoice"} and not (
         fixed_setup or intake_approved
     ):
         from reality.services.tenant_policy import _require_application_decision
@@ -11668,6 +11668,7 @@ def record_sales_invoice(
     delivery_guard: dict[str, Any] | None = None,
     reality_finance_v1: dict[str, Any] | None = None,
     down_payment_offsets: list[dict[str, Any]] | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     Record stated invoice evidence and its receivable, never generate a total.
@@ -11682,6 +11683,9 @@ def record_sales_invoice(
     Otherwise delegate the single-order-line invoice to the shared recorder, retaining the stated amount, quantity and optional financial inputs.
     """
     _require_business_mutation(session, tenant_id, "record_sales_invoice")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("record_sales_invoice", locals())
     if lines is not None and delivery_guard is not None:
         raise InvalidOperation(code="invoice_delivery_guard_single_order_line")
     # reality-rule: core.record_sales_invoice.1
@@ -11702,7 +11706,7 @@ def record_sales_invoice(
         if reality_finance_v1 is not None:
             raise InvalidOperation(code="invoice_position_net_tax_required")
         return _record_multi_order_invoice(
-            session, tenant_id, "sales", arguments, action_id
+            session, tenant_id, "sales", arguments, action_id, _commit=_commit
         )
     # reality-rule: core.record_sales_invoice.2
     return _record_order_invoice(
@@ -11718,6 +11722,7 @@ def record_sales_invoice(
         down_payment_offsets=down_payment_offsets,
         effective_at=effective_at,
         action_id=action_id,
+        _commit=_commit,
     )
 
 
@@ -11734,6 +11739,7 @@ def record_supplier_invoice(
     action_id: str | None = None,
     reality_finance_v1: dict[str, Any] | None = None,
     exchange_rate: Decimal | str | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     Record received supplier invoice evidence and its payable atomically.
@@ -11748,6 +11754,9 @@ def record_supplier_invoice(
     Otherwise delegate the single-order-line invoice to the shared recorder, retaining the stated amount, quantity and optional financial inputs.
     """
     _require_business_mutation(session, tenant_id, "record_supplier_invoice")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("record_supplier_invoice", locals())
     # reality-rule: core.record_supplier_invoice.1
     if lines is not None:
         arguments = {
@@ -11762,7 +11771,7 @@ def record_supplier_invoice(
         if reality_finance_v1 is not None:
             raise InvalidOperation(code="invoice_position_net_tax_required")
         return _record_multi_order_invoice(
-            session, tenant_id, "purchase", arguments, action_id
+            session, tenant_id, "purchase", arguments, action_id, _commit=_commit
         )
     # reality-rule: core.record_supplier_invoice.2
     return _record_order_invoice(
@@ -11777,6 +11786,7 @@ def record_supplier_invoice(
         effective_at=effective_at,
         action_id=action_id,
         exchange_rate=exchange_rate,
+        _commit=_commit,
     )
 
 
@@ -12380,6 +12390,8 @@ def _record_multi_order_invoice(
     direction: str,
     arguments: dict[str, Any],
     action_id: str | None,
+    *,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     from reality.services.tenant_policy import require_decision_finance
 
@@ -12437,11 +12449,13 @@ def _record_multi_order_invoice(
             action_id=action_id,
             _commit=False,
         )
-        post = post_sales_invoice if direction == "sales" else post_supplier_invoice
-        entries = post(
+        from reality.services.intake import _post_reviewed_invoice
+
+        entries = _post_reviewed_invoice(
             session,
             tenant_id,
             document.id,
+            direction=direction,
             effective_at=effective,
             action_id=action_id,
             **(
@@ -12500,7 +12514,10 @@ def _record_multi_order_invoice(
             action_id=action_id,
             correlation_id=action_id,
         )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return result
 
 
@@ -12520,6 +12537,7 @@ def _record_order_invoice(
     finance_detail: dict[str, Any] | None = None,
     down_payment_offsets: list[dict[str, Any]] | None = None,
     exchange_rate: Decimal | str | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     from reality.services.tenant_policy import require_decision_finance
 
@@ -12681,17 +12699,14 @@ def _record_order_invoice(
             action_id=action_id,
             _commit=False,
         )
-        post = (
-            post_sales_credit_note
-            if credit
-            else post_sales_invoice
-            if direction == "sales"
-            else post_supplier_invoice
-        )
-        entries = post(
+        from reality.services.intake import _post_reviewed_invoice
+
+        entries = _post_reviewed_invoice(
             session,
             tenant_id,
             document.id,
+            direction=direction,
+            credit=credit,
             effective_at=effective_at,
             action_id=action_id,
             **(
@@ -12757,7 +12772,10 @@ def _record_order_invoice(
                 action_id=action_id,
                 correlation_id=action_id,
             )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return result
 
 
@@ -12853,6 +12871,9 @@ def post_sales_invoice(
     Debit accounts receivable and credit sales revenue for the document's stated gross amount. Preserve the document currency and source provenance; the ledger service validates the posting.
     """
     _require_business_mutation(session, tenant_id, "post_sales_invoice")
+    from reality.services.intake import _post_reviewed_ledger, require_scoped_intent
+
+    require_scoped_intent("post_sales_invoice", locals())
     document = _tenant_record(session, Document, tenant_id, document_id)
     # reality-rule: core.post_sales_invoice.1
     if document.type != "sales_invoice":
@@ -12861,7 +12882,7 @@ def post_sales_invoice(
     if account_balance(session, tenant_id, "sales_revenue", document.id) != ZERO:
         raise InvalidOperation(code="sales_invoice_already_posted")
     # reality-rule: core.post_sales_invoice.3
-    return post_ledger(
+    return _post_reviewed_ledger(
         session,
         tenant_id,
         document.id,
@@ -13547,6 +13568,9 @@ def post_supplier_invoice(
     Debit inventory and credit accounts payable for the document's stated gross amount. Preserve the document currency and source provenance; the ledger service validates the posting.
     """
     _require_business_mutation(session, tenant_id, "post_supplier_invoice")
+    from reality.services.intake import _post_reviewed_ledger, require_scoped_intent
+
+    require_scoped_intent("post_supplier_invoice", locals())
     document = _tenant_record(session, Document, tenant_id, document_id)
     # reality-rule: core.post_supplier_invoice.1
     if document.type != "supplier_invoice":
@@ -13559,7 +13583,7 @@ def post_supplier_invoice(
         session, tenant_id, "purchase", document.currency, exchange_rate
     )
     # reality-rule: core.post_supplier_invoice.3
-    return post_ledger(
+    return _post_reviewed_ledger(
         session,
         tenant_id,
         document.id,

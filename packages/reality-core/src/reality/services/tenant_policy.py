@@ -172,6 +172,9 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
     fixed = authority.tool in {
         "document_create",
         "order_create",
+        "sales_invoice_record",
+        "supplier_invoice_record",
+        "supplier_invoice_free_record",
         "demo_seed",
         "normal_month",
         "party_create",
@@ -1653,6 +1656,9 @@ def require_demo_intake(
 
 
 _CANONICAL_MUTATION_TOOLS = {
+    "record_sales_invoice": frozenset({"sales_invoice_record"}),
+    "record_supplier_invoice": frozenset({"supplier_invoice_record"}),
+    "record_free_supplier_invoice": frozenset({"supplier_invoice_free_record"}),
     "create_manual_order": frozenset({"order_create"}),
     "create_manual_document_with_lines": frozenset({
         "document_create", "order_create", "sales_invoice_record",
@@ -1748,6 +1754,14 @@ def _master_application_active(operation=None):
     }:
         return True
     authority = _application_authority.get()
+    if authority is not None and authority.tool in {
+        "sales_invoice_record", "supplier_invoice_record", "supplier_invoice_free_record",
+    }:
+        return operation in {
+            "record_sales_invoice", "record_supplier_invoice", "record_free_supplier_invoice",
+            "create_manual_document_with_lines",
+            "post_sales_invoice", "post_supplier_invoice", "post_ledger",
+        }
     if authority is not None and authority.tool == "order_create":
         return operation in {"create_manual_order", "create_manual_document_with_lines", "create_commitment"}
     if authority is not None and authority.tool == "document_create":
@@ -1774,7 +1788,10 @@ def _consume_master_invocation(nonce):
 def require_document_operation(session, tenant_id, operation):
     """A manual evidence confirmation grants no unrelated business effect."""
     authority = _application_authority.get()
-    if authority is None or authority.tool not in {"document_create", "order_create"}:
+    if authority is None or authority.tool not in {
+        "document_create", "order_create", "sales_invoice_record",
+        "supplier_invoice_record", "supplier_invoice_free_record",
+    }:
         return
     permitted = {
         "create_manual_document_with_lines", "emit_business_event",
@@ -1782,6 +1799,10 @@ def require_document_operation(session, tenant_id, operation):
     }
     if authority.tool == "order_create":
         permitted.update({"create_manual_order", "create_commitment"})
+    if authority.tool == "sales_invoice_record":
+        permitted.update({"record_sales_invoice", "post_sales_invoice", "post_ledger"})
+    if authority.tool in {"supplier_invoice_record", "supplier_invoice_free_record"}:
+        permitted.update({"record_supplier_invoice", "record_free_supplier_invoice", "post_supplier_invoice", "post_ledger"})
     if (
         authority.session is not session
         or authority.transaction is not session.get_transaction()

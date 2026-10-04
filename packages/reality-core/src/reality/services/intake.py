@@ -246,6 +246,11 @@ _INTENT_DEFAULTS = {
         "post_ledger",
         "create_manual_document_with_lines",
         "create_manual_order",
+        "record_sales_invoice",
+        "record_supplier_invoice",
+        "post_sales_invoice",
+        "post_supplier_invoice",
+        "post_sales_credit_note",
         "create_commitment",
         "record_customer_payment",
         "allocate_settlement",
@@ -258,6 +263,16 @@ _INTENT_DEFAULTS = {
 
 _INTENT_DEFAULTS["record_external_stock_source"] = {}
 _INTENT_DEFAULTS["execute_finance_command"] = {"actor_id": None}
+
+from reality.services.invoice_actions import (
+    record_free_supplier_invoice as _free_supplier_invoice,
+)
+
+_INTENT_DEFAULTS["record_free_supplier_invoice"] = {
+    key: parameter.default
+    for key, parameter in signature(_free_supplier_invoice).parameters.items()
+    if parameter.default is not Parameter.empty
+}
 
 from reality.services.finance import accounts as _finance_accounts
 
@@ -306,6 +321,16 @@ def _record_normalized_document(
         session, tenant_id, document_type=document_type, number=number,
         party_id=party_id, lines=lines, gross_amount=gross_amount, **arguments,
     )
+
+
+def _post_reviewed_invoice(session, tenant_id, document_id, *, direction, credit=False, **arguments):
+    operation = "post_sales_credit_note" if credit else "post_sales_invoice" if direction == "sales" else "post_supplier_invoice"
+    return _invoke(operation, getattr(core, operation), session, tenant_id, document_id=document_id, **arguments)
+
+
+def _post_reviewed_ledger(session, tenant_id, document_id, party_id, postings, **arguments):
+    return _invoke("post_ledger", core.post_ledger, session, tenant_id,
+        document_id=document_id, party_id=party_id, postings=postings, **arguments)
 
 
 def require_scoped_intent(operation: str, actual: dict[str, Any]) -> None:

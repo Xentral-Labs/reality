@@ -615,7 +615,9 @@ def post_offsets(
         role: resolve_account(session, tenant_id, role).id
         for role in ("customer_down_payments", "accounts_receivable")
     }
-    entries = core.post_ledger(
+    from reality.services.intake import _post_reviewed_ledger
+
+    entries = _post_reviewed_ledger(
         session,
         tenant_id,
         invoice.id,

@@ -64,3 +64,13 @@ The smallest correction is exact parent invocation plus executor-owned settlemen
 not a new tool, decision or invented confirmation. Existing fixed profile callers
 must retain their actual setup authority. Critical findings resolved in this plan;
 implementation and qualification are pending.
+
+## Atomic invoice analysis
+
+Order-linked single/multi-position and free supplier recorders currently commit
+their effects before returning to the command executor. The normalized child
+checks do not constrain parent callback changes made before freezing the child.
+Explicit parent invocation and existing executor-owned settlement are sufficient;
+no new decision type or artificial executing claim is needed. Credit, header and
+correction paths remain separately tracked. Critical design findings resolved;
+implementation and qualification pending.

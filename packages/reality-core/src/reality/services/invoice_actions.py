@@ -113,6 +113,7 @@ def record_free_supplier_invoice(
     effective_at: str | None = None,
     exchange_rate: Decimal | str | None = None,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> dict[str, Any]:
     """
     Atomically retain free invoice evidence and post its stated payable.
@@ -135,6 +136,10 @@ def record_free_supplier_invoice(
     BUSINESS RULE services.invoice_actions.record_free_supplier_invoice.effect-80:
     Record the invoice.recorded audit or business-event evidence with the supplied record and confirmation identity.
     """
+    core._require_business_mutation(session, tenant_id, "record_free_supplier_invoice")
+    from reality.services.intake import require_scoped_intent
+
+    require_scoped_intent("record_free_supplier_invoice", locals())
     arguments = {
         "supplier_id": supplier_id,
         "number": number,
@@ -176,10 +181,13 @@ def record_free_supplier_invoice(
             action_id=action_id,
             _commit=False,
         )
-        entries = core.post_supplier_invoice(
+        from reality.services.intake import _post_reviewed_invoice
+
+        entries = _post_reviewed_invoice(
             session,
             tenant_id,
             document.id,
+            direction="purchase",
             effective_at=core.utc_datetime(creation["effective_at"]),
             action_id=action_id,
             exchange_rate=creation.get("exchange_rate"),
@@ -205,7 +213,10 @@ def record_free_supplier_invoice(
             action_id=action_id,
             correlation_id=action_id,
         )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     # reality-rule: services.invoice_actions.record_free_supplier_invoice.result
     return receipt
 

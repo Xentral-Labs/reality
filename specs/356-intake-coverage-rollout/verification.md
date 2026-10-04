@@ -278,3 +278,19 @@ confirmations and the obsolete Web adapter spy. Those are being corrected in
 the parent PR; this is not a passing complete qualification.
 
 Final order integration on the corrected document production source passed all 152 order/catalog/purchasing/credit/HTTP checks in 72.28 seconds. Parent test corrections leave that production source unchanged; final-head CI remains required.
+## Atomic invoice qualification in progress
+
+All twelve valid sales/supplier/free-supplier changed/repeated/early-commit and
+post-write-failure proofs failed before enforcement. Changed/early-commit calls
+were accepted; repeat/failure left committed invoice evidence behind. The initial
+parent/root correction passed 69 canonical/multi-position/stated/delivery checks.
+Six further unrelated header/stock calls and six balanced changed/repeated ledger
+calls each produced DID NOT RAISE before their child operation/frozen nonce
+closure. All 115 invoice, concurrency, stated amount and down-payment checks
+passed after that correction. Complete qualification and committed-head CI are
+still required; credit and remaining writers are not claimed covered.
+
+Final invoice/source-value/receipt-replay, credit/foreign-currency/profile
+follow-ups passed all 108 checks. Source-attribution, business annotation and
+purchasing checks passed all 54. Ruff, annotation audit, spec policy and catalog
+generation passed. Full committed-head CI and browser qualification are pending.

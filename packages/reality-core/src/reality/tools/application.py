@@ -2077,8 +2077,10 @@ def _sales_invoice_record(
     arguments["action_id"] = arguments.pop("_action_id", None)
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
     # reality-rule: application.sales_invoice_record.1
-    return record_sales_invoice(session, tenant_id, **arguments)
+    return _invoke("record_sales_invoice", record_sales_invoice, session, tenant_id, **arguments, _commit=False)
 
 
 def _supplier_invoice_record(
@@ -2094,8 +2096,10 @@ def _supplier_invoice_record(
     arguments["action_id"] = arguments.pop("_action_id", None)
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
+    from reality.services.intake import _invoke
+
     # reality-rule: application.supplier_invoice_record.1
-    return record_supplier_invoice(session, tenant_id, **arguments)
+    return _invoke("record_supplier_invoice", record_supplier_invoice, session, tenant_id, **arguments, _commit=False)
 
 
 def _supply_assign(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
@@ -3385,8 +3389,10 @@ def _supplier_invoice_free_record(
     from reality.services.invoice_actions import record_free_supplier_invoice
 
     arguments["action_id"] = arguments.pop("_action_id", None)
+    from reality.services.intake import _invoke
+
     # reality-rule: application.supplier_invoice_free_record.1
-    return record_free_supplier_invoice(session, tenant_id, **arguments)
+    return _invoke("record_free_supplier_invoice", record_free_supplier_invoice, session, tenant_id, **arguments, _commit=False)
 
 
 def _payment(kind: str) -> ToolHandler:
