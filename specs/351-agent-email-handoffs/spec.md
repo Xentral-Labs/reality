@@ -112,7 +112,7 @@ mismatch; replay each report and inspect the evidence and send status.
    observation of provider acceptance. It does not claim recipient delivery.
 2. **Given** definitive failure or uncertain execution, **When** reported, **Then**
    the outcome is visible and no successful-send observation is created. Uncertainty
-   requires reconciliation before any further dispatch of the same instruction.
+   requires reconciliation or the separately reviewed FR-020 risk exception before any further dispatch of the same instruction.
 3. **Given** a result replay or competing execution claims, **When** processed,
    **Then** one instruction cannot produce duplicate authorization or duplicate
    outcome records; concurrent claim and retry behavior is explicit.
@@ -182,7 +182,7 @@ and verify identical service outcomes and authorization requirements.
 - **FR-008**: Result handoff MUST preserve actual message/receipt evidence, distinguish
   provider acceptance, definitive failure and uncertainty, and detect deviations from
   the authorized payload. Provider-added transport metadata alone is not a deviation.
-- **FR-009**: Unknown outcomes MUST require reconciliation before redispatch. Receipt
+- **FR-009**: Unknown outcomes MUST require reconciliation before redispatch, except the explicit new member-reviewed risk acknowledgement defined in FR-020. Receipt
   replays MUST be idempotent; conflicting results MUST remain visible as evidence.
 - **FR-010**: Retained messages, files, supporting sources, decisions and execution
   outcomes MUST be navigable in both read tools and the existing user surfaces.
@@ -289,8 +289,10 @@ carriers and other partner roles; this is not a customer/order-only feature.
   (`kind`, opaque `id`) for email capture and dispatch proposals. Support parties of
   every role, items, locations, documents/lines, commitments, reservations, movements,
   ledger entries (payments), lots, shipments/packages, facts and business events.
-  Resolve and validate references before any evidence write. Never infer identity
-  from an email address, a name or a human document number. Agents must include all
+  Resolve and validate references before any evidence write. Never invent identity
+  from an address, name or human document number. An exact address may resolve
+  a uniquely recorded existing party ID under FR-021; domain alignment alone
+  is insufficient. Agents must include all
   relevant known objects; unresolved context blocks capture/proposal until resolved.
 - **FR-014**: Preserve context in immutable source versions and the approved proposal;
   retain indexed source-to-object memberships. Actual outgoing messages inherit the
@@ -346,3 +348,40 @@ Acceptance: pending and unattributed decisions return unknown; attributed human,
 MCP and Chat decisions match the shared attribution reader; foreign-tenant detail
 reads remain not found. Following returned summary selectors retrieves the stored
 original and applicable report chain without guessing an identity.
+
+## Provider-independent integration follow-up (owner approved 2026-10-04)
+
+- **FR-019**: Direct outbound captures are externally reported evidence. Capture
+  and history return `authorization: external_unverified`; object summaries and
+  Inspector evidence display that no Reality approval is documented. An actual
+  outgoing Source linked through an authenticated dispatch receipt instead returns
+  `reality_decision` and its existing decision chain. Never infer approval from
+  email content, origin name, caller-provided metadata or an external grant.
+- **FR-020**: An exact outgoing proposal may acknowledge specific currently
+  unresolved prior executions through `retry_acknowledgements`: each lists the
+  execution ID, exact current report Source IDs, reason and explicit acceptance
+  of duplicate-send risk. Each acknowledged execution must belong to the same
+  tenant and fingerprint. Missing/extra/stale acknowledgements are refused. The
+  proposal is a new reviewed Decision; only a signed-in company member (or the
+  existing trusted local integration boundary) can authorize the risk exception.
+  MCP-token and built-in Chat confirmation cannot authorize it. Never release a
+  claim by time or fabricate a definitive outcome. Preserve prior claims/reports.
+  Revalidate under the shared delivery lock at approval and claim; later evidence
+  or another unresolved attempt requires a new proposal. Definitive supported
+  outcomes continue through the existing executor-bound report service.
+- **FR-021**: Publish agent-independent integration paths, direct capture's
+  evidence-only semantics, deterministic party-ID resolution through an existing
+  unique recorded address, ambiguity handling and the insufficiency of domain
+  alignment alone. Orders/invoices require independent explicit references.
+  Document present company-deletion support and lack of targeted email retention
+  or deletion tooling; do not claim a privacy implementation exists.
+
+Acceptance: Atlas, Grok or another client uses identical contracts; externally
+archived outgoing mail never claims Reality approval. A pending risk proposal
+cannot be claimed; changed report snapshots, foreign IDs, omitted outstanding
+attempts, token/Chat approval and concurrent duplicate claims are refused.
+A human-reviewed risk acknowledgement allows a separately bound execution while
+original uncertainty remains visible. New reports invalidate stale acknowledgements.
+
+External grant recognition is a separately drafted provider-independent follow-up
+(spec 353), not an implemented authorization shortcut in this PR.

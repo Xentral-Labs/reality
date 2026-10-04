@@ -30,6 +30,9 @@ export function emailReviewInput(input: Record<string, unknown>) {
       ]),
     ),
     rationale: input.rationale,
+    ...(Array.isArray(input.retry_acknowledgements) && input.retry_acknowledgements.length
+      ? { retry_acknowledgements: input.retry_acknowledgements }
+      : {}),
   };
 }
 
@@ -70,6 +73,16 @@ export function EmailEvidencePanel({
   return (
     <section className="mt-4 space-y-3" data-email-evidence>
       <h4 className="font-semibold">{t("Email evidence history")}</h4>
+      {data.authorization === "external_unverified" && (
+        <p data-email-external-authorization>
+          {t("Externally sent; no Reality approval is documented.")}
+        </p>
+      )}
+      {data.decision?.duplicate_send_risk && (
+        <p role="alert" data-email-retry-risk>
+          {t("A previous send remains uncertain. Sending again may deliver this email twice.")}
+        </p>
+      )}
       {data.state && outcomeLabels[data.state] && (
         <p data-email-outcome>{t(outcomeLabels[data.state])}</p>
       )}

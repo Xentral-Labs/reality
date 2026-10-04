@@ -55,6 +55,11 @@ export function ObjectCorrespondencePanel({
               <span data-original-content className="block break-words text-sm">
                 {email.sender}
               </span>
+              {email.authorization === "external_unverified" && (
+                <span className="block text-sm" data-email-external-authorization>
+                  {t("Externally sent; no Reality approval is documented.")}
+                </span>
+              )}
               <span className="text-xs text-fg-muted">
                 {t(email.direction === "inbound" ? "Incoming email" : "Outgoing email")} ·{" "}
                 {t("Recorded")} {formatDateTime(email.received_at)}

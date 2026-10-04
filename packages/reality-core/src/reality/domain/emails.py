@@ -86,7 +86,25 @@ class CaptureEmail(BusinessContext):
     message: EmailMessage
 
 
+class RetryAcknowledgement(EmailInput):
+    execution_id: str
+    report_source_ids: list[str] = Field(default_factory=list, max_length=10000)
+    reason: str = Field(min_length=1, max_length=10000)
+    accept_duplicate_send_risk: Literal[True]
+
+    @model_validator(mode="after")
+    def meaningful_reason(self):
+        if not self.reason.strip():
+            raise ValueError("A retry risk acknowledgement needs a meaningful reason.")
+        return self
+
+
 class DispatchProposal(BusinessContext):
+    retry_acknowledgements: list[RetryAcknowledgement] = Field(
+        default_factory=list,
+        max_length=50,
+        description="Explicit human-reviewed duplicate-send risk exceptions for currently unresolved same-payload executions. Bind every execution and its exact current report Source IDs; no timeout release.",
+    )
     message: EmailMessage
     rationale: str = Field(min_length=1, max_length=10000)
     supporting_source_ids: list[str] = Field(default_factory=list, max_length=1000)

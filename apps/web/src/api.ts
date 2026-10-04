@@ -2315,6 +2315,8 @@ export const api = {
       state?: string;
       business_references?: { kind: string; id: string; label: string }[];
       context_missing?: boolean;
+      authorization?: string;
+      decision?: { duplicate_send_risk?: boolean };
       related_decisions?: { proposal_id: string; status: string; review_url: string }[];
     }>(`/api/tenants/${tenant}/email/history?${new URLSearchParams(identity)}`),
   emailCorrespondence: (
@@ -2327,6 +2329,7 @@ export const api = {
     request<{
       items: {
         source_id: string;
+        authorization?: string;
         subject: string;
         sender: string;
         direction: string;

@@ -404,3 +404,194 @@ def test_email_decider_reuses_shared_authority(session, business, identity):
             )["decision"]["decider"]
             == expected
         )
+
+
+def test_external_outbound_capture_never_infers_reality_approval(session, business):
+    saved = capture(
+        session,
+        business.tenant.id,
+        direction="outbound",
+        business_references=refs(business),
+        message=message(external_payload={"approved": True, "provider": "Grok"}),
+    )
+    assert saved["authorization"] == "external_unverified"
+    assert saved["next_operation"] == "email_history"
+    detail = email_history(
+        session, business.tenant.id, {"source_id": saved["source_id"]}
+    )
+    assert detail["authorization"] == "external_unverified"
+    assert detail["decision"] is None
+    listing = email_history(
+        session, business.tenant.id, {"business_reference": refs(business)[0]}
+    )
+    assert listing["items"][0]["authorization"] == "external_unverified"
+    p = proposal(session, business.tenant.id)
+    approve_and_execute_proposal(session, business.tenant.id, p.id, confirmed=True)
+    result = report(session, business.tenant.id, claim(session, business.tenant.id, p))
+    detail = email_history(
+        session, business.tenant.id, {"source_id": result["actual_source_id"]}
+    )
+    assert detail["authorization"] == "reality_decision"
+
+
+def _uncertain_retry(session, business):
+    p = proposal(session, business.tenant.id)
+    approve_and_execute_proposal(session, business.tenant.id, p.id, confirmed=True)
+    execution = claim(session, business.tenant.id, p)
+    receipt = report(
+        session,
+        business.tenant.id,
+        execution,
+        outcome="unknown",
+        actual_message=None,
+        provider_evidence={"smtp": "connection lost"},
+    )
+    history = email_history(
+        session, business.tenant.id, {"execution_id": execution["execution_id"]}
+    )
+    ack = history["retry_snapshot"] | {
+        "reason": "SMTP outcome cannot be checked; person accepts duplicate-send risk",
+        "accept_duplicate_send_risk": True,
+    }
+    assert ack["report_source_ids"] == [receipt["source_id"]]
+    return execution, ack
+
+
+def test_uncertain_retry_requires_new_review_and_preserves_old_uncertainty(
+    session, business
+):
+    execution, ack = _uncertain_retry(session, business)
+    retry = proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+    assert json.loads(retry.output)["duplicate_send_risk"] is True
+    from reality.services.proposal_decisions import resolve_decision_policy
+
+    policy = resolve_decision_policy(
+        "email_dispatch_authorize", json.loads(retry.input)
+    ).as_dict()
+    assert policy["confirmation_channels"] == ["web", "trusted_local_cli"]
+    with pytest.raises(InvalidOperation):
+        claim(session, business.tenant.id, retry)
+    approve_and_execute_proposal(session, business.tenant.id, retry.id, confirmed=True)
+    second = claim(session, business.tenant.id, retry)
+    assert second["execution_id"] != execution["execution_id"]
+    old = email_history(
+        session, business.tenant.id, {"execution_id": execution["execution_id"]}
+    )
+    assert old["state"] == "execution_uncertain"
+    assert old["reports"]
+    with pytest.raises(InvalidOperation):
+        proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+
+
+@pytest.mark.parametrize("actor", ["token", "chat"])
+def test_uncertain_retry_cannot_be_approved_by_external_agent(session, business, actor):
+    _, ack = _uncertain_retry(session, business)
+    retry = proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+    with pytest.raises(InvalidOperation):
+        approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            retry.id,
+            confirmed=True,
+            **(
+                {"settling_token_id": "agent-token"}
+                if actor == "token"
+                else {"settling_channel": "chat"}
+            ),
+        )
+    assert retry.status == "proposed"
+
+
+def test_uncertain_retry_revalidates_report_snapshot_and_tenant(session, business):
+    execution, ack = _uncertain_retry(session, business)
+    retry = proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+    report(
+        session,
+        business.tenant.id,
+        execution,
+        retry_key="additional-evidence",
+        outcome="unknown",
+        actual_message=None,
+        provider_evidence={"manual_check": "still uncertain"},
+    )
+    with pytest.raises(InvalidOperation):
+        approve_and_execute_proposal(
+            session, business.tenant.id, retry.id, confirmed=True
+        )
+    with pytest.raises(InvalidOperation):
+        proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+    other = create_tenant(session, "Other risk company")
+    with pytest.raises((InvalidOperation, NotFound)):
+        proposal(session, other.id, retry_acknowledgements=[ack])
+
+
+def test_uncertain_retry_claim_refuses_new_evidence_after_approval(session, business):
+    execution, ack = _uncertain_retry(session, business)
+    retry = proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+    approve_and_execute_proposal(session, business.tenant.id, retry.id, confirmed=True)
+    report(
+        session,
+        business.tenant.id,
+        execution,
+        retry_key="after-approval",
+        outcome="unknown",
+        actual_message=None,
+        provider_evidence={"check": "new evidence"},
+    )
+    with pytest.raises(InvalidOperation):
+        claim(session, business.tenant.id, retry)
+
+
+def test_uncertain_retry_is_a_signed_in_member_decision_and_second_claim_is_blocked(
+    session, business
+):
+    from test_decision_attribution import _person
+
+    from reality.db.core import TenantMembership, uid
+    from reality.services.memberships import Principal
+
+    _, ack = _uncertain_retry(session, business)
+    person = _person(session, "retry-reviewer@example.test", "Retry reviewer")
+    session.add(
+        TenantMembership(
+            id=uid("mem"),
+            tenant_id=business.tenant.id,
+            user_id=person.id,
+            role="member",
+            status="active",
+        )
+    )
+    session.commit()
+    first = proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+    second = proposal(session, business.tenant.id, retry_acknowledgements=[ack])
+    for p in (first, second):
+        approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            p.id,
+            confirmed=True,
+            confirming_principal=Principal(person.id),
+        )
+    assert email_history(session, business.tenant.id, {"proposal_id": first.id})[
+        "decision"
+    ]["decider"] == {"kind": "person", "name": "Retry reviewer"}
+    claim(session, business.tenant.id, first)
+    with pytest.raises(InvalidOperation):
+        claim(session, business.tenant.id, second)
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"report_source_ids": []},
+        {"accept_duplicate_send_risk": False},
+        {"reason": ""},
+        {"execution_id": "foreign-or-missing"},
+    ],
+)
+def test_uncertain_retry_rejects_incomplete_or_forged_acknowledgements(
+    session, business, change
+):
+    _, ack = _uncertain_retry(session, business)
+    with pytest.raises((InvalidOperation, NotFound)):
+        proposal(session, business.tenant.id, retry_acknowledgements=[ack | change])

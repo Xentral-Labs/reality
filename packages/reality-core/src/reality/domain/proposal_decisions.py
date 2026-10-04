@@ -16,6 +16,7 @@ AuthorityCheck = Literal[
     "credit_owner",
     "finance_owner",
     "reviewed_member",
+    "email_retry_review",
     "reference_member",
     "membership_identity",
     "account_identity",
@@ -74,7 +75,9 @@ class ProposalDecisionPolicy:
             },
             "rejection": {"authority": "action_context"},
             "explicit_authorized_decision": True,
-            "confirmation_channels": ["web", "external_mcp", "trusted_local_cli"],
+            "confirmation_channels": ["web", "trusted_local_cli"]
+            if "email_retry_review" in self.checks
+            else ["web", "external_mcp", "trusted_local_cli"],
             "built_in_chat_can_confirm": False,
             "autonomous_agent_delegation": False,
             "human_involvement_verified": False,

@@ -113,3 +113,27 @@ Catalog/MCP/optional-argument/context/migration integration suite: 82 passed.
 The final source-to-related-decision next-read regression also passes.
 T021 remains a live completion gate: the PR verification section records the final
 current-head full-suite result; this local proof does not assert pending CI passed.
+
+## Provider-independent integration follow-up (FR-019–021)
+
+Owner approved common contracts for Atlas, Grok applications and other agents.
+Initial regression tests observed absent authorization labels and retry snapshots.
+Shared services derive labels from executor-bound receipt links, bind reviewed
+uncertain-retry exceptions to immutable report-ID snapshots and serialize report,
+authorization and claim validation through the shared delivery lock.
+No outcome is fabricated or released by a timeout, and no new database table is added.
+
+Email and decision-policy integration suite: 71 passed. Broader application/MCP/
+optional-argument/context/migration/policy suite: 115 passed. Final context suite:
+29 passed, including observed member attribution, token/Chat exclusion, foreign/
+stale/forged acknowledgements, missing new attempts and competing approved claims.
+Full frontend contracts: 462 passed. Browser journey passes original-file and
+Decision navigation, external archive labels and reviewed duplicate-send warnings.
+Four-language audits cover 2,728 strings; production web build passes. All 145
+documentation contracts and formatting pass. Spec policy and business annotation
+audit pass; generated catalogs reflect the published schema and workflow.
+
+Spec 353 is explicitly a draft provider-independent external-grant contract; no
+verified external grant or granular retention/deletion implementation is claimed.
+T025 completion is recorded with current-head full-suite proof in PR #332; this
+local acceptance evidence does not claim a pending CI run has passed.

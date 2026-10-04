@@ -116,3 +116,21 @@ Constitution Check: PASS for all principles. Manual artifact analysis: no unreso
 clarifications, critical consistency findings or schema expansion. Spec Kit tools
 are unavailable in this environment; analysis is recorded explicitly rather than
 claimed as a tool invocation.
+
+## Provider-independent follow-up plan
+
+Constitution Check: PASS. Owner accepts FR-019–021 and separate specification of
+external approval recognition. No new database schema or transport is required.
+Derive authorization labels from typed executor-bound receipt links, never payload
+claims. Reuse the exact dispatch proposal with a closed acknowledgement envelope
+and immutable report-ID snapshot; use the existing shared delivery lock consistently
+for approval, report and claim. Old outcomes retain their original authority.
+The approval entrypoint excludes MCP-token/Chat risk exceptions while preserving
+existing signed-in company-member checks and trusted local behavior. Review UI
+shows prior execution, snapshot, reason and duplicate risk with the exact message.
+Tests precede service changes and cover missing context/receipt labels, actor and
+tenant restrictions, stale snapshots, pending decisions and competing retries.
+No unresolved clarification blocks these requirements. External grant verification
+remains draft until issuer trust, identity and evidence exchange are agreed.
+Manual artifact analysis found no critical conflict; FR-009 now has a narrow,
+explicitly reviewed exception rather than an implicit redispatch bypass.
