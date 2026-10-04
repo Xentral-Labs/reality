@@ -9,7 +9,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from reality.db.core import ChangeProposal, Party, uid
+from reality.db.core import ChangeProposal, Party, SourceRecord, uid
 from reality.services.core import (
     InvalidOperation,
     active_reserved,
@@ -71,7 +71,23 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
     if completed:
         output = json.loads(completed.output)
         return _summary(session, tenant_id, output["item_id"], output["invoice_id"])
-    if session.scalar(select(Party.id).where(Party.tenant_id == tenant_id).limit(1)):
+    if session.scalar(
+        select(Party.id)
+        .outerjoin(
+            SourceRecord,
+            (SourceRecord.tenant_id == Party.tenant_id)
+            & (SourceRecord.id == Party.source_record_id),
+        )
+        .where(
+            Party.tenant_id == tenant_id,
+            ~(
+                (SourceRecord.source_system == "reality")
+                & SourceRecord.external_id.like("company-setup:%")
+            )
+            | SourceRecord.id.is_(None),
+        )
+        .limit(1)
+    ):
         raise InvalidOperation("Normal month requires an empty tenant.")
 
     company = create_party(
