@@ -419,3 +419,5 @@ Complete committed-head CI remains required; lifecycle and other writer families
 remain open.
 
 Committed-head commercial CI found two older positive signed-in payment-term decision-attribution tests omitted explicit confirmed=True. Their actual person/token precedence assertions remain unchanged; both now confirm the actual retained input. All 138 decision-attribution and commercial refusal/positive/replay checks passed in 21.99 seconds. Updated-head full CI remains required.
+
+The next commercial CI shard found four positive attribution-surface fixtures omitted confirmation and their actual named person lacked a membership; a review-parity fixture also prepared an invalid records envelope for a single payment-term command. Positive fixtures now confirm using the actual active member or actual token; review parity uses the actual single-command input. All 147 attribution surfaces/review parity/manual-token/commercial checks passed in 30.10 seconds. Updated-head CI remains required.

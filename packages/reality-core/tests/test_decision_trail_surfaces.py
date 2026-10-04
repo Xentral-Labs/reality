@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
 
-from reality.db.core import AppUser, now, uid
+from reality.db.core import AppUser, TenantMembership, now, uid
 from reality.mcp.auth import create_mcp_access_token
 from reality.services.memberships import Principal
 from reality.tools.application import (
@@ -58,6 +58,8 @@ def _three_decisions(session, business):
     """One decided by a person, one through a token, one by nobody named."""
     person = _person(session, "anna@example.com", "Anna Owner")
     issuer = _person(session, "olga@example.com", "Olga Owner")
+    session.add(TenantMembership(id=uid("mem"), tenant_id=business.tenant.id, user_id=person.id, role="member", status="active"))
+    session.commit()
     token, _ = create_mcp_access_token(
         session, business.tenant.id, "Claude Desktop", issued_by_user_id=issuer.id
     )
@@ -68,10 +70,11 @@ def _three_decisions(session, business):
         session,
         business.tenant.id,
         by_person.id,
+        confirmed=True,
         confirming_principal=Principal(person.id),
     )
     approve_and_execute_proposal(
-        session, business.tenant.id, by_token.id, settling_token_id=token.id
+        session, business.tenant.id, by_token.id, settling_token_id=token.id, confirmed=True
     )
     reject_proposal(session, business.tenant.id, by_nobody.id)
     return by_person, by_token, by_nobody, token

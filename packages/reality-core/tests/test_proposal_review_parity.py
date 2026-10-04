@@ -82,7 +82,7 @@ def test_web_list_and_review_endpoint_expose_the_same_routing(session, business)
         session,
         business.tenant.id,
         "payment_term_create",
-        {"records": [{"code": "NET30", "name": "Net 30", "due_days": 30}]},
+        {"code": "NET30", "name": "Net 30", "due_days": 30},
     )
     factory = sessionmaker(session.bind, expire_on_commit=False)
 
@@ -100,7 +100,7 @@ def test_web_list_and_review_endpoint_expose_the_same_routing(session, business)
             assert reviewed.status_code == 200
             assert row["review_kind"] == reviewed.json()["review_kind"] == "common"
             assert row["review_label"] == reviewed.json()["label"] == "Payment term create"
-            assert reviewed.json()["input"]["records"][0]["code"] == "NET30"
+            assert reviewed.json()["input"]["code"] == "NET30"
     finally:
         app.dependency_overrides.clear()
 
