@@ -41,8 +41,8 @@ Menge allein beweist keinen Mangel. Verfügbarer Bestand allein beweist keine Ve
 mit seinen Mengen und öffne einen zugrunde liegenden Datensatz im Inspector. Folge seinen
 Verknüpfungen zum stützenden Beleg und ursprünglichen Quell-Payload, soweit vorhanden.
 
-In **Business Facts** prüfst du einzelne Datensätze. **Business Recorder** zeigt ihre Beziehungen und
-den aufgezeichneten Zeitverlauf. Für eine tiefere Erklärung kannst du
+In **Business Facts** prüfst du einzelne Datensätze. **Business Recorder** zeigt ihre Beziehungen
+und den aufgezeichneten Zeitverlauf. Für eine tiefere Erklärung kannst du
 [ein Ergebnis zurückverfolgen](./first-trace).
 
 Eine leere Liste beweist keine Vollständigkeit. Prüfe ausgewähltes Unternehmen, Quellenabdeckung und
