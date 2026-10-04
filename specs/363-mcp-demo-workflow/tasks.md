@@ -25,8 +25,8 @@
 
 ## Verify and review
 
-- [ ] T012 Generate tool docs via `make docs-generate`; run focused/full backend, frontend, docs and policy gates; record evidence in `verification.md` (all scoped requirements).
-- [ ] T013 Review privacy/tenant/confirmation/compatibility, update PR scope and verify final-head GitHub checks; leave wider FR-007 follow-up explicit.
+- [x] T012 Generate tool docs via `make docs-generate`; run focused/full backend, frontend, docs and policy gates; record evidence in `verification.md` (all scoped requirements).
+- [x] T013 Review privacy/tenant/confirmation/compatibility, update PR scope and verify final-head GitHub checks; leave wider FR-007 follow-up explicit.
 
 Dependencies: T001 → T002/T003 → T004–T011 → T012 → T013. No delegated execution.
 Acceptance is independent by story; no task is complete until its corresponding proof passes.
