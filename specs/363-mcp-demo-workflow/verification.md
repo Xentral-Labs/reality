@@ -30,3 +30,9 @@ The first implementation CI caught a real login regression: `languageHref` requi
 The corrected full company-setup browser journey passed locally against an isolated live stack (80.68 seconds). The actual login-to-signup locale fixture and delivery case/launcher/Chat browser matrix passed, including rendered proposed-effect wording with unchanged current stock before confirmation. The published EN and DE mission text is tested directly; product advice mentioning an operational agent remains advice.
 
 Final MCP review also names the existing confirmation tool as its decision handoff, rather than exporting the Web-only review destination. Existing grants do not automatically gain the new reads; both connection guides name the deliberate read allowlist and keep propose/confirm permissions separate.
+
+## Full-suite findings
+
+Run 37219326781 completed the four PostgreSQL shards: three passed; the remaining shard had 1,536 passes and one refusal-ratchet failure for the new document-scope validation sentence. Register `discovery_document_scope_unsupported` and translate it in DE/NL/ES; do not weaken the gate or extend the uncoded-refusal ratchet. A direct wrong-family regression asserts the stable code.
+
+The fixture catalog search also found two valid tools after the shipping description began citing `order_explain`. The test must select the canonical `mcp:order_explain` entry instead of assuming every full-text query returns one row. The complete catalog browser proof passed locally with that precise selection, including languages, mobile layout and no writes.

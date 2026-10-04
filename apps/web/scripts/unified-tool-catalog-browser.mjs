@@ -3,7 +3,10 @@ import { pathToFileURL } from "node:url";
 import { reference } from "./tool-catalog-fixture.mjs";
 const catalogEntries = reference.tool_catalog.entries;
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.PLAYWRIGHT_EXECUTABLE || undefined,
+});
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [],
   writes = [];
@@ -142,9 +145,11 @@ try {
         animations: "disabled",
       });
       await search.fill("order_explain");
-      await page.locator(".tool-capability").click();
-      await page.locator(".tool-technical-details > summary").click();
-      await page.locator('[data-tool-mcp="order_explain"] summary').click();
+      // Related tool descriptions can mention this read; select its canonical identity.
+      const orderTool = page.locator('[data-tool-capability="mcp:order_explain"]');
+      await orderTool.locator(".tool-capability").click();
+      await orderTool.locator(".tool-technical-details > summary").click();
+      await orderTool.locator('[data-tool-mcp="order_explain"] summary').click();
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.screenshot({
         path: "/private/tmp/reality-tools-detail-mobile.png",

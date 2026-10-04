@@ -271,7 +271,7 @@ def proposal_mcp_review(
 
     actor = current_mcp_principal()
     if actor is not None and actor.tenant_id != tenant_id:
-        raise NotFound("Proposal not found.")
+        raise NotFound(code="proposal_not_found")
     principal = Principal(actor.user_id) if actor and actor.user_id else None
     with session.no_autoflush:
         result = proposal_review(session, tenant_id, proposal_id, principal=principal)

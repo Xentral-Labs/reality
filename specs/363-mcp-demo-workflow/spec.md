@@ -265,3 +265,7 @@ FR-004 is addressed through truthful shared tool guidance and the existing retai
 Movement read; no separate shipping authority or automatic agent guarantee is introduced.
 FR-010–FR-013 constrain guidance; Reality cannot enforce an external model's output,
 connector isolation or scheduling precision. Do not claim external-runtime enforcement.
+
+Unsupported document scope outside the `document_line` family returns the stable
+`discovery_document_scope_unsupported` refusal (spec 286); no uncoded-refusal ratchet
+exception is introduced.

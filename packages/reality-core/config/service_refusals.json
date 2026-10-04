@@ -487,6 +487,9 @@
     "demand_coverage_customer_commitment_required": {
       "message": "Demand coverage requires a customer commitment."
     },
+    "discovery_document_scope_unsupported": {
+      "message": "Document scope is only supported for document_line discovery."
+    },
     "document_date_format_invalid": {
       "message": "Document date must use YYYY-MM-DD."
     },

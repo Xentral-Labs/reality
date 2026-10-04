@@ -22776,6 +22776,8 @@ Object.assign(dictionaries.de, {
   "Unsupported inventory calculation: {reason}": "Nicht unterstützte Bestandsberechnung: {reason}",
   "Unsupported inventory review version.": "Nicht unterstützte Version der Bestandsprüfung.",
   "Unsupported item import fields.": "Nicht unterstützte Felder für den Artikelimport.",
+  "Document scope is only supported for document_line discovery.":
+    "Der Belegfilter ist nur für die Discovery-Familie document_line verfügbar.",
   "Unsupported master data family.": "Nicht unterstützte Stammdatenart.",
   "Unsupported master data fields: {fields}.": "Nicht unterstützte Stammdatenfelder: {fields}.",
   "Unsupported master data operation.": "Nicht unterstützte Stammdatenaktion.",
@@ -23723,6 +23725,8 @@ Object.assign(dictionaries.nl, {
   "Unsupported inventory calculation: {reason}": "Niet-ondersteunde voorraadberekening: {reason}",
   "Unsupported inventory review version.": "Niet-ondersteunde versie van de voorraadcontrole.",
   "Unsupported item import fields.": "Niet-ondersteunde velden voor de artikelimport.",
+  "Document scope is only supported for document_line discovery.":
+    "Het documentfilter is alleen beschikbaar voor de discoveryfamilie document_line.",
   "Unsupported master data family.": "Niet-ondersteunde soort stamgegevens.",
   "Unsupported master data fields: {fields}.": "Niet-ondersteunde stamgegevensvelden: {fields}.",
   "Unsupported master data operation.": "Niet-ondersteunde bewerking op stamgegevens.",
@@ -24682,6 +24686,8 @@ Object.assign(dictionaries.es, {
   "Unsupported inventory calculation: {reason}": "Cálculo de inventario no compatible: {reason}",
   "Unsupported inventory review version.": "Versión de revisión de inventario no compatible.",
   "Unsupported item import fields.": "Campos de importación de artículos no admitidos.",
+  "Document scope is only supported for document_line discovery.":
+    "El filtro de documento solo está disponible para la familia document_line.",
   "Unsupported master data family.": "Tipo de datos maestros no admitido.",
   "Unsupported master data fields: {fields}.": "Campos de datos maestros no admitidos: {fields}.",
   "Unsupported master data operation.": "Operación de datos maestros no admitida.",
