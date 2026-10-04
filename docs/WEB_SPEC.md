@@ -3579,3 +3579,16 @@ is unresolved. The browser never guesses authorization or resolves uncertainty.
 ## Verified external email approval — Spec 354
 
 Shared Decision attribution adds external_grant with configured person label, opaque external subject, issuer, approval time and original grant Source. The sentence explicitly states external approval and verification through the issuer; it never presents the worker/token or issuer as the approving person. Email evidence links to the original proof in Source Inspector. Browser rendering performs no signature or authority calculations. Outbound archive warnings and member-only risk reviews retain their existing meaning.
+
+
+
+### Exact source selection in Decisions (spec 360)
+
+Pending prepared source units can be explicitly selected, at most 500 at once.
+Selection binds retained identities/digests and excludes future arrivals; company
+or pending/history changes clear it. Preparing the selection is distinct from
+confirmation. The shared batch review pages at most 100 child meanings/results,
+links complete original source/file bytes, reports actual applied/replayed/refused/
+stopped dispositions and receipts, and can stop further units. A refused child
+may explicitly prepare a fresh review, which needs a new decision. Generic
+register selection/export rules remain separate from this decision workflow.

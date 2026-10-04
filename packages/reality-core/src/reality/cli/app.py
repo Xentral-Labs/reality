@@ -96,14 +96,18 @@ location_app = typer.Typer()
 payment_term_app = typer.Typer()
 reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
 stock_app = typer.Typer(help="Blocked stock: block, release, scrap (spec 304).")
-kit_app = typer.Typer(help="Kits: components, assembly and the bundle split (spec 333).")
+kit_app = typer.Typer(
+    help="Kits: components, assembly and the bundle split (spec 333)."
+)
 customer_item_app = typer.Typer(
     help="Customer item numbers: a customer's own article numbers (spec 308)."
 )
 supplier_item_app = typer.Typer(
     help="Supplier item numbers: a supplier's own article numbers (spec 345)."
 )
-stock_count_app = typer.Typer(help="Stock counts: count a location and post the differences (spec 307).")
+stock_count_app = typer.Typer(
+    help="Stock counts: count a location and post the differences (spec 307)."
+)
 external_stock_app = typer.Typer(
     help="External stock: what a 3PL or shop states, compared, never taken over (spec 344)."
 )
@@ -1060,7 +1064,9 @@ def party_activate(party_id: str, tenant: str | None = None):
 
 @stock_app.command("list")
 def stock_block_list(
-    item_id: str = "", location_id: str = "", status: str = "active",
+    item_id: str = "",
+    location_id: str = "",
+    status: str = "active",
     tenant: str | None = None,
 ):
     """List stock blocks."""
@@ -1108,7 +1114,9 @@ def stock_block_command(
     item_id: str,
     location_id: str,
     quantity: str,
-    reason_code: str = typer.Option(..., "--reason", help="quality, damage, expiry or inspection"),
+    reason_code: str = typer.Option(
+        ..., "--reason", help="quality, damage, expiry or inspection"
+    ),
     note: str = "",
     lot_id: str = "",
     handling_unit_id: str = "",
@@ -1495,7 +1503,9 @@ def stock_count_record_command(
         try:
             subject, quantity = entry.split("=", 1)
         except ValueError as error:
-            raise typer.BadParameter("--line takes ITEM_ID[:LOT_ID]=QUANTITY") from error
+            raise typer.BadParameter(
+                "--line takes ITEM_ID[:LOT_ID]=QUANTITY"
+            ) from error
         item_id, _, lot_id = subject.partition(":")
         lines.append(
             {
@@ -1537,6 +1547,7 @@ def stock_count_show_command(stock_count_id: str, tenant: str | None = None):
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print_json(data=answer, default=str)
+
 
 _EXTERNAL_LINE = typer.Option(
     None,
@@ -1772,7 +1783,9 @@ def outbound_delivery_list_command(
 
 
 @outbound_delivery_app.command("show")
-def outbound_delivery_show_command(outbound_delivery_id: str, tenant: str | None = None):
+def outbound_delivery_show_command(
+    outbound_delivery_id: str, tenant: str | None = None
+):
     """One planned delivery with its picks, statements and dispatch arguments."""
     from reality.services.outbound_deliveries import outbound_delivery_detail
 
@@ -1896,7 +1909,9 @@ def reorder_point_set(
     item_id: str,
     location_id: str,
     point: str = typer.Option(..., "--point", help="Reorder point, stock unit."),
-    quantity: str = typer.Option(..., "--quantity", help="Reorder quantity, stock unit."),
+    quantity: str = typer.Option(
+        ..., "--quantity", help="Reorder quantity, stock unit."
+    ),
     tenant: str | None = None,
     yes: bool = False,
 ):
@@ -2014,7 +2029,9 @@ def kit_assemble(
     kit_item_id: str,
     location_id: str,
     quantity: str,
-    occurred_at: str = typer.Option("", help="When it was assembled, ISO 8601 with offset."),
+    occurred_at: str = typer.Option(
+        "", help="When it was assembled, ISO 8601 with offset."
+    ),
     note: str = "",
     tenant: str | None = None,
     yes: bool = False,
@@ -2075,9 +2092,7 @@ def payment_term_list(tenant: str | None = None):
             rows = payment_terms(s, selected.id)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
-    table = Table(
-        "ID", "Code", "Name", "Due days", "Prepayment", "Discount", "Status"
-    )
+    table = Table("ID", "Code", "Name", "Due days", "Prepayment", "Discount", "Status")
     for term in rows:
         table.add_row(
             term.id,
@@ -3092,7 +3107,9 @@ def drop_shipment_propose(
 def drop_shipment_confirm(
     proposal_id: str,
     review_token: str,
-    yes: bool = typer.Option(False, "--yes", help="Confirm the reviewed drop shipment."),
+    yes: bool = typer.Option(
+        False, "--yes", help="Confirm the reviewed drop shipment."
+    ),
     tenant_id: str | None = None,
 ) -> None:
     """Explicitly confirm one reviewed drop shipment."""
@@ -3455,7 +3472,9 @@ def finance_dunning_collection_propose(
 
 
 @app.command("finance-payment-return-propose")
-def finance_payment_return_propose(arguments: str, tenant_id: str | None = None) -> None:
+def finance_payment_return_propose(
+    arguments: str, tenant_id: str | None = None
+) -> None:
     """Prepare a returned direct debit or chargeback for owner confirmation."""
     _finance_propose("finance.payment.return", arguments, tenant_id)
 
@@ -3505,7 +3524,9 @@ def finance_payment_authorization_propose(
 
 
 @app.command("finance-payment-capture-propose")
-def finance_payment_capture_propose(arguments: str, tenant_id: str | None = None) -> None:
+def finance_payment_capture_propose(
+    arguments: str, tenant_id: str | None = None
+) -> None:
     """Prepare a capture against a payment authorization for owner confirmation."""
     _finance_propose("finance.payment.capture.record", arguments, tenant_id)
 
@@ -3996,6 +4017,131 @@ def cost_query_read(
                 },
             )
         )
+
+
+intake_app = typer.Typer(help="Review exact source selections and retained results.")
+app.add_typer(intake_app, name="intake")
+
+
+@intake_app.command("prepare-batch")
+def intake_prepare_batch(
+    manifest_file: Path,
+    request_id: str = typer.Option(..., "--request-id"),
+    tenant: str | None = None,
+):
+    """Prepare a fixed JSON list of proposal identities/digests without acceptance."""
+    from reality.services.intake_batches import prepare_batch, review_batch
+
+    try:
+        if manifest_file.stat().st_size > 2 * 1024 * 1024:
+            raise ValueError("The selection file must be at most 2 MiB.")
+        entries = json.loads(manifest_file.read_text(encoding="utf-8"))
+        if not isinstance(entries, list):
+            raise TypeError("The selection file must contain a JSON list.")
+        with Session() as session:
+            selected = selected_tenant(session, tenant)
+            batch = prepare_batch(session, selected.id, entries, request_id=request_id)
+            result = review_batch(session, selected.id, batch.id)
+    except (OSError, ValueError, TypeError, NotFound, InvalidOperation) as error:
+        raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@intake_app.command("review-batch")
+def intake_review_batch(
+    batch_id: str,
+    cursor: int = typer.Option(0, min=0),
+    limit: int = typer.Option(100, min=1, max=100),
+    tenant: str | None = None,
+):
+    """Read exact selected meanings and review references in bounded pages."""
+    from reality.services.intake_batches import review_batch
+
+    with Session() as session:
+        selected = selected_tenant(session, tenant)
+        try:
+            result = review_batch(
+                session, selected.id, batch_id, cursor=cursor, limit=limit
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@intake_app.command("confirm-batch")
+def intake_confirm_batch(
+    batch_id: str,
+    digest: str,
+    user_id: str = typer.Option(
+        ..., "--user-id", help="Current member making this trusted local decision."
+    ),
+    yes: bool = typer.Option(False, "--yes"),
+    tenant: str | None = None,
+):
+    """Confirm this exact reviewed manifest; every child retains independent checks."""
+    from reality.services.intake_batches import approve_batch, batch_status
+    from reality.services.memberships import Principal
+
+    if not yes:
+        typer.confirm("Accept this exact reviewed source selection?", abort=True)
+    with Session() as session:
+        selected = selected_tenant(session, tenant)
+        try:
+            batch = approve_batch(
+                session,
+                selected.id,
+                batch_id,
+                digest,
+                confirmed=True,
+                principal=Principal(user_id),
+            )
+            result = batch_status(session, selected.id, batch.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@intake_app.command("batch-status")
+def intake_batch_status(
+    batch_id: str,
+    cursor: int = typer.Option(0, min=0),
+    limit: int = typer.Option(100, min=1, max=100),
+    tenant: str | None = None,
+):
+    """Read actual child dispositions and receipts rather than inferring acceptance."""
+    from reality.services.intake_batches import batch_status
+
+    with Session() as session:
+        selected = selected_tenant(session, tenant)
+        try:
+            result = batch_status(
+                session, selected.id, batch_id, cursor=cursor, limit=limit
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@intake_app.command("stop-batch")
+def intake_stop_batch(
+    batch_id: str,
+    user_id: str = typer.Option(..., "--user-id"),
+    tenant: str | None = None,
+):
+    """Stop further units under the original reviewer's current authority."""
+    from reality.services.intake_batches import batch_status, stop_batch
+    from reality.services.memberships import Principal
+
+    with Session() as session:
+        selected = selected_tenant(session, tenant)
+        try:
+            batch = stop_batch(
+                session, selected.id, batch_id, principal=Principal(user_id)
+            )
+            result = batch_status(session, selected.id, batch.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
 
 
 if __name__ == "__main__":

@@ -168,3 +168,9 @@ FR-002/FR-005 and DR-001 reuse spec 349's company-calendar contract: source inst
 are reviewed as the company's local business day. A changed calendar statement
 invalidates that offered review; confirmation never silently derives a different
 day. Regression proof: `test_intake_admission.py::test_prepared_shop_day_uses_and_freezes_the_company_calendar`.
+
+
+The renewed-review service is also exposed through the Web intake-unit endpoint.
+Preparing renewed meaning preserves the prior immutable plan and creates no
+business effects; the resulting proposal requires separate exact confirmation.
+The Web discards previous proposal content while a different proposal loads.

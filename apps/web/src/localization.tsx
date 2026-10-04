@@ -27820,3 +27820,107 @@ Object.assign(dictionaries.es, {
   None: "Ninguno",
   Stocked: "Artículo de inventario",
 });
+
+Object.assign(dictionaries.de, {
+  "Selected source decisions": "Ausgewählte Quellenentscheidungen",
+  "Settled source decisions": "Abgeschlossene Quellenentscheidungen",
+  "Selected sources": "Ausgewählte Quellen",
+  "Select source decision": "Quellenentscheidung auswählen",
+  "Select visible sources": "Sichtbare Quellen auswählen",
+  "Review selected sources": "Ausgewählte Quellen prüfen",
+  "Review source meaning": "Interpretation der Quelle prüfen",
+  "Download original source": "Originalquelle herunterladen",
+  "Download original file": "Originaldatei herunterladen",
+  "Stop remaining sources": "Verbleibende Quellen stoppen",
+  "Further source acceptance has been stopped.":
+    "Die weitere Übernahme von Quellen wurde gestoppt.",
+  "Previously applied": "Bereits übernommen",
+  "This selection has changed nothing. Confirmation applies each source independently; changed or refused units remain available for review.":
+    "Diese Auswahl hat noch nichts geändert. Die Bestätigung übernimmt jede Quelle einzeln; geänderte oder abgelehnte Einheiten bleiben zur Prüfung verfügbar.",
+  "Every source acceptance is proposed first. A person reviews it here, or a named agent reviews it through an explicit owner mandate.":
+    "Jede Quellenübernahme wird zuerst vorgeschlagen. Ein Mensch prüft sie hier oder ein benannter Agent im Rahmen eines ausdrücklichen Eigentümer-Mandats.",
+  "An agent may accept reviewed intake only within a separate owner mandate with explicit limits and expiry. Other proposed changes remain subject to their existing confirmation rules.":
+    "Ein Agent darf geprüfte Eingangsdaten nur innerhalb eines gesonderten Eigentümer-Mandats mit ausdrücklichen Grenzen und Ablauf übernehmen. Für andere Änderungen gelten weiterhin die jeweiligen Bestätigungsregeln.",
+});
+Object.assign(dictionaries.nl, {
+  "Selected source decisions": "Geselecteerde bronbeslissingen",
+  "Settled source decisions": "Afgehandelde bronbeslissingen",
+  "Selected sources": "Geselecteerde bronnen",
+  "Select source decision": "Bronbeslissing selecteren",
+  "Select visible sources": "Zichtbare bronnen selecteren",
+  "Review selected sources": "Geselecteerde bronnen beoordelen",
+  "Review source meaning": "Broninterpretatie beoordelen",
+  "Download original source": "Oorspronkelijke bron downloaden",
+  "Download original file": "Oorspronkelijk bestand downloaden",
+  "Stop remaining sources": "Resterende bronnen stoppen",
+  "Further source acceptance has been stopped.": "Verdere bronverwerking is gestopt.",
+  "Previously applied": "Eerder toegepast",
+  "This selection has changed nothing. Confirmation applies each source independently; changed or refused units remain available for review.":
+    "Deze selectie heeft niets gewijzigd. Bevestiging verwerkt elke bron afzonderlijk; gewijzigde of geweigerde eenheden blijven beschikbaar voor beoordeling.",
+  "Every source acceptance is proposed first. A person reviews it here, or a named agent reviews it through an explicit owner mandate.":
+    "Elke bronverwerking wordt eerst voorgesteld. Een persoon beoordeelt die hier, of een benoemde agent beoordeelt die via een expliciet eigenaarsmandaat.",
+  "An agent may accept reviewed intake only within a separate owner mandate with explicit limits and expiry. Other proposed changes remain subject to their existing confirmation rules.":
+    "Een agent mag beoordeelde invoer alleen verwerken binnen een afzonderlijk eigenaarsmandaat met expliciete limieten en vervaldatum. Voor andere wijzigingen blijven de bestaande bevestigingsregels gelden.",
+});
+Object.assign(dictionaries.es, {
+  "Selected source decisions": "Decisiones de fuentes seleccionadas",
+  "Settled source decisions": "Decisiones de fuentes procesadas",
+  "Selected sources": "Fuentes seleccionadas",
+  "Select source decision": "Seleccionar decisión de fuente",
+  "Select visible sources": "Seleccionar fuentes visibles",
+  "Review selected sources": "Revisar fuentes seleccionadas",
+  "Review source meaning": "Revisar interpretación de la fuente",
+  "Download original source": "Descargar fuente original",
+  "Download original file": "Descargar archivo original",
+  "Stop remaining sources": "Detener fuentes restantes",
+  "Further source acceptance has been stopped.": "Se ha detenido la incorporación de más fuentes.",
+  "Previously applied": "Aplicado anteriormente",
+  "This selection has changed nothing. Confirmation applies each source independently; changed or refused units remain available for review.":
+    "Esta selección aún no ha cambiado nada. La confirmación aplica cada fuente de forma independiente; las unidades modificadas o rechazadas siguen disponibles para revisión.",
+  "Every source acceptance is proposed first. A person reviews it here, or a named agent reviews it through an explicit owner mandate.":
+    "Cada incorporación de una fuente se propone primero. Una persona la revisa aquí, o un agente designado la revisa mediante un mandato explícito del propietario.",
+  "An agent may accept reviewed intake only within a separate owner mandate with explicit limits and expiry. Other proposed changes remain subject to their existing confirmation rules.":
+    "Un agente solo puede incorporar datos revisados dentro de un mandato independiente del propietario con límites y vencimiento explícitos. Los demás cambios siguen sujetos a sus reglas de confirmación existentes.",
+});
+
+Object.assign(dictionaries.de, {
+  "Prepare fresh source review": "Neue Quellenprüfung vorbereiten",
+});
+Object.assign(dictionaries.nl, {
+  "Prepare fresh source review": "Nieuwe bronbeoordeling voorbereiden",
+});
+Object.assign(dictionaries.es, {
+  "Prepare fresh source review": "Preparar nueva revisión de la fuente",
+});
+
+Object.assign(dictionaries.de, {
+  "Grant review mandate": "Prüfmandat erteilen",
+  "Revoke review mandate": "Prüfmandat widerrufen",
+});
+Object.assign(dictionaries.nl, {
+  "Grant review mandate": "Beoordelingsmandaat verlenen",
+  "Revoke review mandate": "Beoordelingsmandaat intrekken",
+});
+Object.assign(dictionaries.es, {
+  "Grant review mandate": "Otorgar mandato de revisión",
+  "Revoke review mandate": "Revocar mandato de revisión",
+});
+
+Object.assign(dictionaries.de, {
+  "Review the selected sources and their expected effects before confirming.":
+    "Prüfe die ausgewählten Quellen und ihre erwarteten Auswirkungen vor der Bestätigung.",
+  "Review the original source and its expected effects before confirming.":
+    "Prüfe die Originalquelle und ihre erwarteten Auswirkungen vor der Bestätigung.",
+});
+Object.assign(dictionaries.nl, {
+  "Review the selected sources and their expected effects before confirming.":
+    "Beoordeel de geselecteerde bronnen en hun verwachte gevolgen voordat je bevestigt.",
+  "Review the original source and its expected effects before confirming.":
+    "Beoordeel de oorspronkelijke bron en de verwachte gevolgen voordat je bevestigt.",
+});
+Object.assign(dictionaries.es, {
+  "Review the selected sources and their expected effects before confirming.":
+    "Revisa las fuentes seleccionadas y sus efectos previstos antes de confirmar.",
+  "Review the original source and its expected effects before confirming.":
+    "Revisa la fuente original y sus efectos previstos antes de confirmar.",
+});

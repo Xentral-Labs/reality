@@ -255,6 +255,8 @@ jobs:
         include:
           - journey: business-journey
             test: tests/browser/unified_business_journey.py
+          - journey: bulk-intake
+            test: tests/browser/unified_bulk_intake.py
           - journey: item-csv-import
             test: tests/browser/unified_item_csv_import.py
           - journey: history-table

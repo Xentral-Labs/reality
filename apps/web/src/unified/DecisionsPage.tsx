@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckSquare, X } from "lucide-react";
-import { api, type CopilotProposal, type ProposalReviewKind } from "../api";
+import {
+  api,
+  intakeBatches,
+  type IntakeBatchEntry,
+  type CopilotProposal,
+  type ProposalReviewKind,
+} from "../api";
 import { formatDateTime, t } from "../localization";
 import { ReadState } from "./ReadState";
 import { WorkFooter, WorkHeader, WorkRow, WorkSearch, useWorkList } from "./WorkList";
@@ -56,12 +62,12 @@ function DecisionHelp({ close }: { close: () => void }) {
       <div className="space-y-4 text-sm leading-6 text-fg-muted">
         <p>
           {t(
-            "Reality never writes on its own. Every change is proposed first, and a proposal waits here until a person decides on it.",
+            "Every source acceptance is proposed first. A person reviews it here, or a named agent reviews it through an explicit owner mandate.",
           )}
         </p>
         <p>
           {t(
-            "A connected agent proposes a change but cannot carry it out. An action you start in a workspace is also proposed first, and stays here if you leave before deciding.",
+            "An agent may accept reviewed intake only within a separate owner mandate with explicit limits and expiry. Other proposed changes remain subject to their existing confirmation rules.",
           )}
         </p>
         <p className="rounded-lg border border-border-default bg-surface-muted p-4 text-fg-default">
@@ -132,6 +138,51 @@ export function DecisionsPage({
   setView?: (view: "pending" | "history") => void;
   openDecision?: (id: string) => void;
 }) {
+  const selectionIdentity = JSON.stringify([tenant, view]);
+  const currentIdentity = useRef(selectionIdentity);
+  currentIdentity.current = selectionIdentity;
+  const [sourceSelection, setSourceSelection] = useState<{
+    identity: string;
+    entries: IntakeBatchEntry[];
+    requestId: string;
+  }>({ identity: selectionIdentity, entries: [], requestId: crypto.randomUUID() });
+  const [preparingBatch, setPreparingBatch] = useState(false);
+  const [batchError, setBatchError] = useState("");
+  const selectedSources =
+    sourceSelection.identity === selectionIdentity ? sourceSelection.entries : [];
+  const eligibleSource = (proposal: CopilotProposal) =>
+    proposal.status === "proposed" &&
+    proposal.tool === "intake_apply" &&
+    typeof proposal.input.digest === "string";
+  const toggleSource = (proposal: CopilotProposal) => {
+    const found = selectedSources.some((entry) => entry.proposal_id === proposal.id);
+    if (!found && selectedSources.length >= 500) return;
+    setBatchError("");
+    setSourceSelection({
+      identity: selectionIdentity,
+      requestId: crypto.randomUUID(),
+      entries: found
+        ? selectedSources.filter((entry) => entry.proposal_id !== proposal.id)
+        : [...selectedSources, { proposal_id: proposal.id, digest: String(proposal.input.digest) }],
+    });
+  };
+  const prepareBatch = async () => {
+    if (!selectedSources.length || preparingBatch) return;
+    const identity = selectionIdentity;
+    setPreparingBatch(true);
+    setBatchError("");
+    try {
+      const batch = await intakeBatches.prepare(tenant, selectedSources, sourceSelection.requestId);
+      if (currentIdentity.current !== identity) return;
+      setSourceSelection({ identity, entries: [], requestId: crypto.randomUUID() });
+      select(batch.id, "common");
+    } catch (failure) {
+      if (currentIdentity.current === identity)
+        setBatchError(failure instanceof Error ? failure.message : String(failure));
+    } finally {
+      setPreparingBatch(false);
+    }
+  };
   const [query, setQuery] = useState("");
   const [tool, setTool] = useState("");
   const [selected, setSelected] = useState<CopilotProposal | null>(null);
@@ -221,11 +272,72 @@ export function DecisionsPage({
               </option>
             ))}
           </select>
+          {!history && list.items.some(eligibleSource) && (
+            <button
+              className="br-btn"
+              disabled={preparingBatch || selectedSources.length >= 500}
+              onClick={() => {
+                const entries = [...selectedSources];
+                for (const proposal of list.items.filter(eligibleSource)) {
+                  if (entries.length >= 500) break;
+                  if (!entries.some((entry) => entry.proposal_id === proposal.id))
+                    entries.push({
+                      proposal_id: proposal.id,
+                      digest: String(proposal.input.digest),
+                    });
+                }
+                setSourceSelection({
+                  identity: selectionIdentity,
+                  entries,
+                  requestId: crypto.randomUUID(),
+                });
+                setBatchError("");
+              }}
+            >
+              {t("Select visible sources")}
+            </button>
+          )}
           <button type="button" className="br-btn shrink-0" onClick={() => setAboutOpen(true)}>
             {t("How does a decision arise?")}
           </button>
         </div>
       </div>
+      {!history && selectedSources.length > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-border-default p-3"
+          data-source-selection
+        >
+          <span>
+            {t("Selected sources")}: {selectedSources.length} / 500
+          </span>
+          <button
+            className="br-btn br-btn-primary"
+            disabled={preparingBatch}
+            onClick={() => void prepareBatch()}
+          >
+            {t("Review selected sources")}
+          </button>
+          <button
+            className="br-btn"
+            disabled={preparingBatch}
+            onClick={() => {
+              setSourceSelection({
+                identity: selectionIdentity,
+                entries: [],
+                requestId: crypto.randomUUID(),
+              });
+              setBatchError("");
+            }}
+          >
+            {t("Clear selection")}
+          </button>
+        </div>
+      )}
+      {!history && sourceSelection.identity === selectionIdentity && batchError && (
+        <p role="alert" className="text-critical-text">
+          {batchError}
+        </p>
+      )}
       {aboutOpen && <DecisionHelp close={() => setAboutOpen(false)} />}
       <section
         className="overflow-hidden rounded-xl border border-border-default bg-surface"
@@ -246,25 +358,43 @@ export function DecisionsPage({
         ) : (
           list.items.map((proposal) => (
             <div key={proposal.id}>
-              <WorkRow
-                title={title(proposal)}
-                context={
-                  history ? (
-                    <DecisionLine decision={decision(proposal)} link={false} />
-                  ) : statedFields(proposal).length ? (
-                    statedFields(proposal)
-                      .map(([key, value]) => `${t(proposalFields[key])}: ${String(value)}`)
-                      .join(" · ")
-                  ) : (
-                    origin(proposal)
-                  )
-                }
-                meta={formatDateTime(proposal.created_at)}
-                icon={<CheckSquare size={18} />}
-                selected={selected?.id === proposal.id}
-                previewId={`decision-preview-${proposal.id}`}
-                open={() => setSelected(selected?.id === proposal.id ? null : proposal)}
-              />
+              <div className="flex items-center">
+                {!history && eligibleSource(proposal) && (
+                  <label className="ml-4 shrink-0">
+                    <input
+                      type="checkbox"
+                      aria-label={t("Select source decision")}
+                      data-select-source={proposal.id}
+                      checked={selectedSources.some((entry) => entry.proposal_id === proposal.id)}
+                      disabled={
+                        preparingBatch ||
+                        (selectedSources.length >= 500 &&
+                          !selectedSources.some((entry) => entry.proposal_id === proposal.id))
+                      }
+                      onChange={() => toggleSource(proposal)}
+                    />
+                  </label>
+                )}
+                <WorkRow
+                  title={title(proposal)}
+                  context={
+                    history ? (
+                      <DecisionLine decision={decision(proposal)} link={false} />
+                    ) : statedFields(proposal).length ? (
+                      statedFields(proposal)
+                        .map(([key, value]) => `${t(proposalFields[key])}: ${String(value)}`)
+                        .join(" · ")
+                    ) : (
+                      origin(proposal)
+                    )
+                  }
+                  meta={formatDateTime(proposal.created_at)}
+                  icon={<CheckSquare size={18} />}
+                  selected={selected?.id === proposal.id}
+                  previewId={`decision-preview-${proposal.id}`}
+                  open={() => setSelected(selected?.id === proposal.id ? null : proposal)}
+                />
+              </div>
               <WorkPreview
                 id={`decision-preview-${proposal.id}`}
                 open={selected?.id === proposal.id}

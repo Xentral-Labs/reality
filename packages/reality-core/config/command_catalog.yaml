@@ -429,7 +429,7 @@ commands:
     effect: Retain a non-authoritative exact interpretation and review digest; create no accepted business records.
   - name: Review source interpretation
     service: review_intake
-    related_services: [agent_review_source_page, agent_review_material, reviewed_item_file_detail]
+    related_services: [review_intake_original_source, agent_review_source_page, agent_review_material, reviewed_item_file_detail]
     mode: read
     adapters: [CLI, Web, API, MCP, Chat]
     reads: [action]

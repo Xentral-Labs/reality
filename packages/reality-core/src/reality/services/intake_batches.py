@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections import Counter
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -552,6 +553,10 @@ def batch_status(session, tenant_id, batch_id, *, cursor=0, limit=100):
         "status": batch.status,
         "total": len(manifest.entries),
         "settled": progress.get("next_index", 0),
+        "stopped": bool(progress.get("stopped", False)),
+        "counts": dict(
+            Counter(row["disposition"] for row in progress.get("results", []))
+        ),
         "results": results,
         "has_more": cursor + limit < len(progress.get("results", [])),
     }

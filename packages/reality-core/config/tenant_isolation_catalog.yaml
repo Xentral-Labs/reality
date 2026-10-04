@@ -11,6 +11,7 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.intake:review_intake_original_source
   - reality.services.intake_review:submit_agent_batch_review
   - reality.services.intake_review:grant_review_mandate
   - reality.services.intake_review:revoke_review_mandate
@@ -148,6 +149,7 @@ families:
     reason: Same-tenant proposal, source, job and reference checks precede every retained review and effect.
     authority: 351/DR-003
     operations: &reviewed_intake_operations
+      - reality.services.intake:review_intake_original_source
       - reality.services.payment_intake:prepare_customer_payment
       - reality.services.intake:prepare_intake
       - reality.services.intake:renew_prepared_intake
@@ -170,6 +172,9 @@ families:
       - id: tests/test_intake_review_recovery.py::test_foreign_company_cannot_renew_retained_review
         assertion: boundary
         operations: [reality.services.intake:renew_prepared_intake]
+      - id: tests/test_bulk_intake_transports.py::test_api_refuses_foreign_selection_and_unbounded_pages
+        assertion: boundary
+        operations: [reality.services.intake:review_intake_original_source]
   - key: shared_inventory_page
     description: Shared inventory observations and their paginated register exclude foreign contributions.
     classification: collection

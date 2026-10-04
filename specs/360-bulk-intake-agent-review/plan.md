@@ -223,3 +223,14 @@ exact child evidence, current state and global UTC-day quota before each unit.
 Accepted child receipts retain token attribution and mandate revision; rejected
 children have no business effects. Known refusals retain review-required results;
 unknown infrastructure errors roll back the whole provisional chunk.
+
+### Bulk Web and trusted local CLI
+
+Add thin API wrappers for existing prepare/review/status/stop services. The Web
+selects exact retained units before opening a separate shared confirmation review,
+shows paged child meaning and source links, and reads actual retained progress.
+The source download is a tenant-scoped read of the retained raw source/root; it
+never reparses, refreshes meaning or authorizes mutation. CLI accepts a bounded
+JSON manifest file and exposes exact digest confirmation under an explicit
+current local principal. Tests cover missing confirmation, foreign references,
+selection replay, truthful mixed results, stop and source byte preservation.

@@ -95,3 +95,36 @@ Observed PostgreSQL evidence:
 
 Full repository/PR gates, actual competing transactions, Web/CLI controls and
 comparative volume measurements remain required before overall completion.
+
+## Explicit Web and CLI bulk controls
+
+An explicit selection prepares a fixed manifest and opens its separate confirmation.
+Read-only progress exposes actual child dispositions and retained receipts. Original
+source download and renewal use canonical tenant-scoped services. Renewal opens a
+new review and preserves the old plan. CLI confirmation requires an actual user and
+exact digest; neither anonymous API calls nor preparation grant execution rights.
+
+Observed checks for this slice:
+
+- 72 transport, catalog, tenant, action-discovery and recovery cases passed in
+  53.01 seconds; the five dedicated transport cases also passed in 5.71 seconds.
+- The real PostgreSQL/API/worker browser story passed in 79.22 seconds. It loses
+  committed prepare and confirmation responses, retries the same requests, verifies
+  three actual accepted receipts without duplication, checks original bytes and
+  foreign-source refusal, and checks four languages at narrow and wide widths.
+- Frontend build, all four translation audits, formatting, Ruff, catalog generation
+  and business annotation coverage pass (619 functions, 115 approved tests).
+- A frontend contract run without subprocess/network capability was inconclusive:
+  its catalog fixture could not spawn Python (EPERM). The correctly permitted
+  complete contract run and final PR gates remain the required completion evidence.
+
+This slice does not claim completed universal writer cutover or comparative volume
+qualification. Those requirements remain tracked by specs 360 and 361.
+
+The controls slice completed the full PostgreSQL backend suite: 6,151 passed,
+10 skipped in 1,049.85 seconds. CI additionally exposed two delivery browser
+fixtures that returned an incomplete review identity or reloaded before the new
+proposal URL was visible. The fixtures now return the canonical review ID and
+wait for the replacement proposal. Both actual browser scripts pass, including
+sixteen localized responsive review combinations each. The product's protection
+against displaying a previous proposal's data remains enforced.

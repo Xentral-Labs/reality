@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
 import { openPageActions } from "./page-actions.mjs";
+import { deliveryReview } from "./decision-review-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -113,7 +114,7 @@ await page.route("**/api/**", async (route) => {
     return reply(proposal);
   }
   if (p.includes("/change-proposals/") && p.endsWith("/review"))
-    return reply({ review_kind: "delivery" });
+    return reply(deliveryReview(proposal));
   if (p.includes("/delivery-actions/")) return reply(proposal);
   if (p.endsWith("/change-proposals"))
     return reply({
@@ -156,7 +157,7 @@ await page.route("**/api/**", async (route) => {
   return reply({ detail: "Fixture unavailable" }, 404);
 });
 try {
-  await mkdir("/private/tmp/reality-119-browser", { recursive: true });
+  await mkdir("/tmp/reality-119-browser", { recursive: true });
   await page.goto(`${base}/app/orders-deliveries?tenant=company&orders_view=customer-orders`);
   await openPageActions(page);
   await page.getByRole("button", { name: "New order", exact: true }).click();
@@ -204,7 +205,7 @@ try {
         );
         assert.ok(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1));
         await page.screenshot({
-          path: `/private/tmp/reality-119-browser/review-${lang}-${theme}-${width}.png`,
+          path: `/tmp/reality-119-browser/review-${lang}-${theme}-${width}.png`,
           fullPage: true,
         });
       }
@@ -257,7 +258,7 @@ try {
   await dialog.getByLabel("Stated line amount", { exact: true }).fill("10");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({
-    path: "/private/tmp/reality-119-browser/purchase-form-en-1440.png",
+    path: "/tmp/reality-119-browser/purchase-form-en-1440.png",
     fullPage: true,
   });
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
