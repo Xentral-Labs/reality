@@ -25,8 +25,8 @@ Gate: owner accepted scope; Constitution PASS; no clarification remains.
 ## Verify and review
 
 - [x] T009 [FR-001/FR-004/FR-005/FR-006/DR-003] Update EN/DE public guides, `docs/features/company-setup-demo.md`, `docs/SPEC_COVERAGE_MATRIX.md`; generate catalog references.
-- [ ] T010 [FR-001–FR-006/DR-001–DR-003] Run focused/full required gates and record actual results in `verification.md`; review privacy, tenant, immutable receipts and lesson compatibility.
-- [ ] T011 [FR-001–FR-006] Create/attach PR and verify its final head green; no merge/deployment.
+- [x] T010 [FR-001–FR-006/DR-001–DR-003] Run focused/full required gates and record actual results in `verification.md`; review privacy, tenant, immutable receipts and lesson compatibility.
+- [x] T011 [FR-001–FR-006] Create/attach PR and verify its final head green; no merge/deployment.
 
 Dependencies: T001 → T002/T003/T004 → T005/T006/T007/T008 → T009 → T010 → T011.
 Independent reads/tests may run concurrently; no delegated execution. US1 and US2
