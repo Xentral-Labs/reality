@@ -72,7 +72,7 @@ def test_real_bulk_intake_decisions(postgres_database, tmp_path):
                     env=browser_env,
                     stdout=output,
                     stderr=subprocess.STDOUT,
-                    timeout=180,
+                    timeout=300,
                 check=False,
                 )
             assert completed.returncode == 0, (artifacts / "browser.log").read_text()

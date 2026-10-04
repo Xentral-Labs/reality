@@ -149,3 +149,39 @@ where the specified worker correctly retained two review-required dispositions.
 That assertion was corrected and covered by the final 40-test run. Ruff, generated
 catalogs and complete annotation coverage pass. Required PR gates remain pending.
 The controls slice's correctly permitted frontend run also passed all contracts.
+
+## Runnable controlled volume harness
+
+Failure-first checks observed the missing benchmark module. The new executable
+runner refuses non-disposable targets and absent explicit confirmation. Six tests
+pass in 12.90 seconds, including real single-unit and durable bulk-worker trials
+for three five-line orders and 501 items crossing the atomic package boundary.
+Every result checks actual evidence/effect counts and actual owner attribution.
+
+The declared 500-order/5,000-item repetitions remain to be measured. Small runner
+checks do not qualify those volume budgets or live reviewer/model quality.
+
+## Measured full controlled workloads
+
+[Machine-readable measurements](evidence/controlled-volume.json) record benchmark
+commit `2f40e2dcc48ab80087c2f2562f4cdf6cae9ab3ad`, Linux x86-64, five reported CPUs,
+local PostgreSQL 16.2, one warm-up and three measured repetitions per workload and
+mode. The first order runs shared the host with the controls backend regression;
+these are controlled local pipeline observations, not a production latency promise.
+
+| Workload | Bulk/single median apply time | Bulk/single queries | Largest incremental peak RSS | Largest actual worker chunk |
+| --- | --- | --- | --- | --- |
+| 500 complete five-line orders | 1.063 | 1.097 | 17.875 MiB | 2.615 s |
+| 5,000 items in ten complete packages | 0.850 | 1.360 | 20.375 MiB | 5.009 s |
+
+Every measured trial matched actual document/line/commitment/item counts and exact
+accepted owner decisions. Bulk orders completed twenty real queued runs; the item
+manifest completed one run. The largest actual retained configuration/result were
+121/118 bytes. Both workloads satisfy the 1.5x time/query, 256 MiB incremental RSS,
+30-second target and 120-second hard-run budgets. Preparation, review, apply and
+whole-trial durations/queries and RSS are retained separately in the JSON.
+
+Existing explicit failure, crash/rollback and competing-connection proofs remain
+in the review/bulk/concurrency tests. This benchmark uses controlled confirmed
+owner reviews; it makes no claim about model quality, live-agent cost or latency.
+Required PR gates and universal writer cutover remain separate completion checks.

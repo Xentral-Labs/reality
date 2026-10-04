@@ -2585,3 +2585,5 @@ Automatic file-adapter cutover remains open until spec 361.
 
 - `packages/reality-core/tests/test_intake_agent_concurrency.py`: spec 360 FR-005/FR-006/SC-001; two real independent PostgreSQL transactions compete for one daily unit, distinct sources accept once, simultaneous exact-review submissions retain one receipt and charge it once.
 - `packages/reality-core/tests/test_intake_agent_review.py` and `test_intake_agent_bulk.py`: spec 360 FR-005/FR-006; current scope, expiry, named token and active revision remain bound to the original executed owner grant; queued review cannot enlarge that authority.
+
+- `packages/reality-core/tests/test_intake_volume_benchmark.py`: spec 360 FR-012/SC-002; disposable database confirmation, complete median/budget checks and real single-unit/bulk worker trials with exact effect counts and actual owner attribution. The full 5,000-item/500-five-line-order measurements are separate qualification evidence.

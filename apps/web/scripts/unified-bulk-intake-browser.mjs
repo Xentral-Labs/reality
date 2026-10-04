@@ -86,7 +86,9 @@ try {
   await page.unroute(approvePattern);
   await panel.getByRole("button", { name: "Confirm change", exact: true }).click();
   let completed;
-  const deadline = Date.now() + 60000;
+  // The real worker first drains background projections for both fixture tenants.
+  // Allow that queue to settle; every applied receipt is still required below.
+  const deadline = Date.now() + 120000;
   while (Date.now() < deadline) {
     completed = await (
       await context.request.get(

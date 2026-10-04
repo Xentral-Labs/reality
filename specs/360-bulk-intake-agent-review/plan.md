@@ -243,3 +243,9 @@ require zero accepted effects. Commercial-limit fixtures issue their actual limi
 through the owner confirmation. Two independent PostgreSQL sessions compete for
 one daily quota and for the same accepted review; require exactly one charged
 receipt and free exact replay. No new schema or authority cache is introduced.
+
+The volume runner rejects non-disposable database names and requires explicit
+confirmation. Each isolated process reports preparation/review/apply SQL counts,
+wall time, peak/incremental RSS and real worker chunk durations. It checks actual
+accepted counts/owner attribution and retained queue payload bytes. Three measured
+repetitions per mode are required; missing or unequal workloads cannot qualify.
