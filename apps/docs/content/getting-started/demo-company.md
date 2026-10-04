@@ -316,11 +316,11 @@ does not guarantee every model answer or establish a company shipment total.
 
 `shipments_list` holds consignments and packages. An empty list does not exclude shipment Movements;
 use `order_explain` and discovery family `movement`, `query: "shipment"`, to inspect held shipping
-evidence. The movement query matches the retained type before the page limit; traverse
-`next_cursor` while `has_more` is true. The company-wide sample does not establish an exact order
-or total without those additional reads. For invoice
-lines, discover `document_line` with the exact `document_id`; preserve stated amounts and
-distinguish missing information from zero. This does not provide a complete allocation explanation.
+evidence. The movement query matches the retained type before the page limit; traverse `next_cursor`
+while `has_more` is true. The company-wide sample does not establish an exact order or total without
+those additional reads. For invoice lines, discover `document_line` with the exact `document_id`;
+preserve stated amounts and distinguish missing information from zero. This does not provide a
+complete allocation explanation.
 
 New Demo Data source records can await interpretation/admission approval. Their arrival alone does
 not create an accepted order, invoice or payment. Inspect the source and pending interpretation, and
