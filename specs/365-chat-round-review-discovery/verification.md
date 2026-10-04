@@ -12,7 +12,10 @@ boundary correction (3 failures; genuine handler-error control passed).
 Initial focused run: **101 passed** across test_mcp_read_contract,
 test_chat_scope_security, test_capability_catalog, test_tool_catalog and
 test_demo_mcp_workflow. Lint passes. Specification policy passes. Tool Usage was
-regenerated from the executable contracts. Final full Quality checks are pending.
+regenerated from the executable contracts. The complete [Quality workflow](https://github.com/Xentral-Labs/reality/actions/runs/37231488029)
+passed **all 24 jobs** on code head e14f82ea90437c45c274e46c459dfb212e22948e.
+The final documentation record is checked against the latest
+[PR head](https://github.com/Xentral-Labs/reality/pull/371/checks) before handoff.
 
 Full CI then exposed two existing Playground admission-precedence regressions:
 unknown-field validation intercepted a prohibited item_create_propose before the
@@ -87,4 +90,6 @@ Local raw synthetic results are retained under
 /Users/benediktsauter/GitHub/reality/.local/reports/pr371-live-evidence
 and /private/tmp/reality365-live (daily-mission.json, retained-evidence.json,
 proposals-before.json and proposals-after.json). No credential values are present
-in these artifacts. Temporary runtime cleanup follows completed validation.
+in these artifacts. The temporary API and isolated PostgreSQL test container were removed after
+validation. The regular local stack, retained synthetic company and original
+client connections remain intact.

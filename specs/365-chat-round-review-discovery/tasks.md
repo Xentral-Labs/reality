@@ -31,8 +31,8 @@ Independent proof: actual client behavior or explicit gaps, with preserved autho
 
 ## Phase 5 - Verify and Review
 
-- [ ] T012 Run focused/regression checks, lint, spec policy and docs-catalog-check; record results in specs/365-chat-round-review-discovery/verification.md (FR-001–004, DR-001).
-- [ ] T013 Review final diff and complete Quality CI in specs/365-chat-round-review-discovery/review.md; prepare attached PR with honest remaining qualifications (FR-001–004, DR-001).
+- [x] T012 Run focused/regression checks, lint, spec policy and docs-catalog-check; record results in specs/365-chat-round-review-discovery/verification.md (FR-001–004, DR-001).
+- [x] T013 Review final diff and complete Quality CI in specs/365-chat-round-review-discovery/review.md; prepare attached PR with honest remaining qualifications (FR-001–004, DR-001).
 
 - [x] T014 Add failing undeclared-argument and provider-retry regressions, implement schema-based refusal in mcp/catalog.py and rerun actual daily mission (FR-005).
 
