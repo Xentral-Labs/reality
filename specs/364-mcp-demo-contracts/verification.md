@@ -58,4 +58,3 @@ production and test code remain identical to the validated implementation head. 
 closeout-head checks are authoritative on https://github.com/Xentral-Labs/reality/pull/370
 and must also complete successfully before the agent reports the PR green. No merge or
 deployment is part of this work.
-
