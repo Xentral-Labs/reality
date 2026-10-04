@@ -71,6 +71,7 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
     }
     # Tables added by later migrations bring their own derived indexes with them.
     later_tables = {
+        "intake_review_mandate",
         "analytics_report",
         "analysis_request",
         "collection_handover",

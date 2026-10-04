@@ -184,3 +184,27 @@ MCP agent clients perform provider I/O outside Reality's database-only job handl
 Reality supplies scoped source/review-fetch and structured verdict submission, not
 a new provider-running daemon. Until an external reviewer is connected and given
 an explicit mandate, prepared intake remains available for human decisions.
+
+## Mandate implementation details
+
+Migration 0141 adds only the current tenant-scoped mandate linked to an actual
+owner decision and named token. Grant/revoke service writes require an exact
+server-established owner-confirmation scope, with transaction and argument binding
+and an inner-commit guard. An auth-disabled environment grants no mandate authority.
+A token must belong to the real granting owner; issuer membership and account
+status, current token permissions, expiry/revocation, source/capability activity,
+profile/effect scope and finite quotas are checked again before execution.
+
+Agent decisions record the actual token and mandate revision; the issuer supplies
+current owner authority but is never presented as having personally decided.
+Commercial exposure uses one explicitly received unit amount, without FX or line
+recalculation. Missing or multiple unaggregated monetary statements require a
+human decision. Daily limits derive from retained completed decision receipts while
+the mandate row is locked. Retry of an executed exact verdict consumes no quota.
+
+Original source content is read through bounded 64 KiB source/original/artifact byte
+pages, at most 20 MiB per stream. Clients reassemble complete bytes and assess
+externally; provider calls never occur in database-only continuation handlers.
+Review evidence freezes every byte-range and original row/line reference, required
+server validation checks and structured approve/reject/uncertain verdict. Evidence
+proves binding and current scope, not independent human review or model cognition.

@@ -37,7 +37,13 @@ def resolve_decision_policy(
     exceptions: list[str] = []
     authority: ApprovalAuthority = "action_context"
     financial_intake = tool == "intake_apply" and any(
-        effect.get("operation") in {"customer_payment", "payment_allocation"}
+        effect.get("operation")
+        in {
+            "customer_payment",
+            "supplier_payment",
+            "invoice_post",
+            "payment_allocation",
+        }
         for effect in arguments.get("plan", {}).get("effects", [])
     )
     if tool in FINANCE_COMMANDS or tool in OWNER_RELEASE_TOOLS or financial_intake:
@@ -46,6 +52,10 @@ def resolve_decision_policy(
             "credit_owner" if tool in OWNER_RELEASE_TOOLS else "finance_owner"
         )
         exceptions.append("identity_free_only_when_auth_disabled")
+    if tool in {"intake_mandate_grant", "intake_mandate_revoke"}:
+        authority = "company_owner"
+        checks = ["mandate_owner"]
+        exceptions = []
     if tool == "cost.change":
         checks.insert(0, "cost_owner")
         exceptions = ["transaction_bound_cost_profile_initialization"]
@@ -112,6 +122,12 @@ def require_decision_authority(
     from reality.services.delivery_actions import require_delivery_principal
     from reality.services.memberships import require_owner
 
+    if "mandate_owner" in policy.checks:
+        if phase == "preflight" and not confirmed:
+            raise InvalidOperation(code="review_confirmation_required")
+        if principal is None:
+            raise InvalidOperation(code="company_owner_access_required")
+        require_owner(session, tenant_id, principal)
     if phase == "preflight":
         if "cost_owner" in policy.checks:
             from reality.services.costing import _owner

@@ -79,3 +79,6 @@ Deliver one independently tested story at a time. The first foundation/Shopify s
 proves the mechanism, not all-path coverage. Do not deploy a migrated adapter while
 old write-capable workers can still bypass its boundary. Completion remains gated
 by all required checks and honest unresolved-outcome reporting.
+
+
+- [ ] T020 Add failure-first owner-scope, genuine-token, complete original-byte coverage, finite quota, expiry/revocation and migration proofs in `test_intake_agent_review.py`; implement the current mandate and structured evidence services (FR-006–FR-010/FR-007a).

@@ -15,6 +15,7 @@ AuthorityCheck = Literal[
     "cost_owner",
     "credit_owner",
     "finance_owner",
+    "mandate_owner",
     "reviewed_member",
     "email_retry_review",
     "reference_member",

@@ -22,7 +22,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
-| [Beleg und Quellsystem](#resource-source)                      | 3      | 16       | 2         |
+| [Beleg und Quellsystem](#resource-source)                      | 3      | 18       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 5        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
@@ -968,6 +968,9 @@ Nachweis, Quelle
 **Aktionen**
 
 - [Importauswahl vorbereiten](./commands#command-prepare_batch) (`prepare_batch`)
+- [Begrenztes Agentenprüfmandat erteilen](./commands#command-grant_review_mandate)
+  (`grant_review_mandate`)
+- [Agentenprüfmandat widerrufen](./commands#command-revoke_review_mandate) (`revoke_review_mandate`)
 - [Quellinterpretation vorbereiten](./commands#command-prepare_intake) (`prepare_intake`)
 - [Geprüfte Quellinterpretation übernehmen](./commands#command-apply_prepared_intake)
   (`apply_prepared_intake`)
@@ -1016,8 +1019,9 @@ Nachweis, Quelle
 
 **Kommt vor in:** [Stammdaten und Quellen](./processes#process-master_data)
 
-**Darunter:** Tabellen: `source_system`, `source_capability`, `document`, `document_line`, `fact` ·
-Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
+**Darunter:** Tabellen: `source_system`, `source_capability`, `intake_review_mandate`, `document`,
+`document_line`, `fact` · Events:
+[`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
 [`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
 [`source_record.stored`](./events#event-source_record-stored),

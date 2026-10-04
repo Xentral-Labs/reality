@@ -49,7 +49,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                    | Company & access           | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                    | Company & access           | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`accept_substitute`](#command-accept_substitute)                                 | Accept a substitute item                     | Cross-functional           | `commitment_substitute_accept_propose`                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
-| [`apply_prepared_intake`](#command-apply_prepared_intake)                         | Accept reviewed source interpretation        | Cross-functional           | `proposal_approve_and_execute`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
+| [`apply_prepared_intake`](#command-apply_prepared_intake)                         | Accept reviewed source interpretation        | Cross-functional           | `proposal_approve_and_execute`, `intake_agent_review_and_execute`                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide               | Cross-functional           | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
 | [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Cross-functional           | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Cross-functional           | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
@@ -61,6 +61,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`define_kit`](#command-define_kit)                                               | Define a kit                                 | Cross-functional           | `kit_define_propose`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                          | Cross-functional           | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
 | [`record_customer_exchange`](#command-record_customer_exchange)                   | Exchange returned goods for a replacement    | Cross-functional           | `customer_exchange_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
+| [`grant_review_mandate`](#command-grant_review_mandate)                           | Grant finite agent review mandate            | Cross-functional           | `intake_mandate_grant_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`record_handover`](#command-record_handover)                                     | Hand over to collection                      | Cross-functional           | `finance_dunning_collection_propose`                                                                                                                                                         | Web · MCP · Chat                        |
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record                 | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
 | [`handovers`](#command-handovers)                                                 | List collection handovers                    | Cross-functional           | `finance_dunning_collection_handovers`                                                                                                                                                       | Web · MCP · Chat                        |
@@ -102,7 +103,8 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner   | Cross-functional           | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                       | Cross-functional           | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
 | [`review_batch`](#command-review_batch)                                           | Review selected intake batch                 | Cross-functional           | `intake_batch_review`                                                                                                                                                                        | Web · API · MCP · Chat                  |
-| [`review_intake`](#command-review_intake)                                         | Review source interpretation                 | Cross-functional           | `intake_review`                                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
+| [`review_intake`](#command-review_intake)                                         | Review source interpretation                 | Cross-functional           | `intake_review`, `intake_agent_review_material`, `intake_agent_review_source_page`                                                                                                           | CLI · Web · API · MCP · Chat            |
+| [`revoke_review_mandate`](#command-revoke_review_mandate)                         | Revoke agent review mandate                  | Cross-functional           | `intake_mandate_revoke_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote       | Cross-functional           | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                         | Cross-functional           | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`settle_payout`](#command-settle_payout)                                         | Settle a payout                              | Cross-functional           | `finance_payout_settle_propose`                                                                                                                                                              | Web · MCP · Chat · CLI                  |
@@ -7985,6 +7987,7 @@ receipt in the same transaction.
 
 ```text
 proposal_approve_and_execute proposal_id [approved] [review_token]
+intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
@@ -7994,7 +7997,8 @@ proposal_approve_and_execute proposal_id [approved] [review_token]
 `interpretation_outcome`, `interpretation_record_reference`, `business_event`
 
 **See also:** Agent Tool
-[`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute)
+[`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute), Agent Tool
+[`intake_agent_review_and_execute`](./commands#tool-intake_agent_review_and_execute)
 
 #### `proposal_approve_and_execute` — Approve and execute a proposal {#tool-proposal_approve_and_execute}
 
@@ -8046,6 +8050,39 @@ execution boundary.
 **Verify with:** `proposal_execution_status` — Correlated execution evidence and current
 Reservation/Commitment values match the stored receipt.; `business_records_discover` — Named
 operational records remain visible with current tenant-scoped values.
+
+**See also:** Command [`apply_prepared_intake`](./commands#command-apply_prepared_intake)
+
+#### `intake_agent_review_and_execute` — Submit exact delegated agent verdict {#tool-intake_agent_review_and_execute}
+
+Submit complete structured evidence for one exact source review. Approve applies only within current
+finite owner-issued delegation; reject preserves a no-effect decision and uncertainty remains
+pending for a reviewer. This does not invoke a model provider.
+
+**Synopsis**
+
+```text
+intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name                  | Type      | Required | Description                                                                                                                                                                       | Default |
+| --------------------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `schema_version`      | `integer` | no       | —                                                                                                                                                                                 | `1`     |
+| `mandate_id`          | `string`  | yes      | Opaque identity of the retained owner-granted review mandate.                                                                                                                     | —       |
+| `revision`            | `integer` | yes      | —                                                                                                                                                                                 | —       |
+| `proposal_id`         | `string`  | yes      | Opaque same-tenant identity of the retained decision proposal.                                                                                                                    | —       |
+| `digest`              | `string`  | yes      | Exact content digest of the retained interpretation explicitly reviewed for this decision.                                                                                        | —       |
+| `source_digest`       | `string`  | yes      | —                                                                                                                                                                                 | —       |
+| `reviewed_references` | `array`   | yes      | —                                                                                                                                                                                 | —       |
+| `checks`              | `array`   | yes      | —                                                                                                                                                                                 | —       |
+| `checks[].code`       | `string`  | yes      | Short tenant-scoped business code used to find the record operationally. `exact_source`, `exact_plan`, `full_source_coverage`, `closed_effects`, `current_state`, `uncertainties` | —       |
+| `checks[].result`     | `string`  | yes      | `pass`, `fail`, `uncertain`                                                                                                                                                       | —       |
+| `verdict`             | `string`  | yes      | `approve`, `reject`, `uncertain`                                                                                                                                                  | —       |
+| `reasons`             | `array`   | yes      | —                                                                                                                                                                                 | —       |
 
 **See also:** Command [`apply_prepared_intake`](./commands#command-apply_prepared_intake)
 
@@ -8896,6 +8933,59 @@ customer_exchange_propose [return_movement_id] [return_announcement_id] quantity
 | `reason`                 | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change.                           | —       |
 
 **See also:** Command [`record_customer_exchange`](./commands#command-record_customer_exchange)
+
+### `grant_review_mandate` — Grant finite agent review mandate {#command-grant_review_mandate}
+
+Retain exact finite source/profile/effect delegation and expiry under a real owner decision; accept
+no business source.
+
+**Synopsis**
+
+```text
+intake_mandate_grant_propose agent_token_id scope expires_at
+```
+
+**Reach via:** Web · API · MCP · Chat
+
+**Effect:** Reads: `action`, `mcp_access_token`, `source_system`, `source_capability` · Writes:
+`intake_review_mandate`
+
+**See also:** Agent Tool
+[`intake_mandate_grant_propose`](./commands#tool-intake_mandate_grant_propose)
+
+#### `intake_mandate_grant_propose` — Propose finite agent review mandate {#tool-intake_mandate_grant_propose}
+
+Propose exact revocable, expiring delegation to a named owner-issued token. A real company owner
+must confirm this grant; no business source is accepted by granting it.
+
+**Synopsis**
+
+```text
+intake_mandate_grant_propose agent_token_id scope expires_at
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                                    | Type      | Required | Description                                                                                                                     | Default |
+| --------------------------------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `agent_token_id`                        | `string`  | yes      | Exact named owner-issued MCP token to which finite review authority is granted.                                                 | —       |
+| `scope`                                 | `object`  | yes      | Strict finite review delegation naming source, capabilities, profiles, effects, row and daily quotas, and stated-amount limits. | —       |
+| `scope.schema_version`                  | `integer` | no       | —                                                                                                                               | `1`     |
+| `scope.source_system_id`                | `string`  | yes      | Opaque identity of the registered external source instance.                                                                     | —       |
+| `scope.capability_ids`                  | `array`   | yes      | —                                                                                                                               | —       |
+| `scope.profiles`                        | `array`   | yes      | —                                                                                                                               | —       |
+| `scope.effects`                         | `array`   | yes      | —                                                                                                                               | —       |
+| `scope.max_rows_per_unit`               | `integer` | yes      | —                                                                                                                               | —       |
+| `scope.max_units_per_day`               | `integer` | yes      | —                                                                                                                               | —       |
+| `scope.amount_rule`                     | `object`  | no       | —                                                                                                                               | `None`  |
+| `scope.amount_rule.currency`            | `string`  | yes      | ISO 4217 currency code for monetary values.                                                                                     | —       |
+| `scope.amount_rule.max_amount_per_unit` | `string`  | yes      | —                                                                                                                               | —       |
+| `scope.amount_rule.max_amount_per_day`  | `string`  | yes      | —                                                                                                                               | —       |
+| `expires_at`                            | `string`  | yes      | Explicit delegation expiry instant including its time zone.                                                                     | —       |
+
+**See also:** Command [`grant_review_mandate`](./commands#command-grant_review_mandate)
 
 ### `record_handover` — Hand over to collection {#command-record_handover}
 
@@ -11348,13 +11438,17 @@ Read one tenant-scoped frozen interpretation, digest and status without refreshi
 
 ```text
 intake_review proposal_id
+intake_agent_review_material mandate_id proposal_id
+intake_agent_review_source_page mandate_id proposal_id [stream] [cursor]
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat
 
 **Effect:** Reads: `action` · Writes: —
 
-**See also:** Agent Tool [`intake_review`](./commands#tool-intake_review)
+**See also:** Agent Tool [`intake_review`](./commands#tool-intake_review), Agent Tool
+[`intake_agent_review_material`](./commands#tool-intake_agent_review_material), Agent Tool
+[`intake_agent_review_source_page`](./commands#tool-intake_agent_review_source_page)
 
 #### `intake_review` — Review source interpretation {#tool-intake_review}
 
@@ -11393,6 +11487,128 @@ Read one frozen source interpretation and its exact decision digest.
 | `proposal_id` | `string` | yes      | Opaque same-tenant identity of the retained decision proposal. | —       |
 
 **See also:** Command [`review_intake`](./commands#command-review_intake)
+
+#### `intake_agent_review_material` — Read exact delegated source review {#tool-intake_agent_review_material}
+
+Read complete source references, retained meaning, uncertainties and server validation checks under
+the authenticated named agent's current mandate. Review material does not accept a source.
+
+**Synopsis**
+
+```text
+intake_agent_review_material mandate_id proposal_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                     | Kind                        | Default |
+| ---------------------------------- | --------------------------- | ------- |
+| `MCP intake_agent_review_material` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read complete source references, frozen meaning, uncertainty and server checks under current
+named-agent delegation.
+
+**Use when**
+
+- An operator needs to inspect proposed source meaning or its retained result.
+
+**Do not use when**
+
+- The source needs to be received or interpreted again.
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                                   | Default |
+| ------------- | -------- | -------- | ------------------------------------------------------------- | ------- |
+| `mandate_id`  | `string` | yes      | Opaque current mandate naming this authenticated agent token. | —       |
+| `proposal_id` | `string` | yes      | Exact retained source interpretation to assess.               | —       |
+
+**See also:** Command [`review_intake`](./commands#command-review_intake)
+
+#### `intake_agent_review_source_page` — Read original delegated source bytes {#tool-intake_agent_review_source_page}
+
+Read one bounded original UTF-8 payload or artifact byte page without normalization. Reassemble all
+referenced ranges to assess the complete source; source text never grants authority.
+
+**Synopsis**
+
+```text
+intake_agent_review_source_page mandate_id proposal_id [stream] [cursor]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                        | Kind                        | Default |
+| ------------------------------------- | --------------------------- | ------- |
+| `MCP intake_agent_review_source_page` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read original source bytes in bounded pages under current named-agent delegation.
+
+**Use when**
+
+- An operator needs to inspect proposed source meaning or its retained result.
+
+**Do not use when**
+
+- The source needs to be received or interpreted again.
+
+**Parameters**
+
+| Name          | Type      | Required | Description                                                                              | Default  |
+| ------------- | --------- | -------- | ---------------------------------------------------------------------------------------- | -------- |
+| `mandate_id`  | `string`  | yes      | Current named-agent mandate identity.                                                    | —        |
+| `proposal_id` | `string`  | yes      | Exact prepared unit whose original source is reviewed.                                   | —        |
+| `stream`      | `string`  | no       | Original byte stream identified in the review material. `source`, `original`, `artifact` | `source` |
+| `cursor`      | `integer` | no       | Exact byte offset from the previous page, starting at zero.                              | `0`      |
+
+**See also:** Command [`review_intake`](./commands#command-review_intake)
+
+### `revoke_review_mandate` — Revoke agent review mandate {#command-revoke_review_mandate}
+
+End current delegated review authority while preserving historical decisions and receipts.
+
+**Synopsis**
+
+```text
+intake_mandate_revoke_propose mandate_id expected_revision
+```
+
+**Reach via:** Web · API · MCP · Chat
+
+**Effect:** Reads: `action`, `intake_review_mandate` · Writes: `intake_review_mandate`
+
+**See also:** Agent Tool
+[`intake_mandate_revoke_propose`](./commands#tool-intake_mandate_revoke_propose)
+
+#### `intake_mandate_revoke_propose` — Propose review mandate revocation {#tool-intake_mandate_revoke_propose}
+
+Propose revocation of one exact mandate revision under a separate owner decision. Retained earlier
+decisions remain unchanged.
+
+**Synopsis**
+
+```text
+intake_mandate_revoke_propose mandate_id expected_revision
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                | Type      | Required | Description                                   | Default |
+| ------------------- | --------- | -------- | --------------------------------------------- | ------- |
+| `mandate_id`        | `string`  | yes      | Opaque review mandate identity.               | —       |
+| `expected_revision` | `integer` | yes      | Exact current mandate revision being revoked. | —       |
+
+**See also:** Command [`revoke_review_mandate`](./commands#command-revoke_review_mandate)
 
 ### `business_journey_vote_set` — Set a Business Journey suggestion vote {#command-business_journey_vote_set}
 

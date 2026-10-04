@@ -1269,49 +1269,14 @@ def _retain_apply_failure(session, tenant_id, proposal_id, error):
     )
 
 
-def _apply_prepared_intake(
-    session: Session,
-    tenant_id: str,
-    proposal_id: str,
-    digest: str,
-    *,
-    confirmed: bool,
-    principal: Principal | None = None,
-    settling_token_id: str | None = None,
-    settling_channel: str | None = None,
-    _commit: bool = True,
-) -> ChangeProposal:
-    """Execute exact accepted intent within the caller-owned apply savepoint."""
-    from reality.services.tenant_policy import require_proposal_decision
-    from reality.tools.application import _record_decision
-
-    lock_delivery_state(session, tenant_id)
-    finance = lock_finance(session, tenant_id)
-    require_delivery_principal(session, tenant_id, principal)
-    require_proposal_decision(session, tenant_id, proposal_id, "proposal_execute")
-    proposal = session.scalar(
-        select(ChangeProposal)
-        .where(ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == proposal_id)
-        .with_for_update()
-        .execution_options(populate_existing=True)
-    )
-    if proposal is None or proposal.type != INTAKE_TYPE:
-        raise core.NotFound(code="proposal_not_found")
-    review = review_intake(session, tenant_id, proposal.id)
-    plan = PreparedIntake.model_validate(review["plan"])
-    if plan.finance_revision is not None or plan.profile in _FINANCIAL_PROFILES:
-        if principal is not None:
-            require_owner(session, tenant_id, principal)
-        elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
-            raise core.InvalidOperation(code="company_owner_access_required")
-    if not confirmed or digest != review["digest"]:
-        raise core.InvalidOperation(code="review_confirmation_required")
-    if proposal.status == "executed":
-        return proposal
-    if proposal.status != "proposed":
-        raise core.InvalidOperation(code="proposal_no_longer_available")
-    plan = PreparedIntake.model_validate(review["plan"])
-    if plan.finance_revision is not None and finance.revision != plan.finance_revision:
+def _validate_current_plan(
+    session, tenant_id, proposal, plan, current_finance_revision
+):
+    """Check exact current meaning without dispatching any accepted business effect."""
+    if (
+        plan.finance_revision is not None
+        and current_finance_revision != plan.finance_revision
+    ):
         raise core.InvalidOperation(code="intake_review_stale")
     if plan.calendar != _calendar_state(session, tenant_id):
         raise core.InvalidOperation(code="intake_review_stale")
@@ -1398,13 +1363,71 @@ def _apply_prepared_intake(
             current = order_state(session, tenant_id, observation.arguments["order_id"])
         if content_digest(current) != observation.digest:
             raise core.InvalidOperation(code="intake_review_stale")
+    return source, job
+
+
+def _apply_prepared_intake(
+    session: Session,
+    tenant_id: str,
+    proposal_id: str,
+    digest: str,
+    *,
+    confirmed: bool,
+    principal: Principal | None = None,
+    settling_token_id: str | None = None,
+    settling_channel: str | None = None,
+    _commit: bool = True,
+) -> ChangeProposal:
+    """Execute exact accepted intent within the caller-owned apply savepoint."""
+    from reality.services.tenant_policy import require_proposal_decision
+    from reality.tools.application import _record_decision
+
+    lock_delivery_state(session, tenant_id)
+    finance = lock_finance(session, tenant_id)
+    require_delivery_principal(session, tenant_id, principal)
+    require_proposal_decision(session, tenant_id, proposal_id, "proposal_execute")
+    proposal = session.scalar(
+        select(ChangeProposal)
+        .where(ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == proposal_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if proposal is None or proposal.type != INTAKE_TYPE:
+        raise core.NotFound(code="proposal_not_found")
+    review = review_intake(session, tenant_id, proposal.id)
+    plan = PreparedIntake.model_validate(review["plan"])
+    if plan.finance_revision is not None or plan.profile in _FINANCIAL_PROFILES:
+        if principal is not None:
+            require_owner(session, tenant_id, principal)
+        elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
+            raise core.InvalidOperation(code="company_owner_access_required")
+    if not confirmed or digest != review["digest"]:
+        raise core.InvalidOperation(code="review_confirmation_required")
+    if proposal.status == "executed":
+        return proposal
+    if proposal.status != "proposed":
+        raise core.InvalidOperation(code="proposal_no_longer_available")
+    plan = PreparedIntake.model_validate(review["plan"])
+    source, job = _validate_current_plan(
+        session, tenant_id, proposal, plan, finance.revision
+    )
     with session.begin_nested():
         with (
             _effect_scope(session, tenant_id, proposal.id, digest),
             core.executing_proposal(tenant_id, proposal.id),
         ):
             records = _apply_effects(session, tenant_id, proposal, plan)
-        _record_decision(proposal, principal, settling_token_id, settling_channel)
+        from reality.services.intake_review import _current_agent_authorization
+
+        agent_authorization = _current_agent_authorization(
+            session, tenant_id, proposal.id
+        )
+        _record_decision(
+            proposal,
+            None if agent_authorization else principal,
+            settling_token_id,
+            settling_channel,
+        )
         proposal.status = "executed"
         from reality.services.intake_batches import _current_child_authorization
 
@@ -1417,6 +1440,9 @@ def _apply_prepared_intake(
                     {"batch_authorization": parent_authorization}
                     if parent_authorization
                     else {}
+                ),
+                **(
+                    {"agent_review": agent_authorization} if agent_authorization else {}
                 ),
                 "proposal_id": proposal.id,
                 "source_record_id": source.id,
@@ -1506,13 +1532,26 @@ def reject_prepared_intake(
     if job is None or job.source_record_id != source.id:
         raise core.InvalidOperation(code="intake_review_invalid")
     with session.begin_nested():
+        from reality.services.intake_review import _current_agent_authorization
+
+        agent_authorization = _current_agent_authorization(
+            session, tenant_id, proposal.id
+        )
         proposal.status = "rejected"
-        _record_decision(proposal, principal, settling_token_id, settling_channel)
+        _record_decision(
+            proposal,
+            None if agent_authorization else principal,
+            settling_token_id,
+            settling_channel,
+        )
         proposal.output = canonical_json(
             {
                 "proposal_id": proposal.id,
                 "source_record_id": source.id,
                 "digest": review["digest"],
+                **(
+                    {"agent_review": agent_authorization} if agent_authorization else {}
+                ),
                 "verification": "rejected_no_effect",
             }
         )

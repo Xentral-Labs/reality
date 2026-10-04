@@ -46,6 +46,8 @@ INFRASTRUCTURE = {
     "secret",
     "secret_audit_event",
     "mcp_access_token",
+    # Finite token delegation is governance metadata, not a commercial source fact.
+    "intake_review_mandate",
     "mcp_authorization_interaction",
     "mcp_client_grant",
     "mcp_user_credential",

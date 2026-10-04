@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:4153e7cdb1c1adfa79f4d6855234460b6c62908568faca1c23cf0f7434190128",
+  "knowledge_version": "advisor-v1:sha256:ddd70b59eb7c66037e8df452f8b4ef45b847b51c3d09d43841ca757229f717a7",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -3128,6 +3128,8 @@
         "evidence_command_prepare_batch",
         "evidence_command_review_batch",
         "evidence_command_batch_status",
+        "evidence_command_grant_review_mandate",
+        "evidence_command_revoke_review_mandate",
         "evidence_command_prepare_intake",
         "evidence_command_review_intake",
         "evidence_command_apply_prepared_intake",
@@ -3193,8 +3195,6 @@
         "evidence_command_confirm_run",
         "evidence_command_record_handover",
         "evidence_command_record_return",
-        "evidence_command_returns",
-        "evidence_command_return_detail",
         "evidence_command_settle_payout",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_customer_refund",
@@ -3218,6 +3218,14 @@
         {
           "name": "batch_status",
           "mode": "read"
+        },
+        {
+          "name": "grant_review_mandate",
+          "mode": "mutation"
+        },
+        {
+          "name": "revoke_review_mandate",
+          "mode": "mutation"
         },
         {
           "name": "prepare_intake",
@@ -3478,14 +3486,6 @@
         {
           "name": "record_return",
           "mode": "mutation"
-        },
-        {
-          "name": "returns",
-          "mode": "query"
-        },
-        {
-          "name": "return_detail",
-          "mode": "query"
         },
         {
           "name": "settle_payout",

@@ -4362,6 +4362,81 @@ def _intake_apply(session: Session, tenant_id: str, arguments: dict[str, Any]) -
     raise InvalidOperation(code="intake_approval_required")
 
 
+def _intake_agent_review_submit(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Settle an exact named-agent review through current explicit owner delegation.
+
+    BUSINESS RULE application.intake_agent_review_submit:
+    Use the shared mandate executor and return its actual retained decision receipt.
+    """
+    from reality.services.intake_review import submit_agent_review
+
+    # reality-rule: application.intake_agent_review_submit
+    proposal = submit_agent_review(session, tenant_id, arguments)
+    return {
+        "proposal_id": proposal.id,
+        "status": proposal.status,
+        "output": json.loads(proposal.output),
+    }
+
+
+def _intake_agent_review_source_page(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Read bounded original source bytes for delegated review.
+
+    BUSINESS RULE application.intake_agent_review_source_page:
+    Keep original bytes and recheck actual token authority through the shared service.
+    """
+    from reality.services.intake_review import agent_review_source_page
+
+    # reality-rule: application.intake_agent_review_source_page
+    return agent_review_source_page(session, tenant_id, **arguments)
+
+
+def _intake_agent_review_material(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Expose retained source evidence to the current named review agent.
+
+    BUSINESS RULE application.intake_agent_review_material:
+    Use the tenant-scoped mandate service without accepting business effects.
+    """
+    from reality.services.intake_review import agent_review_material
+
+    # reality-rule: application.intake_agent_review_material
+    return agent_review_material(session, tenant_id, **arguments)
+
+
+def _intake_mandate_grant(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Grant finite named-agent review authority through a confirmed owner decision.
+
+    BUSINESS RULE application.intake_mandate_grant:
+    Delegate to the canonical service inside the exact current owner decision scope.
+    """
+    from reality.services.intake_review import grant_review_mandate
+
+    # reality-rule: application.intake_mandate_grant
+    return grant_review_mandate(session, tenant_id, **arguments)
+
+
+def _intake_mandate_revoke(session, tenant_id, arguments):
+    """
+    BUSINESS PURPOSE:
+    Revoke one exact delegated review revision through its owner decision.
+
+    BUSINESS RULE application.intake_mandate_revoke:
+    Retain actual revocation without rewriting earlier source decisions.
+    """
+    from reality.services.intake_review import revoke_review_mandate
+
+    # reality-rule: application.intake_mandate_revoke
+    return revoke_review_mandate(session, tenant_id, **arguments)
+
+
 def _intake_review(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     """
     BUSINESS PURPOSE:
@@ -4446,6 +4521,30 @@ TOOLS = {
         "Accept exactly reviewed source meaning in one transaction.",
         True,
         _intake_apply,
+    ),
+    "intake_agent_review_source_page": Tool(
+        "intake_agent_review_source_page",
+        "Read bounded original source bytes under current named-agent delegation.",
+        False,
+        _intake_agent_review_source_page,
+    ),
+    "intake_agent_review_material": Tool(
+        "intake_agent_review_material",
+        "Read complete exact source review under current named-agent delegation.",
+        False,
+        _intake_agent_review_material,
+    ),
+    "intake_mandate_grant": Tool(
+        "intake_mandate_grant",
+        "Grant finite review authority to a named agent under an exact owner decision.",
+        True,
+        _intake_mandate_grant,
+    ),
+    "intake_mandate_revoke": Tool(
+        "intake_mandate_revoke",
+        "Revoke an exact current review mandate while preserving previous decisions.",
+        True,
+        _intake_mandate_revoke,
     ),
     "intake_review": Tool(
         "intake_review",
@@ -7155,8 +7254,19 @@ def approve_and_execute_proposal(
             result = tool.handler(session, tenant_id, arguments)
     else:
         try:
-            with executing_proposal(tenant_id, proposal.id):
-                result = tool.handler(session, tenant_id, arguments)
+            if tool_name in {"intake_mandate_grant", "intake_mandate_revoke"}:
+                from reality.services.intake_review import _mandate_change_scope
+
+                with (
+                    _mandate_change_scope(
+                        session, tenant_id, proposal, confirming_principal, arguments
+                    ),
+                    executing_proposal(tenant_id, proposal.id),
+                ):
+                    result = tool.handler(session, tenant_id, arguments)
+            else:
+                with executing_proposal(tenant_id, proposal.id):
+                    result = tool.handler(session, tenant_id, arguments)
         except (InvalidOperation, NotFound) as error:
             # A synchronous domain refusal from a reviewed application handler is a
             # known no-effect outcome: the handler did not return and its current

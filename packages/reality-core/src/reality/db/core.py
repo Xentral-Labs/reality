@@ -4055,5 +4055,6 @@ from reality.db import cost_census_members as _cost_census_members  # noqa: F401
 from reality.db import cost_manifest_members as _cost_manifest_members  # noqa: F401
 from reality.db import cost_projections as _cost_projections  # noqa: F401
 from reality.db import finance_reference_store as _finance_reference_store  # noqa: F401
+from reality.db import intake_review as _intake_review  # noqa: F401
 
 FOREIGN_KEY_INDEXES = index_foreign_keys(Base.metadata)
