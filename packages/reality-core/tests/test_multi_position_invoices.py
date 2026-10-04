@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
 from sqlalchemy import func, select
 from test_unified_invoice_entry import confirm
 
@@ -25,7 +26,7 @@ from reality.services.delivery_actions import (
 
 
 def order(session, b, direction="sales"):
-    return core.create_manual_order(
+    return reviewed_manual_order(
         session,
         b.tenant.id,
         direction,
@@ -132,7 +133,7 @@ def test_invalid_is_inert(session, business, bad):
         # Spec 283: another order of the same party is a consolidated invoice; another
         # party's order stays refused.
         other = reviewed_create_party(session, business.tenant.id, "Other KG", "customer")
-        foreign = core.create_manual_order(
+        foreign = reviewed_manual_order(
             session,
             business.tenant.id,
             "sales",
@@ -233,7 +234,7 @@ def test_foreign_second_position_and_already_billed_are_inert(session, business)
     args["lines"][1]["order_line_id"] = "foreign-or-missing-line"
     with pytest.raises(core.NotFound):
         prepare(session, business, args)
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session, business.tenant.id, lines[1].id, "4", "100", "PRIOR"
     )
     before = session.scalar(select(func.count()).select_from(SourceRecord))
@@ -242,12 +243,12 @@ def test_foreign_second_position_and_already_billed_are_inert(session, business)
     assert session.scalar(select(func.count()).select_from(SourceRecord)) == before
 
 
-def test_direct_multi_service_and_legacy_shape(session, business):
+def test_reviewed_multi_service_and_legacy_shape(session, business):
     args = intent(order(session, business))
-    result = core.record_sales_invoice(session, business.tenant.id, **args)
+    result = reviewed_record_sales_invoice(session, business.tenant.id, **args)
     assert len(result["records"]) == 6
-    with pytest.raises(core.InvalidOperation, match="either"):
-        core.record_sales_invoice(
+    with pytest.raises(core.InvalidOperation, match="incomplete or unsupported"):
+        reviewed_record_sales_invoice(
             session, business.tenant.id, order_line_id="unexpected", **args
         )
 

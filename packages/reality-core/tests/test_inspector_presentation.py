@@ -1,6 +1,8 @@
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_document_with_lines
+
 from reality.services.inspector_presentation import (
     display_parts,
     display_text,
@@ -88,13 +90,12 @@ def test_document_and_line_contract_keep_raw_values_and_currency(session, busine
 
     from reality.services.core import (
         NotFound,
-        create_manual_document_with_lines,
         create_tenant,
     )
     from reality.services.delivery_reads import delivery_evidence
     from reality.web.api import complete_inspector, document_inspector, party_inspector
 
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",

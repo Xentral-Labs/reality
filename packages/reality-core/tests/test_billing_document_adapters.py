@@ -6,6 +6,7 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -21,7 +22,7 @@ from reality.web import app as web_module
 
 def _order(session, business, number="SO-AD"):
     reviewed_initialize_accounts(session, business.tenant.id)
-    _, order, lines, commitments = core.create_manual_order(
+    _, order, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -147,7 +148,7 @@ def test_an_agent_proposes_then_a_person_confirms(session, business):
 def test_an_agent_reads_the_month_end_lists(session, business):
     tenant = business.tenant.id
     _, line, _ = _order(session, business)
-    core.record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-ME-AD")
+    reviewed_record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-ME-AD")
 
     lists = MCP_TOOL_REGISTRY["month_end_billing"].handler(session, tenant, {})
 
@@ -193,7 +194,7 @@ def test_the_web_prepares_and_confirms_and_reads_the_lists(
     assert len(_documents(session, tenant, "down_payment_invoice")) == 1
     assert len(_documents(session, tenant, "proforma_invoice")) == 1
 
-    core.record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-W")
+    reviewed_record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-W")
     lists = client.get(f"{prefix}/finance/month-end-billing")
     assert lists.status_code == 200, lists.text
     assert [row["order_line_id"] for row in lists.json()["billed_not_shipped"]] == [
@@ -258,7 +259,7 @@ def test_the_cli_proposes_and_reads(session, business, monkeypatch):
     assert len(_documents(session, tenant, "down_payment_invoice")) == 1
     assert len(_documents(session, tenant, "proforma_invoice")) == 1
 
-    core.record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-C")
+    reviewed_record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-C")
     lists = runner.invoke(cli_module.app, ["month-end-billing", "--tenant-id", tenant])
     assert lists.exit_code == 0, lists.output
     assert [

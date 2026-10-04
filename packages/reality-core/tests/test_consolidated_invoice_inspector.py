@@ -3,13 +3,14 @@
 import json
 from uuid import uuid4
 
-from reality.services import core
+from intake_review_support import reviewed_manual_order
+
 from reality.tools.application import confirm_tool, propose_tool
 from reality.web.api import document_inspector
 
 
 def purchase(session, b, number):
-    _, document, lines, _ = core.create_manual_order(
+    _, document, lines, _ = reviewed_manual_order(
         session,
         b.tenant.id,
         "purchase",

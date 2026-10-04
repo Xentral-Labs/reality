@@ -49,3 +49,8 @@ not independent model quality or live-provider cost.
 Master slice: existing confirmation policy and exact canonical invocation proofs are reused; historical fixture construction grants no runtime authority. No schema change or constitutional exception is introduced. Remaining writer-family closure is explicitly pending.
 
 Finance configuration slice: the existing proposed-state atomic branch is preserved. The new proof records actual confirmation under its existing locks; no synthetic executing claim, new schema or constitutional exception is required.
+
+Normalized evidence slice: reviewed finite existing command family, root ownership,
+exact frozen children and adapter consent are mandatory. Header-only evidence is
+not silently converted into a made-up line. No critical clarification remains for
+this slice; low-level header and correction qualification remains pending.

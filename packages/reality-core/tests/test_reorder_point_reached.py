@@ -2,6 +2,10 @@
 
 from decimal import Decimal
 
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 from sqlalchemy import event
 
 from reality.services import core
@@ -43,7 +47,7 @@ def _point(session, business, point="20", quantity="48", location=None, item=Non
 
 
 def _order(session, business, direction, number, quantity, unit=None, location=None):
-    _, _, _, promises = core.create_manual_order(
+    _, _, _, promises = reviewed_manual_order(
         session,
         business.tenant.id,
         direction,
@@ -198,7 +202,7 @@ def test_an_old_purchase_in_cartons_counts_by_the_factor(session, business):
     _stock(session, business, "12")
     _point(session, business, point="20")
     # Recorded before spec 301: the promise holds the line's two cartons.
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant,
         "purchase_order",
@@ -514,7 +518,7 @@ def test_a_purchase_the_item_cannot_convert_is_named_not_dropped(session, busine
     tenant = business.tenant.id
     _stock(session, business, "12")
     _point(session, business, point="20")
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant,
         "purchase_order",

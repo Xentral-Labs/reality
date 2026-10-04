@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy.exc import IntegrityError
 
 from reality.db.core import Document, DocumentLine
@@ -329,10 +330,9 @@ def test_reservation_details_follow_commitment_and_item(session, business):
     from sqlalchemy import select
 
     from reality.db.core import Commitment, Reservation
-    from reality.services.core import create_manual_order
 
     tenant = business.tenant.id
-    create_manual_order(
+    reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -413,10 +413,9 @@ def test_purchase_order_and_position_reach_incoming_commitment(session, business
     from sqlalchemy import select
 
     from reality.db.core import Commitment
-    from reality.services.core import create_manual_order
 
     tenant = business.tenant.id
-    create_manual_order(
+    reviewed_manual_order(
         session,
         tenant,
         "purchase",

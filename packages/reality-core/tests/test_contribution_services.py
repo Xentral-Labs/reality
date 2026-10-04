@@ -5,6 +5,7 @@ import json
 import pytest
 import test_costing_services as costs
 import test_inventory_costing_services as stock
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 
@@ -19,7 +20,7 @@ cost_owner = costs.cost_owner
 
 def prepared(session, business, owner, *, reviewed=True):
     t = business.tenant.id
-    order, lines = core.create_manual_document_with_lines(
+    order, lines = reviewed_manual_document_with_lines(
         session,
         t,
         "sales_order",
@@ -50,7 +51,7 @@ def prepared(session, business, owner, *, reviewed=True):
         document_id=order.id,
         document_line_id=agreed.id,
     )
-    invoice, lines = core.create_manual_document_with_lines(
+    invoice, lines = reviewed_manual_document_with_lines(
         session,
         t,
         "sales_invoice",
@@ -199,7 +200,7 @@ def test_preview_stale_review_and_multiple_billing(session, business, cost_owner
     )
     result = contribution_preview(session, business.tenant.id, billed.id)
     assert "inventory_review_stale" in result["missing_basis"]
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",

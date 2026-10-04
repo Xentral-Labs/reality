@@ -4,12 +4,12 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_record_free_supplier_invoice
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
-from reality.services.invoice_actions import record_free_supplier_invoice
 from reality.tools.application import approve_and_execute_proposal
 
 
@@ -35,7 +35,7 @@ def _exchange_account(session, tenant):
 def _invoice(
     session, business, number="USD-INV-1", gross="1000", rate="0.92", currency="USD"
 ):
-    receipt = record_free_supplier_invoice(
+    receipt = reviewed_record_free_supplier_invoice(
         session,
         business.tenant.id,
         supplier_id=business.supplier.id,

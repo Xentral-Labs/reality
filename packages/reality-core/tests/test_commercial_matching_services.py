@@ -7,6 +7,10 @@ import pytest
 import test_contribution_services as fixtures
 import test_costing_services as costs
 import test_inventory_costing_services as stock
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 from sqlalchemy import func, select
 
 from reality.db.contribution import CostCommercialMatchRevision
@@ -313,7 +317,7 @@ def test_commercial_credit_uses_exact_original_return_portion(
     _inventory_action, inventory = stock.commit_review(
         session, business, cost_owner, inventory_args
     )
-    credit, lines = core.create_manual_document_with_lines(
+    credit, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "credit_note",
@@ -408,7 +412,7 @@ def test_return_goods_and_credit_lifecycles_remain_independent_and_explainable(
         "10",
         to_location_id=business.location.id,
     )
-    _, order, order_lines, commitments = core.create_manual_order(
+    _, order, order_lines, commitments = reviewed_manual_order(
         session,
         tenant_id,
         "sales",
@@ -437,7 +441,7 @@ def test_return_goods_and_credit_lifecycles_remain_independent_and_explainable(
         from_location_id=business.location.id,
         commitment_id=commitments[0].id,
     )
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "sales_invoice",
@@ -474,7 +478,7 @@ def test_return_goods_and_credit_lifecycles_remain_independent_and_explainable(
     assert explained["trace"]["document_id"] == order.id
 
     def credit(number: str, quantity: str) -> None:
-        core.create_manual_document_with_lines(
+        reviewed_manual_document_with_lines(
             session,
             tenant_id,
             "credit_note",
@@ -556,7 +560,7 @@ def test_commercial_split_lines_share_capacity_without_overlap(
             CostMovementBasis.movement_id == frozen_part["receipt_movement_id"],
         )
     )
-    invoice, lines = core.create_manual_document_with_lines(
+    invoice, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",
@@ -618,7 +622,7 @@ def test_commercial_split_lines_share_capacity_without_overlap(
         assert observed["goods_cost"] == "315.0000"
         assert observed["db1"] == "285.0000"
 
-    excess_invoice, excess_lines = core.create_manual_document_with_lines(
+    excess_invoice, excess_lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",
@@ -712,7 +716,7 @@ def test_free_goods_keep_inventory_cost_and_zero_revenue(session, business, cost
             CostMovementBasis.movement_id == frozen["receipt_movement_id"],
         )
     )
-    invoice, lines = core.create_manual_document_with_lines(
+    invoice, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",
@@ -776,7 +780,7 @@ def test_shipping_kit_production_direct_cost_and_unresolved_wip_are_explicit(
         cost_owner,
         costs.assignment(session, business, movement, supplier_document, "40"),
     )
-    sales_document, lines = core.create_manual_document_with_lines(
+    sales_document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",

@@ -15,6 +15,7 @@ from uuid import uuid4
 import pytest
 from conftest import record_by_id
 from cryptography.fernet import Fernet
+from intake_review_support import reviewed_manual_order
 
 from reality.domain.traversal import Traversal
 from reality.services.analytics.errors import AnalyticsError
@@ -25,7 +26,7 @@ from reality.services.analytics.reports import (
     list_reports,
 )
 from reality.services.analytics.traversal import run_traversal
-from reality.services.core import NotFound, create_manual_order
+from reality.services.core import NotFound
 from reality.services.memberships import Principal
 
 QUESTION = {
@@ -54,7 +55,7 @@ def author(scheduled_owner):
 
 @pytest.fixture
 def sales(session, business):
-    create_manual_order(
+    reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import select
 
 from reality.catalogs import load_tenant_isolation_catalog
@@ -188,11 +189,10 @@ def test_aggregates_exclude_foreign_values(session, two_tenant_graph):
     assert foreign.item.id not in {row["item_id"] for row in projected_inventory}
     assert _family("aggregates")["classification"] == "aggregate"
     from reality.services.core import (
-        create_manual_document_with_lines,
         uncredited_return_quantity,
     )
 
-    _, lines = create_manual_document_with_lines(
+    _, lines = reviewed_manual_document_with_lines(
         session,
         foreign.tenant.id,
         "sales_order",

@@ -175,7 +175,7 @@ def test_missing_business_web_adapters_delegate_to_shared_services(
 
     order = client.post(
         f"/api/tenants/{tenant}/manual-orders",
-        json={
+        json={"confirmed": True,
             "direction": "sales",
             "number": "SO-WEB-1",
             "company_party_id": business.company.id,

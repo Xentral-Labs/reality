@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.db.core import AppUser, ChangeProposal, TenantMembership, uid
 from reality.services import core
@@ -21,7 +22,7 @@ def _held_release(session, business):
         "customer",
         credit_limit="100",
     )
-    _, order, _, commitments = core.create_manual_order(
+    _, order, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

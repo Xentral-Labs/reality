@@ -6,6 +6,10 @@ from uuid import uuid4
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 from test_multi_position_invoices import order, prepare
 from test_unified_financial_reversal import prepare as prepare_reversal
@@ -90,7 +94,7 @@ def test_partial_reversal_rebilling_and_historical_proof(session, business, dire
 
 
 def evidence(s, b, line, quantity, kind="sales_invoice"):
-    return core.create_manual_document_with_lines(
+    return reviewed_manual_document_with_lines(
         s,
         b.tenant.id,
         kind,
@@ -228,7 +232,7 @@ def test_direct_and_reviewed_concurrent_invoices(postgres_database):
                             review_token=claim[1],
                         )
                     else:
-                        core.record_sales_invoice(
+                        reviewed_record_sales_invoice(
                             s, tenant_id, **{**intent, "number": "DIRECT"}
                         )
                     return True

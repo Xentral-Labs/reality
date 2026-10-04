@@ -4,6 +4,7 @@ import json
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -14,7 +15,7 @@ from reality.db.core import (
     SourceRecord,
 )
 from reality.mcp.catalog import MCP_TOOL_REGISTRY
-from reality.services.core import InvalidOperation, create_manual_order
+from reality.services.core import InvalidOperation
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
     prepare_delivery_action,
@@ -26,7 +27,7 @@ STATED = {"net": "50.00", "tax": "9.50"}
 
 
 def order_line(session, business, direction="sales", number="ORDER-284"):
-    order = create_manual_order(
+    order = reviewed_manual_order(
         session,
         business.tenant.id,
         direction,

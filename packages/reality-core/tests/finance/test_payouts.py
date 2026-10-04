@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import func, select
 
 from reality.db.core import Document, DocumentLine, LedgerEntry, PaymentReturn
@@ -55,7 +56,7 @@ def _accounts(session, tenant):
 def _invoiced_order(session, business, number, amount, customer=None, invoice=True):
     tenant = business.tenant.id
     customer = customer or business.customer
-    order, (order_line,) = core.create_manual_document_with_lines(
+    order, (order_line,) = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_order",
@@ -76,7 +77,7 @@ def _invoiced_order(session, business, number, amount, customer=None, invoice=Tr
     )
     if not invoice:
         return order, None
-    document, _ = core.create_manual_document_with_lines(
+    document, _ = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_invoice",
@@ -110,7 +111,7 @@ def _credit_note(session, business, invoice, amount):
             DocumentLine.document_id == invoice.id,
         )
     ).all()
-    note, _ = core.create_manual_document_with_lines(
+    note, _ = reviewed_manual_document_with_lines(
         session,
         tenant,
         "credit_note",

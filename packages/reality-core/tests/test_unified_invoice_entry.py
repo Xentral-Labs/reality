@@ -5,10 +5,11 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, Document, DocumentLine, LedgerEntry, Movement
-from reality.services.core import InvalidOperation, NotFound, create_manual_order
+from reality.services.core import InvalidOperation, NotFound
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
     prepare_delivery_action,
@@ -27,7 +28,7 @@ def prepare(
     session, business, direction="sales", line=None, request="invoice-120", **changes
 ):
     if not line:
-        result = create_manual_order(
+        result = reviewed_manual_order(
             session,
             business.tenant.id,
             direction,
@@ -144,7 +145,7 @@ def test_invoice_review_atomic_effects_and_unknown_recovery(
 
 
 def test_invoice_line_retains_source_stated_finance_detail(session, business):
-    order = create_manual_order(
+    order = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

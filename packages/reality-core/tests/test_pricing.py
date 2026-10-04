@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 
 from reality.services.core import (
     InvalidOperation,
@@ -10,7 +11,6 @@ from reality.services.core import (
     assign_group_price_list,
     assign_party_price_list,
     correct_manual_document_lines,
-    create_manual_document_with_lines,
     create_party_group,
     create_price_list,
     create_price_list_entry,
@@ -145,7 +145,7 @@ def test_document_line_retains_agreed_entry_when_current_price_changes(
     original_entry = create_price_list_entry(
         session, business.tenant.id, original.id, business.item.id, 1, 10, "pcs"
     )
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",
@@ -196,7 +196,7 @@ def test_selected_entry_must_reproduce_document_context_atomically(session, busi
         session, business.tenant.id, price_list.id, business.item.id, 1, 10, "pcs"
     )
     with pytest.raises(InvalidOperation, match="does not reproduce"):
-        create_manual_document_with_lines(
+        reviewed_manual_document_with_lines(
             session,
             business.tenant.id,
             "sales_order",
@@ -216,7 +216,7 @@ def test_selected_entry_must_reproduce_document_context_atomically(session, busi
 
 
 def test_manual_agreement_remains_valid_without_pricing_entry(session, business):
-    _, lines = create_manual_document_with_lines(
+    _, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",
@@ -258,10 +258,10 @@ def test_a_period_label_is_not_a_document_date(session, business):
         }
     ]
     with pytest.raises(InvalidOperation, match="YYYY-MM-DD"):
-        create_manual_document_with_lines(
+        reviewed_manual_document_with_lines(
             session,
             business.tenant.id,
-            "note",
+            "sales_order",
             "MANUAL-DATE",
             business.customer.id,
             lines,
@@ -270,10 +270,10 @@ def test_a_period_label_is_not_a_document_date(session, business):
         )
     session.rollback()
 
-    document, _ = create_manual_document_with_lines(
+    document, _ = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
-        "note",
+        "sales_order",
         "MANUAL-DATE",
         business.customer.id,
         lines,
@@ -298,7 +298,7 @@ def test_presentation_correction_keeps_historical_entry_after_default_changes(
     entry = create_price_list_entry(
         session, business.tenant.id, price_list.id, business.item.id, 1, 10, "pcs"
     )
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",

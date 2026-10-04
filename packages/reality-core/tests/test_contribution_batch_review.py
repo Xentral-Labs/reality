@@ -9,6 +9,7 @@ import pytest
 import test_contribution_services as sales
 import test_inventory_costing_services as stock
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_document_with_lines
 from pydantic import ValidationError
 from sqlalchemy import func, select
 
@@ -256,7 +257,7 @@ def test_joint_stale_revoked_and_foreign_refuse(session, business, cost_owner):
     foreign_party = reviewed_create_party(
         session, foreign.id, "Foreign customer", "company"
     )
-    _, foreign_lines = core.create_manual_document_with_lines(
+    _, foreign_lines = reviewed_manual_document_with_lines(
         session,
         foreign.id,
         "sales_invoice",

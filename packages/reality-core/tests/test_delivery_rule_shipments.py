@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
@@ -22,7 +23,7 @@ def lamp(session, business):
 
 
 def _order(session, business, number, lines):
-    _, document, _, commitments = core.create_manual_order(
+    _, document, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

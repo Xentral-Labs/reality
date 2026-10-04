@@ -546,7 +546,9 @@ def interpret(session: Session, tenant_id: str, source: SourceRecord, context: d
             ),
         )
     order = DemoOrder.model_validate(json.loads(source.payload))
-    document, lines = core.create_manual_document_with_lines(
+    from reality.services.intake import _record_normalized_document
+
+    document, lines = _record_normalized_document(
         session,
         tenant_id,
         "sales_order",

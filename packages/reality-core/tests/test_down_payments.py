@@ -8,6 +8,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -30,7 +31,7 @@ def _order(session, business, number="SO-299", total="1000.00", prepay=False):
         core.create_payment_term(
             session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
         )
-    _, order, lines, commitments = core.create_manual_order(
+    _, order, lines, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -309,7 +310,7 @@ def test_a_down_payment_invoice_states_a_sales_order_and_an_amount(
         **change,
     }
     if arguments["order_id"] == "purchase":
-        _, purchase, _, _ = core.create_manual_order(
+        _, purchase, _, _ = reviewed_manual_order(
             session,
             business.tenant.id,
             "purchase",
@@ -1183,7 +1184,7 @@ def test_the_narrowed_queue_follows_an_invoice_and_its_payment(
         _, receipt = _down_payment(session, business, order)
         document, amount = receipt["document_id"], "300.00"
     else:
-        invoice = core.record_sales_invoice(
+        invoice = reviewed_record_sales_invoice(
             session, tenant, line.id, "10", "1000.00", "RE-Q"
         )
         document, amount = _invoice_document(invoice), "1000.00"

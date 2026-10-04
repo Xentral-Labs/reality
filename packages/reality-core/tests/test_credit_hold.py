@@ -9,7 +9,7 @@ import json
 from decimal import Decimal
 
 import pytest
-from intake_review_support import accept_import_job
+from intake_review_support import accept_import_job, reviewed_manual_order
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, CommitmentHold
@@ -46,7 +46,7 @@ def _open_invoice(session, business, party, amount, day="2026-07-01", number="RE
 
 
 def _order(session, business, party, number, total, currency="EUR"):
-    _, document, _, commitments = core.create_manual_order(
+    _, document, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -874,7 +874,7 @@ def test_the_order_value_is_its_stated_amount_not_quantity_times_price(
     """
     party = _customer(session, business, limit="300")
     # Four at a list price of 100 with a stated rebate to 200 in total.
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -1004,7 +1004,7 @@ def test_the_exposure_read_does_not_grow_with_the_order_lines(session, business)
     party = _customer(session, business, limit="0")
 
     def order_with(lines, number):
-        core.create_manual_order(
+        reviewed_manual_order(
             session,
             tenant,
             "sales",

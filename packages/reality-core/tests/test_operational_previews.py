@@ -2,12 +2,12 @@ from decimal import Decimal
 
 import pytest
 from fastapi.encoders import jsonable_encoder
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import event
 from unified_fixtures import delivery_fixture
 
 from reality.services.core import (
     NotFound,
-    create_manual_document_with_lines,
     create_tenant,
     post_customer_payment,
     post_sales_invoice,
@@ -22,7 +22,7 @@ def fields(sections):
 
 
 def document(session, business, kind="sales_order", count=1):
-    return create_manual_document_with_lines(
+    return reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         kind,

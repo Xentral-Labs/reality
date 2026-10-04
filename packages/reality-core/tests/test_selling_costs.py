@@ -2,6 +2,7 @@
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_document_with_lines
 
 from reality.domain.costing import SellingAssign
 
@@ -407,7 +408,7 @@ def test_reassignment_replaces_complete_revision_and_preserves_history(
     )
     _, second = stock.commit_review(session, business, cost_owner, review)
     assert second["db2"] == "546.0000"
-    _, lines = core.create_manual_document_with_lines(
+    _, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",
@@ -442,7 +443,7 @@ def test_selling_foreign_links_and_historical_read_refuse(
     doc = costs.evidence(session, business, "24", "0")
     other = core.create_tenant(session, "Neighbor")
     party = reviewed_create_party(session, other.id, "Neighbor customer", "customer")
-    foreign_doc, lines = core.create_manual_document_with_lines(
+    foreign_doc, lines = reviewed_manual_document_with_lines(
         session,
         other.id,
         "sales_invoice",

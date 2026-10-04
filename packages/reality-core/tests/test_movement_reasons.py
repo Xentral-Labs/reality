@@ -9,6 +9,7 @@ import json
 from datetime import UTC, datetime
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select
 
 from reality.db.core import Movement
@@ -109,7 +110,7 @@ def test_a_blank_reason_is_no_reason(session, business, reason):
 def test_a_delivery_path_receipt_without_a_purchase_is_reported(session, business):
     tenant = business.tenant.id
     # Positive control: a delivery-path receipt against a purchase is explained.
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -171,7 +172,7 @@ def test_a_correction_onto_a_purchase_clears_an_unexplained_receipt(session, bus
     tenant = business.tenant.id
     receipt = _receipt(session, business, "h09-late")
     assert receipt.id in _unexplained(session, business)
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         tenant,
         "purchase",

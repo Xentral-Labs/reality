@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import func, select
 
 from reality.db.core import SupplyAssignment
@@ -18,7 +19,7 @@ from reality.tools.application import approve_and_execute_proposal, run_read_too
 
 
 def commitments(session, business):
-    sales = core.create_manual_order(
+    sales = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -37,7 +38,7 @@ def commitments(session, business):
         "160",
         document_date="2026-09-21",
     )[3][0]
-    purchase = core.create_manual_order(
+    purchase = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -168,7 +169,7 @@ def test_supply_assignment_enforces_bounds_shape_and_tenant(session, business):
 def test_assignments_together_never_protect_more_than_the_demand(session, business):
     """FR-009: the total, not each statement, stays within the customer's demand."""
     customer, supplier = commitments(session, business)
-    second = core.create_manual_order(
+    second = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",

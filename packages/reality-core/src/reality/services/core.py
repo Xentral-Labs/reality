@@ -1120,15 +1120,18 @@ def _require_business_mutation(
     from reality.services.tenant_policy import require_finance_operation
 
     require_finance_operation(session, tenant_id, operation)
+    from reality.services.tenant_policy import require_document_operation
+
+    require_document_operation(session, tenant_id, operation)
     from reality.services.intake import _require_scoped_operation
 
     intake_approved = _require_scoped_operation(session, tenant_id, operation)
-    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location"} and not (
+    if operation in {"create_party", "create_item", "create_location", "update_party", "update_item", "update_location", "create_manual_document_with_lines"} and not (
         fixed_setup or intake_approved
     ):
-        from reality.services.tenant_policy import _require_master_decision
+        from reality.services.tenant_policy import _require_application_decision
 
-        _require_master_decision(session, tenant_id, operation)
+        _require_application_decision(session, tenant_id, operation)
     from reality.services.business_locks import DELIVERY_WRITERS, lock_delivery_state
 
     finance_operations = {
@@ -9790,7 +9793,9 @@ def create_manual_order(
         )
         if source is None:  # pragma: no cover - manual source identity is complete
             raise InvalidOperation(code="manual_order_source_not_recorded")
-        document, document_lines = create_manual_document_with_lines(
+        from reality.services.intake import _record_normalized_document
+
+        document, document_lines = _record_normalized_document(
             session,
             tenant_id,
             document_type,
@@ -12406,7 +12411,9 @@ def _record_multi_order_invoice(
             action_id=action_id,
             _commit=False,
         )
-        document, lines = create_manual_document_with_lines(
+        from reality.services.intake import _record_normalized_document
+
+        document, lines = _record_normalized_document(
             session,
             tenant_id,
             invoice_type,
@@ -12634,7 +12641,9 @@ def _record_order_invoice(
             if creation is not None and direction == "purchase"
             else line.unit_price
         )
-        document, lines = create_manual_document_with_lines(
+        from reality.services.intake import _record_normalized_document
+
+        document, lines = _record_normalized_document(
             session,
             tenant_id,
             invoice_type,

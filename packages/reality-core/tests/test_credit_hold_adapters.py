@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_manual_order
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
 
@@ -22,7 +23,7 @@ def _held_order(session, business, number="SO-CA-1"):
     party = reviewed_create_party(
         session, tenant, f"Adapter Kunde {number}", "customer", credit_limit="100"
     )
-    _, order, _, commitments = core.create_manual_order(
+    _, order, _, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",

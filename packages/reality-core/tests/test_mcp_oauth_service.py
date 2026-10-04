@@ -7,6 +7,7 @@ from datetime import timedelta
 
 import httpx
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.db.core import (
     Commitment,
@@ -22,7 +23,6 @@ from reality.mcp.principal import MCPPrincipal
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    create_manual_order,
     create_tenant,
 )
 from reality.services.mcp_authorization import (
@@ -310,7 +310,7 @@ def test_principal_intersects_frozen_tools_with_current_scope_and_catalog(
 def test_manual_and_interactive_reads_preserve_trace_and_cross_tenant_not_found(
     session, business, scheduled_owner
 ):
-    source, document, lines, commitments = create_manual_order(
+    source, document, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

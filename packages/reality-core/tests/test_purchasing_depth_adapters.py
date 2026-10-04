@@ -3,6 +3,7 @@
 import json
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -25,7 +26,7 @@ def _client(session, monkeypatch):
 
 
 def _purchase(session, business, number="PO-310-A"):
-    _, document, (line,), (promise,) = core.create_manual_order(
+    _, document, (line,), (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",

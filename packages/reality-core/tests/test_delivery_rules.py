@@ -4,6 +4,7 @@ import json
 from datetime import UTC, datetime
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
@@ -17,7 +18,7 @@ from reality.services.delivery_rules import (
 
 
 def _order(session, business, number="SO-306", lines=(("8", None),)):
-    _, document, _, commitments = core.create_manual_order(
+    _, document, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -140,7 +141,7 @@ def test_every_statement_is_a_version_of_its_stream(session, business):
 def test_statements_are_refused_with_their_code(session, business):
     tenant = business.tenant.id
     document, _ = _order(session, business)
-    purchase = core.create_manual_order(
+    purchase = reviewed_manual_order(
         session,
         tenant,
         "purchase",

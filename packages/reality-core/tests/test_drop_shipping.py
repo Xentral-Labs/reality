@@ -4,6 +4,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.services import core
 from reality.services.drop_shipping import (
@@ -17,7 +18,7 @@ from reality.services.supply_assignments import assign_supply
 
 def _orders(session, business, number, sold="4", bought="4"):
     tenant = business.tenant.id
-    sale = core.create_manual_order(
+    sale = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -35,7 +36,7 @@ def _orders(session, business, number, sold="4", bought="4"):
         ],
         str(Decimal(sold) * 20),
     )[3][0]
-    purchase = core.create_manual_order(
+    purchase = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -191,7 +192,7 @@ def test_only_a_purchase_order_shipping_to_the_customer_is_drop_shipped(
 ):
     tenant = business.tenant.id
     sale, purchase = _orders(session, business, "337-5", sold="2", bought="2")
-    ordinary = core.create_manual_order(
+    ordinary = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -209,7 +210,7 @@ def test_only_a_purchase_order_shipping_to_the_customer_is_drop_shipped(
         ],
         "20",
     )[3][0]
-    second_sale = core.create_manual_order(
+    second_sale = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -274,7 +275,7 @@ def test_drop_ship_supply_is_not_incoming_stock(session, business):
     # The drop-ship purchase brings nothing to the warehouse.
     assert incoming() == 0
     # Positive control: an ordinary purchase is incoming stock.
-    core.create_manual_order(
+    reviewed_manual_order(
         session,
         tenant,
         "purchase",

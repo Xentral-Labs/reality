@@ -6,6 +6,11 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
@@ -175,7 +180,7 @@ def _sold(session, business, number, quantity="2", unit_price="20.00"):
         "10",
         to_location_id=business.location.id,
     )
-    _, _, lines, commitments = core.create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -204,7 +209,7 @@ def _sold(session, business, number, quantity="2", unit_price="20.00"):
         from_location_id=business.location.id,
         commitment_id=commitment.id,
     )
-    receipt = core.record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, tenant, lines[0].id, quantity, gross, f"RE-{number}"
     )
     invoice_line_id = next(
@@ -215,7 +220,7 @@ def _sold(session, business, number, quantity="2", unit_price="20.00"):
 
 def _credit(session, business, invoice_line_id, quantity, unit_price="20.00"):
     gross = str(Decimal(quantity) * Decimal(unit_price))
-    note, _ = core.create_manual_document_with_lines(
+    note, _ = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "credit_note",

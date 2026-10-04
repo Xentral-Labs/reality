@@ -8,7 +8,11 @@ stays a person's decision.
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from intake_review_support import accept_normalized_payment
+from intake_review_support import (
+    accept_normalized_payment,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 
 from reality.services import core, payment_intake
 from reality.services.payment_intake import NormalisedPayment, Reference
@@ -17,7 +21,7 @@ AT = datetime(2026, 9, 10, 8, tzinfo=UTC)
 
 
 def _order(session, business, number, quantity="4"):
-    _, _, lines, _ = core.create_manual_order(
+    _, _, lines, _ = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -39,7 +43,7 @@ def _order(session, business, number, quantity="4"):
 
 
 def _invoice(session, business, line, quantity, number):
-    return core.record_sales_invoice(
+    return reviewed_record_sales_invoice(
         session,
         business.tenant.id,
         lines=[

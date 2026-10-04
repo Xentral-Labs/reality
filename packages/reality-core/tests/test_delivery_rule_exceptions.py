@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.services import core
 from reality.services.delivery_rules import state_delivery_rule
@@ -15,7 +16,7 @@ def lamp(session, business):
 
 
 def _order(session, business, number, lines):
-    _, document, _, commitments = core.create_manual_order(
+    _, document, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

@@ -3,6 +3,7 @@
 from datetime import timedelta
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import delete, event, text
 
 from reality.db.core import BusinessEvent, now
@@ -34,7 +35,7 @@ def seed(scheduled_database):
             to_location_id=location.id,
             occurred_at=cutoff + timedelta(days=1),
         )
-        invoice, lines = core.create_manual_document_with_lines(
+        invoice, lines = reviewed_manual_document_with_lines(
             session,
             tenant,
             "sales_invoice",
@@ -250,7 +251,7 @@ def test_source_supersession_and_credit_lines_stay_distinct(scheduled_database):
             {"received": "replacement"},
         )
         party = reviewed_create_party(session, tenant, "Second customer", "customer")
-        _, lines = core.create_manual_document_with_lines(
+        _, lines = reviewed_manual_document_with_lines(
             session,
             tenant,
             "credit_note",

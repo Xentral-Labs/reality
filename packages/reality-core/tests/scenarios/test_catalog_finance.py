@@ -12,7 +12,13 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-from intake_review_support import accept_normalized_payment
+from intake_review_support import (
+    accept_normalized_payment,
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+    reviewed_record_sales_credit,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -43,7 +49,7 @@ from reality.tools.application import (
 
 
 def _sales_order(session, business, number, lines, total, **extra):
-    return core.create_manual_order(
+    return reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -227,7 +233,7 @@ def test_invoice_billed_to_the_orderer_keeps_a_different_ship_to_party(
         from_location_id=business.location.id,
         commitment_id=commitments[0].id,
     )
-    result = core.record_sales_invoice(
+    result = reviewed_record_sales_invoice(
         session,
         tenant,
         order_lines[0].id,
@@ -406,7 +412,7 @@ def test_return_credit_after_month_end_books_in_the_next_month(session, business
         occurred_at=datetime(2026, 8, 27, 14, 0, tzinfo=UTC),
     )
     invoiced_at = datetime(2026, 8, 28, 10, 0, tzinfo=UTC)
-    result = core.record_sales_invoice(
+    result = reviewed_record_sales_invoice(
         session,
         tenant,
         order_lines[0].id,
@@ -437,7 +443,7 @@ def test_return_credit_after_month_end_books_in_the_next_month(session, business
         occurred_at=datetime(2026, 9, 3, 8, 0, tzinfo=UTC),
     )
     credited_at = datetime(2026, 9, 3, 9, 0, tzinfo=UTC)
-    receipt = core.record_sales_credit(
+    receipt = reviewed_record_sales_credit(
         session,
         tenant,
         invoice_id=invoice.id,
@@ -577,7 +583,7 @@ def test_one_monthly_invoice_bills_the_deliveries_of_three_orders(session, busin
     assert [p["billable"] for p in positions] == [Decimal(2), Decimal(3), Decimal(1)]
     assert unbilled() == {p["order_line_id"] for p in positions}
 
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session,
         tenant,
         lines=[
@@ -875,7 +881,7 @@ def test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case(
     customer = reviewed_create_party(
         session, tenant, "Lyon Cycles SARL", "customer", tax_identifier="FR12345678901"
     )
-    _, _, lines, _ = core.create_manual_order(
+    _, _, lines, _ = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -942,7 +948,7 @@ def test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case(
 def test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts(session, business):
     """N02: net and zero tax are kept as stated; self-assessed tax is not a field."""
     tenant = business.tenant.id
-    _, _, lines, _ = core.create_manual_order(
+    _, _, lines, _ = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -1137,7 +1143,7 @@ def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, busines
     assert core.open_invoice_amount(session, tenant, invoice_id) == Decimal("20.00")
 
     # 6 are reordered; the supplier delivers 5 on two dates.
-    _, _, _, (purchase,) = core.create_manual_order(
+    _, _, _, (purchase,) = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -2196,7 +2202,7 @@ def test_an_invoice_that_differs_from_the_order_is_reported_each_way(session, bu
 
     _invoice_line(session, business, over.id, "12", "120", "RE-E07-1")
     _invoice_line(session, business, under.id, "8", "80", "RE-E07-2")
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_invoice",
@@ -2267,10 +2273,10 @@ def _billed_order(session, business, number, amount, party=None):
         "unit": "pcs",
         "source_line_id": "1",
     }
-    _, (order_line,) = core.create_manual_document_with_lines(
+    _, (order_line,) = reviewed_manual_document_with_lines(
         session, tenant, "sales_order", number, party.id, [line], amount, _commit=False
     )
-    invoice, (invoice_line,) = core.create_manual_document_with_lines(
+    invoice, (invoice_line,) = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_invoice",
@@ -2329,7 +2335,7 @@ def test_a_marketplace_payout_settles_each_order_and_books_the_fees(session, bus
         _billed_order(session, business, f"AMZ-L03-{n}", "39.90")[0] for n in range(5)
     ]
     refunded, refunded_line = _billed_order(session, business, "AMZ-L03-R", "20.00")
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         tenant,
         "credit_note",
@@ -2416,7 +2422,7 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
         for n in range(R04_ORDERS)
     ]
     for n, (_, line) in enumerate(billed[:12]):
-        note, _ = core.create_manual_document_with_lines(
+        note, _ = reviewed_manual_document_with_lines(
             session,
             tenant,
             "credit_note",

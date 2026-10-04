@@ -4,6 +4,7 @@ import json
 from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -22,7 +23,7 @@ from reality.web import app as web_module
 
 
 def _order(session, business, number="SO-306-A"):
-    _, document, _, _ = core.create_manual_order(
+    _, document, _, _ = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

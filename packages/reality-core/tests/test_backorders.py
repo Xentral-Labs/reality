@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_order
+
 from reality.services import core
 from reality.services.supply_assignments import (
     assign_supply,
@@ -573,7 +575,7 @@ def test_a_customer_under_a_delivery_hold_is_not_served_ahead(session, business)
 
 
 def test_a_purchase_held_in_its_line_unit_is_left_out(session, business):
-    _, _, lines, commitments = core.create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",

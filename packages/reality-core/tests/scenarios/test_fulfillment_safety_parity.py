@@ -3,6 +3,10 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import ChangeProposal, Document, Movement, Reservation, Shipment
@@ -32,7 +36,7 @@ def _order(
     tenant_id = business.tenant.id
     customer = customer or business.customer
     item = item or business.item
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "sales_order",
@@ -69,7 +73,7 @@ def _order(
 
 
 def _invoice(session, tenant_id, line, number):
-    receipt = core.record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, tenant_id, line.id, "10", "100", number
     )
     return record_by_id(

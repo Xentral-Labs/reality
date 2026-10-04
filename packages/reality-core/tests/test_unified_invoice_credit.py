@@ -6,6 +6,11 @@ from uuid import uuid4
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_record_sales_credit,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 from test_multi_position_invoices import intent, order
 from test_unified_invoice_entry import confirm
@@ -27,7 +32,7 @@ from reality.tools.application import run_read_tool
 
 
 def fixture(s, b):
-    result = core.record_sales_invoice(s, b.tenant.id, **intent(order(s, b)))
+    result = reviewed_record_sales_invoice(s, b.tenant.id, **intent(order(s, b)))
     doc = record_by_id(
         s,
         Document,
@@ -233,7 +238,7 @@ def test_stale_credit_review(session, business, change):
     if change == "payment":
         core.post_customer_payment(session, b.tenant.id, doc.id, "1")
     elif change == "credit":
-        core.record_sales_credit(
+        reviewed_record_sales_credit(
             session, b.tenant.id, **arguments(doc, lines, allocation_amount="0")
         )
     else:
@@ -288,7 +293,7 @@ def test_unposted_credit_and_legacy_ambiguity(session, business):
 
     b = business
     doc, lines = fixture(session, b)
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         b.tenant.id,
         "credit_note",
@@ -309,7 +314,7 @@ def test_unposted_credit_and_legacy_ambiguity(session, business):
         next(r for r in context["positions"] if r["id"] == lines[0].id)["remaining"]
         == 1
     )
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         b.tenant.id,
         "credit_note",
@@ -338,7 +343,7 @@ def test_two_invoices_same_order_have_independent_capacity(session, business):
     line = order(session, b)[0]
     docs = []
     for i in range(2):
-        result = core.record_sales_invoice(
+        result = reviewed_record_sales_invoice(
             session, b.tenant.id, line.id, "1", "100", f"INV-{i}"
         )
         docs.append(
@@ -462,7 +467,7 @@ def test_concurrent_direct_and_reviewed_credit(postgres_database):
                             confirmed=True,
                         )
                     else:
-                        core.record_sales_credit(s, tenant_id, **args)
+                        reviewed_record_sales_credit(s, tenant_id, **args)
                     return True
                 except core.InvalidOperation as error:
                     assert any(

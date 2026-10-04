@@ -10,16 +10,16 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.domain.traversal import Traversal
 from reality.services.analytics.cypher_surface import CypherRefused, parse
 from reality.services.analytics.traversal import run_traversal
-from reality.services.core import create_manual_order
 
 
 @pytest.fixture
 def sales(session, business):
-    create_manual_order(
+    reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

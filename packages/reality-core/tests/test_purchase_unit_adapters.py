@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -22,7 +23,7 @@ def _cartons_ordered(session, business, number="PO-301-A"):
     business.item.purchase_unit = "box"
     business.item.conversion_factor = Decimal(12)
     session.commit()
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",

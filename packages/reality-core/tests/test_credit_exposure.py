@@ -8,7 +8,11 @@ are named; payables are never subtracted.
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from intake_review_support import accept_import_job
+from intake_review_support import (
+    accept_import_job,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 
 from reality.services import core
 from reality.services.credit_exposure import credit_exposure
@@ -43,7 +47,7 @@ def _invoice(session, business, party, number, amount, day, kind="sales_invoice"
 
 def _order(session, business, party, number, quantity, price, currency="EUR"):
     gross = str(Decimal(quantity) * Decimal(price))
-    _, document, lines, commitments = core.create_manual_order(
+    _, document, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -135,7 +139,7 @@ def test_an_order_counts_what_is_not_yet_invoiced_once(session, business):
     ] == Decimal("100.00")
 
     # Four are invoiced: the invoice counts them, the order the other six.
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session,
         tenant,
         order_line_id=line.id,

@@ -4,6 +4,10 @@ from datetime import timedelta
 from decimal import Decimal
 
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import Commitment, Reservation
@@ -14,7 +18,7 @@ from reality.services.fulfillment_readiness import fulfillment_readiness
 
 def _order(session, business, number):
     tenant = business.tenant.id
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_order",
@@ -47,7 +51,7 @@ def _order(session, business, number):
         document_line_id=lines[0].id,
     )
     core.reserve(session, tenant, promise.id)
-    receipt = core.record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, tenant, lines[0].id, "6", "150", f"RE-{number}"
     )
     invoice_id = next(

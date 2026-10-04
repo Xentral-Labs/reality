@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, Fact
@@ -147,13 +148,12 @@ def test_everyday_predicates_describe_documents_lines_lots_and_movements(
 ):
     from reality.services.core import (
         create_lot,
-        create_manual_document_with_lines,
         record_movement,
     )
 
     source = _source(session, business.tenant.id, "PHONE-2026-09-12")
     commitment = _commitment(session, business)
-    invoice, lines = create_manual_document_with_lines(
+    invoice, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "supplier_invoice",
@@ -255,12 +255,11 @@ def test_everyday_predicates_describe_documents_lines_lots_and_movements(
 def test_everyday_predicates_keep_their_value_and_subject_contracts(session, business):
     from reality.services.core import (
         create_lot,
-        create_manual_document_with_lines,
     )
 
     source = _source(session, business.tenant.id, "PHONE-2026-09-13")
     commitment = _commitment(session, business)
-    invoice, _ = create_manual_document_with_lines(
+    invoice, _ = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "supplier_invoice",

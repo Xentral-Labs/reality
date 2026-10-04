@@ -7,6 +7,10 @@ from decimal import Decimal
 import pytest
 import test_costing_services as cost_fixtures
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_manual_order,
+    reviewed_record_supplier_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import Document, Movement
@@ -33,7 +37,7 @@ cost_owner = cost_fixtures.cost_owner
 
 def _order(session, business, direction, number, counterparty_id, quantity, price):
     gross = str(Decimal(quantity) * Decimal(price))
-    _, document, lines, commitments = core.create_manual_order(
+    _, document, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         direction,
@@ -304,7 +308,7 @@ def test_one_supplier_invoice_bills_lines_of_two_purchase_orders(session, busine
     )
     # Spec 283: the guided invoice command bills positions of several purchase
     # orders of one supplier on one invoice.
-    core.record_supplier_invoice(
+    reviewed_record_supplier_invoice(
         session,
         business.tenant.id,
         lines=[
@@ -338,10 +342,10 @@ def test_one_supplier_invoice_bills_lines_of_two_purchase_orders(session, busine
 
     # The allocation is binding: PO-A is fully billed, PO-B has exactly one left.
     with pytest.raises(core.InvalidOperation, match="remaining"):
-        core.record_supplier_invoice(
+        reviewed_record_supplier_invoice(
             session, business.tenant.id, first_line.id, "1", "10", "SINV-I05-OVER"
         )
-    core.record_supplier_invoice(
+    reviewed_record_supplier_invoice(
         session, business.tenant.id, second_line.id, "1", "20", "SINV-I05-REST"
     )
     assert core._order_line_billing(session, business.tenant.id, second_line.id)[
@@ -417,7 +421,7 @@ def test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported(
         session, tenant, tiers.id, business.item.id, 10, "4.00", "pcs"
     )
     core.assign_party_price_list(session, tenant, business.supplier.id, tiers.id)
-    _, _, lines, _ = core.create_manual_order(
+    _, _, lines, _ = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -490,7 +494,7 @@ def test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported(
 def test_an_under_delivery_is_closed_with_its_reason_and_decision(session, business):
     """H03: the rest never comes, and a confirmed revision says why and who."""
     tenant = business.tenant.id
-    _, _, _lines, commitments = core.create_manual_order(
+    _, _, _lines, commitments = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -668,7 +672,7 @@ def test_variants_bought_together_each_hold_and_reserve_their_own_stock(
         reviewed_create_item(session, tenant, f"JERSEY-{size}", f"Jersey {size}")
         for size in ("S", "M", "L")
     ]
-    _, _, _, purchases = core.create_manual_order(
+    _, _, _, purchases = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -836,7 +840,7 @@ def test_a_receipt_without_a_purchase_order_says_why_it_arrived(session, busines
 
 
 def _sales(session, business, number, quantity, due):
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -859,7 +863,7 @@ def _sales(session, business, number, quantity, due):
 
 
 def _purchase(session, business, number, quantity, due="2026-10-12"):
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -1270,7 +1274,7 @@ def test_bought_in_cartons_of_twelve_and_held_in_pieces(session, business):
     )
 
     # Pieces are what is sold: 7 of the 60 ship.
-    _, _, _, sold = core.create_manual_order(
+    _, _, _, sold = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -1402,7 +1406,7 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
 
     # A customer reservation takes what Hamburg holds, but the open purchase
     # still covers the point: 12 − 12 reserved + 48 incoming is 48, above 20.
-    _, _, _, sold = core.create_manual_order(
+    _, _, _, sold = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -1464,7 +1468,7 @@ def _exchange_account(session, business):
 
 def _usd_purchase(session, business, number, quantity, price, supplier=None):
     gross = str(Decimal(quantity) * Decimal(price))
-    _, _, lines, commitments = core.create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -1769,7 +1773,7 @@ def test_an_import_container_lands_in_eur_with_freight_and_duty(
 
 def _purchase_line(session, business, number, quantity="100", price="10"):
     gross = str(Decimal(quantity) * Decimal(price))
-    _, document, (line,), (promise,) = core.create_manual_order(
+    _, document, (line,), (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -2013,7 +2017,7 @@ def test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged(session, bus
     due = (core.now() + timedelta(days=21)).isoformat()
 
     def purchase(number):
-        _, _, _, (promise,) = core.create_manual_order(
+        _, _, _, (promise,) = reviewed_manual_order(
             session,
             tenant,
             "purchase",

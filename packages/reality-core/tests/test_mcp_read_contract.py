@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import event
 
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, dispatch_tool
@@ -9,7 +10,6 @@ from reality.services.core import (
     NotFound,
     cancel_commitment,
     create_document,
-    create_manual_order,
     create_tenant,
     post_ledger,
     record_movement,
@@ -24,7 +24,7 @@ def read(session, business, name, **arguments):
 
 
 def order(session, business, number="READ-1"):
-    return create_manual_order(
+    return reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -396,7 +396,7 @@ def test_unit_mismatch_and_missing_unit_are_not_converted(session, business):
 
     assert quantity_unit(SimpleNamespace(unit=""))["unit_status"] == "unknown"
     assert quantity_unit(None)["unit"] is None
-    _source, document, _lines, _ = create_manual_order(
+    _source, document, _lines, _ = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -534,7 +534,7 @@ def test_diagnostic_services_exclude_foreign_reality(session, business):
 
 
 def test_order_explanation_keeps_closed_and_open_lines_together(session, business):
-    _, document, _, commitments = create_manual_order(
+    _, document, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

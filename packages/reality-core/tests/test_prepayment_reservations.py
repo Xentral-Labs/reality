@@ -3,6 +3,10 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import Reservation
@@ -30,7 +34,7 @@ def _terms(session, business):
 
 def _order(session, business, number, term, *, reserve=True):
     tenant = business.tenant.id
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_order",
@@ -68,7 +72,7 @@ def _order(session, business, number, term, *, reserve=True):
 
 
 def _invoice(session, business, line, number):
-    receipt = core.record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, business.tenant.id, line.id, "10", "100", number
     )
     return next(row["id"] for row in receipt["records"] if row["family"] == "document")

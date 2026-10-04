@@ -8,6 +8,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
 from sqlalchemy import func, select
 
 from reality.db.core import Document, DocumentLine, LedgerEntry
@@ -27,7 +28,7 @@ def _order(session, business, number="SO-PF", prepay=False):
         core.create_payment_term(
             session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
         )
-    _, order, lines, commitments = core.create_manual_order(
+    _, order, lines, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -151,7 +152,7 @@ def test_a_proforma_bills_nothing_and_proves_no_prepayment(session, business):
         fulfillment_readiness(session, tenant, commitment.id).blocker_codes
     )
     # Control: a goods invoice for 5 bills them and is the payment basis.
-    core.record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-PF")
+    reviewed_record_sales_invoice(session, tenant, line.id, "5", "500.00", "RE-PF")
     assert core._order_line_billing(session, tenant, line.id)["invoiced"] == 5
     assert "prepayment_invoice_missing" not in (
         fulfillment_readiness(session, tenant, commitment.id).blocker_codes
@@ -230,7 +231,7 @@ def test_a_proforma_is_refused_with_its_code(session, business, change, code):
         **change,
     }
     if arguments["order_id"] == "purchase":
-        _, purchase, _, _ = core.create_manual_order(
+        _, purchase, _, _ = reviewed_manual_order(
             session,
             business.tenant.id,
             "purchase",

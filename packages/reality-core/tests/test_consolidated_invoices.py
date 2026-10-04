@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
 from sqlalchemy import func, select
 from test_unified_invoice_entry import confirm
 
@@ -22,7 +23,7 @@ from reality.services.exceptions import operational_exceptions
 
 def order(session, b, direction="sales", *, party=None, currency="EUR", lines=1):
     counterparty = party or (b.customer if direction == "sales" else b.supplier)
-    return core.create_manual_order(
+    return reviewed_manual_order(
         session,
         b.tenant.id,
         direction,
@@ -179,7 +180,7 @@ AS_OF = datetime(2026, 12, 31, tzinfo=UTC)
 
 
 def placed(session, b, direction="sales"):
-    _, _, lines, commitments = core.create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         b.tenant.id,
         direction,
@@ -359,7 +360,7 @@ def test_a_change_to_the_second_order_makes_the_review_stale(session, business):
     """FR-007: billing a selected position elsewhere invalidates the review."""
     a, b = order(session, business)[0], order(session, business)[0]
     proposal = prepare(session, business, [position(a), position(b)])
-    core.record_sales_invoice(session, business.tenant.id, b.id, "1", "10", "INV-ELSE")
+    reviewed_record_sales_invoice(session, business.tenant.id, b.id, "1", "10", "INV-ELSE")
     before = session.scalar(select(func.count()).select_from(LedgerEntry))
 
     with pytest.raises(core.InvalidOperation, match="fresh review"):
@@ -404,7 +405,7 @@ def test_a_single_order_review_keeps_its_shape(session, business):
 
 
 def cancelled_line(session, b, number):
-    _, _, lines, promises = core.create_manual_order(
+    _, _, lines, promises = reviewed_manual_order(
         session,
         b.tenant.id,
         "sales",

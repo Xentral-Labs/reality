@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select
 
 from reality.db.core import DunningNotice, LedgerEntry
@@ -279,7 +280,7 @@ def test_bad_debt_uses_dedicated_expense_and_never_creates_credit(session, busin
 
 def test_higher_revision_allows_only_the_new_quantity(session, business):
     tenant = business.tenant.id
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",

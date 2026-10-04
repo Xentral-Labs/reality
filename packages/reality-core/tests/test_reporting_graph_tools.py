@@ -11,16 +11,17 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.mcp.server import error_code
 from reality.services.analytics.traversal import TraversalRefused
-from reality.services.core import InvalidOperation, create_manual_order
+from reality.services.core import InvalidOperation
 from reality.tools.application import TOOLS, run_read_tool
 
 
 @pytest.fixture
 def sales(session, business):
-    create_manual_order(
+    reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

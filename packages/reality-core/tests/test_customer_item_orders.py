@@ -5,6 +5,10 @@ import json
 
 import pytest
 from intake_review_support import accept_import_job as process_import_job
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 from sqlalchemy import select
 
 from reality.db.core import Commitment, Document, DocumentLine
@@ -32,7 +36,7 @@ def _map(session, business, number="K-4711", name="Laufrad 28 Zoll", item=None):
 
 
 def _manual_order(session, business, number, lines):
-    return core.create_manual_order(
+    return reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -311,7 +315,7 @@ def test_the_stated_number_shows_on_order_delivery_and_invoice(session, business
     labels = _line_labels(operational_preview(session, tenant, "document", document.id))
     assert any("K-4711 Laufrad 28 Zoll" in label for label in labels)
     # An invoice line reaches the number through the order line it bills.
-    invoice = core.create_manual_document_with_lines(
+    invoice = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_invoice",
@@ -399,7 +403,7 @@ def test_a_correction_that_does_not_state_the_number_keeps_it(session, business)
     )
 
     tenant = business.tenant.id
-    document, (line,) = core.create_manual_document_with_lines(
+    document, (line,) = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_invoice",

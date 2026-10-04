@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 
 from reality.services.core import (
     InvalidOperation,
@@ -10,7 +11,6 @@ from reality.services.core import (
     allocate_settlement,
     allocate_supplier_credit_note,
     create_document,
-    create_manual_document_with_lines,
     create_payment_term,
     create_tenant,
     open_invoice_amount,
@@ -42,7 +42,7 @@ def invoice(session, business, number, amount, *, post=True):
 
 
 def credit_note(session, business, number, total, *, line_total=None):
-    document, _ = create_manual_document_with_lines(
+    document, _ = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "credit_note",

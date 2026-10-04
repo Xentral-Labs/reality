@@ -1,11 +1,11 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 
 from reality.services.core import (
     InvalidOperation,
     NotFound,
-    create_manual_document_with_lines,
     create_tenant,
 )
 
@@ -20,7 +20,7 @@ def line(quantity="2", unit_price="10", gross_amount="20.00"):
 
 
 def record(session, business, number, lines, gross_amount):
-    return create_manual_document_with_lines(
+    return reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "supplier_invoice",
@@ -104,7 +104,7 @@ def order_line(session, business, *, direction="sales", number="SO-LINK-1"):
     """One order line to bill against, recorded the way a typed-in order is."""
     document_type = "sales_order" if direction == "sales" else "purchase_order"
     party = business.customer if direction == "sales" else business.supplier
-    _, lines = create_manual_document_with_lines(
+    _, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         document_type,
@@ -135,7 +135,7 @@ def invoice_line(
 ):
     document_type = "sales_invoice" if direction == "sales" else "supplier_invoice"
     party = business.customer if direction == "sales" else business.supplier
-    return create_manual_document_with_lines(
+    return reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         document_type,
@@ -164,7 +164,7 @@ def test_invoice_line_records_the_order_line_it_bills(session, business):
 
     # A line that bills nothing from an order says so by holding no reference,
     # which is a statement and not a gap.
-    _, freight = create_manual_document_with_lines(
+    _, freight = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",
@@ -191,7 +191,7 @@ def test_invoice_line_reference_is_validated(session, business):
     foreign = create_tenant(session, "Foreign billing tenant")
     stranger = reviewed_create_party(session, foreign.id, "Stranger GmbH", "customer")
     with pytest.raises(NotFound):
-        create_manual_document_with_lines(
+        reviewed_manual_document_with_lines(
             session,
             foreign.id,
             "sales_invoice",

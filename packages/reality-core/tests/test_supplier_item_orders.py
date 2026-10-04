@@ -3,6 +3,10 @@
 import json
 
 import pytest
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 
 from reality.services import core
 from reality.services.operational_previews import operational_preview
@@ -22,7 +26,7 @@ def _map(session, business, number="LF900-12", name="Laufrad 28 Lindner", item=N
 
 
 def _purchase_order(session, business, number, lines, supplier=None):
-    return core.create_manual_order(
+    return reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -136,7 +140,7 @@ def test_a_sales_line_does_not_read_a_supplier_number(session, business):
 
     # The line names no item of ours, so it is refused as itemless.
     with pytest.raises((core.InvalidOperation, core.NotFound)):
-        core.create_manual_order(
+        reviewed_manual_order(
             session,
             business.tenant.id,
             "sales",
@@ -168,7 +172,7 @@ def test_the_stated_number_shows_on_order_invoice_and_match(session, business):
     (row,) = purchase_match(session, tenant, order.id)["lines"]
     assert row["supplier_item_number"] == "LF900-12"
     # The supplier's invoice states its own number on its line, too.
-    invoice = core.create_manual_document_with_lines(
+    invoice = reviewed_manual_document_with_lines(
         session,
         tenant,
         "supplier_invoice",
@@ -216,7 +220,7 @@ def test_a_correction_that_does_not_state_the_number_keeps_it(session, business)
 
     tenant = business.tenant.id
     _map(session, business)
-    document, (line,) = core.create_manual_document_with_lines(
+    document, (line,) = reviewed_manual_document_with_lines(
         session,
         tenant,
         "supplier_invoice",

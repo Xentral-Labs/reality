@@ -8,6 +8,10 @@ from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 from sqlalchemy.exc import IntegrityError
 
 from reality.domain.units import (
@@ -186,9 +190,8 @@ def _cartons(session, business):
 
 
 def _purchase(session, business, quantity, unit, number="PO-301"):
-    from reality.services import core
 
-    return core.create_manual_order(
+    return reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -327,10 +330,9 @@ def test_more_cartons_than_ordered_are_refused_in_pieces(session, business):
 
 
 def test_a_sales_line_in_another_unit_is_unchanged(session, business):
-    from reality.services import core
 
     _cartons(session, business)
-    _, _, lines, commitments = core.create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -359,9 +361,8 @@ def test_a_sales_line_in_another_unit_is_unchanged(session, business):
 
 
 def _supplier_invoice(session, business, line, quantity, number):
-    from reality.services import core
 
-    return core.create_manual_document_with_lines(
+    return reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "supplier_invoice",
@@ -410,11 +411,10 @@ def test_an_invoice_in_cartons_matches_the_pieces_received(session, business):
 
 
 def test_an_oversold_item_counts_a_purchase_in_cartons_once(session, business):
-    from reality.services import core
 
     _cartons(session, business)
     _purchase(session, business, "2", "box")
-    core.create_manual_order(
+    reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -453,7 +453,7 @@ def test_a_purchase_recorded_before_in_cartons_is_named(session, business):
     _purchase(session, business, "5", "box", number="PO-NEW")
     assert business.item.id not in _classes(session, business, "units_not_comparable")
 
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant,
         "purchase_order",
@@ -524,7 +524,7 @@ def _legacy_purchase(session, business, number="PO-OLD"):
     from reality.services import core
 
     tenant = business.tenant.id
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant,
         "purchase_order",
@@ -647,7 +647,6 @@ def test_the_purchase_view_reads_the_promise_in_force(session, business):
 def test_a_conversion_that_does_not_divide_is_named_before_an_old_purchase(
     session, business
 ):
-    from reality.services import core
 
     _cartons(session, business)
     line, _ = _legacy_purchase(session, business)
@@ -658,7 +657,7 @@ def test_a_conversion_that_does_not_divide_is_named_before_an_old_purchase(
         == "promise_in_purchase_unit"
     )
 
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "supplier_invoice",

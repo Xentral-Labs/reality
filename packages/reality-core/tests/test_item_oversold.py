@@ -6,6 +6,7 @@ per item, with the orders grouped by their stated sales channel.
 
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import event
 
 from reality.services import core
@@ -25,7 +26,7 @@ def _stock(session, business, quantity, item=None):
 
 def _sell(session, business, number, quantity, channel, *, item=None, unit="pcs"):
     item = item or business.item
-    _, order, _, commitments = core.create_manual_order(
+    _, order, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -49,7 +50,7 @@ def _sell(session, business, number, quantity, channel, *, item=None, unit="pcs"
 
 
 def _buy(session, business, number, quantity, *, unit="pcs"):
-    _, order, _, commitments = core.create_manual_order(
+    _, order, _, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -181,7 +182,7 @@ def test_another_company_never_counts(session, business):
     company = reviewed_create_party(session, other.id, "Other GmbH", "company")
     location = reviewed_create_location(session, other.id, "Other Lager")
     item = reviewed_create_item(session, other.id, business.item.sku, "Same SKU")
-    core.create_manual_order(
+    reviewed_manual_order(
         session,
         other.id,
         "sales",

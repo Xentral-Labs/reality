@@ -5,6 +5,10 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 from sqlalchemy import event, select
 
 from reality.db.core import ProjectionCheckpoint
@@ -281,13 +285,9 @@ def test_exception_scope_is_session_bound_and_restored_when_nested(session, busi
 
 
 def test_exception_batch_preserves_invoice_linked_credit_evidence(session, business):
-    from reality.services.core import (
-        create_manual_document_with_lines,
-        create_manual_order,
-    )
 
     tenant = business.tenant.id
-    _, _, lines, commitments = create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -335,7 +335,7 @@ def test_exception_batch_preserves_invoice_linked_credit_evidence(session, busin
     )
 
     def evidence(kind, number, quantity, referenced):
-        return create_manual_document_with_lines(
+        return reviewed_manual_document_with_lines(
             session,
             tenant,
             kind,

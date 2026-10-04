@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_credit
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
@@ -191,7 +192,7 @@ def test_return_credit_posting_failure_rolls_back_evidence(
     from reality.db.core import DocumentLine, SourceRecord
 
     tenant = business.tenant.id
-    _, _, lines, commitments = core.create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -248,7 +249,7 @@ def test_return_credit_posting_failure_rolls_back_evidence(
 
     monkeypatch.setattr(core, "post_sales_credit_note", fail)
     with pytest.raises(RuntimeError, match="Credit failed"):
-        core.record_sales_credit(session, tenant, lines[0].id, "1", "26", "CR-FAIL")
+        reviewed_record_sales_credit(session, tenant, lines[0].id, "1", "26", "CR-FAIL")
     session.commit()
     assert [
         session.scalar(select(func.count()).select_from(table)) for table in tables
@@ -398,7 +399,7 @@ def test_shared_invoice_preserves_stated_amount_and_rolls_back(
 ):
     from reality.db.core import DocumentLine, SourceRecord
 
-    _, order, lines, _ = core.create_manual_order(
+    _, order, lines, _ = reviewed_manual_order(
         session,
         business.tenant.id,
         direction,

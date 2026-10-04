@@ -210,3 +210,31 @@ execution/volume budgets and all receipt/duplicate/source assertions are unchang
 Failure artifacts include scoped queue types/statuses/errors, without payloads.
 
 The bounded cold-queue bulk browser qualification passed locally in 86.21 seconds. The final queue-harness correction changes no production Python or default backend tests; the complete production regression remains running on identical production source at 14ca6637. Committed-head CI remains required.
+
+### Normalized evidence qualification in progress
+
+Three meaningful direct/absent-confirmation proofs produced DID NOT RAISE on the
+pre-boundary source. The normalized writer now requires the actual current
+confirmed existing command family or exact intake/fixed setup. document_create
+freezes and consumes its invocation once, owns evidence plus receipt atomically
+and permits no unrelated header/stock/commitment effects. Its public proposal
+cannot claim private action/commit/source-absence fields. Other order/invoice/credit
+root ownership, header-only and correction boundaries remain tracked separately.
+
+Legitimate fixture documents, orders, invoices and credits use retained existing
+commands and actual named Owner confirmation plus the actual retained review token.
+No Source amount/line/actor/approval is invented to bypass a guard. Initial affected
+regression: 89 passed, 25 failed because order review tokens were not forwarded;
+after forwarding actual tokens, 112 passed with two remaining direct invoice
+fixture failures. The subsequent invoice/HTTP pass had 146 passed and one expected
+earlier catalog input-refusal text mismatch. Final/full/CI qualification is pending.
+
+Approved import callback qualification found a further real gap: a valid repeated
+normalized-document callback produced DID NOT RAISE and accepted duplicate
+evidence. The analogous commitment repeat hit a later database uniqueness error
+instead of admission refusal. Each actual effect scope now consumes frozen
+canonical invocation nonces once; separate planned package commands retain their
+separate nonces. No extra SQL/state/actor is manufactured. Full source/profile/bulk
+regression and final volume qualification remain required.
+
+The Finance parent de4d4218 passed all 23 CI jobs. Its identical production/backend source completed the full regression with 6,221 passed and 10 skipped in 1,637.74 seconds. Normalized document single-use, import, bulk, mandate and calendar follow-ups passed all 112 checks in 75.74 seconds; complete document qualification is pending.

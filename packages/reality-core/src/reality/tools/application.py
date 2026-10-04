@@ -3591,8 +3591,16 @@ def _document_create(
     BUSINESS RULE application.document_create.1:
     Route this company-scoped request to create_manual_document_with_lines. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
     """
+    from reality.services.intake import _invoke
+
+    arguments = dict(arguments)
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    arguments["_commit"] = False
     # reality-rule: application.document_create.1
-    document, lines = create_manual_document_with_lines(session, tenant_id, **arguments)
+    document, lines = _invoke(
+        "create_manual_document_with_lines", create_manual_document_with_lines,
+        session, tenant_id, **arguments,
+    )
     # The same shape the manual order returns: flat identities, no business
     # fields restated.
     return {
@@ -6188,6 +6196,14 @@ def create_change_proposal(
     if tool_name == "document_create":
         from reality.services.core import validate_manual_operational_document_type
 
+        public_fields = {
+            "document_type", "number", "party_id", "lines", "gross_amount",
+            "currency", "document_date", "ordered_at", "requested_delivery_at",
+            "customer_reference", "sales_channel", "payment_term_code",
+            "ship_to_party_id", "source_record_id",
+        }
+        if set(arguments) - public_fields:
+            raise InvalidOperation(code="intake_review_invalid")
         arguments = {
             **arguments,
             "document_type": validate_manual_operational_document_type(
@@ -6872,6 +6888,7 @@ def approve_and_execute_proposal(
             "tool:item_update",
             "tool:location_update",
             "tool:company_party_record",
+            "tool:document_create",
         }
         and candidate.status != "executed"
         and not confirmed
@@ -7157,6 +7174,7 @@ def approve_and_execute_proposal(
         "item_create",
         "location_create",
         "order_create",
+        "document_create",
         "customer_payment_post",
         "sales_invoice_record",
         "supplier_payment_post",

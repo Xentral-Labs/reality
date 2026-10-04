@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import func, select
 
 from reality.db.core import Reservation
@@ -9,7 +10,7 @@ from reality.services.supply_assignments import assign_supply, supply_coverage
 
 
 def _commitments(session, business):
-    customer = core.create_manual_order(
+    customer = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -28,7 +29,7 @@ def _commitments(session, business):
         "160",
         document_date="2026-09-21",
     )[3][0]
-    supplier = core.create_manual_order(
+    supplier = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",

@@ -5,6 +5,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select
 
 from reality.db.core import KitComponent, Movement
@@ -78,7 +79,7 @@ def test_availability_is_the_minimum_the_free_components_build(session, business
         ["WHEEL"],
     )
     # Positive control: a wheel reserved for another order is not free.
-    order = core.create_manual_order(
+    order = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -374,7 +375,7 @@ def test_the_inventory_review_refuses_an_item_with_assembly_movements(
 def test_the_split_adds_up_to_the_stated_line(session, business):
     tenant = business.tenant.id
     kit, _frame, _wheel = _bike(session, business, shares=("0.6", "0.4"))
-    _, _, (line,), _ = core.create_manual_order(
+    _, _, (line,), _ = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -405,7 +406,7 @@ def test_the_split_adds_up_to_the_stated_line(session, business):
 def test_a_kit_without_shares_has_no_split(session, business):
     tenant = business.tenant.id
     kit, _, _ = _bike(session, business, shares=None)
-    _, _, (line,), _ = core.create_manual_order(
+    _, _, (line,), _ = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -427,7 +428,7 @@ def test_a_kit_without_shares_has_no_split(session, business):
     assert split["split"] is None
     assert split["stated"] == {"gross": "50"}
     # A line of an item that is not a kit is refused.
-    _, _, (plain,), _ = core.create_manual_order(
+    _, _, (plain,), _ = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -453,7 +454,7 @@ def test_a_kit_the_components_build_is_not_oversold(session, business):
     kit, frame, wheel = _bike(session, business)
     _stock(session, business, frame, "2")
     _stock(session, business, wheel, "4")
-    core.create_manual_order(
+    reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -481,7 +482,7 @@ def test_a_kit_the_components_build_is_not_oversold(session, business):
 
     assert kit.id not in oversold()
     # Positive control: a third kit no component builds is oversold.
-    core.create_manual_order(
+    reviewed_manual_order(
         session,
         tenant,
         "sales",

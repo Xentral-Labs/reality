@@ -184,7 +184,9 @@ def seed_profile(
         """Use the normal evidence service and bind invoice terms explicitly."""
         if len(args) > 2 and args[2] in {"sales_invoice", "supplier_invoice"}:
             kwargs["payment_term_code"] = payment_term.code
-        return core.create_manual_document_with_lines(*args, **kwargs)
+        from reality.services.intake import _record_normalized_document
+
+        return _record_normalized_document(*args, **kwargs)
 
     parties, items, locations, cases = {}, {}, {}, {}
     sales_order_sequence = 0

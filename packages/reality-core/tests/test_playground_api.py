@@ -6,6 +6,7 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_manual_order
 
 from reality.db.core import (
     AppUser,
@@ -130,7 +131,6 @@ def test_practice_app_uses_normal_source_goods_and_finance_services(
     session, playground_http
 ):
     from reality.services.core import (
-        create_manual_order,
         post_ledger,
         record_movement,
     )
@@ -145,7 +145,7 @@ def test_practice_app_uses_normal_source_goods_and_finance_services(
     movement = record_movement(
         session, tenant.id, "receipt", item.id, "12", to_location_id=location.id
     )
-    source, document, lines, commitments = create_manual_order(
+    source, document, lines, commitments = reviewed_manual_order(
         session,
         tenant.id,
         "sales",

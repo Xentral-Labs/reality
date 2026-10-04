@@ -227,3 +227,12 @@ arbitrary later account creation, update or default changes.
 The confirmed account catalog preserves all existing registered account roles, including received down payments and realised exchange differences. Canonical configuration rechecks current Owner role even when an older ORM membership object remains cached.
 
 An account confirmation grants only its canonical account maintenance and audit operations. It must not admit unrelated Documents, Movements or other business writes through callbacks; those require their own approved unit and transaction.
+
+### Normalized document admission qualification (FR-001–FR-003)
+
+Direct creation of normalized Document/DocumentLine evidence requires the current
+retained confirmation for its exact document-producing application command, or
+the existing exact intake/fixed preset authority. An arbitrary action identity
+never supplies this authority. Manual document creation records supplied lines
+and amounts only; it does not fabricate a line for header-only evidence. Header
+writers and document corrections remain separately tracked until qualified.

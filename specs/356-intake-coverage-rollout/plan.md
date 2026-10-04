@@ -171,3 +171,20 @@ arbitrary account changes and action tags refuse. Verify no-effect rollback,
 callback duplication, altered arguments, current authority, stale configuration,
 replay and transports before full CI qualification. Other finance/business writer
 families retain their own pending enforcement work.
+
+### Slice 27: normalized Document/DocumentLine admission
+
+Use existing document/order/invoice/credit commands, with no new schema or invented
+source facts. Bind the canonical normalized writer to the actual confirmed
+application transaction and finite command family. Freeze its child invocation
+before callbacks, consume once, and preserve the caller's original stated values.
+For document_create, the executor owns the root commit for evidence plus receipt;
+its writer flushes and refuses premature root commits. Existing order/invoice/credit
+root ownership is a subsequent independently reviewed qualification, not claimed
+by this slice. Route the direct Web manual-document form through
+the existing proposal with the actual request principal and explicit confirmation.
+Test direct/tag/unconfirmed refusal, callback changes/repeat/commit, positive
+manual/source lineage and existing billing/refund/order stories. Port legitimate
+fixtures through retained commands; historical fixtures remain historical.
+Constitution check: PASS (lossless source, stated values, tenant scope, existing
+shared tools, no fulfillment status or schema expansion).

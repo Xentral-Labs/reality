@@ -6,6 +6,8 @@ is reported whether or not it is reserved; once the date passes it is overdue.
 
 from datetime import timedelta
 
+from intake_review_support import reviewed_manual_order
+
 from reality.services import core
 from reality.services.exceptions import next_clock_moment, operational_exceptions
 
@@ -22,7 +24,7 @@ def _promise(session, business, number, due_at, *, quantity="4", reserve=True):
         quantity,
         to_location_id=business.location.id,
     )
-    _, _, _, commitments = core.create_manual_order(
+    _, _, _, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",

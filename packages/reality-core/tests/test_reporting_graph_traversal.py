@@ -10,13 +10,13 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.domain.traversal import Traversal
 from reality.services.analytics.traversal import (
     TraversalRefused,
     run_traversal,
 )
-from reality.services.core import create_manual_order
 
 
 def line(item, quantity: str, amount: str) -> dict:
@@ -39,7 +39,7 @@ def sales(session, business):
     """
     item = business.item
     orders = {}
-    orders["four_lines"] = create_manual_order(
+    orders["four_lines"] = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -54,7 +54,7 @@ def sales(session, business):
         document_date="2026-03-10",
         sales_channel="web",
     )
-    orders["one_line"] = create_manual_order(
+    orders["one_line"] = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -69,7 +69,7 @@ def sales(session, business):
         document_date="2026-03-20",
         sales_channel="phone",
     )
-    orders["dollars"] = create_manual_order(
+    orders["dollars"] = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -98,7 +98,7 @@ def neighbour(session, business):
     customer = reviewed_create_party(session, tenant.id, "Müller GmbH", "customer")
     item = reviewed_create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light")
     location = reviewed_create_location(session, tenant.id, "Fremdlager")
-    create_manual_order(
+    reviewed_manual_order(
         session,
         tenant.id,
         "sales",

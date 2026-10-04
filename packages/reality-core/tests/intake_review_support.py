@@ -583,3 +583,80 @@ def reviewed_initialize_accounts(session, tenant_id, **values):
     return reviewed_finance_account(
         session, tenant_id, "finance.account.initialize", values
     )
+
+
+def _document_fixture_json(value):
+    from datetime import date, datetime
+    from decimal import Decimal
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {key: _document_fixture_json(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [_document_fixture_json(item) for item in value]
+    return value
+
+
+def _confirm_document_fixture(session, tenant_id, tool, arguments):
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+    principal = explicit_owner(session, tenant_id)
+    values = dict(arguments)
+    values.pop("_commit", None)
+    values.pop("action_id", None)
+    proposal = create_change_proposal(session, tenant_id, tool, _document_fixture_json(values))
+    from reality.services.delivery_actions import REVIEW_KEY
+    review = json.loads(proposal.input).get(REVIEW_KEY)
+    receipt = approve_and_execute_proposal(session, tenant_id, proposal.id, confirming_principal=principal, confirmed=True, review_token=review["token"] if review else None)
+    return json.loads(receipt.output)
+
+
+def reviewed_manual_document_with_lines(session, tenant_id, document_type, number, party_id, lines, gross_amount, **arguments):
+    from reality.db.core import Document, DocumentLine
+    result = _confirm_document_fixture(session, tenant_id, "document_create", {
+        "document_type": document_type, "number": number, "party_id": party_id,
+        "lines": lines, "gross_amount": gross_amount, **arguments,
+    })
+    return (core._tenant_record_read(session, Document, tenant_id, result["document_id"]),
+            [core._tenant_record_read(session, DocumentLine, tenant_id, identity) for identity in result["document_line_ids"]])
+
+
+def reviewed_manual_order(session, tenant_id, direction, number, company_party_id, counterparty_id, location_id, lines, gross_amount, **arguments):
+    from reality.db.core import Commitment, Document, DocumentLine, SourceRecord
+    result = _confirm_document_fixture(session, tenant_id, "order_create", {
+        "direction": direction, "number": number, "company_party_id": company_party_id,
+        "counterparty_id": counterparty_id, "location_id": location_id, "lines": lines,
+        "gross_amount": gross_amount, **arguments,
+    })
+    return (core._tenant_record_read(session, SourceRecord, tenant_id, result["source_record_id"]),
+            core._tenant_record_read(session, Document, tenant_id, result["document_id"]),
+            [core._tenant_record_read(session, DocumentLine, tenant_id, identity) for identity in result["document_line_ids"]],
+            [core._tenant_record_read(session, Commitment, tenant_id, identity) for identity in result["commitment_ids"]])
+
+
+def _reviewed_invoice_fixture(session, tenant_id, tool, positional, arguments):
+    names = ("order_line_id", "quantity", "gross_amount", "number")
+    if len(positional) > len(names):
+        raise TypeError("Too many invoice fixture arguments")
+    values = {**dict(zip(names, positional)), **arguments}
+    return _confirm_document_fixture(session, tenant_id, tool, values)
+
+
+def reviewed_record_sales_invoice(session, tenant_id, *positional, **arguments):
+    return _reviewed_invoice_fixture(session, tenant_id, "sales_invoice_record", positional, arguments)
+
+
+def reviewed_record_supplier_invoice(session, tenant_id, *positional, **arguments):
+    return _reviewed_invoice_fixture(session, tenant_id, "supplier_invoice_record", positional, arguments)
+
+
+def reviewed_record_sales_credit(session, tenant_id, *positional, **arguments):
+    return _reviewed_invoice_fixture(session, tenant_id, "sales_credit_record", positional, arguments)
+
+
+def reviewed_record_free_supplier_invoice(session, tenant_id, **arguments):
+    return _confirm_document_fixture(session, tenant_id, "supplier_invoice_free_record", arguments)

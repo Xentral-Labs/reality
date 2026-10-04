@@ -2577,3 +2577,5 @@ These proofs do not yet certify universal writer coverage or completed rollout g
 - `packages/reality-core/tests/finance/test_canonical_configuration_boundary.py`: spec 356 FR-001–FR-003; direct/account-tag and unconfirmed dispatch refusal, atomic callback attacks, retained confirmed existing roles and current Owner demotion in another transaction.
 
 - `packages/reality-core/tests/finance/test_fixed_profile_configuration.py`: spec 356 FR-002; actual confirmed preset setup permits its authored accounts, while changed and repeated callback invocations refuse.
+
+- `packages/reality-core/tests/test_canonical_document_boundary.py`: spec 356 FR-001–FR-003; direct/action-tag and unconfirmed normalized evidence refusal, valid changed callback/repeat/commit/sibling attacks, actual stated amounts and retained replay, forbidden private execution fields and explicit HTTP consent.

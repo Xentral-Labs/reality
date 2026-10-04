@@ -5,7 +5,12 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from conftest import record_by_id
-from intake_review_support import accept_import_job, accept_pending_import_jobs
+from intake_review_support import (
+    accept_import_job,
+    accept_pending_import_jobs,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 from intake_review_support import accept_shopify_order as ingest_shopify_order
 from sqlalchemy import select
 
@@ -731,7 +736,7 @@ def test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it(
         [_line(business.item.id, "5", promised_at="2027-01-20T08:00:00Z")],
     )
     customer_id = receipt["commitment_ids"][0]
-    _, _, _, purchases = core.create_manual_order(
+    _, _, _, purchases = reviewed_manual_order(
         session,
         tenant,
         "purchase",
@@ -785,7 +790,7 @@ def test_a_renamed_item_number_keeps_every_record_on_the_same_item(session, busi
     order_line_id = receipt["document_line_ids"][0]
     reserve(session, tenant, commitment_id)
     _ship(session, business, "OUT-O01", commitment_id, "2")
-    invoiced = core.record_sales_invoice(
+    invoiced = reviewed_record_sales_invoice(
         session, tenant, order_line_id, "2", "20.00", "RE-O01"
     )
     invoice_line_id = next(
@@ -969,7 +974,7 @@ def test_an_item_oversold_in_the_shop_and_on_a_marketplace_names_both(
     } == {"amazon_marketplace": [market.id], "shopify": [shop.id]}
 
     # A purchase order for the two missing units is supply on its way: covered.
-    core.create_manual_order(
+    reviewed_manual_order(
         session,
         tenant,
         "purchase",

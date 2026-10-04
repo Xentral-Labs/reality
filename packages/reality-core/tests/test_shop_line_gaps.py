@@ -8,7 +8,7 @@ and the rest of the batch goes on.
 import json
 
 import pytest
-from intake_review_support import accept_import_job
+from intake_review_support import accept_import_job, reviewed_record_sales_invoice
 from sqlalchemy import select
 
 from reality.db.core import DocumentLine, ImportJob, InterpretationOutcome
@@ -188,7 +188,7 @@ def test_billing_offers_the_unpriced_position_without_a_price(session, business)
     assert (position["billable"], position["unit_price"]) == (1, None)
 
     # The person states what is billed; the invoice line states no unit price either.
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session,
         tenant,
         lines=[
@@ -238,7 +238,7 @@ def test_a_billed_unpriced_line_is_no_longer_reported(session, business):
     # Positive control: shipped and still without a price, it is reported.
     assert line.id in _findings(session, business, "order_line_price_missing")
 
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session,
         tenant,
         lines=[{"order_line_id": line.id, "quantity": "1", "gross_amount": "11.00"}],

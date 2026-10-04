@@ -4,6 +4,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
 from sqlalchemy import event
 
 from reality.services import core
@@ -15,7 +16,7 @@ def placed(
     session, b, direction="sales", *, party=None, currency="EUR", quantity="3", day=""
 ):
     counterparty = party or (b.customer if direction == "sales" else b.supplier)
-    _, document, lines, promises = core.create_manual_order(
+    _, document, lines, promises = reviewed_manual_order(
         session,
         b.tenant.id,
         direction,
@@ -104,7 +105,7 @@ def test_delivered_and_unbilled_positions_are_listed_by_order(session, business)
         (swiss_promise, 3),
     ):
         move(session, business, "shipment", promise, quantity)
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session, business.tenant.id, billed.id, "3", "30", "INV-D"
     )
 
@@ -134,7 +135,7 @@ def test_returns_partial_invoices_and_reversals_change_what_is_billable(
     move(session, business, "shipment", a_promise, 3)
     move(session, business, "shipment", b_promise, 3)
     move(session, business, "return", a_promise, 1)
-    receipt = core.record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, business.tenant.id, b.id, "3", "30", "INV-REV"
     )
     assert listed(read(session, business)) == {a.id: Decimal(2)}
@@ -215,7 +216,7 @@ def test_history_does_not_multiply_the_statements(session, business):
     for index in range(10):
         _, line, history = placed(session, business)
         move(session, business, "shipment", history, 3)
-        core.record_sales_invoice(
+        reviewed_record_sales_invoice(
             session, business.tenant.id, line.id, "3", "30", f"INV-H{index}"
         )
     assert statements() == baseline

@@ -2,18 +2,20 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_record_sales_invoice,
+)
 
 from reality.db.core import Document, DocumentLine, uid
 from reality.services.core import (
     InvalidOperation,
     create_commitment,
-    create_manual_document_with_lines,
     create_payment_term,
     create_tenant,
     hold_commitment,
     post_customer_payment,
     record_movement,
-    record_sales_invoice,
     reserve,
     reverse_ledger_posting_group,
 )
@@ -30,7 +32,7 @@ def _prepayment_order(session, business):
         0,
         requires_prepayment=True,
     )
-    order, lines = create_manual_document_with_lines(
+    order, lines = reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "sales_order",
@@ -100,7 +102,7 @@ def test_prepayment_readiness_uses_stated_order_and_active_allocation(
     assert before_invoice.received_amount == 0
     assert before_invoice.remaining_amount == Decimal(100)
 
-    receipt = record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, tenant_id, line.id, "10", "100", "INV-PREPAY"
     )
     invoice = record_by_id(
@@ -136,7 +138,7 @@ def test_reversed_and_foreign_payment_evidence_does_not_satisfy_prepayment(
     """
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
-    receipt = record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, tenant_id, line.id, "10", "100", "INV-EVIDENCE"
     )
     invoice = record_by_id(
@@ -194,7 +196,7 @@ def test_invoice_line_of_another_partys_order_blocks_without_guessing(
     """
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
-    receipt = record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session, tenant_id, line.id, "10", "100", "INV-FOREIGN-LINE"
     )
     invoice = record_by_id(
@@ -203,7 +205,7 @@ def test_invoice_line_of_another_partys_order_blocks_without_guessing(
         next(row["id"] for row in receipt["records"] if row["family"] == "document"),
     )
     other_customer = reviewed_create_party(session, tenant_id, "Other customer", "customer")
-    other_order, other_lines = create_manual_document_with_lines(
+    other_order, other_lines = reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "sales_order",
@@ -251,7 +253,7 @@ def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
     """
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
-    _other, other_lines = create_manual_document_with_lines(
+    _other, other_lines = reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "sales_order",
@@ -260,7 +262,7 @@ def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
         [{"item_id": business.item.id, "quantity": "1", "gross_amount": "10"}],
         "10",
     )
-    receipt = record_sales_invoice(
+    receipt = reviewed_record_sales_invoice(
         session,
         tenant_id,
         lines=[
@@ -317,7 +319,7 @@ def test_unpaid_net_term_is_not_blocked_by_prepayment(session, business):
     Commitment is ship-ready.
     """
     tenant_id = business.tenant.id
-    order, lines = create_manual_document_with_lines(
+    order, lines = reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "sales_order",
@@ -371,7 +373,7 @@ def test_readiness_combines_stock_reservation_and_active_hold(session, business)
     Initial blockers name insufficient reservation/stock; later only linked commitment hold remains.
     """
     tenant_id = business.tenant.id
-    order, lines = create_manual_document_with_lines(
+    order, lines = reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "sales_order",

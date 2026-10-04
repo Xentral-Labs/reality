@@ -2,6 +2,10 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 
 from reality.db.core import now
 from reality.services import core
@@ -823,13 +827,9 @@ def test_pricing_class_explanation_and_not_found_parity(session, business):
 
 def units_that_do_not_meet(session, business):
     """One order line in boxes, invoiced in pieces, on an item that says nothing."""
-    from reality.services.core import (
-        create_manual_document_with_lines,
-        create_manual_order,
-    )
 
     item = reviewed_create_item(session, business.tenant.id, "BIKE-CRATE", "Bike Crate")
-    _, _document, lines, _commitments = create_manual_order(
+    _, _document, lines, _commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -849,7 +849,7 @@ def units_that_do_not_meet(session, business):
         "90.00",
         requested_delivery_at=datetime(2026, 12, 1, 12, tzinfo=UTC),
     )
-    create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",
@@ -1056,13 +1056,9 @@ def test_supplier_credit_explanation_and_not_found_parity(session, business):
 
 def sent_back_to_supplier(session, business):
     """A purchase order line billed by the supplier with part of it sent back."""
-    from reality.services.core import (
-        create_manual_document_with_lines,
-        create_manual_order,
-    )
 
     tenant_id = business.tenant.id
-    _, _document, lines, commitments = create_manual_order(
+    _, _document, lines, commitments = reviewed_manual_order(
         session,
         tenant_id,
         "purchase",
@@ -1091,7 +1087,7 @@ def sent_back_to_supplier(session, business):
         to_location_id=business.location.id,
         commitment_id=commitments[0].id,
     )
-    create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "supplier_invoice",
@@ -1123,7 +1119,6 @@ def sent_back_to_supplier(session, business):
 
 
 def test_supplier_return_explanation_and_not_found_parity(session, business):
-    from reality.services.core import create_manual_document_with_lines
 
     tenant_id = business.tenant.id
     line = sent_back_to_supplier(session, business)
@@ -1146,7 +1141,7 @@ def test_supplier_return_explanation_and_not_found_parity(session, business):
         explain_operational_exception(session, foreign.id, row.id)
 
     # The supplier credits it and the identity stops explaining.
-    create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "supplier_credit_note",

@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -19,7 +20,7 @@ from reality.tools.application import (
 
 def _purchase(session, business, number, quantity="10", item=None):
     item = item or business.item
-    _, document, _, (promise,) = core.create_manual_order(
+    _, document, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -41,7 +42,7 @@ def _purchase(session, business, number, quantity="10", item=None):
 
 
 def _sale(session, business, number, quantity="2"):
-    _, document, _, (promise,) = core.create_manual_order(
+    _, document, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

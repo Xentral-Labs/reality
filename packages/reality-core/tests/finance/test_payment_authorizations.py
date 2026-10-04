@@ -4,6 +4,7 @@ import json
 from datetime import timedelta
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -15,7 +16,7 @@ from reality.tools.application import (
 
 
 def _order(session, business, number="SO-336", amount="100"):
-    _, _, _, (promise,) = core.create_manual_order(
+    _, _, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

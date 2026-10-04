@@ -1,6 +1,7 @@
 """Spec 338 FR-007: deviations behind MCP/Chat, Web and CLI, through the shared review."""
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -9,7 +10,6 @@ from reality.cli import app as cli_module
 from reality.db.core import CommitmentSubstitute
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, model_tool_schemas
 from reality.mcp.server import _reject_unknown_fields
-from reality.services import core
 from reality.tools.application import approve_and_execute_proposal
 from reality.web import api as api_module
 from reality.web import app as web_module
@@ -24,7 +24,7 @@ def _schema(name):
 
 
 def _purchase(session, business, number="PO-338-A"):
-    _, _, _, (promise,) = core.create_manual_order(
+    _, _, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",

@@ -6,6 +6,7 @@ from conftest import record_by_id
 from fastapi.testclient import TestClient
 from intake_review_support import accept_demo_setup as ensure_demo
 from intake_review_support import accept_shopify_order as ingest_shopify_order
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -28,7 +29,6 @@ from reality.services.core import (
     active_reserved,
     create_commitment,
     create_document,
-    create_manual_document_with_lines,
     create_price_list,
     create_price_list_entry,
     create_source_capability,
@@ -512,7 +512,7 @@ def test_movement_correction_preview_execute_and_inspector_contract(session, bus
 
 
 def test_manual_document_line_correction_api_contract(session, business):
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",
@@ -656,7 +656,7 @@ def test_document_api_transports_and_explains_selected_price_entry(session, busi
     try:
         created = client.post(
             f"/api/tenants/{business.tenant.id}/documents",
-            json={
+            json={"confirmed": True,
                 "type": "sales_order",
                 "number": "SO-PRICE-API",
                 "party_id": business.customer.id,
@@ -1041,7 +1041,7 @@ def test_manual_document_api_records_header_and_lines_as_evidence(session, busin
     try:
         response = client.post(
             f"/api/tenants/{business.tenant.id}/documents",
-            json={
+            json={"confirmed": True,
                 "type": "sales_order",
                 "number": "MANUAL-1001",
                 "party_id": business.customer.id,
@@ -2182,7 +2182,7 @@ def _record_invoice(
 ):
     return client.post(
         f"/api/tenants/{tenant_id}/documents",
-        json={
+        json={"confirmed": True,
             "type": kind,
             "number": number,
             "party_id": party_id,

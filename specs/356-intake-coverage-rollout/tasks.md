@@ -76,3 +76,10 @@ by all required checks and honest unresolved-outcome reporting.
 - [ ] T024 Bind the existing atomic proposed Finance branch to actual confirmation under its existing delivery/finance/proposal locks, without changing claim state or committing an intermediate decision.
 - [ ] T025 Freeze exact account calls, recheck the current confirming person/token and reject changed/repeated callbacks and premature root commits; preserve fixed default-account bootstrap and historical migration fixtures explicitly.
 - [ ] T026 Route legitimate account tests/adapters through confirmed existing commands; complete focused/full regression and committed-head CI evidence, with remaining business writer coverage pending.
+
+## Normalized document boundary qualification (FR-001–FR-003)
+
+- [ ] T027 Add meaningful direct/tag and absent-confirmation refusal proofs for normalized Document/DocumentLine creation.
+- [ ] T028 Enforce current finite command/root authority, frozen single-use child calls and atomic receipt/evidence settlement.
+- [ ] T029 Route the manual-document Web adapter and legitimate fixtures through actual confirmed existing commands; preserve historical evidence without backfilled consent.
+- [ ] T030 Qualify document/order/invoice/credit scenarios, browser and full committed-head CI; keep header/correction writer closure pending.

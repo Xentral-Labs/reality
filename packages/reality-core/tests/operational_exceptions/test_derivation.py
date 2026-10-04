@@ -5,6 +5,10 @@ from types import SimpleNamespace
 import pytest
 from conftest import record_by_id
 from intake_review_support import accept_import_job as process_import_job
+from intake_review_support import (
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+)
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -21,8 +25,6 @@ from reality.services.core import (
     allocate_supplier_credit_note,
     create_commitment,
     create_document,
-    create_manual_document_with_lines,
-    create_manual_order,
     create_payment_term,
     create_price_list,
     create_price_list_entry,
@@ -1466,7 +1468,7 @@ def order(
     unit_price="9.00",
 ):
     """One order line with the commitment that promises its delivery."""
-    _, document, lines, commitments = create_manual_order(
+    _, document, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         direction,
@@ -1503,7 +1505,7 @@ def bill(
 ):
     document_type = "sales_invoice" if direction == "sales" else "supplier_invoice"
     party = business.customer if direction == "sales" else business.supplier
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         document_type,
@@ -1724,7 +1726,7 @@ def test_billing_sums_across_invoices(session, business):
 def test_non_deliverable_lines_are_never_reported(session, business):
     # An order line recorded without a commitment promised no delivery. Freight,
     # a discount or a service is exactly that, and can never be received.
-    _, lines = create_manual_document_with_lines(
+    _, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "purchase_order",
@@ -2400,7 +2402,7 @@ def credit(
     quantity="4",
     unit="pcs",
 ):
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "credit_note",
@@ -2488,7 +2490,7 @@ def test_invoice_linked_credit_clears_returned_not_credited_through_shortest_lin
     assert before.trace["document_line_id"] == order_line.id
     assert before.causal_values["uncredited_quantity"] == Decimal("4.0000")
 
-    _, credit_lines = create_manual_document_with_lines(
+    _, credit_lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "credit_note",
@@ -3074,7 +3076,7 @@ def recorded_purchase(session, business, number, *, unit, quantity="10"):
     in such a unit exists only in companies that recorded it earlier. Built the
     way it was then, so the classes are still judged on what such data holds.
     """
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "purchase_order",
@@ -3636,7 +3638,7 @@ def purchase_price(session, business, amount, *, unit="pcs", currency="EUR", ite
 
 
 def sold_at(session, business, number, price, *, quantity="1", unit="pcs", item=None):
-    _, lines = create_manual_document_with_lines(
+    _, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",
@@ -3705,7 +3707,7 @@ def test_a_line_agreed_at_zero_is_a_decision(session, business):
 
 def test_only_sales_lines_are_judged(session, business):
     purchase_price(session, business, "10.00")
-    _, purchase_lines = create_manual_document_with_lines(
+    _, purchase_lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "purchase_order",
@@ -3722,7 +3724,7 @@ def test_only_sales_lines_are_judged(session, business):
         ],
         "2.00",
     )
-    _, freight_lines = create_manual_document_with_lines(
+    _, freight_lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",
@@ -4018,7 +4020,7 @@ def sold_in_boxes(session, business, item, *, number, billed, unit="pcs"):
         200,
         to_location_id=business.location.id,
     )
-    _, _document, lines, commitments = create_manual_order(
+    _, _document, lines, commitments = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -4048,7 +4050,7 @@ def sold_in_boxes(session, business, item, *, number, billed, unit="pcs"):
         commitment_id=commitments[0].id,
         occurred_at=AS_OF - timedelta(days=3),
     )
-    create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",
@@ -4760,7 +4762,7 @@ def return_to_supplier(session, business, commitment, quantity, **kwargs):
 def supplier_credit_line(
     session, business, order_line, *, number, quantity, unit="pcs"
 ):
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "supplier_credit_note",
@@ -5496,7 +5498,7 @@ def test_a_restocking_fee_is_a_charge_not_a_smaller_credit(session, business):
     ship(session, business, commitment, 10)
     bill(session, business, kept, number="RE-095-FEE", quantity="10")
     send_back(session, business, commitment, 10)
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant_id,
         "credit_note",

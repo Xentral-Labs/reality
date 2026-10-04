@@ -3,6 +3,8 @@
 import json
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_order
+
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
 from reality.services.exceptions import operational_exceptions
@@ -17,7 +19,7 @@ def _order(session, business, direction, number, quantity, item=None):
     item = item or business.item
     counterparty = business.supplier if direction == "purchase" else business.customer
     gross = str(Decimal(quantity) * 10)
-    _, document, _, (promise,) = core.create_manual_order(
+    _, document, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         direction,

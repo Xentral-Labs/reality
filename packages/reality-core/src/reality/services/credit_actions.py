@@ -369,7 +369,9 @@ def _record_invoice_credit(
             action_id=action_id,
             _commit=False,
         )
-        note, lines = core.create_manual_document_with_lines(
+        from reality.services.intake import _record_normalized_document
+
+        note, lines = _record_normalized_document(
             session,
             tenant,
             "credit_note",

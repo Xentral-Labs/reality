@@ -2,14 +2,14 @@
 from datetime import UTC, date, datetime
 
 from conftest import record_by_id
-from intake_review_support import accept_import_job
+from intake_review_support import accept_import_job, reviewed_manual_order
 
 from reality.db.core import Commitment
 from reality.services import core
 
 
 def _order(session, business, kind, number, party_id, ordered_at):
-    _, _, _, (promise,) = core.create_manual_order(
+    _, _, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         kind,

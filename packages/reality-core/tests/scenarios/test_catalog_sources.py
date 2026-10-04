@@ -13,6 +13,7 @@ from intake_review_support import (
     accept_import_job,
     accept_normalized_payment,
     accept_pending_import_jobs,
+    reviewed_record_sales_invoice,
 )
 from sqlalchemy import func, select
 
@@ -666,7 +667,7 @@ def test_records_arriving_before_their_order_are_linked_once_it_is_in(
     line = interpreted[2][0]
     commitment = interpreted[3][0]
     _ship_line(session, business, commitment, "2")
-    invoice = core.record_sales_invoice(
+    invoice = reviewed_record_sales_invoice(
         session,
         tenant,
         lines=[{"order_line_id": line.id, "quantity": "2", "gross_amount": "20.00"}],
@@ -875,7 +876,7 @@ def test_an_open_order_partly_delivered_before_go_live_is_traceable(
     # Positive control: the six shipped since go-live are unbilled until invoiced.
     unbilled = _classes(session, business, "shipped_not_billed")
     assert commitment.document_line_id in unbilled
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session,
         tenant,
         lines=[

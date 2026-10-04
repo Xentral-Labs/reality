@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_document_with_lines
 
 from reality.services.core import (
     InvalidOperation,
@@ -10,7 +11,6 @@ from reality.services.core import (
     correct_movement,
     create_commitment,
     create_lot,
-    create_manual_document_with_lines,
     fulfilled_quantity,
     open_quantity,
     record_movement,
@@ -164,7 +164,7 @@ def test_a_returned_movement_is_still_correctable(session, business):
 
 
 def test_a_credit_note_line_credits_an_order_line(session, business):
-    _, order_lines = create_manual_document_with_lines(
+    _, order_lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",
@@ -181,7 +181,7 @@ def test_a_credit_note_line_credits_an_order_line(session, business):
         ],
         "90.00",
     )
-    _, credit_lines = create_manual_document_with_lines(
+    _, credit_lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "credit_note",
@@ -204,7 +204,7 @@ def test_a_credit_note_line_credits_an_order_line(session, business):
 
     # A credit note is a sales-side document, so a purchase order line is not
     # something it can credit.
-    _, purchase_lines = create_manual_document_with_lines(
+    _, purchase_lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "purchase_order",
@@ -222,7 +222,7 @@ def test_a_credit_note_line_credits_an_order_line(session, business):
         "50.00",
     )
     with pytest.raises(InvalidOperation, match="side"):
-        create_manual_document_with_lines(
+        reviewed_manual_document_with_lines(
             session,
             business.tenant.id,
             "credit_note",

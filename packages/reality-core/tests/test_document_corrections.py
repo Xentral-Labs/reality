@@ -2,6 +2,7 @@ import json
 
 import pytest
 from conftest import record_by_id
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, DocumentLine, SourceRecord
@@ -12,7 +13,6 @@ from reality.services.core import (
     correct_manual_document_lines,
     create_commitment,
     create_document,
-    create_manual_document_with_lines,
     create_payment_term,
     create_tenant,
     enqueue_source,
@@ -151,7 +151,7 @@ def test_external_document_correction_appends_immutable_source_version(
 
 
 def manual_document(session, business):
-    return create_manual_document_with_lines(
+    return reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_order",
@@ -311,7 +311,7 @@ def test_manual_line_economic_changes_detect_document_commitment_and_ledger(
             lines=[{**line, "unit_price": "11"} for line in snapshot["lines"]],
         )
 
-    invoice, _ = create_manual_document_with_lines(
+    invoice, _ = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "sales_invoice",

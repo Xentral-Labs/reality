@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 
 from reality.services import core
 
@@ -36,7 +37,7 @@ def run_story(session, tenant_id, party_id, item_id, side, prefix):
                 "synthetic": True,
             },
         )
-        doc, _ = core.create_manual_document_with_lines(
+        doc, _ = reviewed_manual_document_with_lines(
             session,
             tenant_id,
             kind,

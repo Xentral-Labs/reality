@@ -4,12 +4,16 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import (
+    reviewed_manual_order,
+    reviewed_record_free_supplier_invoice,
+    reviewed_record_supplier_invoice,
+)
 from sqlalchemy import select
 
 from reality.db.core import DocumentLine, SourceRecord
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
-from reality.services.invoice_actions import record_free_supplier_invoice
 from reality.services.purchase_match import purchase_match
 from reality.services.supplier_item_terms import (
     order_terms_check,
@@ -27,7 +31,7 @@ def _refused(code, call):
 
 def _purchase(session, business, number, quantity="100", price="10"):
     gross = str(Decimal(quantity) * Decimal(price))
-    _, document, (line,), (promise,) = core.create_manual_order(
+    _, document, (line,), (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
@@ -61,7 +65,7 @@ def _receive(session, business, promise, quantity):
 
 
 def _invoice(session, business, line, quantity, gross, number):
-    receipt = core.record_supplier_invoice(
+    receipt = reviewed_record_supplier_invoice(
         session, business.tenant.id, line.id, quantity, gross, number
     )
     return next(row["id"] for row in receipt["records"] if row["family"] == "document")
@@ -123,13 +127,12 @@ def test_a_supplier_confirms_quantity_date_and_price(session, business):
 
 
 def test_an_invoice_above_the_confirmed_price_is_reported_against_it(session, business):
-    from reality.services.invoice_actions import record_free_supplier_invoice
 
     tenant = business.tenant.id
     _, line, promise = _purchase(session, business, "PO-310-2")
     core.revise_commitment(session, tenant, promise.id, unit_price="10.50")
     _receive(session, business, promise, "100")
-    receipt = record_free_supplier_invoice(
+    receipt = reviewed_record_free_supplier_invoice(
         session,
         tenant,
         supplier_id=business.supplier.id,
@@ -156,7 +159,7 @@ def test_an_invoice_above_the_confirmed_price_is_reported_against_it(session, bu
 
 def test_a_price_is_confirmed_for_purchases_only(session, business):
     tenant = business.tenant.id
-    _, _, _, (customer_promise,) = core.create_manual_order(
+    _, _, _, (customer_promise,) = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -330,7 +333,7 @@ def test_another_company_cannot_state_or_read_terms(session, business):
 
 
 def _charge(session, business, line, amount="40.00", number="CXL-310"):
-    return record_free_supplier_invoice(
+    return reviewed_record_free_supplier_invoice(
         session,
         business.tenant.id,
         supplier_id=business.supplier.id,
@@ -366,7 +369,7 @@ def test_a_cancellation_charge_raises_no_purchase_finding(session, business):
     assert row["cancelled"] is True and row["matched"] is True
     assert [charge["amount"] for charge in row["charges"]] == ["40"]
     # Positive control: goods billed on the cancelled line are still reported.
-    record_free_supplier_invoice(
+    reviewed_record_free_supplier_invoice(
         session,
         tenant,
         supplier_id=business.supplier.id,
@@ -433,7 +436,7 @@ def test_returns_and_credits_count_on_both_sides(session, business):
 
 def test_the_match_is_read_for_purchase_orders_only(session, business):
     tenant = business.tenant.id
-    _, _, _, _ = core.create_manual_order(
+    _, _, _, _ = reviewed_manual_order(
         session,
         tenant,
         "sales",

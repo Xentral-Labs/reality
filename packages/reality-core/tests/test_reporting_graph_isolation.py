@@ -13,12 +13,12 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 
 from reality.domain.traversal import Traversal
 from reality.services.analytics.compile_sql import build
 from reality.services.analytics.traversal import TraversalRefused, plan, run_traversal
 from reality.services.core import (
-    create_manual_order,
     create_tenant,
     record_movement,
 )
@@ -49,7 +49,7 @@ def two_companies(session, business):
     customer = reviewed_create_party(session, other.id, "Müller GmbH", "customer")
     item = reviewed_create_item(session, other.id, "BIKE-LIGHT", "Bike Light")
     location = reviewed_create_location(session, other.id, "Augsburg Warehouse")
-    create_manual_order(
+    reviewed_manual_order(
         session,
         other.id,
         "sales",
@@ -63,7 +63,7 @@ def two_companies(session, business):
         ordered_at="2026-03-10T10:00:00Z",
         document_date="2026-03-10",
     )
-    create_manual_order(
+    reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",
@@ -432,7 +432,7 @@ def test_the_catalog_lists_only_the_asking_company_s_vocabulary(
     buyer = reviewed_create_party(session, two_companies.id, "Müller GmbH", "customer")
     item = reviewed_create_item(session, two_companies.id, "BIKE-BELL", "Bike Bell")
     location = reviewed_create_location(session, two_companies.id, "Ingolstadt Warehouse")
-    create_manual_order(
+    reviewed_manual_order(
         session,
         two_companies.id,
         "sales",

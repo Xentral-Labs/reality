@@ -4,7 +4,7 @@ import json
 import os
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from inspect import Parameter, signature
 from typing import Any
 
@@ -76,6 +76,7 @@ class _ApprovedEffects:
     tenant_id: str
     proposal_id: str
     digest: str
+    invocations: set[object] = field(default_factory=set)
 
 
 _approved: ContextVar[_ApprovedEffects | None] = ContextVar(
@@ -295,6 +296,17 @@ def _invoke(
         _call_intent.reset(token)
 
 
+def _record_normalized_document(
+    session, tenant_id, document_type, number, party_id, lines, gross_amount, **arguments
+):
+    """Freeze the stated normalized evidence before its canonical callback."""
+    return _invoke(
+        "create_manual_document_with_lines", core.create_manual_document_with_lines,
+        session, tenant_id, document_type=document_type, number=number,
+        party_id=party_id, lines=lines, gross_amount=gross_amount, **arguments,
+    )
+
+
 def require_scoped_intent(operation: str, actual: dict[str, Any]) -> None:
     if _approved.get() is None:
         from reality.services.tenant_policy import _master_application_active
@@ -312,10 +324,17 @@ def require_scoped_intent(operation: str, actual: dict[str, Any]) -> None:
     }
     supplier = expected_operation == "record_supplier_payment"
     control_role = "accounts_payable" if supplier else "accounts_receivable"
-    if _approved.get() is None and operation == expected_operation:
-        from reality.services.tenant_policy import _consume_master_invocation
+    if operation == expected_operation:
+        scope = _approved.get()
+        if scope is None:
+            from reality.services.tenant_policy import _consume_master_invocation
 
-        _consume_master_invocation(_call_nonce.get())
+            _consume_master_invocation(_call_nonce.get())
+        else:
+            nonce = _call_nonce.get()
+            if nonce is None or nonce in scope.invocations:
+                raise core.InvalidOperation(code="intake_approval_required")
+            scope.invocations.add(nonce)
     if operation == expected_operation:
         offered = {key: actual.get(key) for key in expected}
         if canonical_json(offered) != canonical_json(expected):

@@ -170,6 +170,7 @@ def _confirmed_application_scope(session, tenant_id, proposal, *, confirmed=Fals
             raise InvalidOperation(code="intake_partial_commit_forbidden")
 
     fixed = authority.tool in {
+        "document_create",
         "demo_seed",
         "normal_month",
         "party_create",
@@ -1650,7 +1651,11 @@ def require_demo_intake(
     raise InvalidOperation(code="intake_approval_required")
 
 
-_MASTER_MUTATION_TOOLS = {
+_CANONICAL_MUTATION_TOOLS = {
+    "create_manual_document_with_lines": frozenset({
+        "document_create", "order_create", "sales_invoice_record",
+        "supplier_invoice_record", "sales_credit_record", "supplier_invoice_free_record",
+    }),
     "create_party": frozenset({"party_create", "company_party_record"}),
     "create_item": frozenset({"item_create"}),
     "create_location": frozenset({"location_create"}),
@@ -1660,8 +1665,8 @@ _MASTER_MUTATION_TOOLS = {
 }
 
 
-def _require_master_decision(session, tenant_id, operation):
-    """Consume only the retained confirmation for this canonical master family."""
+def _require_application_decision(session, tenant_id, operation):
+    """Require current retained confirmation for the exact canonical family."""
     authority = _application_authority.get()
     if authority is not None and authority.tool in _FIXED_DEFINITIONS:
         _require_fixed_setup(session, tenant_id, authority.tool)
@@ -1672,7 +1677,7 @@ def _require_master_decision(session, tenant_id, operation):
         or authority.transaction is not session.get_transaction()
         or authority.tenant_id != tenant_id
         or not authority.confirmed
-        or authority.tool not in _MASTER_MUTATION_TOOLS.get(operation, ())
+        or authority.tool not in _CANONICAL_MUTATION_TOOLS.get(operation, ())
     ):
         raise InvalidOperation(code="intake_approval_required")
     proposal = session.scalar(
@@ -1741,12 +1746,14 @@ def _master_application_active(operation=None):
     }:
         return True
     authority = _application_authority.get()
+    if authority is not None and authority.tool == "document_create":
+        return operation == "create_manual_document_with_lines"
     if authority is not None and authority.tool in {
         *MASTER_TOOLS,
         "company_party_record",
     }:
         return True
-    return operation in _MASTER_MUTATION_TOOLS and (
+    return operation in _CANONICAL_MUTATION_TOOLS and (
         authority is not None
         and authority.tool in _FIXED_DEFINITIONS
         or _profile_authority.get() is not None
@@ -1758,6 +1765,23 @@ def _consume_master_invocation(nonce):
     if nonce is None or consumed is None or nonce in consumed:
         raise InvalidOperation(code="intake_approval_required")
     consumed.add(nonce)
+
+
+def require_document_operation(session, tenant_id, operation):
+    """A manual evidence confirmation grants no unrelated business effect."""
+    authority = _application_authority.get()
+    if authority is None or authority.tool != "document_create":
+        return
+    if (
+        authority.session is not session
+        or authority.transaction is not session.get_transaction()
+        or authority.tenant_id != tenant_id
+        or operation not in {
+            "create_manual_document_with_lines", "emit_business_event",
+            "store_source_record", "create_master_source_record",
+        }
+    ):
+        raise InvalidOperation(code="intake_approval_required")
 
 
 @dataclass(frozen=True)

@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -65,7 +66,7 @@ def _order(session, business, number, *, prepaid=True, paid="80.00"):
         "10",
         to_location_id=business.location.id,
     )
-    _, order, lines, (promise,) = core.create_manual_order(
+    _, order, lines, (promise,) = reviewed_manual_order(
         session,
         tenant,
         "sales",

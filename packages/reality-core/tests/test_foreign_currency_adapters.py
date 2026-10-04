@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
+from intake_review_support import reviewed_record_free_supplier_invoice
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
@@ -26,9 +27,8 @@ def _client(session, monkeypatch):
 
 
 def _usd_invoice(session, business):
-    from reality.services.invoice_actions import record_free_supplier_invoice
 
-    receipt = record_free_supplier_invoice(
+    receipt = reviewed_record_free_supplier_invoice(
         session,
         business.tenant.id,
         supplier_id=business.supplier.id,

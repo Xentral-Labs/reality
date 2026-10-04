@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import select
 
 from reality.db.core import Commitment, DocumentLine
@@ -43,11 +44,10 @@ def test_manual_entry_cannot_claim_source_absence(session, business):
 
     from reality.services.core import (
         InvalidOperation,
-        create_manual_document_with_lines,
     )
 
     with pytest.raises(InvalidOperation):
-        create_manual_document_with_lines(
+        reviewed_manual_document_with_lines(
             session,
             business.tenant.id,
             "sales_order",
@@ -64,7 +64,7 @@ def test_manual_entry_cannot_claim_source_absence(session, business):
             "49",
         )
     with pytest.raises(InvalidOperation):
-        create_manual_document_with_lines(
+        reviewed_manual_document_with_lines(
             session,
             business.tenant.id,
             "sales_order",

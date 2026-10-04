@@ -88,8 +88,6 @@ from reality.services.core import (
     create_chat_session,
     create_handling_unit,
     create_lot,
-    create_manual_document_with_lines,
-    create_manual_order,
     create_party_group,
     create_payment_term,
     create_price_list,
@@ -3475,6 +3473,7 @@ class ManualDocumentLineWrite(ApiModel):
 
 
 class ManualDocumentWrite(ApiModel):
+    confirmed: bool = False
     type: str
     number: str
     party_id: str
@@ -3491,6 +3490,7 @@ class ManualDocumentWrite(ApiModel):
 
 
 class ManualOrderWrite(ApiModel):
+    confirmed: bool = False
     direction: Literal["sales", "purchase"]
     number: str
     company_party_id: str
@@ -5228,44 +5228,51 @@ def post_document_holds(
 
 @router.post("/documents", status_code=201)
 def post_manual_document(
-    tenant_id: str, body: ManualDocumentWrite, session: DatabaseSession
+    tenant_id: str, body: ManualDocumentWrite, session: DatabaseSession, request: Request
 ):
     """Record manual normalized evidence without bypassing the application layer."""
     try:
-        document, lines = create_manual_document_with_lines(
-            session,
-            tenant_id,
-            body.type,
-            body.number,
-            body.party_id,
-            [line.model_dump() for line in body.lines],
-            body.gross_amount,
-            currency=body.currency,
-            document_date=body.document_date,
-            ordered_at=body.ordered_at,
-            requested_delivery_at=body.requested_delivery_at,
-            customer_reference=body.customer_reference,
-            sales_channel=body.sales_channel,
-            payment_term_code=body.payment_term_code,
-            ship_to_party_id=body.ship_to_party_id,
+        from reality.tools.application import create_change_proposal
+
+        if not body.confirmed:
+            raise InvalidOperation(code="review_confirmation_required")
+        arguments = body.model_dump(mode="json", exclude={"confirmed", "type"})
+        arguments["document_type"] = body.type
+        proposal = create_change_proposal(
+            session, tenant_id, "document_create", arguments, actor_type="user"
         )
-        return {"id": document.id, "status": document.status, "line_count": len(lines)}
+        receipt = approve_and_execute_proposal(
+            session, tenant_id, proposal.id,
+            confirming_principal=optional_request_principal(request),
+            confirmed=body.confirmed,
+        )
+        result = json.loads(receipt.output)
+        return {"id": result["document_id"], "status": result["status"],
+                "line_count": len(result["document_line_ids"])}
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
 @router.post("/manual-orders", status_code=status.HTTP_201_CREATED)
-def post_manual_order(tenant_id: str, body: ManualOrderWrite, session: DatabaseSession):
+def post_manual_order(tenant_id: str, body: ManualOrderWrite, session: DatabaseSession, request: Request):
     try:
-        source, document, lines, commitments = create_manual_order(
-            session, tenant_id, **body.model_dump()
+        from reality.tools.application import create_change_proposal
+
+        if not body.confirmed:
+            raise InvalidOperation(code="review_confirmation_required")
+        proposal = create_change_proposal(
+            session, tenant_id, "order_create",
+            body.model_dump(mode="json", exclude={"confirmed"}), actor_type="user",
         )
-        return {
-            "source_record_id": source.id,
-            "document_id": document.id,
-            "document_line_ids": [line.id for line in lines],
-            "commitment_ids": [commitment.id for commitment in commitments],
-        }
+        from reality.services.delivery_actions import REVIEW_KEY
+
+        review = json.loads(proposal.input).get(REVIEW_KEY)
+        receipt = approve_and_execute_proposal(
+            session, tenant_id, proposal.id,
+            confirming_principal=optional_request_principal(request), confirmed=body.confirmed,
+            review_token=review["token"] if review else None,
+        )
+        return json.loads(receipt.output)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

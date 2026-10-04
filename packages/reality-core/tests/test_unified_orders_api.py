@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_document_with_lines
 from test_unified_source_api import client_for
 from unified_fixtures import delivery_fixture
 
@@ -9,7 +10,6 @@ from reality.services.core import (
     correct_movement,
     create_commitment,
     create_document,
-    create_manual_document_with_lines,
     create_tenant,
     preview_movement_correction,
     record_movement,
@@ -131,7 +131,7 @@ def test_order_document_scope_uses_exact_lines_before_paging_and_is_tenant_scope
     session, business
 ):
     tid = business.tenant.id
-    document, lines = create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tid,
         "sales_order",

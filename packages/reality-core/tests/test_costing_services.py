@@ -5,6 +5,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_document_with_lines
 from sqlalchemy import func, select
 
 from reality.db.core import AppUser, ChangeProposal, DocumentLine, TenantMembership
@@ -689,7 +690,7 @@ def test_line_evidence_uses_shortest_link_and_cannot_be_overwritten(
     from reality.db.components import FinancialComponent
 
     movement = receipt(session, business)
-    doc, lines = core.create_manual_document_with_lines(
+    doc, lines = reviewed_manual_document_with_lines(
         session,
         business.tenant.id,
         "supplier_invoice",

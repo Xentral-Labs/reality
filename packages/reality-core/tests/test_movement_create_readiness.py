@@ -10,6 +10,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from intake_review_support import reviewed_manual_order, reviewed_record_sales_invoice
 from sqlalchemy import func, select
 
 from reality.db.core import Movement
@@ -31,7 +32,7 @@ def _prepayment_order(session, business, *, reserve=True):
         "10",
         to_location_id=business.location.id,
     )
-    _, _, lines, commitments = core.create_manual_order(
+    _, _, lines, commitments = reviewed_manual_order(
         session,
         tenant,
         "sales",
@@ -103,7 +104,7 @@ def test_record_shipment_refuses_at_confirmation_when_payment_is_reversed(
     """Preparation and execution both enforce current readiness (spec 275 FR-010)."""
     tenant = business.tenant.id
     line, commitment = _prepayment_order(session, business)
-    receipt = core.record_sales_invoice(session, tenant, line.id, "2", "100.00", "RE-P")
+    receipt = reviewed_record_sales_invoice(session, tenant, line.id, "2", "100.00", "RE-P")
     invoice_id = next(
         row["id"] for row in receipt["records"] if row["family"] == "document"
     )
@@ -124,7 +125,7 @@ def test_record_shipment_ships_a_paid_prepayment_order(session, business):
     """Positive control: once paid, the same shipment is recorded."""
     tenant = business.tenant.id
     line, commitment = _prepayment_order(session, business)
-    receipt = core.record_sales_invoice(session, tenant, line.id, "2", "100.00", "RE-P")
+    receipt = reviewed_record_sales_invoice(session, tenant, line.id, "2", "100.00", "RE-P")
     invoice_id = next(
         row["id"] for row in receipt["records"] if row["family"] == "document"
     )

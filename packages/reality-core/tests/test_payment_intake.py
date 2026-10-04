@@ -11,7 +11,13 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from intake_review_support import accept_normalized_invoice, accept_normalized_payment
+from intake_review_support import (
+    accept_normalized_invoice,
+    accept_normalized_payment,
+    reviewed_manual_document_with_lines,
+    reviewed_manual_order,
+    reviewed_record_sales_invoice,
+)
 from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SettlementAllocation
@@ -45,7 +51,7 @@ def _order(session, business, external_id="sch:run", amount="100", customer=None
     tenant = business.tenant.id
     customer = customer or business.customer
     source = _source(session, tenant, "order", external_id)
-    document, lines = core.create_manual_document_with_lines(
+    document, lines = reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_order",
@@ -409,7 +415,7 @@ def test_unposted_wrong_party_wrong_currency_and_customer_number_never_allocate(
     _term(session, tenant)
     # An unposted invoice of the customer.
     _order(session, business, "sch:a")
-    core.create_manual_document_with_lines(
+    reviewed_manual_document_with_lines(
         session,
         tenant,
         "sales_invoice",
@@ -758,7 +764,7 @@ def _consolidated_invoice(session, business):
     lines = []
     for number in ("SO-280-A", "SO-280-B"):
         lines.append(
-            core.create_manual_order(
+            reviewed_manual_order(
                 session,
                 business.tenant.id,
                 "sales",
@@ -777,7 +783,7 @@ def _consolidated_invoice(session, business):
                 "50",
             )[2][0]
         )
-    core.record_sales_invoice(
+    reviewed_record_sales_invoice(
         session,
         business.tenant.id,
         lines=[

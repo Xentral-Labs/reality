@@ -2,12 +2,14 @@
 
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_order
+
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
 
 
 def _order(session, business, number, quantity="10"):
-    _, _, _, (promise,) = core.create_manual_order(
+    _, _, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "sales",

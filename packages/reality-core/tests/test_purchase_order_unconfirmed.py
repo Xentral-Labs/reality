@@ -3,12 +3,14 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from intake_review_support import reviewed_manual_order
+
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
 
 
 def _purchase(session, business, number, placed_days_ago, quantity="10"):
-    _, _, _, (promise,) = core.create_manual_order(
+    _, _, _, (promise,) = reviewed_manual_order(
         session,
         business.tenant.id,
         "purchase",
