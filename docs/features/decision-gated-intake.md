@@ -88,3 +88,19 @@ unknown infrastructure failure rolls back the entire provisional chunk. Paginate
 status reads return child receipts without running work. This checkpoint still
 leaves external AgentMandates, selection/recovery UI and the universal adapter
 cutover unfinished (spec 360).
+
+## Explicit financial statement profiles
+
+`customer_payment.v1`, `supplier_payment.v1` and `sales_invoice.v1` prepare exact
+statement meaning before evidence/posting. Current owner authority is checked at
+confirmation and each queued child. A matched payment freezes its selected
+invoice settlement position; unrelated postings do not invalidate independent
+siblings. Changed availability refuses the combined posting/allocation instead
+of rematching or silently dropping the allocation. Account identities, dates,
+company currency and inner document linkage remain exact. Outgoing statement
+admission records bookkeeping only and never executes a bank transfer.
+
+Canonical business defaults are now part of retained preparation, so a later
+canonical default does not silently change approved meaning. Historical reviews
+keep their original digests. Legacy/demo and bank-file adapters still require the
+tracked cutover before this is described as all-path admission.

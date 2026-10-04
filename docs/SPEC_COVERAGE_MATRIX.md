@@ -2543,3 +2543,10 @@ Contract: `docs/features/decision-gated-intake.md` records the explicit initial 
 - `packages/reality-core/tests/browser/unified_item_csv_import.py`: authenticated upload/review/confirmation, dropped responses, queue-worker completion, read-only reopening, original CSV bytes, accepted item links and four-language mobile/desktop rendering.
 
 Remaining file profiles and performance acceptance remain open in the feature tasks.
+
+## Exact financial statement admission checkpoint — Spec 359
+
+- `packages/reality-core/tests/test_financial_intake_admission.py`: pure invoice/payment preparation; exact owner, account, day and posting-document bindings; invoice billing links; independent queued statements; relevant selected-invoice staleness; replay and explicit canonical defaults. Outgoing admission records the received statement without external payment execution.
+- Existing payment intake, foreign currency, company currency, finance atomicity, account and reversal regressions remain required.
+
+Bank-file and legacy/demo adapter cutover remains open.

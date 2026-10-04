@@ -29,7 +29,11 @@ from reality.services import core
 from reality.services.business_locks import lock_delivery_state
 from reality.services.delivery_actions import require_delivery_principal
 from reality.services.finance.accounts import lock_finance
-from reality.services.intake import apply_prepared_intake, review_intake
+from reality.services.intake import (
+    _FINANCIAL_PROFILES,
+    apply_prepared_intake,
+    review_intake,
+)
 from reality.services.memberships import Principal, require_owner
 
 BATCH_TYPE = "tool:intake_batch_apply"
@@ -259,7 +263,10 @@ def approve_batch(
         review = review_intake(session, tenant_id, entry.proposal_id)
         if review["digest"] != entry.digest:
             raise core.InvalidOperation(code="intake_review_stale")
-        if review["plan"]["finance_revision"] is not None:
+        if (
+            review["plan"]["finance_revision"] is not None
+            or review["plan"]["profile"] in _FINANCIAL_PROFILES
+        ):
             require_owner(session, tenant_id, principal)
     _validate_file_selection(session, tenant_id, manifest)
     authorization = {

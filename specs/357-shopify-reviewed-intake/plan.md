@@ -146,12 +146,3 @@ physical Commitment.amount columns. See data-model.md for the repeated read/bill
 use case, canonical source-only entrypoint, historical compatibility and refusal
 on unsafe rollback. This replaces the earlier no-schema-change assumption with a
 small nullability change; no staging table or new business field is introduced.
-
-## Implementation finding: preserve unstated amounts
-
-The old Shopify adapter stores computed line amounts. To satisfy FR-002/FR-003 and
-DR-001, preserve absence with nullable existing DocumentLine.gross_amount and
-physical Commitment.amount columns. See data-model.md for the repeated read/billing
-use case, canonical source-only entrypoint, historical compatibility and refusal
-on unsafe rollback. This replaces the earlier no-schema-change assumption with a
-small nullability change; no staging table or new business field is introduced.

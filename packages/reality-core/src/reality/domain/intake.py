@@ -48,7 +48,9 @@ class Effect(IntakeModel):
         "document",
         "commitment",
         "customer_payment",
+        "supplier_payment",
         "payment_allocation",
+        "invoice_post",
         "source_document",
         "return_announcement",
         "credit_hold",
@@ -64,6 +66,8 @@ class ReferenceState(IntakeModel):
         "item",
         "location",
         "document",
+        "document_line",
+        "payment_term",
         "ledger_entry",
         "account",
         "source_artifact",
@@ -78,7 +82,7 @@ class CalendarState(IntakeModel):
 
 
 class ObservationState(IntakeModel):
-    kind: Literal["credit_exposure", "shop_order_state"]
+    kind: Literal["credit_exposure", "shop_order_state", "payment_state"]
     arguments: dict[str, str]
     digest: str
 
