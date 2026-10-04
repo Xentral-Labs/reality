@@ -119,3 +119,18 @@ committed-head CI remains the completion gate.
 Historical fixture rows explicitly preserve retained creating relationships or
 unknown attribution. Test-only reflected migration inserts grant no runtime
 permission. No unrelated writer family is marked complete by this slice.
+
+### Master committed-head CI follow-ups
+
+The first CI head passed three backend shards, all seven browser contract shards,
+six real browser workflows, docs and spec policy. The remaining backend failure
+was a fixed-profile cross-company refusal being masked by the newly earlier intent
+check in `create_item`; company-purpose/profile checks now run first. The fixed
+profile also explicitly refuses a foreign session/root/company before operation
+acceptance. All 50 directly affected security/canonical/fixed proofs passed.
+
+The engine-room browser now sends actual confirmation for its explicit member
+save; local real-stack verification passed all 27 functional checks, with its
+strict console check failing on unavailable font/network resources. Committed-head
+CI remains the required complete browser proof. The optional demo-payment harness
+has been formatted; its two-hour soak is not claimed executed.

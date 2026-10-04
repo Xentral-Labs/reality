@@ -863,6 +863,13 @@ def _opening_with_cost(session: Session, tenant_id: str, proposal_id: str) -> bo
 
 def require_core_operation(session: Session, tenant_id: str, operation: str) -> bool:
     """Permit only private initial reference setup; egress has no such exception."""
+    profile = _profile_authority.get()
+    if profile is not None and (
+        profile[0] is not session
+        or profile[1] is not session.get_transaction()
+        or profile[4] != tenant_id
+    ):
+        raise PlaygroundOperationDenied(code="playground_profile_operation_denied")
     creation = _company_creation_authority.get()
     if creation is not None:
         if (

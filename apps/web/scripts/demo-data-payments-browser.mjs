@@ -11,11 +11,16 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
-const canonicalSource = (value) => Array.isArray(value)
-  ? value.map(canonicalSource)
-  : value !== null && typeof value === "object"
-    ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalSource(value[key])]))
-    : value;
+const canonicalSource = (value) =>
+  Array.isArray(value)
+    ? value.map(canonicalSource)
+    : value !== null && typeof value === "object"
+      ? Object.fromEntries(
+          Object.keys(value)
+            .sort()
+            .map((key) => [key, canonicalSource(value[key])]),
+        )
+      : value;
 
 import { pathToFileURL } from "node:url";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -126,7 +131,10 @@ assert.ok(Number.isInteger(reviewLimit) && reviewLimit > 0 && reviewLimit <= 500
 let reviewed = 0;
 const reviewSources = async () => {
   const prefix = `/api/tenants/${encodeURIComponent(tenant)}`;
-  const pending = await request("GET", `${prefix}/change-proposals?status=pending&tool=intake_apply&size=25`);
+  const pending = await request(
+    "GET",
+    `${prefix}/change-proposals?status=pending&tool=intake_apply&size=25`,
+  );
   for (const candidate of pending.items) {
     assert.ok(reviewed < reviewLimit, "The explicitly bounded reviewer fixture is exhausted");
     let id = candidate.id;
@@ -140,17 +148,26 @@ const reviewSources = async () => {
       assert.equal(original.status(), 200);
       const text = await original.text();
       assert.equal(original.headers()["x-source-digest"], plan.source_hash);
-      assert.equal(createHash("sha256").update(JSON.stringify(canonicalSource(JSON.parse(text)))).digest("hex"), plan.source_hash);
+      assert.equal(
+        createHash("sha256")
+          .update(JSON.stringify(canonicalSource(JSON.parse(text))))
+          .digest("hex"),
+        plan.source_hash,
+      );
       assert.equal(JSON.parse(text).synthetic, true);
-      const response = await context.request.post(`${base}${prefix}/change-proposals/${id}/approve`, {
-        data: { confirmed: true, review_token: review.input.digest },
-      });
+      const response = await context.request.post(
+        `${base}${prefix}/change-proposals/${id}/approve`,
+        {
+          data: { confirmed: true, review_token: review.input.digest },
+        },
+      );
       const result = await response.json();
       if (!response.ok()) {
         assert.equal(result.code, "intake_review_stale", JSON.stringify(result));
         assert.ok(attempt < 2, "Current-state changes exhausted the bounded fresh-review attempts");
         const renewed = await request("POST", `${prefix}/intake-units/${id}/renew`, {
-          job_id: plan.import_job_id, request_id: key("fresh-review"),
+          job_id: plan.import_job_id,
+          request_id: key("fresh-review"),
         });
         id = renewed.id;
         continue;
@@ -163,7 +180,11 @@ const reviewSources = async () => {
       accepted = true;
       reviewed++;
       log("explicit Owner fixture confirmed exact synthetic source", {
-        proposal_id: id, source_record_id: plan.source_record_id, digest: review.input.digest, reviewed, reviewLimit,
+        proposal_id: id,
+        source_record_id: plan.source_record_id,
+        digest: review.input.digest,
+        reviewed,
+        reviewLimit,
       });
     }
   }

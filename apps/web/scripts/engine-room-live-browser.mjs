@@ -40,7 +40,7 @@ await memberRequests.get(`${BASE}/api/tenants/${TENANT}/items`, {
   headers: { "X-Reality-Correlation": "click_member_1" },
 });
 const created = await memberRequests.post(`${BASE}/api/tenants/${TENANT}/items`, {
-  data: { sku: "LAMP-2", name: "Floor lamp" },
+  data: { sku: "LAMP-2", name: "Floor lamp", confirmed: true },
   headers: { "X-Reality-Correlation": "click_member_2" },
 });
 check("member write succeeded", created.status() === 201, String(created.status()));

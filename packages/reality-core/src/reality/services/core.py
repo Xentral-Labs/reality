@@ -2713,8 +2713,8 @@ def create_item(
     """
     from reality.services.intake import require_scoped_intent
 
-    require_scoped_intent("create_item", locals())
     _require_business_mutation(session, tenant_id, "create_item")
+    require_scoped_intent("create_item", locals())
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Tenant, tenant_id, tenant_id)
