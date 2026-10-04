@@ -1117,6 +1117,9 @@ def _require_business_mutation(
     from reality.services.tenant_policy import require_core_operation
 
     fixed_setup = require_core_operation(session, tenant_id, operation)
+    from reality.services.tenant_policy import require_finance_operation
+
+    require_finance_operation(session, tenant_id, operation)
     from reality.services.intake import _require_scoped_operation
 
     intake_approved = _require_scoped_operation(session, tenant_id, operation)

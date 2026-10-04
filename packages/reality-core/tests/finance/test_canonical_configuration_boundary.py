@@ -240,3 +240,103 @@ def test_finance_configuration_rechecks_a_demoted_owner_in_another_transaction(
         )
     assert refused.value.code == "company_owner_access_required"
     assert account_count(session, tenant) == before
+
+
+@pytest.mark.parametrize("sibling", ["document", "movement"])
+def test_account_confirmation_cannot_admit_an_unrelated_business_effect(
+    session, business, monkeypatch, sibling
+):
+    from reality.db.core import Document, Movement
+
+    tenant = business.tenant.id
+    owner = explicit_owner(session, tenant)
+    proposal = proposed_account(session, tenant)
+    before = account_count(session, tenant)
+    model, original = finance.ACCOUNT_COMMANDS["finance.account.create"]
+    table = Document if sibling == "document" else Movement
+    effects = session.scalar(
+        select(func.count()).select_from(table).where(table.tenant_id == tenant)
+    )
+
+    def changed(db, company, **values):
+        if sibling == "document":
+            core.create_document(
+                db,
+                company,
+                "sales_invoice",
+                "UNAPPROVED-SIBLING",
+                business.customer.id,
+                "10",
+                _commit=False,
+            )
+        else:
+            core.record_movement(
+                db,
+                company,
+                "receipt",
+                business.item.id,
+                "1",
+                to_location_id=business.location.id,
+                _commit=False,
+            )
+        return original(db, company, **values)
+
+    monkeypatch.setitem(
+        finance.ACCOUNT_COMMANDS, "finance.account.create", (model, changed)
+    )
+    with pytest.raises(core.InvalidOperation) as refused:
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirming_principal=owner, confirmed=True
+        )
+    assert refused.value.code == "intake_approval_required"
+    assert account_count(session, tenant) == before
+    assert (
+        session.scalar(
+            select(func.count()).select_from(table).where(table.tenant_id == tenant)
+        )
+        == effects
+    )
+
+
+def test_account_scope_does_not_require_business_consent_for_lossless_raw_storage(
+    session, business, monkeypatch
+):
+    from reality.db.core import Document, SourceRecord
+
+    tenant = business.tenant.id
+    owner = explicit_owner(session, tenant)
+    proposal = proposed_account(session, tenant)
+    model, original = finance.ACCOUNT_COMMANDS["finance.account.create"]
+    raw = {"received-value": "kept exactly"}
+    before = session.scalar(
+        select(func.count()).select_from(Document).where(Document.tenant_id == tenant)
+    )
+
+    def received(db, company, **values):
+        core.store_source_record(
+            db, company, "received-independent-probe", "unmapped", "raw-1", raw
+        )
+        return original(db, company, **values)
+
+    monkeypatch.setitem(
+        finance.ACCOUNT_COMMANDS, "finance.account.create", (model, received)
+    )
+    result = approve_and_execute_proposal(
+        session, tenant, proposal.id, confirming_principal=owner, confirmed=True
+    )
+    assert result.status == "executed"
+    source = session.scalar(
+        select(SourceRecord).where(
+            SourceRecord.tenant_id == tenant,
+            SourceRecord.source_system == "received-independent-probe",
+        )
+    )
+    assert json.loads(source.payload) == raw
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(Document)
+            .where(Document.tenant_id == tenant)
+        )
+        == before
+    )

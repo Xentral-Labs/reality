@@ -2031,3 +2031,27 @@ def require_finance_configuration(session, tenant_id, operation, actual=None):
     from reality.services.intake import require_scoped_intent
 
     require_scoped_intent(operation, actual)
+
+
+def require_finance_operation(session, tenant_id, operation):
+    """An account confirmation grants no unrelated canonical business operation."""
+    proof = _finance_authority.get()
+    if proof is None or proof.tool not in {
+        "finance.account.create",
+        "finance.account.update",
+        "finance.account.set_default",
+        "finance.account.initialize",
+    }:
+        return
+    if (
+        proof.session is not session
+        or proof.transaction is not session.get_transaction()
+        or proof.tenant_id != tenant_id
+        or operation
+        not in {
+            "finance_account_maintain",
+            "emit_business_event",
+            "store_source_record",
+        }
+    ):
+        raise InvalidOperation(code="intake_approval_required")

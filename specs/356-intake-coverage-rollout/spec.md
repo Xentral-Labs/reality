@@ -225,3 +225,5 @@ executing claim. Fixed account defaults are initialization, and never authorize
 arbitrary later account creation, update or default changes.
 
 The confirmed account catalog preserves all existing registered account roles, including received down payments and realised exchange differences. Canonical configuration rechecks current Owner role even when an older ORM membership object remains cached.
+
+An account confirmation grants only its canonical account maintenance and audit operations. It must not admit unrelated Documents, Movements or other business writes through callbacks; those require their own approved unit and transaction.

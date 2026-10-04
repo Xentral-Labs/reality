@@ -160,3 +160,10 @@ Full regression and committed-head CI remain required. Other canonical writer
 families and final semantic inventory closure remain pending.
 
 Final parent integration: 29 canonical finance/master/profile/token checks passed on the master CI correction parent. Frontend contracts passed all 462 checks and the production build passed; catalog generation, Ruff and spec policy passed. Full committed-head regression and CI are still pending.
+
+Account-only operation closure: valid callbacks admitting an unrelated Document
+or stock receipt each produced `DID NOT RAISE` before the operation filter. The
+confirmed account transaction now grants account maintenance/audit only, while
+lossless raw source capture remains an explicit non-business-effect exception.
+All 55 affected account/canonical/intake checks passed; the final 17 configuration
+proofs also passed, including raw preservation without accepted Documents.
