@@ -3,7 +3,8 @@
 **Access**: read · **Group**: Discovery · **Confirmation**: none · **Side effects**: none
 
 Answers what this Reality can do, and what the calling credential may use of it. Describes
-capabilities only; it reads no tenant business record.
+capabilities and, in the topic index, the calling company's purpose; it reads no tenant
+business record.
 
 ## Arguments
 
@@ -17,6 +18,7 @@ An unknown `topic` is refused by naming the topics that exist.
 
 ```json
 {
+  "tenant": {"purpose": "business"},
   "credential": {"kind": "interactive", "limits_tools": true},
   "topics": [
     {"topic": "payments", "label": "Invoices and payments", "capabilities": 32, "tools": 33},
@@ -27,6 +29,12 @@ An unknown `topic` is refused by naming the topics that exist.
 
 `credential.kind` is `manual`, `interactive` or `none`. `limits_tools` is false when no MCP
 credential is in context, in which case every tool is reported callable.
+
+`tenant.purpose` is `business` or `playground`: the stored purpose of the company the calling
+credential belongs to (spec 362). It is a metadata read of that one company record, scoped to
+the server-verified tenant; the object carries no other key, never names or identifies the
+company, and never describes another one. A purpose is fixed when the company is created, so a
+client may read it once per connection. Single-topic answers do not carry it.
 
 ## Step 2 — one topic
 
@@ -84,3 +92,5 @@ before the tool can be selected at all.
 - A tool bound to several capabilities is listed under each, with the same grant state.
 - The topic keys are the eleven of `config/tool_catalog.json`; this tool defines none of its own.
 - `callable: true` and a subsequent refusal for permission reasons is a defect, not a race.
+- `tenant.purpose` is always the calling credential's own company's; a missing company is
+  refused, never answered with a default.
