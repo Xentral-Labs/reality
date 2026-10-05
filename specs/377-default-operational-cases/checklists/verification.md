@@ -31,10 +31,31 @@ retaining their receipt, correlation and rollback assertions. Additional targete
 42 passed plus the corrected full empty migration roundtrip/populated downgrade proof
 (1 passed).
 
+Further regressions prove shared scheduler coexistence (10 passed), reporting/catalog
+contracts (25 passed), shipment/warehouse/readiness flows (45 passed), adapter flows
+(6 passed) and movement readiness (7 passed). Commercial purchasing/finance/order
+scenarios passed 97 checks; their three orderless fixture failures were corrected
+without relaxing guards. A subsequent focused run passed 23 of 24 checks; the remaining
+free replacement was updated to use an observed member for both replacement creation
+and shipment, preserving its orderless, zero-price semantics.
+
+The broad run also exposed Numeric scale changes after loading case business state.
+Shipment readiness normalizes derived open quantities; delivery reviews load canonical
+case records before both snapshots. This avoids false stale-review refusals while
+retaining exact current-state and control revision fencing.
+
+Latest case/guard/manual-replacement run: 32 passed; one migration failed because
+parallel test schema construction exhausted the local PostgreSQL lock table. The
+throwaway container now uses CI's `max_locks_per_transaction=1024`; that proof and the
+complete suite are rerunning. No application or deployment setting changed.
+
 Full backend (6,491 collected tests), full fixture browser suite (87 scripts) and PR
 CI are running. T011 and complete acceptance remain unchecked until assessed.
 The local browser harness maps existing macOS `/private/tmp` screenshot paths to
 `/tmp`; it changes only local artifact paths, not assertions or product code.
+Google Fonts is blocked in this environment. The OAuth browser script initially failed
+on that external asset; its repeat passed with a local empty stylesheet route and the
+existing system-font fallback. All consent, grant and error assertions remain intact.
 
 Simulator runtime remains on its separate branch. The imported integration regression
 explicitly skips when `reality.services.live_company` is absent. External-runner and
