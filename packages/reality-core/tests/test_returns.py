@@ -691,8 +691,12 @@ def test_corrected_return_disposition_restores_unresolved_quantity(session, busi
 
 
 def test_return_disposition_requires_current_review_and_confirms_once(
-    session, business
+    session, business, scheduled_owner
 ):
+    from reality.services.memberships import Principal
+
+    # Unannounced historical returns remain manual repair under an observed member.
+    principal = Principal(scheduled_owner.id)
     stocked(session, business)
     area = returns_area(session, business)
     commitment = delivery(session, business, 4)
@@ -716,7 +720,9 @@ def test_return_disposition_requires_current_review_and_confirms_once(
         "unresolved_after": "1",
     }
     with pytest.raises(InvalidOperation, match="confirmation"):
-        approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+        approve_and_execute_proposal(
+            session, business.tenant.id, proposal.id, confirming_principal=principal
+        )
 
     executed = approve_and_execute_proposal(
         session,
@@ -724,6 +730,7 @@ def test_return_disposition_requires_current_review_and_confirms_once(
         proposal.id,
         review_token=detail["review"]["token"],
         confirmed=True,
+        confirming_principal=principal,
     )
     assert executed.status == "executed"
     verified = delivery_proposal_detail(session, business.tenant.id, proposal.id)

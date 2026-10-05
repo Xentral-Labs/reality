@@ -36,7 +36,10 @@ from reality.services.core import (
     _append_movement,
     active_party_delivery_hold,
 )
-from reality.services.fulfillment_readiness import fulfillment_readiness
+from reality.services.fulfillment_readiness import (
+    FulfillmentReadiness,
+    fulfillment_readiness,
+)
 
 SHIPMENT_TOOLS = {
     "shipment_notice_record",
@@ -110,6 +113,16 @@ def _source_state(session: Session, tenant_id: str, source_id: str | None):
         "version": source.version,
         "payload_hash": source.payload_hash,
     }
+
+
+
+def _readiness_review(readiness: FulfillmentReadiness) -> dict[str, Any]:
+    snapshot = readiness.as_dict(include_interpretation=False)
+    # Case binding may reload a new commitment's PostgreSQL Numeric scale.
+    # An unchanged derived quantity must retain the same exact review token.
+    for line in (snapshot["basis"]["commitment"], *snapshot["lines"]):
+        line["open_quantity"] = format(Decimal(line["open_quantity"]).normalize(), "f")
+    return snapshot
 
 
 def review_shipment_action(
@@ -382,7 +395,7 @@ def review_shipment_action(
                             else False
                         ),
                         "fulfillment_readiness": (
-                            readiness.as_dict(include_interpretation=False)
+                            _readiness_review(readiness)
                             if readiness is not None
                             else None
                         ),

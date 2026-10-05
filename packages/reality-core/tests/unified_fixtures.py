@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from reality.db.core import Commitment
-from reality.services.core import create_commitment, record_movement
+from reality.services.core import create_commitment, create_document, record_movement
 
 
 @dataclass
@@ -23,6 +23,9 @@ def delivery_fixture(session, business, *, quantity="12") -> DeliveryFixture:
         "20",
         to_location_id=business.location.id,
     )
+    document = create_document(
+        session, tenant_id, "sales_order", "DELIVERY-FIXTURE", business.customer.id, "0"
+    )
     commitment = create_commitment(
         session,
         tenant_id,
@@ -33,5 +36,6 @@ def delivery_fixture(session, business, *, quantity="12") -> DeliveryFixture:
         business.location.id,
         quantity,
         None,
+        document_id=document.id,
     )
     return DeliveryFixture(commitment)

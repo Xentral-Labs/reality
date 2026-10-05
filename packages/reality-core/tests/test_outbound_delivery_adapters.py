@@ -26,6 +26,9 @@ def _promise(session, business, quantity="4"):
         "10",
         to_location_id=business.location.id,
     )
+    document = core.create_document(
+        session, tenant, "sales_order", "OUTBOUND-ORDER", business.customer.id, "0"
+    )
     promise = core.create_commitment(
         session,
         tenant,
@@ -36,6 +39,7 @@ def _promise(session, business, quantity="4"):
         business.location.id,
         quantity,
         None,
+        document_id=document.id,
     )
     core.reserve(session, tenant, promise.id)
     return promise
