@@ -1035,9 +1035,12 @@ MCP_TOOL_CATALOG = (
                     "maximum": 100,
                     "default": 25,
                 },
-                "record_id": OPTIONAL_STRING,
+                "record_id": {
+                    **OPTIONAL_STRING,
+                    "description": "Exact opaque record ID within the selected family; takes precedence over query.",
+                },
                 "document_id": {
-                    "type": "string",
+                    **OPTIONAL_STRING,
                     "description": "Opaque document ID: document_line selects its lines; executed_decision selects retained execution events for a sales/purchase order and its exact effect members. Other families do not support this filter.",
                 },
             },

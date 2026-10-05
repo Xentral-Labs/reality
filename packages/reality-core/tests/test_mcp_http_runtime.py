@@ -556,6 +556,13 @@ def test_http_executed_decision_discovery_uses_existing_read_grant(
             value["metadata"]["decision_coverage"]["historical_completeness"]
             == "unknown"
         )
+        nullable = call(
+            allowed,
+            "business_records_discover",
+            {"family": "executed_decision", "document_id": None, "record_id": None},
+        )
+        assert nullable.status_code == 200
+        assert not nullable.json()["result"].get("isError", False)
         for token, name, args in [
             (denied, "business_records_discover", arguments),
             (
