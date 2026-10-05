@@ -14,7 +14,6 @@ from reality.services.core import (
     InvalidOperation,
     active_reserved,
     allocate_credit_note,
-    announce_customer_return,
     cancel_commitment,
     create_commitment,
     create_document,
@@ -253,22 +252,22 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         reason="Customer cancelled before shipment",
         _commit=False,
     )
-    returned = announce_customer_return(
-        session, tenant_id, customer_commitment.id, 2,
-        reason="Customer returned two units", announced_at=at(18), _commit=False,
-    )
-    record_movement(
-        session,
-        tenant_id,
-        "return",
-        item.id,
-        2,
-        to_location_id=returns.id,
-        commitment_id=customer_commitment.id,
-        return_announcement_id=returned.id,
-        occurred_at=at(18),
-        _commit=False,
-    )
+    # The confirmed immutable setup intentionally authors an unexplained return.
+    # _require_fixed_setup checked its exact fixture authority above; this scope
+    # grants neither a human principal nor an automated unanchored return goal.
+    from reality.services.case_action_guards import execution_context
+
+    with execution_context(session, tenant_id, automatic=False):
+        record_movement(
+            session,
+            tenant_id,
+            "return",
+            item.id,
+            2,
+            to_location_id=returns.id,
+            occurred_at=at(18),
+            _commit=False,
+        )
     record_movement(
         session,
         tenant_id,

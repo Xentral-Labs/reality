@@ -32,6 +32,11 @@ def upgrade():
         "scheduled_job_run",
         "(job_type IN ('projections.refresh', 'operational_cases.reconcile') AND actor_id IS NULL AND schedule_id IS NULL) OR (job_type <> 'projections.refresh' AND actor_id IS NOT NULL)",
     )
+    op.create_index(
+        "ix_scheduled_run_claim_history", "scheduled_job_run",
+        ["tenant_id", "started_at", "id"],
+        postgresql_where=sa.text("started_at IS NOT NULL"),
+    )
 
 
 def downgrade():
@@ -44,6 +49,7 @@ def downgrade():
         raise RuntimeError(
             "Preserve version rollout and actual operational case control history before downgrade."
         )
+    op.drop_index("ix_scheduled_run_claim_history", table_name="scheduled_job_run")
     op.drop_constraint("ck_scheduled_run_actor", "scheduled_job_run", type_="check")
     op.create_check_constraint(
         "ck_scheduled_run_actor",

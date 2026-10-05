@@ -63,7 +63,13 @@ def test_schema_roundtrip_and_populated_downgrade_guard(postgres_database, monke
                 cases.coordination_enabled(session, tenant_id)
             assert error.value.code == "case_schema_not_ready"
         command.upgrade(config, "0145_default_operational_cases")
+        assert "ix_scheduled_run_claim_history" in {
+            index["name"] for index in inspect(engine).get_indexes("scheduled_job_run")
+        }
         command.downgrade(config, "0144_operational_cases")
+        assert "ix_scheduled_run_claim_history" not in {
+            index["name"] for index in inspect(engine).get_indexes("scheduled_job_run")
+        }
         command.upgrade(config, "0145_default_operational_cases")
         with Session(engine) as session:
             cases.reconcile_events(session, tenant_id)

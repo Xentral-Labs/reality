@@ -135,6 +135,10 @@ class ScheduledJobRun(Base):
         ),
         Index("ix_scheduled_run_due", "tenant_id", "status", "next_attempt_at", "id"),
         Index("ix_scheduled_run_history", "tenant_id", "created_at", "id"),
+        Index(
+            "ix_scheduled_run_claim_history", "tenant_id", "started_at", "id",
+            postgresql_where="started_at IS NOT NULL",
+        ),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
