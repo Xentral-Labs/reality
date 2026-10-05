@@ -3,7 +3,7 @@
 **Feature Branch**: `codex/read-evidence-boundaries`
 **Created**: 2026-10-05
 **Language**: English
-**Status**: Accepted for implementation
+**Status**: Implemented and verified; residual external prose limitations documented
 **Input**: Owner approved improving existing tool answers and descriptions after the external PR375 test, with no new command or business logic.
 
 ## Context and Intent
