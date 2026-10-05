@@ -277,3 +277,9 @@ processes; startup never migrates. Status reports completion and failures explic
 Case catch-up is queued independently and does not count as a turn in the existing
 source/projection alternation. Due source jobs therefore remain eligible while case
 history needs further bounded batches.
+Claims also alternate between ordinary jobs and the two actorless internal job types
+using retained actual claim history. Within each class, existing due-time order remains.
+If up to 100 preferred candidates are locked, the worker can inspect at most 100 in the
+other class. Retry timing, lease identity, attempt limits, definite refusals and job
+authorization remain unchanged. This guarantees opportunities for both classes; it
+does not promise a fixed elapsed execution time.

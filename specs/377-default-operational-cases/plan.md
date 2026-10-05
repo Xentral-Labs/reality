@@ -72,3 +72,30 @@ gates. Import changed simulator docs and test with explicit integration provenan
 Operational risk: backfill completion requires scheduler/worker operation, exposed as
 incomplete until proved; guarded new work does not wait for it. Deploy migration first,
 then matching services/scheduler/worker. Startup never performs migrations.
+
+## Shared claim fairness refinement
+
+Live-stack CI exposed that enqueue alternation alone cannot protect source latency:
+FIFO claims drain old projection/case work before a newly due source occurrence.
+Independent technical review confirms a bounded foreground/background claim alternation
+using the last actual `started_at`, not enqueue chronology. Only actorless
+`projections.refresh` and `operational_cases.reconcile` belong to the internal class;
+legacy actorful cases retain their classification and authorization. Try at most 100
+eligible candidates in the preferred class, then at most 100 in the other class if
+locks make the first unavailable. Existing definitive failure verdicts still stop a
+claim; eligibility, lease identity, retry time/limits and authorization are unchanged.
+
+A partial tenant/started_at/id index on already-retained claim history supports the
+latest-claim lookup without scanning every retained run. Add it in unmerged migration
+0145 and metadata; it introduces no new authority or status field. Meaningful tests
+first prove a >100-run internal backlog cannot hide foreground work, both classes make
+progress, and locked preferred candidates permit bounded fallback. Existing lease,
+unknown-outcome, actorful owner and complete live source proofs remain required.
+
+The existing immutable `normal-month.v2` fixture retains its deliberately orphaned
+return. Independent review accepts a non-automatic execution scope around only that
+authored movement, after the existing exact confirmed fixed-setup authority check.
+The scope grants no principal, leaves business mutation validation intact, and
+restores the surrounding automatic context. Its regression proves that a later
+unanchored automatic return still refuses without effects; original month exception
+assertions remain unchanged.

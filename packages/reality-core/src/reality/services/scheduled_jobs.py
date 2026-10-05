@@ -642,56 +642,77 @@ def claim_next(
 ) -> ScheduledJobRun | None:
     """Claim one queued occurrence; never create a timed occurrence."""
     eligible = _claimable()
-    candidates = session.execute(
-        select(ScheduledJobRun.id, ScheduledJobRun.schedule_id)
+    internal_types = {"projections.refresh", "operational_cases.reconcile"}
+    background = and_(
+        ScheduledJobRun.actor_id.is_(None),
+        ScheduledJobRun.job_type.in_(internal_types),
+    )
+    latest_claim = session.execute(
+        select(ScheduledJobRun.job_type, ScheduledJobRun.actor_id)
         .where(
             ScheduledJobRun.tenant_id == tenant_id,
-            eligible,
-            or_(
-                ScheduledJobRun.schedule_id.is_(None),
-                select(ScheduledJob.id)
-                .where(
-                    ScheduledJob.tenant_id == tenant_id,
-                    ScheduledJob.id == ScheduledJobRun.schedule_id,
-                    ScheduledJob.enabled.is_(True),
-                )
-                .exists(),
-            ),
+            ScheduledJobRun.started_at.is_not(None),
         )
-        .order_by(ScheduledJobRun.next_attempt_at, ScheduledJobRun.id)
-        .limit(100)
-    ).all()
-    for run_id, schedule_id in candidates:
-        schedule = (
-            _schedule(session, tenant_id, schedule_id, lock=True, skip=True)
-            if schedule_id
-            else None
-        )
-        if schedule_id and (schedule is None or not schedule.enabled):
-            continue
-        run = _run(session, tenant_id, run_id, lock=True, skip=True)
-        if run is None or not _eligible(run):
-            continue
-        try:
-            definition, _ = _authorize_run_or_schedule(session, run)
-        except JobError as error:
-            _failed(session, run, schedule, error.code)
-            if outcomes is not None:
-                outcomes["failed"] += 1
-            return None
-        if run.attempt_count >= 3:
-            _failed(session, run, schedule, "attempts_exhausted")
-            if outcomes is not None:
-                outcomes["failed"] += 1
-            return None
-        run.attempt_count += 1
-        run.claim_token = uuid4().hex
-        run.lease_expires_at = now() + timedelta(
-            seconds=definition.timeout_seconds + 30
-        )
-        run.status, run.started_at = "running", now()
-        session.flush()
-        return run
+        .order_by(ScheduledJobRun.started_at.desc(), ScheduledJobRun.id.desc())
+        .limit(1)
+    ).first()
+    prefer_internal = latest_claim is not None and not (
+        latest_claim.actor_id is None and latest_claim.job_type in internal_types
+    )
+    # Alternate actual claims, not enqueue timestamps. Bound each class lookup
+    # separately so locked preferred candidates cannot hide opposite-class work.
+    for claim_internal in (prefer_internal, not prefer_internal):
+        candidates = session.execute(
+            select(ScheduledJobRun.id, ScheduledJobRun.schedule_id)
+            .where(
+                ScheduledJobRun.tenant_id == tenant_id,
+                eligible,
+                background if claim_internal else ~background,
+                or_(
+                    ScheduledJobRun.schedule_id.is_(None),
+                    select(ScheduledJob.id)
+                    .where(
+                        ScheduledJob.tenant_id == tenant_id,
+                        ScheduledJob.id == ScheduledJobRun.schedule_id,
+                        ScheduledJob.enabled.is_(True),
+                    )
+                    .exists(),
+                ),
+            )
+            .order_by(ScheduledJobRun.next_attempt_at, ScheduledJobRun.id)
+            .limit(100)
+        ).all()
+        for run_id, schedule_id in candidates:
+            schedule = (
+                _schedule(session, tenant_id, schedule_id, lock=True, skip=True)
+                if schedule_id
+                else None
+            )
+            if schedule_id and (schedule is None or not schedule.enabled):
+                continue
+            run = _run(session, tenant_id, run_id, lock=True, skip=True)
+            if run is None or not _eligible(run):
+                continue
+            try:
+                definition, _ = _authorize_run_or_schedule(session, run)
+            except JobError as error:
+                _failed(session, run, schedule, error.code)
+                if outcomes is not None:
+                    outcomes["failed"] += 1
+                return None
+            if run.attempt_count >= 3:
+                _failed(session, run, schedule, "attempts_exhausted")
+                if outcomes is not None:
+                    outcomes["failed"] += 1
+                return None
+            run.attempt_count += 1
+            run.claim_token = uuid4().hex
+            run.lease_expires_at = now() + timedelta(
+                seconds=definition.timeout_seconds + 30
+            )
+            run.status, run.started_at = "running", now()
+            session.flush()
+            return run
     return None
 
 

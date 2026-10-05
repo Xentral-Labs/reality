@@ -694,3 +694,33 @@ def test_explicit_business_rereview_never_rebinds_old_handback_authority(
     assert refused.value.code == "case_action_stale"
     assert renewed.status == "proposed"
     assert not list(session.scalars(select(Reservation)))
+
+
+def test_confirmed_fixed_month_does_not_authorize_later_unanchored_return(session):
+    from intake_review_support import accept_normal_month
+
+    from reality.db.core import ReturnAnnouncement
+    from reality.services.case_action_guards import automated_execution, is_automatic
+
+    tenant = core.create_tenant(session, "Fixed month authority")
+    with automated_execution(session, tenant.id):
+        result = accept_normal_month(session, tenant.id)
+        assert is_automatic(session, tenant.id)
+        returned = session.scalar(
+            select(Movement).where(
+                Movement.tenant_id == tenant.id, Movement.type == "return"
+            )
+        )
+        assert returned.commitment_id is None
+        assert returned.return_announcement_id is None
+        assert session.scalar(
+            select(ReturnAnnouncement.id).where(ReturnAnnouncement.tenant_id == tenant.id)
+        ) is None
+        before = list(session.scalars(select(Movement.id)))
+        with pytest.raises(core.InvalidOperation) as failure:
+            core.record_movement(
+                session, tenant.id, "return", result["item_id"], 1,
+                to_location_id=returned.to_location_id, _commit=False,
+            )
+        assert failure.value.code == "case_coverage_unavailable"
+        assert list(session.scalars(select(Movement.id))) == before
