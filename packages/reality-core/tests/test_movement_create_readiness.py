@@ -141,7 +141,7 @@ def test_record_shipment_ships_a_paid_prepayment_order(session, business):
 def test_record_shipment_still_records_an_unreserved_net_term_delivery(
     session, business
 ):
-    """Only the payment gate is shared: recording what physically left needs no reservation."""
+    """A supported net-term delivery needs no reservation to record its physical shipment."""
     tenant = business.tenant.id
     core.record_movement(
         session,
@@ -150,6 +150,9 @@ def test_record_shipment_still_records_an_unreserved_net_term_delivery(
         business.item.id,
         "5",
         to_location_id=business.location.id,
+    )
+    document = core.create_document(
+        session, tenant, "sales_order", "NET-TERM-SHIPMENT", business.customer.id, "0"
     )
     commitment = core.create_commitment(
         session,
@@ -161,6 +164,7 @@ def test_record_shipment_still_records_an_unreserved_net_term_delivery(
         business.location.id,
         "2",
         "2026-10-01",
+        document_id=document.id,
     )
 
     executed = _confirm(

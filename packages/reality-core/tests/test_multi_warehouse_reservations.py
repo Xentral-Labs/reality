@@ -32,6 +32,9 @@ def _stock(session, business, quantity, location, item=None, **identity):
 
 
 def _promise(session, business, quantity, item=None):
+    document = core.create_document(
+        session, business.tenant.id, "sales_order", "WAREHOUSE-ORDER", business.customer.id, "0"
+    )
     return core.create_commitment(
         session,
         business.tenant.id,
@@ -42,6 +45,7 @@ def _promise(session, business, quantity, item=None):
         business.location.id,
         quantity,
         "2026-10-10",
+        document_id=document.id,
     )
 
 

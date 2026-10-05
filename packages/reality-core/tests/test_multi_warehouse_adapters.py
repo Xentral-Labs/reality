@@ -29,6 +29,9 @@ def _setup(session, business):
         "40",
         to_location_id=munich.id,
     )
+    document = core.create_document(
+        session, business.tenant.id, "sales_order", "MULTI-WAREHOUSE", business.customer.id, "0"
+    )
     promise = core.create_commitment(
         session,
         business.tenant.id,
@@ -39,6 +42,7 @@ def _setup(session, business):
         business.location.id,
         "4",
         "2026-10-10",
+        document_id=document.id,
     )
     return munich, promise
 
