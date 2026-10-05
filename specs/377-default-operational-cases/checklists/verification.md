@@ -53,6 +53,20 @@ The Web action-reference fixture now matches default policy and status metadata.
 The activity-volume proof counts the shared delivery fixture's accepted order while
 still rejecting duplicate import events. Both revised contracts passed (2 passed).
 
+Further current-schema and public-adapter checks passed: email migration (1), MCP
+confirmed reservation (1), and complete application catalog/HTTP contracts (51).
+Fixed count assertions reflect 207 commands, 102 currently emitted event types and
+717 tenant-classified operations. Application-tool reservation fixtures retain their
+exact unknown-execution and receipt proofs with canonical order anchors.
+
+The eight-worker local backend run completed 1,564 passing proofs and 10 expected
+skips before interruption. Its ten failures were outdated fixtures/counts corrected
+above; ten demo setup errors arose from the unchanged 120-second handler deadline
+under concurrent local load. The same complete demo-profile proof passed on repeat
+without changing deadlines (1 passed). A four-worker continuation retains completed
+proofs and runs every remaining collected test, including failures/errors, using only
+a temporary local collection filter. No repository assertion or product limit changes.
+
 Full backend (6,491 collected tests), full fixture browser suite (87 scripts) and PR
 CI are running. T011 and complete acceptance remain unchecked until assessed.
 The local browser harness maps existing macOS `/private/tmp` screenshot paths to

@@ -37,6 +37,7 @@ from reality.security.secrets import resolve_secret
 from reality.services.core import (
     NotFound,
     create_commitment,
+    create_document,
     create_tenant,
     record_movement,
 )
@@ -1000,6 +1001,9 @@ async def test_mcp_tools_read_and_only_propose_mutations(
         2,
         to_location_id=business.location.id,
     )
+    document = create_document(
+        session, business.tenant.id, "sales_order", "MCP-ORDER", business.customer.id, "0"
+    )
     commitment = create_commitment(
         session,
         business.tenant.id,
@@ -1010,6 +1014,7 @@ async def test_mcp_tools_read_and_only_propose_mutations(
         business.location.id,
         1,
         "2026-09-10",
+        document_id=document.id,
     )
     server = mcp_module.build_server()
     access = AccessToken(

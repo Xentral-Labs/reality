@@ -27,6 +27,7 @@ from reality.services.core import (
     NotFound,
     active_reserved,
     create_commitment,
+    create_document,
     create_item,
     create_location,
     create_payment_term,
@@ -53,6 +54,9 @@ def commitment_with_stock(session, business):
         5,
         to_location_id=business.location.id,
     )
+    document = create_document(
+        session, business.tenant.id, "sales_order", "TOOL-ORDER", business.customer.id, "0"
+    )
     return create_commitment(
         session,
         business.tenant.id,
@@ -63,6 +67,7 @@ def commitment_with_stock(session, business):
         business.location.id,
         5,
         "2026-09-03",
+        document_id=document.id,
     )
 
 
@@ -162,6 +167,9 @@ def test_capability_discovery_accepts_public_or_unique_application_name(
 
 
 def test_reservation_receipts_classify_none_partial_and_complete(session, business):
+    document = create_document(
+        session, business.tenant.id, "sales_order", "RESERVATION-ORDER", business.customer.id, "0"
+    )
     commitment = create_commitment(
         session,
         business.tenant.id,
@@ -172,6 +180,7 @@ def test_reservation_receipts_classify_none_partial_and_complete(session, busine
         business.location.id,
         5,
         "2026-09-24",
+        document_id=document.id,
     )
 
     none = propose_tool(
