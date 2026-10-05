@@ -162,6 +162,7 @@ def validate_manual_operational_document_type(document_type: object) -> str:
 
 
 AGENT_DISCOVERY_MODELS: dict[str, tuple[type[Base], tuple[str, ...]]] = {
+    "executed_decision": (ChangeProposal, ("id", "status", "created_at", "decided_at")),
     "party": (Party, ("id", "name", "type", "is_active", "default_currency")),
     "item": (
         Item,
@@ -378,6 +379,54 @@ class Conflict(InvalidOperation):
     """The requested mutation is valid in shape but based on stale state."""
 
 
+def _order_execution_events(
+    session: OrmSession, tenant_id: str, document_id: str
+) -> ColumnElement[bool]:
+    """Exact retained effects, following line membership before document fallback."""
+    document = _tenant_record(session, Document, tenant_id, document_id)
+    if document.type not in {"sales_order", "purchase_order"}:
+        raise NotFound("Order not found.")
+
+    def ids(model: type[Base], *criteria: ColumnElement[bool]) -> Select:
+        return select(model.id).where(model.tenant_id == tenant_id, *criteria)
+
+    lines = ids(DocumentLine, DocumentLine.document_id == document_id)
+    commitments = ids(
+        Commitment,
+        or_(
+            Commitment.document_line_id.in_(lines),
+            and_(
+                Commitment.document_line_id.is_(None),
+                Commitment.document_id == document_id,
+            ),
+        ),
+    )
+    members = {
+        "document": ids(Document, Document.id == document_id),
+        "document_line": lines,
+        "commitment": commitments,
+        "reservation": ids(Reservation, Reservation.commitment_id.in_(commitments)),
+        "movement": ids(Movement, Movement.commitment_id.in_(commitments)),
+    }
+    return (
+        select(BusinessEvent.id)
+        .where(
+            BusinessEvent.tenant_id == tenant_id,
+            BusinessEvent.action_id == ChangeProposal.id,
+            or_(
+                *(
+                    and_(
+                        BusinessEvent.subject_type == kind,
+                        BusinessEvent.subject_id.in_(selection),
+                    )
+                    for kind, selection in members.items()
+                )
+            ),
+        )
+        .exists()
+    )
+
+
 def business_discovery_statement(
     session: OrmSession,
     tenant_id: str,
@@ -394,13 +443,18 @@ def business_discovery_statement(
         raise InvalidOperation("Unsupported discovery family.")
     model, fields = definition
     statement = select(model).where(model.tenant_id == tenant_id)
+    if model is ChangeProposal:
+        statement = statement.where(ChangeProposal.status == "executed")
     if document_id is not None:
-        if model is not DocumentLine:
-            raise InvalidOperation(
-                code="discovery_document_scope_unsupported"
+        if model is ChangeProposal:
+            statement = statement.where(
+                _order_execution_events(session, tenant_id, document_id)
             )
-        _tenant_record(session, Document, tenant_id, document_id)
-        statement = statement.where(DocumentLine.document_id == document_id)
+        elif model is not DocumentLine:
+            raise InvalidOperation(code="discovery_document_scope_unsupported")
+        else:
+            _tenant_record(session, Document, tenant_id, document_id)
+            statement = statement.where(DocumentLine.document_id == document_id)
     if record_id:
         statement = statement.where(model.id == record_id)
     elif query.strip():
@@ -420,8 +474,8 @@ def business_discovery_statement(
             )
             if hasattr(model, name)
         ]
-        if model is Movement:
-            searchable.append(Movement.type)
+        if model in (Movement, ChangeProposal):
+            searchable.append(model.type)
         if searchable:
             predicates = [column.ilike(needle) for column in searchable]
             if model is Party and "@" in raw_query:
@@ -440,7 +494,11 @@ def business_discovery_statement(
 
 
 def business_discovery_record(
-    row: Any, fields: tuple[str, ...], session: OrmSession
+    row: Any,
+    fields: tuple[str, ...],
+    session: OrmSession,
+    *,
+    document_id: str | None = None,
 ) -> dict[str, Any]:
     result = {}
     for field in fields:
@@ -478,6 +536,18 @@ def business_discovery_record(
             unit_status="known" if unit else "unknown",
             quantity_basis="item_unit",
         )
+    if isinstance(row, ChangeProposal):
+        result.update(
+            proposal_id=row.id,
+            tool=row.type.removeprefix("tool:"),
+            review_read="proposal_review",
+            verification_read="proposal_execution_status",
+            association_scope=(
+                "retained_execution_events"
+                if document_id is not None
+                else "retained_executed_decisions"
+            ),
+        )
     if isinstance(row, LedgerEntry):
         result["side"] = result["debit_credit"]
     if isinstance(row, Party):
@@ -508,18 +578,22 @@ def discover_business_records(
     """Legacy bounded lookup; complete traversal uses the shared page contract."""
     if type(limit) is not int or not 1 <= limit <= 100:
         raise InvalidOperation("Discovery limit must be between 1 and 100.")
-    statement, _, fields = business_discovery_statement(
-        session,
-        tenant_id,
-        family,
-        query=query,
-        record_id=record_id,
-        document_id=document_id,
-    )
-    rows = list(session.scalars(statement.limit(limit)))
-    if record_id and not rows:
-        raise NotFound("Business record not found.")
-    return [business_discovery_record(row, fields, session) for row in rows]
+    with session.no_autoflush:
+        statement, _, fields = business_discovery_statement(
+            session,
+            tenant_id,
+            family,
+            query=query,
+            record_id=record_id,
+            document_id=document_id,
+        )
+        rows = list(session.scalars(statement.limit(limit)))
+        if record_id and not rows:
+            raise NotFound("Business record not found.")
+        return [
+            business_discovery_record(row, fields, session, document_id=document_id)
+            for row in rows
+        ]
 
 
 def decimal(value: Decimal | float | str) -> Decimal:

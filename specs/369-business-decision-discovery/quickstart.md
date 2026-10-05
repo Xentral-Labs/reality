@@ -1,0 +1,3 @@
+# Validation
+From packages/reality-core run ../../.venv/bin/pytest tests/test_business_decision_discovery.py tests/test_mcp_read_contract.py tests/test_mcp_http_runtime.py -q and ../../.venv/bin/ruff check . . At root run make docs-generate, make docs-catalog-check and make spec-check. Complete all Quality checks before marking completion.
+For live acceptance use the paused synthetic MCP company: discover SO-006 as a document, discover executed_decision by its opaque document_id, then proposal_review and proposal_execution_status with the returned ID. Do not supply the expected Decision ID or propose/execute business actions. Record current reservation/fulfillment and event sequence before/after. Revoke temporary access and remove isolated runtimes afterward.

@@ -170,7 +170,9 @@ def discovery_summary(
         if not records:
             parts.append("No matching retained records were found.")
     if not complete:
-        parts.append("The matching retained selection record count is unknown from this page.")
+        parts.append(
+            "The matching retained selection record count is unknown from this page."
+        )
     parts.append("Upstream completeness and freshness are unknown.")
     summary["observation"] = " ".join(parts)
     return summary
@@ -199,12 +201,30 @@ def discovery_page(
         if filters["record_id"] and not rows and after is None:
             raise NotFound("Business record not found.")
         page = page_result(
-            [business_discovery_record(row, fields, session) for row in rows],
+            [
+                business_discovery_record(
+                    row, fields, session, document_id=filters.get("document_id")
+                )
+                for row in rows
+            ],
             [row.id for row in rows],
             limit,
             scope,
             read_metadata(session, tenant_id, filters, paged=True),
         )
+        if filters["family"] == "executed_decision":
+            page["metadata"]["decision_coverage"] = {
+                "scope": "retained_execution_events"
+                if filters.get("document_id") is not None
+                else "retained_executed_decisions",
+                "historical_completeness": "unknown",
+                "observation": (
+                    "Only executed Decisions with retained execution events on this order, its lines, commitments, reservations or movements are selected. "
+                    if filters.get("document_id") is not None
+                    else "Only retained executed Decisions are selected; no affected-order association is claimed. "
+                )
+                + "An empty result does not establish absence of all historical actions. Use proposal_review and proposal_execution_status with the returned proposal_id; do not replay execution.",
+            }
         page["summary"] = discovery_summary(
             page, family=filters["family"], omitted_before=after is not None
         )

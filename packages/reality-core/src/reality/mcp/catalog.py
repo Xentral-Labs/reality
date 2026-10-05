@@ -993,7 +993,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "business_records_discover",
         "Discover business records",
-        "Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of shown records. Movement summary counts_by_type counts records, not quantities: return is customer return, supplier_return is supplier return. Preserve omitted_before/omitted_after and complete_matching_selection. selection_record_count is null on partial pages including final cursor pages; only a complete first response establishes the retained filtered selection count. Movement records are not Shipment consignments. Quantity references include canonical item_name/item_sku beside opaque IDs. Explicit legacy mode is a bounded lookup.",
+        "Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of shown records. Movement summary counts_by_type counts records, not quantities: return is customer return, supplier_return is supplier return. Preserve omitted_before/omitted_after and complete_matching_selection. selection_record_count is null on partial pages including final cursor pages; only a complete first response establishes the retained filtered selection count. Movement records are not Shipment consignments. Quantity references include canonical item_name/item_sku beside opaque IDs. Executed Decisions: family executed_decision returns payload-free audit metadata; optional document_id selects exact retained sales/purchase order effect events, not complete history. Follow returned proposal_id with proposal_review/proposal_execution_status; do not repeat execution. Explicit legacy mode is a bounded lookup.",
         "read",
         "Discovery",
         _object_schema(
@@ -1002,6 +1002,7 @@ MCP_TOOL_CATALOG = (
                 "family": {
                     "type": "string",
                     "enum": [
+                        "executed_decision",
                         "party",
                         "item",
                         "location",
@@ -1026,7 +1027,7 @@ MCP_TOOL_CATALOG = (
                 "query": {
                     "type": "string",
                     "default": "",
-                    "description": "Case-insensitive substring search over available labels, codes and human numbers; movement searches match the retained movement type (for example shipment). Filtering precedes pagination. An exact record_id takes precedence.",
+                    "description": "Case-insensitive substring search over available labels, codes and human numbers; movement searches match the retained movement type (for example shipment); executed_decision searches match the tool type (for example reserve). Filtering precedes pagination. An exact record_id takes precedence.",
                 },
                 "limit": {
                     "type": "integer",
@@ -1035,7 +1036,10 @@ MCP_TOOL_CATALOG = (
                     "default": 25,
                 },
                 "record_id": OPTIONAL_STRING,
-                "document_id": OPTIONAL_STRING,
+                "document_id": {
+                    "type": "string",
+                    "description": "Opaque document ID: document_line selects its lines; executed_decision selects retained execution events for a sales/purchase order and its exact effect members. Other families do not support this filter.",
+                },
             },
             required=("family",),
         ),
