@@ -516,7 +516,7 @@ def test_http_executed_decision_discovery_uses_existing_read_grant(
         session,
         business.tenant.id,
         "Discovery reader",
-        allowed_tools=["business_records_discover"],
+        allowed_tools=["business_records_discover", "order_explain"],
     )
     _, denied = create_mcp_access_token(
         session, business.tenant.id, "Context reader", allowed_tools=["company_context"]
@@ -555,6 +555,22 @@ def test_http_executed_decision_discovery_uses_existing_read_grant(
         assert (
             value["metadata"]["decision_coverage"]["historical_completeness"]
             == "unknown"
+        )
+        assert value["summary"]["selection_scope"] == "retained_execution_events"
+        assert value["summary"]["historical_completeness"] == "unknown"
+        assert (
+            "retained_execution_events" in value["summary"]["observation"].split(".")[0]
+        )
+        order_response = call(
+            allowed, "order_explain", {"order_reference": document.id}
+        )
+        assert order_response.status_code == 200
+        order_result = order_response.json()["result"]
+        assert not order_result.get("isError", False)
+        order_value = json.loads(order_result["content"][0]["text"])
+        assert (
+            order_value["interpretation_scope"]["inventory_history"]
+            == "not_established_by_this_read"
         )
         nullable = call(
             allowed,

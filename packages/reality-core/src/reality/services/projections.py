@@ -38,6 +38,7 @@ from reality.db.core import (
 from reality.domain.calendar import day_text
 from reality.services.read_interpretation import (
     historical_fulfillment_cause,
+    order_inventory_interpretation,
     projection_interpretation,
 )
 
@@ -3530,6 +3531,7 @@ def _explain_retained_order(
         }
         if source
         else None,
+        "interpretation_scope": order_inventory_interpretation(),
         "metadata": read_metadata(
             session, tenant_id, {"order_reference": order_reference}
         ),

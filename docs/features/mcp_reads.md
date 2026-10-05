@@ -219,3 +219,28 @@ executing Decisions are outside this family. Events without an action do not inv
 Decisions. Page and bounded legacy shapes, cursor filters and existing permissions
 are preserved. No schema, business write, extra report command or browser is needed.
 See [spec 369](../../specs/369-business-decision-discovery/spec.md).
+
+
+## Evidence limits beside observations (spec 370)
+
+Executed Decision page summaries repeat the existing coverage as `selection_scope`
+and `historical_completeness`. The first count sentence names
+`retained_execution_events` for an order filter or `retained_executed_decisions`
+without one. Complete matching selection still means only the retained filtered
+selection at this read; it never proves complete historical actions. Empty and
+partial/final-page semantics and legacy discovery are unchanged.
+
+`order_explain.interpretation_scope` distinguishes current inventory and order-linked
+Movements from complete inventory history (`inventory_history:
+not_established_by_this_read`). Neither present stock nor a shipment proves receipt
+timing or an alternative inventory context. Report uninspected history as “not
+checked” instead of adding conditional explanations. `inventory_read` is also a
+current stock read, even with exact item/location filters.
+
+The existing `movement_explanation(movement_id)` follows an exact retained movement's
+source/business/correction links; it does not establish complete inventory history.
+Movement discovery has no item/document filter; its substring query matches movement
+type. Do not invent filters or source relationships. Guidance is shared, transient
+and non-authoritative: it changes no quantities, operational rules, permissions or
+stored history and cannot guarantee an external provider's free-form answer.
+See [spec 370](../../specs/370-read-evidence-boundaries/spec.md).
