@@ -62,12 +62,9 @@ def list_cases(
 @router.get("/status")
 def status(tenant_id: str, request: Request, session: DatabaseSession):
     principal = optional_request_principal(request)
-    if principal is not None:
-        _respond(lambda: cases._member(session, tenant_id, principal))
-    return {
-        **_respond(lambda: cases.coordination_status(session, tenant_id)),
-        "can_control": principal is not None,
-    }
+    return _respond(
+        lambda: cases.coordination_status(session, tenant_id, principal=principal)
+    )
 
 
 @router.post("/adoption")

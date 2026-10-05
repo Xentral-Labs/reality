@@ -54,7 +54,9 @@ validate same-company selections but create no adoption/decision and never reset
 Status keeps adopted=true/can_adopt=false compatibility fields and reports coverage,
 provenance and job failure; incomplete migration is explicit. Reads never run backfill.
 `web/operational_cases.py`, `OperationalCaseDetail.tsx` remove activation and display
-upgrade readiness. Takeover/handback and malformed response containment remain.
+upgrade readiness. Owned sandbox status reads follow existing private read access
+and report can_control=false without granting business-member authority.
+Takeover/handback and malformed response containment remain.
 
 ## Verification and risks
 

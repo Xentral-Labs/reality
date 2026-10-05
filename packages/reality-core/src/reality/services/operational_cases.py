@@ -101,7 +101,9 @@ def coordination_enabled(session: Session, tenant_id: str) -> bool:
     return tenant.archived_at is None
 
 
-def coordination_status(session: Session, tenant_id: str) -> dict:
+def coordination_status(
+    session: Session, tenant_id: str, *, principal: Principal | None = None
+) -> dict:
     """
     BUSINESS PURPOSE:
     Report default coordination readiness and platform provenance without authorizing business actions.
@@ -109,7 +111,10 @@ def coordination_status(session: Session, tenant_id: str) -> dict:
     BUSINESS RULE services.operational_cases.coordination_status.result:
     Report completion only after bounded scans and current event catch-up; preserve tenant scope.
     """
-    core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
+    tenant = core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
+    can_control = principal is not None and tenant.purpose == "business"
+    if can_control:
+        _member(session, tenant_id, principal)
     ready = schema_available(session)
     rollout = (
         session.scalar(
@@ -163,6 +168,7 @@ def coordination_status(session: Session, tenant_id: str) -> dict:
         "adopted": True,
         "enabled": True,
         "can_adopt": False,
+        "can_control": can_control,
         "migration_ready": ready,
         "coverage_ready": bool(rollout and rollout.completed_at and caught_up),
         "rollout_version": 377,
@@ -509,7 +515,10 @@ def adopt(
     for record_id in args["return_ids"]:
         core._tenant_record_read(session, ReturnAnnouncement, tenant_id, record_id)
     # Deprecated compatibility acknowledgement. Never manufacture consent/history.
-    result = {"policy_version": 1, **coordination_status(session, tenant_id)}
+    result = {
+        "policy_version": 1,
+        **coordination_status(session, tenant_id, principal=principal),
+    }
     if _commit:
         session.commit()
     # reality-rule: services.operational_cases.adopt.result
