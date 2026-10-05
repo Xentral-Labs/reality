@@ -9,8 +9,9 @@
 **Language**: English
 
 **Input**: A client connected over MCP cannot tell a sandbox company from a business company.
-On a sandbox company proposals preview flat, with no review token; on a business company they
-carry one. Today the client asks a person to declare which it is talking to.
+On a sandbox company most proposals preview flat, with no review token; on a business company
+they carry one (since spec 364 a sandbox reservation is reviewed too). Today the client asks a
+person to declare which it is talking to.
 
 ## Context and Intent
 
@@ -65,7 +66,7 @@ call first (spec 270).
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001 | US1.1, US1.2, US1.3 | `packages/reality-core/tests/test_capability_catalog.py::test_topic_index_names_the_tenant_purpose`, `::test_the_token_reads_only_its_own_tenant_purpose` |
-| FR-002 | US1.3 | `packages/reality-core/tests/test_capability_catalog.py::test_the_token_reads_only_its_own_tenant_purpose` |
-| DR-001 | US1 | `packages/reality-core/src/reality/services/capability_catalog.py::_tenant` |
+| FR-001 | US1.1, US1.2, US1.3 | `packages/reality-core/tests/test_capability_catalog.py::test_topic_index_names_the_tenant_purpose`, `::test_the_token_reads_only_its_own_tenant_purpose`, `::test_each_verified_token_reads_its_own_tenant_purpose_over_mcp` |
+| FR-002 | US1.3 | `packages/reality-core/tests/test_capability_catalog.py::test_the_token_reads_only_its_own_tenant_purpose`, `::test_each_verified_token_reads_its_own_tenant_purpose_over_mcp` |
+| DR-001 | US1 | `packages/reality-core/src/reality/services/capability_catalog.py::_tenant`, `packages/reality-core/tests/test_capability_catalog.py::test_each_verified_token_reads_its_own_tenant_purpose_over_mcp` |
 | SC-001 | US1 | `packages/reality-core/tests/test_capability_catalog.py::test_topic_index_names_the_tenant_purpose` |
