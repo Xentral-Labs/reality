@@ -805,6 +805,8 @@ def test_return_summary_counts_shown_records_without_swapping_roles(
     assert {r["id"] for r in result["records"]} == {r.id for r in mixed_return_records}
     assert all(row["item_name"] == business.item.name for row in result["records"])
     assert all(row["item_sku"] == business.item.sku for row in result["records"])
+    assert result["summary"]["selection_record_count"] == 7
+    assert "not Shipment consignments" in result["summary"]["observation"]
     assert result["summary"]["shown_record_count"] == 7
     assert result["summary"]["counts_by_type"] == {"return": 4, "supplier_return": 3}
     assert "customer return (return): 4 records" in result["summary"]["observation"]
@@ -855,6 +857,8 @@ def test_summary_excludes_lookahead_and_last_cursor_is_not_complete_selection(
         record = result["records"][0]
         summary = result["summary"]
         assert summary["scope"] == "shown_records"
+        assert summary["selection_record_count"] is None
+        assert "selection record count is unknown" in summary["observation"]
         assert summary["shown_record_count"] == 1
         assert summary["counts_by_type"] == {record["type"]: 1}
         assert summary["omitted_before"] is (index > 0)
@@ -880,6 +884,7 @@ def test_summary_empty_exact_identity_and_nonmovement_scope(
         family="movement",
         query="absent",
     )
+    assert empty["summary"]["selection_record_count"] == 0
     assert empty["summary"]["shown_record_count"] == 0
     assert empty["summary"]["counts_by_type"] == {}
     assert "No matching retained records" in empty["summary"]["observation"]

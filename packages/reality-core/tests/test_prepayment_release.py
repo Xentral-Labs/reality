@@ -157,6 +157,11 @@ def test_an_owner_releases_a_partly_paid_order_and_it_ships(session, business):
     after = fulfillment_readiness(session, tenant, promise.id)
     assert after.ship_ready
     assert after.prepayment_release_id
+    meaning = after.as_dict()["payment_interpretation"]
+    assert meaning["shipment_constraint"]["status"] == "released"
+    assert meaning["shipment_constraint"]["release_id"] == after.prepayment_release_id
+    assert meaning["payment_evidence"]["remaining"] == "20.0000"
+    assert "release is not payment" in meaning["notice"]
     # The unpaid rest stays an ordinary open receivable.
     assert after.remaining_amount == Decimal("20.0000")
     assert core.open_invoice_amount(session, tenant, invoice.id) == Decimal("20.0000")

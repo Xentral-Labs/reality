@@ -157,6 +157,8 @@ def test_ready_and_completed_reads_have_consistent_cause(session, business):
         "fulfillment_readiness",
         {"commitment_id": commitment.id},
     )
+    assert closed["payment_interpretation"]["shipment_constraint"]["status"] == "not_applicable"
+    assert closed["payment_interpretation"]["payment_evidence"]["status"] == "not_evaluated"
     assert closed["unfulfilled_cause"]["status"] == "not_applicable"
     explained = dispatch_tool(
         session, business.tenant.id, "order_explain", {"order_reference": document.id}

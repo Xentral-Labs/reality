@@ -134,6 +134,7 @@ def discovery_summary(
     summary = {
         "scope": "shown_records",
         "shown_record_count": len(records),
+        "selection_record_count": len(records) if complete else None,
         "omitted_before": omitted_before,
         "omitted_after": page["has_more"],
         "complete_matching_selection": complete,
@@ -151,7 +152,8 @@ def discovery_summary(
             for kind, count in counts.items()
         )
         parts.append(
-            "These are Movement record counts, not quantities, orders or customers."
+            "These are Movement record counts, not quantities, orders or customers. "
+            "They are not Shipment consignments."
         )
     if omitted_before:
         parts.append(
@@ -167,6 +169,8 @@ def discovery_summary(
         )
         if not records:
             parts.append("No matching retained records were found.")
+    if not complete:
+        parts.append("The matching retained selection record count is unknown from this page.")
     parts.append("Upstream completeness and freshness are unknown.")
     summary["observation"] = " ".join(parts)
     return summary

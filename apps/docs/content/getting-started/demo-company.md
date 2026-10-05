@@ -74,6 +74,9 @@ Use business_records_discover page summaries: preserve counts_by_type and shown-
 coverage; return means customer returns and supplier_return means supplier returns.
 Report one concise finding per stage and one order example; avoid full record tables.
 Do not add quantities across different items or units.
+Use selection_record_count only for a complete first response; null means unknown selection size.
+Movement records are not Shipment consignments. Use readiness payment_interpretation:
+standard payment is not evaluated, order basis is not an unpaid invoice, release is not payment.
 Do not turn a sample into a total. Use order_explain current blockers and unfulfilled_cause;
 state unknown causes explicitly instead of inferring them from missing delivery records.
 Obtain information yourself; ask only when you cannot resolve it. Invent no data or rules.

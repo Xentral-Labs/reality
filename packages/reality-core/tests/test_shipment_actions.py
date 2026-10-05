@@ -327,6 +327,7 @@ def test_shipment_review_omits_transient_read_interpretation(
     before = review_shipment_action(
         session, business.tenant.id, "shipment_dispatch", intent
     )
+    assert "payment_interpretation" not in json.dumps(before)
     assert "unfulfilled_cause" not in json.dumps(before)
     assert "blocker_kind" not in json.dumps(before)
     original = FulfillmentReadiness.as_dict

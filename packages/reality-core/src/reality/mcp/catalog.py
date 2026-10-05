@@ -993,7 +993,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "business_records_discover",
         "Discover business records",
-        "Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of shown records. Movement summary counts_by_type counts records, not quantities: return is customer return, supplier_return is supplier return. Preserve omitted_before/omitted_after and complete_matching_selection; a final cursor page is not a total. Quantity references include canonical item_name/item_sku beside opaque IDs. Explicit legacy mode is a bounded lookup.",
+        "Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of shown records. Movement summary counts_by_type counts records, not quantities: return is customer return, supplier_return is supplier return. Preserve omitted_before/omitted_after and complete_matching_selection. selection_record_count is null on partial pages including final cursor pages; only a complete first response establishes the retained filtered selection count. Movement records are not Shipment consignments. Quantity references include canonical item_name/item_sku beside opaque IDs. Explicit legacy mode is a bounded lookup.",
         "read",
         "Discovery",
         _object_schema(
@@ -1278,7 +1278,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "fulfillment_readiness",
         "Read fulfillment readiness",
-        "Canonical current blockers, payment amounts, and evidence for one delivery commitment. Blocker kind distinguishes recorded holds from derived readiness conditions; historical nonexecution cause remains unknown for open quantities.",
+        "Canonical current blockers, payment amounts, and evidence for one delivery commitment. payment_interpretation distinguishes stated order basis, evaluated order-qualified prepayment and shipment constraints. Standard payment is not_evaluated: legacy required_amount is not an unpaid invoice and zeroes prove neither settlement nor absence of payments. Owner release is not payment. Blocker kind distinguishes recorded holds from derived readiness conditions; historical nonexecution cause remains unknown for open quantities.",
         "read",
         "Operations",
         _object_schema({"commitment_id": STRING}, required=("commitment_id",)),

@@ -2654,3 +2654,13 @@ no Finance-allocation expansion, new scheduling, deployment or third-party right
 | `packages/reality-core/tests/test_chat_streaming.py` | Spec 367 FR-005 | Output-limit handling before decoding/dispatch and reset to localized notice |
 | `packages/reality-core/tests/test_chat_scope_security.py` | Spec 367 FR-005 | Nonstreaming output-limit notice and zero tool dispatch |
 | `packages/reality-core/tests/test_shipment_actions.py` | Spec 367 FR-006 | Existing review payload/token compatibility |
+
+## Spec 368: Payment evidence and selection scope
+
+| Test family | Contract | Evidence |
+|---|---|---|
+| `packages/reality-core/tests/test_payment_evidence_scope.py` | Spec 368 FR-001–003 | Standard/orphan/unstated basis, direct/exact/queue parity, unchanged raw cache |
+| `packages/reality-core/tests/test_fulfillment_readiness.py` | Spec 368 FR-002 | Missing invoice, paid, ambiguous and consolidated qualification |
+| `packages/reality-core/tests/test_prepayment_release.py` | Spec 368 FR-002 | Actual owner release retains unpaid qualifying amount |
+| `packages/reality-core/tests/test_shipment_actions.py` | Spec 368 FR-003 | Review token and raw payload compatibility |
+| `packages/reality-core/tests/test_mcp_read_contract.py` | Spec 368 FR-004 | Limited/final/complete/empty retained selection counts |

@@ -100,6 +100,10 @@ def test_prepayment_readiness_uses_stated_order_and_active_allocation(
     assert before_invoice.required_amount == Decimal(100)
     assert before_invoice.received_amount == 0
     assert before_invoice.remaining_amount == Decimal(100)
+    assert (
+        before_invoice.as_dict()["payment_interpretation"]["payment_evidence"]["status"]
+        == "invoice_missing"
+    )
 
     receipt = record_sales_invoice(
         session, tenant_id, line.id, "10", "100", "INV-PREPAY"
@@ -120,6 +124,10 @@ def test_prepayment_readiness_uses_stated_order_and_active_allocation(
     assert paid.received_amount == Decimal(100)
     assert paid.remaining_amount == 0
     assert len(paid.allocation_ids) == 1
+    meaning = paid.as_dict()["payment_interpretation"]
+    assert meaning["payment_evidence"]["status"] == "order_qualified"
+    assert meaning["payment_evidence"]["allocation_ids"] == list(paid.allocation_ids)
+    assert meaning["shipment_constraint"]["status"] == "satisfied"
 
 
 def test_reversed_and_foreign_payment_evidence_does_not_satisfy_prepayment(
@@ -231,6 +239,10 @@ def test_invoice_line_of_another_partys_order_blocks_without_guessing(
     result = fulfillment_readiness(session, tenant_id, commitment.id)
     assert other_order.id != result.order_id
     assert "prepayment_attribution_ambiguous" in result.blocker_codes
+    meaning = result.as_dict()["payment_interpretation"]
+    assert meaning["payment_evidence"]["status"] == "attribution_ambiguous"
+    assert meaning["payment_evidence"]["received"] is None
+    assert meaning["payment_evidence"]["remaining"] is None
     assert result.received_amount == 0
     assert result.ship_ready is False
 
@@ -297,6 +309,13 @@ def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
     assert part_paid.ship_ready is False
     assert "prepayment_consolidated_invoice_open" in part_paid.blocker_codes
     assert part_paid.received_amount == 0
+    meaning = part_paid.as_dict()["payment_interpretation"]
+    assert meaning["payment_evidence"]["received"] == "0"
+    assert (
+        "prepayment_consolidated_invoice_open"
+        in meaning["shipment_constraint"]["blocker_codes"]
+    )
+    assert meaning["shipment_constraint"]["status"] == "blocked"
 
     post_customer_payment(session, tenant_id, invoice.id, "60")
     settled = fulfillment_readiness(session, tenant_id, commitment.id)
@@ -304,6 +323,10 @@ def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
     assert settled.ship_ready is True
     assert settled.received_amount == Decimal(100)
     assert settled.remaining_amount == 0
+    assert (
+        settled.as_dict()["payment_interpretation"]["shipment_constraint"]["status"]
+        == "satisfied"
+    )
 
 
 def test_unpaid_net_term_is_not_blocked_by_prepayment(session, business):

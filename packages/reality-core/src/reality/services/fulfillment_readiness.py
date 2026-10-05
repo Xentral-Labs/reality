@@ -31,6 +31,7 @@ from reality.services.core import (
 from reality.services.read_interpretation import (
     blocker_kind,
     historical_fulfillment_cause,
+    payment_interpretation,
 )
 
 ZERO = Decimal(0)
@@ -90,7 +91,7 @@ class FulfillmentReadiness:
             "invoice_ids": list(self.invoice_ids),
             "allocation_ids": list(self.allocation_ids),
         }
-        return {
+        result = {
             "commitment_id": self.commitment_id,
             "document_id": self.order_id,
             "order_id": self.order_id,
@@ -159,6 +160,10 @@ class FulfillmentReadiness:
                 for identity in identities
             ],
         }
+
+        if include_interpretation:
+            result["payment_interpretation"] = payment_interpretation(result)
+        return result
 
 
 def _blocker_detail(code: str, result: FulfillmentReadiness) -> str:
