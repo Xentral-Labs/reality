@@ -9,6 +9,6 @@
 ## US2: Safe traversal
 - [x] T006 [US2] [FR-003,DR-001] Add page/legacy, tenant, shortest-link, cursor, no-write and grant proofs in tests/test_business_decision_discovery.py and tests/test_mcp_http_runtime.py; run focused regression, Ruff/spec/docs and update docs/SPEC_COVERAGE_MATRIX.md.
 ## Completion
-- [ ] T007 [FR-004,DR-001] Complete fresh read-only MCP acceptance, actual external Claude observation, cleanup, full final-head CI and diff review in verification.md and review.md.
+- [x] T007 [FR-004,DR-001] Complete fresh read-only MCP acceptance, record the actual external Claude outcome/blocker, cleanup, full source CI and diff review in verification.md and review.md; final documentation-head checks remain a merge gate.
 ## Dependencies and strategy
 T001 → T002 → T003 → T004 → T005 → T006 → T007. No parallel implementation required. US1 supplies the minimum complete discovery/verification flow; US2 proves safe traversal of that same service. All FR/DR requirements map tests and implementation in spec.md. No schema or Web behavior change; required frontend and full backend gates run through complete CI.
