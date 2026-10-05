@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
 
 from reality.cli import app as cli_module
-from reality.db.core import ChangeProposal
+from reality.db.core import ChangeProposal, uid
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, model_tool_schemas
 from reality.services import core
 from reality.tools.application import approve_and_execute_proposal
@@ -28,6 +28,10 @@ def _stock(session, business, quantity):
 
 
 def _promise(session, business, quantity, due):
+    order = core.create_document(
+        session, business.tenant.id, "sales_order", uid("backorder"),
+        business.customer.id, "0",
+    )
     return core.create_commitment(
         session,
         business.tenant.id,
@@ -38,6 +42,7 @@ def _promise(session, business, quantity, due):
         business.location.id,
         quantity,
         due,
+        document_id=order.id,
     )
 
 

@@ -73,7 +73,7 @@ def entries(session, tenant_id: str) -> list[StorylineTraceEntry]:
 
 
 def commitment(session, business):
-    from reality.services.core import create_commitment
+    from reality.services.core import create_commitment, create_document
 
     record_movement(
         session,
@@ -82,6 +82,9 @@ def commitment(session, business):
         business.item.id,
         5,
         to_location_id=business.location.id,
+    )
+    document = create_document(
+        session, business.tenant.id, "sales_order", uid("trace_order"), business.customer.id, "0"
     )
     return create_commitment(
         session,
@@ -93,6 +96,7 @@ def commitment(session, business):
         business.location.id,
         5,
         None,
+        document_id=document.id,
     )
 
 

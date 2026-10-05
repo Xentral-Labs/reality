@@ -7,14 +7,17 @@ from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
 
 from reality.cli import app as cli_module
-from reality.db.core import BusinessEvent
+from reality.db.core import BusinessEvent, uid
 from reality.services.core import (
     InvalidOperation,
     active_commitment_hold,
-    create_commitment,
+    create_document,
     hold_commitment,
     record_movement,
     reserve,
+)
+from reality.services.core import (
+    create_commitment as _create_commitment,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -24,6 +27,17 @@ from reality.tools import application as application_tools
 from reality.tools.application import approve_and_execute_proposal
 from reality.web import api as api_module
 from reality.web import app as web_module
+
+
+def create_commitment(session, tenant_id, kind, promisor, promisee, *args, **kwargs):
+    if kind == "customer_delivery" and "document_id" not in kwargs:
+        order = create_document(
+            session, tenant_id, "sales_order", uid("commitment_action"), promisee, "0",
+        )
+        kwargs["document_id"] = order.id
+    return _create_commitment(
+        session, tenant_id, kind, promisor, promisee, *args, **kwargs
+    )
 
 
 def test_core_cancellation_requires_a_non_empty_reason(session, business):
@@ -84,7 +98,7 @@ def test_reviewed_cancellation_closes_open_remainder_and_releases_controls(
         request_id="cancel-commitment-1",
     )
     detail = delivery_proposal_detail(session, tenant_id, proposal.id)
-    assert detail["review"]["effect"]["cancelled_open"] == "10"
+    assert Decimal(detail["review"]["effect"]["cancelled_open"]) == 10
     assert detail["review"]["effect"]["stock_changes"] is False
 
     executed = approve_and_execute_proposal(
@@ -191,7 +205,7 @@ def test_reviewed_revision_discloses_and_applies_reservation_release(session, bu
     assert detail["review"]["effect"] == {
         "revised_open": "6",
         "retained_reservation_quantity": "6",
-        "released_reservation_quantity": "4",
+        "released_reservation_quantity": "4.0000",
         "selection_required": False,
         "document_changes": False,
         "movement_changes": False,

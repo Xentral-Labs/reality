@@ -471,12 +471,16 @@ def test_reconciliation_finds_effect_committed_before_proposal_receipt(
         "event_id": committed.event.id,
         "reservation_id": committed.reservation.id,
         "commitment_id": commitment.id,
-        "applied": "5",
+        "applied": "5.0000",
     }
     assert status["verification"]["execution"] == "effect_observed_proposal_unsettled"
     assert status["verification"]["operational_state"] == "verified"
-    with pytest.raises(InvalidOperation, match="reconcile by proposal ID"):
+    with pytest.raises(InvalidOperation) as refused:
         confirm_tool(session, business.tenant.id, proposal.id)
+    assert refused.value.code == "case_review_stale"
+    session.refresh(proposal)
+    assert proposal.status == "executing"
+    assert active_reserved(session, business.tenant.id, business.item.id) == 5
 
 
 @pytest.mark.parametrize(

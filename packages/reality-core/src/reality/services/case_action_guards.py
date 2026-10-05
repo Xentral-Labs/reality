@@ -357,6 +357,24 @@ def _load_review_state(session, tenant_id, operation, arguments):
         cases.business_review(session, tenant_id, case_id)
 
 
+def _refresh_bound_business_review(session, tenant_id, proposal_id, preview):
+    links = list(
+        session.scalars(
+            select(CaseProposalLink).where(
+                CaseProposalLink.tenant_id == tenant_id,
+                CaseProposalLink.proposal_id == proposal_id,
+            )
+        )
+    )
+    if links:
+        # Explicit business re-review does not change any old control binding.
+        preview["_case_business_review"] = {
+            link.case_id: cases.business_review(session, tenant_id, link.case_id)
+            for link in links
+        }
+    return preview
+
+
 def bind_arguments(
     session: Session,
     tenant_id: str,

@@ -12,11 +12,15 @@ def legacy_database(postgres_database, monkeypatch):
     import test_cost_census_storage as storage
     from legacy_finance import bootstrap_legacy_accounts
 
+    from reality.services import operational_cases
     from reality.services.finance import accounts
 
     # Cost migration specimens stay at the original pinned schema. Construct
     # unrelated legacy account defaults without running today's bootstrap DDL.
     monkeypatch.setattr(accounts, "_bootstrap_accounts", bootstrap_legacy_accounts)
+    # This historical cost specimen predates operational coordination. Preserve
+    # that version's policy while exercising its exact physical migration.
+    monkeypatch.setattr(operational_cases, "coordination_enabled", lambda *_: False)
     original = command.upgrade
 
     def legacy_upgrade(config, revision, **kwargs):

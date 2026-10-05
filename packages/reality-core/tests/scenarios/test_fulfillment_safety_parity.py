@@ -227,7 +227,7 @@ def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business)
     core.hold_commitment(
         session, tenant_id, prepay_commitment.id, "manual_review", "Final check"
     )
-    with pytest.raises(core.InvalidOperation, match="hold"):
+    with pytest.raises(core.InvalidOperation) as refused:
         approve_and_execute_proposal(
             session,
             tenant_id,
@@ -235,6 +235,7 @@ def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business)
             review_token=reviewed_token,
             confirmed=True,
         )
+    assert refused.value.code == "case_review_stale"
     session.refresh(reviewed)
     assert reviewed.status == "proposed"
     reject_proposal(session, tenant_id, reviewed.id)

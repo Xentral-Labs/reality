@@ -52,6 +52,22 @@ def complete_all(session, tenant_id):
     return finished
 
 
+def test_case_catchup_does_not_change_source_projection_alternation(session, business):
+    from reality.services.case_jobs import enqueue_case_run
+    from reality.services.projection_jobs import _prefer_projection
+
+    tenant = business.tenant.id
+    projections_pending = dispatch(session, tenant)
+    assert projections_pending
+    assert _prefer_projection(session, tenant) is False
+    case_run = enqueue_case_run(session, tenant)
+    assert case_run is not None
+    assert case_run.created_at >= projections_pending[-1].created_at
+    # The next scheduler tick must still give due source work its turn, even
+    # while case history needs further bounded batches.
+    assert _prefer_projection(session, tenant) is False
+
+
 def test_each_projection_behind_gets_its_own_run_and_is_not_queued_twice(
     session, business
 ):
