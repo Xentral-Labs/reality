@@ -25,6 +25,8 @@ def test_dispatch_migration_round_trip_and_populated_guard(
         command.downgrade(config, "0138_company_time_zone")
         assert "email_dispatch" not in inspect(engine).get_table_names()
         command.upgrade(config, "0134_agent_email_handoffs")
+        # Exercise current public services only after applying their required schema.
+        command.upgrade(config, "head")
         with Session(engine) as db:
             tenant = create_tenant(db, "Email migration")
             p = create_change_proposal(
