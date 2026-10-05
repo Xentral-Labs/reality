@@ -2,7 +2,7 @@
 **Feature Branch**: `codex/369-business-decision-discovery`
 **Created**: 2026-10-05
 **Language**: English
-**Status**: Scope reviewed; implementation pending
+**Status**: Implemented and verified; optional external Claude round blocked by Mac lock
 **Input**: After merging PR 374, the owner approved the next product point: discover executed Decisions through the affected order without supplying a proposal ID beforehand.
 
 ## Context and Intent
