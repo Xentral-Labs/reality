@@ -16,7 +16,8 @@ page.on("pageerror", (error) => errors.push(error.message));
 let adopted = false,
   failTakeover = true,
   unsettled = false,
-  contextMode = false;
+  contextMode = false,
+  malformedList = true;
 const value = {
   case_id: "case_order",
   kind: "order_fulfillment",
@@ -73,11 +74,16 @@ await page.route("**/api/**", async (route) => {
       unsettled_actions: unsettled ? ["act_unknown"] : [],
       digest: "d".repeat(64),
     });
-  return reply(adopted && !contextMode ? [value] : []);
+  return reply(malformedList ? {} : adopted && !contextMode ? [value] : []);
 });
 try {
   await page.goto(base + "/scripts/fixtures/operational-case-harness.html");
   await page.getByText("Operational cases", { exact: true }).click();
+  await page.getByRole("alert").waitFor();
+  assert.deepEqual(errors, [], "malformed case replies must not crash the operational page");
+  assert.equal(writes.length, 0);
+  malformedList = false;
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await page.getByRole("button", { name: "Enable cases for new work", exact: true }).click();
   assert.equal(writes.length, 0);
   await page.getByRole("button", { name: "Confirm activation", exact: true }).click();

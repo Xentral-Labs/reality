@@ -18,7 +18,7 @@ The owner approved the concrete five-table first slice on 2026-10-05. Runtime im
 
 ## Integration review
 
-Rebased onto origin/main ce642dc3 without discarding its Decision discovery and qualified read answers. Feature number moved from 368 to 371 because main had independently allocated 368 to payment evidence. Migration remains 0144. Focused combined case/worker/discovery/read/payment regressions passed **53 tests** after rebase. The 6,432-test complete result above predates that rebase; remote CI must verify the integrated head. Repository script tests (16), gateway, lint, spec policy and business annotations passed.
+Rebased onto origin/main ce642dc3 without discarding its Decision discovery and qualified read answers. Feature number moved from 368 to 371 because main had independently allocated 368 to payment evidence. Migration remains 0144. Focused combined case/worker/discovery/read/payment regressions passed **53 tests** after rebase. The 6,432-test complete result above predates that rebase; remote CI must verify the integrated head. Repository script tests (16), lint, spec policy and business annotations passed locally. The gateway proof passed in remote frontend CI; local gateway reruns encountered environment HTTP403 and are not acceptance evidence.
 
 Next adapter work is concretely planned in [Shopify adapter readiness](contracts/shopify-adapter-readiness.md); provider fencing and physical-dispatch authority are explicit gates.
 
@@ -45,3 +45,11 @@ Required release gates: `make spec-check`, `make lint`, complete PostgreSQL `mak
 9. Discover the same case through an existing order read, proposal review, execution receipt read envelope and case-list MCP tool. Assert copyable UI ID, all associations for multi-case work, empty historical associations without writes, additive old-client compatibility and refusal of a forged case ID. Follow user-guide takeover/review/handback examples and verify controls change real responsibility, not just labels.
 
 10. For every enabled row in `contracts/entrypoint-coverage.md`, exercise its real channel and direct canonical path. Assert accepted outstanding goal plus case commit/rollback together, event replay cannot duplicate it, raw preparation cannot accept a goal, omitted case IDs cannot bypass automation guards, and authorized human repair remains possible. Activation refuses any unclassified reachable scoped path.
+
+## Remote verification and UI containment
+
+Integrated backend head `dbe10499a51c9ff4c4f056a36df10950f2bf94d8`: all four PostgreSQL shards and backend-quality passed, totaling **6,462 passed and 10 skipped**. Installer script/end-to-end, frontend, docs and spec gates passed. Run: https://github.com/Xentral-Labs/reality/actions/runs/37344735499.
+
+That first complete CI attempt exposed an additive UI compatibility defect: legacy generic fixture responses were treated as case arrays and crashed the Orders page. The focused browser proof reproduced the failure. Case initial-load/pagination now validate list shape before setting state; failure is contained with a localized error and refresh can recover without business writes. The real component browser proof passed after the fix, including its original takeover/retry/handback/source/direct-object assertions. The updated head must pass full CI before release. This UI-only correction does not change the already-verified backend. Draft review: https://github.com/Xentral-Labs/reality/pull/378.
+
+UI containment verification: `make web-build` passed after the correction with the required execution permissions. Default-sandbox Node-to-Python catalog spawning returned EPERM; that failed environment run is not product acceptance evidence. No additional backend or business behavior changed.
