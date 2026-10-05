@@ -1,0 +1,25 @@
+version: 1
+kinds:
+  order_fulfillment:
+    anchor: document
+    eligibility: Accepted sales_order with outstanding customer_delivery commitments.
+    owned: customer_delivery commitments of this order and their directly bound proposals.
+    related: Announced returns, billing and payments; no recursive ownership transfer.
+    completion: No open customer delivery quantity remains in current Reality.
+  customer_return:
+    anchor: return_announcement
+    eligibility: Accepted open ReturnAnnouncement.
+    owned: This announcement and directly referenced receipt/disposition proposals.
+    related: Original delivery commitment and its order case.
+    completion: Announcement fulfilled or withdrawn; disposition remains current linked evidence, never a fabricated refund intent.
+unavailable:
+  - refund_intent_execution
+  - live_shopify_transport
+  - unanchored_customer_delivery
+  - unannounced_return_automation
+classifications:
+  create_or_match: [commitment.created, return.announced, document.recorded, order.recorded, source_record.interpreted, document_line.item_assigned]
+  update: [commitment.revised, commitment.held, commitment.hold_released, movement.recorded, movement.corrected, shipment.notice_recorded, shipment.event_recorded, shipment.event_superseded]
+  settle: [commitment.cancelled, commitment.fulfilled, return.announcement_withdrawn]
+  freshness: [source_record.received]
+  default: no_case

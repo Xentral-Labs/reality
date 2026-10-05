@@ -321,7 +321,14 @@
     "review_batch": "intake",
     "batch_status": "intake",
     "grant_review_mandate": "intake",
-    "revoke_review_mandate": "intake"
+    "revoke_review_mandate": "intake",
+    "operational_case_list": "orders",
+    "operational_case_explain": "orders",
+    "operational_case_object": "orders",
+    "operational_case_handback_preview": "orders",
+    "operational_case_adopt": "orders",
+    "operational_case_takeover": "orders",
+    "operational_case_handback": "orders"
   },
   "entries": [
     {

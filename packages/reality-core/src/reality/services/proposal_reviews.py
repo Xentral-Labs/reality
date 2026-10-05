@@ -179,7 +179,10 @@ def proposal_review(
     private_hidden = (
         private_review is not None and private_review["state"] != "readable"
     )
+    from reality.services.operational_cases import object_cases
+
     return {
+        "case_ids": object_cases(session, tenant_id, "proposal", proposal.id),
         "id": proposal.id,
         "tool": tool,
         "label": label,

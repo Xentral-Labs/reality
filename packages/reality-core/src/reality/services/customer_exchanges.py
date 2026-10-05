@@ -389,6 +389,9 @@ def record_customer_exchange(
     BUSINESS RULE services.customer_exchanges.record_customer_exchange.effect-98:
     Record the exchange.recorded audit or business-event evidence with the supplied record and confirmation identity.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "record_customer_exchange", locals())
     # reality-rule: services.customer_exchanges.record_customer_exchange.step-16
     core._require_business_mutation(session, tenant_id, "record_customer_exchange")
     with session.begin_nested():

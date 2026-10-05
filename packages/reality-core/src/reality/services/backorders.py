@@ -373,6 +373,9 @@ def serve_backorders(
     BUSINESS RULE services.backorders.serve_backorders.effect-50:
     Run the shared review backorder serving check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "serve_backorders", locals())
     from reality.services.business_locks import lock_delivery_state
 
     lock_delivery_state(session, tenant_id)

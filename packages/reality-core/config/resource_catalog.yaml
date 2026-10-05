@@ -13,6 +13,16 @@ generic_tables:
   [tenant, business_event, source_record, source_stream, action, finance_state, security_audit_event, import_job]
 
 resources:
+  - key: operational_case
+    label: {en: "Operational case", de: "Vorgang"}
+    subtitle: {en: "Responsibility and current work", de: "Verantwortung und aktuelle Arbeit"}
+    description: {en: "Own fulfillment and announced-return work, take over manually and return after reconciliation.", de: "Erfüllung und angekündigte Retouren übernehmen und nach Abgleich zurückgeben."}
+    synonyms: [case, takeover, handback, Vorgang, Übernahme]
+    tables: [operational_case, case_commitment_link, case_proposal_link, case_adoption, case_consumer_checkpoint]
+    match: "^operational_case"
+    views: []
+    projections: []
+    exceptions: []
   - key: email
     label: {en: "Email", de: "E-Mail"}
     subtitle: {en: "Correspondence evidence and send decisions", de: "Korrespondenzbelege und Versandentscheidungen"}
@@ -585,6 +595,13 @@ processes:
 labels:
   de:
     tools:
+      operational_case_list: Vorgänge anzeigen
+      operational_case_explain: Vorgang erklären
+      operational_case_object: Zugehörige Vorgänge finden
+      operational_case_handback_preview: Rückgabe an Automatisierung prüfen
+      operational_case_adopt_propose: Vorgangssteuerung aktivieren
+      operational_case_takeover_propose: Vorgang manuell übernehmen
+      operational_case_handback_propose: Vorgang an Automatisierung zurückgeben
       company_context: Verbundenes Unternehmen prüfen
       proposal_review: Konkreten Vorschlag prüfen
       email_workflow: E-Mail-Ablauf lesen
@@ -598,6 +615,13 @@ labels:
       email_dispatch_report: E-Mail-Versandergebnis ablegen
       reorder_points: Meldebestände anzeigen
     commands:
+      operational_case_list: Vorgänge anzeigen
+      operational_case_explain: Vorgang erklären
+      operational_case_object: Zugehörige Vorgänge finden
+      operational_case_handback_preview: Rückgabe an Automatisierung prüfen
+      operational_case_adopt: Vorgangssteuerung aktivieren
+      operational_case_takeover: Vorgang manuell übernehmen
+      operational_case_handback: Vorgang an Automatisierung zurückgeben
       email_dispatch_authorize: E-Mail-Versand freigeben
       email_history: E-Mail-Verlauf lesen
       email_workflow: E-Mail-Ablauf lesen

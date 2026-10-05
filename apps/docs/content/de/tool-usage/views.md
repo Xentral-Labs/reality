@@ -603,7 +603,8 @@ Change Proposal, and chat activity without loading business rows or querying onc
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-**Hintergrundaktualisierung nach:** `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
+**Hintergrundaktualisierung nach:** `operational_case.adopted`, `operational_case.taken_over`,
+`operational_case.handed_back`, `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
 `shipment.event_recorded`, `shipment.event_superseded`, `finance.target_configuration_changed`,
 `finance.source_mapping_changed`, `finance.component_assigned`, `finance.reference_changed`,
 `finance.account_changed`, `credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`,
@@ -919,7 +920,8 @@ Normalizes important evidence and reality timestamps into one chronological oper
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-**Hintergrundaktualisierung nach:** `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
+**Hintergrundaktualisierung nach:** `operational_case.adopted`, `operational_case.taken_over`,
+`operational_case.handed_back`, `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
 `shipment.event_recorded`, `shipment.event_superseded`, `finance.component_assigned`,
 `credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`, `dunning.notice_reversed`,
 `payment.returned`, `payout.settled`, `payment.authorized`, `payment.captured`,

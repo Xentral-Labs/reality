@@ -13,6 +13,67 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Source record": "Quelldatensatz",
+    "Open quantity": "Offene Menge",
+    "Load more": "Mehr laden",
+    Refresh: "Aktualisieren",
+    "Operational case not found.": "Vorgang nicht gefunden.",
+    "This object has no supported operational case policy.":
+      "Für dieses Objekt gibt es keine unterstützte Vorgangsregel.",
+    "Provide a bounded control request key.":
+      "Gib einen begrenzten Schlüssel für die Steuerungsanfrage an.",
+    "This request key already identifies a different case control.":
+      "Dieser Anfrageschlüssel gehört bereits zu einer anderen Vorgangssteuerung.",
+    "Operational cases are already enabled for this company.":
+      "Vorgänge sind für diese Firma bereits aktiviert.",
+    "The selected case operation exceeds its batch limit.":
+      "Die ausgewählte Vorgangsoperation überschreitet ihre Stapelgrenze.",
+    "The case changed. Review its current state before continuing.":
+      "Der Vorgang hat sich geändert. Prüfe seinen aktuellen Stand, bevor du fortfährst.",
+    "An action has an unresolved execution outcome. Reconcile it before returning automation.":
+      "Der Ausgang einer Aktion ist ungeklärt. Kläre ihn, bevor du an die Automatisierung zurückgibst.",
+    "Relevant source evidence is not yet reconciled. Review it before continuing.":
+      "Relevante Quelldaten sind noch nicht abgeglichen. Prüfe sie, bevor du fortfährst.",
+    "This case is manually owned. Automation cannot start more work.":
+      "Dieser Vorgang wird manuell bearbeitet. Die Automatisierung darf keine weitere Arbeit starten.",
+    "This action belongs to an older case control revision. Prepare fresh work.":
+      "Diese Aktion gehört zu einer älteren Steuerungsversion des Vorgangs. Bereite neue Arbeit vor.",
+    "This work has no supported adopted case. Manual repair remains available.":
+      "Für diese Arbeit gibt es keinen unterstützten übernommenen Vorgang. Manuelle Korrektur bleibt möglich.",
+    "An authenticated human must confirm this responsibility control.":
+      "Ein angemeldeter Mensch muss diese Verantwortungssteuerung bestätigen.",
+    "Operational cases": "Vorgänge",
+    "Case coordination is not enabled. Existing work remains unchanged.":
+      "Die Vorgangssteuerung ist nicht aktiviert. Bestehende Arbeit bleibt unverändert.",
+    "Enable cases for new work": "Vorgänge für neue Arbeit aktivieren",
+    "New orders and announced returns will receive cases. Existing orders are not taken over.":
+      "Neue Aufträge und angekündigte Retouren erhalten Vorgänge. Bestehende Aufträge werden nicht übernommen.",
+    "Confirm activation": "Aktivierung bestätigen",
+    "No adopted cases in this view.": "Keine übernommenen Vorgänge in dieser Ansicht.",
+    "Order fulfillment": "Auftragserfüllung",
+    "Announced return": "Angekündigte Retoure",
+    "Manually owned — automation stopped": "Manuell übernommen – Automation gestoppt",
+    "Automation owns this work": "Automation bearbeitet diesen Vorgang",
+    "Work remains": "Arbeit ist noch offen",
+    "Work withdrawn": "Arbeit zurückgezogen",
+    "Work completed": "Arbeit abgeschlossen",
+    "Copy case ID": "Vorgangs-ID kopieren",
+    "An execution is unresolved. Stopping automation does not cancel an action already started.":
+      "Eine Ausführung ist ungeklärt. Der Automationsstopp storniert keine bereits gestartete Aktion.",
+    "Relevant source changes still need reconciliation.":
+      "Relevante Quellenänderungen müssen noch abgeglichen werden.",
+    "Older plans are obsolete and require a fresh review.":
+      "Ältere Pläne sind überholt und benötigen eine neue Prüfung.",
+    "Related cases are not automatically taken over.":
+      "Verbundene Vorgänge werden nicht automatisch mit übernommen.",
+    "Take over manually / stop automation": "Manuell übernehmen / Automation stoppen",
+    "Review before returning to automation": "Vor Rückgabe an Automation prüfen",
+    "Stop new automated actions for this case? Already started actions remain visible.":
+      "Neue automatische Aktionen für diesen Vorgang stoppen? Bereits gestartete Aktionen bleiben sichtbar.",
+    "Confirm manual takeover": "Manuelle Übernahme bestätigen",
+    "The current state will be checked again when you confirm. Old plans will not be resumed.":
+      "Der aktuelle Stand wird bei Bestätigung erneut geprüft. Alte Pläne werden nicht fortgesetzt.",
+    "Return to automation": "An Automation zurückgeben",
     "Open previous execution evidence": "Nachweis des früheren Versandversuchs öffnen",
     "Externally sent; no Reality approval is documented.":
       "Extern versendet; keine Freigabe durch Reality dokumentiert.",
@@ -2204,6 +2265,67 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Source record": "Bronrecord",
+    "Open quantity": "Open hoeveelheid",
+    "Load more": "Meer laden",
+    Refresh: "Vernieuwen",
+    "Operational case not found.": "Operationele zaak niet gevonden.",
+    "This object has no supported operational case policy.":
+      "Dit object heeft geen ondersteunde regel voor operationele zaken.",
+    "Provide a bounded control request key.":
+      "Geef een begrensde sleutel voor het besturingsverzoek op.",
+    "This request key already identifies a different case control.":
+      "Deze verzoeksleutel hoort al bij een andere zaakbesturing.",
+    "Operational cases are already enabled for this company.":
+      "Operationele zaken zijn al ingeschakeld voor dit bedrijf.",
+    "The selected case operation exceeds its batch limit.":
+      "De geselecteerde zaakbewerking overschrijdt de batchlimiet.",
+    "The case changed. Review its current state before continuing.":
+      "De zaak is gewijzigd. Controleer de huidige toestand voordat je doorgaat.",
+    "An action has an unresolved execution outcome. Reconcile it before returning automation.":
+      "De uitkomst van een actie is onzeker. Stem deze af voordat je teruggeeft aan automatisering.",
+    "Relevant source evidence is not yet reconciled. Review it before continuing.":
+      "Relevante brongegevens zijn nog niet afgestemd. Controleer deze voordat je doorgaat.",
+    "This case is manually owned. Automation cannot start more work.":
+      "Deze zaak wordt handmatig beheerd. Automatisering kan geen nieuw werk starten.",
+    "This action belongs to an older case control revision. Prepare fresh work.":
+      "Deze actie hoort bij een oudere besturingsversie van de zaak. Bereid nieuw werk voor.",
+    "This work has no supported adopted case. Manual repair remains available.":
+      "Dit werk heeft geen ondersteunde opgenomen zaak. Handmatige correctie blijft beschikbaar.",
+    "An authenticated human must confirm this responsibility control.":
+      "Een aangemelde persoon moet deze verantwoordelijkheidsbesturing bevestigen.",
+    "Operational cases": "Operationele dossiers",
+    "Case coordination is not enabled. Existing work remains unchanged.":
+      "Dossiercoördinatie is niet ingeschakeld. Bestaand werk blijft ongewijzigd.",
+    "Enable cases for new work": "Dossiers voor nieuw werk inschakelen",
+    "New orders and announced returns will receive cases. Existing orders are not taken over.":
+      "Nieuwe orders en aangekondigde retouren krijgen dossiers. Bestaande orders worden niet overgenomen.",
+    "Confirm activation": "Activering bevestigen",
+    "No adopted cases in this view.": "Geen opgenomen dossiers in deze weergave.",
+    "Order fulfillment": "Orderafhandeling",
+    "Announced return": "Aangekondigde retour",
+    "Manually owned — automation stopped": "Handmatig overgenomen — automatisering gestopt",
+    "Automation owns this work": "Automatisering behandelt dit werk",
+    "Work remains": "Er staat nog werk open",
+    "Work withdrawn": "Werk ingetrokken",
+    "Work completed": "Werk voltooid",
+    "Copy case ID": "Dossier-ID kopiëren",
+    "An execution is unresolved. Stopping automation does not cancel an action already started.":
+      "Een uitvoering is onopgelost. Stoppen annuleert geen reeds gestarte actie.",
+    "Relevant source changes still need reconciliation.":
+      "Relevante bronwijzigingen moeten nog worden afgestemd.",
+    "Older plans are obsolete and require a fresh review.":
+      "Oudere plannen zijn achterhaald en vereisen een nieuwe beoordeling.",
+    "Related cases are not automatically taken over.":
+      "Gerelateerde dossiers worden niet automatisch overgenomen.",
+    "Take over manually / stop automation": "Handmatig overnemen / automatisering stoppen",
+    "Review before returning to automation": "Beoordelen vóór teruggave aan automatisering",
+    "Stop new automated actions for this case? Already started actions remain visible.":
+      "Nieuwe automatische acties voor dit dossier stoppen? Gestarte acties blijven zichtbaar.",
+    "Confirm manual takeover": "Handmatige overname bevestigen",
+    "The current state will be checked again when you confirm. Old plans will not be resumed.":
+      "De huidige toestand wordt bij bevestiging opnieuw gecontroleerd. Oude plannen worden niet hervat.",
+    "Return to automation": "Teruggeven aan automatisering",
     "Open previous execution evidence": "Bewijs van de eerdere verzending openen",
     "Externally sent; no Reality approval is documented.":
       "Extern verzonden; er is geen goedkeuring door Reality vastgelegd.",
@@ -4090,6 +4212,64 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    Refresh: "Actualizar",
+    "Operational case not found.": "No se encontró el caso operativo.",
+    "This object has no supported operational case policy.":
+      "Este objeto no tiene una política de casos operativos compatible.",
+    "Provide a bounded control request key.":
+      "Proporciona una clave acotada para la solicitud de control.",
+    "This request key already identifies a different case control.":
+      "Esta clave de solicitud ya identifica otro control de caso.",
+    "Operational cases are already enabled for this company.":
+      "Los casos operativos ya están habilitados para esta empresa.",
+    "The selected case operation exceeds its batch limit.":
+      "La operación seleccionada supera su límite de lote.",
+    "The case changed. Review its current state before continuing.":
+      "El caso ha cambiado. Revisa su estado actual antes de continuar.",
+    "An action has an unresolved execution outcome. Reconcile it before returning automation.":
+      "El resultado de una acción no está resuelto. Concilia el resultado antes de devolver la automatización.",
+    "Relevant source evidence is not yet reconciled. Review it before continuing.":
+      "Los datos relevantes de las fuentes aún no están conciliados. Revísalos antes de continuar.",
+    "This case is manually owned. Automation cannot start more work.":
+      "Este caso se gestiona manualmente. La automatización no puede iniciar más trabajo.",
+    "This action belongs to an older case control revision. Prepare fresh work.":
+      "Esta acción pertenece a una versión anterior del control del caso. Prepara trabajo nuevo.",
+    "This work has no supported adopted case. Manual repair remains available.":
+      "Este trabajo no tiene un caso adoptado compatible. La corrección manual sigue disponible.",
+    "An authenticated human must confirm this responsibility control.":
+      "Una persona autenticada debe confirmar este control de responsabilidad.",
+    "Operational cases": "Casos operativos",
+    "Case coordination is not enabled. Existing work remains unchanged.":
+      "La coordinación de casos no está activada. El trabajo existente no cambia.",
+    "Enable cases for new work": "Activar casos para nuevo trabajo",
+    "New orders and announced returns will receive cases. Existing orders are not taken over.":
+      "Los nuevos pedidos y devoluciones anunciadas recibirán casos. Los pedidos existentes no se asumen.",
+    "Confirm activation": "Confirmar activación",
+    "No adopted cases in this view.": "No hay casos incorporados en esta vista.",
+    "Order fulfillment": "Cumplimiento del pedido",
+    "Announced return": "Devolución anunciada",
+    "Manually owned — automation stopped": "Asumido manualmente — automatización detenida",
+    "Automation owns this work": "La automatización se encarga de este trabajo",
+    "Work remains": "Queda trabajo pendiente",
+    "Work withdrawn": "Trabajo retirado",
+    "Work completed": "Trabajo completado",
+    "Copy case ID": "Copiar ID del caso",
+    "An execution is unresolved. Stopping automation does not cancel an action already started.":
+      "Una ejecución no está resuelta. Detener la automatización no cancela una acción ya iniciada.",
+    "Relevant source changes still need reconciliation.":
+      "Los cambios relevantes en las fuentes aún deben conciliarse.",
+    "Older plans are obsolete and require a fresh review.":
+      "Los planes anteriores están obsoletos y requieren una nueva revisión.",
+    "Related cases are not automatically taken over.":
+      "Los casos relacionados no se asumen automáticamente.",
+    "Take over manually / stop automation": "Asumir manualmente / detener automatización",
+    "Review before returning to automation": "Revisar antes de devolver a la automatización",
+    "Stop new automated actions for this case? Already started actions remain visible.":
+      "¿Detener nuevas acciones automáticas para este caso? Las acciones iniciadas siguen visibles.",
+    "Confirm manual takeover": "Confirmar asunción manual",
+    "The current state will be checked again when you confirm. Old plans will not be resumed.":
+      "El estado actual se comprobará al confirmar. Los planes anteriores no se reanudarán.",
+    "Return to automation": "Devolver a la automatización",
     "Open previous execution evidence": "Abrir evidencia del intento de envío anterior",
     "Externally sent; no Reality approval is documented.":
       "Enviado externamente; no hay aprobación de Reality documentada.",

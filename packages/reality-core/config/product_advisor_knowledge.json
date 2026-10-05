@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:33bf9ffd174e7c2ec7b619e6f50674730e1a16ccccb0e5805c5e4b0c00616875",
+  "knowledge_version": "advisor-v1:sha256:5eef3841f4a53934c92b4b021356f944a4ba7134fff6e0d6aa16f7e9c29a7b76",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "64065f0c26faf192d4063ea844432af8f8ccaf814fc3c4f5a9903c8ec5de2b51"
+      "fingerprint": "2a629e1b5213fa7f8646e6fe9bccaf31702fd63c7057ad9a1bc611e4459ea501"
     },
     {
       "id": "source_document_product_evaluation",
@@ -6121,6 +6121,111 @@
       ],
       "language": "en",
       "fingerprint": "b593b97aa5d9e126f7e804b459a90061e305a7e576733498d75ae539b145a583"
+    },
+    {
+      "id": "evidence_command_operational_case_list",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case list",
+      "title": "Operational case list",
+      "search_text": "operational_case_list Operational case list Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_list is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_list"
+      ],
+      "language": "en",
+      "fingerprint": "92bb06696f8a670abd5a95d02885736b7ac918d804e6ec3a70bb21a36128ba28"
+    },
+    {
+      "id": "evidence_command_operational_case_explain",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case explain",
+      "title": "Operational case explain",
+      "search_text": "operational_case_explain Operational case explain Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_explain is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_explain"
+      ],
+      "language": "en",
+      "fingerprint": "eaea8173c047859ff74f9cc951d513d590cae7db38fb1fd7f5205705dfcb5476"
+    },
+    {
+      "id": "evidence_command_operational_case_object",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case object",
+      "title": "Operational case object",
+      "search_text": "operational_case_object Operational case object Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_object is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_object"
+      ],
+      "language": "en",
+      "fingerprint": "a0fcaecaaacc466f5352ea922cb271b0899ef9792814818b67f3a70fad1ca9de"
+    },
+    {
+      "id": "evidence_command_operational_case_handback_preview",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case handback preview",
+      "title": "Operational case handback preview",
+      "search_text": "operational_case_handback_preview Operational case handback preview Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_handback_preview is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_handback_preview"
+      ],
+      "language": "en",
+      "fingerprint": "be107ad095b555ea8d825d4cc105e2810a79f9e3aa63b36a56cdc56fc015c617"
+    },
+    {
+      "id": "evidence_command_operational_case_adopt",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case adopt",
+      "title": "Operational case adopt",
+      "search_text": "operational_case_adopt Operational case adopt Confirm current human responsibility control; does not cancel external execution or approve business effects. mutation",
+      "claim_text": "operational_case_adopt is a governed mutation command for Confirm current human responsibility control; does not cancel external execution or approve business effects..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_adopt"
+      ],
+      "language": "en",
+      "fingerprint": "b23bd2668f627ac8a845fe013986dcb69ee17a6cf7ae2a2e3d40cf0314a8b1c0"
+    },
+    {
+      "id": "evidence_command_operational_case_takeover",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case takeover",
+      "title": "Operational case takeover",
+      "search_text": "operational_case_takeover Operational case takeover Confirm current human responsibility control; does not cancel external execution or approve business effects. mutation",
+      "claim_text": "operational_case_takeover is a governed mutation command for Confirm current human responsibility control; does not cancel external execution or approve business effects..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_takeover"
+      ],
+      "language": "en",
+      "fingerprint": "252f0b2b9166cf881a4b77ee9e00d22c9b036f289fa7fbff5640ff0a9d70b159"
+    },
+    {
+      "id": "evidence_command_operational_case_handback",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case handback",
+      "title": "Operational case handback",
+      "search_text": "operational_case_handback Operational case handback Confirm current human responsibility control; does not cancel external execution or approve business effects. mutation",
+      "claim_text": "operational_case_handback is a governed mutation command for Confirm current human responsibility control; does not cancel external execution or approve business effects..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_handback"
+      ],
+      "language": "en",
+      "fingerprint": "c06e8b7adf44852ee53df4db072d2ebcf30393d30ed76b217c8519de558c752f"
     },
     {
       "id": "evidence_command_email_dispatch_authorize",

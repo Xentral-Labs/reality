@@ -8,6 +8,7 @@ the technical key stands beside each one.
 
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
+| [Operational case](#resource-operational_case)                   | 0     | 3       | 0                   |
 | [Email](#resource-email)                                         | 0     | 1       | 0                   |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 15      | 2                   |
@@ -25,6 +26,37 @@ the technical key stands beside each one.
 | [Document and source system](#resource-source)                   | 3     | 18      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 5       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
+
+## Operational case {#resource-operational_case}
+
+_Responsibility and current work_
+
+Own fulfillment and announced-return work, take over manually and return after reconciliation.
+
+**Also called:** case, takeover, handback, Vorgang, Übernahme
+
+**Actions**
+
+- [Operational case adopt](./commands#command-operational_case_adopt) (`operational_case_adopt`)
+- [Operational case takeover](./commands#command-operational_case_takeover)
+  (`operational_case_takeover`)
+- [Operational case handback](./commands#command-operational_case_handback)
+  (`operational_case_handback`)
+
+**Look up**
+
+- [Operational case list](./commands#command-operational_case_list) (`operational_case_list`)
+- [Operational case explain](./commands#command-operational_case_explain)
+  (`operational_case_explain`)
+- [Operational case object](./commands#command-operational_case_object) (`operational_case_object`)
+- [Operational case handback preview](./commands#command-operational_case_handback_preview)
+  (`operational_case_handback_preview`)
+
+**Underneath:** Tables: `operational_case`, `case_commitment_link`, `case_proposal_link`,
+`case_adoption`, `case_consumer_checkpoint` · Events:
+[`operational_case.adopted`](./events#event-operational_case-adopted),
+[`operational_case.taken_over`](./events#event-operational_case-taken_over),
+[`operational_case.handed_back`](./events#event-operational_case-handed_back)
 
 ## Email {#resource-email}
 

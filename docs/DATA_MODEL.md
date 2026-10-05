@@ -236,3 +236,9 @@ and its receipt together. Historical unknown approval remains unknown.
 
 See [the intake implementation contract](features/decision-gated-intake.md) for the
 implemented profiles and still-pending cross-path cutover.
+
+## Operational cases (spec 371)
+
+Five tenant-scoped coordination tables in migration 0144 hold operational cases, owned commitment links, immutable proposal control generations, explicit adoption decisions and event checkpoints. Order and return anchors use existing composite business-object foreign keys. Related return/order associations and completion are derived; quantities and balances are never copied onto cases.
+
+See [the implemented operational-case contract](features/operational-cases.md) for authority, supported boundaries and capability limits.

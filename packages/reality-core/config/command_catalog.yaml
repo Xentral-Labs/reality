@@ -6,6 +6,17 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  after: Opaque last case identity of the preceding page; never a sequence or external correlation.
+  limit: Bounded maximum number of cases to read, from 1 through 100.
+  case_id: Opaque same-company goal responsibility identity; never an external correlation or execution authorization.
+  record_type: Supported typed existing business object for case discovery.
+  record_id: Opaque same-company business object identity.
+  expected_revision: Exact case control generation or existing object revision returned by the corresponding review.
+  request_key: Stable bounded control request identity; retry the same exact request with the same key.
+  review_digest: Exact current handback review digest; changed facts require a new review.
+  principal: Server-observed authenticated human; never asserted by an external token.
+  order_ids: Explicit same-company historical order identities selected for adoption.
+  return_ids: Explicit same-company historical announced-return identities selected for adoption.
   scope: Strict finite review delegation naming source, capabilities, profiles, effects, row and daily quotas, and stated-amount limits.
   stream: Original source, original parent source, or artifact byte stream identified by exact review material.
   agent_token_id: Exact named owner-issued MCP token receiving finite delegated review authority.
@@ -336,6 +347,147 @@ parameter_descriptions:
   value: Scalar observation value validated and canonicalized by its predicate contract.
 
 commands:
+  - name: Operational case list
+    service: operational_case_list
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    writes: []
+    effect: Read current adopted goal, source coverage, ownership and execution explanation
+      without creating work.
+  - name: Operational case explain
+    service: operational_case_explain
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    writes: []
+    effect: Read current adopted goal, source coverage, ownership and execution explanation
+      without creating work.
+  - name: Operational case object
+    service: operational_case_object
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    writes: []
+    effect: Read current adopted goal, source coverage, ownership and execution explanation
+      without creating work.
+  - name: Operational case handback preview
+    service: operational_case_handback_preview
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    writes: []
+    effect: Read current adopted goal, source coverage, ownership and execution explanation
+      without creating work.
+  - name: Operational case adopt
+    service: operational_case_adopt
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    writes:
+    - operational_case
+    - case_adoption
+    - case_consumer_checkpoint
+    - business_event
+    - action
+    effect: Confirm current human responsibility control; does not cancel external execution
+      or approve business effects.
+  - name: Operational case takeover
+    service: operational_case_takeover
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    writes:
+    - operational_case
+    - case_adoption
+    - case_consumer_checkpoint
+    - business_event
+    - action
+    effect: Confirm current human responsibility control; does not cancel external execution
+      or approve business effects.
+  - name: Operational case handback
+    service: operational_case_handback
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    writes:
+    - operational_case
+    - case_adoption
+    - case_consumer_checkpoint
+    - business_event
+    - action
+    effect: Confirm current human responsibility control; does not cancel external execution
+      or approve business effects.
   - name: Authorize external email dispatch
     service: email_dispatch_authorize
     mode: mutation
@@ -2183,6 +2335,190 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  operational_case_list:
+    kind: read
+    application_tool: operational_case_list
+    purpose: Inspect adopted operational responsibility and current authoritative work.
+    use_when:
+    - An operator needs to inspect or repair accepted fulfillment or announced returns.
+    do_not_use_when:
+    - Executing Shopify transport, refund payment or approving business effects.
+    required_context:
+    - Selected company and an existing same-company case or business object when required.
+    data_basis:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    limitations:
+    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+      Shopify transport and refund intent are unavailable.
+    freshness: Reads current held Reality facts and relevant unresolved source versions;
+      consumer progress is separate telemetry.
+    empty_result: No adopted work returns an empty list; unknown or foreign identities
+      are refused.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign identities are not found; unsupported object types are
+      refused.
+    unknown_when:
+    - Relevant sources have not been accepted or an executing action lacks a definite
+      outcome.
+    next_steps:
+    - Have an authenticated member take over, reconcile actual evidence and review exact
+      handback.
+    verification:
+      role: context
+      proves:
+      - Current held goal, ownership, case bindings and uncertainty.
+      does_not_prove:
+      - Live Shopify synchronization, provider cancellation or permission to execute.
+    examples:
+      use:
+      - scenario: Repair a Shopify order while stopping new automated starts.
+        reason: Read exact responsibility and unresolved executions first.
+      do_not_use:
+      - scenario: Treat successful refund evidence as a payout request.
+        reason: Refund intent and live payout are not supported.
+  operational_case_explain:
+    kind: read
+    application_tool: operational_case_explain
+    purpose: Inspect adopted operational responsibility and current authoritative work.
+    use_when:
+    - An operator needs to inspect or repair accepted fulfillment or announced returns.
+    do_not_use_when:
+    - Executing Shopify transport, refund payment or approving business effects.
+    required_context:
+    - Selected company and an existing same-company case or business object when required.
+    data_basis:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    limitations:
+    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+      Shopify transport and refund intent are unavailable.
+    freshness: Reads current held Reality facts and relevant unresolved source versions;
+      consumer progress is separate telemetry.
+    empty_result: No adopted work returns an empty list; unknown or foreign identities
+      are refused.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign identities are not found; unsupported object types are
+      refused.
+    unknown_when:
+    - Relevant sources have not been accepted or an executing action lacks a definite
+      outcome.
+    next_steps:
+    - Have an authenticated member take over, reconcile actual evidence and review exact
+      handback.
+    verification:
+      role: context
+      proves:
+      - Current held goal, ownership, case bindings and uncertainty.
+      does_not_prove:
+      - Live Shopify synchronization, provider cancellation or permission to execute.
+    examples:
+      use:
+      - scenario: Repair a Shopify order while stopping new automated starts.
+        reason: Read exact responsibility and unresolved executions first.
+      do_not_use:
+      - scenario: Treat successful refund evidence as a payout request.
+        reason: Refund intent and live payout are not supported.
+  operational_case_object:
+    kind: read
+    application_tool: operational_case_object
+    purpose: Inspect adopted operational responsibility and current authoritative work.
+    use_when:
+    - An operator needs to inspect or repair accepted fulfillment or announced returns.
+    do_not_use_when:
+    - Executing Shopify transport, refund payment or approving business effects.
+    required_context:
+    - Selected company and an existing same-company case or business object when required.
+    data_basis:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    limitations:
+    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+      Shopify transport and refund intent are unavailable.
+    freshness: Reads current held Reality facts and relevant unresolved source versions;
+      consumer progress is separate telemetry.
+    empty_result: No adopted work returns an empty list; unknown or foreign identities
+      are refused.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign identities are not found; unsupported object types are
+      refused.
+    unknown_when:
+    - Relevant sources have not been accepted or an executing action lacks a definite
+      outcome.
+    next_steps:
+    - Have an authenticated member take over, reconcile actual evidence and review exact
+      handback.
+    verification:
+      role: context
+      proves:
+      - Current held goal, ownership, case bindings and uncertainty.
+      does_not_prove:
+      - Live Shopify synchronization, provider cancellation or permission to execute.
+    examples:
+      use:
+      - scenario: Repair a Shopify order while stopping new automated starts.
+        reason: Read exact responsibility and unresolved executions first.
+      do_not_use:
+      - scenario: Treat successful refund evidence as a payout request.
+        reason: Refund intent and live payout are not supported.
+  operational_case_handback_preview:
+    kind: read
+    application_tool: operational_case_handback_preview
+    purpose: Inspect adopted operational responsibility and current authoritative work.
+    use_when:
+    - An operator needs to inspect or repair accepted fulfillment or announced returns.
+    do_not_use_when:
+    - Executing Shopify transport, refund payment or approving business effects.
+    required_context:
+    - Selected company and an existing same-company case or business object when required.
+    data_basis:
+    - operational_case
+    - commitment
+    - return_announcement
+    - action
+    - source_record
+    limitations:
+    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+      Shopify transport and refund intent are unavailable.
+    freshness: Reads current held Reality facts and relevant unresolved source versions;
+      consumer progress is separate telemetry.
+    empty_result: No adopted work returns an empty list; unknown or foreign identities
+      are refused.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign identities are not found; unsupported object types are
+      refused.
+    unknown_when:
+    - Relevant sources have not been accepted or an executing action lacks a definite
+      outcome.
+    next_steps:
+    - Have an authenticated member take over, reconcile actual evidence and review exact
+      handback.
+    verification:
+      role: context
+      proves:
+      - Current held goal, ownership, case bindings and uncertainty.
+      does_not_prove:
+      - Live Shopify synchronization, provider cancellation or permission to execute.
+    examples:
+      use:
+      - scenario: Repair a Shopify order while stopping new automated starts.
+        reason: Read exact responsibility and unresolved executions first.
+      do_not_use:
+      - scenario: Treat successful refund evidence as a payout request.
+        reason: Refund intent and live payout are not supported.
   email_history:
     kind: read
     application_tool: email_history
@@ -6369,6 +6705,34 @@ reachable_mutations_that_are_not_commands:
   set_source_system_base_url: Records where a configured source system can be opened in a browser. Integration configuration, not something an operator asks the business to do; it changes no business record.
 
 agent_command_coverage:
+  operational_case_list:
+    classification: eligible
+    tools:
+    - operational_case_list
+  operational_case_explain:
+    classification: eligible
+    tools:
+    - operational_case_explain
+  operational_case_object:
+    classification: eligible
+    tools:
+    - operational_case_object
+  operational_case_handback_preview:
+    classification: eligible
+    tools:
+    - operational_case_handback_preview
+  operational_case_adopt:
+    classification: eligible
+    tools:
+    - operational_case_adopt_propose
+  operational_case_takeover:
+    classification: eligible
+    tools:
+    - operational_case_takeover_propose
+  operational_case_handback:
+    classification: eligible
+    tools:
+    - operational_case_handback_propose
   email_dispatch_authorize: {classification: eligible, tools: [email_dispatch_propose]}
   email_history: {classification: eligible, tools: [email_history]}
   email_workflow: {classification: eligible, tools: [email_workflow]}

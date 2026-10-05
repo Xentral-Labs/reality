@@ -278,6 +278,9 @@ def accept_substitute(
     BUSINESS RULE services.receipt_deviations.accept_substitute.result:
     Return row, as prepared by the preceding checks and service calls.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "accept_substitute", locals())
     from reality.services.core import (
         _require_business_mutation,
         emit_business_event,
@@ -331,7 +334,6 @@ def accept_substitute(
         },
         source_record_id=source.id,
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()

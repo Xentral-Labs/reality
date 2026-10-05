@@ -103,6 +103,9 @@ def record_shipment_notice(
     IF receipt advice was supplied:
         Pass the stated inputs to the shared record advice service. Its own source describes validation and record changes.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "record_shipment_notice", locals())
     try:
         # reality-rule: services.shipments.record_shipment_notice.effect-41
         validate_shipment_direction(purpose, direction)
@@ -213,7 +216,6 @@ def record_shipment_notice(
         },
         source_record_id=source_record_id,
         action_id=action_id,
-        correlation_id=action_id,
     )
     if commit:
         session.commit()
@@ -323,6 +325,9 @@ def record_shipment_event(
     BUSINESS RULE services.shipments.record_shipment_event.result:
     Return event, as prepared by the preceding checks and service calls.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "record_shipment_event", locals())
     _record(session, Shipment, tenant_id, shipment_id)
     # reality-rule: services.shipments.record_shipment_event.refusal-16
     if event_type not in EVENT_TYPES or reporter_type not in REPORTER_TYPES:
@@ -372,7 +377,6 @@ def record_shipment_event(
         source_record_id=source_record_id,
         occurred_at=utc_datetime(occurred_at),
         action_id=action_id,
-        correlation_id=action_id,
     )
     if commit:
         session.commit()
@@ -410,6 +414,9 @@ def supersede_shipment_event(
     BUSINESS RULE services.shipments.supersede_shipment_event.result:
     Return result, as prepared by the preceding checks and service calls.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "supersede_shipment_event", locals())
     event = _record(session, ShipmentEvent, tenant_id, event_id)
     # reality-rule: services.shipments.supersede_shipment_event.refusal-13
     if not reason.strip():
@@ -450,7 +457,6 @@ def supersede_shipment_event(
         {"supersession_id": result.id, "replacement_event_id": replacement_event_id},
         source_record_id=source_record_id,
         action_id=action_id,
-        correlation_id=action_id,
     )
     if commit:
         session.commit()
@@ -514,6 +520,9 @@ def record_packaged_execution(
     BUSINESS RULE services.shipments.record_packaged_execution.effect-173:
     Pass the stated inputs to the shared record movement service. Its own source describes validation and record changes.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "record_packaged_execution", locals())
     _check_stock_at_moved_time(session, tenant_id, movements, occurred_at)
     announced = (
         _announced_shipment(

@@ -3440,7 +3440,10 @@ def _explain_retained_order(
         if line["status"] == "open" and Decimal(line["open_quantity"]) > 0
     ]
     ready = bool(active) and not any(line["blocking_reasons"] for line in active)
+    from reality.services.operational_cases import object_cases
+
     result = {
+        "case_ids": object_cases(session, tenant_id, "document", document.id) if document else object_cases(session, tenant_id, "commitment", selected.id),
         "fulfillment": {
             "order_key": document.id if document else selected.id,
             "document_id": document.id if document else None,

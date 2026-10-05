@@ -202,7 +202,6 @@ def customer_hold_detail(
     if (
         event.subject_type != "party"
         or event.subject_id != intent["party_id"]
-        or event.correlation_id != proposal.id
         or event.source_record_id is not None
     ):
         return result

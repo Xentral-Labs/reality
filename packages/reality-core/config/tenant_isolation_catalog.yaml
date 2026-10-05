@@ -71,6 +71,25 @@ explicit_operations:
   - reality.services.playground:confirm_step
   - reality.services.playground:reject_step
 families:
+  - key: operational_cases
+    description: Operational responsibility stays inside the selected company; controls
+      require active real membership.
+    classification: boundary
+    reason: Opaque composite anchors and server-resolved bindings never grant foreign-company
+      authority.
+    authority: 368/DR-003
+    operations: &id001
+    - tool:operational_case_list
+    - tool:operational_case_explain
+    - tool:operational_case_object
+    - tool:operational_case_handback_preview
+    - tool:operational_case_adopt
+    - tool:operational_case_takeover
+    - tool:operational_case_handback
+    evidence:
+    - id: tests/test_operational_case_adapters.py::test_foreign_case_tools_and_links_cannot_cross_tenant
+      assertion: boundary
+      operations: *id001
   - key: intake_agent_review
     description: Named agents review only inside the owner-mandated company.
     classification: boundary

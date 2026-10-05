@@ -86,7 +86,8 @@
     "unified-workspaces-browser.mjs": 67,
     "verification-return-browser.mjs": 2,
     "workspace-tab-counts-browser.mjs": 27,
-    "agent-email-handoffs-browser.mjs": 5
+    "agent-email-handoffs-browser.mjs": 5,
+    "operational-cases-browser.mjs": 5
   },
   "scripts": [
     "access-deletion-browser.mjs",
@@ -125,6 +126,7 @@
     "invoice-net-tax-browser.mjs",
     "live-simulation-header-browser.mjs",
     "mcp-oauth-browser.mjs",
+    "operational-cases-browser.mjs",
     "operational-integrity-browser.mjs",
     "operational-previews-browser.mjs",
     "order-journey-browser.mjs",

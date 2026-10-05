@@ -1130,6 +1130,18 @@ def load_tenant_isolation_catalog() -> TenantIsolationCatalog:
 
 
 def _service(name: str) -> Any:
+    if name.startswith("operational_case_"):
+        from reality.services import operational_cases
+
+        return getattr(operational_cases, {
+            "operational_case_list": "list_cases",
+            "operational_case_explain": "explain",
+            "operational_case_object": "object_cases",
+            "operational_case_handback_preview": "handback_preview",
+            "operational_case_adopt": "adopt",
+            "operational_case_takeover": "takeover",
+            "operational_case_handback": "handback",
+        }.get(name, ""), None)
     if name == "email_dispatch_authorize":
         return email_service_module.authorize_dispatch
     if hasattr(costing_service_module, name):
@@ -1365,10 +1377,11 @@ def _unique(entries: list[dict[str, Any]], key: str, category: str) -> set[str]:
 
 def _literal_business_events() -> set[str]:
     events: set[str] = set()
-    from reality.services import credit_actions
+    from reality.services import credit_actions, operational_cases
 
     for module in (
         service_module,
+        operational_cases,
         costing_service_module,
         credit_actions,
         customer_exchange_service_module,

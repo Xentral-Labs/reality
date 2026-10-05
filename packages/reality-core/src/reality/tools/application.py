@@ -4074,7 +4074,10 @@ def _proposal_execution_status(
 
     # reality-rule: application.proposal_execution_status.1
     status = _proposal_execution_receipt(session, tenant_id, arguments)
+    from reality.services.operational_cases import object_cases
+
     return {
+        "case_ids": object_cases(session, tenant_id, "proposal", status["proposal_id"]),
         **status,
         "decision": decision_attributions(
             session, tenant_id, [status["proposal_id"]]
@@ -6787,6 +6790,10 @@ def create_change_proposal(
     if delivery_review:
         proposal.output = json.dumps(_json_value(delivery_review), sort_keys=True)
     session.add(proposal)
+    session.flush()
+    from reality.services.case_action_guards import bind_arguments
+
+    bind_arguments(session, tenant_id, proposal.id, tool_name, normalized_arguments)
     if _commit:
         session.commit()
     else:
@@ -6967,141 +6974,150 @@ def approve_and_execute_proposal(
     BUSINESS RULE application.approve_and_execute_proposal.8:
     After the selected execution path returns, mark the proposal executed, serialize its returned receipt and commit.
     """
-    candidate = session.scalar(
-        select(ChangeProposal).where(
-            ChangeProposal.tenant_id == tenant_id,
-            ChangeProposal.id == proposal_id,
-        )
-    )
-    if candidate is None:
-        raise NotFound(code="proposal_not_found")
-    if (
-        candidate.type in {"tool:demo_seed", "tool:normal_month"}
-        and candidate.status != "executed"
-        and not confirmed
-    ):
-        raise InvalidOperation(code="review_confirmation_required")
-    authority_policy = resolve_decision_policy(
-        candidate.type.removeprefix("tool:"), json.loads(candidate.input)
-    )
-    if "email_retry_review" in authority_policy.checks and (
-        settling_token_id or settling_channel == "chat"
-    ):
-        # Risk exceptions require the observed member/trusted-local review boundary.
-        raise InvalidOperation(code="email_decision_required")
-    # reality-rule: application.approve_and_execute_proposal.1
-    require_decision_authority(
+    from reality.services.case_action_guards import execution_context, guard_proposal
+
+    automatic = confirming_principal is None or settling_token_id is not None
+    with execution_context(
         session,
         tenant_id,
-        authority_policy,
-        confirming_principal,
-        phase="preflight",
-        confirmed=confirmed,
-    )
-    if candidate.type == "tool:intake_batch_apply":
-        from reality.services.intake_batches import approve_batch
-
-        return approve_batch(
-            session,
-            tenant_id,
-            proposal_id,
-            review_token or "",
-            confirmed=confirmed,
-            principal=confirming_principal,
-            settling_token_id=settling_token_id,
-            settling_channel=settling_channel,
-        )
-    if candidate.type == "tool:intake_apply":
-        from reality.services.intake import apply_prepared_intake
-
-        return apply_prepared_intake(
-            session,
-            tenant_id,
-            proposal_id,
-            review_token or "",
-            confirmed=confirmed,
-            principal=confirming_principal,
-            settling_token_id=settling_token_id,
-            settling_channel=settling_channel,
-        )
-    if "report_author" in authority_policy.checks:
-        from reality.services.analytics.proposals import reveal
-
-        reveal(session, tenant_id, confirming_principal, json.loads(candidate.input))
-        if not confirmed:
-            from reality.services.analytics.errors import AnalyticsError
-
-            raise AnalyticsError(
-                "Explicit confirmation is required for a private report change."
+        automatic=automatic,
+        proposal_id=proposal_id,
+        principal=confirming_principal,
+    ):
+        guard_proposal(session, tenant_id, proposal_id, automatic=automatic)
+        candidate = session.scalar(
+            select(ChangeProposal).where(
+                ChangeProposal.tenant_id == tenant_id,
+                ChangeProposal.id == proposal_id,
             )
-    require_decision_authority(
-        session, tenant_id, authority_policy, confirming_principal, phase="locked"
-    )
-    # reality-rule: application.approve_and_execute_proposal.2
-    if candidate.status == "executed":
-        return candidate
-    require_proposal_decision(session, tenant_id, proposal_id, "proposal_execute")
-    # reality-rule: application.approve_and_execute_proposal.3
-    if candidate.status == "executing":
-        raise InvalidOperation(code="proposal_execution_in_progress")
-    if candidate.status == "rejected":
-        raise NotFound(code="proposal_active_not_found")
-    if candidate.status != "proposed":
-        raise InvalidOperation(
-            code="proposal_confirm_status_invalid", values={"status": candidate.status}
         )
-    tool_name = candidate.type.removeprefix("tool:")
-    tool = TOOLS.get(tool_name)
-    if tool is None or not tool.mutating:
-        raise InvalidOperation(code="proposal_mutation_tool_invalid")
-    arguments = json.loads(candidate.input)
-    require_decision_authority(
-        session, tenant_id, authority_policy, confirming_principal, phase="identity"
-    )
-
-    from reality.db.core import Tenant
-    from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review
-
-    tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
-    if (
-        tenant
-        and tenant.purpose != "playground"
-        and eligible(tool_name, arguments)
-        and REVIEW_KEY not in arguments
-        and not (
-            tool_name == "movement_create"
-            and arguments.get("movement_type") == "opening_stock"
+        if candidate is None:
+            raise NotFound(code="proposal_not_found")
+        if (
+            candidate.type in {"tool:demo_seed", "tool:normal_month"}
+            and candidate.status != "executed"
+            and not confirmed
+        ):
+            raise InvalidOperation(code="review_confirmation_required")
+        authority_policy = resolve_decision_policy(
+            candidate.type.removeprefix("tool:"), json.loads(candidate.input)
         )
-        and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}
-    ):
-        raise InvalidOperation(code="delivery_review_required")
-    # reality-rule: application.approve_and_execute_proposal.4
-    if REVIEW_KEY in arguments and (
-        not confirmed or review_token != arguments[REVIEW_KEY]["token"]
-    ):
-        raise InvalidOperation(code="review_confirmation_required")
-
-    # reality-rule: application.approve_and_execute_proposal.5
-    if tool_name in FINANCE_COMMANDS:
+        if "email_retry_review" in authority_policy.checks and (
+            settling_token_id or settling_channel == "chat"
+        ):
+            # Risk exceptions require the observed member/trusted-local review boundary.
+            raise InvalidOperation(code="email_decision_required")
+        # reality-rule: application.approve_and_execute_proposal.1
         require_decision_authority(
             session,
             tenant_id,
             authority_policy,
             confirming_principal,
-            phase="execution",
+            phase="preflight",
+            confirmed=confirmed,
         )
-        try:
-            if tool_name in {
-                ADJUSTMENT_COMMAND,
-                SETTLEMENT_COMMAND,
-                OPENING_COMMAND,
-                ASSIGNMENT_COMMAND,
-                "cost.change",
-            }:
-                from reality.services.business_locks import lock_delivery_state
+        if candidate.type == "tool:intake_batch_apply":
+            from reality.services.intake_batches import approve_batch
 
-                lock_delivery_state(session, tenant_id)
-            lock_finance(session, tenant_id)
+            return approve_batch(
+                session,
+                tenant_id,
+                proposal_id,
+                review_token or "",
+                confirmed=confirmed,
+                principal=confirming_principal,
+                settling_token_id=settling_token_id,
+                settling_channel=settling_channel,
+            )
+        if candidate.type == "tool:intake_apply":
+            from reality.services.intake import apply_prepared_intake
+
+            return apply_prepared_intake(
+                session,
+                tenant_id,
+                proposal_id,
+                review_token or "",
+                confirmed=confirmed,
+                principal=confirming_principal,
+                settling_token_id=settling_token_id,
+                settling_channel=settling_channel,
+            )
+        if "report_author" in authority_policy.checks:
+            from reality.services.analytics.proposals import reveal
+
+            reveal(
+                session, tenant_id, confirming_principal, json.loads(candidate.input)
+            )
+            if not confirmed:
+                from reality.services.analytics.errors import AnalyticsError
+
+                raise AnalyticsError(
+                    "Explicit confirmation is required for a private report change."
+                )
+        require_decision_authority(
+            session, tenant_id, authority_policy, confirming_principal, phase="locked"
+        )
+        # reality-rule: application.approve_and_execute_proposal.2
+        if candidate.status == "executed":
+            return candidate
+        require_proposal_decision(session, tenant_id, proposal_id, "proposal_execute")
+        # reality-rule: application.approve_and_execute_proposal.3
+        if candidate.status == "executing":
+            raise InvalidOperation(code="proposal_execution_in_progress")
+        if candidate.status == "rejected":
+            raise NotFound(code="proposal_active_not_found")
+        if candidate.status != "proposed":
+            raise InvalidOperation(
+                code="proposal_confirm_status_invalid",
+                values={"status": candidate.status},
+            )
+        tool_name = candidate.type.removeprefix("tool:")
+        tool = TOOLS.get(tool_name)
+        if tool is None or not tool.mutating:
+            raise InvalidOperation(code="proposal_mutation_tool_invalid")
+        arguments = json.loads(candidate.input)
+        require_decision_authority(
+            session, tenant_id, authority_policy, confirming_principal, phase="identity"
+        )
+
+        from reality.db.core import Tenant
+        from reality.services.delivery_actions import (
+            REVIEW_KEY,
+            eligible,
+            validate_review,
+        )
+
+        tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
+        if (
+            tenant
+            and tenant.purpose != "playground"
+            and eligible(tool_name, arguments)
+            and REVIEW_KEY not in arguments
+            and not (
+                tool_name == "movement_create"
+                and arguments.get("movement_type") == "opening_stock"
+            )
+            and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}
+        ):
+            raise InvalidOperation(code="delivery_review_required")
+        # reality-rule: application.approve_and_execute_proposal.4
+        if REVIEW_KEY in arguments and (
+            not confirmed or review_token != arguments[REVIEW_KEY]["token"]
+        ):
+            raise InvalidOperation(code="review_confirmation_required")
+
+        if tool_name in {
+            "operational_case_adopt",
+            "operational_case_takeover",
+            "operational_case_handback",
+        }:
+            if automatic:
+                raise InvalidOperation(code="case_human_confirmation_required")
+            if not confirmed:
+                raise InvalidOperation(code="review_confirmation_required")
+            from reality.services.business_locks import lock_delivery_state
+
+            lock_delivery_state(session, tenant_id)
             proposal = session.scalar(
                 select(ChangeProposal)
                 .where(
@@ -7115,269 +7131,341 @@ def approve_and_execute_proposal(
                 return proposal
             if proposal.status != "proposed":
                 raise InvalidOperation(code="proposal_no_longer_available")
-            with executing_proposal(tenant_id, proposal.id):
-                result = execute_finance_command(
-                    session,
-                    tenant_id,
-                    tool_name,
-                    arguments,
-                    action_id=proposal.id,
-                    actor_id=(
-                        confirming_principal.user_id if confirming_principal else None
-                    ),
+            # Controls have only transactional database effects, like Finance.
+            # A refused control never leaves a fictitious uncertain external claim.
+            with session.begin_nested():
+                _record_decision(
+                    proposal, confirming_principal, settling_token_id, settling_channel
                 )
-            proposal.status = "executed"
-            _record_decision(
-                proposal, confirming_principal, settling_token_id, settling_channel
-            )
-            proposal.output = json.dumps(_json_value(result), sort_keys=True)
+                with executing_proposal(tenant_id, proposal.id):
+                    result = TOOLS[tool_name].handler(session, tenant_id, arguments)
+                proposal.status = "executed"
+                proposal.output = json.dumps(_json_value(result), sort_keys=True)
             session.commit()
             return proposal
-        except (InvalidOperation, NotFound) as error:
-            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
-            raise
-        except Exception:
-            session.rollback()
-            raise
 
-    # reality-rule: application.approve_and_execute_proposal.6
-    claimed_id = session.scalar(
-        update(ChangeProposal)
-        .where(
-            ChangeProposal.tenant_id == tenant_id,
-            ChangeProposal.id == proposal_id,
-            ChangeProposal.status == "proposed",
-        )
-        .values(
-            status="executing",
-            **_decider_values(
-                confirming_principal, settling_token_id, settling_channel
-            ),
-        )
-        .returning(ChangeProposal.id)
-    )
-    session.commit()
-    if claimed_id is None:
-        proposal = session.scalar(
-            select(ChangeProposal).where(
-                ChangeProposal.tenant_id == tenant_id,
-                ChangeProposal.id == proposal_id,
-            )
-        )
-        if proposal is None:
-            raise NotFound(code="proposal_not_found")
-        if proposal.status == "executed":
-            return proposal
-        if proposal.status == "executing":
-            raise InvalidOperation(code="proposal_execution_in_progress")
-        raise InvalidOperation(
-            code="proposal_confirm_status_invalid", values={"status": proposal.status}
-        )
-    proposal = session.get(ChangeProposal, {"tenant_id": tenant_id, "id": claimed_id})
-    # reality-rule: application.approve_and_execute_proposal.7
-    if REVIEW_KEY in arguments:
-        from reality.services.business_locks import lock_delivery_state
-
-        try:
-            lock_delivery_state(session, tenant_id)
+        # reality-rule: application.approve_and_execute_proposal.5
+        if tool_name in FINANCE_COMMANDS:
             require_decision_authority(
                 session,
                 tenant_id,
                 authority_policy,
                 confirming_principal,
-                phase="locked",
+                phase="execution",
             )
-            from reality.services.delivery_actions import assert_no_unresolved_action
+            try:
+                if tool_name in {
+                    ADJUSTMENT_COMMAND,
+                    SETTLEMENT_COMMAND,
+                    OPENING_COMMAND,
+                    ASSIGNMENT_COMMAND,
+                    "cost.change",
+                }:
+                    from reality.services.business_locks import lock_delivery_state
 
-            assert_no_unresolved_action(
-                session, tenant_id, tool_name, arguments, exclude=proposal.id
+                    lock_delivery_state(session, tenant_id)
+                lock_finance(session, tenant_id)
+                proposal = session.scalar(
+                    select(ChangeProposal)
+                    .where(
+                        ChangeProposal.tenant_id == tenant_id,
+                        ChangeProposal.id == proposal_id,
+                    )
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                )
+                if proposal.status == "executed":
+                    return proposal
+                if proposal.status != "proposed":
+                    raise InvalidOperation(code="proposal_no_longer_available")
+                with executing_proposal(tenant_id, proposal.id):
+                    result = execute_finance_command(
+                        session,
+                        tenant_id,
+                        tool_name,
+                        arguments,
+                        action_id=proposal.id,
+                        actor_id=(
+                            confirming_principal.user_id
+                            if confirming_principal
+                            else None
+                        ),
+                    )
+                proposal.status = "executed"
+                _record_decision(
+                    proposal, confirming_principal, settling_token_id, settling_channel
+                )
+                proposal.output = json.dumps(_json_value(result), sort_keys=True)
+                session.commit()
+                return proposal
+            except (InvalidOperation, NotFound) as error:
+                _finalize_known_no_effect_failure(
+                    session, tenant_id, proposal_id, error
+                )
+                raise
+            except Exception:
+                session.rollback()
+                raise
+
+        # reality-rule: application.approve_and_execute_proposal.6
+        claimed_id = session.scalar(
+            update(ChangeProposal)
+            .where(
+                ChangeProposal.tenant_id == tenant_id,
+                ChangeProposal.id == proposal_id,
+                ChangeProposal.status == "proposed",
             )
-            arguments = validate_review(
-                session, tenant_id, tool_name, arguments, review_token, confirmed
+            .values(
+                status="executing",
+                **_decider_values(
+                    confirming_principal, settling_token_id, settling_channel
+                ),
             )
+            .returning(ChangeProposal.id)
+        )
+        session.commit()
+        if claimed_id is None:
+            proposal = session.scalar(
+                select(ChangeProposal).where(
+                    ChangeProposal.tenant_id == tenant_id,
+                    ChangeProposal.id == proposal_id,
+                )
+            )
+            if proposal is None:
+                raise NotFound(code="proposal_not_found")
+            if proposal.status == "executed":
+                return proposal
+            if proposal.status == "executing":
+                raise InvalidOperation(code="proposal_execution_in_progress")
+            raise InvalidOperation(
+                code="proposal_confirm_status_invalid",
+                values={"status": proposal.status},
+            )
+        proposal = session.get(
+            ChangeProposal, {"tenant_id": tenant_id, "id": claimed_id}
+        )
+        try:
+            guard_proposal(session, tenant_id, proposal_id, automatic=automatic)
         except (InvalidOperation, NotFound):
-            # The handler has not been called: restoring review cannot replay an effect.
             proposal.status = "proposed"
             _undecide(proposal)
             session.commit()
             raise
-    if tool_name in REFERENCE_MUTATION_TOOLS:
-        from reality.services.business_locks import lock_delivery_state
-        from reality.services.core import _assert_update_revision
+        # reality-rule: application.approve_and_execute_proposal.7
+        if REVIEW_KEY in arguments:
+            from reality.services.business_locks import lock_delivery_state
 
-        try:
-            lock_delivery_state(session, tenant_id)
-            session.expire_all()
-            if tenant and tenant.purpose != "playground":
+            try:
+                lock_delivery_state(session, tenant_id)
                 require_decision_authority(
                     session,
                     tenant_id,
                     authority_policy,
                     confirming_principal,
-                    phase="reference",
+                    phase="locked",
                 )
-            if tool_name.endswith("_update"):
-                for record in arguments["records"]:
-                    _assert_update_revision(
-                        session, tenant_id, tool_name.removesuffix("_update"), record
+                from reality.services.delivery_actions import (
+                    assert_no_unresolved_action,
+                )
+
+                assert_no_unresolved_action(
+                    session, tenant_id, tool_name, arguments, exclude=proposal.id
+                )
+                arguments = validate_review(
+                    session, tenant_id, tool_name, arguments, review_token, confirmed
+                )
+            except (InvalidOperation, NotFound):
+                # The handler has not been called: restoring review cannot replay an effect.
+                proposal.status = "proposed"
+                _undecide(proposal)
+                session.commit()
+                raise
+        if tool_name in REFERENCE_MUTATION_TOOLS:
+            from reality.services.business_locks import lock_delivery_state
+            from reality.services.core import _assert_update_revision
+
+            try:
+                lock_delivery_state(session, tenant_id)
+                session.expire_all()
+                if tenant and tenant.purpose != "playground":
+                    require_decision_authority(
+                        session,
+                        tenant_id,
+                        authority_policy,
+                        confirming_principal,
+                        phase="reference",
                     )
-        except (InvalidOperation, NotFound):
-            # No handler ran, so a stale review can safely remain proposed.
-            proposal.status = "proposed"
-            _undecide(proposal)
-            session.commit()
-            raise
-    if tool_name in {
-        "party_update",
-        "item_update",
-        "location_update",
-        "fact_observe",
-        "reserve",
-        "movement_create",
-        "movement_correct",
-        "reservation_release",
-        "party_delivery_hold",
-        "party_delivery_hold_release",
-        "commitment_hold",
-        "commitment_hold_release",
-        "party_create",
-        "item_create",
-        "location_create",
-        "order_create",
-        "customer_payment_post",
-        "sales_invoice_record",
-        "supplier_payment_post",
-        "supplier_invoice_record",
-        "supplier_invoice_free_record",
-        "supply_assign",
-        "return_disposition",
-        "customer_exchange_record",
-        "shipment_delivery_failure",
-        "drop_shipment_record",
-        "order_line_item_assign",
-        "credit_hold_release",
-        "prepayment_release",
-        "reorder_point_set",
-        "reorder_point_remove",
-        "kit_define",
-        "kit_assemble",
-        "party_merge",
-        "commitment_substitute_accept",
-        "stock_block",
-        "stock_block_release",
-        "stock_block_scrap",
-        "backorders_serve",
-        "delivery_rule_set",
-        "stock_count",
-        "external_stock_state",
-        "outbound_delivery_plan",
-        "outbound_delivery_revise",
-        "outbound_delivery_pick",
-        "outbound_delivery_put_back",
-        "customer_item_number_set",
-        "customer_item_number_remove",
-        "supplier_item_number_set",
-        "supplier_item_number_remove",
-        "supplier_item_terms_set",
-        "supplier_item_terms_remove",
-        "company_currency_set",
-        "company_time_zone_set",
-        "down_payment_invoice_record",
-        "proforma_invoice_record",
-        "commitment_revise",
-        "commitment_cancel",
-        "sales_credit_record",
-        "customer_refund_post",
-        "ledger_reverse",
-        "shipment_notice_record",
-        "shipment_dispatch",
-        "shipment_receive",
-        "shipment_event_record",
-        "shipment_event_supersede",
-    }:
-        arguments["_action_id"] = proposal.id
-    if tool_name in ACCOUNT_MUTATION_TOOLS:
-        arguments["_confirming_user_id"] = confirming_principal.user_id
-    from reality.playground.actions import MASTER_TOOLS
-    from reality.services.tenant_policy import master_tool_execution
+                if tool_name.endswith("_update"):
+                    for record in arguments["records"]:
+                        _assert_update_revision(
+                            session,
+                            tenant_id,
+                            tool_name.removesuffix("_update"),
+                            record,
+                        )
+            except (InvalidOperation, NotFound):
+                # No handler ran, so a stale review can safely remain proposed.
+                proposal.status = "proposed"
+                _undecide(proposal)
+                session.commit()
+                raise
+        if tool_name in {
+            "party_update",
+            "item_update",
+            "location_update",
+            "fact_observe",
+            "reserve",
+            "movement_create",
+            "movement_correct",
+            "reservation_release",
+            "party_delivery_hold",
+            "party_delivery_hold_release",
+            "commitment_hold",
+            "commitment_hold_release",
+            "party_create",
+            "item_create",
+            "location_create",
+            "order_create",
+            "customer_payment_post",
+            "sales_invoice_record",
+            "supplier_payment_post",
+            "supplier_invoice_record",
+            "supplier_invoice_free_record",
+            "supply_assign",
+            "return_disposition",
+            "customer_exchange_record",
+            "shipment_delivery_failure",
+            "drop_shipment_record",
+            "order_line_item_assign",
+            "credit_hold_release",
+            "prepayment_release",
+            "reorder_point_set",
+            "reorder_point_remove",
+            "kit_define",
+            "kit_assemble",
+            "party_merge",
+            "commitment_substitute_accept",
+            "stock_block",
+            "stock_block_release",
+            "stock_block_scrap",
+            "backorders_serve",
+            "delivery_rule_set",
+            "stock_count",
+            "external_stock_state",
+            "outbound_delivery_plan",
+            "outbound_delivery_revise",
+            "outbound_delivery_pick",
+            "outbound_delivery_put_back",
+            "customer_item_number_set",
+            "customer_item_number_remove",
+            "supplier_item_number_set",
+            "supplier_item_number_remove",
+            "supplier_item_terms_set",
+            "supplier_item_terms_remove",
+            "company_currency_set",
+            "company_time_zone_set",
+            "down_payment_invoice_record",
+            "proforma_invoice_record",
+            "commitment_revise",
+            "commitment_cancel",
+            "sales_credit_record",
+            "customer_refund_post",
+            "ledger_reverse",
+            "shipment_notice_record",
+            "shipment_dispatch",
+            "shipment_receive",
+            "shipment_event_record",
+            "shipment_event_supersede",
+        }:
+            arguments["_action_id"] = proposal.id
+        if tool_name in ACCOUNT_MUTATION_TOOLS:
+            arguments["_confirming_user_id"] = confirming_principal.user_id
+        from reality.playground.actions import MASTER_TOOLS
+        from reality.services.tenant_policy import master_tool_execution
 
-    if "request_author" in authority_policy.checks:
-        from reality.services.analytics.proposals import execute_request
+        if "request_author" in authority_policy.checks:
+            from reality.services.analytics.proposals import execute_request
 
-        with (
-            _confirmed_application_scope(session, tenant_id, proposal),
-            executing_proposal(tenant_id, proposal.id),
-        ):
-            result = execute_request(
-                session, tenant_id, confirming_principal, arguments
-            )
-    elif "report_author" in authority_policy.checks:
-        from reality.services.analytics.proposals import execute_change
-
-        try:
             with (
                 _confirmed_application_scope(session, tenant_id, proposal),
                 executing_proposal(tenant_id, proposal.id),
             ):
-                result = execute_change(
+                result = execute_request(
                     session, tenant_id, confirming_principal, arguments
                 )
-        except (InvalidOperation, NotFound):
-            # A refused save wrote nothing, so the outcome is known, not unknown.
-            # Leaving the claim in place would strand the proposal: every further
-            # confirmation would answer "execution is in progress" and the reader
-            # would never learn that a retry key was reused or a revision moved on.
-            session.rollback()
-            session.execute(
-                update(ChangeProposal)
-                .where(
-                    ChangeProposal.tenant_id == tenant_id,
-                    ChangeProposal.id == proposal_id,
-                    ChangeProposal.status == "executing",
-                )
-                .values(status="proposed", **UNDECIDED)
-            )
-            session.commit()
-            raise
-    elif tool_name in MASTER_TOOLS:
-        with (
-            master_tool_execution(session, tenant_id, tool_name, arguments),
-            _confirmed_application_scope(session, tenant_id, proposal),
-            executing_proposal(tenant_id, proposal.id),
-        ):
-            result = tool.handler(session, tenant_id, arguments)
-    else:
-        try:
-            if tool_name in {"intake_mandate_grant", "intake_mandate_revoke"}:
-                from reality.services.intake_review import _mandate_change_scope
+        elif "report_author" in authority_policy.checks:
+            from reality.services.analytics.proposals import execute_change
 
-                with (
-                    _mandate_change_scope(
-                        session, tenant_id, proposal, confirming_principal, arguments
-                    ),
-                    _confirmed_application_scope(session, tenant_id, proposal),
-                    executing_proposal(tenant_id, proposal.id),
-                ):
-                    result = tool.handler(session, tenant_id, arguments)
-            else:
+            try:
                 with (
                     _confirmed_application_scope(session, tenant_id, proposal),
                     executing_proposal(tenant_id, proposal.id),
                 ):
-                    result = tool.handler(session, tenant_id, arguments)
-        except (InvalidOperation, NotFound) as error:
-            # A synchronous domain refusal from a reviewed application handler is a
-            # known no-effect outcome: the handler did not return and its current
-            # transaction is rolled back. Retain that terminal fact instead of
-            # stranding the action in `executing` or making rejected input retryable.
-            # Unexpected exceptions still leave the durable execution claim intact.
-            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
-            raise
-    # reality-rule: application.approve_and_execute_proposal.8
-    proposal.status = "executed"
-    proposal.output = json.dumps(_json_value(result), sort_keys=True)
-    session.commit()
-    return proposal
+                    result = execute_change(
+                        session, tenant_id, confirming_principal, arguments
+                    )
+            except (InvalidOperation, NotFound):
+                # A refused save wrote nothing, so the outcome is known, not unknown.
+                # Leaving the claim in place would strand the proposal: every further
+                # confirmation would answer "execution is in progress" and the reader
+                # would never learn that a retry key was reused or a revision moved on.
+                session.rollback()
+                session.execute(
+                    update(ChangeProposal)
+                    .where(
+                        ChangeProposal.tenant_id == tenant_id,
+                        ChangeProposal.id == proposal_id,
+                        ChangeProposal.status == "executing",
+                    )
+                    .values(status="proposed", **UNDECIDED)
+                )
+                session.commit()
+                raise
+        elif tool_name in MASTER_TOOLS:
+            with (
+                master_tool_execution(session, tenant_id, tool_name, arguments),
+                _confirmed_application_scope(session, tenant_id, proposal),
+                executing_proposal(tenant_id, proposal.id),
+            ):
+                result = tool.handler(session, tenant_id, arguments)
+        else:
+            try:
+                if tool_name in {"intake_mandate_grant", "intake_mandate_revoke"}:
+                    from reality.services.intake_review import _mandate_change_scope
+
+                    with (
+                        _mandate_change_scope(
+                            session,
+                            tenant_id,
+                            proposal,
+                            confirming_principal,
+                            arguments,
+                        ),
+                        _confirmed_application_scope(session, tenant_id, proposal),
+                        executing_proposal(tenant_id, proposal.id),
+                    ):
+                        result = tool.handler(session, tenant_id, arguments)
+                else:
+                    with (
+                        _confirmed_application_scope(session, tenant_id, proposal),
+                        executing_proposal(tenant_id, proposal.id),
+                    ):
+                        result = tool.handler(session, tenant_id, arguments)
+            except (InvalidOperation, NotFound) as error:
+                # A synchronous domain refusal from a reviewed application handler is a
+                # known no-effect outcome: the handler did not return and its current
+                # transaction is rolled back. Retain that terminal fact instead of
+                # stranding the action in `executing` or making rejected input retryable.
+                # Unexpected exceptions still leave the durable execution claim intact.
+                _finalize_known_no_effect_failure(
+                    session, tenant_id, proposal_id, error
+                )
+                raise
+        # reality-rule: application.approve_and_execute_proposal.8
+        proposal.status = "executed"
+        proposal.output = json.dumps(_json_value(result), sort_keys=True)
+        session.commit()
+        return proposal
 
 
 def reject_proposal(
@@ -7692,3 +7780,7 @@ TOOLS["graph.requests.create"] = Tool(
     True,
     _requested_analysis_confirmation_only,
 )
+
+from reality.tools.operational_cases import register as _register_operational_cases
+
+_register_operational_cases()

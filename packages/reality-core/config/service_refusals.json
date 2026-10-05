@@ -2815,6 +2815,45 @@
     },
     "intake_file_size_invalid": {
       "message": "Large-file raw input must be nonempty and at most 20 MiB."
+    },
+    "case_not_found": {
+      "message": "Operational case not found."
+    },
+    "case_object_unsupported": {
+      "message": "This object has no supported operational case policy."
+    },
+    "case_request_invalid": {
+      "message": "Provide a bounded control request key."
+    },
+    "case_request_conflict": {
+      "message": "This request key already identifies a different case control."
+    },
+    "case_already_adopted": {
+      "message": "Operational cases are already enabled for this company."
+    },
+    "case_selection_too_large": {
+      "message": "The selected case operation exceeds its batch limit."
+    },
+    "case_review_stale": {
+      "message": "The case changed. Review its current state before continuing."
+    },
+    "case_execution_unresolved": {
+      "message": "An action has an unresolved execution outcome. Reconcile it before returning automation."
+    },
+    "case_source_unresolved": {
+      "message": "Relevant source evidence is not yet reconciled. Review it before continuing."
+    },
+    "case_human_owned": {
+      "message": "This case is manually owned. Automation cannot start more work."
+    },
+    "case_action_stale": {
+      "message": "This action belongs to an older case control revision. Prepare fresh work."
+    },
+    "case_coverage_unavailable": {
+      "message": "This work has no supported adopted case. Manual repair remains available."
+    },
+    "case_human_confirmation_required": {
+      "message": "An authenticated human must confirm this responsibility control."
     }
   },
   "terms": [

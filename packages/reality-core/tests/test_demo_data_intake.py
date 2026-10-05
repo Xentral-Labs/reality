@@ -764,10 +764,13 @@ def test_settlement_occurrence_emits_due_records_in_bounded_batches(
 
     # Idle occurrences emit nothing; the stale order returns to the scan once it
     # is back inside the window.
-    assert demo_data.settlement_work(session, tenant, now()) == []
+    # Occurrences deliberately advance a synthetic clock; wall time can still
+    # precede those recorded Sources on a fast worker. Compare at that same clock.
+    idle_at = max(now(), settlement.next_run_at)
+    assert demo_data.settlement_work(session, tenant, idle_at) == []
     stale.received_at = now()
     session.flush()
-    work = demo_data.settlement_work(session, tenant, now())
+    work = demo_data.settlement_work(session, tenant, idle_at)
     assert [item["source_type"] for item in work] == ["invoice"]
     assert work[0]["external_id"] == f"{stale.external_id}:invoice"
 

@@ -3883,6 +3883,9 @@ def create_commitment(
     _commit: bool = True,
     _unit: str | None = None,
 ) -> Commitment:
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "create_commitment", locals())
     _require_business_mutation(session, tenant_id, "create_commitment")
     from reality.services.intake import require_scoped_intent
 
@@ -3929,6 +3932,10 @@ def create_commitment(
         **({"unit": _unit} if _unit else {}),
     )
     session.add(commitment)
+    session.flush()
+    from reality.services.operational_cases import ensure_commitment
+
+    ensure_commitment(session, tenant_id, commitment.id, newly_accepted=True)
     emit_business_event(
         session,
         tenant_id,
@@ -3943,7 +3950,6 @@ def create_commitment(
             **({"unit": _unit} if _unit else {}),
         },
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()
@@ -4529,6 +4535,9 @@ def revise_commitment(
     BUSINESS RULE core.revise_commitment.6:
     IF the revised quantity leaves no open quantity, mark the promise fulfilled and release all its holds, including credit-check holds.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "revise_commitment", locals())
     _require_business_mutation(session, tenant_id, "revise_commitment")
     from reality.services.intake import require_scoped_intent
 
@@ -4689,7 +4698,6 @@ def revise_commitment(
                 },
                 source_record_id=source_record_id,
                 action_id=action_id,
-                correlation_id=action_id,
             )
         if retained_quantity > ZERO:
             allocations_to_create = retained_specs or [(template, retained_quantity)]
@@ -4728,7 +4736,6 @@ def revise_commitment(
                     },
                     source_record_id=source_record_id,
                     action_id=action_id,
-                    correlation_id=action_id,
                 )
     emit_business_event(
         session,
@@ -4751,7 +4758,6 @@ def revise_commitment(
         },
         source_record_id=source_record_id,
         action_id=action_id,
-        correlation_id=action_id,
     )
     session.flush()
     # More of a customer promise is an order entering on credit too (spec 298).
@@ -5235,6 +5241,9 @@ def reserve(
     BUSINESS RULE core.reserve.3:
     Return requested, allocated and shortage quantities; shortage is requested minus allocated.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "reserve", locals())
     _require_business_mutation(session, tenant_id, "reserve")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
@@ -5289,7 +5298,6 @@ def reserve(
                 "serial_unit_id": serial_unit_id,
             },
             action_id=action_id,
-            correlation_id=action_id,
         )
         if _commit:
             session.commit()
@@ -5316,6 +5324,9 @@ def release_reservation(
     BUSINESS RULE core.release_reservation.1:
     IF the reservation is active, mark it released and emit its release event. ELSE return the existing reservation unchanged.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "release_reservation", locals())
     from reality.services.tenant_policy import require_decision_release
 
     _require_business_mutation(session, tenant_id, "release_reservation")
@@ -5334,7 +5345,6 @@ def release_reservation(
             reservation.id,
             {"commitment_id": reservation.commitment_id},
             action_id=action_id,
-            correlation_id=action_id,
         )
         if _commit:
             session.commit()
@@ -5387,7 +5397,6 @@ def _consume_reservations(
                 "cause": "shipment",
             },
             action_id=action_id,
-            correlation_id=action_id,
             causation_id=causation_id,
         )
         if allocated > remaining:
@@ -5422,7 +5431,6 @@ def _consume_reservations(
                     "cause": "shipment_remainder",
                 },
                 action_id=action_id,
-                correlation_id=action_id,
                 causation_id=causation_id,
             )
         remaining -= min(remaining, allocated)
@@ -5489,7 +5497,6 @@ def _release_reservations_beyond_open(
                 "cause": "shipped_from_another_location",
             },
             action_id=action_id,
-            correlation_id=action_id,
             causation_id=causation_id,
         )
         if allocated > released:
@@ -5524,7 +5531,6 @@ def _release_reservations_beyond_open(
                     "cause": "shipped_from_another_location",
                 },
                 action_id=action_id,
-                correlation_id=action_id,
                 causation_id=causation_id,
             )
         excess -= released
@@ -6187,6 +6193,9 @@ def announce_customer_return(
     )
     session.add(announcement)
     session.flush()
+    from reality.services.operational_cases import ensure_return
+
+    ensure_return(session, tenant_id, announcement.id, newly_accepted=True)
     emit_business_event(
         session,
         tenant_id,
@@ -6232,6 +6241,9 @@ def withdraw_return_announcement(
     BUSINESS RULE core.withdraw_return_announcement.2:
     Mark it withdrawn and retain the original announcement; record the closure time and optional note.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "withdraw_return_announcement", locals())
     _require_business_mutation(session, tenant_id, "withdraw_return_announcement")
     announcement = _tenant_record(
         session, ReturnAnnouncement, tenant_id, announcement_id
@@ -6372,6 +6384,10 @@ def _append_movement(
     _movement_id: str | None = None,
     _drop_ship: bool = False,
 ) -> Movement | dict[str, Any]:
+    from reality.services.case_action_guards import guard_operation
+
+    if not validate_only:
+        guard_operation(session, tenant_id, "record_movement", locals())
     if _correcting is not None and not validate_only:
         raise InvalidOperation(code="movement_projected_state_not_preview")
     if _drop_ship and (
@@ -6801,7 +6817,6 @@ def _append_movement(
             source_record_id=source_record_id,
             occurred_at=movement.occurred_at,
             action_id=action_id,
-            correlation_id=action_id,
         )
     session.flush()
     if movement_type == "adjustment":
@@ -6879,7 +6894,6 @@ def _append_movement(
                             "cause": "commitment_fulfilled",
                         },
                         action_id=action_id,
-                        correlation_id=action_id,
                         causation_id=recorded_event.id if recorded_event else None,
                     )
             previous_status = commitment.status
@@ -6893,7 +6907,6 @@ def _append_movement(
                     commitment.id,
                     {"previous_status": previous_status, "movement_id": movement.id},
                     action_id=action_id,
-                    correlation_id=action_id,
                     causation_id=recorded_event.id if recorded_event else None,
                 )
     if (
@@ -7343,6 +7356,9 @@ def correct_movement(
     BUSINESS RULE core.correct_movement.5:
     Record the correction reason, actor context and inverse/replacement identities in one correction event and capture the costing correction.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "correct_movement", locals())
     _require_business_mutation(session, tenant_id, "correct_movement")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
@@ -7556,7 +7572,6 @@ def correct_movement(
             },
             occurred_at=corrected_at,
             action_id=action_id,
-            correlation_id=action_id,
         )
         from reality.services.costing import _capture_correction
 
@@ -7604,6 +7619,9 @@ def cancel_commitment(
     BUSINESS RULE core.cancel_commitment.4:
     Release all holds, including protected credit-check holds, because the promise is being cancelled.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "cancel_commitment", locals())
     _require_business_mutation(session, tenant_id, "cancel_commitment")
     from reality.services.intake import require_scoped_intent
 
@@ -7669,7 +7687,6 @@ def cancel_commitment(
         },
         source_record_id=source_record_id,
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()
@@ -7735,6 +7752,9 @@ def hold_commitment(
     BUSINESS RULE core.hold_commitment.3:
     Otherwise record the reason, note and creator and emit a promise-held event.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "hold_commitment", locals())
     _require_business_mutation(session, tenant_id, "hold_commitment")
     _validate_commitment_hold(session, tenant_id, commitment_id, reason_code)
     if action_id:
@@ -7762,7 +7782,6 @@ def hold_commitment(
         commitment_id,
         {"hold_id": hold.id, "reason_code": reason_code},
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()
@@ -7905,6 +7924,14 @@ def close_stale_promises(
     Cancel each selected promise without intermediate commits, record the closure event and commit once; on failure roll back the complete closure.
     """
     _require_business_mutation(session, tenant_id, "close_stale_promises")
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(
+        session,
+        tenant_id,
+        "close_stale_promises",
+        {"direction": direction, "due_before": due_before},
+    )
     get_tenant(session, tenant_id)
     stated_reason = (reason or "").strip()
     # reality-rule: core.close_stale_promises.1
@@ -7984,6 +8011,9 @@ def release_commitment_hold(
     BUSINESS RULE core.release_commitment_hold.3:
     Emit a release event only when holds were actually released.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "release_commitment_hold", locals())
     _require_business_mutation(session, tenant_id, "release_commitment_hold")
     _tenant_record(session, Commitment, tenant_id, commitment_id)
     if action_id:
@@ -8018,7 +8048,6 @@ def release_commitment_hold(
             commitment_id,
             {"hold_ids": [hold.id for hold in holds]},
             action_id=action_id,
-            correlation_id=action_id,
         )
     if _commit:
         session.commit()
@@ -8047,6 +8076,9 @@ def hold_document_commitments(
     BUSINESS RULE core.hold_document_commitments.3:
     Apply the canonical single-promise hold service to each selected promise.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "hold_document_commitments", locals())
     _require_business_mutation(session, tenant_id, "hold_document_commitments")
     _tenant_record(session, Document, tenant_id, document_id)
     # reality-rule: core.hold_document_commitments.1
@@ -8090,6 +8122,11 @@ def release_document_holds(
     Use the shared promise-hold release service for each identity, preserving its protected credit-check holds.
     """
     _require_business_mutation(session, tenant_id, "release_document_holds")
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(
+        session, tenant_id, "release_document_holds", {"document_id": document_id}
+    )
     _tenant_record(session, Document, tenant_id, document_id)
     # reality-rule: core.release_document_holds.1
     linked_ids = list(
@@ -8169,6 +8206,14 @@ def hold_party_delivery(
     Otherwise retain partner identity, reason, note and creator and emit delivery-hold evidence.
     """
     _require_business_mutation(session, tenant_id, "hold_party_delivery")
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(
+        session,
+        tenant_id,
+        "hold_party_delivery",
+        {"party_id": party_id, "action_id": action_id},
+    )
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Party, tenant_id, party_id)
@@ -8203,7 +8248,6 @@ def hold_party_delivery(
             "hold": party_hold_snapshot(hold),
         },
         action_id=action_id,
-        correlation_id=action_id,
         occurred_at=hold.created_at,
     )
     if _commit:
@@ -8228,6 +8272,14 @@ def release_party_delivery_hold(
     Emit a delivery-hold-released event containing the affected hold identities and snapshots only when holds existed.
     """
     _require_business_mutation(session, tenant_id, "release_party_delivery_hold")
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(
+        session,
+        tenant_id,
+        "release_party_delivery_hold",
+        {"party_id": party_id, "action_id": action_id},
+    )
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Party, tenant_id, party_id)
@@ -8262,7 +8314,6 @@ def release_party_delivery_hold(
                 "released_at": str(released_at),
             },
             action_id=action_id,
-            correlation_id=action_id,
             occurred_at=released_at,
         )
     session.commit()
@@ -9448,7 +9499,8 @@ def create_document(
         },
         source_record_id=source_record_id,
         action_id=action_id,
-        correlation_id=action_id,
+        # Keep unrelated Finance bookkeeping attribution unchanged in this slice.
+        correlation_id=None if document_type == "sales_order" else action_id,
     )
     if _commit:
         session.commit()
@@ -9682,7 +9734,8 @@ def create_manual_document_with_lines(
         },
         source_record_id=source_record_id,
         action_id=action_id,
-        correlation_id=action_id,
+        # Keep unrelated Finance bookkeeping attribution unchanged in this slice.
+        correlation_id=None if document_type == "sales_order" else action_id,
     )
     if _commit:
         session.commit()
@@ -9989,7 +10042,6 @@ def create_manual_order(
             },
             source_record_id=source.id,
             action_id=action_id,
-            correlation_id=action_id,
         )
         # reality-rule: core.create_manual_order.3
         if direction == "sales":

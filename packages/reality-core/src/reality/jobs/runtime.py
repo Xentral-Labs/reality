@@ -150,6 +150,10 @@ class ProcessLoop:
                             )
                         if result == 0 and not outcomes["failed"]:
                             result = len(enqueue_due_projections(session, tenant_id))
+                        from reality.services.case_jobs import enqueue_case_run
+
+                        case_run = enqueue_case_run(session, tenant_id)
+                        result += int(case_run is not None)
                         counts["materialized"] += result
                         counts["deferred"] += int(
                             result == 0 and jobs.has_due_schedule(session, tenant_id)

@@ -222,6 +222,9 @@ def record_return_disposition(
     BUSINESS RULE services.return_dispositions.record_return_disposition.effect-64:
     Pass the stated inputs to the shared record movement service. Its own source describes validation and record changes.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "record_return_disposition", locals())
     # reality-rule: services.return_dispositions.record_return_disposition.step-12
     core._require_business_mutation(session, tenant_id, "record_return_disposition")
     with session.begin_nested():
