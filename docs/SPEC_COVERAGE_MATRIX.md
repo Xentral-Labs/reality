@@ -1742,6 +1742,15 @@ use of it. It transmits the existing capability classification and reads no busi
 | Grant state per credential kind: no credential, a manual token, a grant that omits a tool, a grant whose scopes exclude an access class; a tool reported callable is dispatched and not refused; a foreign company's grant is never read | 270 FR-004 | `packages/reality-core/tests/test_capability_catalog.py` |
 | A capability carries its German business label or falls back to English; chat inherits the tool and reports no credential limit | 270 FR-005/FR-007 | `packages/reality-core/tests/test_capability_catalog.py` |
 
+### Spec 362 tenant purpose in the capability catalog
+
+The topic index carries `tenant.purpose`, the stored purpose of the calling credential's company.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Business and playground companies answer their own purpose; each principal reads only its own company and no foreign id or name | 362 FR-001/FR-002/DR-001 | `packages/reality-core/tests/test_capability_catalog.py` |
+| Two bearer tokens over the HTTP MCP runtime, verified by the server, each read their own company's purpose and nothing of the other | 362 FR-001/FR-002/DR-001 | `packages/reality-core/tests/test_capability_catalog.py` |
+
 ### Spec 271 MCP permission ceiling
 
 A permission list is bounded by the catalog it draws from, and both grant paths refuse alike.
