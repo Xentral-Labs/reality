@@ -1,39 +1,46 @@
 {
   "commands": [
     {
+      "name": "Operational case status",
+      "service": "operational_case_status",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Report observed default coordination readiness and truthful platform version provenance."
+    },
+    {
       "name": "Operational case list",
       "service": "operational_case_list",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Read current adopted goal, source coverage, ownership and execution explanation without creating work."
+      "effect": "Read current supported goal, source coverage, ownership and execution explanation without creating work."
     },
     {
       "name": "Operational case explain",
       "service": "operational_case_explain",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Read current adopted goal, source coverage, ownership and execution explanation without creating work."
+      "effect": "Read current supported goal, source coverage, ownership and execution explanation without creating work."
     },
     {
       "name": "Operational case object",
       "service": "operational_case_object",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Read current adopted goal, source coverage, ownership and execution explanation without creating work."
+      "effect": "Read current supported goal, source coverage, ownership and execution explanation without creating work."
     },
     {
       "name": "Operational case handback preview",
       "service": "operational_case_handback_preview",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Read current adopted goal, source coverage, ownership and execution explanation without creating work."
+      "effect": "Read current supported goal, source coverage, ownership and execution explanation without creating work."
     },
     {
       "name": "Operational case adopt",
       "service": "operational_case_adopt",
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Confirm current human responsibility control; does not cancel external execution or approve business effects."
+      "effect": "Deprecated confirmed owner acknowledgement of default coordination; does not modify cases or historical adoption."
     },
     {
       "name": "Operational case takeover",
