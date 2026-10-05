@@ -993,7 +993,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "business_records_discover",
         "Discover business records",
-        "Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of shown records. Movement summary counts_by_type counts records, not quantities: return is customer return, supplier_return is supplier return. Preserve omitted_before/omitted_after and complete_matching_selection. selection_record_count is null on partial pages including final cursor pages; only a complete first response establishes the retained filtered selection count. Movement records are not Shipment consignments. Quantity references include canonical item_name/item_sku beside opaque IDs. Executed Decisions: family executed_decision returns payload-free audit metadata; optional document_id selects exact retained sales/purchase order effect events, not complete history. Follow returned proposal_id with proposal_review/proposal_execution_status; do not repeat execution. Explicit legacy mode is a bounded lookup.",
+        "Read tenant-scoped business records as cursor pages with metadata and a deterministic summary of shown records. Movement summary counts_by_type counts records, not quantities: return is customer return, supplier_return is supplier return. Preserve omitted_before/omitted_after and complete_matching_selection. selection_record_count is null on partial pages including final cursor pages; only a complete first response establishes the retained filtered selection count. Movement records are not Shipment consignments. Quantity references include canonical item_name/item_sku beside opaque IDs. Executed Decisions: family executed_decision returns payload-free audit metadata; optional document_id selects exact retained sales/purchase order effect events, not complete history. When reporting executed Decision counts, qualify the count immediately with summary.selection_scope and preserve historical_completeness unknown; complete_matching_selection does not mean complete history. Follow returned proposal_id with proposal_review/proposal_execution_status; do not repeat execution. Explicit legacy mode is a bounded lookup.",
         "read",
         "Discovery",
         _object_schema(
@@ -1078,7 +1078,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "inventory_read",
         "Read inventory",
-        "Read inventory as cursor pages: labelled item totals or item/location rows with units. Page mode does not write projection caches.",
+        "Read current inventory as cursor pages: labelled item totals or item/location rows with units. Page mode does not write projection caches. This is not complete inventory history: do not suggest receipt timing or another stock context without inspected historical evidence; say not checked. movement_explanation reads the provenance of an exact retained movement, not the whole stock history.",
         "read",
         "Operations",
         _object_schema(
@@ -1312,7 +1312,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "order_explain",
         "Explain an order",
-        "Explain retained open, fulfilled or cancelled orders by opaque ID with Source, Evidence and Reality links; not a historical snapshot. Current blocker codes describe readiness, not historical nonexecution causes. Preserve each line's unfulfilled_cause status; missing outbound-delivery objects do not prove a conversion requirement.",
+        "Explain retained open, fulfilled or cancelled orders by opaque ID with Source, Evidence and Reality links; not a historical snapshot. Current blocker codes describe readiness, not historical nonexecution causes. Preserve each line's unfulfilled_cause status; missing outbound-delivery objects do not prove a conversion requirement. Preserve interpretation_scope: current inventory and order-linked movements are not complete inventory history. Do not suggest receipt timing or another stock context without inspected evidence; say not checked. movement_explanation reads exact movement provenance, not complete stock history.",
         "read",
         "Operations",
         _object_schema({"order_reference": STRING}, required=("order_reference",)),

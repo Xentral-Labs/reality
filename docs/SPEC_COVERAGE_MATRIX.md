@@ -2671,3 +2671,11 @@ no Finance-allocation expansion, new scheduling, deployment or third-party right
 |---|---|---|
 | `packages/reality-core/tests/test_business_decision_discovery.py` | Spec 369 FR-001–004 | Exact effect association, deduplication, shortest links, tenant collisions, pages/legacy, payload privacy, zero writes and existing verification follow-up |
 | `packages/reality-core/tests/test_mcp_http_runtime.py` | Spec 369 FR-003,DR-001 | Authenticated typed discovery and existing read/execute grant boundaries |
+
+
+## Spec 370 — Evidence boundaries in existing reads
+
+| Test family | Requirement | Proof |
+|---|---|---|
+| `packages/reality-core/tests/test_read_evidence_boundaries.py` | Spec 370 FR-001–005 | Scope-qualified count, page/legacy boundaries, current inventory versus uninspected history, exact provenance, tenant isolation and zero writes |
+| `packages/reality-core/tests/test_mcp_http_runtime.py` | Spec 370 FR-001, FR-003, FR-005 | Authenticated existing grants expose the same summary and order interpretation |

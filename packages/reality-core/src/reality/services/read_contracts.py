@@ -140,6 +140,17 @@ def discovery_summary(
         "complete_matching_selection": complete,
     }
     parts = [f"This page shows {len(records)} matching retained records."]
+    if family == "executed_decision":
+        coverage = page["metadata"]["decision_coverage"]
+        summary["selection_scope"] = coverage["scope"]
+        summary["historical_completeness"] = coverage["historical_completeness"]
+        parts = [
+            f"Within {coverage['scope']}, this page shows {len(records)} matching executed Decisions.",
+            (
+                "Historical completeness is unknown; this count does not establish "
+                "absence or the total number of historical actions."
+            ),
+        ]
     if family == "movement":
         counts = dict(sorted(Counter(row["type"] for row in records).items()))
         summary["counts_by_type"] = counts

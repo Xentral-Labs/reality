@@ -155,3 +155,17 @@ def external_agent_runtime() -> dict[str, str]:
         "notice": "External client configuration cannot be inspected here. "
         "Missing access does not prove absence.",
     }
+
+
+def order_inventory_interpretation() -> dict[str, str]:
+    """Bound current inventory and linked movements without inferring history."""
+    return {
+        "kind": "current_inventory_and_order_linked_movements",
+        "inventory_history": "not_established_by_this_read",
+        "notice": "Current inventory and order-linked movements do not establish "
+        "complete inventory history or the historical causes of stock. Do not "
+        "suggest receipt timing or a different stock context from these values. "
+        "If no additional history evidence was inspected, say not checked. "
+        "Use movement_explanation with a returned movement ID to read that exact "
+        "movement's provenance, not complete inventory history.",
+    }

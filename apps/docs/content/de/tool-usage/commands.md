@@ -12358,8 +12358,11 @@ pages; only a complete first response establishes the retained filtered selectio
 records are not Shipment consignments. Quantity references include canonical item_name/item_sku
 beside opaque IDs. Executed Decisions: family executed_decision returns payload-free audit metadata;
 optional document_id selects exact retained sales/purchase order effect events, not complete
-history. Follow returned proposal_id with proposal_review/proposal_execution_status; do not repeat
-execution. Explicit legacy mode is a bounded lookup.
+history. When reporting executed Decision counts, qualify the count immediately with
+summary.selection_scope and preserve historical_completeness unknown; complete_matching_selection
+does not mean complete history. Follow returned proposal_id with
+proposal_review/proposal_execution_status; do not repeat execution. Explicit legacy mode is a
+bounded lookup.
 
 **Aufruf**
 
@@ -12402,8 +12405,11 @@ proposal.
 
 ### `inventory_read` — Read inventory {#tool-inventory_read}
 
-Read inventory as cursor pages: labelled item totals or item/location rows with units. Page mode
-does not write projection caches.
+Read current inventory as cursor pages: labelled item totals or item/location rows with units. Page
+mode does not write projection caches. This is not complete inventory history: do not suggest
+receipt timing or another stock context without inspected historical evidence; say not checked.
+movement_explanation reads the provenance of an exact retained movement, not the whole stock
+history.
 
 **Aufruf**
 
@@ -12759,7 +12765,10 @@ Read derived stock, incoming supply, demand, shortages, and affected orders by i
 Explain retained open, fulfilled or cancelled orders by opaque ID with Source, Evidence and Reality
 links; not a historical snapshot. Current blocker codes describe readiness, not historical
 nonexecution causes. Preserve each line's unfulfilled_cause status; missing outbound-delivery
-objects do not prove a conversion requirement.
+objects do not prove a conversion requirement. Preserve interpretation_scope: current inventory and
+order-linked movements are not complete inventory history. Do not suggest receipt timing or another
+stock context without inspected evidence; say not checked. movement_explanation reads exact movement
+provenance, not complete stock history.
 
 **Aufruf**
 
