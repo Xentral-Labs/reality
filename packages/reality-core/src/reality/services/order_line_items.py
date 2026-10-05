@@ -384,6 +384,9 @@ def assign_line_item(
     BUSINESS RULE services.order_line_items.assign_line_item.effect-88:
     Record the document_line.item_assigned audit or business-event evidence with the supplied record and confirmation identity.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "assign_line_item", locals())
     # reality-rule: services.order_line_items.assign_line_item.step-15
     core._require_business_mutation(session, tenant_id, "assign_order_line_item")
     with session.begin_nested():

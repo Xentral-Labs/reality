@@ -296,6 +296,10 @@ const sidebar = (locale: LocaleKey) => {
         { text: labels.businessLogic, link: route(locale, "/development/commands") },
         { text: labels.connectors, link: route(locale, "/development/connectors") },
         {
+          text: locale === "de" ? "Vorgänge übernehmen" : "Take over operational cases",
+          link: route(locale, "/integrations/operational-cases"),
+        },
+        {
           text: labels.interfaces,
           link: route(locale, "/development/application-surfaces"),
           collapsed: true,

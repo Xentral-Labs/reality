@@ -2679,3 +2679,23 @@ no Finance-allocation expansion, new scheduling, deployment or third-party right
 |---|---|---|
 | `packages/reality-core/tests/test_read_evidence_boundaries.py` | Spec 370 FR-001–005 | Scope-qualified count, page/legacy boundaries, current inventory versus uninspected history, exact provenance, tenant isolation and zero writes |
 | `packages/reality-core/tests/test_mcp_http_runtime.py` | Spec 370 FR-001, FR-003, FR-005 | Authenticated existing grants expose the same summary and order interpretation |
+## Operational cases (371)
+
+English repository contract: `docs/features/operational-cases.md`.
+
+- `packages/reality-core/tests/test_operational_cases.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_case_action_guards.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_operational_case_adapters.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_operational_case_jobs.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_operational_case_migration.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_operational_case_policies.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_operational_case_docs.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_case_entrypoint_coverage.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_shopify_case_recovery.py`: spec 371 operational responsibility, source freshness and execution safety.
+- `packages/reality-core/tests/test_operational_case_controls.py`: spec 371 operational responsibility, source freshness and execution safety.
+
+- `packages/reality-core/tests/test_case_control_retries.py`: spec 371 FR-004/010/016 cross-adapter exact control retries, original return sources and whole-batch guards.
+
+- `packages/reality-core/tests/test_case_worker_boundaries.py`: spec 371 FR-004/007/016 queued human batch execution must respect takeover while current interactive repair remains available.
+
+- `packages/reality-core/tests/test_case_scope_resolution.py`: spec 371 FR-003/007/016 direct owned effects, independent return goals, Finance/source separation and exclusion of completed historical work.

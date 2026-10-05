@@ -1,3 +1,4 @@
+import { OperationalCaseDetail } from "./OperationalCaseDetail";
 import { SelectedRecordPreview } from "./SelectedRecordPreview";
 import { useContextActions } from "./ActionLauncher";
 import { PageActionBar } from "./PageActionBar";
@@ -377,6 +378,13 @@ export function OrdersPage({
   return (
     <>
       <div hidden={!!selection.commitment}>
+        {!purchasing && (
+          <OperationalCaseDetail
+            key={`${tenant}:${entry || order || ""}`}
+            tenant={tenant}
+            documentId={entry || order || undefined}
+          />
+        )}
         <RegisterWorkbench>
           {entry &&
             (data?.view === "customer-orders" || data?.view === "supplier-orders") &&

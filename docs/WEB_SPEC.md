@@ -3604,3 +3604,9 @@ remain available; presentation never recalculates or authorizes business effects
 Page action buttons carry the same localized accessible name as their visible label.
 Payment dialog Refresh reads the current stored open-items projection into the
 mounted selector; no page reload or new acceptance boundary is needed.
+
+## Operational cases (spec 371)
+
+Orders and document inspection expose Operational cases with stable copyable IDs, current owned/related work, Source links and unsettled execution. Observed active members explicitly confirm takeover or exact reviewed handback through shared services. Takeover stops new automated starts; it never displays an already claimed external action as cancelled. Owner-confirmed new-work adoption is opt-in and does not silently activate completed historical work.
+
+See [the implemented operational-case contract](features/operational-cases.md) for authority, supported boundaries and capability limits.

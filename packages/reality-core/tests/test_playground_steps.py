@@ -1885,7 +1885,7 @@ def test_confirmed_shipments_attribute_automatic_effects(session, business):
         )
         events = events_for(session, tenant_id, action.id)
         assert [event.event_type for event in events] == expected_types
-        assert all(event.correlation_id == action.id for event in events)
+        assert all(event.correlation_id is None for event in events)
         assert all(event.causation_id == events[0].id for event in events[1:])
         assert events[1].subject_id == original.id
         assert Decimal(json.loads(events[1].payload)["consumed_quantity"]) == quantity

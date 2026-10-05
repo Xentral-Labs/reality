@@ -71,6 +71,13 @@ angegeben.
 | [`authorizations`](#command-authorizations)                                       | List payment authorizations                  | Bereichsübergreifend    | `finance_payment_authorizations`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`payouts`](#command-payouts)                                                     | List payouts                                 | Bereichsübergreifend    | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
 | [`merge_party`](#command-merge_party)                                             | Merge a duplicate business partner           | Bereichsübergreifend    | `party_merge_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
+| [`operational_case_adopt`](#command-operational_case_adopt)                       | Operational case adopt                       | Bereichsübergreifend    | `operational_case_adopt_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`operational_case_explain`](#command-operational_case_explain)                   | Operational case explain                     | Bereichsübergreifend    | `operational_case_explain`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
+| [`operational_case_handback`](#command-operational_case_handback)                 | Operational case handback                    | Bereichsübergreifend    | `operational_case_handback_propose`                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
+| [`operational_case_handback_preview`](#command-operational_case_handback_preview) | Operational case handback preview            | Bereichsübergreifend    | `operational_case_handback_preview`                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
+| [`operational_case_list`](#command-operational_case_list)                         | Operational case list                        | Bereichsübergreifend    | `operational_case_list`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
+| [`operational_case_object`](#command-operational_case_object)                     | Operational case object                      | Bereichsübergreifend    | `operational_case_object`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
+| [`operational_case_takeover`](#command-operational_case_takeover)                 | Operational case takeover                    | Bereichsübergreifend    | `operational_case_takeover_propose`                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`prepare_batch`](#command-prepare_batch)                                         | Prepare selected intake batch                | Bereichsübergreifend    | `intake_batch_prepare_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Bereichsübergreifend    | `intake_prepare_propose`, `intake_reprepare_propose`                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Bereichsübergreifend    | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
@@ -9459,6 +9466,367 @@ party_merge_propose duplicate_party_id surviving_party_id reason
 | `reason`             | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                     | —        |
 
 **Siehe auch:** Command [`merge_party`](./commands#command-merge_party)
+
+### `operational_case_adopt` — Operational case adopt {#command-operational_case_adopt}
+
+Confirm current human responsibility control; does not cancel external execution or approve business
+effects.
+
+**Aufruf**
+
+```text
+operational_case_adopt_propose request_key [order_ids] [return_ids]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
+`source_record` · Schreibt: `operational_case`, `case_adoption`, `case_consumer_checkpoint`,
+`business_event`, `action` · Erzeugt: `operational_case.adopted`
+
+**Siehe auch:** Agent Tool
+[`operational_case_adopt_propose`](./commands#tool-operational_case_adopt_propose), Event
+[`operational_case.adopted`](./events#event-operational_case-adopted)
+
+#### `operational_case_adopt_propose` — Propose case adoption {#tool-operational_case_adopt_propose}
+
+Prepare owner-reviewed adoption; historical roots are explicitly selected, never inferred.
+
+**Aufruf**
+
+```text
+operational_case_adopt_propose request_key [order_ids] [return_ids]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                                             | Standard |
+| ------------- | -------- | ------- | ---------------------------------------------------------------------------------------- | -------- |
+| `request_key` | `string` | ja      | Stable bounded control request identity; retry the same exact request with the same key. | —        |
+| `order_ids`   | `array`  | nein    | Explicit same-company historical order identities selected for adoption.                 | `[]`     |
+| `return_ids`  | `array`  | nein    | Explicit same-company historical announced-return identities selected for adoption.      | `[]`     |
+
+**Siehe auch:** Command [`operational_case_adopt`](./commands#command-operational_case_adopt)
+
+### `operational_case_explain` — Operational case explain {#command-operational_case_explain}
+
+Read current adopted goal, source coverage, ownership and execution explanation without creating
+work.
+
+**Aufruf**
+
+```text
+operational_case_explain case_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
+`source_record` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`operational_case_explain`](./commands#tool-operational_case_explain)
+
+#### `operational_case_explain` — Explain operational case {#tool-operational_case_explain}
+
+Read one case by its stable case_id, including uncertain actions.
+
+**Aufruf**
+
+```text
+operational_case_explain case_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage               | Art                        | Standard |
+| ------------------------------ | -------------------------- | -------- |
+| `MCP operational_case_explain` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Inspect adopted operational responsibility and current authoritative work.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect or repair accepted fulfillment or announced returns.
+
+**Nicht verwenden, wenn**
+
+- Executing Shopify transport, refund payment or approving business effects.
+
+**Parameter**
+
+| Name      | Typ      | Pflicht | Beschreibung                                                                                                | Standard |
+| --------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------- | -------- |
+| `case_id` | `string` | ja      | Opaque same-company goal responsibility identity; never an external correlation or execution authorization. | —        |
+
+**Siehe auch:** Command [`operational_case_explain`](./commands#command-operational_case_explain)
+
+### `operational_case_handback` — Operational case handback {#command-operational_case_handback}
+
+Confirm current human responsibility control; does not cancel external execution or approve business
+effects.
+
+**Aufruf**
+
+```text
+operational_case_handback_propose case_id review_digest request_key
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
+`source_record` · Schreibt: `operational_case`, `case_adoption`, `case_consumer_checkpoint`,
+`business_event`, `action` · Erzeugt: `operational_case.handed_back`
+
+**Siehe auch:** Agent Tool
+[`operational_case_handback_propose`](./commands#tool-operational_case_handback_propose), Event
+[`operational_case.handed_back`](./events#event-operational_case-handed_back)
+
+#### `operational_case_handback_propose` — Propose handback {#tool-operational_case_handback_propose}
+
+Prepare handback after the exact current review. Human confirmation and settled execution are
+required.
+
+**Aufruf**
+
+```text
+operational_case_handback_propose case_id review_digest request_key
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name            | Typ      | Pflicht | Beschreibung                                                                                                | Standard |
+| --------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------- | -------- |
+| `case_id`       | `string` | ja      | Opaque same-company goal responsibility identity; never an external correlation or execution authorization. | —        |
+| `review_digest` | `string` | ja      | Exact current handback review digest; changed facts require a new review.                                   | —        |
+| `request_key`   | `string` | ja      | Stable bounded control request identity; retry the same exact request with the same key.                    | —        |
+
+**Siehe auch:** Command [`operational_case_handback`](./commands#command-operational_case_handback)
+
+### `operational_case_handback_preview` — Operational case handback preview {#command-operational_case_handback_preview}
+
+Read current adopted goal, source coverage, ownership and execution explanation without creating
+work.
+
+**Aufruf**
+
+```text
+operational_case_handback_preview case_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
+`source_record` · Schreibt: —
+
+**Siehe auch:** Agent Tool
+[`operational_case_handback_preview`](./commands#tool-operational_case_handback_preview)
+
+#### `operational_case_handback_preview` — Review handback {#tool-operational_case_handback_preview}
+
+Read the exact current state and blockers before handback.
+
+**Aufruf**
+
+```text
+operational_case_handback_preview case_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage                        | Art                        | Standard |
+| --------------------------------------- | -------------------------- | -------- |
+| `MCP operational_case_handback_preview` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Inspect adopted operational responsibility and current authoritative work.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect or repair accepted fulfillment or announced returns.
+
+**Nicht verwenden, wenn**
+
+- Executing Shopify transport, refund payment or approving business effects.
+
+**Parameter**
+
+| Name      | Typ      | Pflicht | Beschreibung                                                                                                | Standard |
+| --------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------- | -------- |
+| `case_id` | `string` | ja      | Opaque same-company goal responsibility identity; never an external correlation or execution authorization. | —        |
+
+**Siehe auch:** Command
+[`operational_case_handback_preview`](./commands#command-operational_case_handback_preview)
+
+### `operational_case_list` — Operational case list {#command-operational_case_list}
+
+Read current adopted goal, source coverage, ownership and execution explanation without creating
+work.
+
+**Aufruf**
+
+```text
+operational_case_list [after] [limit]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
+`source_record` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`operational_case_list`](./commands#tool-operational_case_list)
+
+#### `operational_case_list` — Operational cases {#tool-operational_case_list}
+
+Read current cases and responsibility. This does not create work.
+
+**Aufruf**
+
+```text
+operational_case_list [after] [limit]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage            | Art                        | Standard |
+| --------------------------- | -------------------------- | -------- |
+| `MCP operational_case_list` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Inspect adopted operational responsibility and current authoritative work.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect or repair accepted fulfillment or announced returns.
+
+**Nicht verwenden, wenn**
+
+- Executing Shopify transport, refund payment or approving business effects.
+
+**Parameter**
+
+| Name    | Typ       | Pflicht | Beschreibung                              | Standard |
+| ------- | --------- | ------- | ----------------------------------------- | -------- |
+| `after` | `string`  | nein    | Last case identity of the preceding page. | —        |
+| `limit` | `integer` | nein    | Maximum cases per page; defaults to 100.  | —        |
+
+**Siehe auch:** Command [`operational_case_list`](./commands#command-operational_case_list)
+
+### `operational_case_object` — Operational case object {#command-operational_case_object}
+
+Read current adopted goal, source coverage, ownership and execution explanation without creating
+work.
+
+**Aufruf**
+
+```text
+operational_case_object record_type record_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
+`source_record` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`operational_case_object`](./commands#tool-operational_case_object)
+
+#### `operational_case_object` — Find object cases {#tool-operational_case_object}
+
+Discover case_ids for a document, commitment, return_announcement or proposal. External correlation
+IDs are separate.
+
+**Aufruf**
+
+```text
+operational_case_object record_type record_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage              | Art                        | Standard |
+| ----------------------------- | -------------------------- | -------- |
+| `MCP operational_case_object` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Inspect adopted operational responsibility and current authoritative work.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect or repair accepted fulfillment or announced returns.
+
+**Nicht verwenden, wenn**
+
+- Executing Shopify transport, refund payment or approving business effects.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                                                                             | Standard |
+| ------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| `record_type` | `string` | ja      | Supported typed existing business object for case discovery. `document`, `commitment`, `return_announcement`, `proposal` | —        |
+| `record_id`   | `string` | ja      | Opaque identity of the master-data record whose lifecycle is being changed.                                              | —        |
+
+**Siehe auch:** Command [`operational_case_object`](./commands#command-operational_case_object)
+
+### `operational_case_takeover` — Operational case takeover {#command-operational_case_takeover}
+
+Confirm current human responsibility control; does not cancel external execution or approve business
+effects.
+
+**Aufruf**
+
+```text
+operational_case_takeover_propose case_id expected_revision request_key [reason]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
+`source_record` · Schreibt: `operational_case`, `case_adoption`, `case_consumer_checkpoint`,
+`business_event`, `action` · Erzeugt: `operational_case.taken_over`
+
+**Siehe auch:** Agent Tool
+[`operational_case_takeover_propose`](./commands#tool-operational_case_takeover_propose), Event
+[`operational_case.taken_over`](./events#event-operational_case-taken_over)
+
+#### `operational_case_takeover_propose` — Propose manual takeover {#tool-operational_case_takeover_propose}
+
+Prepare human takeover of this case. A human must confirm; external agent confirmation cannot assert
+human involvement.
+
+**Aufruf**
+
+```text
+operational_case_takeover_propose case_id expected_revision request_key [reason]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                | Typ       | Pflicht | Beschreibung                                                                                                | Standard |
+| ------------------- | --------- | ------- | ----------------------------------------------------------------------------------------------------------- | -------- |
+| `case_id`           | `string`  | ja      | Opaque same-company goal responsibility identity; never an external correlation or execution authorization. | —        |
+| `expected_revision` | `integer` | ja      | Canonical revision of the Evidence snapshot on which a correction is based.                                 | —        |
+| `request_key`       | `string`  | ja      | Stable bounded control request identity; retry the same exact request with the same key.                    | —        |
+| `reason`            | `string`  | nein    | Human-readable explanation for a hold, correction, or lifecycle change.                                     | —        |
+
+**Siehe auch:** Command [`operational_case_takeover`](./commands#command-operational_case_takeover)
 
 ### `prepare_batch` — Prepare selected intake batch {#command-prepare_batch}
 

@@ -999,6 +999,11 @@ def _prepare_intake(
     )
     session.add(proposal)
     session.flush()
+    from reality.services.case_action_guards import bind_arguments
+
+    bind_arguments(
+        session, tenant_id, proposal.id, "intake_apply", plan.model_dump(mode="json")
+    )
     job.input = canonical_json({**context, "intake_proposal_id": proposal.id})
     job.status = "awaiting_decision"
     job.error = ""
@@ -1507,11 +1512,27 @@ def _apply_prepared_intake(
     source, job = _validate_current_plan(
         session, tenant_id, proposal, plan, finance.revision
     )
+    from reality.services.case_action_guards import execution_context, guard_operation
+    from reality.services.intake_batches import _current_child_authorization
+
+    parent_authorization = _current_child_authorization(session, tenant_id, proposal.id)
     with session.begin_nested():
         with (
             _effect_scope(session, tenant_id, proposal.id, digest),
             core.executing_proposal(tenant_id, proposal.id),
+            execution_context(
+                session,
+                tenant_id,
+                automatic=parent_authorization is not None
+                or principal is None
+                or settling_token_id is not None,
+                proposal_id=proposal.id,
+                source_record_id=source.id,
+            ),
         ):
+            guard_operation(
+                session, tenant_id, "intake_apply", plan.model_dump(mode="json")
+            )
             records = _apply_effects(session, tenant_id, proposal, plan)
         from reality.services.intake_review import _current_agent_authorization
 
@@ -1525,11 +1546,6 @@ def _apply_prepared_intake(
             settling_channel,
         )
         proposal.status = "executed"
-        from reality.services.intake_batches import _current_child_authorization
-
-        parent_authorization = _current_child_authorization(
-            session, tenant_id, proposal.id
-        )
         proposal.output = canonical_json(
             {
                 **(

@@ -319,6 +319,9 @@ def record_drop_shipment(
     BUSINESS RULE services.drop_shipping.record_drop_shipment.effect-103:
     Record the drop_shipment.recorded audit or business-event evidence with the supplied record and confirmation identity.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "record_drop_shipment", locals())
     # reality-rule: services.drop_shipping.record_drop_shipment.step-14
     core._require_business_mutation(session, tenant_id, "record_drop_shipment")
     from reality.services.business_locks import lock_delivery_state
@@ -418,7 +421,6 @@ def record_drop_shipment(
             source_record_id=source.id,
             occurred_at=moment,
             action_id=action_id,
-            correlation_id=action_id,
         )
     if _commit:
         session.commit()

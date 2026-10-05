@@ -737,6 +737,9 @@ def plan_outbound_delivery(
     BUSINESS RULE services.outbound_deliveries.plan_outbound_delivery.result:
     Return delivery, as prepared by the preceding checks and service calls.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "plan_outbound_delivery", locals())
     # reality-rule: services.outbound_deliveries.plan_outbound_delivery.step-16
     _require_business_mutation(session, tenant_id, "plan_outbound_delivery")
     lock_delivery_state(session, tenant_id)
@@ -791,7 +794,6 @@ def plan_outbound_delivery(
         statement,
         source_record_id=source.id,
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()
@@ -836,6 +838,9 @@ def revise_outbound_delivery(
     BUSINESS RULE services.outbound_deliveries.revise_outbound_delivery.result:
     Return delivery, as prepared by the preceding checks and service calls.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "revise_outbound_delivery", locals())
     changes = {
         key: value
         for key, value in (
@@ -890,7 +895,6 @@ def revise_outbound_delivery(
         },
         source_record_id=source.id,
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()
@@ -961,7 +965,6 @@ def _move_reservation(
             "movement_id": movement_id,
         },
         action_id=action_id,
-        correlation_id=action_id,
     )
     for location_id, part, why in (
         (to_location_id, quantity, cause),
@@ -1001,7 +1004,6 @@ def _move_reservation(
                 "movement_id": movement_id,
             },
             action_id=action_id,
-            correlation_id=action_id,
         )
     session.flush()
 
@@ -1058,6 +1060,9 @@ def pick_outbound_delivery(
     BUSINESS RULE services.outbound_deliveries.pick_outbound_delivery.result:
     Return delivery, as prepared by the preceding checks and service calls.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "pick_outbound_delivery", locals())
     # reality-rule: services.outbound_deliveries.pick_outbound_delivery.step-11
     _require_business_mutation(session, tenant_id, "pick_outbound_delivery")
     lock_delivery_state(session, tenant_id)
@@ -1123,7 +1128,6 @@ def pick_outbound_delivery(
         delivery.id,
         {"staging_location_id": delivery.staging_location_id, "lines": recorded},
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()
@@ -1156,6 +1160,9 @@ def put_back_outbound_delivery(
     BUSINESS RULE services.outbound_deliveries.put_back_outbound_delivery.result:
     Return delivery, as prepared by the preceding checks and service calls.
     """
+    from reality.services.case_action_guards import guard_operation
+
+    guard_operation(session, tenant_id, "put_back_outbound_delivery", locals())
     # reality-rule: services.outbound_deliveries.put_back_outbound_delivery.step-11
     _require_business_mutation(session, tenant_id, "put_back_outbound_delivery")
     lock_delivery_state(session, tenant_id)
@@ -1236,7 +1243,6 @@ def put_back_outbound_delivery(
         delivery.id,
         {"staging_location_id": delivery.staging_location_id, "lines": recorded},
         action_id=action_id,
-        correlation_id=action_id,
     )
     if _commit:
         session.commit()

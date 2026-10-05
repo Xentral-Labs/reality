@@ -1,3 +1,4 @@
+import { OperationalCaseDetail } from "./OperationalCaseDetail";
 import { recordOpened } from "./usePaletteHistory";
 import { inspectorMeta, inspectorValue } from "./inspectorFormat";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -165,6 +166,9 @@ export function InspectorContent({
       data-compact-inspector={compact || undefined}
       className={compact ? compactGrid : undefined}
     >
+      {!compact && tenant && selectedKind === "document" && data.id && (
+        <OperationalCaseDetail key={`${tenant}:${data.id}`} tenant={tenant} documentId={data.id} />
+      )}
       {compact ? (
         <header className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 md:col-span-2">
           <h2

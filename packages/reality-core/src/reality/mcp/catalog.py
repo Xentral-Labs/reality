@@ -229,10 +229,12 @@ def _propose(application_name: str) -> ToolHandler:
         proposal = create_change_proposal(
             session, tenant_id, application_name, normalized
         )
+        from reality.services.operational_cases import object_cases
         from reality.services.proposal_reviews import proposal_mcp_next_step
 
         # reality-rule: mcp.catalog._propose.handler.result
         return {
+            "case_ids": object_cases(session, tenant_id, "proposal", proposal.id),
             "proposal_id": proposal.id,
             "status": proposal.status,
             "requires_confirmation": True,
@@ -729,6 +731,111 @@ PAGE_PROPERTIES = {
 }
 
 MCP_TOOL_CATALOG = (
+    MCPToolDefinition(
+        "operational_case_list",
+        "Operational cases",
+        "Read current cases and responsibility. This does not create work.",
+        "read",
+        "Operational cases",
+        _object_schema({"after": {**STRING, "description": "Last case identity of the preceding page."}, "limit": {"type": "integer", "minimum": 1, "maximum": 100, "description": "Maximum cases per page; defaults to 100."}}),
+        _read("operational_case_list"),
+    ),
+    MCPToolDefinition(
+        "operational_case_explain",
+        "Explain operational case",
+        "Read one case by its stable case_id, including uncertain actions.",
+        "read",
+        "Operational cases",
+        _object_schema({"case_id": STRING}, required=("case_id",)),
+        _read("operational_case_explain"),
+    ),
+    MCPToolDefinition(
+        "operational_case_object",
+        "Find object cases",
+        "Discover case_ids for a document, commitment, return_announcement or proposal. External correlation IDs are separate.",
+        "read",
+        "Operational cases",
+        _object_schema(
+            {
+                "record_type": {
+                    "type": "string",
+                    "enum": [
+                        "document",
+                        "commitment",
+                        "return_announcement",
+                        "proposal",
+                    ],
+                },
+                "record_id": STRING,
+            },
+            required=("record_type", "record_id"),
+        ),
+        _read("operational_case_object"),
+    ),
+    MCPToolDefinition(
+        "operational_case_handback_preview",
+        "Review handback",
+        "Read the exact current state and blockers before handback.",
+        "read",
+        "Operational cases",
+        _object_schema({"case_id": STRING}, required=("case_id",)),
+        _read("operational_case_handback_preview"),
+    ),
+    MCPToolDefinition(
+        "operational_case_takeover_propose",
+        "Propose manual takeover",
+        "Prepare human takeover of this case. A human must confirm; external agent confirmation cannot assert human involvement.",
+        "propose",
+        "Operational cases",
+        _object_schema(
+            {
+                "case_id": STRING,
+                "expected_revision": {"type": "integer", "minimum": 1},
+                "request_key": STRING,
+                "reason": {"type": "string", "default": ""},
+            },
+            required=("case_id", "expected_revision", "request_key"),
+        ),
+        _propose("operational_case_takeover"),
+    ),
+    MCPToolDefinition(
+        "operational_case_handback_propose",
+        "Propose handback",
+        "Prepare handback after the exact current review. Human confirmation and settled execution are required.",
+        "propose",
+        "Operational cases",
+        _object_schema(
+            {"case_id": STRING, "review_digest": STRING, "request_key": STRING},
+            required=("case_id", "review_digest", "request_key"),
+        ),
+        _propose("operational_case_handback"),
+    ),
+    MCPToolDefinition(
+        "operational_case_adopt_propose",
+        "Propose case adoption",
+        "Prepare owner-reviewed adoption; historical roots are explicitly selected, never inferred.",
+        "propose",
+        "Operational cases",
+        _object_schema(
+            {
+                "request_key": STRING,
+                "order_ids": {
+                    "type": "array",
+                    "items": STRING,
+                    "maxItems": 500,
+                    "default": [],
+                },
+                "return_ids": {
+                    "type": "array",
+                    "items": STRING,
+                    "maxItems": 500,
+                    "default": [],
+                },
+            },
+            required=("request_key",),
+        ),
+        _propose("operational_case_adopt"),
+    ),
     MCPToolDefinition(
         "intake_batch_prepare_propose",
         "Prepare a selected intake batch",

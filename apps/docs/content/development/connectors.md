@@ -111,3 +111,8 @@ shows the implementation path; [From source data to Reality](/integrations/conne
 explains the shared concept and its rules.
 [Shared rules](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/reference.md)
 includes scheduling/spec guidance.
+
+For accepted fulfillment and announced returns, read
+[Take over an operational case](/integrations/operational-cases). The
+[maintainer contract](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/operational-cases.md)
+describes canonical producer hooks, synchronous guards and future transport limits.

@@ -25,6 +25,12 @@ from reality.services.analytics.graph_model import (
 # Tables that are not business data. Named rather than pattern-matched, so adding
 # one is a decision somebody makes and not a regex that quietly widens.
 INFRASTRUCTURE = {
+    # Operational responsibility/control metadata, never commercial balances (spec 371).
+    "operational_case",
+    "case_commitment_link",
+    "case_proposal_link",
+    "case_adoption",
+    "case_consumer_checkpoint",
     # Shared storage backs existing filtered logical cost reporting interfaces.
     "cost_projection_generation",
     "cost_projection_inventory",

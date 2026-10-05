@@ -1023,6 +1023,7 @@ export type BillingAvailability = {
   }[];
 };
 export type InspectorData = {
+  case_ids?: string[];
   email_history_identity?: {
     source_id?: string;
     business_kind?: string;
@@ -5153,4 +5154,62 @@ export const intakeBatches = {
   stop: (tenant: string, id: string) => itemImports.stop(tenant, id),
   original: (tenant: string, id: string) =>
     `/api/tenants/${encodeURIComponent(tenant)}/intake-units/${encodeURIComponent(id)}/original`,
+};
+
+export type OperationalCase = {
+  case_id: string;
+  kind: "order_fulfillment" | "customer_return";
+  order_document_id: string | null;
+  return_announcement_id: string | null;
+  control_mode: "automation" | "human";
+  control_revision: number;
+  goal_state: string;
+  source_record_ids: string[];
+  unavailable_capabilities: string[];
+  related_case_ids: string[];
+  unsettled_actions: string[];
+  coverage_gaps: { source_record_id: string; status: string }[];
+  actions: { proposal_id: string; status: string; obsolete: boolean }[];
+  work: { commitment_id: string; open_quantity: string; status: string }[];
+};
+export const operationalCases = {
+  status: (tenant: string) =>
+    request<{ adopted: boolean; can_adopt: boolean; can_control: boolean }>(
+      `/api/tenants/${tenant}/operational-cases/status`,
+    ),
+  list: (tenant: string, after = "") =>
+    request<OperationalCase[]>(
+      `/api/tenants/${tenant}/operational-cases?after=${encodeURIComponent(after)}`,
+    ),
+  object: (tenant: string, documentId: string) =>
+    request<{ case_ids: string[] }>(
+      `/api/tenants/${tenant}/operational-cases/objects/document/${encodeURIComponent(documentId)}`,
+    ),
+  explain: (tenant: string, caseId: string) =>
+    request<OperationalCase>(
+      `/api/tenants/${tenant}/operational-cases/${encodeURIComponent(caseId)}`,
+    ),
+  adopt: (tenant: string, requestKey: string) =>
+    request(`/api/tenants/${tenant}/operational-cases/adoption`, {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true, request_key: requestKey }),
+    }),
+  takeover: (tenant: string, value: OperationalCase, requestKey: string) =>
+    request(`/api/tenants/${tenant}/operational-cases/${value.case_id}/takeover`, {
+      method: "POST",
+      body: JSON.stringify({
+        confirmed: true,
+        expected_revision: value.control_revision,
+        request_key: requestKey,
+      }),
+    }),
+  review: (tenant: string, caseId: string) =>
+    request<OperationalCase & { digest: string }>(
+      `/api/tenants/${tenant}/operational-cases/${caseId}/handback-review`,
+    ),
+  handback: (tenant: string, caseId: string, digest: string, requestKey: string) =>
+    request(`/api/tenants/${tenant}/operational-cases/${caseId}/handback`, {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true, review_digest: digest, request_key: requestKey }),
+    }),
 };

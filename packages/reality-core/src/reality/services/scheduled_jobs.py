@@ -972,7 +972,10 @@ def scheduler_tenants(session: Session, after: str = "", limit: int = 100) -> li
         )
     )
     projection = due_projection_tenants(session, after, limit)
-    return sorted(set(scheduled) | set(projection))[:limit]
+    from reality.services.case_jobs import due_case_tenants
+
+    cases = due_case_tenants(session, after, limit)
+    return sorted(set(scheduled) | set(projection) | set(cases))[:limit]
 
 
 def has_due_schedule(session: Session, tenant_id: str) -> bool:

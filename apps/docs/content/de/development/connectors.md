@@ -115,3 +115,9 @@ zeigt den Implementierungsweg; [Von Quelldaten zu Reality](/de/integrations/conn
 erklärt das gemeinsame Konzept und seine Regeln.
 [Gemeinsame Regeln](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/reference.md)
 enthält Scheduling- und Spec-Hinweise.
+
+Für angenommene Auftragserfüllung und angekündigte Retouren beschreibt
+[Einen Vorgang übernehmen](/de/integrations/operational-cases) die manuelle Übernahme und geprüfte
+Rückgabe. Der
+[Wartungsvertrag](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/operational-cases.md)
+erklärt die gemeinsamen Eingangspunkte und Ausführungsprüfungen.

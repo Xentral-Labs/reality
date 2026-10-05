@@ -156,3 +156,9 @@ populated rollback, original header protection and complete FK indexes.
 
 See [verification](../specs/327-consolidate-census-members/verification.md) for
 acceptance evidence.
+
+## Operational cases (spec 371)
+
+A confirmed opt-in operational-case layer coordinates accepted fulfillment and announced returns above Reality. Canonical accepted-goal producers ensure identity atomically; synchronous guards check current responsibility and exact prepared prerequisites at execution, independently of event-worker lag. The shared database-only consumer advances its checkpoint with membership. Cases never replace authoritative business records.
+
+See [the implemented operational-case contract](features/operational-cases.md) for authority, supported boundaries and capability limits.

@@ -6461,7 +6461,10 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
         line.id: historical_pricing_explanation(session, tenant_id, line.id)
         for line in detail["lines"]
     }
+    from reality.services.operational_cases import object_cases
+
     return {
+        "case_ids": object_cases(session, tenant_id, "document", document.id),
         "kind": "document",
         "id": document.id,
         "eyebrow": "Evidence",

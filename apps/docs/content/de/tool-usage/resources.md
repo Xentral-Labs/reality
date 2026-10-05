@@ -8,6 +8,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
+| [Vorgang](#resource-operational_case)                          | 0      | 3        | 0         |
 | [E-Mail](#resource-email)                                      | 0      | 1        | 0         |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 15       | 2         |
@@ -25,6 +26,38 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 18       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 5        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
+
+## Vorgang {#resource-operational_case}
+
+_Verantwortung und aktuelle Arbeit_
+
+Erfüllung und angekündigte Retouren übernehmen und nach Abgleich zurückgeben.
+
+**Auch genannt:** case, takeover, handback, Vorgang, Übernahme
+
+**Aktionen**
+
+- [Vorgangssteuerung aktivieren](./commands#command-operational_case_adopt)
+  (`operational_case_adopt`)
+- [Vorgang manuell übernehmen](./commands#command-operational_case_takeover)
+  (`operational_case_takeover`)
+- [Vorgang an Automatisierung zurückgeben](./commands#command-operational_case_handback)
+  (`operational_case_handback`)
+
+**Nachschlagen**
+
+- [Vorgänge anzeigen](./commands#command-operational_case_list) (`operational_case_list`)
+- [Vorgang erklären](./commands#command-operational_case_explain) (`operational_case_explain`)
+- [Zugehörige Vorgänge finden](./commands#command-operational_case_object)
+  (`operational_case_object`)
+- [Rückgabe an Automatisierung prüfen](./commands#command-operational_case_handback_preview)
+  (`operational_case_handback_preview`)
+
+**Darunter:** Tabellen: `operational_case`, `case_commitment_link`, `case_proposal_link`,
+`case_adoption`, `case_consumer_checkpoint` · Events:
+[`operational_case.adopted`](./events#event-operational_case-adopted),
+[`operational_case.taken_over`](./events#event-operational_case-taken_over),
+[`operational_case.handed_back`](./events#event-operational_case-handed_back)
 
 ## E-Mail {#resource-email}
 

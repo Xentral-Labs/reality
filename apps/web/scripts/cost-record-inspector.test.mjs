@@ -51,6 +51,7 @@ function harness() {
             },
           };
         if (name === "../localization") return { t: (x) => x, currentLanguage: () => "de" };
+        if (name === "./OperationalCaseDetail") return { OperationalCaseDetail: () => null };
         if (name === "./WarehousePage") return { RegisterPager: Pager };
         if (name === "./ReadState") return { ReadState };
         if (name === "./DecisionLine") return { DecisionLine: () => null };

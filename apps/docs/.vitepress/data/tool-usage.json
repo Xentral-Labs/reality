@@ -220,6 +220,49 @@
   ],
   "resources": [
     {
+      "key": "operational_case",
+      "label": {
+        "en": "Operational case",
+        "de": "Vorgang"
+      },
+      "subtitle": {
+        "en": "Responsibility and current work",
+        "de": "Verantwortung und aktuelle Arbeit"
+      },
+      "description": {
+        "en": "Own fulfillment and announced-return work, take over manually and return after reconciliation.",
+        "de": "Erfüllung und angekündigte Retouren übernehmen und nach Abgleich zurückgeben."
+      },
+      "synonyms": ["case", "takeover", "handback", "Vorgang", "Übernahme"],
+      "tables": [
+        "operational_case",
+        "case_commitment_link",
+        "case_proposal_link",
+        "case_adoption",
+        "case_consumer_checkpoint"
+      ],
+      "lists": [],
+      "actions": [
+        "command:operational_case_adopt",
+        "command:operational_case_takeover",
+        "command:operational_case_handback"
+      ],
+      "reads": [
+        "command:operational_case_list",
+        "command:operational_case_explain",
+        "command:operational_case_object",
+        "command:operational_case_handback_preview"
+      ],
+      "exceptions": [],
+      "tools": [],
+      "events": [
+        "event:operational_case.adopted",
+        "event:operational_case.taken_over",
+        "event:operational_case.handed_back"
+      ],
+      "workspace_actions": []
+    },
+    {
       "key": "email",
       "label": {
         "en": "Email",
@@ -1982,6 +2025,338 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:operational_case_list",
+      "kind": "tool",
+      "key": "operational_case_list",
+      "label": "Operational cases",
+      "area": "cross_functional",
+      "summary": "Read current cases and responsibility. This does not create work.",
+      "access": "read",
+      "group": "Operational cases",
+      "synopsis": "operational_case_list [after] [limit]",
+      "parameters": [
+        {
+          "name": "after",
+          "type": "string",
+          "required": false,
+          "description": "Last case identity of the preceding page.",
+          "depth": 0
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum cases per page; defaults to 100.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "read_modes": [
+        {
+          "query": "MCP operational_case_list",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "operational_case_list",
+      "projections": [],
+      "links": ["command:operational_case_list"],
+      "label_de": "Vorgänge anzeigen",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "tool:operational_case_explain",
+      "kind": "tool",
+      "key": "operational_case_explain",
+      "label": "Explain operational case",
+      "area": "cross_functional",
+      "summary": "Read one case by its stable case_id, including uncertain actions.",
+      "access": "read",
+      "group": "Operational cases",
+      "synopsis": "operational_case_explain case_id",
+      "parameters": [
+        {
+          "name": "case_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-company goal responsibility identity; never an external correlation or execution authorization.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "read_modes": [
+        {
+          "query": "MCP operational_case_explain",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "operational_case_explain",
+      "projections": [],
+      "links": ["command:operational_case_explain"],
+      "label_de": "Vorgang erklären",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "tool:operational_case_object",
+      "kind": "tool",
+      "key": "operational_case_object",
+      "label": "Find object cases",
+      "area": "cross_functional",
+      "summary": "Discover case_ids for a document, commitment, return_announcement or proposal. External correlation IDs are separate.",
+      "access": "read",
+      "group": "Operational cases",
+      "synopsis": "operational_case_object record_type record_id",
+      "parameters": [
+        {
+          "name": "record_type",
+          "type": "string",
+          "required": true,
+          "description": "Supported typed existing business object for case discovery.",
+          "depth": 0,
+          "enum": ["document", "commitment", "return_announcement", "proposal"]
+        },
+        {
+          "name": "record_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the master-data record whose lifecycle is being changed.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "read_modes": [
+        {
+          "query": "MCP operational_case_object",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "operational_case_object",
+      "projections": [],
+      "links": ["command:operational_case_object"],
+      "label_de": "Zugehörige Vorgänge finden",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "tool:operational_case_handback_preview",
+      "kind": "tool",
+      "key": "operational_case_handback_preview",
+      "label": "Review handback",
+      "area": "cross_functional",
+      "summary": "Read the exact current state and blockers before handback.",
+      "access": "read",
+      "group": "Operational cases",
+      "synopsis": "operational_case_handback_preview case_id",
+      "parameters": [
+        {
+          "name": "case_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-company goal responsibility identity; never an external correlation or execution authorization.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "read_modes": [
+        {
+          "query": "MCP operational_case_handback_preview",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "operational_case_handback_preview",
+      "projections": [],
+      "links": ["command:operational_case_handback_preview"],
+      "label_de": "Rückgabe an Automatisierung prüfen",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "tool:operational_case_takeover_propose",
+      "kind": "tool",
+      "key": "operational_case_takeover_propose",
+      "label": "Propose manual takeover",
+      "area": "cross_functional",
+      "summary": "Prepare human takeover of this case. A human must confirm; external agent confirmation cannot assert human involvement.",
+      "access": "propose",
+      "group": "Operational cases",
+      "synopsis": "operational_case_takeover_propose case_id expected_revision request_key [reason]",
+      "parameters": [
+        {
+          "name": "case_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-company goal responsibility identity; never an external correlation or execution authorization.",
+          "depth": 0
+        },
+        {
+          "name": "expected_revision",
+          "type": "integer",
+          "required": true,
+          "description": "Canonical revision of the Evidence snapshot on which a correction is based.",
+          "depth": 0
+        },
+        {
+          "name": "request_key",
+          "type": "string",
+          "required": true,
+          "description": "Stable bounded control request identity; retry the same exact request with the same key.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": false,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0,
+          "default": ""
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "operational_case_takeover",
+      "projections": [],
+      "links": ["command:operational_case_takeover"],
+      "label_de": "Vorgang manuell übernehmen",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "tool:operational_case_handback_propose",
+      "kind": "tool",
+      "key": "operational_case_handback_propose",
+      "label": "Propose handback",
+      "area": "cross_functional",
+      "summary": "Prepare handback after the exact current review. Human confirmation and settled execution are required.",
+      "access": "propose",
+      "group": "Operational cases",
+      "synopsis": "operational_case_handback_propose case_id review_digest request_key",
+      "parameters": [
+        {
+          "name": "case_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-company goal responsibility identity; never an external correlation or execution authorization.",
+          "depth": 0
+        },
+        {
+          "name": "review_digest",
+          "type": "string",
+          "required": true,
+          "description": "Exact current handback review digest; changed facts require a new review.",
+          "depth": 0
+        },
+        {
+          "name": "request_key",
+          "type": "string",
+          "required": true,
+          "description": "Stable bounded control request identity; retry the same exact request with the same key.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "operational_case_handback",
+      "projections": [],
+      "links": ["command:operational_case_handback"],
+      "label_de": "Vorgang an Automatisierung zurückgeben",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "tool:operational_case_adopt_propose",
+      "kind": "tool",
+      "key": "operational_case_adopt_propose",
+      "label": "Propose case adoption",
+      "area": "cross_functional",
+      "summary": "Prepare owner-reviewed adoption; historical roots are explicitly selected, never inferred.",
+      "access": "propose",
+      "group": "Operational cases",
+      "synopsis": "operational_case_adopt_propose request_key [order_ids] [return_ids]",
+      "parameters": [
+        {
+          "name": "request_key",
+          "type": "string",
+          "required": true,
+          "description": "Stable bounded control request identity; retry the same exact request with the same key.",
+          "depth": 0
+        },
+        {
+          "name": "order_ids",
+          "type": "array",
+          "required": false,
+          "description": "Explicit same-company historical order identities selected for adoption.",
+          "depth": 0,
+          "default": []
+        },
+        {
+          "name": "return_ids",
+          "type": "array",
+          "required": false,
+          "description": "Explicit same-company historical announced-return identities selected for adoption.",
+          "depth": 0,
+          "default": []
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "operational_case_adopt",
+      "projections": [],
+      "links": ["command:operational_case_adopt"],
+      "label_de": "Vorgangssteuerung aktivieren",
+      "resources": ["operational_case"]
+    },
     {
       "id": "tool:intake_batch_prepare_propose",
       "kind": "tool",
@@ -23704,6 +24079,232 @@
       "resources": ["delivery", "email"]
     },
     {
+      "id": "command:operational_case_list",
+      "kind": "command",
+      "key": "operational_case_list",
+      "label": "Operational case list",
+      "area": "cross_functional",
+      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_list"],
+      "synopses": ["operational_case_list [after] [limit]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "links": ["tool:operational_case_list"],
+      "label_de": "Vorgänge anzeigen",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "command:operational_case_explain",
+      "kind": "command",
+      "key": "operational_case_explain",
+      "label": "Operational case explain",
+      "area": "cross_functional",
+      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_explain"],
+      "synopses": ["operational_case_explain case_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "links": ["tool:operational_case_explain"],
+      "label_de": "Vorgang erklären",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "command:operational_case_object",
+      "kind": "command",
+      "key": "operational_case_object",
+      "label": "Operational case object",
+      "area": "cross_functional",
+      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_object"],
+      "synopses": ["operational_case_object record_type record_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "links": ["tool:operational_case_object"],
+      "label_de": "Zugehörige Vorgänge finden",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "command:operational_case_handback_preview",
+      "kind": "command",
+      "key": "operational_case_handback_preview",
+      "label": "Operational case handback preview",
+      "area": "cross_functional",
+      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_handback_preview"],
+      "synopses": ["operational_case_handback_preview case_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
+      },
+      "links": ["tool:operational_case_handback_preview"],
+      "label_de": "Rückgabe an Automatisierung prüfen",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "command:operational_case_adopt",
+      "kind": "command",
+      "key": "operational_case_adopt",
+      "label": "Operational case adopt",
+      "area": "cross_functional",
+      "summary": "Confirm current human responsibility control; does not cancel external execution or approve business effects.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
+      "writes": [
+        "operational_case",
+        "case_adoption",
+        "case_consumer_checkpoint",
+        "business_event",
+        "action"
+      ],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_adopt_propose"],
+      "synopses": ["operational_case_adopt_propose request_key [order_ids] [return_ids]"],
+      "events": ["operational_case.adopted"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:operational_case_adopt_propose", "event:operational_case.adopted"],
+      "label_de": "Vorgangssteuerung aktivieren",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "command:operational_case_takeover",
+      "kind": "command",
+      "key": "operational_case_takeover",
+      "label": "Operational case takeover",
+      "area": "cross_functional",
+      "summary": "Confirm current human responsibility control; does not cancel external execution or approve business effects.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
+      "writes": [
+        "operational_case",
+        "case_adoption",
+        "case_consumer_checkpoint",
+        "business_event",
+        "action"
+      ],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_takeover_propose"],
+      "synopses": [
+        "operational_case_takeover_propose case_id expected_revision request_key [reason]"
+      ],
+      "events": ["operational_case.taken_over"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:operational_case_takeover_propose", "event:operational_case.taken_over"],
+      "label_de": "Vorgang manuell übernehmen",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "command:operational_case_handback",
+      "kind": "command",
+      "key": "operational_case_handback",
+      "label": "Operational case handback",
+      "area": "cross_functional",
+      "summary": "Confirm current human responsibility control; does not cancel external execution or approve business effects.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
+      "writes": [
+        "operational_case",
+        "case_adoption",
+        "case_consumer_checkpoint",
+        "business_event",
+        "action"
+      ],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_handback_propose"],
+      "synopses": ["operational_case_handback_propose case_id review_digest request_key"],
+      "events": ["operational_case.handed_back"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:operational_case_handback_propose", "event:operational_case.handed_back"],
+      "label_de": "Vorgang an Automatisierung zurückgeben",
+      "resources": ["operational_case"]
+    },
+    {
       "id": "command:email_dispatch_authorize",
       "kind": "command",
       "key": "email_dispatch_authorize",
@@ -32097,6 +32698,9 @@
         }
       ],
       "refresh_events": [
+        "operational_case.adopted",
+        "operational_case.taken_over",
+        "operational_case.handed_back",
         "cost.attributed",
         "cost.reviewed",
         "shipment.notice_recorded",
@@ -32735,6 +33339,9 @@
         }
       ],
       "refresh_events": [
+        "operational_case.adopted",
+        "operational_case.taken_over",
+        "operational_case.handed_back",
         "cost.attributed",
         "cost.reviewed",
         "shipment.notice_recorded",
@@ -34312,6 +34919,48 @@
       ],
       "label_de": "Bestellung nicht bestätigt",
       "resources": ["order"]
+    },
+    {
+      "id": "event:operational_case.adopted",
+      "kind": "event",
+      "key": "operational_case.adopted",
+      "label": "operational_case.adopted",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "operational_case_adopt",
+      "subject": "tenant",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:operational_case_adopt"],
+      "label_de": "operational_case.adopted",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "event:operational_case.taken_over",
+      "kind": "event",
+      "key": "operational_case.taken_over",
+      "label": "operational_case.taken_over",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "operational_case_takeover",
+      "subject": "operational_case",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:operational_case_takeover"],
+      "label_de": "operational_case.taken_over",
+      "resources": ["operational_case"]
+    },
+    {
+      "id": "event:operational_case.handed_back",
+      "kind": "event",
+      "key": "operational_case.handed_back",
+      "label": "operational_case.handed_back",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "operational_case_handback",
+      "subject": "operational_case",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:operational_case_handback"],
+      "label_de": "operational_case.handed_back",
+      "resources": ["operational_case"]
     },
     {
       "id": "event:cost.attributed",

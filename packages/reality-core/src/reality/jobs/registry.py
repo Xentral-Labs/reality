@@ -124,8 +124,10 @@ def definitions() -> dict[str, JobDefinition]:
         from reality.jobs.handlers.demo_data import DEMO, SETTLE
         from reality.jobs.handlers.intake import BATCH
         from reality.jobs.handlers.invitations import CLEANUP
+        from reality.jobs.handlers.operational_cases import RECONCILE
         from reality.jobs.handlers.projections import REFRESH
 
+        register(RECONCILE)
         register(REFRESH)
         register(CLEANUP)
         register(BATCH)

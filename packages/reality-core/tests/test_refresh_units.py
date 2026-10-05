@@ -127,7 +127,9 @@ def test_the_selection_does_not_grow_a_statement_per_company(session, business):
     counted, stop = statements(session)
     scheduler_tenants(session)
     stop()
-    assert counted[0] <= 4, (
+    # The third, bounded case consumer and pre-feature schema compatibility add
+    # fixed discovery reads, never one read per company (spec 371).
+    assert counted[0] <= 5, (
         f"discovering what to do took {counted[0]} statements for one company; it must "
         "be a fixed number however many companies exist"
     )
