@@ -3,7 +3,7 @@
 **Feature**: `377-default-operational-cases`
 **Created**: 2026-10-05
 **Language**: English
-**Status**: Implemented on `feat/default-operational-cases`; targeted checks pass. Full regression and final PR review are in progress. Simulator runtime integration, external-runner and multi-day gates remain pending.
+**Status**: Implemented on `feat/default-operational-cases`; required implementation CI and independent review passed at `f88c6b6b`. See `checklists/verification.md` for exact evidence. Simulator runtime integration, external-runner and multi-day gates remain pending.
 **Input**: Make the operational-case logic introduced by PR #378 the product default for all companies, without an owner activation switch. Prepare this specification for another code agent; do not implement the rollout in this handoff.
 
 ## Context and Intent
