@@ -67,8 +67,16 @@ without changing deadlines (1 passed). A four-worker continuation retains comple
 proofs and runs every remaining collected test, including failures/errors, using only
 a temporary local collection filter. No repository assertion or product limit changes.
 
-Full backend (6,491 collected tests), full fixture browser suite (87 scripts) and PR
-CI are running. T011 and complete acceptance remain unchecked until assessed.
+Final API review found that the old human business-member check also blocked an
+owned sandbox's status read (new regression failed with HTTP 404). Status now follows
+existing private tenant-surface access and reports can_control=false for sandboxes;
+business-member takeover rights and anonymous sandbox refusal remain unchanged.
+Default-case, API and job checks passed after this fix (27 passed). Legacy adoption
+acknowledgements pass the already verified owner to readiness output, preserving old
+stored receipt replay and truthful current control availability.
+
+Full backend (6,492 current collected tests), full fixture browser suite (87 scripts)
+and PR CI are running. T011 and complete acceptance remain unchecked until assessed.
 The local browser harness maps existing macOS `/private/tmp` screenshot paths to
 `/tmp`; it changes only local artifact paths, not assertions or product code.
 Google Fonts is blocked in this environment. The OAuth browser script initially failed

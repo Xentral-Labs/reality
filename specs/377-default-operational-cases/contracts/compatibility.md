@@ -8,3 +8,7 @@ The deprecated adoption service remains owner-authenticated and confirmed; retri
 acknowledge default policy without creating decisions or modifying historical adoption.
 Selections are validated against same-company canonical records. Guard schema absence
 fails explicitly with case_schema_not_ready rather than disabling case checks.
+
+Status reads use existing tenant-surface access for owned sandbox companies. They
+report can_control=false there; business-member control authority and private/archived
+surface restrictions remain authoritative. Reading default policy grants no takeover rights.

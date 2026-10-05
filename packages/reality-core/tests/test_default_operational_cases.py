@@ -601,3 +601,42 @@ def test_http_review_replay_preserves_final_proposal_identity_and_case_binding(
     assert session.get(CaseProposalLink, (business.tenant.id, case_id, replay.id)) is link
     assert proposal.status == "proposed"
     assert not list(session.scalars(select(Reservation)))
+
+
+def test_owned_sandbox_can_read_default_status_without_business_control_rights(
+    session, scheduled_owner, monkeypatch
+):
+    from fastapi.testclient import TestClient
+
+    from reality.services import company_setup
+    from reality.services.memberships import Principal
+    from reality.web import auth as web_auth
+    from reality.web import operational_cases as web_cases
+    from reality.web.api import database_session
+    from reality.web.app import app
+
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
+    created = company_setup.create_company(
+        session, scheduled_owner.id, "case-status-sandbox", "Case status sandbox",
+        "sandbox", "empty", confirmed=True,
+    )
+    tenant = created["tenant_id"]
+    monkeypatch.setattr(web_auth, "user_from_request", lambda request, db: scheduled_owner)
+    monkeypatch.setattr(
+        web_cases, "optional_request_principal", lambda request: Principal(scheduled_owner.id)
+    )
+    app.dependency_overrides[database_session] = lambda: session
+    try:
+        with TestClient(app) as client:
+            response = client.get(f"/api/tenants/{tenant}/operational-cases/status")
+            assert response.status_code == 200, response.text
+            status = response.json()
+            assert status["enabled"] and status["migration_ready"]
+            assert not status["coverage_ready"] and not status["can_control"]
+            with pytest.raises(core.NotFound):
+                cases._member(session, tenant, Principal(scheduled_owner.id))
+            assert session.get(CaseAdoption, tenant) is None
+            monkeypatch.setattr(web_auth, "user_from_request", lambda request, db: None)
+            assert client.get(f"/api/tenants/{tenant}/operational-cases/status").status_code == 401
+    finally:
+        app.dependency_overrides.clear()
