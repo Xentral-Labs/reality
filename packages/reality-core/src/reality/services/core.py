@@ -385,7 +385,7 @@ def _order_execution_events(
     """Exact retained effects, following line membership before document fallback."""
     document = _tenant_record(session, Document, tenant_id, document_id)
     if document.type not in {"sales_order", "purchase_order"}:
-        raise NotFound("Order not found.")
+        raise NotFound(code="record_not_found", values={"record": "Document"})
 
     def ids(model: type[Base], *criteria: ColumnElement[bool]) -> Select:
         return select(model.id).where(model.tenant_id == tenant_id, *criteria)

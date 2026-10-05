@@ -8,6 +8,7 @@ from reality.db.core import ChangeProposal, now, uid
 from reality.services.core import (
     InvalidOperation,
     NotFound,
+    create_document,
     create_tenant,
     emit_business_event,
     record_movement,
@@ -294,3 +295,17 @@ def test_explicit_direct_member_event_and_tenant_collision(session, business, ki
     assert len(page["records"]) == 1
     assert page["records"][0]["tool"] == "reserve"
     assert "secret_tool" not in json.dumps(page)
+
+
+def test_nonorder_document_scope_uses_existing_coded_refusal(session, business):
+    document = create_document(
+        session,
+        business.tenant.id,
+        "sales_invoice",
+        "NOT-ORDER",
+        business.customer.id,
+        "20",
+    )
+    with pytest.raises(NotFound) as error:
+        discover(session, business, document)
+    assert error.value.code == "record_not_found"
