@@ -77,6 +77,7 @@ angegeben.
 | [`operational_case_handback_preview`](#command-operational_case_handback_preview) | Operational case handback preview            | Bereichsübergreifend    | `operational_case_handback_preview`                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`operational_case_list`](#command-operational_case_list)                         | Operational case list                        | Bereichsübergreifend    | `operational_case_list`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`operational_case_object`](#command-operational_case_object)                     | Operational case object                      | Bereichsübergreifend    | `operational_case_object`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
+| [`operational_case_status`](#command-operational_case_status)                     | Operational case status                      | Bereichsübergreifend    | `operational_case_status`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`operational_case_takeover`](#command-operational_case_takeover)                 | Operational case takeover                    | Bereichsübergreifend    | `operational_case_takeover_propose`                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`prepare_batch`](#command-prepare_batch)                                         | Prepare selected intake batch                | Bereichsübergreifend    | `intake_batch_prepare_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`prepare_intake`](#command-prepare_intake)                                       | Prepare source interpretation                | Bereichsübergreifend    | `intake_prepare_propose`, `intake_reprepare_propose`                                                                                                                                         | CLI · Web · API · MCP · Chat            |
@@ -9469,8 +9470,8 @@ party_merge_propose duplicate_party_id surviving_party_id reason
 
 ### `operational_case_adopt` — Operational case adopt {#command-operational_case_adopt}
 
-Confirm current human responsibility control; does not cancel external execution or approve business
-effects.
+Deprecated confirmed owner acknowledgement of default coordination; does not modify cases or
+historical adoption.
 
 **Aufruf**
 
@@ -9481,16 +9482,15 @@ operational_case_adopt_propose request_key [order_ids] [return_ids]
 **Erreichbar über:** CLI · Web · API · MCP · Chat
 
 **Wirkung:** Liest: `operational_case`, `commitment`, `return_announcement`, `action`,
-`source_record` · Schreibt: `operational_case`, `case_adoption`, `case_consumer_checkpoint`,
-`business_event`, `action` · Erzeugt: `operational_case.adopted`
+`source_record` · Schreibt: `action`
 
 **Siehe auch:** Agent Tool
-[`operational_case_adopt_propose`](./commands#tool-operational_case_adopt_propose), Event
-[`operational_case.adopted`](./events#event-operational_case-adopted)
+[`operational_case_adopt_propose`](./commands#tool-operational_case_adopt_propose)
 
 #### `operational_case_adopt_propose` — Propose case adoption {#tool-operational_case_adopt_propose}
 
-Prepare owner-reviewed adoption; historical roots are explicitly selected, never inferred.
+Deprecated owner acknowledgement of default coordination. Does not reset responsibility or grant
+business authority.
 
 **Aufruf**
 
@@ -9502,17 +9502,17 @@ operational_case_adopt_propose request_key [order_ids] [return_ids]
 
 **Parameter**
 
-| Name          | Typ      | Pflicht | Beschreibung                                                                             | Standard |
-| ------------- | -------- | ------- | ---------------------------------------------------------------------------------------- | -------- |
-| `request_key` | `string` | ja      | Stable bounded control request identity; retry the same exact request with the same key. | —        |
-| `order_ids`   | `array`  | nein    | Explicit same-company historical order identities selected for adoption.                 | `[]`     |
-| `return_ids`  | `array`  | nein    | Explicit same-company historical announced-return identities selected for adoption.      | `[]`     |
+| Name          | Typ      | Pflicht | Beschreibung                                                                                                                            | Standard |
+| ------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `request_key` | `string` | ja      | Stable bounded control request identity; retry the same exact request with the same key.                                                | —        |
+| `order_ids`   | `array`  | nein    | Same-company historical order identities validated for deprecated compatibility; default coverage is not restricted by this selection.  | `[]`     |
+| `return_ids`  | `array`  | nein    | Same-company historical return identities validated for deprecated compatibility; default coverage is not restricted by this selection. | `[]`     |
 
 **Siehe auch:** Command [`operational_case_adopt`](./commands#command-operational_case_adopt)
 
 ### `operational_case_explain` — Operational case explain {#command-operational_case_explain}
 
-Read current adopted goal, source coverage, ownership and execution explanation without creating
+Read current supported goal, source coverage, ownership and execution explanation without creating
 work.
 
 **Aufruf**
@@ -9548,7 +9548,7 @@ operational_case_explain case_id
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-Inspect adopted operational responsibility and current authoritative work.
+Inspect default operational responsibility and current authoritative work.
 
 **Verwenden, wenn**
 
@@ -9612,7 +9612,7 @@ operational_case_handback_propose case_id review_digest request_key
 
 ### `operational_case_handback_preview` — Operational case handback preview {#command-operational_case_handback_preview}
 
-Read current adopted goal, source coverage, ownership and execution explanation without creating
+Read current supported goal, source coverage, ownership and execution explanation without creating
 work.
 
 **Aufruf**
@@ -9649,7 +9649,7 @@ operational_case_handback_preview case_id
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-Inspect adopted operational responsibility and current authoritative work.
+Inspect default operational responsibility and current authoritative work.
 
 **Verwenden, wenn**
 
@@ -9670,7 +9670,7 @@ Inspect adopted operational responsibility and current authoritative work.
 
 ### `operational_case_list` — Operational case list {#command-operational_case_list}
 
-Read current adopted goal, source coverage, ownership and execution explanation without creating
+Read current supported goal, source coverage, ownership and execution explanation without creating
 work.
 
 **Aufruf**
@@ -9706,7 +9706,7 @@ operational_case_list [after] [limit]
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-Inspect adopted operational responsibility and current authoritative work.
+Inspect default operational responsibility and current authoritative work.
 
 **Verwenden, wenn**
 
@@ -9727,7 +9727,7 @@ Inspect adopted operational responsibility and current authoritative work.
 
 ### `operational_case_object` — Operational case object {#command-operational_case_object}
 
-Read current adopted goal, source coverage, ownership and execution explanation without creating
+Read current supported goal, source coverage, ownership and execution explanation without creating
 work.
 
 **Aufruf**
@@ -9764,7 +9764,7 @@ operational_case_object record_type record_id
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-Inspect adopted operational responsibility and current authoritative work.
+Inspect default operational responsibility and current authoritative work.
 
 **Verwenden, wenn**
 
@@ -9782,6 +9782,59 @@ Inspect adopted operational responsibility and current authoritative work.
 | `record_id`   | `string` | ja      | Opaque identity of the master-data record whose lifecycle is being changed.                                              | —        |
 
 **Siehe auch:** Command [`operational_case_object`](./commands#command-operational_case_object)
+
+### `operational_case_status` — Operational case status {#command-operational_case_status}
+
+Report observed default coordination readiness and truthful platform version provenance.
+
+**Aufruf**
+
+```text
+operational_case_status
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `case_rollout`, `case_consumer_checkpoint`, `tenant_event_progress`,
+`scheduled_job_run` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`operational_case_status`](./commands#tool-operational_case_status)
+
+#### `operational_case_status` — Operational case status {#tool-operational_case_status}
+
+Read default coordination migration, coverage readiness and platform rollout provenance.
+
+**Aufruf**
+
+```text
+operational_case_status
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage              | Art                        | Standard |
+| ----------------------------- | -------------------------- | -------- |
+| `MCP operational_case_status` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Inspect default coordination migration readiness, historical coverage and platform provenance.
+
+**Verwenden, wenn**
+
+- An operator needs to inspect or repair accepted fulfillment or announced returns.
+
+**Nicht verwenden, wenn**
+
+- Executing Shopify transport, refund payment or approving business effects.
+
+**Parameter**
+
+Keine Parameter.
+
+**Siehe auch:** Command [`operational_case_status`](./commands#command-operational_case_status)
 
 ### `operational_case_takeover` — Operational case takeover {#command-operational_case_takeover}
 

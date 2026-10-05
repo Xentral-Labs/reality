@@ -1522,6 +1522,16 @@ def test_frontend_copilot_requires_explicit_proposal_approval(session, business)
         3,
         to_location_id=business.location.id,
     )
+    from reality.services.core import create_document
+
+    document = create_document(
+        session,
+        business.tenant.id,
+        "sales_order",
+        "COPILOT-ORDER",
+        business.customer.id,
+        "0",
+    )
     commitment = create_commitment(
         session,
         business.tenant.id,
@@ -1532,6 +1542,7 @@ def test_frontend_copilot_requires_explicit_proposal_approval(session, business)
         business.location.id,
         3,
         "2026-09-03",
+        document_id=document.id,
     )
     other = create_tenant(session, "Other Copilot")
     client = api_client(session)

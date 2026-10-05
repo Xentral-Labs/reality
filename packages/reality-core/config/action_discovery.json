@@ -328,7 +328,8 @@
     "operational_case_handback_preview": "orders",
     "operational_case_adopt": "orders",
     "operational_case_takeover": "orders",
-    "operational_case_handback": "orders"
+    "operational_case_handback": "orders",
+    "operational_case_status": "orders"
   },
   "entries": [
     {

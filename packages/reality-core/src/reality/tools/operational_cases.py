@@ -8,6 +8,18 @@ from reality.services import operational_cases as cases
 from reality.services.case_action_guards import human_principal
 
 
+def read_status(session: Session, tenant_id: str, arguments: dict[str, Any]):
+    """
+    BUSINESS PURPOSE:
+    Report default coordination migration, coverage and internal job readiness without changing work.
+
+    BUSINESS RULE tools.operational_cases.read_status.result:
+    Read same-company rollout provenance and observed completion; never infer owner consent.
+    """
+    # reality-rule: tools.operational_cases.read_status.result
+    return cases.coordination_status(session, tenant_id)
+
+
 def read_list(session: Session, tenant_id: str, arguments: dict[str, Any]):
     """
     BUSINESS PURPOSE:
@@ -101,7 +113,7 @@ def handback(session: Session, tenant_id: str, arguments: dict[str, Any]):
 def adopt(session: Session, tenant_id: str, arguments: dict[str, Any]):
     """
     BUSINESS PURPOSE:
-    Enable coordination for newly accepted goals and an explicit bounded selection of existing outstanding goals under a real owner decision.
+    Acknowledge default coordination for legacy clients without altering responsibility or historical consent.
 
     BUSINESS RULE tools.operational_cases.adopt.result:
     Return only the canonical same-company result after the function's source, control and authority checks; never perform provider transport.
@@ -122,8 +134,14 @@ def register():
 
     for name, description, mutating, handler in (
         (
+            "operational_case_status",
+            "Read default coordination rollout readiness and provenance.",
+            False,
+            read_status,
+        ),
+        (
             "operational_case_list",
-            "List adopted fulfillment and announced-return cases with current responsibility.",
+            "List supported fulfillment and announced-return cases with current responsibility.",
             False,
             read_list,
         ),
@@ -159,7 +177,7 @@ def register():
         ),
         (
             "operational_case_adopt",
-            "Enable new-work case coordination and explicitly select historical outstanding goals.",
+            "Deprecated owner acknowledgement of default case coordination; never resets cases or enables business effects.",
             True,
             adopt,
         ),

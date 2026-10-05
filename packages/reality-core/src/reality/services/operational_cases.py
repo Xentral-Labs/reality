@@ -26,6 +26,7 @@ from reality.db.operational_cases import (
     CaseCommitmentLink,
     CaseConsumerCheckpoint,
     CaseProposalLink,
+    CaseRollout,
     OperationalCase,
 )
 from reality.domain.operational_cases import KINDS, fulfillment_state, return_state
@@ -65,11 +66,11 @@ def _member(session, tenant_id, principal):
 
 
 def schema_available(session):
-    """Pre-feature migration compatibility; no adopted history exists before this table."""
+    """Probe migration readiness without silently disabling responsibility guards."""
     if "operational_case_schema_available" not in session.info:
         session.info["operational_case_schema_available"] = inspect(
             session.connection()
-        ).has_table("case_adoption")
+        ).has_table("case_rollout")
     return session.info["operational_case_schema_available"]
 
 
@@ -93,23 +94,166 @@ def _case(session, tenant_id, case_id, *, lock=False):
     return found
 
 
-def _roots_after_boundary(session, tenant_id, subject_type, subject_id, capture):
-    return (
+def coordination_enabled(session: Session, tenant_id: str) -> bool:
+    if not schema_available(session):
+        raise core.InvalidOperation(code="case_schema_not_ready")
+    tenant = core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
+    return tenant.archived_at is None
+
+
+def coordination_status(session: Session, tenant_id: str) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Report default coordination readiness and platform provenance without authorizing business actions.
+
+    BUSINESS RULE services.operational_cases.coordination_status.result:
+    Report completion only after bounded scans and current event catch-up; preserve tenant scope.
+    """
+    core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
+    ready = schema_available(session)
+    rollout = (
         session.scalar(
-            select(BusinessEvent.id)
+            select(CaseRollout)
+            .where(CaseRollout.tenant_id == tenant_id)
+            .execution_options(populate_existing=True)
+        )
+        if ready
+        else None
+    )
+    checkpoint = (
+        session.scalar(
+            select(CaseConsumerCheckpoint)
             .where(
-                BusinessEvent.tenant_id == tenant_id,
-                BusinessEvent.subject_type == subject_type,
-                BusinessEvent.subject_id == subject_id,
-                BusinessEvent.sequence > capture,
-                BusinessEvent.event_type.in_(
-                    ("commitment.created", "return.announced")
-                ),
+                CaseConsumerCheckpoint.tenant_id == tenant_id,
+                CaseConsumerCheckpoint.policy_version == 1,
             )
+            .execution_options(populate_existing=True)
+        )
+        if ready
+        else None
+    )
+    progress = (
+        session.scalar(
+            select(TenantEventProgress.last_event_sequence).where(
+                TenantEventProgress.tenant_id == tenant_id
+            )
+        )
+        or 0
+    )
+    from reality.db.scheduled_jobs import ScheduledJobRun
+
+    latest = (
+        session.scalar(
+            select(ScheduledJobRun)
+            .where(
+                ScheduledJobRun.tenant_id == tenant_id,
+                ScheduledJobRun.job_type == "operational_cases.reconcile",
+            )
+            .order_by(ScheduledJobRun.created_at.desc(), ScheduledJobRun.id.desc())
             .limit(1)
         )
-        is not None
+        if ready
+        else None
     )
+    caught_up = checkpoint is not None and checkpoint.incorporated_sequence >= (
+        progress
+    )
+    # reality-rule: services.operational_cases.coordination_status.result
+    return {
+        "adopted": True,
+        "enabled": True,
+        "can_adopt": False,
+        "migration_ready": ready,
+        "coverage_ready": bool(rollout and rollout.completed_at and caught_up),
+        "rollout_version": 377,
+        "rollout_provenance": "platform_version",
+        "last_job_status": latest.status if latest else None,
+        "last_error_code": latest.last_error_code
+        if latest
+        else ("case_schema_not_ready" if not ready else None),
+        "kinds": list(KINDS),
+    }
+
+
+def _rollout(session: Session, tenant_id: str) -> CaseRollout:
+    # Caller holds the tenant delivery lock, shared with acceptance and guards.
+    row = session.scalar(
+        select(CaseRollout)
+        .where(CaseRollout.tenant_id == tenant_id)
+        .execution_options(populate_existing=True)
+    )
+    if row is None:
+        row = CaseRollout(tenant_id=tenant_id)
+        session.add(row)
+    if session.get(CaseConsumerCheckpoint, (tenant_id, 1)) is None:
+        progress = session.scalar(
+            select(TenantEventProgress.last_event_sequence).where(
+                TenantEventProgress.tenant_id == tenant_id
+            )
+        )
+        capture = (
+            progress
+            if progress is not None
+            else session.scalar(
+                select(func.coalesce(func.max(BusinessEvent.sequence), 0)).where(
+                    BusinessEvent.tenant_id == tenant_id
+                )
+            )
+        )
+        session.add(
+            CaseConsumerCheckpoint(
+                tenant_id=tenant_id, policy_version=1, incorporated_sequence=capture
+            )
+        )
+    session.flush()
+    return row
+
+
+def _backfill(session: Session, tenant_id: str, rollout: CaseRollout, limit: int):
+    remaining = limit
+    if rollout.commitment_after is not None:
+        ids = list(
+            session.scalars(
+                select(Commitment.id)
+                .join(
+                    Document,
+                    (Document.tenant_id == Commitment.tenant_id)
+                    & (Document.id == Commitment.document_id),
+                )
+                .where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.type == "customer_delivery",
+                    Document.type == "sales_order",
+                    Commitment.id > rollout.commitment_after,
+                )
+                .order_by(Commitment.id)
+                .limit(remaining)
+            )
+        )
+        for record_id in ids:
+            ensure_commitment(session, tenant_id, record_id)
+        rollout.commitment_after = ids[-1] if len(ids) == remaining else None
+        remaining -= len(ids)
+    if (
+        remaining
+        and rollout.commitment_after is None
+        and rollout.return_after is not None
+    ):
+        ids = list(
+            session.scalars(
+                select(ReturnAnnouncement.id)
+                .where(
+                    ReturnAnnouncement.tenant_id == tenant_id,
+                    ReturnAnnouncement.id > rollout.return_after,
+                )
+                .order_by(ReturnAnnouncement.id)
+                .limit(remaining)
+            )
+        )
+        for record_id in ids:
+            ensure_return(session, tenant_id, record_id)
+        rollout.return_after = ids[-1] if len(ids) == remaining else None
+    session.flush()
 
 
 def ensure_commitment(
@@ -119,8 +263,7 @@ def ensure_commitment(
     *,
     newly_accepted: bool = False,
 ):
-    scope = adoption(session, tenant_id)
-    if scope is None:
+    if not coordination_enabled(session, tenant_id):
         return None
     commitment = core._tenant_record_read(session, Commitment, tenant_id, commitment_id)
     if commitment.type != "customer_delivery" or not commitment.document_id:
@@ -138,14 +281,7 @@ def ensure_commitment(
         )
     )
     if case is None:
-        eligible = (
-            newly_accepted
-            or document.id in scope.selected_order_ids
-            or _roots_after_boundary(
-                session, tenant_id, "commitment", commitment.id, scope.capture_sequence
-            )
-        )
-        if not eligible or (
+        if (
             commitment.status != "open"
             or core.open_quantity(session, tenant_id, commitment.id) <= 0
         ):
@@ -179,8 +315,7 @@ def ensure_return(
     *,
     newly_accepted: bool = False,
 ):
-    scope = adoption(session, tenant_id)
-    if scope is None:
+    if not coordination_enabled(session, tenant_id):
         return None
     announcement = core._tenant_record_read(
         session, ReturnAnnouncement, tenant_id, announcement_id
@@ -193,18 +328,10 @@ def ensure_return(
         )
     )
     if case is None:
-        eligible = (
-            newly_accepted
-            or announcement.id in scope.selected_return_ids
-            or _roots_after_boundary(
-                session,
-                tenant_id,
-                "return_announcement",
-                announcement.id,
-                scope.capture_sequence,
-            )
-        )
-        if not eligible or announcement.status != "open":
+        if (
+            announcement.status != "open"
+            or core.announcement_outstanding(session, tenant_id, announcement) <= 0
+        ):
             return None
         case = OperationalCase(
             id=uid("case"),
@@ -238,7 +365,7 @@ def object_cases(session: Session, tenant_id: str, record_type: str, record_id: 
     if record_type not in models:
         raise core.InvalidOperation(code="case_object_unsupported")
     core._tenant_record_read(session, models[record_type], tenant_id, record_id)
-    if adoption(session, tenant_id) is None:
+    if not coordination_enabled(session, tenant_id):
         return []
     if record_type == "commitment":
         query = select(CaseCommitmentLink.case_id).where(
@@ -352,7 +479,7 @@ def adopt(
 ):
     """
     BUSINESS PURPOSE:
-    Enable coordination for newly accepted goals and an explicit bounded selection of existing outstanding goals under a real owner decision.
+    Acknowledge default coordination for legacy owner clients without altering responsibility or historical consent.
 
     BUSINESS RULE services.operational_cases.adopt.result:
     Return only the canonical same-company result after the function's source, control and authority checks; never perform provider transport.
@@ -375,54 +502,14 @@ def adopt(
     replay = _control_replay(session, tenant_id, "case:adopt", request_key, args)
     if replay is not None:
         return replay
-    if adoption(session, tenant_id) is not None:
-        raise core.InvalidOperation(code="case_already_adopted")
     for record_id in args["order_ids"]:
         doc = core._tenant_record_read(session, Document, tenant_id, record_id)
         if doc.type != "sales_order":
             raise core.InvalidOperation(code="case_object_unsupported")
     for record_id in args["return_ids"]:
         core._tenant_record_read(session, ReturnAnnouncement, tenant_id, record_id)
-    capture = session.scalar(
-        select(func.coalesce(func.max(BusinessEvent.sequence), 0)).where(
-            BusinessEvent.tenant_id == tenant_id
-        )
-    )
-    result = {"capture_sequence": capture, "policy_version": 1, "kinds": list(KINDS)}
-    decision = _decision(session, tenant_id, "case:adopt", principal, args, result)
-    session.add(
-        CaseAdoption(
-            tenant_id=tenant_id,
-            decision_id=decision.id,
-            capture_sequence=capture,
-            selected_order_ids=args["order_ids"],
-            selected_return_ids=args["return_ids"],
-        )
-    )
-    session.add(
-        CaseConsumerCheckpoint(
-            tenant_id=tenant_id, policy_version=1, incorporated_sequence=capture
-        )
-    )
-    session.flush()
-    for record_id in args["order_ids"]:
-        for commitment in session.scalars(
-            select(Commitment).where(
-                Commitment.tenant_id == tenant_id, Commitment.document_id == record_id
-            )
-        ):
-            ensure_commitment(session, tenant_id, commitment.id)
-    for record_id in args["return_ids"]:
-        ensure_return(session, tenant_id, record_id)
-    emit_business_event(
-        session,
-        tenant_id,
-        "operational_case.adopted",
-        "tenant",
-        tenant_id,
-        result,
-        action_id=decision.id,
-    )
+    # Deprecated compatibility acknowledgement. Never manufacture consent/history.
+    result = {"policy_version": 1, **coordination_status(session, tenant_id)}
     if _commit:
         session.commit()
     # reality-rule: services.operational_cases.adopt.result
@@ -602,7 +689,14 @@ def explain(session: Session, tenant_id: str, case_id: str):
             }
         )
     checkpoint = session.get(CaseConsumerCheckpoint, (tenant_id, 1))
-    progress = session.get(TenantEventProgress, tenant_id)
+    progress = (
+        session.scalar(
+            select(TenantEventProgress.last_event_sequence).where(
+                TenantEventProgress.tenant_id == tenant_id
+            )
+        )
+        or 0
+    )
     from reality.db.scheduled_jobs import ScheduledJobRun
 
     latest_run = session.scalar(
@@ -617,7 +711,7 @@ def explain(session: Session, tenant_id: str, case_id: str):
     # reality-rule: services.operational_cases.explain.result
     return {
         "consumer": {
-            "latest_sequence": progress.last_event_sequence if progress else 0,
+            "latest_sequence": progress,
             "incorporated_sequence": checkpoint.incorporated_sequence
             if checkpoint
             else None,
@@ -670,7 +764,7 @@ def explain(session: Session, tenant_id: str, case_id: str):
 def list_cases(session: Session, tenant_id: str, *, after: str = "", limit: int = 100):
     """
     BUSINESS PURPOSE:
-    Read a bounded page of same-company adopted responsibility boundaries without creating goals.
+    Read a bounded page of same-company responsibility boundaries without creating goals.
 
     BUSINESS RULE services.operational_cases.list_cases.result:
     Return only the canonical same-company result after the function's source, control and authority checks; never perform provider transport.
@@ -678,7 +772,7 @@ def list_cases(session: Session, tenant_id: str, *, after: str = "", limit: int 
     if not 1 <= limit <= 100:
         raise core.InvalidOperation(code="case_selection_too_large")
     core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
-    if adoption(session, tenant_id) is None:
+    if not coordination_enabled(session, tenant_id):
         return []
     # reality-rule: services.operational_cases.list_cases.result
     return [
@@ -849,9 +943,10 @@ def reconcile_events(
     if not 1 <= limit <= 100:
         raise core.InvalidOperation(code="case_selection_too_large")
     lock_delivery_state(session, tenant_id)
-    scope = adoption(session, tenant_id)
-    if scope is None:
+    if not coordination_enabled(session, tenant_id):
         return 0
+    rollout = _rollout(session, tenant_id)
+    _backfill(session, tenant_id, rollout, limit)
     checkpoint = session.scalar(
         select(CaseConsumerCheckpoint)
         .where(
@@ -859,6 +954,7 @@ def reconcile_events(
             CaseConsumerCheckpoint.policy_version == 1,
         )
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
     events = list(
         session.scalars(
@@ -876,6 +972,21 @@ def reconcile_events(
     for event in events:
         reconcile_event(session, tenant_id, event)
         checkpoint.incorporated_sequence = event.sequence
+    progress = (
+        session.scalar(
+            select(TenantEventProgress.last_event_sequence).where(
+                TenantEventProgress.tenant_id == tenant_id
+            )
+        )
+        or 0
+    )
+    if (
+        rollout.commitment_after is None
+        and rollout.return_after is None
+        and checkpoint.incorporated_sequence >= progress
+        and rollout.completed_at is None
+    ):
+        rollout.completed_at = now()
     session.flush()
     if _commit:
         session.commit()

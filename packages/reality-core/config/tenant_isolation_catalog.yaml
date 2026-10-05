@@ -79,6 +79,7 @@ families:
       authority.
     authority: 368/DR-003
     operations: &id001
+    - tool:operational_case_status
     - tool:operational_case_list
     - tool:operational_case_explain
     - tool:operational_case_object

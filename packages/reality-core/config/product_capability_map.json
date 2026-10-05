@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:5eef3841f4a53934c92b4b021356f944a4ba7134fff6e0d6aa16f7e9c29a7b76",
+  "knowledge_version": "advisor-v1:sha256:10d739e662084cf709fcb64202e58ba5f8d915485f383aba8ac61ccc5cced24c",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -773,6 +773,7 @@
         "Übernahme"
       ],
       "evidence_ids": [
+        "evidence_command_operational_case_status",
         "evidence_command_operational_case_list",
         "evidence_command_operational_case_explain",
         "evidence_command_operational_case_object",
@@ -782,6 +783,10 @@
         "evidence_command_operational_case_handback"
       ],
       "tools": [
+        {
+          "name": "operational_case_status",
+          "mode": "read"
+        },
         {
           "name": "operational_case_list",
           "mode": "read"

@@ -4,10 +4,11 @@ Ein Vorgang klammert die Verantwortung für angenommene Arbeit. In der ersten Ve
 Kundenlieferungen eines Auftrags zu einem Vorgang. Jede angekündigte Retoure hat einen eigenen,
 verwandten Vorgang. Neue Produkte, Lagerorte und rohe Quellnachrichten legen keinen Vorgang an.
 
-Der Firmeninhaber aktiviert die Steuerung unter **Aufträge → Vorgänge**. Neue angenommene Aufträge
-und angekündigte Retouren werden erfasst. Bestehende Arbeit muss über die gemeinsamen
-Aktivierungswerkzeuge ausdrücklich ausgewählt werden. Abgeschlossene Historie wird nicht automatisch
-wieder geöffnet.
+Die Vorgangssteuerung gilt standardmäßig für jede Firma. Neue angenommene Aufträge erhalten sofort
+Vorgänge. Offene oder teilweise erledigte Aufträge und angenommene offene Retouren werden durch
+begrenzte Update-Jobs erfasst. Abgeschlossene Historie bleibt geschlossen. Prüfe mit
+`operational_case_status` die Migration und vollständige Erfassung. Unvollständige Updates oder
+Jobfehler erfordern Aufmerksamkeit, keine Aktivierung.
 
 Braucht der Agent Hilfe, öffne den Vorgang und bestätige **Manuell übernehmen / Automatisierung
 stoppen**. Neue automatische Aktionen für diesen Vorgang sind sofort gesperrt. Bereits gestartete
@@ -35,3 +36,12 @@ angemeldeter Mensch muss sie bestätigen.
 Live-Shopify-Transport und automatische Ausführung von Erstattungsabsichten gehören noch nicht zu
 dieser Version. Lieferantenprozesse und weitere Vorgangstypen werden separat geplant. Die
 [Werkzeugreferenz](/de/tool-usage/commands) beschreibt die verfügbaren Operationen.
+
+## Standardsteuerung (Spec 377)
+
+Migration 0145 muss vor den passenden Diensten, Scheduler und Workern laufen.
+`operational_case_status` zeigt den Versionsursprung, die abgeschlossene Erfassung und Jobfehler.
+Manuelle Übernahmen, genaue Rückgabebestätigungen und ausgeführte Belege bleiben erhalten. Alte
+Freigaben benötigen eine neue Prüfung. Das Update erteilt keine Berechtigung für Lieferanten-,
+Finanz-, Lager-, Erstattungs-, Mail- oder Provideraktionen. Ein Downgrade mit gespeichertem
+Rollout-Verlauf wird verweigert.

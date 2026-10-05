@@ -1,0 +1,79 @@
+# Live company simulator with an external operator
+
+**Language**: English
+**Status**: Runtime implemented on `feat/company-reference-simulator`; imported here as a separate integration dependency. Required sustained trial verification remains pending.
+**Created**: 2026-10-05
+
+## Context and Intent
+
+The owner wants to connect an ordinary external Claude/Codex code agent to Reality, give it one operating prompt, and watch a company run for 72–96 wall-clock hours. The current compressed 30-day regression and its fixture operator do not satisfy this. A live viewer alone does not make the underlying simulator continuous.
+
+### Scope
+A persistent, paced outside world, a local simulated inbox/outbox, an external operator using ordinary Reality tools, independent reconciliation, and the existing simulator spectator. No desktop window or real mailbox connection is required. Preserve finite regressions and synthetic Shopify boundaries.
+
+### Non-Goals
+Real email/provider sends; agent-generated oracle or customer demand; guaranteed multi-day Claude/Codex session uptime; blanket approval bypass; native Shopify payout compatibility without examined originals; production deployment in this change. Finite controller invocations must not be described as starting the live runtime; use the dedicated live adapter.
+
+## User Scenarios & Testing
+
+1. Start one retained company, world runtime and spectator; connect the external code agent through the ordinary Reality connection, supply one prompt, and see committed arrivals while the agent works independently.
+2. Customers submit orders and later send related status enquiries, amendments, cancellations or returns. Suppliers confirm actual purchases, announce delays and partial receipts. The agent reads new mail through a simulator adapter and records replies to exact threads; the UI shows both sides.
+3. Disconnect the agent: outside-world intake continues within configured limits, backlog grows visibly, and no fixture operator secretly fulfills orders or invents replies. Reconnect without regenerating consumed sources or resetting stock.
+4. Pause/restart the world: durable progress and reconciliation prevent duplicates. Replay Play/Pause affects presentation only. Distinguish stopping intake from pausing the operator.
+
+## Requirements
+
+- **FR-001**: Default target rate is 180 new orders per wall-clock hour, configurable to 150–200, with interval-based pacing (approximately one every 18–24 seconds). Report requested, generated and committed rates separately; additional mail is not counted as orders. Support bounded 72/96-hour runs and explicit volume/backlog limits. 180/hour produces 12,960 orders over 72 hours or 17,280 over 96 hours; these are load targets, not measured capacity claims.
+- **FR-002**: Create the company once through existing services; use short committed units so an external session can see released sources and accepted records immediately. No transaction spans the multi-day run. Persist run identity, seed, clock mapping, released event cursor and delivery deduplication identity through retries/restarts; reconcile uncertain outcomes before replay.
+- **FR-003**: Use the shared scheduler/worker registry for recurring intake, due world reactions and independent monitoring. No browser clock, chat lifetime dependency, ad-hoc daemon queue or recurring business sleep loop. Operator prompt may poll a read-only inbox; that polling does not generate business events.
+- **FR-004**: Retain original synthetic messages as Sources with opaque company/party/object references, message ID, thread ID, reply parent, sender, recipients, subject, body, release timestamp and explicit local transport. Messages alone do not book orders, inventory or money. Explicit order submission and email enquiries are distinguishable inputs.
+- **FR-005**: Provide a simulator-scoped inbox adapter exposing released messages only, with cursor-based retrieval, explicit acknowledgement and stable retry semantics. The repository `scenarios.company_simulator.live inbox|ack|reply` adapter implements these operations; no new MCP tool is installed. Recover unread messages after agent interruption. Never expose future events or the oracle to the operator.
+- **FR-006**: Record external-agent replies against existing same-company threads and exact business references. Preserve an unsent draft versus delivered-to-simulated-mailbox distinction. Delivery to the local simulated recipient is not real email sending, provider acceptance or recipient proof. Respect canonical proposal/approval boundaries; no real email executor is invoked.
+- **FR-007**: The private world reacts causally: supplier confirmations require actual purchases; receipts require due accepted purchases; arrival requires recorded dispatch; follow-ups reference existing demand and actual response state. The world may respond to a message, but a promise does not create shipment evidence. It must not perform the operator's purchasing, shipping, invoicing or replies on its behalf.
+- **FR-008**: The external Claude/Codex agent uses ordinary Reality tools for company work. Its single handoff prompt names the company/run, inbox cursor, duties, exact-action authorization boundary, response cadence, escalation rules and restart procedure. Do not require a desktop to be open or claim the prompt guarantees agent uptime. Report operator heartbeat and unprocessed backlog separately from world/worker status.
+- **FR-009**: Independently reconcile accepted operations, stock, reservations, commitments, sources, postings and allocations using committed snapshots and execution identities, including changes made outside the simulator bridge. Avoid evaluating a moving partial transaction or updating the expected state from the same projection being tested. Agent delay/backlog is a business outcome, not automatically a core mismatch. Stop affected world intake on an unexplained core mismatch and report exact differences.
+- **FR-010**: Publish frequent read-only UI snapshots with arrival rate, inbox/outbox conversations, backlog, operator/worker freshness, order stories and exact Reality references. Distinguish confirmed health from unknown liveness. Saved replay cannot start/pause execution. The existing `/stories` presentation is reused, but its finite day/checkpoint assumptions require adaptation.
+- **FR-011**: Every three wall-clock hours publish a console/artifact report: new orders and messages by role, replies/drafts, open and overdue work, stock/financial reconciliation, delivery goals, and distinct exercised case families with counts. Never label every new order a distinct business case.
+- **FR-012**: Test cross-session visibility, paced rate configuration, same-event retry/restart, agent disconnection and backlog, cursor acknowledgement, exact reply identity, hidden-future isolation, concurrent external actions, deliberately corrupted oracle, and UI freshness. Run shared scheduling/permission/tenant regressions and the required full suite before declaring the live mode implemented.
+
+- **FR-013**: Provide an operator-facing manual world-event composer in the simulator UI: choose an existing customer/supplier and a supported event template (email enquiry, order submission, supplier confirmation/delay, cancellation/return request), inspect exact recipients, subject, body and opaque business references, then explicitly inject into the selected run. Preview is read-only and creates no Source or booking. Reject invalid/missing/cross-company references. Manual order submission is distinct from email-only injection; preview states any intended order intake. A delay/receipt cannot invent a purchase or physical arrival. Record origin=manual, actor, immutable payload, release time and stable deduplication identity. Incoming messages use the same mailbox/reconciliation path as automatic events. Distinguish manual contributions in rate/coverage reports. Existing operator history may populate a preview; private oracle/future schedule remains unavailable to the external agent. UI injection does not approve that agent's business actions.
+- Acceptance: preview creates no effects; one confirmed injection appears once in inbox/UI; double-click/retry cannot duplicate it; invalid supplier context is rejected; external agent can read/reply to it and the report identifies it as manual.
+
+## Success Criteria
+- A separate external operator sees committed arrivals and processes them without fixture callbacks or manual prompt injection per order.
+- A paced smoke run proves repeated orders and complete customer/supplier threads; independently checked stock/finance remains consistent.
+- Restart does not duplicate intake, lose mail acknowledgements or reset company balances.
+- A sustained trial reports measured 150–200 orders/hour, backlog and resource usage; duration/rate are not claimed achieved before measurement.
+
+## Assumptions and Dependencies
+The user explicitly selected an external Claude/Codex code agent and a simulated mailbox without a real email integration. Specs372–375 remain finite baseline and spectator evidence. Shared scheduling, canonical email handoffs, normal Reality tools and exact authorization remain authoritative. No credentials or external model invocation are supplied; implementation must support an independently launched connected agent rather than inventing authentication. Durable orchestration state needs a reviewed storage design; no new business-state authority is permitted.
+
+## Requirement Traceability
+
+| Requirements | Planned task | Required proof |
+| --- | --- | --- |
+| FR-001,003,007 | T003 | Paced releases, bounded backlog and causal reactions |
+| FR-002,012 | T001,T002,T008 | Cross-session visibility, transactional retry/restart and full regression |
+| FR-004–006 | T004 | Immutable sources, cursors/acks, exact local reply and tenant/permission refusal |
+| FR-008 | T005 | External connected operator handoff and disconnect/reconnect |
+| FR-009,011 | T006 | Independent concurrent reconciliation, deliberate corruption and timed reports |
+| FR-010 | T007 | UI freshness, volume, health/backlog and replay isolation |
+| FR-013 | T009 | Preview has no effects; scoped manual injection is deduplicated and reported |
+
+Live tests independently prove cross-connection committed visibility, shared-worker execution, retry, scoped manual preview/injection, mailbox acknowledgement/cursor, simulated reply, rate configuration, terminal pause, corruption detection and actual browser interaction. A sustained throughput/resource trial and real external-model operator trial remain pending; finite proofs do not substitute for these.
+
+## Rich correspondence and flow console revision
+
+The owner requests recognizable customer/supplier conversations and faster business navigation (2026-10-05).
+
+- **FR-014**: Release multiple bounded, deduplicated conversation stages for accepted customer orders: acknowledgement enquiry after two minutes, state-sensitive delivery/partial-dispatch enquiry after five minutes, and a concrete exception/request after eight minutes (one-unit cancellation where still open, destination confirmation, invoice enquiry or tracking enquiry). Selected actually delivered orders may generate a one-unit return request; the request alone never books a return or refund. Supplier confirmations name the actual purchase, quantities and promised delivery windows; selected suppliers ask about accepting a partial delivery or request acknowledgement of a delay. Preserve exact requested quantity and explicit original document-line/message context in immutable local mail. Stages survive retries/restarts, are visible in existing runs without resetting them, and are backpressured by the same mailbox bounds.
+- **FR-015**: Present a compact live business-flow dashboard showing incoming mail, outgoing replies and accepted business events with timestamps, party and order/document references. Clicking a party opens one overview with emails, orders and documents, and counts describe their scope. Clicking a mail or business event shows the original text and exact Reality references directly, without closing another panel to find the conversation. Direction filters, customer/supplier selection and current selection survive refresh. Distinguish requests, actual accepted activity and delivery evidence; never infer an agent reply/confirmation. Keep bounded feeds and mobile usability, and retain exact preview/release semantics.
+
+- **FR-016**: Display fulfillment performance prominently: eligible customer orders, complete dispatch count/rate, unshipped and partial backlog, open units, overdue unfulfilled orders, recent-hour accepted orders versus completed dispatches, and average time from actual order receipt to first/complete dispatch (sample counts and minutes, unknown for no samples). Derive fulfillment and remaining quantities through ordinary Reality services; link actual effective shipment movements and ignore corrected originals. Cancelled orders/remainders have explicit treatment and do not masquerade as shipment success. Arrival goals remain separate. Metrics cover the full retained run, not just bounded UI cards; state denominators/time windows. Drill-down filters show recent matching orders and disclose list limits. No new business state, timing authority or schema.
+
+- **FR-017**: The default synthetic live company has a source-backed supplier purchasing catalogue for every initial item: explicit supplier/item number, EUR stated purchase unit price and unit, minimum quantity, order multiple, and the world's five/ten-minute split-receipt window. Use normal price-list assignments, supplier-item-number and supplier-item-term services. Confirmed, idempotent preparation can fill missing purchasing prerequisites in a retained simulator run without resetting inventory/orders or overwriting existing prices/terms/numbers. Multiple suppliers require an explicit choice. Show catalogue and exact record IDs in the spectator and name the prerequisite/read tools in the external-agent prompt. These are synthetic quotes, not fetched supplier prices; requests never order automatically.
+Acceptance: before setup purchase price resolution returns no result; after confirmed setup it resolves to the explicitly assigned supplier for every default item. Replay creates no duplicate tiers/assignments and preserves an existing supplier price. Missing confirmation and foreign supplier/run IDs refuse. Source-backed catalogue is visible to the operator and spectator.
+
+- **FR-018**: The external-operator handoff requires a host-supported automatic wake/restart mechanism, verified with the operator stopped and restarted, and at least one complete business round before reporting setup complete. Every round drains bounded inbox pages, handles customer requests/cancellations, dispatches ready work, reviews purchasing/receipts and creates eligible invoices. Missing information must be investigated from recorded sources and supplier correspondence; failed steps remain visible while independent safe work continues. Report actual acknowledgements, replies, dispatches, purchases and invoices, not only decision-queue depth. Lack of external runner credentials/authorization or an unverified restart explicitly means incomplete operation; the simulator scheduler cannot wake an external model by itself.
+
+- **FR-019**: Operational coordination is the ordinary default under spec 377, without owner activation. The simulator and external operator must verify migration and coverage readiness through the shared status tool; accepted orders receive stable cases through canonical services. Preserve takeover, exact handback, fresh action reviews and pending external-runner/multi-day gates. Raw email is not an accepted goal; unsupported supplier/Finance/warehouse cases remain explicit.

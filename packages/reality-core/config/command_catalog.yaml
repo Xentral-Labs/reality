@@ -15,8 +15,8 @@ parameter_descriptions:
   request_key: Stable bounded control request identity; retry the same exact request with the same key.
   review_digest: Exact current handback review digest; changed facts require a new review.
   principal: Server-observed authenticated human; never asserted by an external token.
-  order_ids: Explicit same-company historical order identities selected for adoption.
-  return_ids: Explicit same-company historical announced-return identities selected for adoption.
+  order_ids: Same-company historical order identities validated for deprecated compatibility; default coverage is not restricted by this selection.
+  return_ids: Same-company historical return identities validated for deprecated compatibility; default coverage is not restricted by this selection.
   scope: Strict finite review delegation naming source, capabilities, profiles, effects, row and daily quotas, and stated-amount limits.
   stream: Original source, original parent source, or artifact byte stream identified by exact review material.
   agent_token_id: Exact named owner-issued MCP token receiving finite delegated review authority.
@@ -347,6 +347,13 @@ parameter_descriptions:
   value: Scalar observation value validated and canonicalized by its predicate contract.
 
 commands:
+  - name: Operational case status
+    service: operational_case_status
+    mode: read
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [case_rollout, case_consumer_checkpoint, tenant_event_progress, scheduled_job_run]
+    writes: []
+    effect: Report observed default coordination readiness and truthful platform version provenance.
   - name: Operational case list
     service: operational_case_list
     mode: read
@@ -363,7 +370,7 @@ commands:
     - action
     - source_record
     writes: []
-    effect: Read current adopted goal, source coverage, ownership and execution explanation
+    effect: Read current supported goal, source coverage, ownership and execution explanation
       without creating work.
   - name: Operational case explain
     service: operational_case_explain
@@ -381,7 +388,7 @@ commands:
     - action
     - source_record
     writes: []
-    effect: Read current adopted goal, source coverage, ownership and execution explanation
+    effect: Read current supported goal, source coverage, ownership and execution explanation
       without creating work.
   - name: Operational case object
     service: operational_case_object
@@ -399,7 +406,7 @@ commands:
     - action
     - source_record
     writes: []
-    effect: Read current adopted goal, source coverage, ownership and execution explanation
+    effect: Read current supported goal, source coverage, ownership and execution explanation
       without creating work.
   - name: Operational case handback preview
     service: operational_case_handback_preview
@@ -417,7 +424,7 @@ commands:
     - action
     - source_record
     writes: []
-    effect: Read current adopted goal, source coverage, ownership and execution explanation
+    effect: Read current supported goal, source coverage, ownership and execution explanation
       without creating work.
   - name: Operational case adopt
     service: operational_case_adopt
@@ -434,14 +441,8 @@ commands:
     - return_announcement
     - action
     - source_record
-    writes:
-    - operational_case
-    - case_adoption
-    - case_consumer_checkpoint
-    - business_event
-    - action
-    effect: Confirm current human responsibility control; does not cancel external execution
-      or approve business effects.
+    writes: [action]
+    effect: Deprecated confirmed owner acknowledgement of default coordination; does not modify cases or historical adoption.
   - name: Operational case takeover
     service: operational_case_takeover
     mode: mutation
@@ -2335,10 +2336,49 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  operational_case_status:
+    kind: read
+    application_tool: operational_case_status
+    purpose: Inspect default coordination migration readiness, historical coverage and platform provenance.
+    use_when:
+    - An operator needs to inspect or repair accepted fulfillment or announced returns.
+    do_not_use_when:
+    - Executing Shopify transport, refund payment or approving business effects.
+    required_context:
+    - Selected company and an existing same-company case or business object when required.
+    data_basis: [case_rollout, case_consumer_checkpoint, tenant_event_progress, scheduled_job_run]
+    limitations:
+    - Only supported order fulfillment and announced returns are covered. Live
+      Shopify transport and refund intent are unavailable.
+    freshness: Reads current rollout traversal, event progress and latest internal run.
+    empty_result: Missing rollout is explicitly incomplete; unknown or foreign companies are refused.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign identities are not found; unsupported object types are
+      refused.
+    unknown_when:
+    - Relevant sources have not been accepted or an executing action lacks a definite
+      outcome.
+    next_steps:
+    - Have an authenticated member take over, reconcile actual evidence and review exact
+      handback.
+    verification:
+      role: context
+      proves:
+      - Observed coordination coverage, platform version and job failures.
+      does_not_prove:
+      - Live Shopify synchronization, provider cancellation or permission to execute.
+    examples:
+      use:
+      - scenario: Repair a Shopify order while stopping new automated starts.
+        reason: Read exact responsibility and unresolved executions first.
+      do_not_use:
+      - scenario: Treat successful refund evidence as a payout request.
+        reason: Refund intent and live payout are not supported.
   operational_case_list:
     kind: read
     application_tool: operational_case_list
-    purpose: Inspect adopted operational responsibility and current authoritative work.
+    purpose: Inspect default operational responsibility and current authoritative work.
     use_when:
     - An operator needs to inspect or repair accepted fulfillment or announced returns.
     do_not_use_when:
@@ -2352,11 +2392,11 @@ capability_guidance:
     - action
     - source_record
     limitations:
-    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+    - Only supported order fulfillment and announced returns are covered. Live
       Shopify transport and refund intent are unavailable.
     freshness: Reads current held Reality facts and relevant unresolved source versions;
       consumer progress is separate telemetry.
-    empty_result: No adopted work returns an empty list; unknown or foreign identities
+    empty_result: No supported accepted work returns an empty list; unknown or foreign identities
       are refused.
     confirmation: none
     side_effects: none
@@ -2384,7 +2424,7 @@ capability_guidance:
   operational_case_explain:
     kind: read
     application_tool: operational_case_explain
-    purpose: Inspect adopted operational responsibility and current authoritative work.
+    purpose: Inspect default operational responsibility and current authoritative work.
     use_when:
     - An operator needs to inspect or repair accepted fulfillment or announced returns.
     do_not_use_when:
@@ -2398,11 +2438,11 @@ capability_guidance:
     - action
     - source_record
     limitations:
-    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+    - Only supported order fulfillment and announced returns are covered. Live
       Shopify transport and refund intent are unavailable.
     freshness: Reads current held Reality facts and relevant unresolved source versions;
       consumer progress is separate telemetry.
-    empty_result: No adopted work returns an empty list; unknown or foreign identities
+    empty_result: No supported accepted work returns an empty list; unknown or foreign identities
       are refused.
     confirmation: none
     side_effects: none
@@ -2430,7 +2470,7 @@ capability_guidance:
   operational_case_object:
     kind: read
     application_tool: operational_case_object
-    purpose: Inspect adopted operational responsibility and current authoritative work.
+    purpose: Inspect default operational responsibility and current authoritative work.
     use_when:
     - An operator needs to inspect or repair accepted fulfillment or announced returns.
     do_not_use_when:
@@ -2444,11 +2484,11 @@ capability_guidance:
     - action
     - source_record
     limitations:
-    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+    - Only supported order fulfillment and announced returns are covered. Live
       Shopify transport and refund intent are unavailable.
     freshness: Reads current held Reality facts and relevant unresolved source versions;
       consumer progress is separate telemetry.
-    empty_result: No adopted work returns an empty list; unknown or foreign identities
+    empty_result: No supported accepted work returns an empty list; unknown or foreign identities
       are refused.
     confirmation: none
     side_effects: none
@@ -2476,7 +2516,7 @@ capability_guidance:
   operational_case_handback_preview:
     kind: read
     application_tool: operational_case_handback_preview
-    purpose: Inspect adopted operational responsibility and current authoritative work.
+    purpose: Inspect default operational responsibility and current authoritative work.
     use_when:
     - An operator needs to inspect or repair accepted fulfillment or announced returns.
     do_not_use_when:
@@ -2490,11 +2530,11 @@ capability_guidance:
     - action
     - source_record
     limitations:
-    - Only explicitly adopted order fulfillment and announced returns are covered. Live
+    - Only supported order fulfillment and announced returns are covered. Live
       Shopify transport and refund intent are unavailable.
     freshness: Reads current held Reality facts and relevant unresolved source versions;
       consumer progress is separate telemetry.
-    empty_result: No adopted work returns an empty list; unknown or foreign identities
+    empty_result: No supported accepted work returns an empty list; unknown or foreign identities
       are refused.
     confirmation: none
     side_effects: none
@@ -6705,6 +6745,9 @@ reachable_mutations_that_are_not_commands:
   set_source_system_base_url: Records where a configured source system can be opened in a browser. Integration configuration, not something an operator asks the business to do; it changes no business record.
 
 agent_command_coverage:
+  operational_case_status:
+    classification: eligible
+    tools: [operational_case_status]
   operational_case_list:
     classification: eligible
     tools:

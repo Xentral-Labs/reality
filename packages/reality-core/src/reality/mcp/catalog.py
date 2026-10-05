@@ -732,6 +732,11 @@ PAGE_PROPERTIES = {
 
 MCP_TOOL_CATALOG = (
     MCPToolDefinition(
+        "operational_case_status", "Operational case status",
+        "Read default coordination migration, coverage readiness and platform rollout provenance.",
+        "read", "Operational cases", _object_schema({}), _read("operational_case_status"),
+    ),
+    MCPToolDefinition(
         "operational_case_list",
         "Operational cases",
         "Read current cases and responsibility. This does not create work.",
@@ -813,7 +818,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "operational_case_adopt_propose",
         "Propose case adoption",
-        "Prepare owner-reviewed adoption; historical roots are explicitly selected, never inferred.",
+        "Deprecated owner acknowledgement of default coordination. Does not reset responsibility or grant business authority.",
         "propose",
         "Operational cases",
         _object_schema(

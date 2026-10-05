@@ -1134,6 +1134,7 @@ def _service(name: str) -> Any:
         from reality.services import operational_cases
 
         return getattr(operational_cases, {
+            "operational_case_status": "coordination_status",
             "operational_case_list": "list_cases",
             "operational_case_explain": "explain",
             "operational_case_object": "object_cases",

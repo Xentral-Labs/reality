@@ -127,3 +127,22 @@ class CaseConsumerCheckpoint(Base):
     policy_version: Mapped[int] = mapped_column(Integer, default=1)
     incorporated_sequence: Mapped[int] = mapped_column(BigInteger, default=0)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class CaseRollout(Base):
+    """Version-owned traversal, distinct from historical human adoption consent."""
+
+    __tablename__ = "case_rollout"
+    __table_args__ = (
+        CheckConstraint("version = 377", name="ck_case_rollout_version"),
+        CheckConstraint(
+            "completed_at IS NULL OR (commitment_after IS NULL AND return_after IS NULL)",
+            name="ck_case_rollout_completion",
+        ),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, default=377)
+    commitment_after: Mapped[str | None] = mapped_column(String, default="")
+    return_after: Mapped[str | None] = mapped_column(String, default="")
+    completed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)

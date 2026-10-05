@@ -62,19 +62,11 @@ def list_cases(
 @router.get("/status")
 def status(tenant_id: str, request: Request, session: DatabaseSession):
     principal = optional_request_principal(request)
-    if principal is None:
-        return {
-            "adopted": cases.adoption(session, tenant_id) is not None,
-            "can_adopt": False,
-            "can_control": False,
-            "kinds": list(cases.KINDS),
-        }
-    member = _respond(lambda: cases._member(session, tenant_id, principal))
+    if principal is not None:
+        _respond(lambda: cases._member(session, tenant_id, principal))
     return {
-        "adopted": cases.adoption(session, tenant_id) is not None,
-        "can_adopt": member.role == "owner",
-        "can_control": True,
-        "kinds": list(cases.KINDS),
+        **_respond(lambda: cases.coordination_status(session, tenant_id)),
+        "can_control": principal is not None,
     }
 
 

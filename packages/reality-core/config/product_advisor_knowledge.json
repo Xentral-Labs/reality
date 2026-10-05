@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:5eef3841f4a53934c92b4b021356f944a4ba7134fff6e0d6aa16f7e9c29a7b76",
+  "knowledge_version": "advisor-v1:sha256:10d739e662084cf709fcb64202e58ba5f8d915485f383aba8ac61ccc5cced24c",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "2a629e1b5213fa7f8646e6fe9bccaf31702fd63c7057ad9a1bc611e4459ea501"
+      "fingerprint": "c89e96456c803a13a73d0bccec4bd6f01c05230848772cf45f45f58ba5ed43c4"
     },
     {
       "id": "source_document_product_evaluation",
@@ -6123,79 +6123,94 @@
       "fingerprint": "b593b97aa5d9e126f7e804b459a90061e305a7e576733498d75ae539b145a583"
     },
     {
+      "id": "evidence_command_operational_case_status",
+      "source_id": "source_executable_commands",
+      "subject": "Operational case status",
+      "title": "Operational case status",
+      "search_text": "operational_case_status Operational case status Report observed default coordination readiness and truthful platform version provenance. read",
+      "claim_text": "operational_case_status is a governed read command for Report observed default coordination readiness and truthful platform version provenance..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_status"
+      ],
+      "language": "en",
+      "fingerprint": "df2136641398c10d2b208c3a1c739589f0ea2281663222736448453eb323d5b6"
+    },
+    {
       "id": "evidence_command_operational_case_list",
       "source_id": "source_executable_commands",
       "subject": "Operational case list",
       "title": "Operational case list",
-      "search_text": "operational_case_list Operational case list Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
-      "claim_text": "operational_case_list is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "search_text": "operational_case_list Operational case list Read current supported goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_list is a governed read command for Read current supported goal, source coverage, ownership and execution explanation without creating work..",
       "support": "vocabulary_only",
       "limitations": [],
       "references": [
         "operational_case_list"
       ],
       "language": "en",
-      "fingerprint": "92bb06696f8a670abd5a95d02885736b7ac918d804e6ec3a70bb21a36128ba28"
+      "fingerprint": "68b4c3d352a711f7ff9fec6231e351949e46769f69dcce30ec021af8a9fddfc4"
     },
     {
       "id": "evidence_command_operational_case_explain",
       "source_id": "source_executable_commands",
       "subject": "Operational case explain",
       "title": "Operational case explain",
-      "search_text": "operational_case_explain Operational case explain Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
-      "claim_text": "operational_case_explain is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "search_text": "operational_case_explain Operational case explain Read current supported goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_explain is a governed read command for Read current supported goal, source coverage, ownership and execution explanation without creating work..",
       "support": "vocabulary_only",
       "limitations": [],
       "references": [
         "operational_case_explain"
       ],
       "language": "en",
-      "fingerprint": "eaea8173c047859ff74f9cc951d513d590cae7db38fb1fd7f5205705dfcb5476"
+      "fingerprint": "8df7e89a437cdbc106c163b010b6ae9c2f917e5d19c594181bc699ba1d3d59e7"
     },
     {
       "id": "evidence_command_operational_case_object",
       "source_id": "source_executable_commands",
       "subject": "Operational case object",
       "title": "Operational case object",
-      "search_text": "operational_case_object Operational case object Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
-      "claim_text": "operational_case_object is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "search_text": "operational_case_object Operational case object Read current supported goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_object is a governed read command for Read current supported goal, source coverage, ownership and execution explanation without creating work..",
       "support": "vocabulary_only",
       "limitations": [],
       "references": [
         "operational_case_object"
       ],
       "language": "en",
-      "fingerprint": "a0fcaecaaacc466f5352ea922cb271b0899ef9792814818b67f3a70fad1ca9de"
+      "fingerprint": "9f3e3a58dd503ca82e6bf029b46ce1f5323d1ab0376d59e6de34fd693b3ba05f"
     },
     {
       "id": "evidence_command_operational_case_handback_preview",
       "source_id": "source_executable_commands",
       "subject": "Operational case handback preview",
       "title": "Operational case handback preview",
-      "search_text": "operational_case_handback_preview Operational case handback preview Read current adopted goal, source coverage, ownership and execution explanation without creating work. read",
-      "claim_text": "operational_case_handback_preview is a governed read command for Read current adopted goal, source coverage, ownership and execution explanation without creating work..",
+      "search_text": "operational_case_handback_preview Operational case handback preview Read current supported goal, source coverage, ownership and execution explanation without creating work. read",
+      "claim_text": "operational_case_handback_preview is a governed read command for Read current supported goal, source coverage, ownership and execution explanation without creating work..",
       "support": "vocabulary_only",
       "limitations": [],
       "references": [
         "operational_case_handback_preview"
       ],
       "language": "en",
-      "fingerprint": "be107ad095b555ea8d825d4cc105e2810a79f9e3aa63b36a56cdc56fc015c617"
+      "fingerprint": "a4c3cb6d7b2689618b576fe9c2d1ca02315be44a565cc9f3affa2404b2a8c4ef"
     },
     {
       "id": "evidence_command_operational_case_adopt",
       "source_id": "source_executable_commands",
       "subject": "Operational case adopt",
       "title": "Operational case adopt",
-      "search_text": "operational_case_adopt Operational case adopt Confirm current human responsibility control; does not cancel external execution or approve business effects. mutation",
-      "claim_text": "operational_case_adopt is a governed mutation command for Confirm current human responsibility control; does not cancel external execution or approve business effects..",
+      "search_text": "operational_case_adopt Operational case adopt Deprecated confirmed owner acknowledgement of default coordination; does not modify cases or historical adoption. mutation",
+      "claim_text": "operational_case_adopt is a governed mutation command for Deprecated confirmed owner acknowledgement of default coordination; does not modify cases or historical adoption..",
       "support": "vocabulary_only",
       "limitations": [],
       "references": [
         "operational_case_adopt"
       ],
       "language": "en",
-      "fingerprint": "b23bd2668f627ac8a845fe013986dcb69ee17a6cf7ae2a2e3d40cf0314a8b1c0"
+      "fingerprint": "50bc13a23d84258a0f4f4e03ce7931d44435155954d63f41ed6b29083ebbc751"
     },
     {
       "id": "evidence_command_operational_case_takeover",

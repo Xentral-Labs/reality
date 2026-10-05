@@ -4,9 +4,10 @@ A case groups responsibility for accepted work. In the first version, an order's
 share one case and each announced return has a separate related case. New products, warehouses and
 raw source messages do not create cases.
 
-The company owner first enables case coordination in **Orders → Operational cases**. New accepted
-orders and announced returns are included. Existing work requires explicit selection through the
-shared adoption controls; completed history is not automatically reopened.
+Coordination is the default for every company. New accepted orders receive cases immediately;
+existing open/partial orders and accepted open returns are included by bounded upgrade jobs.
+Completed history remains closed. Read `operational_case_status` to verify migration and coverage
+readiness; incomplete upgrade or job failure requires operator attention, not activation.
 
 If the agent needs help, open the case and confirm **Take over manually / stop automation**. New
 automated actions for this case stop immediately. Already started actions remain visible: stopping
@@ -31,3 +32,13 @@ MCP/Chat can propose responsibility controls; an authenticated human must confir
 Live Shopify transport and automatic refund intent/execution are not included in this version.
 Supplier processes and other case families are planned separately.
 [Tool reference](/tool-usage/commands) describes the available operations.
+
+## Default coordination (spec 377)
+
+Coordination applies to every company without activation. Apply migration 0145 and run matching
+scheduler/worker services. Use `operational_case_status` to verify migration readiness, completed
+historical coverage, platform provenance and actual job failure. Open/partial orders and open
+accepted returns are backfilled; closed history and raw mail are excluded. Manual ownership and
+exact handback remain intact. Old approvals require fresh review. This grants no supplier, Finance,
+warehouse, refund, outgoing-mail or external-provider authority. Historical owner adoption and
+executed receipts are preserved. Populated rollout downgrade is refused.

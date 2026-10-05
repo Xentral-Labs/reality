@@ -5174,9 +5174,14 @@ export type OperationalCase = {
 };
 export const operationalCases = {
   status: (tenant: string) =>
-    request<{ adopted: boolean; can_adopt: boolean; can_control: boolean }>(
-      `/api/tenants/${tenant}/operational-cases/status`,
-    ),
+    request<{
+      adopted: boolean;
+      can_adopt: boolean;
+      can_control: boolean;
+      migration_ready: boolean;
+      coverage_ready: boolean;
+      last_error_code: string | null;
+    }>(`/api/tenants/${tenant}/operational-cases/status`),
   list: (tenant: string, after = "") =>
     request<OperationalCase[]>(
       `/api/tenants/${tenant}/operational-cases?after=${encodeURIComponent(after)}`,

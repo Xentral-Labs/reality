@@ -2850,10 +2850,13 @@
       "message": "This action belongs to an older case control revision. Prepare fresh work."
     },
     "case_coverage_unavailable": {
-      "message": "This work has no supported adopted case. Manual repair remains available."
+      "message": "This work has no supported case. Manual repair remains available."
     },
     "case_human_confirmation_required": {
       "message": "An authenticated human must confirm this responsibility control."
+    },
+    "case_schema_not_ready": {
+      "message": "Operational case upgrade is not ready. Apply the required migration before continuing automation."
     }
   },
   "terms": [

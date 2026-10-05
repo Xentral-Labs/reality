@@ -45,6 +45,7 @@ Own fulfillment and announced-return work, take over manually and return after r
 
 **Look up**
 
+- [Operational case status](./commands#command-operational_case_status) (`operational_case_status`)
 - [Operational case list](./commands#command-operational_case_list) (`operational_case_list`)
 - [Operational case explain](./commands#command-operational_case_explain)
   (`operational_case_explain`)
@@ -53,8 +54,7 @@ Own fulfillment and announced-return work, take over manually and return after r
   (`operational_case_handback_preview`)
 
 **Underneath:** Tables: `operational_case`, `case_commitment_link`, `case_proposal_link`,
-`case_adoption`, `case_consumer_checkpoint` · Events:
-[`operational_case.adopted`](./events#event-operational_case-adopted),
+`case_adoption`, `case_consumer_checkpoint`, `case_rollout` · Events:
 [`operational_case.taken_over`](./events#event-operational_case-taken_over),
 [`operational_case.handed_back`](./events#event-operational_case-handed_back)
 

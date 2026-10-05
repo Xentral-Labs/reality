@@ -1,10 +1,17 @@
 # Operational cases
 
-Spec: [371](../../specs/371-operational-cases/spec.md).
+Spec: [371](../../specs/371-operational-cases/spec.md), superseded adoption policy: [377](../../specs/377-default-operational-cases/spec.md).
 
-The opt-in v1 layer gives accepted work a stable responsibility boundary. It does not store delivery, inventory or financial balances. Current goals and source coverage are read from Reality; notifications drive a bounded database-only reconciliation consumer.
+The default v1 layer gives accepted work a stable responsibility boundary. It does not store delivery, inventory or financial balances. Current goals and source coverage are read from Reality; notifications drive a bounded database-only reconciliation consumer.
 
-A confirmed active company owner enables new-work adoption and may explicitly select up to 500 historical orders/announcements. The capture sequence is retained. Unselected historical work is not silently adopted. New customer-delivery commitments of an accepted sales order share one `order_fulfillment` case; each accepted open ReturnAnnouncement has its own `customer_return` case. Products, locations, raw Sources and proposals do not create goals. Completed history does not become new active work. A correction reuses the original anchored identity.
+Every company receives coordination without an owner activation. New accepted
+customer-delivery commitments of a sales order share one `order_fulfillment` case;
+each accepted open ReturnAnnouncement has its own `customer_return` case. Products,
+locations, raw Sources and staged proposals never create goals. Completed history is
+excluded; partial/open supported work is covered during bounded upgrade. Corrections
+reuse the anchored identity. Historical owner-approved CaseAdoption records and their
+capture/selection are retained unchanged, separate from platform version rollout.
+
 
 Owned work is distinguished from related work. An announced return is related through its original commitment to the fulfillment case. Taking over an order does not recursively transfer its returns, billing or supplier work. Independent return fragments are not heuristically grouped. The explicit v1 [policy catalog](../../packages/reality-core/config/case_policy_catalog.yaml) and [entrypoint inventory](../../specs/371-operational-cases/contracts/entrypoint-coverage.md) describe the boundary.
 
@@ -31,8 +38,35 @@ Web controls use observed authenticated membership. Shared application controls 
 
 `operational_case_list` pages at most 100 cases using `after`; `operational_case_object` discovers associations from a document, commitment, return announcement or proposal. Explanation includes root IDs, current work, ownership, related cases, source IDs, obsolescence reasons, executing actions, coverage gaps and consumer progress/last job status. Order explanation, document inspector, proposal reviews and execution-status reads expose additive `case_ids`; stored receipts are not rewritten.
 
-The shared scheduler discovers adopted companies with committed event lag and enqueues `operational_cases.reconcile` through the existing registry/queue. Each run incorporates at most 100 events and commits membership and checkpoint together. It performs no provider calls, accepts no evidence and emits no business-goal recursion. The adopting owner's retained decision supplies real job attribution; revoked current job authority is a visible failed run, not an arbitrary replacement actor. Recovery uses existing job controls. Producer hooks and synchronous guards remain authoritative when the consumer is delayed.
+The shared scheduler discovers every non-archived company with missing/incomplete
+rollout or event lag. Actorless, unscheduled `operational_cases.reconcile` runs have a
+narrow persisted-run authorization check, never fabricated owner consent. Previously
+queued owner runs keep their original current-owner authorization. Public schedule/run
+creation cannot request this internal capability. Revocation/archive and real failures
+remain explicit; database-only infrastructure/lease exhaustion resumes with a new platform run while retaining failed history. A definitively rejected legacy owner run also permits a new internal run; unresolved outcomes and other verdicts remain explicit.
 
-This feature does **not** supply live Shopify authentication/webhooks/API retrieval, outbound provider transport or refund intent/execution. Financial refund evidence is bookkeeping, not payout authority. Unanchored customer promises, exchange replacements and unannounced return automation are unavailable in adopted scope; existing authorized human/evidence workflows remain available. Supplier, Finance, warehouse and other proposed case families remain backlog. Enabling this layer does not prove that a live Shopify agent can run the whole business.
+Migration 0145 adds CaseRollout traversal/version metadata and the specific internal
+job constraint; scheduler/worker startup never migrates. Each transaction scans at
+most 100 supported historical IDs and consumes at most 100 events. Cursors, links and
+checkpoint commit with job success. Rollback/retry cannot duplicate cases. Both scans
+and event catch-up must complete before `operational_case_status.coverage_ready` is
+true. `migration_ready`, `last_job_status`, `last_error_code`, `rollout_version` and
+`rollout_provenance=platform_version` distinguish observed readiness from policy.
+Source acceptance and correction hooks plus synchronous guards protect new/current
+work while the background consumer is delayed. Missing schema refuses automated starts
+explicitly; incomplete rollout is never represented as an end-user enable toggle.
+Rollout changes no commitments, movements, balances, immutable Sources or provider state.
+
+Legacy adoption/status clients remain supported: status returns adopted=true and
+can_adopt=false. Confirmed authenticated owner adoption calls acknowledge the default
+without resetting responsibility or creating fabricated owner adoption. Exact old
+executed request replay keeps its original receipt. Old pending business proposals
+without current case binding/review require fresh preparation; executed receipts and
+uncertain executions remain unchanged. Populated rollout/history downgrade is refused.
+
+
+This feature does **not** supply live Shopify authentication/webhooks/API retrieval, outbound provider transport or refund intent/execution. Financial refund evidence is bookkeeping, not payout authority. Unanchored customer promises, exchange replacements and unannounced return automation are unavailable under default coordination; existing authorized human/evidence workflows remain available. Supplier, Finance, warehouse and other proposed case families remain backlog. Default coordination does not prove that a live Shopify agent can run the whole business.
 
 Implementation and verification evidence: [quickstart](../../specs/371-operational-cases/quickstart.md).
+
+Default rollout verification: [spec 377 quickstart](../../specs/377-default-operational-cases/quickstart.md).

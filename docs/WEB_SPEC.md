@@ -3610,3 +3610,11 @@ mounted selector; no page reload or new acceptance boundary is needed.
 Orders and document inspection expose Operational cases with stable copyable IDs, current owned/related work, Source links and unsettled execution. Observed active members explicitly confirm takeover or exact reviewed handback through shared services. Takeover stops new automated starts; it never displays an already claimed external action as cancelled. Owner-confirmed new-work adoption is opt-in and does not silently activate completed historical work.
 
 See [the implemented operational-case contract](features/operational-cases.md) for authority, supported boundaries and capability limits.
+
+
+## Default operational cases — Spec 377
+
+Orders retain the operational-case panel, object discovery, source links, explicit
+manual takeover and exact handback. There is no activation control. The panel reports
+missing migration, unfinished historical reconciliation and actual job errors from the
+shared status service. No read performs backfill or approves any business action.
