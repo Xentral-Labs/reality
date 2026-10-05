@@ -15,9 +15,9 @@
 - [x] T008 [US2] [FR-004] [DR-001] Sharpen existing descriptions in packages/reality-core/src/reality/mcp/catalog.py and docs/features/mcp_reads.md; run make docs-generate.
 
 ## Final Phase: Verification and Review
-- [ ] T009 [FR-001] [FR-002] [FR-003] [FR-004] [FR-005] [DR-001] Run focused PostgreSQL/read/HTTP regressions, Ruff/spec/docs gates and full CI; record evidence in specs/370-read-evidence-boundaries/verification.md.
-- [ ] T010 [DR-001] Run fresh read-only Claude acceptance, compare unchanged operational state and revoke temporary access; record model observations separately in specs/370-read-evidence-boundaries/verification.md.
-- [ ] T011 [FR-005] [DR-001] Review final diff/rollback and create a new PR; no merge without owner approval. Record result in specs/370-read-evidence-boundaries/verification.md.
+- [x] T009 [FR-001] [FR-002] [FR-003] [FR-004] [FR-005] [DR-001] Run focused PostgreSQL/read/HTTP regressions, Ruff/spec/docs gates and full CI; record evidence in specs/370-read-evidence-boundaries/verification.md.
+- [x] T010 [DR-001] Run fresh read-only Claude acceptance, compare unchanged operational state and revoke temporary access; record model observations separately in specs/370-read-evidence-boundaries/verification.md.
+- [x] T011 [FR-005] [DR-001] Review final diff/rollback and create a new PR; no merge without owner approval. Record result in specs/370-read-evidence-boundaries/verification.md.
 
 ## Dependencies and Implementation Strategy
 T001-T003 precede tests/implementation. T004→T005; T006→T007→T008; all then T009-T011. Story tests are independent except shared setup. No parallel implementation is needed for this small change. Deliver US1 first, then US2 and final acceptance.
