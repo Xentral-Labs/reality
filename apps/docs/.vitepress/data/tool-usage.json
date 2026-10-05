@@ -2985,7 +2985,7 @@
           "name": "record_id",
           "type": "string",
           "required": false,
-          "description": "Opaque identity of the master-data record whose lifecycle is being changed.",
+          "description": "Exact opaque record ID within the selected family; takes precedence over query.",
           "depth": 0
         },
         {
