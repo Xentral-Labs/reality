@@ -40,13 +40,15 @@ def order(session, business):
 
 
 def activate(session, business, owner):
-    return cases.adopt(
+    result = cases.adopt(
         session,
         business.tenant.id,
         Principal(owner.id),
         confirmed=True,
         request_key=uid("req"),
     )
+    cases.reconcile_events(session, business.tenant.id)
+    return result
 
 
 def test_staging_does_not_create_case(session, business, scheduled_owner):
@@ -81,14 +83,12 @@ def test_acceptance_ensures_case_and_event_replay_is_idempotent(
     ]
 
 
-def test_historical_order_is_not_implicitly_adopted(session, business, scheduled_owner):
+def test_legacy_activation_does_not_reset_default_order_case(session, business, scheduled_owner):
     commitment = order(session, business)
+    original = cases.object_cases(session, business.tenant.id, "commitment", commitment.id)
     activate(session, business, scheduled_owner)
-    assert (
-        cases.object_cases(session, business.tenant.id, "commitment", commitment.id)
-        == []
-    )
-    assert cases.list_cases(session, business.tenant.id) == []
+    assert len(original) == 1
+    assert cases.object_cases(session, business.tenant.id, "commitment", commitment.id) == original
 
 
 def test_takeover_blocks_direct_automation_but_allows_human_repair(

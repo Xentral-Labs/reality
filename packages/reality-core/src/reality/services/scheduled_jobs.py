@@ -89,7 +89,7 @@ ANALYSIS_JOB_TYPE = "analysis.run"
 def _owner(
     session: Session, tenant_id: str, actor_id: str, job_type: str | None = None
 ) -> None:
-    if job_type == "projections.refresh":
+    if job_type in {"projections.refresh", "operational_cases.reconcile"}:
         raise JobError("not_authorized")
     if job_type in DEMO_JOB_TYPES:
         from reality.services.demo_data import eligible

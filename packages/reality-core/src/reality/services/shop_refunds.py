@@ -219,6 +219,9 @@ def refunds_for_order(
     session: Session, tenant_id: str, order: Document
 ) -> list[Document]:
     """The refunds recorded for one interpreted Shopify order."""
+    order = core._tenant_record_read(session, Document, tenant_id, order.id)
+    if order.source_record_id is None:
+        return []
     order_source = core._tenant_record(
         session, SourceRecord, tenant_id, order.source_record_id
     )

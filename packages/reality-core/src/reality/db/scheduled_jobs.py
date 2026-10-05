@@ -119,7 +119,7 @@ class ScheduledJobRun(Base):
             postgresql_where="status IN ('pending','running','retry','unresolved')",
         ),
         CheckConstraint(
-            "(job_type = 'projections.refresh' AND actor_id IS NULL AND schedule_id IS NULL) OR (job_type <> 'projections.refresh' AND actor_id IS NOT NULL)",
+            "(job_type IN ('projections.refresh', 'operational_cases.reconcile') AND actor_id IS NULL AND schedule_id IS NULL) OR (job_type <> 'projections.refresh' AND actor_id IS NOT NULL)",
             name="ck_scheduled_run_actor",
         ),
         # One unfinished refresh run per projection of a company (spec 181 FR-004).

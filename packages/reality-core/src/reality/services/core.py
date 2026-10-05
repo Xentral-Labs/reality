@@ -788,6 +788,13 @@ def emit_business_event(
         # The company's progress and the event that moved it are written in one
         # transaction, so a reader that sees one sees the other (spec 181 FR-004).
         progress.last_event_sequence = event.sequence
+    # Supported accepted corrections/reopenings receive coverage in this transaction.
+    # No raw-source notification becomes an operational goal.
+    from reality.services.case_policies import reconcile_event
+
+    if event_type in {"commitment.revised", "movement.corrected", "document_line.item_assigned"}:
+        session.flush()
+        reconcile_event(session, tenant_id, event)
     return event
 
 

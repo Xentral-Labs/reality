@@ -262,3 +262,15 @@ reads. Original reviewer Stop prevents later units; committed results remain.
 Registration creates no recurring schedule. External agent assessment and provider
 calls are outside this handler. Mandate delegation and the complete adapter/UI
 rollout remain unfinished; this registration does not grant them.
+
+
+## Default case coordination — Spec 377
+
+`operational_cases.reconcile` is a narrow unscheduled internal database capability.
+The scheduler discovers every non-archived company with unfinished CaseRollout traversal
+or consumer lag, even with no owner. Newly queued runs have no user actor and are
+validated against the exact persisted tenant/run/type before execution. Historical owner
+runs retain owner authorization. Public callers cannot create internal case runs or
+schedules. Bounded backfill and event checkpoint commit with shared run success, and
+perform no business effects or external I/O. Migration 0145 must precede matching
+processes; startup never migrates. Status reports completion and failures explicitly.

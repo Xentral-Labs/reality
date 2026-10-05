@@ -595,9 +595,9 @@ Change Proposal, and chat activity without loading business rows or querying onc
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `operational_case.adopted`, `operational_case.taken_over`,
-`operational_case.handed_back`, `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
-`shipment.event_recorded`, `shipment.event_superseded`, `finance.target_configuration_changed`,
+**Background refresh after:** `operational_case.taken_over`, `operational_case.handed_back`,
+`cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`, `shipment.event_recorded`,
+`shipment.event_superseded`, `finance.target_configuration_changed`,
 `finance.source_mapping_changed`, `finance.component_assigned`, `finance.reference_changed`,
 `finance.account_changed`, `credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`,
 `dunning.notice_reversed`, `payment.returned`, `payout.settled`, `payment.authorized`,
@@ -909,30 +909,29 @@ Normalizes important evidence and reality timestamps into one chronological oper
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `operational_case.adopted`, `operational_case.taken_over`,
-`operational_case.handed_back`, `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
-`shipment.event_recorded`, `shipment.event_superseded`, `finance.component_assigned`,
-`credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`, `dunning.notice_reversed`,
-`payment.returned`, `payout.settled`, `payment.authorized`, `payment.captured`,
-`dunning.run_confirmed`, `dunning.collection_handover_recorded`, `order.recorded`,
-`source_record.stored`, `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.received`, `source_record.unmapped`, `source_record.interpreted`, `party.created`,
-`party.updated`, `item.created`, `item.updated`, `reorder_point.set`, `reorder_point.removed`,
-`stock_block.created`, `stock_block.released`, `stock_block.scrapped`, `company_currency.set`,
-`company_time_zone.set`, `kit.defined`, `party.merged`, `commitment.substitute_accepted`,
-`kit.assembled`, `supplier_item_terms.set`, `supplier_item_terms.removed`,
-`customer_item_number.set`, `customer_item_number.removed`, `supplier_item_number.set`,
-`supplier_item_number.removed`, `outbound_delivery.planned`, `outbound_delivery.revised`,
-`outbound_delivery.picked`, `outbound_delivery.put_back`, `external_stock.stated`,
-`stock_count.posted`, `delivery_rule.stated`, `location.created`, `location.updated`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `document_line.item_assigned`, `drop_shipment.recorded`,
-`shipment.delivery_failed`, `exchange.recorded`, `commitment.held`, `order.prepayment_released`,
-`commitment.hold_released`, `reservation.created`, `reservation.released`, `handling_unit.created`,
-`lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`,
-`movement.recorded`, `movement.corrected`, `ledger.posted`, `ledger.reversed`,
-`settlement.allocated`
+**Background refresh after:** `operational_case.taken_over`, `operational_case.handed_back`,
+`cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`, `shipment.event_recorded`,
+`shipment.event_superseded`, `finance.component_assigned`, `credit.recorded`, `invoice.recorded`,
+`dunning.notice_recorded`, `dunning.notice_reversed`, `payment.returned`, `payout.settled`,
+`payment.authorized`, `payment.captured`, `dunning.run_confirmed`,
+`dunning.collection_handover_recorded`, `order.recorded`, `source_record.stored`,
+`commitment.fulfilled`, `reservation.consumed`, `fact.observed`, `source_record.received`,
+`source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
+`item.created`, `item.updated`, `reorder_point.set`, `reorder_point.removed`, `stock_block.created`,
+`stock_block.released`, `stock_block.scrapped`, `company_currency.set`, `company_time_zone.set`,
+`kit.defined`, `party.merged`, `commitment.substitute_accepted`, `kit.assembled`,
+`supplier_item_terms.set`, `supplier_item_terms.removed`, `customer_item_number.set`,
+`customer_item_number.removed`, `supplier_item_number.set`, `supplier_item_number.removed`,
+`outbound_delivery.planned`, `outbound_delivery.revised`, `outbound_delivery.picked`,
+`outbound_delivery.put_back`, `external_stock.stated`, `stock_count.posted`, `delivery_rule.stated`,
+`location.created`, `location.updated`, `document.recorded`, `document.corrected`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`payments.run`, `return.announced`, `return.announcement_withdrawn`, `document_line.item_assigned`,
+`drop_shipment.recorded`, `shipment.delivery_failed`, `exchange.recorded`, `commitment.held`,
+`order.prepayment_released`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `handling_unit.created`, `lot.created`, `lot.expiry_stated`,
+`lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`, `movement.corrected`,
+`ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 **See also:** Agent Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), Agent Tool
 [`movement_create_propose`](./commands#tool-movement_create_propose), Agent Tool

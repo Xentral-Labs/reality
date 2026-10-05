@@ -303,7 +303,7 @@ def resolve_cases(
 def guard_operation(
     session: Session, tenant_id: str, operation: str, arguments: dict[str, Any]
 ):
-    if cases.adoption(session, tenant_id) is None or not is_automatic(
+    if not cases.coordination_enabled(session, tenant_id) or not is_automatic(
         session, tenant_id
     ):
         return
@@ -353,7 +353,7 @@ def bind_arguments(
     operation: str,
     arguments: dict[str, Any],
 ):
-    if cases.adoption(session, tenant_id) is None:
+    if not cases.coordination_enabled(session, tenant_id):
         return []
     ids, _ = resolve_cases(session, tenant_id, operation, arguments, ensure=True)
     cases.bind_proposal(session, tenant_id, proposal_id, ids)
@@ -377,7 +377,7 @@ def bind_arguments(
 def guard_proposal(
     session: Session, tenant_id: str, proposal_id: str | None, *, automatic: bool
 ):
-    if cases.adoption(session, tenant_id) is None or not automatic:
+    if not cases.coordination_enabled(session, tenant_id) or not automatic:
         return
     lock_delivery_state(session, tenant_id)
     proposal = core._tenant_record_read(session, ChangeProposal, tenant_id, proposal_id)

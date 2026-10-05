@@ -18,7 +18,7 @@ resources:
     subtitle: {en: "Responsibility and current work", de: "Verantwortung und aktuelle Arbeit"}
     description: {en: "Own fulfillment and announced-return work, take over manually and return after reconciliation.", de: "Erfüllung und angekündigte Retouren übernehmen und nach Abgleich zurückgeben."}
     synonyms: [case, takeover, handback, Vorgang, Übernahme]
-    tables: [operational_case, case_commitment_link, case_proposal_link, case_adoption, case_consumer_checkpoint]
+    tables: [operational_case, case_commitment_link, case_proposal_link, case_adoption, case_consumer_checkpoint, case_rollout]
     match: "^operational_case"
     views: []
     projections: []
@@ -595,11 +595,12 @@ processes:
 labels:
   de:
     tools:
+      operational_case_status: Vorgangsstatus prüfen
       operational_case_list: Vorgänge anzeigen
       operational_case_explain: Vorgang erklären
       operational_case_object: Zugehörige Vorgänge finden
       operational_case_handback_preview: Rückgabe an Automatisierung prüfen
-      operational_case_adopt_propose: Vorgangssteuerung aktivieren
+      operational_case_adopt_propose: Standardsteuerung bestätigen
       operational_case_takeover_propose: Vorgang manuell übernehmen
       operational_case_handback_propose: Vorgang an Automatisierung zurückgeben
       company_context: Verbundenes Unternehmen prüfen
@@ -615,11 +616,12 @@ labels:
       email_dispatch_report: E-Mail-Versandergebnis ablegen
       reorder_points: Meldebestände anzeigen
     commands:
+      operational_case_status: Vorgangsstatus prüfen
       operational_case_list: Vorgänge anzeigen
       operational_case_explain: Vorgang erklären
       operational_case_object: Zugehörige Vorgänge finden
       operational_case_handback_preview: Rückgabe an Automatisierung prüfen
-      operational_case_adopt: Vorgangssteuerung aktivieren
+      operational_case_adopt: Standardsteuerung bestätigen
       operational_case_takeover: Vorgang manuell übernehmen
       operational_case_handback: Vorgang an Automatisierung zurückgeben
       email_dispatch_authorize: E-Mail-Versand freigeben

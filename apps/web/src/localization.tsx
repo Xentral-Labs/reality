@@ -38,11 +38,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Dieser Vorgang wird manuell bearbeitet. Die Automatisierung darf keine weitere Arbeit starten.",
     "This action belongs to an older case control revision. Prepare fresh work.":
       "Diese Aktion gehört zu einer älteren Steuerungsversion des Vorgangs. Bereite neue Arbeit vor.",
-    "This work has no supported adopted case. Manual repair remains available.":
+    "This work has no supported case. Manual repair remains available.":
       "Für diese Arbeit gibt es keinen unterstützten übernommenen Vorgang. Manuelle Korrektur bleibt möglich.",
     "An authenticated human must confirm this responsibility control.":
       "Ein angemeldeter Mensch muss diese Verantwortungssteuerung bestätigen.",
     "Operational cases": "Vorgänge",
+    "Operational case upgrade requires the database migration.":
+      "Das Vorgangsupdate benötigt die Datenbankmigration.",
+    "Operational case upgrade is still reconciling existing work.":
+      "Das Vorgangsupdate gleicht bestehende Arbeit noch ab.",
+    "No cases in this view.": "Keine Vorgänge in dieser Ansicht.",
+    "Operational case upgrade is not ready. Apply the required migration before continuing automation.":
+      "Das Vorgangsupdate ist noch nicht bereit. Führen Sie die erforderliche Migration aus, bevor Sie die Automatisierung fortsetzen.",
     "Case coordination is not enabled. Existing work remains unchanged.":
       "Die Vorgangssteuerung ist nicht aktiviert. Bestehende Arbeit bleibt unverändert.",
     "Enable cases for new work": "Vorgänge für neue Arbeit aktivieren",
@@ -2290,11 +2297,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Deze zaak wordt handmatig beheerd. Automatisering kan geen nieuw werk starten.",
     "This action belongs to an older case control revision. Prepare fresh work.":
       "Deze actie hoort bij een oudere besturingsversie van de zaak. Bereid nieuw werk voor.",
-    "This work has no supported adopted case. Manual repair remains available.":
+    "This work has no supported case. Manual repair remains available.":
       "Dit werk heeft geen ondersteunde opgenomen zaak. Handmatige correctie blijft beschikbaar.",
     "An authenticated human must confirm this responsibility control.":
       "Een aangemelde persoon moet deze verantwoordelijkheidsbesturing bevestigen.",
     "Operational cases": "Operationele dossiers",
+    "Operational case upgrade requires the database migration.":
+      "Voor de dossierupgrade is de databasemigratie nodig.",
+    "Operational case upgrade is still reconciling existing work.":
+      "De dossierupgrade verwerkt nog bestaande werkzaamheden.",
+    "No cases in this view.": "Geen dossiers in deze weergave.",
+    "Operational case upgrade is not ready. Apply the required migration before continuing automation.":
+      "De dossierupgrade is nog niet gereed. Voer de vereiste migratie uit voordat u de automatisering voortzet.",
     "Case coordination is not enabled. Existing work remains unchanged.":
       "Dossiercoördinatie is niet ingeschakeld. Bestaand werk blijft ongewijzigd.",
     "Enable cases for new work": "Dossiers voor nieuw werk inschakelen",
@@ -4234,11 +4248,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Este caso se gestiona manualmente. La automatización no puede iniciar más trabajo.",
     "This action belongs to an older case control revision. Prepare fresh work.":
       "Esta acción pertenece a una versión anterior del control del caso. Prepara trabajo nuevo.",
-    "This work has no supported adopted case. Manual repair remains available.":
+    "This work has no supported case. Manual repair remains available.":
       "Este trabajo no tiene un caso adoptado compatible. La corrección manual sigue disponible.",
     "An authenticated human must confirm this responsibility control.":
       "Una persona autenticada debe confirmar este control de responsabilidad.",
     "Operational cases": "Casos operativos",
+    "Operational case upgrade requires the database migration.":
+      "La actualización de casos requiere la migración de la base de datos.",
+    "Operational case upgrade is still reconciling existing work.":
+      "La actualización de casos aún concilia el trabajo existente.",
+    "No cases in this view.": "No hay casos en esta vista.",
+    "Operational case upgrade is not ready. Apply the required migration before continuing automation.":
+      "La actualización de casos aún no está lista. Aplique la migración requerida antes de continuar la automatización.",
     "Case coordination is not enabled. Existing work remains unchanged.":
       "La coordinación de casos no está activada. El trabajo existente no cambia.",
     "Enable cases for new work": "Activar casos para nuevo trabajo",

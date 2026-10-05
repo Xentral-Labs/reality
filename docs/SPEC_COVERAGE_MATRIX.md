@@ -2708,3 +2708,10 @@ English repository contract: `docs/features/operational-cases.md`.
 - `packages/reality-core/tests/test_case_worker_boundaries.py`: spec 371 FR-004/007/016 queued human batch execution must respect takeover while current interactive repair remains available.
 
 - `packages/reality-core/tests/test_case_scope_resolution.py`: spec 371 FR-003/007/016 direct owned effects, independent return goals, Finance/source separation and exclusion of completed historical work.
+
+## Default operational cases (377)
+
+- `packages/reality-core/tests/test_default_operational_cases.py`: FR-001–011 default acceptance, bounded restart/rollback, migration readiness, truthful internal authority, retained controls and unchanged business records.
+- `packages/reality-core/tests/scenarios/test_live_company_default_cases.py`: FR-009 / spec376 FR-019 integration contract; explicitly skipped until separate simulator runtime is available.
+- `packages/reality-core/tests/test_operational_case_migration.py`: FR-006,011 additive migration, preserved historic adoption and protected downgrade.
+- `apps/web/scripts/operational-cases-browser.mjs`: FR-008 no activation, incomplete upgrade, confirmed controls, retry, source links and malformed response containment.

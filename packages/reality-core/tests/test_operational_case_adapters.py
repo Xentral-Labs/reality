@@ -76,7 +76,7 @@ def test_existing_order_review_receipt_and_mcp_reads_expose_same_cases(
     assert proposal.output == receipt_before
 
 
-def test_reads_are_pure_and_historical_associations_are_explicitly_empty(
+def test_reads_are_pure_and_default_associations_are_stable(
     session, business
 ):
     promise = order(session, business)
@@ -87,14 +87,16 @@ def test_reads_are_pure_and_historical_associations_are_explicitly_empty(
             )
         )
     )
+    identities = cases.object_cases(session, business.tenant.id, "document", promise.document_id)
+    assert len(identities) == 1
     for _ in range(2):
         assert (
             cases.object_cases(
                 session, business.tenant.id, "document", promise.document_id
             )
-            == []
+            == identities
         )
-        assert cases.list_cases(session, business.tenant.id) == []
+        assert [row["case_id"] for row in cases.list_cases(session, business.tenant.id)] == identities
         assert (
             run_read_tool(
                 session,
@@ -102,7 +104,7 @@ def test_reads_are_pure_and_historical_associations_are_explicitly_empty(
                 "order_explain",
                 {"order_reference": promise.document_id},
             )["case_ids"]
-            == []
+            == identities
         )
     assert (
         list(

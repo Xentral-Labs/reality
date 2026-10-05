@@ -13,7 +13,7 @@ const errors = [],
   writes = [],
   reads = [];
 page.on("pageerror", (error) => errors.push(error.message));
-let adopted = false,
+let adopted = true,
   failTakeover = true,
   unsettled = false,
   contextMode = false,
@@ -67,7 +67,15 @@ await page.route("**/api/**", async (route) => {
   reads.push(path);
   if (path.endsWith("/objects/document/doc_order")) return reply({ case_ids: [value.case_id] });
   if (path.endsWith("/case_order")) return reply(value);
-  if (path.endsWith("/status")) return reply({ adopted, can_adopt: true, can_control: true });
+  if (path.endsWith("/status"))
+    return reply({
+      adopted,
+      can_adopt: false,
+      can_control: true,
+      migration_ready: true,
+      coverage_ready: false,
+      last_error_code: null,
+    });
   if (path.endsWith("/handback-review"))
     return reply({
       ...value,
@@ -84,20 +92,23 @@ try {
   assert.equal(writes.length, 0);
   malformedList = false;
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
-  await page.getByRole("button", { name: "Enable cases for new work", exact: true }).click();
+  await page.getByText("Operational case upgrade is still reconciling existing work.").waitFor();
+  assert.equal(
+    await page.getByRole("button", { name: "Enable cases for new work", exact: true }).count(),
+    0,
+  );
   assert.equal(writes.length, 0);
-  await page.getByRole("button", { name: "Confirm activation", exact: true }).click();
   await page
     .getByRole("button", { name: "Take over manually / stop automation", exact: true })
     .click();
-  assert.equal(writes.length, 1);
+  assert.equal(writes.length, 0);
   await page.getByRole("button", { name: "Confirm manual takeover", exact: true }).click();
   await page.getByRole("alert").waitFor();
   await page.getByRole("button", { name: "Confirm manual takeover", exact: true }).click();
   await page.getByText("Manually owned — automation stopped", { exact: true }).waitFor();
   assert.equal(
+    writes[0].body.request_key,
     writes[1].body.request_key,
-    writes[2].body.request_key,
     "retry preserves exact control identity",
   );
   assert.equal(await page.locator('a[href*="src_order"]').count(), 1);

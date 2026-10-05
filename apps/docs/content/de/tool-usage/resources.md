@@ -37,7 +37,7 @@ Erfüllung und angekündigte Retouren übernehmen und nach Abgleich zurückgeben
 
 **Aktionen**
 
-- [Vorgangssteuerung aktivieren](./commands#command-operational_case_adopt)
+- [Standardsteuerung bestätigen](./commands#command-operational_case_adopt)
   (`operational_case_adopt`)
 - [Vorgang manuell übernehmen](./commands#command-operational_case_takeover)
   (`operational_case_takeover`)
@@ -46,6 +46,7 @@ Erfüllung und angekündigte Retouren übernehmen und nach Abgleich zurückgeben
 
 **Nachschlagen**
 
+- [Vorgangsstatus prüfen](./commands#command-operational_case_status) (`operational_case_status`)
 - [Vorgänge anzeigen](./commands#command-operational_case_list) (`operational_case_list`)
 - [Vorgang erklären](./commands#command-operational_case_explain) (`operational_case_explain`)
 - [Zugehörige Vorgänge finden](./commands#command-operational_case_object)
@@ -54,8 +55,7 @@ Erfüllung und angekündigte Retouren übernehmen und nach Abgleich zurückgeben
   (`operational_case_handback_preview`)
 
 **Darunter:** Tabellen: `operational_case`, `case_commitment_link`, `case_proposal_link`,
-`case_adoption`, `case_consumer_checkpoint` · Events:
-[`operational_case.adopted`](./events#event-operational_case-adopted),
+`case_adoption`, `case_consumer_checkpoint`, `case_rollout` · Events:
 [`operational_case.taken_over`](./events#event-operational_case-taken_over),
 [`operational_case.handed_back`](./events#event-operational_case-handed_back)
 

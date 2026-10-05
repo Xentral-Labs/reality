@@ -153,7 +153,7 @@ def test_automatic_unanchored_promise_and_unannounced_return_are_unavailable(
     activate(session, business, scheduled_owner)
     with (
         automated_execution(session, business.tenant.id),
-        pytest.raises(core.InvalidOperation, match="no supported adopted case"),
+        pytest.raises(core.InvalidOperation, match="no supported case"),
     ):
         core.create_commitment(
             session,
@@ -169,7 +169,7 @@ def test_automatic_unanchored_promise_and_unannounced_return_are_unavailable(
     assert session.scalar(select(Commitment)) is None
     with (
         automated_execution(session, business.tenant.id),
-        pytest.raises(core.InvalidOperation, match="no supported adopted case"),
+        pytest.raises(core.InvalidOperation, match="no supported case"),
     ):
         core.record_movement(
             session,
@@ -181,19 +181,33 @@ def test_automatic_unanchored_promise_and_unannounced_return_are_unavailable(
         )
 
 
-def test_historical_unadopted_work_is_not_silently_admitted_by_execution(
+def test_default_work_stays_guarded_after_legacy_activation(
     session, business, scheduled_owner
 ):
     promise = order(session, business)
     activate(session, business, scheduled_owner)
+    case_id = cases.object_cases(session, business.tenant.id, "commitment", promise.id)[
+        0
+    ]
+    cases.takeover(
+        session,
+        business.tenant.id,
+        case_id,
+        Principal(scheduled_owner.id),
+        expected_revision=1,
+        request_key="default-guard",
+        confirmed=True,
+    )
     with (
         automated_execution(session, business.tenant.id),
-        pytest.raises(core.InvalidOperation, match="no supported adopted case"),
+        pytest.raises(core.InvalidOperation, match="manually owned"),
     ):
         core.cancel_commitment(
             session, business.tenant.id, promise.id, reason="No longer needed"
         )
-    assert cases.list_cases(session, business.tenant.id) == []
+    assert (
+        cases.explain(session, business.tenant.id, case_id)["control_mode"] == "human"
+    )
 
 
 def test_relevant_new_source_blocks_automation_and_handback_without_accepting_it(

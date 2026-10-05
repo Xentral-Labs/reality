@@ -239,7 +239,8 @@
         "case_commitment_link",
         "case_proposal_link",
         "case_adoption",
-        "case_consumer_checkpoint"
+        "case_consumer_checkpoint",
+        "case_rollout"
       ],
       "lists": [],
       "actions": [
@@ -248,6 +249,7 @@
         "command:operational_case_handback"
       ],
       "reads": [
+        "command:operational_case_status",
         "command:operational_case_list",
         "command:operational_case_explain",
         "command:operational_case_object",
@@ -255,11 +257,7 @@
       ],
       "exceptions": [],
       "tools": [],
-      "events": [
-        "event:operational_case.adopted",
-        "event:operational_case.taken_over",
-        "event:operational_case.handed_back"
-      ],
+      "events": ["event:operational_case.taken_over", "event:operational_case.handed_back"],
       "workspace_actions": []
     },
     {
@@ -2026,6 +2024,44 @@
   ],
   "entries": [
     {
+      "id": "tool:operational_case_status",
+      "kind": "tool",
+      "key": "operational_case_status",
+      "label": "Operational case status",
+      "area": "cross_functional",
+      "summary": "Read default coordination migration, coverage readiness and platform rollout provenance.",
+      "access": "read",
+      "group": "Operational cases",
+      "synopsis": "operational_case_status",
+      "parameters": [],
+      "guidance": {
+        "purpose": "Inspect default coordination migration readiness, historical coverage and platform provenance.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "Missing rollout is explicitly incomplete; unknown or foreign companies are refused.",
+        "freshness": "Reads current rollout traversal, event progress and latest internal run."
+      },
+      "read_modes": [
+        {
+          "query": "MCP operational_case_status",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "operational_case_status",
+      "projections": [],
+      "links": ["command:operational_case_status"],
+      "label_de": "Vorgangsstatus prüfen",
+      "resources": ["operational_case"]
+    },
+    {
       "id": "tool:operational_case_list",
       "kind": "tool",
       "key": "operational_case_list",
@@ -2052,7 +2088,7 @@
         }
       ],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -2060,9 +2096,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "read_modes": [
@@ -2098,7 +2134,7 @@
         }
       ],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -2106,9 +2142,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "read_modes": [
@@ -2152,7 +2188,7 @@
         }
       ],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -2160,9 +2196,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "read_modes": [
@@ -2198,7 +2234,7 @@
         }
       ],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -2206,9 +2242,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "read_modes": [
@@ -2320,7 +2356,7 @@
       "key": "operational_case_adopt_propose",
       "label": "Propose case adoption",
       "area": "cross_functional",
-      "summary": "Prepare owner-reviewed adoption; historical roots are explicitly selected, never inferred.",
+      "summary": "Deprecated owner acknowledgement of default coordination. Does not reset responsibility or grant business authority.",
       "access": "propose",
       "group": "Operational cases",
       "synopsis": "operational_case_adopt_propose request_key [order_ids] [return_ids]",
@@ -2336,7 +2372,7 @@
           "name": "order_ids",
           "type": "array",
           "required": false,
-          "description": "Explicit same-company historical order identities selected for adoption.",
+          "description": "Same-company historical order identities validated for deprecated compatibility; default coverage is not restricted by this selection.",
           "depth": 0,
           "default": []
         },
@@ -2344,7 +2380,7 @@
           "name": "return_ids",
           "type": "array",
           "required": false,
-          "description": "Explicit same-company historical announced-return identities selected for adoption.",
+          "description": "Same-company historical return identities validated for deprecated compatibility; default coverage is not restricted by this selection.",
           "depth": 0,
           "default": []
         }
@@ -2354,7 +2390,7 @@
       "command": "operational_case_adopt",
       "projections": [],
       "links": ["command:operational_case_adopt"],
-      "label_de": "Vorgangssteuerung aktivieren",
+      "label_de": "Standardsteuerung bestätigen",
       "resources": ["operational_case"]
     },
     {
@@ -24079,12 +24115,52 @@
       "resources": ["delivery", "email"]
     },
     {
+      "id": "command:operational_case_status",
+      "kind": "command",
+      "key": "operational_case_status",
+      "label": "Operational case status",
+      "area": "cross_functional",
+      "summary": "Report observed default coordination readiness and truthful platform version provenance.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "case_rollout",
+        "case_consumer_checkpoint",
+        "tenant_event_progress",
+        "scheduled_job_run"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["operational_case_status"],
+      "synopses": ["operational_case_status"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect default coordination migration readiness, historical coverage and platform provenance.",
+        "use_when": [
+          "An operator needs to inspect or repair accepted fulfillment or announced returns."
+        ],
+        "do_not_use_when": [
+          "Executing Shopify transport, refund payment or approving business effects."
+        ],
+        "limitations": [
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+        ],
+        "empty_result": "Missing rollout is explicitly incomplete; unknown or foreign companies are refused.",
+        "freshness": "Reads current rollout traversal, event progress and latest internal run."
+      },
+      "links": ["tool:operational_case_status"],
+      "label_de": "Vorgangsstatus prüfen",
+      "resources": ["operational_case"]
+    },
+    {
       "id": "command:operational_case_list",
       "kind": "command",
       "key": "operational_case_list",
       "label": "Operational case list",
       "area": "cross_functional",
-      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "summary": "Read current supported goal, source coverage, ownership and execution explanation without creating work.",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
@@ -24096,7 +24172,7 @@
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -24104,9 +24180,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "links": ["tool:operational_case_list"],
@@ -24119,7 +24195,7 @@
       "key": "operational_case_explain",
       "label": "Operational case explain",
       "area": "cross_functional",
-      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "summary": "Read current supported goal, source coverage, ownership and execution explanation without creating work.",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
@@ -24131,7 +24207,7 @@
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -24139,9 +24215,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "links": ["tool:operational_case_explain"],
@@ -24154,7 +24230,7 @@
       "key": "operational_case_object",
       "label": "Operational case object",
       "area": "cross_functional",
-      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "summary": "Read current supported goal, source coverage, ownership and execution explanation without creating work.",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
@@ -24166,7 +24242,7 @@
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -24174,9 +24250,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "links": ["tool:operational_case_object"],
@@ -24189,7 +24265,7 @@
       "key": "operational_case_handback_preview",
       "label": "Operational case handback preview",
       "area": "cross_functional",
-      "summary": "Read current adopted goal, source coverage, ownership and execution explanation without creating work.",
+      "summary": "Read current supported goal, source coverage, ownership and execution explanation without creating work.",
       "mode": "read",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
@@ -24201,7 +24277,7 @@
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Inspect adopted operational responsibility and current authoritative work.",
+        "purpose": "Inspect default operational responsibility and current authoritative work.",
         "use_when": [
           "An operator needs to inspect or repair accepted fulfillment or announced returns."
         ],
@@ -24209,9 +24285,9 @@
           "Executing Shopify transport, refund payment or approving business effects."
         ],
         "limitations": [
-          "Only explicitly adopted order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
+          "Only supported order fulfillment and announced returns are covered. Live Shopify transport and refund intent are unavailable."
         ],
-        "empty_result": "No adopted work returns an empty list; unknown or foreign identities are refused.",
+        "empty_result": "No supported accepted work returns an empty list; unknown or foreign identities are refused.",
         "freshness": "Reads current held Reality facts and relevant unresolved source versions; consumer progress is separate telemetry."
       },
       "links": ["tool:operational_case_handback_preview"],
@@ -24224,26 +24300,20 @@
       "key": "operational_case_adopt",
       "label": "Operational case adopt",
       "area": "cross_functional",
-      "summary": "Confirm current human responsibility control; does not cancel external execution or approve business effects.",
+      "summary": "Deprecated confirmed owner acknowledgement of default coordination; does not modify cases or historical adoption.",
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "reads": ["operational_case", "commitment", "return_announcement", "action", "source_record"],
-      "writes": [
-        "operational_case",
-        "case_adoption",
-        "case_consumer_checkpoint",
-        "business_event",
-        "action"
-      ],
+      "writes": ["action"],
       "confirmation": null,
       "related_services": [],
       "tools": ["operational_case_adopt_propose"],
       "synopses": ["operational_case_adopt_propose request_key [order_ids] [return_ids]"],
-      "events": ["operational_case.adopted"],
+      "events": [],
       "actions": [],
       "guidance": {},
-      "links": ["tool:operational_case_adopt_propose", "event:operational_case.adopted"],
-      "label_de": "Vorgangssteuerung aktivieren",
+      "links": ["tool:operational_case_adopt_propose"],
+      "label_de": "Standardsteuerung bestätigen",
       "resources": ["operational_case"]
     },
     {
@@ -32698,7 +32768,6 @@
         }
       ],
       "refresh_events": [
-        "operational_case.adopted",
         "operational_case.taken_over",
         "operational_case.handed_back",
         "cost.attributed",
@@ -33339,7 +33408,6 @@
         }
       ],
       "refresh_events": [
-        "operational_case.adopted",
         "operational_case.taken_over",
         "operational_case.handed_back",
         "cost.attributed",
@@ -34919,20 +34987,6 @@
       ],
       "label_de": "Bestellung nicht bestätigt",
       "resources": ["order"]
-    },
-    {
-      "id": "event:operational_case.adopted",
-      "kind": "event",
-      "key": "operational_case.adopted",
-      "label": "operational_case.adopted",
-      "area": "cross_functional",
-      "summary": "",
-      "producer": "operational_case_adopt",
-      "subject": "tenant",
-      "invalidates": ["Timeline", "Tenant usage"],
-      "links": ["command:operational_case_adopt"],
-      "label_de": "operational_case.adopted",
-      "resources": ["operational_case"]
     },
     {
       "id": "event:operational_case.taken_over",

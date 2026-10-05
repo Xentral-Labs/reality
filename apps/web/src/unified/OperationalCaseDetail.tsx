@@ -11,13 +11,15 @@ export function OperationalCaseDetail({
 }) {
   const [status, setStatus] = useState<{
     adopted: boolean;
-    can_adopt: boolean;
+    migration_ready: boolean;
+    coverage_ready: boolean;
+    last_error_code: string | null;
     can_control: boolean;
   } | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [rows, setRows] = useState<OperationalCase[]>([]);
   const [review, setReview] = useState<(OperationalCase & { digest: string }) | null>(null);
-  const [confirm, setConfirm] = useState<OperationalCase | "adopt" | null>(null);
+  const [confirm, setConfirm] = useState<OperationalCase | null>(null);
   const [requestKey, setRequestKey] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -124,41 +126,14 @@ export function OperationalCaseDetail({
         </button>
       )}
       {error && <p role="alert">{error}</p>}
-      {status && !status.adopted && (
-        <p>{t("Case coordination is not enabled. Existing work remains unchanged.")}</p>
+      {status && !status.migration_ready && (
+        <p role="alert">{t("Operational case upgrade requires the database migration.")}</p>
       )}
-      {status?.can_adopt && !status.adopted && (
-        <button
-          className="br-btn"
-          disabled={busy}
-          onClick={() => {
-            setRequestKey(crypto.randomUUID());
-            setConfirm("adopt");
-          }}
-        >
-          {t("Enable cases for new work")}
-        </button>
+      {status?.migration_ready && !status.coverage_ready && (
+        <p role="status">{t("Operational case upgrade is still reconciling existing work.")}</p>
       )}
-      {confirm === "adopt" && (
-        <div>
-          <p>
-            {t(
-              "New orders and announced returns will receive cases. Existing orders are not taken over.",
-            )}
-          </p>
-          <button
-            className="br-btn"
-            disabled={busy}
-            onClick={() => act(() => operationalCases.adopt(tenant, requestKey))}
-          >
-            {t("Confirm activation")}
-          </button>
-          <button className="br-btn" disabled={busy} onClick={() => setConfirm(null)}>
-            {t("Cancel")}
-          </button>
-        </div>
-      )}
-      {status?.adopted && visible.length === 0 && <p>{t("No adopted cases in this view.")}</p>}
+      {status?.last_error_code && <p role="alert">{status.last_error_code}</p>}
+      {status?.migration_ready && visible.length === 0 && <p>{t("No cases in this view.")}</p>}
       {visible.map((row) => (
         <section key={row.case_id} className="br-card" data-case-id={row.case_id}>
           <strong>
@@ -254,7 +229,7 @@ export function OperationalCaseDetail({
               {t("Review before returning to automation")}
             </button>
           )}
-          {confirm !== "adopt" && confirm?.case_id === row.case_id && (
+          {confirm?.case_id === row.case_id && (
             <div>
               <p>
                 {t(

@@ -229,7 +229,28 @@ def test_confirmed_chat_tool_reserves_exact_serial_unit(session, business):
         to_location_id=business.location.id,
         serial_unit_id=serial.id,
     )
-    commitment = customer_commitment(session, business, item.id, 1)
+    from reality.services.core import create_document
+
+    document = create_document(
+        session,
+        business.tenant.id,
+        "sales_order",
+        "SERIAL-ORDER",
+        business.customer.id,
+        "0",
+    )
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        item.id,
+        business.location.id,
+        1,
+        None,
+        document_id=document.id,
+    )
     proposal = propose_tool(
         session,
         business.tenant.id,

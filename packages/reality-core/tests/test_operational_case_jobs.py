@@ -69,11 +69,12 @@ def test_shared_scheduler_discovers_deduplicates_and_worker_consumes(
     session, business, scheduled_owner
 ):
     activate(session, business, scheduled_owner)
+    order(session, business)
     assert business.tenant.id in due_case_tenants(session)
     assert business.tenant.id in jobs.scheduler_tenants(session)
     run = enqueue_case_run(session, business.tenant.id)
     assert run.job_type == "operational_cases.reconcile"
-    assert run.actor_id == scheduled_owner.id
+    assert run.actor_id is None
     assert enqueue_case_run(session, business.tenant.id) is None
     claim = jobs.claim_next(session, business.tenant.id)
     assert claim.id == run.id
@@ -84,7 +85,8 @@ def test_shared_scheduler_discovers_deduplicates_and_worker_consumes(
     assert enqueue_case_run(session, business.tenant.id) is None
 
 
-def test_nonadopted_company_has_no_case_queue_side_effect(session, business):
-    assert enqueue_case_run(session, business.tenant.id) is None
-    assert business.tenant.id not in due_case_tenants(session)
+def test_default_company_needs_no_adoption_for_coordination(session, business):
+    assert business.tenant.id in due_case_tenants(session)
+    assert enqueue_case_run(session, business.tenant.id) is not None
     assert cases.reconcile_events(session, business.tenant.id) == 0
+    assert business.tenant.id not in due_case_tenants(session)
