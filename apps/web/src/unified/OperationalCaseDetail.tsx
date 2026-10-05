@@ -45,6 +45,7 @@ export function OperationalCaseDetail({
       : operationalCases.list(tenant);
     Promise.all([operationalCases.status(tenant), work])
       .then(([next, cases]) => {
+        if (!Array.isArray(cases)) throw new Error(t("Could not load this view"));
         if (active) {
           setStatus(next);
           setRows(cases);
@@ -109,6 +110,7 @@ export function OperationalCaseDetail({
             setBusy(true);
             try {
               const next = await operationalCases.list(tenant, rows.at(-1)?.case_id);
+              if (!Array.isArray(next)) throw new Error(t("Could not load this view"));
               setRows((previous) => [...previous, ...next]);
               setHasMore(next.length === 100);
             } catch (failure: unknown) {

@@ -60,3 +60,7 @@ The initially absent localhost:54329 test endpoint was supplied by an isolated l
 ## Implemented acceptance evidence
 
 The shared producer hooks, synchronous guards, bounded consumer, Web/API and shared CLI/MCP tools implement this first slice. `test_operational_cases`, `test_case_action_guards`, `test_operational_case_controls`, `test_operational_case_jobs`, `test_operational_case_adapters`, `test_case_entrypoint_coverage`, `test_shopify_case_recovery` and the real-component browser script provide local evidence. See [quickstart](../quickstart.md) for exact verification results and remaining release checks. Return goal observation follows the authoritative announcement receipt status; financial refund or replacement execution is not inferred from it.
+
+## Read adapter failure containment
+
+Unavailable or malformed case-list responses must stay inside the case panel, display the existing localized load error and permit refresh. They must not crash the containing Orders/Inspector page or enable controls from an unverified response. The component browser regression proves malformed initial data, zero writes and recovery to the normal operator flow; pagination applies the same shape check.
