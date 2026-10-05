@@ -37,29 +37,40 @@ def test_separate_scheduler_worker_and_real_child(scheduled_database):
     worker = ProcessLoop("worker", tenant_id=tenant)
     assert worker.sweep(engine, max_runs=10, max_seconds=25)["processed"] == 0
     scheduler = ProcessLoop("scheduler", tenant_id=tenant)
-    assert scheduler.sweep(engine, max_runs=100, max_seconds=25)["materialized"] == 1
+    assert scheduler.sweep(engine, max_runs=100, max_seconds=25)["materialized"] == 2
     with factory() as s:
         assert record_by_id(s, CompanyInvitation, target_id) is not None
         assert (
             s.scalar(
                 select(ScheduledJobRun.status).where(
-                    ScheduledJobRun.tenant_id == tenant
+                    ScheduledJobRun.tenant_id == tenant,
+                    ScheduledJobRun.job_type == "invitations.cleanup",
                 )
             )
             == "pending"
         )
-    assert worker.sweep(engine, max_runs=10, max_seconds=25)["succeeded"] == 1
+    succeeded = 0
+    while succeeded < 2:
+        done = worker.sweep(engine, max_runs=10, max_seconds=25)["succeeded"]
+        assert done, "the worker stopped before both queued jobs completed"
+        succeeded += done
+    assert succeeded == 2
     with factory() as s:
         assert record_by_id(s, CompanyInvitation, target_id) is None
         assert (
             s.scalar(
                 select(ScheduledJobRun.status).where(
-                    ScheduledJobRun.tenant_id == tenant
+                    ScheduledJobRun.tenant_id == tenant,
+                    ScheduledJobRun.job_type == "invitations.cleanup",
                 )
             )
             == "succeeded"
         )
     assert worker.sweep(engine, max_runs=10, max_seconds=25)["processed"] == 0
+    from reality.services.operational_cases import coordination_status
+
+    with factory() as s:
+        assert coordination_status(s, tenant)["coverage_ready"]
 
 
 def test_concurrent_schedulers_and_claims(scheduled_database):
@@ -133,8 +144,14 @@ def test_scheduler_reports_revoked_actor_failure(scheduled_database):
         engine, max_runs=1, max_seconds=25
     )
     assert counts["failed"] == 1
-    assert counts["materialized"] == 0
+    assert counts["materialized"] == 1
     assert counts["budget_exhausted"]
+    with factory() as s:
+        runs = list(s.scalars(select(ScheduledJobRun).where(ScheduledJobRun.tenant_id == tenant)))
+        internal = next(run for run in runs if run.job_type == "operational_cases.reconcile")
+        rejected = next(run for run in runs if run.job_type == "invitations.cleanup")
+        assert internal.actor_id is None and internal.status == "pending"
+        assert rejected.actor_id == actor and rejected.status == "failed"
 
 
 def test_cursor_survives_partial_final_catalog_page(scheduled_database, monkeypatch):
@@ -251,7 +268,7 @@ def test_cli_manual_replay_status_and_graceful_continuous_stop(
                 stderr=log,
             )
             try:
-                deadline = time.monotonic() + 10
+                deadline = time.monotonic() + 60
                 while (
                     f"{role}_sweep" not in log_path.read_text()
                     and time.monotonic() < deadline

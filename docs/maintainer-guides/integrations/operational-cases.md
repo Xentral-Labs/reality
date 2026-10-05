@@ -10,7 +10,7 @@ All automatic writers use server-observed execution context and the shared case 
 
 Future provider dispatch needs its own reviewed claim/report protocol and uncertainty reconciliation. A final pre-dispatch check can prevent new obsolete starts; it cannot undo a remote action already accepted. Declare required Source streams and reject known unresolved newer relevant versions. Missing capabilities stay unavailable rather than implying synchronization.
 
-Migration `0144_operational_cases` adds five coordination tables; `0145_default_operational_cases` adds version traversal and narrowly authorized internal runs. Downgrade is refused once adoption history exists. Never erase history or silently disable guards to make rollback succeed. Apply migrations as deployment work; scheduler/worker startup performs no DDL. Release requires the complete verification set and committed-head CI; local checks alone do not assert production readiness.
+Migration `0144_operational_cases` adds five coordination tables; `0145_default_operational_cases` adds version traversal and narrowly authorized internal runs. Downgrade is refused once operational cases, version rollout or internal reconciliation history exists; historical adoption remains protected by migration 0144. Never erase history or silently disable guards to make rollback succeed. Apply migrations as deployment work; scheduler/worker startup performs no DDL. Release requires the complete verification set and committed-head CI; local checks alone do not assert production readiness.
 
 
 ## Default coordination (spec 377)

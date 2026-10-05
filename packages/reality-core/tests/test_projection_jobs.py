@@ -281,11 +281,17 @@ def test_real_scheduler_and_worker_publish_without_a_user_actor(scheduled_databa
         )
         assert len(runs) == enqueued
         assert all(run.actor_id is None and run.status == "succeeded" for run in runs)
+        projection_runs = [run for run in runs if run.job_type == "projections.refresh"]
+        assert len(projection_runs) > 1
         assert sorted(
-            name for run in runs for name in run.configuration["arguments"]["names"]
+            name for run in projection_runs for name in run.configuration["arguments"]["names"]
         ) == sorted(
-            {name for run in runs for name in run.configuration["arguments"]["names"]}
+            {name for run in projection_runs for name in run.configuration["arguments"]["names"]}
         ), "no projection was enqueued twice"
+        from reality.services.operational_cases import coordination_status
+
+        assert any(run.job_type == "operational_cases.reconcile" for run in runs)
+        assert coordination_status(db, tenant)["coverage_ready"]
 
 
 def test_repeatable_publication_does_not_swallow_concurrent_business_event(

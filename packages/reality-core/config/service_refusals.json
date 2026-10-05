@@ -2828,9 +2828,6 @@
     "case_request_conflict": {
       "message": "This request key already identifies a different case control."
     },
-    "case_already_adopted": {
-      "message": "Operational cases are already enabled for this company."
-    },
     "case_selection_too_large": {
       "message": "The selected case operation exceeds its batch limit."
     },

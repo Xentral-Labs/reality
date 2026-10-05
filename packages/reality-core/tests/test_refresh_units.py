@@ -18,6 +18,7 @@ from sqlalchemy import event, func, select
 from reality.db.core import Tenant, TenantEventProgress, now
 from reality.services import projections
 from reality.services.core import create_document
+from reality.services.operational_cases import reconcile_events
 from reality.services.projection_jobs import (
     due_projection_tenants,
     due_projections,
@@ -50,6 +51,7 @@ def quiet(session, business):
         "100",
         document_date="2026-08-01",
     )
+    reconcile_events(session, tenant)
     projections.refresh_operational_projections(session, tenant, force=True)
     return tenant
 
