@@ -41,6 +41,72 @@ def exception_interpretation(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def payment_interpretation(row: dict[str, Any]) -> dict[str, Any]:
+    """Explain canonical qualification without evaluating settlement again."""
+    payment = row["payment"]
+    order_id = row["order_id"]
+    amount = row["required_amount"] if order_id else None
+    codes = [code for code in row["blocker_codes"] if code.startswith("prepayment_")]
+    prepaid = row["requires_prepayment"]
+    if not prepaid:
+        evidence_status = "not_evaluated"
+    elif "prepayment_amount_unstated" in codes:
+        evidence_status = "amount_unstated"
+    elif "prepayment_attribution_ambiguous" in codes:
+        evidence_status = "attribution_ambiguous"
+    elif not row["invoice_ids"]:
+        evidence_status = "invoice_missing"
+    else:
+        evidence_status = "order_qualified"
+    interpreted_amounts = evidence_status in {"invoice_missing", "order_qualified"}
+    open_quantity = Decimal(str(row["lines"][0]["open_quantity"]))
+    release_id = payment["prepayment_release_id"]
+    if open_quantity <= 0:
+        constraint_status = "not_applicable"
+    elif not prepaid:
+        constraint_status = "not_required"
+    elif codes:
+        constraint_status = "blocked"
+    elif release_id:
+        constraint_status = "released"
+    else:
+        constraint_status = "satisfied"
+    return {
+        "amount_basis": {
+            "kind": "not_established"
+            if not order_id
+            else ("unstated" if amount is None else "stated_order_gross"),
+            "amount": amount,
+            "currency": row["currency"],
+            "document_id": order_id,
+        },
+        "payment_evidence": {
+            "status": evidence_status,
+            "received": row["received_amount"] if interpreted_amounts else None,
+            "remaining": row["remaining_amount"] if interpreted_amounts else None,
+            "invoice_ids": list(row["invoice_ids"]),
+            "allocation_ids": list(row["allocation_ids"]),
+        },
+        "shipment_constraint": {
+            "status": constraint_status,
+            "blocker_codes": codes,
+            "release_id": release_id,
+        },
+        "notice": (
+            "Standard policy does not require prepayment for shipment. The legacy "
+            "required amount is an order basis, not an unpaid invoice. Settlement "
+            "was not evaluated; legacy received/remaining zeroes establish neither "
+            "absence of payments nor a settled balance."
+            if not prepaid
+            else "Amounts describe canonical qualifying evidence for this order, not "
+            "all customer payments or a customer balance. Missing or ambiguous "
+            "evidence does not prove absence of actual payments. A prepayment "
+            "release is not payment and does not waive surviving payment blockers. "
+            "Consolidated invoice qualification follows the existing full-settlement rule."
+        ),
+    }
+
+
 def projection_interpretation(name: str, row: dict[str, Any]) -> dict[str, Any]:
     """Enrich a read copy, leaving stored cache payloads unchanged."""
     if name == "fulfillment_blockers":
@@ -64,6 +130,7 @@ def projection_interpretation(name: str, row: dict[str, Any]) -> dict[str, Any]:
             if line.get("fulfillment_readiness") is not None:
                 readiness = dict(line["fulfillment_readiness"])
                 readiness["unfulfilled_cause"] = value["unfulfilled_cause"]
+                readiness["payment_interpretation"] = payment_interpretation(readiness)
                 readiness["blockers"] = [
                     {**b, "blocker_kind": blocker_kind(b["code"])}
                     for b in readiness["blockers"]

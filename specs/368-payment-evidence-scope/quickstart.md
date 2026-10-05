@@ -1,0 +1,3 @@
+# Validation guide
+**Language**: English
+Run PostgreSQL using the existing local stack. From packages/reality-core run `../../.venv/bin/pytest tests/test_payment_evidence_scope.py tests/test_fulfillment_readiness.py tests/test_prepayment_release.py tests/test_tool_evidence_boundaries.py tests/test_shipment_actions.py tests/test_mcp_read_contract.py tests/test_mcp_http_runtime.py` and Ruff. From root run `make docs-generate`, stage generated artifacts, then `make docs-catalog-check` and `make spec-check`. Full Quality CI is required before completion. External acceptance is read-only and records actual prose separately.

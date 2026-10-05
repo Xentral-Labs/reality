@@ -78,7 +78,10 @@ Nutze die Seitenzusammenfassung von business_records_discover: Übernimm counts_
 und die Seitenabdeckung; return bedeutet Kundenretouren, supplier_return Lieferantenretouren.
 Berichte kurz je Etappe und zu einem Auftragsbeispiel; vermeide vollständige Datentabellen.
 Addiere keine Mengen verschiedener Artikel oder Einheiten.
-Mache aus einer Stichprobe keine Gesamtzahl. Nutze aktuelle Hindernisse und unfulfilled_cause
+Nutze selection_record_count nur bei einer vollständigen ersten Antwort; null bedeutet unbekannte
+Auswahlgröße. Movement-Datensätze sind keine Shipment-Sendungen. Nutze payment_interpretation:
+Bei Standardbedingungen wurde Zahlung nicht geprüft; Auftragsbasis ist kein offener Rechnungsbetrag,
+eine Vorkassefreigabe ist keine Zahlung. Mache aus einer Stichprobe keine Gesamtzahl. Nutze aktuelle Hindernisse und unfulfilled_cause
 aus order_explain; sage bei unbekannter Ursache klar, dass sie nicht belegt ist.
 Beschaffe Informationen selbst und frage nur, wenn du nicht weiterkommst. Erfinde
 keine Daten oder Regeln. Lies zunächst nur; Änderungen brauchen konkrete Decisions

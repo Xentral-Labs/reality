@@ -177,3 +177,19 @@ Verification: [spec 367](../../specs/367-tool-evidence-boundaries/verification.m
 Normal completions, genuine transport failures, tenant scope, grant boundaries and
 confirmation semantics retain their existing behavior. Deterministic tool boundaries
 do not guarantee every free-form external model answer.
+
+## Payment evidence and retained selection counts (spec 368)
+
+Existing readiness and queue/exact-order reads add transient `payment_interpretation`.
+Standard policy reports payment `not_evaluated`; stated gross is an order basis,
+not an unpaid invoice, and legacy zeroes establish neither absence of actual payments
+nor settlement. Missing, ambiguous and unstated prepayment evidence is qualified;
+canonical qualifying amounts describe this order, not a customer balance. Actual
+owner release is distinct from payment and preserves surviving canonical blockers.
+Interpretation never enters cached payloads or dispatch review hashes.
+
+Discovery `selection_record_count` is known only for a complete first response;
+it is null for every partial page, including final cursor pages. Counts refer to
+the matching retained selection at that read, not upstream completeness, Movement
+quantities or Shipment consignments. No extra query or public tool is added.
+See [verification](../../specs/368-payment-evidence-scope/verification.md).

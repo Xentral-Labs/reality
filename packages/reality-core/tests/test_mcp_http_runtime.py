@@ -425,6 +425,7 @@ def test_http_read_returns_deterministic_evidence_summary(
     assert value["records"][0]["id"] == movement.id
     assert value["records"][0]["item_name"] == business.item.name
     assert value["records"][0]["item_sku"] == business.item.sku
+    assert value["summary"]["selection_record_count"] == 1
     assert value["summary"]["counts_by_type"] == {"return": 1}
     assert "customer return (return): 1 records" in value["summary"]["observation"]
     assert value["summary"]["complete_matching_selection"] is True
@@ -483,6 +484,9 @@ def test_http_existing_tools_expose_evidence_boundaries(session, business, monke
     assert (
         values["capability_catalog"]["external_agent_runtime"]["schedule"] == "unknown"
     )
+    meaning = values["fulfillment_readiness"]["payment_interpretation"]
+    assert meaning["payment_evidence"]["status"] == "not_evaluated"
+    assert meaning["shipment_constraint"]["status"] == "not_required"
     cause = values["fulfillment_readiness"]["unfulfilled_cause"]
     assert cause["status"] == "unknown"
     assert (

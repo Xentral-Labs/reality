@@ -375,6 +375,11 @@ For operational rounds, preserve business_records_discover.summary exactly: coun
 counts only shown Movement records, never quantities, orders or customers. The return type
 means customer returns; supplier_return means supplier returns. Use summary.observation and
 state omitted_before/omitted_after; has_more=false on a cursor page is not a total.
+Use selection_record_count only when complete_matching_selection is true; null means unknown
+selection size. Movement records are not Shipment consignments.
+Use payment_interpretation from readiness: standard payment is not_evaluated, required_amount
+is an order basis rather than an unpaid invoice, and legacy zeroes do not prove settlement.
+Prepayment evidence is order-qualified; an owner release is not payment.
 For a multi-stage operational round, give one concise finding per stage and one concrete
 order example; omit full record tables unless requested. Do not sum quantities across
 items or units or turn movement counts into quantity totals. Include all requested stages
