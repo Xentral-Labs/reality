@@ -1,5 +1,7 @@
 """Default coordination, resumable upgrade and truthful internal authority."""
 
+import json
+
 import pytest
 from sqlalchemy import select
 from test_operational_cases import order
@@ -574,3 +576,28 @@ def test_staged_raw_source_never_becomes_goal_without_acceptance(session, busine
     assert cases.list_cases(session, tenant) == []
     assert source.payload == captured
     assert session.get(CaseAdoption, tenant) is None
+
+
+def test_http_review_replay_preserves_final_proposal_identity_and_case_binding(
+    session, business
+):
+    from reality.db.operational_cases import CaseProposalLink
+    from reality.services.delivery_actions import prepare_delivery_action
+
+    commitment = order(session, business)
+    arguments = {"commitment_id": commitment.id, "reason_code": "customer_request", "note": "Reviewed customer agreement"}
+    proposal = prepare_delivery_action(
+        session, business.tenant.id, "commitment_hold", arguments, request_id="http-bound"
+    )
+    case_id = cases.object_cases(session, business.tenant.id, "commitment", commitment.id)[0]
+    link = session.get(CaseProposalLink, (business.tenant.id, case_id, proposal.id))
+    assert link is not None
+    assert link.bound_control_revision == 1
+    assert case_id in json.loads(proposal.output)["_case_business_review"]
+    replay = prepare_delivery_action(
+        session, business.tenant.id, "commitment_hold", arguments, request_id="http-bound"
+    )
+    assert replay.id == proposal.id
+    assert session.get(CaseProposalLink, (business.tenant.id, case_id, replay.id)) is link
+    assert proposal.status == "proposed"
+    assert not list(session.scalars(select(Reservation)))

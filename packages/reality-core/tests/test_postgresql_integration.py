@@ -43,6 +43,7 @@ from reality.services.core import (
     InvalidOperation,
     cancel_commitment,
     create_commitment,
+    create_document,
     create_item,
     create_location,
     create_party,
@@ -278,10 +279,10 @@ def test_all_migrations_on_disposable_postgresql(
     config.set_main_option("script_location", str(ROOT / "migrations"))
     config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
     database_engine = build_engine(database_url)
-    migrated = False
     try:
         command.upgrade(config, "head")
-        migrated = True
+        command.downgrade(config, "base")
+        command.upgrade(config, "head")
         with database_engine.connect() as connection:
             inspector = inspect(connection)
             assert "source_record" in inspector.get_table_names()
@@ -331,6 +332,9 @@ def test_all_migrations_on_disposable_postgresql(
                 5,
                 to_location_id=location_id,
             )
+            document = create_document(
+                session, tenant_id, "sales_order", "CONCURRENT-ORDER", customer_id, "0"
+            )
             commitment = create_commitment(
                 session,
                 tenant_id,
@@ -341,6 +345,7 @@ def test_all_migrations_on_disposable_postgresql(
                 location_id,
                 5,
                 "2026-09-04",
+                document_id=document.id,
             )
             proposal = propose_tool(
                 session, tenant_id, "reserve", {"commitment_id": commitment.id}
@@ -394,10 +399,12 @@ def test_all_migrations_on_disposable_postgresql(
             assert len(reservations) == 1
             assert len(events) == 1
             assert events[0].subject_id == reservations[0].id
+        with pytest.raises(RuntimeError, match="control history"):
+            command.downgrade(config, "base")
+        with database_engine.connect() as connection:
+            assert inspect(connection).has_table("operational_case")
     finally:
         database_engine.dispose()
-        if migrated:
-            command.downgrade(config, "base")
 
 
 def test_postgresql_pool_has_a_bounded_acquisition_timeout(

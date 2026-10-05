@@ -1745,6 +1745,11 @@ def test_automatic_events_rollback_with_movement(session, business, monkeypatch)
         1,
         to_location_id=business.location.id,
     )
+    from reality.services.core import create_document
+
+    document = create_document(
+        session, tenant_id, "sales_order", "CORRELATED-ORDER", business.customer.id, "0"
+    )
     commitment = create_commitment(
         session,
         tenant_id,
@@ -1755,6 +1760,7 @@ def test_automatic_events_rollback_with_movement(session, business, monkeypatch)
         business.location.id,
         1,
         "2026-09-07",
+        document_id=document.id,
     )
     reserve_action = execute(
         session, tenant_id, "reserve", {"commitment_id": commitment.id}
@@ -1839,6 +1845,11 @@ def test_confirmed_shipments_attribute_automatic_effects(session, business):
     assert [
         event.event_type for event in events_for(session, tenant_id, opening.id)
     ] == ["movement.recorded"]
+    from reality.services.core import create_document
+
+    document = create_document(
+        session, tenant_id, "sales_order", "CORRELATED-ORDER", business.customer.id, "0"
+    )
     commitment = create_commitment(
         session,
         tenant_id,
@@ -1849,6 +1860,7 @@ def test_confirmed_shipments_attribute_automatic_effects(session, business):
         business.location.id,
         12,
         "2026-09-07",
+        document_id=document.id,
     )
     reserve_action = execute(
         session,
@@ -1924,6 +1936,11 @@ def test_confirmed_release_is_correlated(session, business):
             "to_location_id": business.location.id,
         },
     )
+    from reality.services.core import create_document
+
+    document = create_document(
+        session, tenant_id, "sales_order", "CORRELATED-ORDER", business.customer.id, "0"
+    )
     commitment = create_commitment(
         session,
         tenant_id,
@@ -1934,6 +1951,7 @@ def test_confirmed_release_is_correlated(session, business):
         business.location.id,
         1,
         "2026-09-07",
+        document_id=document.id,
     )
     reserve_action = execute(
         session, tenant_id, "reserve", {"commitment_id": commitment.id}

@@ -593,11 +593,16 @@ def prepare_delivery_action(
     # Reached only through the tenant HTTP endpoints, so the person at the
     # keyboard is the proposing actor. Agents propose through the MCP catalog.
     proposal = create_change_proposal(
-        session, tenant_id, tool, review["intent"], actor_type="human", _commit=False
+        session,
+        tenant_id,
+        tool,
+        review["intent"],
+        actor_type="human",
+        _commit=False,
+        _proposal_id=identity,
     )
-    proposal.id = identity
     proposal.input = _json({**review["intent"], REVIEW_KEY: review})
-    proposal.output = _json(review)
+    proposal.output = _json({**json.loads(proposal.output), **review})
     session.commit()
     return proposal
 
