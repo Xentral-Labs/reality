@@ -31,6 +31,8 @@ INFRASTRUCTURE = {
     "case_proposal_link",
     "case_adoption",
     "case_consumer_checkpoint",
+    # Version-owned bounded rollout is coordination provenance, not business truth (spec 377).
+    "case_rollout",
     # Shared storage backs existing filtered logical cost reporting interfaces.
     "cost_projection_generation",
     "cost_projection_inventory",

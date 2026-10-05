@@ -23,7 +23,9 @@ def test_the_tables_come_and_go_and_recorded_rows_block_a_rollback(
         # Positive control: empty tables roll back and come again.
         command.downgrade(config, "0131_party_merges")
         assert not TABLES & set(inspect(engine).get_table_names())
-        command.upgrade(config, "0132_receipt_deviations")
+        # Current application services require the current readiness schema. The
+        # populated rollback still traverses and checks the original migration.
+        command.upgrade(config, "head")
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration GmbH")
