@@ -46,8 +46,12 @@ retaining exact current-state and control revision fencing.
 
 Latest case/guard/manual-replacement run: 32 passed; one migration failed because
 parallel test schema construction exhausted the local PostgreSQL lock table. The
-throwaway container now uses CI's `max_locks_per_transaction=1024`; that proof and the
-complete suite are rerunning. No application or deployment setting changed.
+throwaway container now uses CI's `max_locks_per_transaction=1024`; that migration
+proof passed on repeat (1 passed), and the complete suite is rerunning. No application or deployment setting changed.
+
+The Web action-reference fixture now matches default policy and status metadata.
+The activity-volume proof counts the shared delivery fixture's accepted order while
+still rejecting duplicate import events. Both revised contracts passed (2 passed).
 
 Full backend (6,491 collected tests), full fixture browser suite (87 scripts) and PR
 CI are running. T011 and complete acceptance remain unchecked until assessed.

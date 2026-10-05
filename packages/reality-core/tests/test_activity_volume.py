@@ -56,12 +56,13 @@ def test_volume_counts_business_entities_not_import_steps(session, business):
         key: sum(row["counts"][key] for row in graph["buckets"])
         for key in activity_volume.CATEGORIES
     }
-    assert totals == {"orders": 1, "reservations": 1, "movements": 1, "documents": 0}
+    # The delivery fixture now has its own accepted order, alongside GRAPH-1.
+    assert totals == {"orders": 2, "reservations": 1, "movements": 1, "documents": 0}
     details = activity_volume.details(
         session, business.tenant.id, start=end - timedelta(days=1), end=end
     )
-    assert details["total"] == 3
-    assert len({row["id"] for row in details["events"]}) == 3
+    assert details["total"] == 4
+    assert len({row["id"] for row in details["events"]}) == 4
     assert (
         activity_volume.volume(session, create_tenant(session, "Foreign").id, days=1)[
             "total"
