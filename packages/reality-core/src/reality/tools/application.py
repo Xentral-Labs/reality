@@ -6238,6 +6238,7 @@ def create_change_proposal(
     *,
     actor_type: str = "agent",
     _commit: bool = True,
+    _proposal_id: str | None = None,
 ) -> ChangeProposal:
     """
     BUSINESS PURPOSE:
@@ -6777,7 +6778,7 @@ def create_change_proposal(
         normalized_arguments, preview = prepare_dispatch(session, tenant_id, arguments)
     # reality-rule: application.create_change_proposal.7
     proposal = ChangeProposal(
-        id=uid("act"),
+        id=_proposal_id or uid("act"),
         tenant_id=tenant_id,
         type=f"tool:{tool_name}",
         actor_type=actor_type,

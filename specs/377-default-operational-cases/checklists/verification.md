@@ -23,7 +23,15 @@ Specification and handoff imported from `feat/company-reference-simulator`.
   generated reference and production documentation build.
 - `make docs-catalog-check` and `git diff --check` passed.
 
-Full backend (6,490 collected tests), full fixture browser suite (87 scripts) and PR
+Broad regression found two HTTP review integration defects: assigning a deterministic
+proposal ID after case binding, and overwriting the stored case business review. Both
+are corrected before persistence; a dedicated replay/binding/review regression passes.
+Playground and migration concurrency fixtures now use canonical supported orders,
+retaining their receipt, correlation and rollback assertions. Additional targeted checks:
+42 passed plus the corrected full empty migration roundtrip/populated downgrade proof
+(1 passed).
+
+Full backend (6,491 collected tests), full fixture browser suite (87 scripts) and PR
 CI are running. T011 and complete acceptance remain unchecked until assessed.
 The local browser harness maps existing macOS `/private/tmp` screenshot paths to
 `/tmp`; it changes only local artifact paths, not assertions or product code.
