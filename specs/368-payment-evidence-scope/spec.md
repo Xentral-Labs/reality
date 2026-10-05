@@ -2,7 +2,7 @@
 **Feature Branch**: `codex/368-payment-evidence-scope`
 **Created**: 2026-10-05
 **Language**: English
-**Status**: Accepted scope; verification pending
+**Status**: Implemented and verified; external prose/discovery limitations documented
 **Input**: The owner approved correcting payment interpretation and shipment sample/count ambiguity after PR 373 merged, followed by an external MCP acceptance round.
 
 ## Context and Intent
