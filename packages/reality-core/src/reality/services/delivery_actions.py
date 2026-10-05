@@ -239,11 +239,13 @@ def _quantity(value: Any) -> str:
 def review_delivery(
     session: Session, tenant_id: str, tool: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
+    from reality.services.case_action_guards import _load_review_state
     from reality.services.shipment_actions import (
         is_shipment_action,
         review_shipment_action,
     )
 
+    _load_review_state(session, tenant_id, tool, arguments)
     if is_shipment_action(tool):
         return review_shipment_action(session, tenant_id, tool, arguments)
     if tool in CUSTOMER_HOLD_TOOLS:

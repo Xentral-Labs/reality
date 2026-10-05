@@ -346,6 +346,17 @@ def guard_operation(
             raise core.InvalidOperation(code="case_source_unresolved")
 
 
+def _load_review_state(session, tenant_id, operation, arguments):
+    if not cases.coordination_enabled(session, tenant_id):
+        return
+    lock_delivery_state(session, tenant_id)
+    ids, _ = resolve_cases(session, tenant_id, operation, arguments, ensure=True)
+    # Load the same canonical records before both business and case snapshots.
+    # Binding afterwards must not change the Numeric representation of the review.
+    for case_id in ids:
+        cases.business_review(session, tenant_id, case_id)
+
+
 def bind_arguments(
     session: Session,
     tenant_id: str,

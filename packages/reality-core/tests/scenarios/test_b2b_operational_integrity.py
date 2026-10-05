@@ -15,6 +15,7 @@ from reality.db.core import (
 from reality.services.core import (
     active_reserved,
     create_commitment,
+    create_document,
     create_item,
     create_location,
     create_lot,
@@ -67,6 +68,9 @@ def test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly(
         lot_id=lot.id,
     )
 
+    document = create_document(
+        session, tenant_id, "sales_order", "B2B-REVISED", business.customer.id, "0"
+    )
     revised = create_commitment(
         session,
         tenant_id,
@@ -77,6 +81,7 @@ def test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly(
         business.location.id,
         10,
         "2026-12-01",
+        document_id=document.id,
     )
     original_reservation = reserve(
         session, tenant_id, revised.id, 10, lot_id=lot.id

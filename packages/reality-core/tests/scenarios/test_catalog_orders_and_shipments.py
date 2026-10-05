@@ -48,10 +48,15 @@ from reality.tools.application import (
 )
 
 
-def _confirm(session, tenant_id, proposal):
+def _confirm(session, tenant_id, proposal, *, principal=None):
     token = json.loads(proposal.input)["_delivery_review"]["token"]
     return approve_and_execute_proposal(
-        session, tenant_id, proposal.id, review_token=token, confirmed=True
+        session,
+        tenant_id,
+        proposal.id,
+        review_token=token,
+        confirmed=True,
+        confirming_principal=principal,
     )
 
 
@@ -91,7 +96,7 @@ def _line(item_id, quantity, *, promised_at=None):
     return line
 
 
-def _dispatch(session, business, tracking_number, movements):
+def _dispatch(session, business, tracking_number, movements, *, principal=None):
     proposal = create_change_proposal(
         session,
         business.tenant.id,
@@ -104,7 +109,9 @@ def _dispatch(session, business, tracking_number, movements):
             "movements": movements,
         },
     )
-    return json.loads(_confirm(session, business.tenant.id, proposal).output)
+    return json.loads(
+        _confirm(session, business.tenant.id, proposal, principal=principal).output
+    )
 
 
 def _receive(session, business, item_id, quantity, location_id):
@@ -234,6 +241,9 @@ def test_one_package_carries_several_commitments_of_one_customer(session, busine
     pump = create_item(session, tenant_id, "BIKE-PUMP", "Bike Pump")
     _receive(session, business, business.item.id, "10", business.location.id)
     _receive(session, business, pump.id, "10", business.location.id)
+    document = core.create_document(
+        session, tenant_id, "sales_order", "SO-D03", business.customer.id, "0"
+    )
     commitments = [
         create_commitment(
             session,
@@ -245,6 +255,7 @@ def test_one_package_carries_several_commitments_of_one_customer(session, busine
             business.location.id,
             quantity,
             None,
+            document_id=document.id,
         )
         for item_id, quantity in (
             (business.item.id, "2"),
@@ -369,6 +380,9 @@ def test_delisted_item_still_serves_its_open_commitment(session, business):
     set inactive?"""
     tenant_id = business.tenant.id
     _receive(session, business, business.item.id, "10", business.location.id)
+    document = core.create_document(
+        session, tenant_id, "sales_order", "SO-O04", business.customer.id, "0"
+    )
     commitment = create_commitment(
         session,
         tenant_id,
@@ -379,6 +393,7 @@ def test_delisted_item_still_serves_its_open_commitment(session, business):
         business.location.id,
         "4",
         None,
+        document_id=document.id,
     )
     set_master_data_active(session, tenant_id, Item, business.item.id, False)
     assert record_by_id(session, Item, business.item.id).is_active is False
@@ -417,16 +432,25 @@ def test_delisted_item_still_serves_its_open_commitment(session, business):
 AS_OF = datetime(2026, 12, 31, 12, tzinfo=UTC)
 
 
-def _act(session, business, tool, arguments, request_id):
+def _act(session, business, tool, arguments, request_id, *, principal=None):
     proposal = prepare_delivery_action(
         session, business.tenant.id, tool, arguments, request_id=request_id
     )
-    executed = _confirm(session, business.tenant.id, proposal)
+    executed = _confirm(session, business.tenant.id, proposal, principal=principal)
     assert executed.status == "executed"
     return executed
 
 
-def _ship(session, business, tracking_number, commitment_id, quantity, item_id=None):
+def _ship(
+    session,
+    business,
+    tracking_number,
+    commitment_id,
+    quantity,
+    item_id=None,
+    *,
+    principal=None,
+):
     return _dispatch(
         session,
         business,
@@ -439,6 +463,7 @@ def _ship(session, business, tracking_number, commitment_id, quantity, item_id=N
                 "quantity": quantity,
             }
         ],
+        principal=principal,
     )
 
 
@@ -673,9 +698,11 @@ def _replacement_shipment(session, business, commitment_id):
 
 
 def test_a_free_replacement_ships_without_an_order_and_explains_itself(
-    session, business
+    session, business, scheduled_owner
 ):
     """D16: a replacement for a faulty unit leaves on its own promise, not a new order."""
+    from reality.services.memberships import Principal
+
     tenant = business.tenant.id
     _receive(session, business, business.item.id, "10", business.location.id)
     receipt = _order(session, business, "SO-D16", [_line(business.item.id, "2")])
@@ -699,13 +726,22 @@ def test_a_free_replacement_ships_without_an_order_and_explains_itself(
                 "reason": "Faulty unit replaced free of charge",
             },
             "exchange-d16",
+            principal=Principal(scheduled_owner.id),
         ).output
     )
     replacement_id = exchanged["replacement_commitment_id"]
     replacement = record_by_id(session, Commitment, replacement_id)
     assert (replacement.document_id, replacement.amount) == (None, Decimal(0))
     reserve(session, tenant, replacement_id)
-    _ship(session, business, "OUT-D16-2", replacement_id, "1")
+    # The unsupported orderless replacement is manual repair by an observed member.
+    _ship(
+        session,
+        business,
+        "OUT-D16-2",
+        replacement_id,
+        "1",
+        principal=Principal(scheduled_owner.id),
+    )
 
     assert record_by_id(session, Commitment, replacement_id).status == "fulfilled"
     explained = movement_explanation(
