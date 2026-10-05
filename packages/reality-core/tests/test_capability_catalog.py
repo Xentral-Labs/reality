@@ -524,3 +524,75 @@ def test_the_token_reads_only_its_own_tenant_purpose(session, business):
     assert business_answer["tenant"] == {"purpose": "business"}
     assert sandbox.id not in json.dumps(business_answer)
     assert "Practice Bikes" not in json.dumps(business_answer)
+
+
+def test_each_verified_token_reads_its_own_tenant_purpose_over_mcp(
+    session, business, scheduled_owner, monkeypatch
+):
+    """The MCP server verifies each bearer token; the purpose is that company's only."""
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import sessionmaker
+
+    from reality.mcp import auth as auth_module
+    from reality.mcp import server as server_module
+    from reality.mcp.app import create_mcp_app
+    from reality.mcp.auth import create_mcp_access_token
+    from reality.mcp.config import MCPRuntimeSettings
+    from reality.services import company_setup
+
+    practice_id = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        uid("req"),
+        "Practice Bikes",
+        "sandbox",
+        "empty",
+        confirmed=True,
+    )["tenant_id"]
+    factory = sessionmaker(
+        session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint"
+    )
+    monkeypatch.setattr(server_module, "Session", factory)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    tokens = {
+        tenant_id: create_mcp_access_token(
+            session, tenant_id, "Purpose test", ["capability_catalog"]
+        )[1]
+        for tenant_id in (business.tenant.id, practice_id)
+    }
+    runtime = create_mcp_app(
+        settings=MCPRuntimeSettings(
+            public_url="http://localhost:8001/", bind_host="127.0.0.1", bind_port=8001
+        ),
+        session_factory=factory,
+    )
+
+    answers = {}
+    with TestClient(runtime) as client:
+        for tenant_id, token in tokens.items():
+            response = client.post(
+                "/",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json, text/event-stream",
+                    "Host": "localhost:8001",
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/call",
+                    "params": {"name": "capability_catalog", "arguments": {}},
+                },
+            )
+            assert response.status_code == 200
+            result = response.json()["result"]
+            assert not result.get("isError", False)
+            answers[tenant_id] = json.loads(result["content"][0]["text"])
+
+    assert answers[business.tenant.id]["tenant"] == {"purpose": "business"}
+    assert answers[practice_id]["tenant"] == {"purpose": "playground"}
+    business_answer = json.dumps(answers[business.tenant.id])
+    practice_answer = json.dumps(answers[practice_id])
+    assert practice_id not in business_answer
+    assert "Practice Bikes" not in business_answer
+    assert business.tenant.id not in practice_answer
