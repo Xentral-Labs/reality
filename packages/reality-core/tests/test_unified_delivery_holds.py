@@ -113,8 +113,9 @@ def test_stale_same_reason_replacement_invalidates_release(session, business):
     proposal = prepare(session, tid, cid, "commitment_hold_release", "stale")
     release_commitment_hold(session, tid, cid)
     replacement = hold_commitment(session, tid, cid, "manual_review")
-    with pytest.raises(InvalidOperation, match="review"):
+    with pytest.raises(InvalidOperation) as stale:
         confirm(session, tid, proposal)
+    assert stale.value.code == "case_review_stale"
     assert proposal.status == "proposed"
     assert active_commitment_hold(session, tid, cid).id == replacement.id
 

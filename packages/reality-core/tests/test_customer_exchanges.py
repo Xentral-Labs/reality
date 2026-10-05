@@ -23,6 +23,7 @@ from reality.services.delivery_actions import (
     prepare_delivery_action,
 )
 from reality.services.delivery_reads import delivery_case
+from reality.services.memberships import Principal
 from reality.services.movement_explanations import movement_explanation
 from reality.tools.application import approve_and_execute_proposal
 
@@ -434,15 +435,16 @@ def _prepare(session, business, request_id, **values):
     )
 
 
-def _confirm(session, business, proposal):
+def _confirm(session, business, proposal, *, principal=None):
     token = json.loads(proposal.input)["_delivery_review"]["token"]
     return approve_and_execute_proposal(
-        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True,
+        confirming_principal=principal,
     )
 
 
 def test_the_review_states_what_the_exchange_creates_and_that_no_money_moves(
-    session, business
+    session, business, scheduled_owner
 ):
     """US1.4 and FR-010."""
     commitment = _delivered(session, business)
@@ -472,7 +474,7 @@ def test_the_review_states_what_the_exchange_creates_and_that_no_money_moves(
     # Nothing exists before confirmation.
     assert session.scalar(select(func.count()).select_from(CustomerExchange)) == 0
 
-    executed = _confirm(session, business, proposal)
+    executed = _confirm(session, business, proposal, principal=Principal(scheduled_owner.id))
     assert executed.status == "executed"
     receipt = json.loads(executed.output)
     exchange = record_by_id(session, CustomerExchange, receipt["exchange_id"])
@@ -483,36 +485,36 @@ def test_the_review_states_what_the_exchange_creates_and_that_no_money_moves(
     assert detail["verification"] == "verified"
     assert {"kind": "customer_exchange", "id": exchange.id} in detail["links"]
     # Replaying the executed proposal changes nothing.
-    assert _confirm(session, business, proposal).output == executed.output
+    assert _confirm(session, business, proposal, principal=Principal(scheduled_owner.id)).output == executed.output
     assert session.scalar(select(func.count()).select_from(CustomerExchange)) == 1
 
 
-def test_a_stale_exchange_review_is_refused(session, business):
+def test_a_stale_exchange_review_is_refused(session, business, scheduled_owner):
     commitment = _delivered(session, business)
     goods_back = _returned(session, business, commitment)
     first = _prepare(session, business, "exchange-a", return_movement_id=goods_back.id)
     second = _prepare(session, business, "exchange-b", return_movement_id=goods_back.id)
-    _confirm(session, business, first)
+    _confirm(session, business, first, principal=Principal(scheduled_owner.id))
 
     # The second review saw one unit exchangeable; now there is none.
     with pytest.raises(core.InvalidOperation) as refused:
-        _confirm(session, business, second)
+        _confirm(session, business, second, principal=Principal(scheduled_owner.id))
     assert refused.value.code == "customer_exchange_exceeds_exchangeable"
     assert session.scalar(select(func.count()).select_from(CustomerExchange)) == 1
 
 
 def test_a_changed_but_still_valid_exchange_review_must_be_reviewed_again(
-    session, business
+    session, business, scheduled_owner
 ):
     commitment = _delivered(session, business)
     goods_back = _returned(session, business, commitment, "2")
     first = _prepare(session, business, "exchange-c", return_movement_id=goods_back.id)
     second = _prepare(session, business, "exchange-d", return_movement_id=goods_back.id)
-    _confirm(session, business, first)
+    _confirm(session, business, first, principal=Principal(scheduled_owner.id))
 
     # One unit is still exchangeable, but not the two the second review saw.
     with pytest.raises(core.InvalidOperation) as refused:
-        _confirm(session, business, second)
+        _confirm(session, business, second, principal=Principal(scheduled_owner.id))
     assert refused.value.code == "review_delivery_changed"
 
 
@@ -678,14 +680,15 @@ def test_the_replacement_names_its_exchange_and_the_delivery_it_replaces(
     assert not any(link["kind"] == "customer_exchange" for link in ordinary["links"])
 
 
-def test_the_exchange_names_who_confirmed_it_when_and_why(session, business):
+def test_the_exchange_names_who_confirmed_it_when_and_why(session, business, scheduled_owner):
     """US3.3: the decision behind the exchange, from its own detail view."""
     commitment = _delivered(session, business)
     goods_back = _returned(session, business, commitment)
     proposal = _prepare(
         session, business, "exchange-decision", return_movement_id=goods_back.id
     )
-    receipt = json.loads(_confirm(session, business, proposal).output)
+
+    receipt = json.loads(_confirm(session, business, proposal, principal=Principal(scheduled_owner.id)).output)
 
     decisions = record_decisions(
         session, business.tenant.id, "customer_exchange", receipt["exchange_id"]

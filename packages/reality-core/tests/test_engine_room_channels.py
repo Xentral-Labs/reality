@@ -362,23 +362,31 @@ def test_a_worker_run_is_one_interaction_and_empty_sweeps_are_none(
     scheduler = ProcessLoop("scheduler", tenant_id=tenant)
     assert worker.sweep(engine, max_runs=10, max_seconds=25)["processed"] == 0
     setup_due(factory, tenant, actor)
-    assert scheduler.sweep(engine, max_runs=100, max_seconds=25)["materialized"] == 1
+    assert scheduler.sweep(engine, max_runs=100, max_seconds=25)["materialized"] == 2
     with factory() as db:
         # An idle poll and a materializing sweep are not company interactions.
         assert rows(db, tenant) == []
-    assert worker.sweep(engine, max_runs=10, max_seconds=25)["succeeded"] == 1
+    # A child startup can consume a local sweep's time budget. Drain both exact
+    # persisted runs across bounded sweeps without widening production limits.
+    succeeded = 0
+    for _ in range(3):
+        succeeded += worker.sweep(engine, max_runs=10, max_seconds=25)["succeeded"]
+        if succeeded == 2:
+            break
+    assert succeeded == 2
     with factory() as db:
-        run_id = db.scalar(
-            select(ScheduledJobRun.id).where(ScheduledJobRun.tenant_id == tenant)
-        )
-        [row] = rows(db, tenant)
-        assert (row.channel, row.kind, row.operation, row.outcome) == (
-            "worker",
-            "job",
-            "invitations.cleanup",
-            "ok",
-        )
-        assert row.job_id == run_id
+        runs = list(db.scalars(
+            select(ScheduledJobRun).where(ScheduledJobRun.tenant_id == tenant)
+        ))
+        observed = rows(db, tenant)
+        assert len(observed) == len(runs) == 2
+        assert {row.operation for row in observed} == {
+            "invitations.cleanup", "operational_cases.reconcile",
+        }
+        assert {row.job_id for row in observed} == {run.id for run in runs}
+        assert all((row.channel, row.kind, row.outcome) == ("worker", "job", "ok")
+                   for row in observed)
+    assert worker.sweep(engine, max_runs=10, max_seconds=25)["processed"] == 0
 
 
 SENTINEL = "zz-sentinel-9f3c"

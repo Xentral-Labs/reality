@@ -21,12 +21,14 @@ DEPENDENTS = (
 
 @pytest.fixture
 def legacy_catalogs(postgres_database, monkeypatch):
-    from reality.services import core
+    from reality.services import core, operational_cases
     from tests.finance.test_components import fixture, prepare
     from tests.finance.test_references import confirm
     from tests.finance.test_source_mappings import prepare as prepare_source
     from tests.finance.test_target_mappings import change, rule, setup
 
+    # Exercise the pinned finance transition with its pre-coordination policy.
+    monkeypatch.setattr(operational_cases, "coordination_enabled", lambda *_: False)
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
     command.upgrade(config, "0118_account_defaults")

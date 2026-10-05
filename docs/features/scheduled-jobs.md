@@ -274,3 +274,6 @@ runs retain owner authorization. Public callers cannot create internal case runs
 schedules. Bounded backfill and event checkpoint commit with shared run success, and
 perform no business effects or external I/O. Migration 0145 must precede matching
 processes; startup never migrates. Status reports completion and failures explicitly.
+Case catch-up is queued independently and does not count as a turn in the existing
+source/projection alternation. Due source jobs therefore remain eligible while case
+history needs further bounded batches.

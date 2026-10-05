@@ -239,7 +239,7 @@ def test_orders_api_keeps_direction_validation_defaults_and_exact_evidence_types
         )
         for document in documents[:2]:
             result = client.get(
-                base + f"/evidence-documents?document_type={document.type}&size=1"
+                base + f"/evidence-documents?document_type={document.type}&q=SAME&size=1"
             ).json()
             assert result["page"]["total"] == 1
             assert result["items"][0]["id"] == document.id

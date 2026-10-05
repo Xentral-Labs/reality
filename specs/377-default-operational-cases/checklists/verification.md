@@ -86,3 +86,38 @@ existing system-font fallback. All consent, grant and error assertions remain in
 Simulator runtime remains on its separate branch. The imported integration regression
 explicitly skips when `reality.services.live_company` is absent. External-runner and
 multi-day capacity gates remain pending; no production rollout is claimed.
+
+Current regression evidence before the final CI repeat:
+
+- Explicit delivery business re-review renews its held-state digest only for existing
+  CaseProposalLinks. Their control revisions are never rebound. A new regression proves
+  that re-review after takeover/handback still refuses the old proposal with
+  `case_action_stale` and creates no reservation. The complete targeted case/guard,
+  delivery review/holds/reads and Storyline run passed 63 tests.
+- Actual-member manual exchange and unannounced-return repair, source coverage and
+  canonical stock scenarios passed 66 tests. CLI `--yes` cannot claim an observed human;
+  its unsupported exchange confirmation refuses without effects, and subsequent actual
+  member confirmation retains the same proposal and exact business review.
+- Orders API filters passed 3 tests. Credit blueprint evidence passed 2 tests.
+  Captured-basis rollback, fulfillment safety and bounded demo settlement passed 20 tests;
+  one unrelated full demo-profile setup exceeded the unchanged 120-second limit under
+  concurrent local load and needs a reduced-load repeat.
+- All 87 fixture browser scripts are covered: 83 passed in the full run and the four
+  local environment failures passed on repeat. The repeat supplies installed Chromium,
+  maps artifact paths and uses the existing system-font fallback for blocked Google
+  Fonts; it preserves assertions. Current action discovery also passed separately.
+- CI at `6c9c4fd6` passed Installer, documentation, frontend, all seven fixture-browser
+  shards and eight live-browser journeys. Its backend failures exposed the additional
+  historical/canonical fixture updates; live company setup exposed source starvation.
+  Independently queued case work is now excluded from the existing source/projection
+  alternation. Its regression and a fresh complete CI run are required before acceptance.
+- Historical cost/finance migration specimens explicitly retain their predecessor's
+  pre-coordination policy in test setup. Their exact data, schema and rollback assertions
+  remain intact. Current-schema missing-migration refusal remains covered independently.
+- The fixed normal-month story now anchors cancellation to a sales order and records
+  the customer's two-unit return at the same instant as its receipt, using the canonical
+  announcement/commitment relationship. Its quantities and financial effects are unchanged.
+  Fresh CLI, Chat, commitment-action and worker interaction checks passed all 5 tests.
+- Latest lint, spec policy (including origin/main), generated catalog consistency and
+  whitespace checks passed. Complete backend continuation and final CI remain pending;
+  T011 remains unchecked. The current collection includes 6,495 tests.

@@ -14,6 +14,7 @@ from reality.services.core import (
     InvalidOperation,
     active_reserved,
     allocate_credit_note,
+    announce_customer_return,
     cancel_commitment,
     create_commitment,
     create_document,
@@ -226,6 +227,10 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         occurred_at=at(13),
         _commit=False,
     )
+    cancelled_order = create_document(
+        session, tenant_id, "sales_order", "SEPTEMBER-CANCELLED", customer.id,
+        amount=196, _commit=False,
+    )
     cancelled = create_commitment(
         session,
         tenant_id,
@@ -237,6 +242,7 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         4,
         "2026-09-18",
         amount=196,
+        document_id=cancelled_order.id,
         _commit=False,
     )
     reserve(session, tenant_id, cancelled.id, _commit=False)
@@ -247,6 +253,10 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         reason="Customer cancelled before shipment",
         _commit=False,
     )
+    returned = announce_customer_return(
+        session, tenant_id, customer_commitment.id, 2,
+        reason="Customer returned two units", announced_at=at(18), _commit=False,
+    )
     record_movement(
         session,
         tenant_id,
@@ -254,6 +264,8 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         item.id,
         2,
         to_location_id=returns.id,
+        commitment_id=customer_commitment.id,
+        return_announcement_id=returned.id,
         occurred_at=at(18),
         _commit=False,
     )

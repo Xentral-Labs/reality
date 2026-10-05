@@ -10,6 +10,7 @@ from reality.services.core import (
     chat_suggestions,
     create_chat_session,
     create_commitment,
+    create_document,
     create_tenant,
     record_movement,
     send_chat_message,
@@ -42,6 +43,10 @@ def test_unconfigured_ai_explains_how_to_enable_chat(session, business, monkeypa
 
 
 def test_chat_mutation_is_visible_as_proposal_before_confirmation(session, business):
+    order = create_document(
+        session, business.tenant.id, "sales_order", "CHAT-RESERVATION",
+        business.customer.id, "0",
+    )
     record_movement(
         session,
         business.tenant.id,
@@ -60,6 +65,7 @@ def test_chat_mutation_is_visible_as_proposal_before_confirmation(session, busin
         business.location.id,
         5,
         "2026-09-03",
+        document_id=order.id,
     )
     chat = create_chat_session(session, business.tenant.id)
 

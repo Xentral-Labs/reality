@@ -693,7 +693,12 @@ def review_existing(
     if stored and "request_arguments" in stored:
         review["request_arguments"] = stored["request_arguments"]
     proposal.input = _json({**intent, REVIEW_KEY: review})
-    proposal.output = _json(review)
+    from reality.services.case_action_guards import _refresh_bound_business_review
+
+    preview = {**json.loads(proposal.output), **review}
+    proposal.output = _json(
+        _refresh_bound_business_review(session, tenant_id, proposal_id, preview)
+    )
     session.commit()
     return proposal
 

@@ -8,6 +8,7 @@ import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
+import pytest
 from conftest import record_by_id
 from intake_review_support import (
     accept_import_job,
@@ -75,7 +76,7 @@ def _count(session, business, model, *conditions):
 
 
 def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
-    session, business
+    session, business, scheduled_owner
 ):
     """P04: the shop cancels afterwards; the line closes citing that source record.
 
@@ -160,8 +161,16 @@ def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
         request_id="cancel-p04",
     )
     token = json.loads(proposal.input)["_delivery_review"]["token"]
+    from reality.services.memberships import Principal
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, review_token=token, confirmed=True
+        )
+    assert refused.value.code == "case_source_unresolved"
     approve_and_execute_proposal(
-        session, tenant, proposal.id, review_token=token, confirmed=True
+        session, tenant, proposal.id, review_token=token, confirmed=True,
+        confirming_principal=Principal(scheduled_owner.id),
     )
 
     assert record_by_id(session, Commitment, shipped.id).status == "cancelled"

@@ -189,6 +189,7 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
     from reality.db.core import Base, Reservation, build_engine
     from reality.services.core import (
         create_commitment,
+        create_document,
         create_item,
         create_location,
         create_party,
@@ -220,8 +221,11 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
                     location.id,
                     "7",
                     None,
+                    document_id=create_document(
+                        session, tenant.id, "sales_order", f"RACE-{index}", customer.id, "0"
+                    ).id,
                 ).id
-                for _ in range(2)
+                for index in range(2)
             ]
         barrier = Barrier(2)
 
@@ -264,8 +268,11 @@ def test_two_connections_cannot_overallocate_or_execute_two_stale_reviews(
                     location.id,
                     "7",
                     None,
+                    document_id=create_document(
+                        session, tenant.id, "sales_order", f"RACE-SECOND-{index}", customer.id, "0"
+                    ).id,
                 ).id
-                for _ in range(2)
+                for index in range(2)
             ]
             reviews = []
             for index, cid in enumerate(commitments2):
@@ -339,8 +346,9 @@ def test_old_review_upgrade_and_empty_allocation_keep_existing_identity(
     )
     session.add(proposal)
     session.commit()
-    with pytest.raises(InvalidOperation, match="review"):
+    with pytest.raises(InvalidOperation) as stale:
         approve_and_execute_proposal(session, tid, proposal.id)
+    assert stale.value.code == "case_review_stale"
     original_id = proposal.id
     reviewed = review_existing(session, tid, proposal.id)
     assert reviewed.id == original_id
@@ -578,10 +586,11 @@ def test_reviewing_again_renews_a_review_the_previous_decision_staled(
     approve_and_execute_proposal(
         session, tid, first.id, review_token=_review(first)["token"], confirmed=True
     )
-    with pytest.raises(InvalidOperation, match="delivery changed"):
+    with pytest.raises(InvalidOperation) as stale:
         approve_and_execute_proposal(
             session, tid, second.id, review_token=staled_token, confirmed=True
         )
+    assert stale.value.code == "case_review_stale"
 
     renewed = review_existing(session, tid, second.id)
     assert _review(renewed)["token"] != staled_token

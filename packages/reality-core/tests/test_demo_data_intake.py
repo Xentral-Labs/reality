@@ -411,12 +411,20 @@ def _tick(session, tenant, schedule, *, review=False):
     session.commit()
     scheduled_jobs.materialize_due(session, tenant)
     session.commit()
-    claim = scheduled_jobs.claim_next(session, tenant)
-    assert claim is not None
-    run_id, token = claim.id, claim.claim_token
-    session.commit()
-    assert scheduled_jobs.execute_claim(session, tenant, run_id, token) == "succeeded"
-    session.commit()
+    # Default coordination shares this queue. Consume its legitimate work too,
+    # but count a tick only when the requested demo occurrence actually runs.
+    for _ in range(20):
+        claim = scheduled_jobs.claim_next(session, tenant)
+        assert claim is not None
+        run_id, token = claim.id, claim.claim_token
+        target = claim.schedule_id == schedule.id
+        session.commit()
+        assert scheduled_jobs.execute_claim(session, tenant, run_id, token) == "succeeded"
+        session.commit()
+        if target:
+            break
+    else:
+        pytest.fail("Demo occurrence did not run within the shared queue bound")
     if review:
         from reality.db.core import ImportJob
 

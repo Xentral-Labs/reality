@@ -12,7 +12,7 @@ from decimal import Decimal
 import pytest
 from conftest import record_by_id
 
-from reality.db.core import Commitment
+from reality.db.core import Commitment, uid
 from reality.services.core import (
     InvalidOperation,
     account_balance,
@@ -22,6 +22,7 @@ from reality.services.core import (
     arrived_against_announcement,
     business_events,
     create_commitment,
+    create_document,
     create_item,
     create_location,
     create_lot,
@@ -39,6 +40,7 @@ from reality.services.core import (
 )
 from reality.services.delivery_actions import prepare_delivery_action
 from reality.services.exceptions import operational_exceptions
+from reality.services.memberships import Principal
 from reality.services.movement_explanations import movement_explanation
 from reality.services.read_contracts import location_inventory_rows
 from reality.tools.application import (
@@ -52,6 +54,9 @@ AS_OF = datetime(2026, 8, 31, 12, tzinfo=UTC)
 
 
 def customer_commitment(session, business, customer, location, quantity):
+    document = create_document(
+        session, business.tenant.id, "sales_order", uid("stock_order"), customer.id, "0"
+    )
     return create_commitment(
         session,
         business.tenant.id,
@@ -62,6 +67,7 @@ def customer_commitment(session, business, customer, location, quantity):
         location.id,
         quantity,
         "2026-09-03",
+        document_id=document.id,
     )
 
 
@@ -386,13 +392,14 @@ def _tool(session, business, tool, arguments):
     return json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)
 
 
-def _reviewed(session, business, tool, arguments, request_id):
+def _reviewed(session, business, tool, arguments, request_id, *, principal=None):
     proposal = prepare_delivery_action(
         session, business.tenant.id, tool, arguments, request_id=request_id
     )
     token = json.loads(proposal.input)["_delivery_review"]["token"]
     executed = approve_and_execute_proposal(
-        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True,
+        confirming_principal=principal,
     )
     assert executed.status == "executed"
     return json.loads(executed.output)
@@ -564,7 +571,7 @@ def test_a_b2c_withdrawal_brings_the_goods_back_and_refunds_in_full(session, bus
     )
 
 
-def test_a_damaged_return_is_disposed_and_credited_independently(session, business):
+def test_a_damaged_return_is_disposed_and_credited_independently(session, business, scheduled_owner):
     """F05: what happens to the goods and what the customer gets back are separate."""
     tenant = business.tenant.id
     opening_stock(session, business, 10)
@@ -604,6 +611,7 @@ def test_a_damaged_return_is_disposed_and_credited_independently(session, busine
             "destination_location_id": business.location.id,
         },
         "dispose-f05-restock",
+        principal=Principal(scheduled_owner.id),
     )
     _reviewed(
         session,
@@ -616,6 +624,7 @@ def test_a_damaged_return_is_disposed_and_credited_independently(session, busine
             "reason": "Housing cracked",
         },
         "dispose-f05-scrap",
+        principal=Principal(scheduled_owner.id),
     )
 
     # Positive control: the goods' fate does not settle what the customer is owed.
@@ -690,7 +699,7 @@ def test_a_damaged_return_is_disposed_and_credited_independently(session, busine
 
 
 def test_an_exchange_returns_one_unit_and_sends_another_without_money(
-    session, business
+    session, business, scheduled_owner
 ):
     """F07: a return plus a replacement delivery moves no money and leaves no work.
 
@@ -739,6 +748,7 @@ def test_an_exchange_returns_one_unit_and_sends_another_without_money(
             "reason": "Customer needs the larger size",
         },
         "exchange-f07",
+        principal=Principal(scheduled_owner.id),
     )
     replacement = record_by_id(
         session, Commitment, receipt["replacement_commitment_id"]
@@ -806,7 +816,7 @@ def _returns_of(session, business):
     )
 
 
-def test_an_unannounced_return_is_linked_to_its_delivery_later(session, business):
+def test_an_unannounced_return_is_linked_to_its_delivery_later(session, business, scheduled_owner):
     """F04: a parcel without paperwork is taken in, reported, and linked by a person."""
     tenant = business.tenant.id
     opening_stock(session, business, 10)
@@ -851,6 +861,7 @@ def test_an_unannounced_return_is_linked_to_its_delivery_later(session, business
             },
         },
         "link-f04",
+        principal=Principal(scheduled_owner.id),
     )
     (linked,) = _returns_of(session, business) - before
     watched |= {linked}

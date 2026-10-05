@@ -149,6 +149,9 @@ def test_future_shipments_blocked_reservations_allowed_and_own_hold_remains(
     )
     placed = prepare(session, business)
     confirm(session, business, placed)
+    document = core.create_document(
+        session, tid, "sales_order", "HELD-ORDER", business.customer.id, "0"
+    )
     cid = core.create_commitment(
         session,
         tid,
@@ -159,6 +162,7 @@ def test_future_shipments_blocked_reservations_allowed_and_own_hold_remains(
         business.location.id,
         "3",
         None,
+        document_id=document.id,
     ).id
     assert core.reserve(session, tid, cid).reserved == 3
     with pytest.raises(core.InvalidOperation, match="delivery hold"):

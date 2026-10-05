@@ -70,7 +70,9 @@ def test_foreign_case_is_not_found_and_history_is_bounded(session, business):
     result = delivery_case(session, business.tenant.id, fixture.commitment.id)
     assert len(result["history"]["items"]) <= 20
     assert "has_more" in result["history"]
-    assert result["links"] == []
+    assert result["links"] == [{
+        "kind": "document", "id": fixture.commitment.document_id, "label": "DELIVERY-FIXTURE"
+    }]
 
 
 def test_revisions_and_corrections_agree_with_inspector(session, business):

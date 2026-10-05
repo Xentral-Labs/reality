@@ -70,7 +70,8 @@ def test_migration_parity_and_empty_upgrade_downgrade(postgres_database, monkeyp
         engine.dispose()
 
 
-def test_populated_downgrade_refuses(scheduled_database, monkeypatch):  # noqa: F811
+@pytest.mark.parametrize("reviewed", [False, True])
+def test_populated_downgrade_refuses(scheduled_database, monkeypatch, reviewed):  # noqa: F811
     from test_cost_captured_basis_storage import retained
 
     engine, *_ = scheduled_database
@@ -78,8 +79,16 @@ def test_populated_downgrade_refuses(scheduled_database, monkeypatch):  # noqa: 
         "REALITY_DATABASE_URL", engine.url.render_as_string(hide_password=False)
     )
     config = Config("alembic.ini")
-    retained(scheduled_database)
-    with pytest.raises(RuntimeError, match="retained captured basis history"):
+    retained(scheduled_database, reviewed=reviewed)
+    # Reviewed commercial intake also retains operational control history. Its
+    # newer rollback barrier must stop first; unreviewed cost history still
+    # reaches and proves the original captured-basis barrier.
+    barrier = (
+        "actual operational case control history"
+        if reviewed
+        else "retained captured basis history"
+    )
+    with pytest.raises(RuntimeError, match=barrier):
         command.downgrade(config, "0077_company_cost_census")
     with engine.connect() as conn:
         assert conn.scalar(text("SELECT count(*) FROM cost_captured_basis")) == 1

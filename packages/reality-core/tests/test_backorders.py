@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+from reality.db.core import uid
 from reality.services import core
 from reality.services.supply_assignments import (
     assign_supply,
@@ -11,6 +12,10 @@ from reality.services.supply_assignments import (
 
 
 def _promise(session, business, quantity, due="2026-10-20", location=None):
+    order = core.create_document(
+        session, business.tenant.id, "sales_order", uid("backorder"),
+        business.customer.id, "0",
+    )
     return core.create_commitment(
         session,
         business.tenant.id,
@@ -21,6 +26,7 @@ def _promise(session, business, quantity, due="2026-10-20", location=None):
         (location or business.location).id,
         quantity,
         due,
+        document_id=order.id,
     )
 
 

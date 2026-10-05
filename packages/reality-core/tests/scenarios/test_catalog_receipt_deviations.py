@@ -38,7 +38,7 @@ def _order(session, business, direction, number, quantity, item=None):
     return document, promise
 
 
-def _act(session, business, tool, arguments, request_id):
+def _act(session, business, tool, arguments, request_id, *, principal=None):
     """A reviewed action: prepared, then confirmed by a person."""
     proposal = prepare_delivery_action(
         session, business.tenant.id, tool, arguments, request_id=request_id
@@ -49,6 +49,7 @@ def _act(session, business, tool, arguments, request_id):
         proposal.id,
         review_token=json.loads(proposal.input)["_delivery_review"]["token"],
         confirmed=True,
+        confirming_principal=principal,
     )
     assert executed.status == "executed", executed.output
     return json.loads(executed.output)
@@ -329,8 +330,10 @@ def test_one_container_shows_in_transit_per_purchase(session, business):
     ] == ["0", "0", "0"]
 
 
-def test_a_picking_error_found_by_the_customer(session, business):
+def test_a_picking_error_found_by_the_customer(session, business, scheduled_owner):
     """D05: the customer received bells; the lights are still owed."""
+    from reality.services.memberships import Principal
+
     tenant = business.tenant.id
     bell = core.create_item(session, tenant, "BIKE-BELL", "Bike bell")
     for item in (business.item, bell):
@@ -406,6 +409,7 @@ def test_a_picking_error_found_by_the_customer(session, business):
             ],
         },
         "d05-bells-back",
+        principal=Principal(scheduled_owner.id),
     )
     assert promise.id not in _findings(session, business, "misdelivery_outstanding")
     core.reserve(session, tenant, promise.id)

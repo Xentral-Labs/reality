@@ -18,6 +18,10 @@ from test_finance_reference_migration import _all_records
 
 @pytest.fixture
 def legacy_members(postgres_database, monkeypatch):
+    from reality.services import operational_cases
+
+    # Pin the unrelated coordination policy to this historical schema version.
+    monkeypatch.setattr(operational_cases, "coordination_enabled", lambda *_: False)
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
     command.upgrade(config, "0119_finance_references")

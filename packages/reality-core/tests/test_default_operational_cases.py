@@ -640,3 +640,57 @@ def test_owned_sandbox_can_read_default_status_without_business_control_rights(
             assert client.get(f"/api/tenants/{tenant}/operational-cases/status").status_code == 401
     finally:
         app.dependency_overrides.clear()
+
+
+def test_explicit_business_rereview_never_rebinds_old_handback_authority(
+    session, business, scheduled_owner
+):
+    from reality.db.operational_cases import CaseProposalLink
+    from reality.services.delivery_actions import (
+        prepare_delivery_action,
+        review_existing,
+    )
+    from reality.services.memberships import Principal
+    from reality.tools.application import approve_and_execute_proposal
+
+    tenant = business.tenant.id
+    promise = order(session, business)
+    core.record_movement(
+        session, tenant, "receipt", business.item.id, "10",
+        to_location_id=business.location.id,
+    )
+    proposal = prepare_delivery_action(
+        session, tenant, "reserve", {"commitment_id": promise.id, "quantity": "1"},
+        request_id="before-handback-review",
+    )
+    old_token = json.loads(proposal.input)["_delivery_review"]["token"]
+    case_id = cases.object_cases(session, tenant, "commitment", promise.id)[0]
+    binding = session.get(CaseProposalLink, (tenant, case_id, proposal.id))
+    assert binding.bound_control_revision == 1
+    actor = Principal(scheduled_owner.id)
+    cases.takeover(
+        session, tenant, case_id, actor, expected_revision=1,
+        request_key="rereview-take", confirmed=True,
+    )
+    handback = cases.handback_preview(session, tenant, case_id)
+    cases.handback(
+        session, tenant, case_id, actor, review_digest=handback["digest"],
+        request_key="rereview-back", confirmed=True,
+    )
+    core.record_movement(
+        session, tenant, "receipt", business.item.id, "1",
+        to_location_id=business.location.id,
+    )
+    renewed = review_existing(session, tenant, proposal.id)
+    token = json.loads(renewed.input)["_delivery_review"]["token"]
+    assert token != old_token
+    assert binding.bound_control_revision == 1
+    assert cases.explain(session, tenant, case_id)["control_revision"] == 3
+    assert case_id in json.loads(renewed.output)["_case_business_review"]
+    with pytest.raises(core.InvalidOperation) as refused:
+        approve_and_execute_proposal(
+            session, tenant, renewed.id, review_token=token, confirmed=True,
+        )
+    assert refused.value.code == "case_action_stale"
+    assert renewed.status == "proposed"
+    assert not list(session.scalars(select(Reservation)))

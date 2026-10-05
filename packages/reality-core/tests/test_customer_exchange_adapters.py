@@ -12,6 +12,7 @@ from reality.cli import app as cli_module
 from reality.db.core import ChangeProposal, CustomerExchange
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, model_tool_schemas
 from reality.services import core
+from reality.services.memberships import Principal
 from reality.tools.application import approve_and_execute_proposal, run_read_tool
 from reality.web import api as api_module
 from reality.web import app as web_module
@@ -99,7 +100,7 @@ def test_the_mcp_proposal_schema_is_strict_and_names_both_return_sides():
     }
 
 
-def test_an_agent_proposes_and_a_person_confirms_the_exchange(session, business):
+def test_an_agent_proposes_and_a_person_confirms_the_exchange(session, business, scheduled_owner):
     commitment, goods_back = returned_goods(session, business)
 
     proposed = MCP_TOOL_REGISTRY["customer_exchange_propose"].handler(
@@ -112,7 +113,8 @@ def test_an_agent_proposes_and_a_person_confirms_the_exchange(session, business)
     )
     token = json.loads(proposal.input)["_delivery_review"]["token"]
     approve_and_execute_proposal(
-        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True,
+        confirming_principal=Principal(scheduled_owner.id),
     )
 
     assert exchanges(session) == 1
@@ -131,8 +133,9 @@ def test_an_agent_proposes_and_a_person_confirms_the_exchange(session, business)
 
 
 def test_the_web_prepares_reviews_confirms_and_reads_an_exchange(
-    session, business, monkeypatch
+    session, business, monkeypatch, scheduled_owner
 ):
+    monkeypatch.setattr(api_module, "optional_request_principal", lambda request: Principal(scheduled_owner.id))
     _, goods_back = returned_goods(session, business)
     factory = sessionmaker(session.bind, expire_on_commit=False)
     monkeypatch.setattr(api_module, "Session", factory)
@@ -191,8 +194,8 @@ def test_the_web_read_does_not_disclose_another_tenants_exchange(
     assert own.status_code == 200, own.text
 
 
-def test_the_cli_reads_proposes_and_confirms_an_exchange(
-    session, business, monkeypatch
+def test_cli_reads_proposes_and_refuses_unobserved_exchange_confirmation(
+    session, business, monkeypatch, scheduled_owner
 ):
     _, goods_back = returned_goods(session, business)
     factory = sessionmaker(session.bind, expire_on_commit=False)
@@ -226,8 +229,18 @@ def test_the_cli_reads_proposes_and_confirms_an_exchange(
             business.tenant.id,
         ],
     )
-    assert confirmed.exit_code == 0, confirmed.output
-    assert json.loads(confirmed.output)["verification"] == "verified"
+    assert confirmed.exit_code != 0
+    assert "supported case" in confirmed.output
+    assert exchanges(session) == 0
+    # --yes is not an observed member. Actual manual confirmation stays available.
+    with factory() as human_session:
+        approve_and_execute_proposal(
+            human_session, business.tenant.id, detail["id"],
+            review_token=detail["review"]["token"], confirmed=True,
+            confirming_principal=Principal(scheduled_owner.id),
+        )
+    session.expire_all()
+    assert exchanges(session) == 1
 
     read = runner.invoke(
         cli_module.app,

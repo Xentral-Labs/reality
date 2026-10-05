@@ -101,9 +101,10 @@ def test_hold_is_tenant_scoped_and_validated(session, business):
     commitment = commitment_for(session, business)
     with pytest.raises(InvalidOperation, match="Unsupported"):
         hold_commitment(session, business.tenant.id, commitment.id, "invented_reason")
-    # Purpose authorization now rejects an absent tenant before record lookup.
-    with pytest.raises(NotFound, match="Company not found"):
+    # Tenant-scoped case locking also refuses an absent company before lookup.
+    with pytest.raises(NotFound) as missing:
         hold_commitment(session, "ten_other", commitment.id, "manual_review")
+    assert missing.value.code == "tenant_not_found"
     from reality.services.core import create_tenant
 
     other = create_tenant(session, "Unrelated business")

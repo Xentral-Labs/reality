@@ -187,6 +187,10 @@ def _prefer_projection(session: Session, tenant_id: str) -> bool:
         select(ScheduledJobRun.job_type)
         .where(
             ScheduledJobRun.tenant_id == tenant_id,
+            # Case catch-up is queued independently of the two alternating
+            # work classes. Counting it would always prefer another projection
+            # and starve due source occurrences during bounded case traversal.
+            ScheduledJobRun.job_type != "operational_cases.reconcile",
         )
         .order_by(ScheduledJobRun.created_at.desc(), ScheduledJobRun.id.desc())
         .limit(1)
