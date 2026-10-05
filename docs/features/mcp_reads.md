@@ -193,3 +193,29 @@ it is null for every partial page, including final cursor pages. Counts refer to
 the matching retained selection at that read, not upstream completeness, Movement
 quantities or Shipment consignments. No extra query or public tool is added.
 See [verification](../../specs/368-payment-evidence-scope/verification.md).
+
+## Executed Decisions by affected order (spec 369)
+
+Use the existing `business_records_discover` tool with `family: "executed_decision"`.
+An optional opaque `document_id` selects a retained sales/purchase order. Selection
+follows exact execution events on that order, its lines, commitments, reservations
+and movements to `BusinessEvent.action_id`. Line membership takes precedence over
+a commitment's document fallback. Several effects of one Decision produce one row.
+Shared human numbers, items, parties, source co-occurrence and JSON text never
+establish membership. Without an order filter, only company-scoped retained executed
+Decision metadata is listed; no affected-order association is claimed.
+
+Records contain opaque `id`/`proposal_id`, tool, executed status, creation/decision
+times, `association_scope`, and callable `review_read: "proposal_review"` and
+`verification_read: "proposal_execution_status"`. Use those existing tools with the
+returned ID to read actual review/receipt and verification; do not repeat execution.
+Raw inputs, outputs, credentials and approval tokens are absent. Discovery grants
+no approval rights and does not bypass the exact readers' own permissions/policies.
+
+Page `metadata.decision_coverage` states that historical completeness is unknown.
+An empty order-filtered result means no matching retained exact execution event,
+not that no historical action affected the order. Pending, rejected, failed and
+executing Decisions are outside this family. Events without an action do not invent
+Decisions. Page and bounded legacy shapes, cursor filters and existing permissions
+are preserved. No schema, business write, extra report command or browser is needed.
+See [spec 369](../../specs/369-business-decision-discovery/spec.md).

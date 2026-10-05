@@ -497,3 +497,73 @@ def test_http_existing_tools_expose_evidence_boundaries(session, business, monke
         b["blocker_kind"] == "derived_readiness_condition"
         for b in values["fulfillment_blockers"]["records"]
     )
+
+
+def test_http_executed_decision_discovery_uses_existing_read_grant(
+    session, business, monkeypatch
+):
+    from test_business_decision_discovery import executed_reservation
+
+    from reality.mcp import server as server_module
+
+    document, _, proposal = executed_reservation(session, business)
+    factory = sessionmaker(
+        session.bind, expire_on_commit=False, join_transaction_mode="create_savepoint"
+    )
+    monkeypatch.setattr(server_module, "Session", factory)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    _, allowed = create_mcp_access_token(
+        session,
+        business.tenant.id,
+        "Discovery reader",
+        allowed_tools=["business_records_discover"],
+    )
+    _, denied = create_mcp_access_token(
+        session, business.tenant.id, "Context reader", allowed_tools=["company_context"]
+    )
+    runtime = create_mcp_app(
+        settings=MCPRuntimeSettings(
+            public_url="http://localhost:8001/", bind_host="127.0.0.1", bind_port=8001
+        ),
+        session_factory=factory,
+    )
+    with TestClient(runtime) as client:
+
+        def call(token, name, arguments):
+            return client.post(
+                "/",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json, text/event-stream",
+                    "Host": "localhost:8001",
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/call",
+                    "params": {"name": name, "arguments": arguments},
+                },
+            )
+
+        arguments = {"family": "executed_decision", "document_id": document.id}
+        response = call(allowed, "business_records_discover", arguments)
+        assert response.status_code == 200
+        result = response.json()["result"]
+        assert not result.get("isError", False)
+        value = json.loads(result["content"][0]["text"])
+        assert value["records"][0]["proposal_id"] == proposal.id
+        assert (
+            value["metadata"]["decision_coverage"]["historical_completeness"]
+            == "unknown"
+        )
+        for token, name, args in [
+            (denied, "business_records_discover", arguments),
+            (
+                allowed,
+                "proposal_execute",
+                {"proposal_id": proposal.id, "confirmed": True},
+            ),
+        ]:
+            refused = call(token, name, args)
+            assert refused.status_code == 200
+            assert refused.json()["result"]["isError"] is True

@@ -2664,3 +2664,10 @@ no Finance-allocation expansion, new scheduling, deployment or third-party right
 | `packages/reality-core/tests/test_prepayment_release.py` | Spec 368 FR-002 | Actual owner release retains unpaid qualifying amount |
 | `packages/reality-core/tests/test_shipment_actions.py` | Spec 368 FR-003 | Review token and raw payload compatibility |
 | `packages/reality-core/tests/test_mcp_read_contract.py` | Spec 368 FR-004 | Limited/final/complete/empty retained selection counts |
+
+## Spec 369: Executed Decisions by affected order
+
+| Test family | Contract | Evidence |
+|---|---|---|
+| `packages/reality-core/tests/test_business_decision_discovery.py` | Spec 369 FR-001–004 | Exact effect association, deduplication, shortest links, tenant collisions, pages/legacy, payload privacy, zero writes and existing verification follow-up |
+| `packages/reality-core/tests/test_mcp_http_runtime.py` | Spec 369 FR-003,DR-001 | Authenticated typed discovery and existing read/execute grant boundaries |
