@@ -24,7 +24,7 @@
 ## Story 4: simulator and public contract
 
 - [x] T010 Update supplied simulator LIVE/README, regression and spec376 FR-019, durable/Web/public guides and generated docs (FR-009,011). External-runner and multi-day gates stay pending.
-- [ ] T011 Run required full backend/migration/Web/browser/localization/docs/spec checks, review diff and record exact evidence before PR (FR-001–011; SC-001–004).
+- [x] T011 Run required full backend/migration/Web/browser/localization/docs/spec checks, review diff and record exact evidence before PR (FR-001–011; SC-001–004).
 
 ## Dependencies and traceability
 

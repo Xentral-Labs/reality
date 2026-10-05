@@ -37,7 +37,9 @@ Specification and handoff imported from `feat/company-reference-simulator`.
   using actual `started_at` history, with bounded per-class candidates and locked-row
   fallback. New enqueue is not a claim. Future retries and unresolved runs remain
   excluded; expired leases retain their run identity, attempts and fencing token rules.
-- Queue/worker/case/migration checks passed 25 tests. A fresh run passed all three
+- Complete shared scheduler/worker/recovery/projection/case checks passed 73 tests
+  on the final implementation. Queue/worker/case/migration checks passed 25 tests.
+  A fresh run passed all three
   fairness regressions, the annotation audit and both credit-graph checks (6 total).
 - Fresh full migration roundtrip/populated downgrade proof and ten real demo-worker
   occurrences passed (2 tests). The partial claim-history index is verified against
@@ -54,11 +56,14 @@ Specification and handoff imported from `feat/company-reference-simulator`.
   item: 4,866 passed, 2 skipped, 44 failed and 7 errors. Workers had loaded earlier
   source versions; all discovered failures were corrected and rechecked in targeted
   runs. These are broad execution evidence, not a claim of one green full-suite run.
-- Current CI at `0ae677c8`: backend shards 0, 2 and 3 passed; shard 1 failed solely
-  on the fixed month's exact exception story. Installer, specification, documentation,
-  frontend, all seven fixture-browser shards and eight live journeys passed; live
-  company setup failed on source starvation. Both remaining failures are fixed above.
-  A fresh complete CI run is required before T011/acceptance completion.
+- Complete implementation CI at `f88c6b6b73464ac089e26173f5fd1d9899bd5325` passed:
+  [Quality gates run 37380117375](https://github.com/Xentral-Labs/reality/actions/runs/37380117375)
+  and [Installer run 37380117269](https://github.com/Xentral-Labs/reality/actions/runs/37380117269).
+  All four backend shards and the aggregate passed: 6,489 passing tests and 11 skips
+  across the shards. Spec policy, documentation, frontend/localization, all seven
+  fixture-browser shards and all nine live-browser journeys passed, including actual
+  company setup and the full business journey. Earlier month-story and source-starvation
+  failures are resolved without weakening their assertions.
 - All 87 fixture browser scripts are covered: 83 passed in the full local run and
   four local environment failures passed on repeat. Default-case takeover/handback
   and current action discovery passed. Local harness supplies installed Chromium,
@@ -72,10 +77,20 @@ Specification and handoff imported from `feat/company-reference-simulator`.
   Annotation coverage has zero missing roots or approved described tests. The fresh
   migration and reduced-load demo repeat passed without changing production settings.
 
-## Remaining gates
+## Final review and remaining integration gates
 
-T011 remains unchecked until the complete final PR CI is green and diff review is
-recorded. Simulator runtime stays on its separate branch; the supplied integration
+Independent final read-only review of `f88c6b6b` found no material defects in claim
+fairness, the index/migration, the narrow fixture scope or their regressions.
+The current backend collection contains 6,499 tests.
+
+T011 is complete against the implementation commit above. Final diff/whitespace and
+spec-policy checks passed; independent review found no material defects. The completion
+commit updates only this evidence, task status and specification status, with no runtime,
+migration, test or public/generated documentation changes. Its spec-policy and whitespace
+checks also pass. GitHub may rerun the unchanged implementation after that evidence commit;
+the green full run above identifies the exact tested code.
+
+Simulator runtime stays on its separate branch; the supplied integration
 regression explicitly skips when `reality.services.live_company` is absent.
 External-runner and multi-day capacity gates remain pending under FR-009. This PR
 makes no production deployment or external simulator acceptance claim.
