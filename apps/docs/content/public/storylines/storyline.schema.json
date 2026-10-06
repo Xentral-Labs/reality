@@ -23,9 +23,7 @@
           "title": "Contact"
         }
       },
-      "required": [
-        "name"
-      ],
+      "required": ["name"],
       "title": "Author",
       "type": "object"
     },
@@ -51,11 +49,7 @@
           "title": "Default"
         }
       },
-      "required": [
-        "key",
-        "label",
-        "next"
-      ],
+      "required": ["key", "label", "next"],
       "title": "Branch",
       "type": "object"
     },
@@ -102,11 +96,7 @@
         },
         "kind": {
           "default": "command",
-          "enum": [
-            "command",
-            "read",
-            "unsupported"
-          ],
+          "enum": ["command", "read", "unsupported"],
           "title": "Kind",
           "type": "string"
         },
@@ -195,12 +185,7 @@
           "title": "Reason"
         }
       },
-      "required": [
-        "key",
-        "title",
-        "situation",
-        "explain"
-      ],
+      "required": ["key", "title", "situation", "explain"],
       "title": "Chapter",
       "type": "object"
     },
@@ -233,9 +218,7 @@
           "title": "Field"
         }
       },
-      "required": [
-        "tool"
-      ],
+      "required": ["tool"],
       "title": "ContextRead",
       "type": "object"
     },
@@ -307,9 +290,7 @@
           "title": "As"
         }
       },
-      "required": [
-        "command"
-      ],
+      "required": ["command"],
       "title": "HistoryEntry",
       "type": "object"
     },
@@ -329,10 +310,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "record_type",
-        "from"
-      ],
+      "required": ["record_type", "from"],
       "title": "Primary",
       "type": "object"
     },
@@ -351,9 +329,7 @@
           "type": "object"
         }
       },
-      "required": [
-        "tool"
-      ],
+      "required": ["tool"],
       "title": "Read",
       "type": "object"
     },
@@ -422,11 +398,7 @@
           "type": "array"
         }
       },
-      "required": [
-        "parties",
-        "items",
-        "locations"
-      ],
+      "required": ["parties", "items", "locations"],
       "title": "Seed",
       "type": "object"
     },
@@ -472,10 +444,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "sku",
-        "name"
-      ],
+      "required": ["sku", "name"],
       "title": "SeedItem",
       "type": "object"
     },
@@ -489,9 +458,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "name"
-      ],
+      "required": ["name"],
       "title": "SeedLocation",
       "type": "object"
     },
@@ -499,10 +466,7 @@
       "additionalProperties": false,
       "properties": {
         "role": {
-          "enum": [
-            "customer",
-            "supplier"
-          ],
+          "enum": ["customer", "supplier"],
           "title": "Role",
           "type": "string"
         },
@@ -525,10 +489,7 @@
           "title": "Payment Term"
         }
       },
-      "required": [
-        "role",
-        "name"
-      ],
+      "required": ["role", "name"],
       "title": "SeedParty",
       "type": "object"
     },
@@ -588,10 +549,7 @@
           "title": "Discount Days"
         }
       },
-      "required": [
-        "code",
-        "days"
-      ],
+      "required": ["code", "days"],
       "title": "SeedTerm",
       "type": "object"
     },
@@ -726,15 +684,7 @@
       "type": "boolean"
     }
   },
-  "required": [
-    "storyline",
-    "key",
-    "version",
-    "title",
-    "summary",
-    "seed",
-    "chapters"
-  ],
+  "required": ["storyline", "key", "version", "title", "summary", "seed", "chapters"],
   "title": "Reality storyline package",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
