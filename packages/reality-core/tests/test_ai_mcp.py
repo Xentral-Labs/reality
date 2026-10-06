@@ -569,9 +569,17 @@ def test_canonical_schema_contract_keeps_required_enums_and_nested_shapes():
     }
     assert set(free_invoice["properties"]["lines"]["items"]["required"]) == {
         "quantity",
-        "unit_price",
         "gross_amount",
     }
+    for tool in (
+        "order_create_propose",
+        "document_create_propose",
+        "supplier_invoice_free_record_propose",
+    ):
+        line = definitions[tool].input_schema["properties"]["lines"]["items"]
+        assert "unit_price" not in line["required"]
+        assert line["properties"]["unit_price"]["type"] == "string"
+        assert "Omit or leave blank" in line["properties"]["unit_price"]["description"]
     credit = definitions["sales_credit_record_propose"].input_schema
     assert set(credit["properties"]["lines"]["items"]["required"]) == {
         "invoice_line_id",
