@@ -239,7 +239,6 @@ def operations_cockpit(
         return {
             "observed_at": shipping["observed_at"],
             "shipping": shipping,
-            "flows": operating_flows.observe(snapshot, tenant_id),
             "supported_cases": supported,
             "deviations": deviations,
             "deviation_total": len(affected),
@@ -323,7 +322,10 @@ def activity(
         session,
         tenant_id,
         principal,
-        lambda snapshot: activity_volume.rolling(snapshot, tenant_id, minutes=minutes),
+        lambda snapshot: {
+            **activity_volume.rolling(snapshot, tenant_id, minutes=minutes),
+            "flows": operating_flows.observe(snapshot, tenant_id),
+        },
         observation_key=_observation_key("activity", {"minutes": minutes}),
     )
 

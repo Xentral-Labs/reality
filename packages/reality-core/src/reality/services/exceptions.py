@@ -5617,11 +5617,16 @@ def operational_exceptions(
     if unknown:
         raise ValueError(f"Unknown operational exception class: {unknown[0]}")
     with _exception_input_scope(session, tenant_id):
-        rows = (
-            _commitment_exceptions(session, tenant_id, instant)
-            if wanted & commitment_classes
-            else []
-        )
+        if wanted & commitment_classes:
+            if session.info.get("operations_snapshot_consistent"):
+                with _exception_input_scope(
+                    session, tenant_id, open_commitments_only=True
+                ):
+                    rows = _commitment_exceptions(session, tenant_id, instant)
+            else:
+                rows = _commitment_exceptions(session, tenant_id, instant)
+        else:
+            rows = []
         rows = [row for row in rows if row.class_id in wanted]
         rows.extend(
             row

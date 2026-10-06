@@ -32,7 +32,7 @@ from reality.db.core import (
     build_engine,
 )
 from reality.db.operational_cases import OperationalCase
-from reality.services import core, operations_cockpit
+from reality.services import core, operations_cockpit, shipping_performance
 from reality.services.memberships import Principal
 from reality.tools.application import (
     approve_and_execute_proposal,
@@ -74,6 +74,17 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
     engine, factory, tenant, owner = enterprise_database
     monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     observed = datetime.now(UTC)
+    # Canonical setup takes minutes; late-day elapsed setup must not consume the
+    # scenario's capacity. Pin only its explicit business observation instant.
+    # Latency/cadence still use real monotonic time and actual concurrent commits.
+    shipping_read = shipping_performance._read_shipping
+
+    def observe_fixture_shipping(*args, **kwargs):
+        return shipping_read(*args, **{**kwargs, "observed_at": observed})
+
+    monkeypatch.setattr(
+        shipping_performance, "_read_shipping", observe_fixture_shipping
+    )
     day = observed.date().isoformat()
     start = observed.replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=1)

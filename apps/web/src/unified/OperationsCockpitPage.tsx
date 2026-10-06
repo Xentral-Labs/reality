@@ -29,6 +29,10 @@ export function OperationsCockpitPage({
   const state = useCockpitLiveRead(`${selection.tenant}:${day}:${location}`, (signal) =>
     cockpitApi.overview(selection.tenant, day, location, signal),
   );
+  const minutes = selection.cockpitMinutes || 15;
+  const activityState = useCockpitLiveRead(`${selection.tenant}:activity:${minutes}`, (signal) =>
+    cockpitApi.activity(selection.tenant, minutes, signal),
+  );
   const value = state.data?.shipping;
   useEffect(() => {
     setInspection(null);
@@ -38,8 +42,8 @@ export function OperationsCockpitPage({
     if (value && !location) setSites(value.sites);
   }, [value, location]);
   useEffect(() => {
-    if (state.status === "denied") navigate({ route: "home" });
-  }, [state.status, navigate]);
+    if (state.status === "denied" || activityState.status === "denied") navigate({ route: "home" });
+  }, [state.status, activityState.status, navigate]);
   const inspect = (measure: ShippingMeasure, at?: string) => {
     inspectionTrigger.current =
       document.activeElement instanceof HTMLElement || document.activeElement instanceof SVGElement
@@ -135,7 +139,10 @@ export function OperationsCockpitPage({
       {!value && !state.error && <ReadState loading rows={7} />}
       {value && (
         <>
-          <OperatingStatusPanel value={state.data?.flows} stale={state.status !== "current"} />
+          <OperatingStatusPanel
+            value={activityState.data?.flows}
+            stale={activityState.status !== "current"}
+          />
           <OperationalCaseRegister
             key={selection.tenant}
             selection={selection}
@@ -159,12 +166,13 @@ export function OperationsCockpitPage({
             />
           )}
           <OperatingFlowsPanel
-            value={state.data?.flows}
+            value={activityState.data?.flows}
             selection={selection}
-            stale={state.status !== "current"}
+            stale={activityState.status !== "current"}
           />
           <div className="cockpit-live-grid">
             <OperationsActivityPanel
+              state={activityState}
               key={selection.tenant}
               selection={selection}
               navigate={navigate}

@@ -222,48 +222,78 @@ def observe(
         key: [row for row in findings if row.class_id in classes]
         for key, classes in CLASSES.items()
     }
-    commitments = list(
-        session.scalars(
-            select(Commitment)
+    if session.info.get("operations_snapshot_consistent"):
+        from reality.services.delivery_reads import _fulfillment_cohort
+
+        cohort = _fulfillment_cohort(tenant_id).subquery()
+        commitments = session.execute(
+            select(cohort)
             .where(
-                Commitment.tenant_id == tenant_id,
-                Commitment.status != "cancelled",
-                Commitment.type.in_(["customer_delivery", "supplier_delivery"]),
+                (cohort.c.open > 0)
+                | (
+                    (cohort.c.type == "supplier_delivery")
+                    & (cohort.c.open == 0)
+                    & (cohort.c.fulfilled > 0)
+                )
             )
-            .order_by(Commitment.created_at, Commitment.id)
+            .order_by(cohort.c.created_at, cohort.c.id)
+        ).all()
+        work = [r for r in commitments if r.open > 0]
+        outgoing = [r for r in work if r.type == "customer_delivery"]
+        incoming = [r for r in work if r.type == "supplier_delivery"]
+        received = [
+            r
+            for r in commitments
+            if r.type == "supplier_delivery" and r.open == 0 and r.fulfilled > 0
+        ]
+        received_lines = len(received)
+        supply_preview = incoming[:4] or received[:4]
+    else:
+        commitments = list(
+            session.scalars(
+                select(Commitment)
+                .where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.status != "cancelled",
+                    Commitment.type.in_(["customer_delivery", "supplier_delivery"]),
+                )
+                .order_by(Commitment.created_at, Commitment.id)
+            )
         )
-    )
-    terms = core.commitment_terms(
-        session,
-        tenant_id,
-        [c.id for c in commitments],
-        _commitments={c.id: c for c in commitments},
-    )
-    work = [
-        SimpleNamespace(
-            id=c.id, type=c.type, document_id=c.document_id, due_at=terms[c.id].due_at
+        terms = core.commitment_terms(
+            session,
+            tenant_id,
+            [c.id for c in commitments],
+            _commitments={c.id: c for c in commitments},
         )
-        for c in commitments
-        if terms[c.id].open > 0
-    ]
-    outgoing = [r for r in work if r.type == "customer_delivery"]
-    incoming = [r for r in work if r.type == "supplier_delivery"]
-    received_lines = sum(
-        c.type == "supplier_delivery"
-        and terms[c.id].open == 0
-        and terms[c.id].fulfilled > 0
-        for c in commitments
-    )
-    supply_preview = (
-        incoming[:4]
-        or [
-            c
+        work = [
+            SimpleNamespace(
+                id=c.id,
+                type=c.type,
+                document_id=c.document_id,
+                due_at=terms[c.id].due_at,
+            )
             for c in commitments
-            if c.type == "supplier_delivery"
+            if terms[c.id].open > 0
+        ]
+        outgoing = [r for r in work if r.type == "customer_delivery"]
+        incoming = [r for r in work if r.type == "supplier_delivery"]
+        received_lines = sum(
+            c.type == "supplier_delivery"
             and terms[c.id].open == 0
             and terms[c.id].fulfilled > 0
-        ][:4]
-    )
+            for c in commitments
+        )
+        supply_preview = (
+            incoming[:4]
+            or [
+                c
+                for c in commitments
+                if c.type == "supplier_delivery"
+                and terms[c.id].open == 0
+                and terms[c.id].fulfilled > 0
+            ][:4]
+        )
     supply_labels = dict(
         session.execute(
             select(Document.id, Document.number).where(

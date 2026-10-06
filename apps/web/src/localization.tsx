@@ -29239,6 +29239,8 @@ Object.assign(dictionaries.de, {
   "Shipping performance": "Versandleistung",
   "Shipping plan": "Versandplan",
   "Confirmed handovers": "Bestätigte Übergaben",
+  "Five-minute chart intervals · every order included":
+    "Fünf-Minuten-Intervalle · alle Aufträge berücksichtigt",
   "Future forecast": "Prognose ab jetzt",
 });
 
@@ -29299,6 +29301,8 @@ Object.assign(dictionaries.nl, {
   "Shipping performance": "Verzendprestaties",
   "Shipping plan": "Verzendplanning",
   "Confirmed handovers": "Bevestigde overdrachten",
+  "Five-minute chart intervals · every order included":
+    "Intervallen van vijf minuten · elke order inbegrepen",
   "Future forecast": "Prognose vanaf nu",
 });
 
@@ -29359,6 +29363,8 @@ Object.assign(dictionaries.es, {
   "Shipping performance": "Rendimiento de envíos",
   "Shipping plan": "Plan de envío",
   "Confirmed handovers": "Entregas confirmadas",
+  "Five-minute chart intervals · every order included":
+    "Intervalos de cinco minutos · todos los pedidos incluidos",
   "Future forecast": "Previsión futura",
 });
 

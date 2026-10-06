@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+from bisect import bisect_right
 from collections import defaultdict
 from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
@@ -57,6 +58,16 @@ def _series(times: dict, start: datetime, end: datetime) -> list[dict]:
         if start <= instant <= end:
             grouped[instant] += 1
     result = [{"at": start.isoformat(), "count": opening}]
+    if len(grouped) > 300:
+        ordered = sorted(times.values())
+        result.append({"at": start.isoformat(), "count": bisect_right(ordered, start)})
+        instant = start
+        while instant < end:
+            instant = min(instant + timedelta(minutes=5), end)
+            result.append(
+                {"at": instant.isoformat(), "count": bisect_right(ordered, instant)}
+            )
+        return result
     count = opening
     for instant, amount in sorted(grouped.items()):
         count += amount
@@ -719,6 +730,17 @@ def _read_shipping(
             if totals["forecast"] is not None
             else None,
         },
+    }
+    snapshot["series_resolution_seconds"] = {
+        name: 300
+        if snapshot["series"][name] is not None
+        and len({value for value in values.values() if first <= value <= last}) > 300
+        else 0
+        for name, values, first, last in (
+            ("plan", result["planned_times"], start, end),
+            ("handover", result["actual_times"], start, min(instant, end)),
+            ("forecast", result["forecast_times"], instant, end),
+        )
     }
     documents = (
         documents

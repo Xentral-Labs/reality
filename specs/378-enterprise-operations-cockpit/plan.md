@@ -303,3 +303,41 @@ Preserve the five canonical service signals and signalLabels. Group attention/pr
 ## PR enterprise action projection refinement (SC-004, T036)
 
 The integrated full workload now contains canonical shared planning actions, and exposes excessive original action payload transfer on a bounded page. Refine only the existing snapshot-owned explanation-input holder: select bounded link identities first, deduplicate action/control identities, defer unused invocation input and load original proposed-review output once per action. Project exact recorded-result availability from the stored text for terminal action metadata. Preserve scalar explanation parity, per-case frozen business-review checks, source/control attribution, complete executing totals, limits and tenant scope; ordinary and mutating callers retain their original path. No input survives DTO assembly and no derived authority is stored. Spec impact: none; an equivalent read projection restores the existing SC-004 workload bound. Constitution Check PASS; no new schema, policy, case family, execution mandate, cache or scheduler. Tests first: shared large executed/proposed action regression plus existing scalar/batched parity, privacy/limit and 55-query budget; full unchanged enterprise/continuous-workload and CI gates follow. Review: no unresolved clarification or CRITICAL semantic finding.
+
+The enterprise profile pins the canonical shipping reader's existing explicit
+observation instant to fixture capture. Otherwise late-day setup can consume the
+window's spare slots before measurement. Actual latency/cadence/change-visibility
+use real monotonic time and real concurrent commits; business totals, query
+budgets, distributions and limits are unchanged. This test-only clock correction
+restores the declared scenario, not a forecast rule.
+
+The measured profile attributes the remaining read cost to historical ORM
+materialization in operating flows and exception inputs. Refine only clean
+cockpit snapshots: use the canonical delivery SQL expressions for complete
+open/supplier-received cohorts, and scope the commitment exception inputs to
+the exact open promises that its derivator evaluates. Other exception classes
+retain separate original scopes, and ordinary callers retain ORM semantics.
+Test scalar/snapshot full DTO parity and absence of historical promise ORM
+materialization first; then rerun unchanged enterprise and full CI gates.
+Spec impact: none; equivalent read projections only. Constitution Check PASS.
+No new rule, schema, retained cache, case family or mutation authority.
+
+Measured shipping/site reads currently repeat independent company-wide flows.
+Place those flows in the existing authorized activity snapshot instead, and lift
+its existing UI lifecycle to the page to serve status, flow and activity panels.
+Retain four read lifecycles, current timestamps, stale/access isolation, filter
+separation and stable child investigation state. No timer/endpoint/schema/rule or
+cache is added. FR-033/contracts now explicitly define the observation boundary.
+Test activity flow authority/absence from shipping first, then fixture/all-day
+UI and unchanged four-read enterprise cadence. Constitution PASS; no unresolved
+clarification or critical review conflict.
+
+The full forecast currently transports one point per completion slot (10,000 in
+the declared profile). FR-023 now makes the bounded daily curve explicit: keep
+small exact-event series; aggregate dense series into exact cumulative counts
+at five-minute boundaries, including endpoints, and disclose resolution. Count
+every source-backed order before projection; retain full fingerprint and exact
+supporting-order/evidence readers. This is chart aggregation, not cohort sampling
+or invented handover times. Test independent dense-series counts, duplicate
+times/opening/end/out-of-window behavior before implementation. Constitution
+PASS; no business rule/schema/authority/cache change or unresolved clarification.
