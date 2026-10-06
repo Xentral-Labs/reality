@@ -177,12 +177,19 @@ def test_acceptance_ensures_case_and_event_replay_is_idempotent(
     ]
 
 
-def test_legacy_activation_does_not_reset_default_order_case(session, business, scheduled_owner):
+def test_legacy_activation_does_not_reset_default_order_case(
+    session, business, scheduled_owner
+):
     commitment = order(session, business)
-    original = cases.object_cases(session, business.tenant.id, "commitment", commitment.id)
+    original = cases.object_cases(
+        session, business.tenant.id, "commitment", commitment.id
+    )
     activate(session, business, scheduled_owner)
     assert len(original) == 1
-    assert cases.object_cases(session, business.tenant.id, "commitment", commitment.id) == original
+    assert (
+        cases.object_cases(session, business.tenant.id, "commitment", commitment.id)
+        == original
+    )
 
 
 def test_takeover_blocks_direct_automation_but_allows_human_repair(
@@ -536,6 +543,7 @@ def test_snapshot_register_batches_original_inputs_without_losing_case_evidence(
             row["commitment_id"],
             reason="Customer cancellation",
         )
+    action_time = now()
     for index in range(52):
         action = ChangeProposal(
             id=f"batch_action_{index:03}",
@@ -544,7 +552,9 @@ def test_snapshot_register_batches_original_inputs_without_losing_case_evidence(
             input="{}",
             output="{}",
             status="proposed" if index == 0 else "executing",
-            created_at=now() + timedelta(seconds=1) if index == 0 else now(),
+            created_at=action_time + timedelta(seconds=1)
+            if index == 0
+            else action_time,
         )
         session.add(action)
         session.flush()
@@ -671,7 +681,9 @@ def test_case_explanation_inputs_never_cross_company_or_override_other_read_limi
     )
 
 
-def test_register_exposes_default_cases_without_creating_legacy_adoption(session, business):
+def test_register_exposes_default_cases_without_creating_legacy_adoption(
+    session, business
+):
     # BUSINESS PURPOSE: Control Tower must show current accepted work without owner activation.
     # BUSINESS RULE: Reads preserve platform coordination and do not adopt history or emit events.
     from reality.db.core import BusinessEvent
