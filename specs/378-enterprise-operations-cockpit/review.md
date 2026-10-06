@@ -495,3 +495,10 @@ duplicate shipping register pass. First cold read, all four live request types,
 480 requests/twelve real canonical writes, volumes and every latency/query limit
 remain unchanged. Lint/spec/annotations and generated references pass. No UI
 code changed, no target was raised and no real-time/pilot gate is closed.
+
+SC-004 requires reported hardware and cold/warm measurements. Retain the
+existing exact printed JSON measurements as JUnit properties for successful and
+failing CI runs, including every live epoch and final visibility; normal pytest
+capture otherwise omits passing measurements. This changes only verification
+artifact reporting, not product behavior, scenario data, time or acceptance.
+Spec impact: none; no additional business authority or Constitution exception.
