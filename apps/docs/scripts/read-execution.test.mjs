@@ -17,11 +17,12 @@ test("every catalog read describes its actual execution mode", () => {
       assert.ok(model.read_mode_definitions[read.mode], row.id);
     }
   }
+  assert.equal(entry("projection:business_performance").read_modes[0].mode, "stored");
   assert.equal(entry("projection:price_resolution").read_modes[0].mode, "parameterized");
   assert.equal(
     model.entries.filter((e) => e.kind === "projection" && e.read_modes[0].mode === "stored")
       .length,
-    12,
+    13,
   );
 });
 

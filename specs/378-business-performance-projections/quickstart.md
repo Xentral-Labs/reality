@@ -13,7 +13,7 @@ Current evidence:
 - `make web-build` passed formatting, 463 Web tests, all four localization audits (2865/2865 keys), TypeScript and Vite. Vite reports the existing large-bundle warning.
 - Chromium Business proof passes existing counts/dialogs/Inspector/inert correspondence/stale retention/mobile/read-only behavior plus order/mail cursor paging, filter reset, delayed/failed processing and unavailable cold rebuild.
 - `make spec-check lint business-annotations-check` passes (650 described functions, 115 described tests, no outstanding annotation preparation).
-- Generated catalogs are refreshed; `make docs-catalog-check` will run after generated output is committed.
+- `make docs-catalog-check` passes reproducibility against the committed generated output. Documentation formatting, all 145 contract tests and VitePress build pass after updating the two catalog-count expectations.
 - Synthetic read/rebuild/shared-role measurements, raw results and the million-order plan are in [benchmark.md](benchmark.md). Final 10,000-order read p95 is 186.92 ms; short shared-role booking lag remains above ten seconds. Sustained simultaneous bookings/viewers and million-order capacity are open acceptance items.
 
 No deployment or real company data was touched. SC-004 remains open; this is a draft follow-up for review. Do not mark completion/release gates green while required checks remain pending. Interrupted early full-suite attempts are not passing verification. A parallel migration-fixture run exhausted the disposable PostgreSQL default lock table; the final four-worker run uses max_locks_per_transaction=512 in the local test container only. Benchmark measurements used its earlier default 64. Final full regression results will replace this pending entry.

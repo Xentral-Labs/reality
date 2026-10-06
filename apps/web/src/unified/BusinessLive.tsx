@@ -181,6 +181,14 @@ export function BusinessLive({ tenant }: { tenant: string }) {
         <p role="status">
           {t("Business data is delayed.")} {t("Business metrics are not available yet.")}
         </p>
+        <p>
+          {t("Processed events")}: {formatNumber(data.processing.processed_event_sequence ?? 0)} /{" "}
+          {formatNumber(data.processing.target_event_sequence)}
+        </p>
+        {data.processing.state === "failed" && (
+          <p role="status">{t("Business processing failed.")}</p>
+        )}
+        {failed && <p role="status">{t("Business data could not be loaded.")}</p>}
         {data.processing.rebuild && (
           <p>
             {t("Rebuilding")}: {formatNumber(data.processing.rebuild.rows)}
