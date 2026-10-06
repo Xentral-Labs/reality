@@ -67,10 +67,15 @@ def enterprise_database(scheduled_database):
 
 
 def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency(
-    enterprise_database, monkeypatch
+    enterprise_database, monkeypatch, record_property
 ):
     # BUSINESS PURPOSE: Enterprise claims require measured complete observations, not a small fixture screenshot.
     # BUSINESS RULE: Ten fresh observers retain independent semantic totals and see an actual committed change.
+    def report(value: str, *, flush: bool = False) -> None:
+        """Retain actual passing/failing measurements in the CI review artifact."""
+        print(value, flush=flush)
+        record_property("enterprise_profile_measurement", value)
+
     engine, factory, tenant, owner = enterprise_database
     monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     observed = datetime.now(UTC)
@@ -479,7 +484,7 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
         Path("/private/tmp/reality-378-cold-query-plans.json").write_text(
             json.dumps(plans, indent=2)
         )
-    print(
+    report(
         json.dumps(
             {
                 "cold_seconds": cold,
@@ -512,7 +517,7 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
         assert changed["shipping"]["totals"]["forecast"] == 9999
     commit_to_observation = time.monotonic() - before
     p95 = sorted(samples)[math.ceil(len(samples) * 0.95) - 1]
-    print(
+    report(
         json.dumps(
             {
                 "hardware": platform.platform(),
@@ -627,7 +632,7 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
             write_samples.append(write_elapsed)
             elapsed = time.monotonic() - cycle_started
             cycle_samples.append(elapsed)
-            print(
+            report(
                 json.dumps(
                     {
                         "epoch": epoch,
@@ -653,7 +658,7 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
     final_visibility = time.monotonic() - last_commit_at
     assert final_visibility <= 10, final_visibility
     live_p95 = sorted(live_samples)[math.ceil(len(live_samples) * 0.95) - 1]
-    print(
+    report(
         json.dumps(
             {
                 "live_seconds": 60,

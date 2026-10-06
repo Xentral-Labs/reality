@@ -391,3 +391,10 @@ many-current-risk bounded-query regression; no findings or source links change.
 Case-linked shipping deviations also reuse the existing bounded original-action
 projection for their at-most-50 exact cases, and then preserve their existing
 six-action presentation limit. Constitution PASS; equivalent reads only.
+
+SC-004 requires reported hardware and cold/warm measurements. Retain the
+existing exact printed JSON measurements as JUnit properties for successful and
+failing CI runs, including every live epoch and final visibility; normal pytest
+capture otherwise omits passing measurements. This changes only verification
+artifact reporting, not product behavior, scenario data, time or acceptance.
+Spec impact: none; no additional business authority or Constitution exception.
