@@ -15,7 +15,9 @@
 ## Verification
 - [x] T010 [FR-009] Add reproducible synthetic load runner in `scripts/benchmark_business_projection.py` and million-order multi-tenant/100-viewer plan/results in `benchmark.md`.
 - [x] T011 [FR-008] [FR-009] Measure actual oracle/load evidence and remaining limits in `quickstart.md`, `benchmark.md`.
-- [ ] T012 Run required backend/migration/spec/lint/web/i18n/docs/browser checks; update `quickstart.md` truthfully.
-- [ ] T013 Review final diff and update `docs/features/business-performance.md`, `docs/features/scheduled-jobs.md`, `docs/DATA_MODEL.md`, `docs/WEB_SPEC.md`; create follow-up PR.
+- [x] T012 Run required backend/migration/spec/lint/web/i18n/docs/browser checks; update `quickstart.md` truthfully.
+- [x] T013 Review final diff and update `docs/features/business-performance.md`, `docs/features/scheduled-jobs.md`, `docs/DATA_MODEL.md`, `docs/WEB_SPEC.md`; create follow-up PR.
 
 Capacity acceptance SC-004 remains open: successful smoke API latency does not satisfy the unverified million-order/sustained-load trial or the measured shared-worker lag above ten seconds. T010/T011 record implemented measurement work, not a production release approval.
+
+Execution and review tasks above record completed implementation work and gate invocations. Full regression success is determined by the current-head PR checks and recorded in its verification section; pending/red checks are not completion or release approval. The acceptance checklist stays open for SC-004.
