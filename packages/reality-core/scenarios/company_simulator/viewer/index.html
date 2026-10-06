@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Company simulator · Spectator</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><div><strong>Company simulator</strong><span>Watch the business unfold</span></div></div>
+    <div class="run-controls"><label for="run">Simulation run</label><select id="run"><option value="">Loading runs…</option></select><button id="refresh" type="button">Refresh</button></div>
+  </header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">THE OBSERVATION ROOM</p><h1>A company, one day at a time.</h1><p>Follow the customers, the suppliers and the decisions in between.</p></div><div class="local-note"><span class="dot"></span>Local simulation<span>Read-only spectator</span></div></section>
+    <div id="notice" role="status" aria-live="polite"></div>
+    <section id="status" class="stats" aria-label="Run status"></section>
+    <div class="workspace">
+      <section class="activity-panel">
+        <div class="panel-heading"><div><p class="eyebrow">WHAT HAPPENED</p><h2 id="activity-heading">Company timeline</h2></div><span id="activity-count" class="subtle"></span></div>
+        <nav class="tabs" aria-label="Observation view"><button type="button" data-view="company" aria-pressed="true">Company timeline</button><button type="button" data-view="customer" aria-pressed="false">Customers</button><button type="button" data-view="supplier" aria-pressed="false">Suppliers</button></nav>
+        <div id="party-filter" hidden><label for="party">Business partner</label><select id="party"></select></div>
+        <div id="view-note" class="view-note"></div>
+        <div id="activity"></div>
+      </section>
+      <aside id="insights" aria-label="Checkpoint and business coverage"></aside>
+    </div>
+    <footer><span id="updated">Waiting for journals</span><span>Simulation time and recorded time are shown separately · Updates every 5 seconds</span></footer>
+  </main>
+</body>
+</html>

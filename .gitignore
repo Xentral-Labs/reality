@@ -20,3 +20,7 @@ data/*.db
 # Local development links in isolated worktrees.
 .venv
 node_modules
+
+# Local deterministic rehearsal evidence.
+artifacts/reference_week/
+artifacts/company_simulator/

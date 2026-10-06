@@ -155,3 +155,14 @@ carry positive controls.
 | DR-003 | T005, T021 | T010, T011, T025 | Done |
 | DR-004 | T016 | T023 | Done |
 | SC-002, SC-003 | T904 | T013, T027 | Pending measurement |
+
+- [x] B01 Add service regression tests for fulfillment, cancellation, correction, holds and empty samples.
+- [x] B02 Implement shared read-only business performance service and owner-only endpoint.
+- [x] B03 Render live Business dashboard with explained KPI drilldowns, bottleneck summary and normal Inspector links.
+- [x] B04 Verify backend, web build/localization/contracts and browser acceptance; record remaining limits.
+
+- [x] B05 Implement and verify immediate modal KPI drilldowns including hourly cohorts and measured timing samples (FR-B06).
+
+- [x] B06 Verify compact top tabs, incoming/waiting/outgoing counts and reply lineage, shared order progress/cards and exact linked shipment/tracking/billing evidence (FR-B07,08).
+
+- [x] B07 Group overview metrics and move clearly labelled message tiles below dispatch performance; verify browser ordering and navigation (FR-B09).

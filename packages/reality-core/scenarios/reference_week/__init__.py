@@ -1,0 +1,1 @@
+"""Reality Referenzwoche fixture adapter."""

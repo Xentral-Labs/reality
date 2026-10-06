@@ -1,0 +1,59 @@
+id: general_company_complete_v2
+version: 2
+kind: complete
+items:
+  A: {name: Everyday mug, unit: piece, sales_price: '10', purchase_price: '5'}
+  B: {name: Everyday bowl, unit: piece, sales_price: '10', purchase_price: '5'}
+customers: {C1: Reference Retail North, C2: Reference Retail South}
+supplier: {SUPPLIER: Reference supplier}
+locations: [W1, W2]
+opening: {A: 6, B: 6}
+address: {name: Reference receiving desk, street: Harbour Road 12, postal_code: '20095', city: Hamburg, country: DE}
+quote:
+  pack_quantity: 8
+  pack_amount: '40'
+  deliveries: [{after: 2, quantity: 4}, {after: 4, quantity: 4}]
+  delay_sku: B
+  delay_days: 1
+  payment_after: 2
+transit_days: 1
+requests:
+  - {id: S01, day: 1, deadline: 5, customer: C1, sku: A, quantity: 4, amount: '40', dispatch_limit: 2, invoice_quantity: 4, invoice_amount: '40', payments: [{after: 1, amount: '10'}, {after: 3, amount: '30'}]}
+  - {id: S02, day: 2, deadline: 6, customer: C2, sku: B, quantity: 3, amount: '30', invoice_quantity: 3, invoice_amount: '30', payments: [{after: 1, amount: '10'}, {after: 3, amount: '20'}]}
+  - {id: S03, day: 4, deadline: 11, customer: C1, sku: A, quantity: 5, amount: '50', invoice_quantity: 5, invoice_amount: '50', payments: [{after: 1, amount: '20'}, {after: 3, amount: '30'}], return: {after: 5, quantity: 1, amount: '10', refunds: [{after: 1, amount: '4'}, {after: 2, amount: '6'}]}}
+  - {id: S04, day: 6, deadline: 16, customer: C2, sku: B, quantity: 8, amount: '80', invoice_quantity: 8, invoice_amount: '80', payments: [{after: 1, amount: '20'}, {after: 3, amount: '60'}]}
+  - {id: S05, day: 8, deadline: 12, customer: C1, sku: A, quantity: 2, amount: '20', cancel_day: 8, invoice_quantity: 0, invoice_amount: '0', payments: []}
+  - {id: S06, day: 11, deadline: 19, customer: C2, sku: B, quantity: 4, amount: '40', failed_first_attempt: true, invoice_quantity: 4, invoice_amount: '40', payments: [{after: 1, amount: '10'}, {after: 3, amount: '30'}]}
+  - {id: S07, day: 15, deadline: 22, customer: C1, sku: A, quantity: 3, amount: '30', invoice_quantity: 3, invoice_amount: '30', payments: [{after: 1, amount: '10'}, {after: 3, amount: '20'}]}
+  - {id: S08, day: 19, deadline: 27, customer: C2, sku: B, quantity: 5, amount: '50', invoice_quantity: 5, invoice_amount: '50', payments: [{after: 1, amount: '20'}, {after: 3, amount: '30'}], carrier_exception: true}
+  - {id: S09, day: 24, deadline: 30, customer: C1, sku: A, quantity: 4, amount: '40', invoice_quantity: 4, invoice_amount: '40', payments: [{after: 1, amount: '20'}, {after: 40, amount: '20'}]}
+  - {id: S10, day: 3, deadline: 8, customer: C2, sku: A, quantity: 5, amount: '50', dispatch_limit: 2, cancel_day: 4, invoice_quantity: 2, invoice_amount: '20', payments: [{after: 1, amount: '20'}]}
+stock_events:
+  - {day: 12, kind: adjustment, sku: A, quantity: 1, from: W1, reason: Verified damaged mug during count}
+  - {day: 14, kind: transfer, sku: A, quantity: 2, from: W1, to: W2, reason: Move stock to overflow warehouse}
+  - {day: 16, kind: transfer, sku: A, quantity: 2, from: W2, to: W1, reason: Return overflow stock for picking}
+
+correspondence:
+  company_address: company@example.invalid
+  addresses: {C1: north@example.invalid, C2: south@example.invalid, SUPPLIER: supplier@example.invalid}
+  supplier_notice_after: 1
+  status_query_before_deadline: 1
+  subjects:
+    customer_message: Order
+    customer_cancellation: Cancel remaining quantity
+    customer_return: Return request
+    customer_status_query: Delivery status enquiry
+    supplier_confirmation: Purchase confirmation
+    supplier_delay_notice: Revised delivery schedule
+    supplier_receipt: Partial delivery notice
+    agent_reply: Rehearsal agent response
+  texts:
+    customer_order: Please deliver the stated order to our receiving desk by the stated deadline.
+    customer_cancellation: Please cancel the quantity that has not yet shipped.
+    customer_return: We reported a damaged item and would like to arrange its return.
+    customer_status_query: Please confirm the recorded dispatch status before our deadline.
+    supplier_confirmation: We confirm the purchase quantity and the quoted delivery schedule.
+    supplier_delay_notice: The delivery schedule has changed; please use the revised dates.
+    supplier_receipt: This partial delivery has reached your warehouse.
+    agent_reply: Thank you. Here is the current recorded business status; this is a local simulated response.
+    agent_update: Here is an update about an accepted business action; this is not a promise of recipient delivery.

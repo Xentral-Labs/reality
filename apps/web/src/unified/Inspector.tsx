@@ -154,6 +154,21 @@ export function InspectorContent({
   tenant?: string;
 }) {
   const sections = compact ? (data.preview_sections ?? data.sections.slice(0, 3)) : data.sections;
+  const quickSections =
+    !compact &&
+    selectedKind === "document" &&
+    sections.some((section) => section.title === "Order progress")
+      ? sections.filter((section) =>
+          [
+            "Order progress",
+            "Dispatch",
+            "Incoming",
+            "Delivery note",
+            "Tracking",
+            "Invoices",
+          ].includes(section.title),
+        )
+      : [];
   const decisions = data.decisions ?? [];
   const businessPreview = compact && !!data.preview_sections;
   const title = inspectorValue(data.title, data.title_parts);
@@ -166,9 +181,6 @@ export function InspectorContent({
       data-compact-inspector={compact || undefined}
       className={compact ? compactGrid : undefined}
     >
-      {!compact && tenant && selectedKind === "document" && data.id && (
-        <OperationalCaseDetail key={`${tenant}:${data.id}`} tenant={tenant} documentId={data.id} />
-      )}
       {compact ? (
         <header className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 md:col-span-2">
           <h2
@@ -191,8 +203,50 @@ export function InspectorContent({
       {meaning && !compactMeaningIsRedundant && (
         <p className={`text-fg-muted ${compact ? "md:col-span-2" : ""}`}>{meaning}</p>
       )}
+      {quickSections.length > 0 && (
+        <div className="my-4 grid gap-3 md:grid-cols-2" data-order-progress>
+          {quickSections.map((section) => (
+            <section
+              key={section.title}
+              className="rounded-lg border border-border-default bg-surface-muted p-3"
+            >
+              <h3 className="mb-2 font-medium">{t(section.title)}</h3>
+              {section.rows.map((row, index) => (
+                <div key={index} className="border-t border-border-subtle py-2 text-sm">
+                  {row.link && follow ? (
+                    <button
+                      className="flex w-full justify-between gap-3 text-left text-accent"
+                      onClick={() => follow(row.link!)}
+                    >
+                      <span>{row.original_label ? row.label : t(row.label)}</span>
+                      <span className="break-all" data-original-content>
+                        {inspectorValue(row.value, row.display_parts)}
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="flex justify-between gap-3">
+                      <span>{row.original_label ? row.label : t(row.label)}</span>
+                      <span data-original-content>
+                        {inspectorValue(row.value, row.display_parts)}
+                      </span>
+                    </div>
+                  )}
+                  {row.meta && (
+                    <p className="mt-1 text-xs text-fg-muted" data-original-content>
+                      {inspectorValue(row.meta, row.meta_parts)}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      )}
+      {!compact && tenant && selectedKind === "document" && data.id && (
+        <OperationalCaseDetail key={`${tenant}:${data.id}`} tenant={tenant} documentId={data.id} />
+      )}
       {[
-        ...sections,
+        ...sections.filter((section) => !quickSections.includes(section)),
         // Spec 263 FR-013: every detail view names the decisions behind its record;
         // registers and lists stay short and never carry them.
         ...(!compact && decisions.length

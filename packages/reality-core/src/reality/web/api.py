@@ -6462,6 +6462,88 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
         for line in detail["lines"]
     }
     from reality.services.operational_cases import object_cases
+    from reality.services.order_progress import overview as order_progress
+
+    progress = order_progress(session, tenant_id, document.id)
+    overview_sections = []
+    if progress is not None:
+        overview_sections = [
+            {
+                "title": "Order progress",
+                "rows": [
+                    inspector_row(
+                        label,
+                        line[field],
+                        presentation=display_text(
+                            Decimal(line[field]), " " + (line["unit"] or "")
+                        ),
+                        kind="commitment",
+                        record_id=line["commitment_id"],
+                        meta=line["label"],
+                    )
+                    for line in progress["lines"]
+                    for label, field in (
+                        ("Ordered", "quantity"),
+                        ("Reserved", "reserved"),
+                        (progress["fulfillment_label"], "fulfilled"),
+                        ("Open", "open"),
+                    )
+                ]
+                or [inspector_row("Commitments", "Not recorded")],
+            },
+            {
+                "title": progress["shipment_title"],
+                "rows": [
+                    inspector_row(
+                        "Shipment",
+                        p["shipment_id"],
+                        kind="shipment",
+                        record_id=p["shipment_id"],
+                    )
+                    for p in progress["packages"]
+                ]
+                or [inspector_row("Shipment", "Not recorded")],
+            },
+            {
+                "title": "Delivery note",
+                "rows": [
+                    inspector_row(
+                        "Delivery note",
+                        note["number"],
+                        kind="source_record",
+                        record_id=note["source_id"],
+                    )
+                    for note in progress["delivery_notes"]
+                ]
+                or [inspector_row("Delivery note", "Not recorded")],
+            },
+            {
+                "title": "Tracking",
+                "rows": [
+                    inspector_row(
+                        p["carrier"] or "Tracking",
+                        p["tracking_number"] or "Not recorded",
+                        kind="shipment_package",
+                        record_id=p["id"],
+                    )
+                    for p in progress["packages"]
+                ]
+                or [inspector_row("Tracking", "Not recorded")],
+            },
+            {
+                "title": "Invoices",
+                "rows": [
+                    inspector_row(
+                        "Invoice",
+                        invoice["number"],
+                        kind="document",
+                        record_id=invoice["id"],
+                    )
+                    for invoice in progress["invoices"]
+                ]
+                or [inspector_row("Invoice", "Not recorded")],
+            },
+        ]
 
     return {
         "case_ids": object_cases(session, tenant_id, "document", document.id),
@@ -6513,6 +6595,7 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
             },
         ],
         "sections": [
+            *overview_sections,
             {
                 "title": "Document",
                 "rows": [

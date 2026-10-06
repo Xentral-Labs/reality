@@ -2,7 +2,7 @@
 
 ## Live company with an external code agent (spec 376)
 
-Use the [live startup and operating guide](LIVE.md), including its single external-agent prompt, Operational-case readiness/takeover/handback guidance, supplier purchasing prerequisites and automatic restart/full-round acceptance checklist. A completed agent response is not continuous operation; the external host must provide and verify the next wake. This is a retained PostgreSQL company, paced by the existing scheduler/worker, with a simulator-local inbox/outbox and a separate live console. The external Claude/Codex agent uses ordinary Reality tools; no built-in policy acts for it. The default target is 180 new orders/hour for 72 hours (150–200/hour and 96 hours are configurable). These are configured targets; a multi-day throughput trial and an actual external-model trial have not been measured.
+Use the [live startup and operating guide](LIVE.md), including its single external-agent prompt, explicit Operational-case readiness/takeover/handback guidance, supplier purchasing prerequisites and automatic restart/full-round acceptance checklist. A completed agent response is not continuous operation; the external host must provide and verify the next wake. This is a retained PostgreSQL company, paced by the existing scheduler/worker, with a simulator-local inbox/outbox and a separate live console. The external Claude/Codex agent uses ordinary Reality tools; no built-in policy acts for it. The default target is 180 new orders/hour for 72 hours (150–200/hour and 96 hours are configurable). These are configured targets; a multi-day throughput trial and an actual external-model trial have not been measured.
 
 The live console offers **Trigger an event → Preview → Release** for customer/supplier mail, new orders, delivery enquiries, cancellations and return requests. Preview creates no records. A released email alone does not book stock, money or an order. Every manual release has its own immutable identity and is counted separately. No real email integration or open desktop is required.
 
@@ -189,7 +189,6 @@ Example custom command: `{"kind": "reply", "message_id": "RELEASED_MESSAGE_ID", 
 
 Start the read-only viewer with `python -m scenarios.company_simulator.viewer` from `packages/reality-core`, then open `http://127.0.0.1:8765/stories`. Select the run started by your simulator CLI. **Live watch** follows its newest complete checkpoint every five seconds. **Replay recording** plays only saved days. Browser Play/Pause control replay, never the simulator. See [viewer instructions](viewer/README.md) for unsupported profiles, observation freshness and Reality reference boundaries.
 
-
 ## Default operational coordination (spec 377)
 
 Apply migration 0145 and run the shared scheduler/worker. Coordination is default for
@@ -197,5 +196,4 @@ all companies; no owner enable step. Read `operational_case_status` to distingui
 migration readiness and completed historical backfill from product policy. Accepted
 orders and open return announcements receive their canonical cases. Raw mail does not.
 Manual takeover, exact handback and fresh post-handback review remain mandatory.
-Simulator runtime integration is a separate branch dependency; external-runner and
-multi-day capacity gates remain pending.
+External-runner and multi-day capacity gates remain pending.

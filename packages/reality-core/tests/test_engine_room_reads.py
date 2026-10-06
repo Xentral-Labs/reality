@@ -279,6 +279,11 @@ def test_owners_read_everyone_else_gets_not_found(web):  # noqa: F811
         "truncated",
     }
     assert web.sign_in(owner).get(path + "/pulse").status_code == 200
+    business = web.sign_in(owner).get(path + "/business")
+    assert business.status_code == 200, business.text
+    assert business.json()["dispatch_rate_percent"] is None
+    assert web.sign_in(plain).get(path + "/business").status_code == 404
+    assert web.sign_in(foreign_owner).get(path + "/business").status_code in {403, 404}
     series = web.sign_in(owner).get(path + "/series?minutes=15")
     assert series.status_code == 200 and len(series.json()["buckets"]) == 90
     assert web.sign_in(plain).get(path + "/series").status_code == 404

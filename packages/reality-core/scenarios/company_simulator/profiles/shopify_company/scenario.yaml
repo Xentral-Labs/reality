@@ -1,0 +1,36 @@
+id: shopify_synthetic_company_v1
+version: 1
+kind: shopify_synthetic
+synthetic: true
+items:
+  A: {name: Everyday mug, unit: piece, sales_price: '10', purchase_price: '5'}
+  B: {name: Everyday bowl, unit: piece, sales_price: '10', purchase_price: '5'}
+customers: {C1: Synthetic Shopify North, C2: Synthetic Shopify South}
+supplier: {SUPPLIER: Synthetic supplier}
+locations: [W1, W2]
+opening: {A: 6, B: 6}
+address: {name: Synthetic receiving desk, street: Harbour Road 12, postal_code: '20095', city: Hamburg, country: DE}
+quote: {pack_quantity: 8, pack_amount: '40', deliveries: [{after: 2, quantity: 4}, {after: 4, quantity: 4}], delay_sku: B, delay_days: 1, payment_after: 2}
+transit_days: 1
+requests:
+  - {id: '#SYN-01', shop_id: 901001, day: 1, deadline: 5, customer: C1, sku: A, quantity: 2, amount: '20', invoice_quantity: 2, invoice_amount: '20', payments: [{after: 1, amount: '20'}], return: {after: 5, quantity: 1, amount: '10', refunds: [{after: 3, amount: '10'}]}}
+  - {id: '#SYN-02', shop_id: 901002, day: 3, deadline: 7, customer: C2, sku: B, quantity: 3, amount: '30', invoice_quantity: 3, invoice_amount: '30', payments: [{after: 1, amount: '30'}]}
+  - {id: '#SYN-03', shop_id: 901003, day: 8, deadline: 14, customer: C1, sku: A, quantity: 4, amount: '40', invoice_quantity: 4, invoice_amount: '40', payments: [{after: 2, amount: '40'}]}
+stock_events: []
+shop_refund_day: 7
+payouts:
+  - day: 3
+    id: SYN-PAYOUT-1
+    fee: '1'
+    amount: '19'
+    lines: [{id: charge-01, kind: charge, request: '#SYN-01', amount: '20'}]
+  - day: 5
+    id: SYN-PAYOUT-2
+    fee: '1'
+    amount: '29'
+    lines: [{id: charge-02, kind: charge, request: '#SYN-02', amount: '30'}]
+  - day: 11
+    id: SYN-PAYOUT-3
+    fee: '2'
+    amount: '28'
+    lines: [{id: charge-03, kind: charge, request: '#SYN-03', amount: '30'}, {id: charge-unmatched, kind: charge, shop_id: 999999, amount: '10'}, {id: refund-01, kind: refund, request: '#SYN-01', amount: '10'}]

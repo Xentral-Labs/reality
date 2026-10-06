@@ -729,6 +729,11 @@ def _locked_claim(session: Session, tenant_id: str, run_id: str):
         from reality.services.demo_data import _locked
 
         _locked(session, tenant_id)
+    if identity[1] in {"simulator.world", "simulator.reactions", "simulator.monitor"}:
+        from reality.services.business_locks import lock_delivery_state
+
+        # Simulator controls and business writers acquire company before schedule/source.
+        lock_delivery_state(session, tenant_id)
     schedule = (
         _schedule(session, tenant_id, identity[0], lock=True) if identity[0] else None
     )

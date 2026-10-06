@@ -98,6 +98,13 @@ missing launcher/credential/permission; do not claim the simulator is autonomous
 Every round must do all of the following, even when the decision queue is empty:
 1. Read and drain unread inbox pages; resolve sources and order context. Prioritize
    urgent cancellations/address changes before dispatch and reply with actual state.
+   For quantity increases, substitutes, express/split delivery and repeat-order quotes,
+   distinguish an enquiry from an accepted change. Check open versus dispatched quantities,
+   quote actual recorded prices/availability and ask the specific missing question.
+   Explain unsupported amendments explicitly; record an escalation and continue independent
+   work rather than claiming a change succeeded or directly editing the database.
+   Reply to supplier receiving/priority/packaging questions using recorded arrangements;
+   missing arrangements require clarification, not an invented answer.
 2. Inspect open work, reserve eligible stock and execute authorized ready shipments.
    Record the actual shipment/movements; a promise or approved proposal is not dispatch.
 3. Review blocked/risky orders and replenishment. Resolve recorded supplier, item
@@ -155,16 +162,36 @@ Short real-clock smoke: with one scheduler and three normal workers, 6 orders co
 
 ### Conversation stages and business monitoring
 
-Accepted orders generate concrete customer follow-ups after two minutes (confirmation),
-five minutes (dispatch/tracking or remaining partial-delivery quantity), and eight
-minutes (selected one-unit cancellation, address confirmation, invoice enquiry or
-tracking). Selected orders with actual customer-arrival evidence can generate a
-one-unit return request after ten minutes. Requests never execute cancellation,
-returns or refunds; the external operator must inspect and use normal Reality tools.
+Accepted orders receive an early change/request after **one minute**, an acknowledgement
+enquiry after two minutes, a state-sensitive delivery enquiry after five minutes and
+one further follow-up after fifteen minutes. The deterministic twelve-way mix includes:
+
+- Cancel one item, reduce a quantity or cancel the remaining unshipped quantity.
+- Quote two extra units, an alternative product or a larger repeat order.
+- Confirm/change receiving instructions, request express service or a split delivery.
+- Ask for an invoice copy or check payment receipt/allocation.
+
+Each message names the actual order and quantities. If dispatch has already happened,
+cancellation variants fall back to a status enquiry and other changes ask about a
+separate order or carrier contact. Requests are not accepted amendments. A selected
+actually delivered order can generate a one-unit damage/return enquiry after ten
+minutes. Requests never execute cancellation, returns, refunds or shipping/address
+changes: the external operator must read the exact request, explain limitations and
+use normal Reality tools under the existing business-action approval rules.
+
+Supplier confirmations name the actual purchase/quantities and split receipt window;
+selected delays ask for acknowledgement. After two minutes, an additional supplier
+question asks about receiving hours/driver contact, priority quantities or packaging.
+A purchase must exist first; supplier mail does not change prices or delivery terms.
+
 Stages retain original message/order references, survive retries and are backpressured.
-Supplier confirmations name the actual purchase and quantities and ask about split
-receipts; selected delays ask for acknowledgement. A supplier purchase must exist
-before these reactions occur.
+The richer generators also apply to retained runs when the updated shared workers
+are running: no restart of the company or stock reset is needed. Previously released
+stages are not replaced. At the default 180 orders/hour, the four customer stages can
+produce roughly 720 additional requests/hour once stages are active, plus original
+orders and state-dependent supplier/return mail. These are configured opportunities,
+not a guaranteed observed rate: backlog bounds, worker capacity and actual company
+activity affect release. Use the flow and case-family counts to see what really arrived.
 
 The spectator now combines a recent incoming/outgoing/business flow with customer
 and supplier workspaces: Overview, Emails, Orders and Documents. Clicking an email
@@ -248,12 +275,44 @@ code. The full 6,448-test run predates this merge; head CI remains a separate ga
 
 ## Operational-case integration proof
 
-The integration regression accepts a live order without adoption, verifies one stable
-case across intake and consumer replay, confirms manual takeover blocks automated
-commitment changes, and verifies fresh work after exact reviewed handback. Supplier,
-Finance and warehouse cases remain unsupported. Stock-ready timing grants no approval.
+The simulator-specific regression enables company adoption through the normal
+owner service, accepts a live order, verifies one stable case across intake and
+consumer replay, confirms manual takeover blocks automated commitment changes,
+and verifies fresh work is allowed after exact reviewed handback. Simulator launch
+itself leaves adoption disabled. The normal shared registry includes both simulator
+jobs and operational-case reconciliation; no additional scheduler is needed.
+Stock-ready/dispatch timing metrics do not grant case ownership or business approval.
 
-The simulator runtime is supplied by `feat/company-reference-simulator`, separately
-from this rollout PR. The integration test skips explicitly until that runtime is merged.
-External-runner and multi-day capacity proofs remain pending; default coordination
-and historical coverage must be checked independently through the status tool.
+The focused simulator/operational-case/action-guard/shared-case-worker group passed
+36 tests, including actual Chromium simulator acceptance. Core lint, specification
+policy and diff checks passed. No runtime implementation change was needed: the
+canonical acceptance and responsibility guards already supply the integration.
+
+### Compact Reality Business tables and order summaries
+
+Activities → Business uses top tabs instead of stacking every table. KPI counts,
+hourly intake/completion, completion share and measured dispatch durations open
+immediate matching-order dialogs; the same order/Source links open the shared
+Inspector. Inbox, awaiting-reply and outgoing counters link to matching recent
+correspondence. Awaiting reply counts local simulator requests without an explicitly
+recorded reply; acknowledgement alone does not answer a message and a reply alone
+does not complete business work. Outgoing simulator replies show the exact incoming
+message using the stored message identity, even outside the recent display window.
+Provider conversations retain the ordinary email evidence/history path and missing
+associations are shown as unknown. Counts cover the company; lists show the latest
+50 matching messages and oldest 200 matching orders.
+
+The shared order detail has fixed progress, shipment, delivery-note, tracking and
+invoice cards, including unrecorded stages. Read shipment/package and invoice links
+in the normal Inspector. Shipment identifiers are not delivery-note numbers; a note
+reference is only shown if explicitly stated as `delivery_note_number` on the linked
+shipment Source. The UI does not manufacture paperwork or carrier data.
+
+The changed backend group passed 50 tests, including actual reply linkage (reading
+is not answering), filled/empty order summaries, shipment/tracking/note/invoice
+evidence and existing Inspector/invoice presentation. Product Chromium proof passed
+modal drilldowns/empty states/Escape/focus, compact tabs, linked original request,
+shared order cards and tracking Inspector navigation, stale snapshots/mobile and
+read-only requests. Web contracts passed 463 tests; build, all four localization
+audits, formatting, lint, business annotations and spec policy passed. No full
+backend rerun or external-model/multi-day trial is claimed for this UI follow-up.

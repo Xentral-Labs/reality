@@ -11,6 +11,13 @@ does not replace feature specifications, the Constitution, Architecture, or ADRs
 
 ## Capability Summary
 
+Simulator spectator (`375-simulator-spectator`): separate local read-only artifact viewer,
+explicit customer/supplier association, original messages, accepted activity and checkpoint
+results; no invented replies or product UI changes. Evidence:
+`packages/reality-core/tests/scenarios/test_simulator_viewer.py`, actual snapshot assertions
+in `packages/reality-core/tests/scenarios/test_complete_company.py`, and
+`packages/reality-core/scenarios/company_simulator/viewer/browser_check.mjs`.
+
 Learning Playground storage foundation (`096-learning-playground`, implementation in
 progress): `playground_run` and `playground_step` are tenant-scoped orchestration metadata,
 not new operational records. Evidence: `packages/reality-core/tests/test_playground_runs.py`
@@ -2688,6 +2695,23 @@ no Finance-allocation expansion, new scheduling, deployment or third-party right
 |---|---|---|
 | `packages/reality-core/tests/test_read_evidence_boundaries.py` | Spec 370 FR-001–005 | Scope-qualified count, page/legacy boundaries, current inventory versus uninspected history, exact provenance, tenant isolation and zero writes |
 | `packages/reality-core/tests/test_mcp_http_runtime.py` | Spec 370 FR-001, FR-003, FR-005 | Authenticated existing grants expose the same summary and order interpretation |
+
+## Reference week harness (spec 372)
+
+- `packages/reality-core/tests/scenarios/test_reference_week.py`: local empty practice
+  Sandbox day/week replay, exact inventory and delivery commitments, proposal
+  preparation without accepted effects, retained receipt replay, independent wrong
+  oracle detection and stop, separate run companies, read-only observer and reports.
+  External intake, AI operator and materialized projections remain outside this proof.
+
+| `packages/reality-core/tests/scenarios/test_company_simulator.py` | 373 | Reactive bounded company-world/operator comparison and independent operational oracle |
+
+| `packages/reality-core/tests/scenarios/test_complete_company.py` | 374 FR-001–005,007–009 | Extended company finance/logistics, exact supervised operators, source-backed customer/supplier threads, simulated baseline replies, explicit custom drafts and release timing |
+| `packages/reality-core/tests/scenarios/test_shopify_company.py` | 374 | Synthetic Shopify intake and payout separation |
+
+| `packages/reality-core/tests/scenarios/test_live_company.py` | 376 FR-001–017, FR-019 | Paced durable world, local mailbox/replies, staged conversations, manual preview/injection, supplier purchasing preparation/replay, adopted live-order case identity/takeover/handback, independent checks, fulfillment metrics, shared job transaction and browser proofs; sustained capacity and FR-018 external restart acceptance pending |
+| `packages/reality-core/tests/test_engine_room_reads.py`, `apps/web/scripts/business-live-browser.mjs` | 266 FR-B01–05 | Owner-only read admission, business metrics and filtered drilldowns, Inspector links, inert mail, stale snapshots and mobile display; screenshots use explicit UI fixtures |
+
 ## Operational cases (371)
 
 English repository contract: `docs/features/operational-cases.md`.
@@ -2712,7 +2736,12 @@ English repository contract: `docs/features/operational-cases.md`.
 ## Default operational cases (377)
 
 - `packages/reality-core/tests/test_default_operational_cases.py`: FR-001–011 default acceptance, bounded restart/rollback, migration readiness, truthful internal authority, retained controls, private sandbox status without new control rights, and unchanged business records.
-- `packages/reality-core/tests/scenarios/test_live_company_default_cases.py`: FR-009 / spec376 FR-019 integration contract; explicitly skipped until separate simulator runtime is available.
+- `packages/reality-core/tests/scenarios/test_live_company_default_cases.py`: FR-009 / spec376 FR-019 default-case integration with the live simulator, stable replay and takeover/handback.
 - `packages/reality-core/tests/test_operational_case_migration.py`: FR-006,011 additive migration, preserved historic adoption and protected downgrade.
 - `packages/reality-core/tests/test_case_queue_fairness.py`: FR-006,007 bounded foreground/internal claim alternation, large backlog, locked-class fallback, retained lease identity and exclusion of future retries/unknown outcomes.
 - `apps/web/scripts/operational-cases-browser.mjs`: FR-008 no activation, incomplete upgrade, confirmed controls, retry, source links and malformed response containment.
+
+## Business compact drilldowns and correspondence (spec 266 FR-B06–08)
+
+- `tests/scenarios/test_live_company.py` exercises measured/cohort filters, simulator waiting/reply lineage and stable empty/filled order Inspector stages with actual shipment, tracking, stated note and invoice records.
+- `apps/web/scripts/business-live-browser.mjs` exercises native KPI dialogs, focus restoration, compact tabs, exact incoming/outgoing thread display, shared order cards and tracking Inspector navigation, stale/mobile handling and read-only requests. UI screenshots use explicit HTTP fixtures; they are not live throughput proof.

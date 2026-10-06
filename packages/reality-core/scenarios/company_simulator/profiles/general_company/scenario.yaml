@@ -1,0 +1,24 @@
+id: general_company_operational_v1
+version: 1
+items:
+  A: {name: Everyday mug, unit: piece, sales_price: '10', purchase_price: '5'}
+  B: {name: Everyday bowl, unit: piece, sales_price: '10', purchase_price: '5'}
+customers: {CUSTOMER: Reference customer}
+supplier: {SUPPLIER: Reference supplier}
+locations: [W1]
+opening: {A: 4, B: 4}
+quote: {pack_quantity: 8, pack_amount: '40', lead_days: 2}
+transit_days: 1
+requests:
+  - {id: S01, day: 1, deadline: 4, sku: A, quantity: 3, amount: '30'}
+  - {id: S02, day: 2, deadline: 5, sku: B, quantity: 3, amount: '30'}
+  - {id: S03, day: 4, deadline: 7, sku: A, quantity: 4, amount: '40'}
+  - {id: S04, day: 6, deadline: 9, sku: B, quantity: 4, amount: '40'}
+  - {id: S05, day: 8, deadline: 11, sku: A, quantity: 5, amount: '50'}
+  - {id: S06, day: 10, deadline: 13, sku: B, quantity: 5, amount: '50'}
+  - {id: S07, day: 12, deadline: 15, sku: A, quantity: 3, amount: '30'}
+  - {id: S08, day: 14, deadline: 17, sku: B, quantity: 3, amount: '30'}
+  - {id: S09, day: 17, deadline: 20, sku: A, quantity: 4, amount: '40'}
+  - {id: S10, day: 20, deadline: 23, sku: B, quantity: 4, amount: '40'}
+  - {id: S11, day: 23, deadline: 26, sku: A, quantity: 5, amount: '50'}
+  - {id: S12, day: 26, deadline: 29, sku: B, quantity: 5, amount: '50'}

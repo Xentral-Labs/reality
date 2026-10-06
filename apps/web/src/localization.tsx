@@ -28191,3 +28191,276 @@ Object.assign(dictionaries.es, {
   "Post invoice": "Contabilizar factura",
   "Stock adjustment": "Ajuste de stock",
 });
+
+// Trading-company live operations (spec 266).
+Object.assign(dictionaries.de, {
+  Business: "Business",
+  "Business flow": "Geschäftsfluss",
+  "Ready to dispatch": "Versandbereit",
+  "Missing reservations": "Reservierungen fehlen",
+  "Delivery on hold": "Lieferung gesperrt",
+  "At risk": "Gefährdet",
+  "Completely dispatched": "Vollständig verschickt",
+  "Partially dispatched": "Teilweise verschickt",
+  "Not yet dispatched": "Noch nicht verschickt",
+  "Complete dispatch share": "Komplettversandquote",
+  "Average first / complete dispatch": "Ø Zeit bis Erst- / Komplettversand",
+  "Complete dispatch samples": "Gemessene Komplettversandzeiten",
+  "Last hour: orders in / completely dispatched":
+    "Letzte Stunde: eingegangen / vollständig verschickt",
+  "Cancelled orders excluded": "Stornierte Aufträge ausgenommen",
+  "Business data could not be loaded.": "Geschäftsdaten konnten nicht geladen werden.",
+  "Refresh failed. Showing the last recorded snapshot.":
+    "Aktualisierung fehlgeschlagen. Der letzte erfasste Stand wird angezeigt.",
+  "Risk: an open order with a recorded dispatch blocker, due within two hours. Missing reservations do not prove missing stock.":
+    "Risiko: offener Auftrag mit erfasster Versandblockade, fällig innerhalb von zwei Stunden. Fehlende Reservierungen belegen keinen fehlenden Bestand.",
+  "Company-wide counts; the oldest 200 orders are available below. Dispatch is not customer arrival.":
+    "Zahlen für die ganze Firma; unten sind die ältesten 200 Aufträge verfügbar. Versand ist keine bestätigte Kundenankunft.",
+});
+Object.assign(dictionaries.nl, {
+  Business: "Bedrijf",
+  "Business flow": "Bedrijfsstroom",
+  "Ready to dispatch": "Klaar voor verzending",
+  "Missing reservations": "Reserveringen ontbreken",
+  "Delivery on hold": "Levering geblokkeerd",
+  "At risk": "Risico",
+  "Completely dispatched": "Volledig verzonden",
+  "Partially dispatched": "Gedeeltelijk verzonden",
+  "Not yet dispatched": "Nog niet verzonden",
+  "Complete dispatch share": "Aandeel volledig verzonden orders",
+  "Average first / complete dispatch": "Gemiddelde tijd tot eerste / volledige verzending",
+  "Complete dispatch samples": "Gemeten volledige verzendingen",
+  "Last hour: orders in / completely dispatched": "Laatste uur: ontvangen / volledig verzonden",
+  "Cancelled orders excluded": "Geannuleerde orders uitgesloten",
+  "Business data could not be loaded.": "Bedrijfsgegevens konden niet worden geladen.",
+  "Refresh failed. Showing the last recorded snapshot.":
+    "Vernieuwen mislukt. De laatst geregistreerde stand wordt getoond.",
+  "Risk: an open order with a recorded dispatch blocker, due within two hours. Missing reservations do not prove missing stock.":
+    "Risico: open order met geregistreerde verzendblokkade, verschuldigd binnen twee uur. Ontbrekende reserveringen bewijzen geen voorraadtekort.",
+  "Company-wide counts; the oldest 200 orders are available below. Dispatch is not customer arrival.":
+    "Bedrijfsbrede aantallen; hieronder staan de oudste 200 orders. Verzending is geen aankomst bij de klant.",
+});
+Object.assign(dictionaries.es, {
+  Business: "Negocio",
+  "Business flow": "Flujo comercial",
+  "Ready to dispatch": "Listo para enviar",
+  "Missing reservations": "Faltan reservas",
+  "Delivery on hold": "Entrega bloqueada",
+  "At risk": "En riesgo",
+  "Completely dispatched": "Enviado completamente",
+  "Partially dispatched": "Enviado parcialmente",
+  "Not yet dispatched": "Todavía no enviado",
+  "Complete dispatch share": "Porcentaje de pedidos enviados completos",
+  "Average first / complete dispatch": "Tiempo medio hasta primer envío / envío completo",
+  "Complete dispatch samples": "Envíos completos medidos",
+  "Last hour: orders in / completely dispatched": "Última hora: recibidos / enviados completos",
+  "Cancelled orders excluded": "Pedidos cancelados excluidos",
+  "Business data could not be loaded.": "No se pudieron cargar los datos comerciales.",
+  "Refresh failed. Showing the last recorded snapshot.":
+    "Falló la actualización. Se muestra la última instantánea registrada.",
+  "Risk: an open order with a recorded dispatch blocker, due within two hours. Missing reservations do not prove missing stock.":
+    "Riesgo: pedido abierto con bloqueo de envío registrado, con vencimiento en dos horas. La falta de reservas no demuestra falta de existencias.",
+  "Company-wide counts; the oldest 200 orders are available below. Dispatch is not customer arrival.":
+    "Cifras de toda la empresa; abajo están los 200 pedidos más antiguos. El envío no confirma la llegada al cliente.",
+});
+
+Object.assign(dictionaries.de, { Age: "Alter" });
+Object.assign(dictionaries.nl, { Age: "Leeftijd" });
+Object.assign(dictionaries.es, { Age: "Antigüedad" });
+Object.assign(dictionaries.de, {
+  "Goods in / out · last hour": "Wareneingang / Versand · letzte Stunde",
+  "No recorded goods movements in the last hour.":
+    "Keine erfassten Warenbewegungen in der letzten Stunde.",
+  "Expected replenishment": "Erwarteter Nachschub",
+  "No stated date": "Kein genannter Termin",
+  "Stated supplier dates; no inferred customer delivery forecast.":
+    "Erfasste Lieferantentermine; keine abgeleitete Prognose für Kundenlieferungen.",
+  "Recent correspondence": "Aktuelle Korrespondenz",
+  "Recorded incoming and outgoing evidence. Outgoing evidence does not prove recipient delivery.":
+    "Erfasste eingehende und ausgehende Nachrichten. Ausgangsnachweise belegen keine Zustellung beim Empfänger.",
+});
+Object.assign(dictionaries.nl, {
+  "Goods in / out · last hour": "Goederen in / uit · laatste uur",
+  "No recorded goods movements in the last hour.":
+    "Geen geregistreerde goederenbewegingen in het laatste uur.",
+  "Expected replenishment": "Verwachte aanvulling",
+  "No stated date": "Geen opgegeven datum",
+  "Stated supplier dates; no inferred customer delivery forecast.":
+    "Opgegeven leveranciersdatums; geen voorspelde klantlevering.",
+  "Recent correspondence": "Recente correspondentie",
+  "Recorded incoming and outgoing evidence. Outgoing evidence does not prove recipient delivery.":
+    "Geregistreerde inkomende en uitgaande berichten. Uitgaand bewijs bevestigt geen ontvangst bij de ontvanger.",
+});
+Object.assign(dictionaries.es, {
+  "Goods in / out · last hour": "Mercancías recibidas / enviadas · última hora",
+  "No recorded goods movements in the last hour.":
+    "Sin movimientos de mercancías registrados en la última hora.",
+  "Expected replenishment": "Reposición esperada",
+  "No stated date": "Sin fecha indicada",
+  "Stated supplier dates; no inferred customer delivery forecast.":
+    "Fechas indicadas por proveedores; sin pronóstico de entrega al cliente.",
+  "Recent correspondence": "Correspondencia reciente",
+  "Recorded incoming and outgoing evidence. Outgoing evidence does not prove recipient delivery.":
+    "Mensajes entrantes y salientes registrados. El registro de salida no demuestra la recepción.",
+});
+Object.assign(dictionaries.de, { "Unread simulator messages": "Ungelesene Simulator-Nachrichten" });
+Object.assign(dictionaries.nl, { "Unread simulator messages": "Ongelezen simulatorberichten" });
+Object.assign(dictionaries.es, { "Unread simulator messages": "Mensajes del simulador sin leer" });
+Object.assign(dictionaries.de, {
+  "Bottleneck: ready orders are waiting for dispatch.":
+    "Engpass: Versandbereite Aufträge warten auf Versand.",
+  "Bottleneck: open orders are blocked.": "Engpass: Offene Aufträge sind blockiert.",
+  "No open dispatch backlog recorded.": "Kein offener Versandrückstand erfasst.",
+  "Oldest open order": "Ältester offener Auftrag",
+  "Awaiting decisions": "Wartende Entscheidungen",
+  "Recent business documents": "Aktuelle Geschäftsdokumente",
+});
+Object.assign(dictionaries.nl, {
+  "Bottleneck: ready orders are waiting for dispatch.":
+    "Knelpunt: gereedstaande orders wachten op verzending.",
+  "Bottleneck: open orders are blocked.": "Knelpunt: open orders zijn geblokkeerd.",
+  "No open dispatch backlog recorded.": "Geen open verzendachterstand geregistreerd.",
+  "Oldest open order": "Oudste open order",
+  "Awaiting decisions": "Wachtende beslissingen",
+  "Recent business documents": "Recente bedrijfsdocumenten",
+});
+Object.assign(dictionaries.es, {
+  "Bottleneck: ready orders are waiting for dispatch.":
+    "Cuello de botella: pedidos listos esperan el envío.",
+  "Bottleneck: open orders are blocked.": "Cuello de botella: pedidos abiertos bloqueados.",
+  "No open dispatch backlog recorded.": "Sin retrasos de envío abiertos registrados.",
+  "Oldest open order": "Pedido abierto más antiguo",
+  "Awaiting decisions": "Decisiones pendientes",
+  "Recent business documents": "Documentos comerciales recientes",
+});
+Object.assign(dictionaries.de, {
+  "Blocked orders": "Blockierte Aufträge",
+  "Stock and replenishment": "Bestand und Nachschub",
+});
+Object.assign(dictionaries.nl, {
+  "Blocked orders": "Geblokkeerde orders",
+  "Stock and replenishment": "Voorraad en aanvulling",
+});
+Object.assign(dictionaries.es, {
+  "Blocked orders": "Pedidos bloqueados",
+  "Stock and replenishment": "Existencias y reposición",
+});
+Object.assign(dictionaries.de, {
+  "First / complete dispatch samples": "Gemessene Erst- / Komplettversandzeiten",
+});
+Object.assign(dictionaries.nl, {
+  "First / complete dispatch samples": "Gemeten eerste / volledige verzendingen",
+});
+Object.assign(dictionaries.es, {
+  "First / complete dispatch samples": "Primeros envíos / envíos completos medidos",
+});
+
+Object.assign(dictionaries.de, {
+  "First dispatch": "Erstversand",
+  "Complete dispatch": "Komplettversand",
+  "No matching orders.": "Keine passenden Aufträge.",
+});
+Object.assign(dictionaries.nl, {
+  "First dispatch": "Eerste verzending",
+  "Complete dispatch": "Volledige verzending",
+  "No matching orders.": "Geen passende orders.",
+});
+Object.assign(dictionaries.es, {
+  "First dispatch": "Primer envío",
+  "Complete dispatch": "Envío completo",
+  "No matching orders.": "No hay pedidos coincidentes.",
+});
+
+Object.assign(dictionaries.de, {
+  "Awaiting reply (simulator)": "Antwort ausstehend (Simulator)",
+  "Latest 50 matching messages. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.":
+    "Die letzten 50 passenden Nachrichten. Wartend bedeutet: Simulator-Anfrage ohne erfasste Antwort. Eine Lesebestätigung ist keine Antwort.",
+  "Original incoming message": "Zugehörige eingehende Nachricht",
+  "No linked incoming message recorded.": "Keine zugehörige eingehende Nachricht erfasst.",
+  "Order progress": "Auftragsfortschritt",
+  "Not recorded": "Noch nicht erfasst",
+});
+Object.assign(dictionaries.nl, {
+  "Awaiting reply (simulator)": "Wacht op antwoord (simulator)",
+  "Latest 50 matching messages. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.":
+    "De laatste 50 passende berichten. Wachtend betekent een simulatorverzoek zonder vastgelegd antwoord; een leesbevestiging is geen antwoord.",
+  "Original incoming message": "Bijbehorend inkomend bericht",
+  "No linked incoming message recorded.": "Geen bijbehorend inkomend bericht vastgelegd.",
+  "Order progress": "Ordervoortgang",
+  "Not recorded": "Nog niet vastgelegd",
+});
+Object.assign(dictionaries.es, {
+  "Awaiting reply (simulator)": "Esperando respuesta (simulador)",
+  "Latest 50 matching messages. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.":
+    "Últimos 50 mensajes coincidentes. Pendiente significa una solicitud del simulador sin respuesta registrada; una confirmación de lectura no es una respuesta.",
+  "Original incoming message": "Mensaje entrante relacionado",
+  "No linked incoming message recorded.": "No hay mensaje entrante relacionado registrado.",
+  "Order progress": "Progreso del pedido",
+  "Not recorded": "Aún no registrado",
+});
+
+Object.assign(dictionaries.de, { Message: "Nachricht", "No messages.": "Keine Nachrichten." });
+Object.assign(dictionaries.nl, { Message: "Bericht", "No messages.": "Geen berichten." });
+Object.assign(dictionaries.es, { Message: "Mensaje", "No messages.": "No hay mensajes." });
+
+Object.assign(dictionaries.de, { "Goods flow": "Warenfluss", Replenishment: "Nachschub" });
+Object.assign(dictionaries.nl, { "Goods flow": "Goederenstroom", Replenishment: "Aanvulling" });
+Object.assign(dictionaries.es, {
+  "Goods flow": "Flujo de mercancías",
+  Replenishment: "Reposición",
+});
+
+Object.assign(dictionaries.de, { Messages: "Nachrichten", "Business documents": "Dokumente" });
+Object.assign(dictionaries.nl, { Messages: "Berichten", "Business documents": "Documenten" });
+Object.assign(dictionaries.es, { Messages: "Mensajes", "Business documents": "Documentos" });
+
+Object.assign(dictionaries.de, { Dispatch: "Versand", "Delivery note": "Lieferschein" });
+Object.assign(dictionaries.nl, { Dispatch: "Verzending", "Delivery note": "Pakbon" });
+Object.assign(dictionaries.es, { Dispatch: "Envío", "Delivery note": "Albarán" });
+
+Object.assign(dictionaries.de, { Reply: "Antwort", "Reply recorded": "Antwort erfasst" });
+Object.assign(dictionaries.nl, { Reply: "Antwoord", "Reply recorded": "Antwoord vastgelegd" });
+Object.assign(dictionaries.es, { Reply: "Respuesta", "Reply recorded": "Respuesta registrada" });
+
+Object.assign(dictionaries.de, {
+  "Received messages": "Eingegangene Nachrichten",
+  "Messages awaiting a reply": "Noch ohne Antwort",
+  "Sent messages": "Gesendete Nachrichten",
+  "All recorded incoming messages": "Alle erfassten eingehenden Nachrichten",
+  "Simulator requests without a recorded reply": "Simulator-Anfragen ohne erfasste Antwort",
+  "All recorded outgoing messages": "Alle erfassten ausgehenden Nachrichten",
+  "Customer and supplier messages": "Nachrichten von Kunden und Lieferanten",
+  "Orders and shipping": "Aufträge und Versand",
+  "Click a number to view the matching orders.":
+    "Zahl anklicken, um die zugehörigen Aufträge zu sehen.",
+  "Shipping performance": "Versandleistung",
+});
+
+Object.assign(dictionaries.nl, {
+  "Received messages": "Ontvangen berichten",
+  "Messages awaiting a reply": "Nog zonder antwoord",
+  "Sent messages": "Verzonden berichten",
+  "All recorded incoming messages": "Alle vastgelegde inkomende berichten",
+  "Simulator requests without a recorded reply": "Simulatorverzoeken zonder vastgelegd antwoord",
+  "All recorded outgoing messages": "Alle vastgelegde uitgaande berichten",
+  "Customer and supplier messages": "Berichten van klanten en leveranciers",
+  "Orders and shipping": "Orders en verzending",
+  "Click a number to view the matching orders.":
+    "Klik op een getal om de bijbehorende orders te bekijken.",
+  "Shipping performance": "Verzendprestaties",
+});
+
+Object.assign(dictionaries.es, {
+  "Received messages": "Mensajes recibidos",
+  "Messages awaiting a reply": "Pendientes de respuesta",
+  "Sent messages": "Mensajes enviados",
+  "All recorded incoming messages": "Todos los mensajes entrantes registrados",
+  "Simulator requests without a recorded reply":
+    "Solicitudes del simulador sin respuesta registrada",
+  "All recorded outgoing messages": "Todos los mensajes salientes registrados",
+  "Customer and supplier messages": "Mensajes de clientes y proveedores",
+  "Orders and shipping": "Pedidos y envíos",
+  "Click a number to view the matching orders.":
+    "Haz clic en una cifra para ver los pedidos correspondientes.",
+  "Shipping performance": "Rendimiento de los envíos",
+});

@@ -87,6 +87,7 @@
     "verification-return-browser.mjs": 2,
     "workspace-tab-counts-browser.mjs": 27,
     "agent-email-handoffs-browser.mjs": 5,
+    "business-live-browser.mjs": 12,
     "operational-cases-browser.mjs": 5
   },
   "scripts": [
@@ -95,6 +96,7 @@
     "agent-email-handoffs-browser.mjs",
     "analytics-save-clarity-browser.mjs",
     "business-blueprints-browser.mjs",
+    "business-live-browser.mjs",
     "chat-scoped-proposals-browser.mjs",
     "chat-stream-browser.mjs",
     "collapsible-navigation-browser.mjs",

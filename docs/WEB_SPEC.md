@@ -3605,6 +3605,19 @@ Page action buttons carry the same localized accessible name as their visible la
 Payment dialog Refresh reads the current stored open-items projection into the
 mounted selector; no page reload or new acceptance boundary is needed.
 
+## Activities Business dashboard — Spec 266
+
+Activities adds an owner-only Business tab alongside History and technical Live.
+This read-only trading-company view polls ordinary tenant-scoped Reality every five
+seconds, independently of simulator configuration. Show complete/partial/unshipped
+orders, shared fulfillment readiness, missing reservations, active holds, overdue and
+blocked near-deadline risk, intake versus dispatch, measured dispatch duration and
+sample counts. Drilldowns request matching orders from the service and open normal
+Inspector records. Present actual last-hour goods movements by item, stated supplier
+replenishment dates and recorded correspondence. Local simulator unread counts are
+explicitly local; ordinary captured mail has no inferred unread status. Retain and
+label the last snapshot on refresh failure. No new business status is persisted.
+
 ## Operational cases (spec 371)
 
 Orders and document inspection expose Operational cases with stable copyable IDs, current owned/related work, Source links and unsettled execution. Observed active members explicitly confirm takeover or exact reviewed handback through shared services. Takeover stops new automated starts; it never displays an already claimed external action as cancelled. Owner-confirmed new-work adoption is opt-in and does not silently activate completed historical work.
@@ -3618,3 +3631,25 @@ Orders retain the operational-case panel, object discovery, source links, explic
 manual takeover and exact handback. There is no activation control. The panel reports
 missing migration, unfinished historical reconciliation and actual job errors from the
 shared status service. No read performs backfill or approves any business action.
+
+### Compact Business navigation and evidence drilldowns (spec 266 FR-B06–08)
+
+A top keyboard-accessible tab bar selects Overview, Orders, Inventory, Goods flow,
+Replenishment, Messages or Business documents; render only the selected panel.
+KPI clicks immediately open an accessible native modal with server-filtered actual
+orders, timing samples, timestamp/loading/empty/stale states and explicit display
+limits. Closing restores focus; a record link transfers to the normal Inspector.
+Incoming, awaiting-reply and outgoing correspondence show company-wide counts and
+the latest 50 matching records. Awaiting reply is explicitly simulator-local and
+uses recorded reply lineage, not acknowledgement or business completion. Outgoing
+simulator replies show the exact original request even outside the recent window.
+Other transport conversations retain their existing Source/Email evidence Inspector
+path; absent a recorded association remains unknown rather than guessed.
+
+The shared order Inspector starts with stable progress, dispatch, delivery-note,
+tracking and invoice cards, then existing case controls and detailed evidence.
+Terms are canonical and per item/unit; shipment packages exclude corrected original
+movements. Invoice links use billed order positions or explicit down-payment/pro-forma
+order references. Delivery-note references are displayed only when explicitly stated
+as `delivery_note_number` by the linked shipment Source; no number is generated or
+inferred from a shipment ID. Empty stages stay visible as not recorded.

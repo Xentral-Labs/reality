@@ -130,6 +130,7 @@ export function readSelection(url: URL): Selection {
       "views",
       "history",
       "live",
+      "business",
     ].includes(url.searchParams.get("inspector_view") || "")
       ? url.searchParams.get("inspector_view")!
       : "overview",

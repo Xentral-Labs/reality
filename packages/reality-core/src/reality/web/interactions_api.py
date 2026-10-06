@@ -13,6 +13,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from reality.services import interactions
+from reality.services.business_performance import overview as business_overview
 from reality.services.core import InvalidOperation, NotFound
 from reality.web.api import (
     DatabaseSession,
@@ -125,6 +126,23 @@ def interaction_pulse(
     # The owner's own navigation must not make the indicator blink at them.
     return interactions.pulse(
         session, tenant_id, exclude_actor_user_id=viewer if hide_own else None
+    )
+
+
+@router.get("/business")
+def business_operations(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    order_filter: str = Query(
+        "",
+        pattern="^(|ready|blocked|reservation_blocked|held|overdue|at_risk|complete|partial|unshipped|eligible|received_last_hour|completed_last_hour|first_dispatch_sample|complete_dispatch_sample)$",
+    ),
+    mail_filter: str = Query("", pattern="^(|incoming|waiting|outgoing)$"),
+) -> dict[str, Any]:
+    _owner(request, session, tenant_id)
+    return business_overview(
+        session, tenant_id, order_filter=order_filter, mail_filter=mail_filter
     )
 
 

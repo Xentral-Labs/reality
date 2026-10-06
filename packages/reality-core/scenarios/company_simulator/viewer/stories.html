@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Reality Company Simulator · Live & Replay</title>
+  <link rel="stylesheet" href="/stories.css" />
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="brand"><span>☀</span>Reality Company Simulator</div>
+        <div class="pill">Read-only simulator spectator</div>
+      </header>
+      <h1>A little company.<br />A month of stories.</h1>
+      <p class="muted">
+        Meet the people. Open a sale. See what happened next.
+        <a href="/">Original spectator</a>
+      </p>
+      <div class="clock">
+        <select id="runs" aria-label="Recorded run"></select
+        ><button id="watch" class="quiet">Live watch</button
+        ><button id="replay" class="quiet">Replay recording</button
+        ><span id="observation" class="muted"></span
+        ><button id="play" class="primary">▶ Play recording</button
+        ><strong id="day"></strong
+        ><input
+          id="scrub"
+          type="range"
+          min="0"
+          max="30"
+          value="8"
+          aria-label="Recorded simulation day"
+        /><button id="next" class="quiet">Next day →</button>
+      </div>
+      <div id="tiles" class="tiles"></div>
+      <div id="content"></div>
+      <div class="footer">
+        Prototype from one recorded complete-v2 run. Every balance comes from
+        its saved daily checkpoint. Watching and replay never start or pause the
+        simulator.
+      </div>
+    </div>
+    <div id="shade" class="shade" hidden></div>
+    <aside
+      id="drawer"
+      class="drawer"
+      aria-label="Recorded story"
+      hidden
+    ></aside>
+    <script src="/stories.js"></script>
+  </body>
+</html>

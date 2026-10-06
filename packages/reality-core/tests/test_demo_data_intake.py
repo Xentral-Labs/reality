@@ -613,9 +613,23 @@ def test_bound_processing_accepts_all_synthetic_types(session, business, kind):
 
 def _settle_all(session, tenant, settlement, *, max_ticks=8):
     """Tick the settlement schedule until it emits nothing more; return per-tick counts."""
+    from datetime import timedelta
+
     from sqlalchemy import func
 
-    from reality.db.core import SourceRecord
+    from reality.db.core import SourceRecord, now
+    from reality.db.scheduled_jobs import ScheduledJob
+
+    # Advance only settlement. Under load another fixture stream can become due
+    # and correctly win the shared queue; that is not an empty settlement tick.
+    for other in session.scalars(
+        select(ScheduledJob).where(
+            ScheduledJob.tenant_id == tenant,
+            ScheduledJob.id != settlement.id,
+            ScheduledJob.enabled.is_(True),
+        )
+    ):
+        other.next_run_at = now() + timedelta(days=1)
 
     def counts():
         return {
@@ -854,3 +868,42 @@ def test_settlement_uses_each_order_schedule_seed_and_pause_never_bursts(
     history, _ = _settle_all(session, tenant, settlement)
     assert history[0] == {"invoice": 10, "payment": 0}
     assert all(sum(tick.values()) <= 10 for tick in history)
+
+
+def test_settlement_fixture_does_not_claim_an_overdue_order_stream(
+    session, scheduled_owner, monkeypatch
+):
+    """FR-018 proof must drain settlement, even when the other schedule is overdue."""
+    from datetime import timedelta
+
+    from sqlalchemy import func
+
+    from reality.db.core import SourceRecord, now
+    from reality.db.scheduled_jobs import ScheduledJob
+    from reality.integrations import demo_data as synthetic
+    from reality.services import demo_data
+
+    monkeypatch.setattr(synthetic, "burst_size", lambda *args: 1)
+    monkeypatch.setattr(
+        synthetic,
+        "DELAYS",
+        {k: (0, 0) for k in ("invoice", "provider", "bank", "second")},
+    )
+    tenant, orders = _running_demo(session, monkeypatch, scheduled_owner.id, "overdue")
+    _tick(session, tenant, orders, review=True)
+    orders.next_run_at = now() - timedelta(minutes=2)
+    session.flush()
+    status = demo_data.status(session, tenant, scheduled_owner.id)
+    settlement = record_by_id(session, ScheduledJob, status["settlement_schedule_id"])
+    _, totals = _settle_all(session, tenant, settlement)
+    assert totals["invoice"] == 1
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(SourceRecord)
+            .where(
+                SourceRecord.tenant_id == tenant, SourceRecord.source_type == "order"
+            )
+        )
+        == 1
+    )
