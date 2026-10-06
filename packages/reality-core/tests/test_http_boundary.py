@@ -46,7 +46,7 @@ def test_tenant_application_reference_uses_validated_catalog(
     assert response.status_code == 200
     payload = response.json()
     assert payload["event_count"] == 103
-    assert payload["projection_count"] == 13
+    assert payload["projection_count"] == 14
     assert payload["fact_predicate_count"] == 7
     action = payload["workspaces"][0]["actions"][0]
     command = next(

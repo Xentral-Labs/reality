@@ -44,6 +44,10 @@ ABOUT_HISTORY = {
     projections.PAYMENTS: "settlement is judged against what was invoiced",
     projections.OPEN_FINANCIAL_ITEMS: "open items are derived from posted history",
     projections.TENANT_USAGE: "counts are of everything",
+    projections.BUSINESS_PERFORMANCE: (
+        "the diagnostic oracle counts completed/cancelled orders; the shared "
+        "incremental worker rebuilds their cached contributions in bounded pages"
+    ),
 }
 
 
