@@ -15,9 +15,7 @@ from reality.db.scheduled_jobs import ScheduledJobRun
 from reality.services import projections, scheduled_jobs
 
 
-def enqueue_due_projections(
-    session: Session, tenant_id: str
-) -> list[ScheduledJobRun]:
+def enqueue_due_projections(session: Session, tenant_id: str) -> list[ScheduledJobRun]:
     """One run per projection that is behind (spec 181 FR-004).
 
     The twelve used to share a run. Their checkpoints, statuses and errors were
@@ -39,7 +37,11 @@ def enqueue_due_projections(
         return []
     queued = queued_projections(session, tenant_id)
     runs = []
-    for name in names:
+    # Give the live Business observation the earliest new queue timestamp. Older
+    # work still comes first under the shared FIFO claim order; no private queue.
+    for name in sorted(
+        names, key=lambda name: name != projections.BUSINESS_PERFORMANCE
+    ):
         if name in queued:
             continue
         run = scheduled_jobs.enqueue_projection_run(
@@ -140,14 +142,22 @@ def due_projection_tenants(
             func.min(
                 case(
                     (
-                        ProjectionCheckpoint.projection_name.in_(
-                            projections.TIME_SENSITIVE_PROJECTIONS
-                        ),
+                        ProjectionCheckpoint.projection_name == projections.EXCEPTIONS,
                         ProjectionCheckpoint.updated_at,
                     ),
                     else_=None,
                 )
             ).label("cadence_at"),
+            func.min(
+                case(
+                    (
+                        ProjectionCheckpoint.projection_name
+                        == projections.BUSINESS_PERFORMANCE,
+                        ProjectionCheckpoint.clock_due_at,
+                    ),
+                    else_=None,
+                )
+            ).label("business_due_at"),
         )
         .where(
             ProjectionCheckpoint.projection_name.in_(
@@ -173,6 +183,7 @@ def due_projection_tenants(
                     < func.coalesce(TenantEventProgress.last_event_sequence, 0),
                     checkpoints.c.oldest_version != projections.PROJECTION_VERSION,
                     checkpoints.c.cadence_at <= cadence,
+                    checkpoints.c.business_due_at <= now(),
                 ),
             )
             .order_by(Tenant.id)

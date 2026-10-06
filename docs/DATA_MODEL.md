@@ -242,3 +242,6 @@ implemented profiles and still-pending cross-path cutover.
 Five tenant-scoped coordination tables in migration 0144 hold operational cases, owned commitment links, immutable proposal control generations, explicit adoption decisions and event checkpoints. Order and return anchors use existing composite business-object foreign keys. Related return/order associations and completion are derived; quantities and balances are never copied onto cases.
 
 See [the implemented operational-case contract](features/operational-cases.md) for authority, supported boundaries and capability limits.
+
+## Business observations — spec 378
+`business_order_row` and `business_mail_row` are disposable tenant/generation-scoped read models. Typed cohort, ordering and transition fields exist to serve indexed filtered pages and clock processing. Order arithmetic/readiness remains in canonical Reality services. Existing projection summary/checkpoint rows retain active generation, resumable build/event traversal and additive contribution totals. No business status is stored on Documents; no operational writer consumes these tables. Details and opaque Inspector links are rebuilt from authoritative records. See [Business data supply](features/business-performance.md).

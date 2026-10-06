@@ -2519,6 +2519,16 @@ def store_source_record(
     session.flush()
     if disposition == "current":
         stream.current_source_record_id = source.id
+    # Simulator-local correspondence has no interpretation stage to announce its
+    # arrival. Keep the notification in the same transaction as its immutable Source.
+    if source_type == "email_message" or (
+        source_system.startswith("company_simulator:")
+        and source_type in {"incoming", "outgoing", "ack"}
+    ):
+        emit_business_event(
+            session, tenant_id, "source_record.stored", "source_record", source.id,
+            {"source_type": source_type}, source_record_id=source.id,
+        )
     return source, True, disposition
 
 

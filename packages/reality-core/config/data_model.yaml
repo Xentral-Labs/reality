@@ -2,6 +2,9 @@ version: 1
 title: Reality Data Model
 description: Machine-readable catalog for documentation, validation, and future generators.
 sections:
+  - name: Business Observations
+    description: Disposable order and correspondence observations; Reality remains authoritative.
+    tables: [business_order_row, business_mail_row]
   - name: Financial Company Generations
     description: Retained exact company inputs and disposable complete-population observations.
     tables: [cost_company_manifest, cost_company_inventory_input, cost_company_contribution_input, cost_company_generation, cost_company_inventory_result, cost_company_contribution_result, cost_company_publication]
@@ -2464,3 +2467,26 @@ tables:
         description: Opaque disposable report identity.
       tenant_id:
         description: Owning company; access and relationships remain tenant-scoped.
+
+  business_order_row:
+    description: Disposable tenant-generation order observation maintained by the shared projection worker.
+    columns:
+      tenant_id: {description: Owning company; every query remains tenant scoped.}
+      generation: {description: Disposable published or building read-model generation.}
+      document_id: {description: Opaque authoritative order document identity for Inspector trace.}
+      received_sort: {description: Recorded receipt ordering timestamp; minimum sentinel when unknown.}
+      next_transition_at: {description: Next clock boundary at which this observation can change.}
+      flags: {description: Indexed derived cohort memberships; never booking authority.}
+      payload: {description: Explainable disposable order display and shortest Reality links.}
+      contribution: {description: Replaceable additive summary contributions for idempotent updates.}
+  business_mail_row:
+    description: Disposable tenant-generation correspondence observation; never transport or work authority.
+    columns:
+      tenant_id: {description: Owning company; every query remains tenant scoped.}
+      generation: {description: Disposable published or building read-model generation.}
+      source_record_id: {description: Exact immutable message Source identity.}
+      recorded_at: {description: Recorded receipt timestamp used for deterministic pagination.}
+      direction: {description: Normalized incoming/outgoing cohort or unclassified unread-only local evidence.}
+      waiting: {description: Simulator incoming request without a recorded exact reply.}
+      unread: {description: Simulator incoming message without a recorded acknowledgement.}
+      payload: {description: Exact message and request/reply lineage with unknown completion evidence.}

@@ -9,7 +9,7 @@ from reality.jobs.registry import JobContext, JobDefinition, JobError, JobResult
 
 class ProjectionConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    names: list[str] = Field(min_length=1, max_length=12)
+    names: list[str] = Field(min_length=1, max_length=13)
 
     @field_validator("names")
     @classmethod

@@ -1,0 +1,571 @@
+{
+  "recorded_at": "2026-10-06T07:13:18.292988+00:00",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "cpu": "",
+  "visible_cpus": 5,
+  "postgres": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+  "cpu_quota": "400000 100000",
+  "memory_limit": "17179869184",
+  "workload": {
+    "orders": 100,
+    "tenants": 3,
+    "viewers": 100,
+    "rounds": 2,
+    "cadence": 5,
+    "booking_rounds": 3,
+    "output": "specs/378-business-performance-projections/benchmark-shared-roles.json"
+  },
+  "distribution": "One item/customer/location per company; 90% open unreserved overdue, 10% cancelled; source-less cloned orders; no mail or shipment history.",
+  "booking_rate_per_second": 0,
+  "viewer_model": "100 ASGI HTTP viewers, phased 5s polling; local auth disabled; no network transport",
+  "rebuild": [
+    {
+      "tenant": "ten_120b352639",
+      "orders": 100,
+      "seconds": 0.79512888499994,
+      "units": 1,
+      "unit_p95_ms": 297.3622549998254
+    },
+    {
+      "tenant": "ten_d355184377",
+      "orders": 100,
+      "seconds": 0.2004549179996502,
+      "units": 1,
+      "unit_p95_ms": 182.1708759998728
+    },
+    {
+      "tenant": "ten_2557001687",
+      "orders": 100,
+      "seconds": 0.3903254389997528,
+      "units": 1,
+      "unit_p95_ms": 322.26441700004216
+    }
+  ],
+  "requests": 200,
+  "read_seconds": 10.178670679999868,
+  "api_p50_ms": 39.26860549972844,
+  "api_p95_ms": 216.7215260001285,
+  "api_max_ms": 378.3293340002274,
+  "freshness": {
+    "booking_rate_per_second": 1,
+    "bookings": 9,
+    "viewers_during_bookings": 0,
+    "scheduler_cadence_seconds": 5,
+    "worker_cadence_seconds": 1,
+    "worker_processes": 1,
+    "p95_seconds": null,
+    "max_seconds": null,
+    "missing": 9,
+    "errors": [],
+    "sweeps": {
+      "scheduler": [
+        {
+          "materialized": 2,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 10,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 10,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 10,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        }
+      ],
+      "worker": [
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 1,
+          "succeeded": 1,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": true
+        }
+      ]
+    },
+    "samples": [
+      {
+        "tenant": "ten_120b352639",
+        "target": 7,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_d355184377",
+        "target": 7,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_2557001687",
+        "target": 7,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_120b352639",
+        "target": 8,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_d355184377",
+        "target": 8,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_2557001687",
+        "target": 8,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_120b352639",
+        "target": 9,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_d355184377",
+        "target": 9,
+        "lag_seconds": null
+      },
+      {
+        "tenant": "ten_2557001687",
+        "target": 9,
+        "lag_seconds": null
+      }
+    ]
+  },
+  "lag_seconds": null,
+  "lag_reason": "Separate short shared-role probe; no viewers during bookings.",
+  "indexes": [
+    "business_mail_row_pkey",
+    "business_order_row_pkey",
+    "ix_business_mail_direction",
+    "ix_business_mail_page",
+    "ix_business_mail_waiting",
+    "ix_business_order_at_risk",
+    "ix_business_order_blocked",
+    "ix_business_order_cancelled",
+    "ix_business_order_clock",
+    "ix_business_order_complete",
+    "ix_business_order_complete_dispatch_sample",
+    "ix_business_order_completed_last_hour",
+    "ix_business_order_eligible",
+    "ix_business_order_first_dispatch_sample",
+    "ix_business_order_held",
+    "ix_business_order_overdue",
+    "ix_business_order_page",
+    "ix_business_order_partial",
+    "ix_business_order_ready",
+    "ix_business_order_received_last_hour",
+    "ix_business_order_reservation_blocked",
+    "ix_business_order_unshipped"
+  ]
+}

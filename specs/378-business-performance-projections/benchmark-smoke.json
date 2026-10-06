@@ -1,0 +1,75 @@
+{
+  "recorded_at": "2026-10-06T06:57:01.444576+00:00",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "cpu": "",
+  "visible_cpus": 5,
+  "postgres": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+  "cpu_quota": "400000 100000",
+  "memory_limit": "17179869184",
+  "workload": {
+    "orders": 10000,
+    "tenants": 3,
+    "viewers": 100,
+    "rounds": 3,
+    "cadence": 5,
+    "output": "specs/378-business-performance-projections/benchmark-smoke.json"
+  },
+  "distribution": "One item/customer/location per company; 90% open unreserved overdue, 10% cancelled; source-less cloned orders; no mail or shipment history.",
+  "booking_rate_per_second": 0,
+  "viewer_model": "100 ASGI HTTP viewers, phased 5s polling; local auth disabled; no network transport",
+  "rebuild": [
+    {
+      "tenant": "ten_98840c5c7b",
+      "orders": 10000,
+      "seconds": 13.720465488999935,
+      "units": 51,
+      "unit_p95_ms": 447.5938769999175
+    },
+    {
+      "tenant": "ten_7fcbf441b9",
+      "orders": 1000,
+      "seconds": 1.0970978950001609,
+      "units": 6,
+      "unit_p95_ms": 219.41692899986265
+    },
+    {
+      "tenant": "ten_01b2518286",
+      "orders": 1000,
+      "seconds": 1.2335845059999428,
+      "units": 6,
+      "unit_p95_ms": 344.0949069999988
+    }
+  ],
+  "requests": 300,
+  "read_seconds": 15.239675443000124,
+  "api_p50_ms": 36.18584649996137,
+  "api_p95_ms": 846.7687370000476,
+  "api_max_ms": 1282.9006290000962,
+  "lag_seconds": null,
+  "lag_reason": "No concurrent booking producer or real scheduler cadence in this read/rebuild benchmark.",
+  "indexes": [
+    "business_mail_row_pkey",
+    "business_order_row_pkey",
+    "ix_business_mail_direction",
+    "ix_business_mail_page",
+    "ix_business_mail_waiting",
+    "ix_business_order_at_risk",
+    "ix_business_order_blocked",
+    "ix_business_order_cancelled",
+    "ix_business_order_clock",
+    "ix_business_order_complete",
+    "ix_business_order_complete_dispatch_sample",
+    "ix_business_order_completed_last_hour",
+    "ix_business_order_eligible",
+    "ix_business_order_first_dispatch_sample",
+    "ix_business_order_held",
+    "ix_business_order_overdue",
+    "ix_business_order_page",
+    "ix_business_order_partial",
+    "ix_business_order_ready",
+    "ix_business_order_received_last_hour",
+    "ix_business_order_reservation_blocked",
+    "ix_business_order_unshipped"
+  ]
+}

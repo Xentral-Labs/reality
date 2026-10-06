@@ -1,0 +1,460 @@
+{
+  "recorded_at": "2026-10-06T07:16:37.119902+00:00",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "cpu": "",
+  "visible_cpus": 5,
+  "postgres": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+  "cpu_quota": "400000 100000",
+  "memory_limit": "17179869184",
+  "workload": {
+    "orders": 100,
+    "tenants": 3,
+    "viewers": 100,
+    "rounds": 2,
+    "cadence": 5,
+    "booking_rounds": 3,
+    "output": "specs/378-business-performance-projections/benchmark-shared-roles-prioritized.json"
+  },
+  "distribution": "One item/customer/location per company; 90% open unreserved overdue, 10% cancelled; source-less cloned orders; no mail or shipment history.",
+  "booking_rate_per_second": 0,
+  "viewer_model": "100 ASGI HTTP viewers, phased 5s polling; local auth disabled; no network transport",
+  "rebuild": [
+    {
+      "tenant": "ten_c46c515118",
+      "orders": 100,
+      "seconds": 1.5845259269999588,
+      "units": 1,
+      "unit_p95_ms": 378.30121700017116
+    },
+    {
+      "tenant": "ten_c33fec09e8",
+      "orders": 100,
+      "seconds": 0.23123008099992148,
+      "units": 1,
+      "unit_p95_ms": 211.16874799963625
+    },
+    {
+      "tenant": "ten_60da0e4cb5",
+      "orders": 100,
+      "seconds": 0.20159174000036728,
+      "units": 1,
+      "unit_p95_ms": 180.70923599998423
+    }
+  ],
+  "requests": 200,
+  "read_seconds": 10.017076543999792,
+  "api_p50_ms": 24.17671699981838,
+  "api_p95_ms": 60.19680300005348,
+  "api_max_ms": 261.6523749998123,
+  "freshness": {
+    "booking_rate_per_second": 1,
+    "bookings": 9,
+    "viewers_during_bookings": 0,
+    "scheduler_cadence_seconds": 5,
+    "worker_cadence_seconds": 1,
+    "worker_processes": 1,
+    "pending_runs": [
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "fulfillment_blockers"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "item_supply_demand"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "tenant_usage"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "inventory"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "exceptions"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "commitment_register"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "timeline"
+        ]
+      },
+      {
+        "job_type": "operational_cases.reconcile",
+        "status": "pending",
+        "names": []
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "fulfillment_queue"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "fulfillment_blockers"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "item_supply_demand"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "tenant_usage"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "inventory"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "exceptions"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "commitment_register"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "timeline"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "fulfillment_queue"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "fulfillment_blockers"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "item_supply_demand"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "tenant_usage"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "inventory"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "exceptions"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "commitment_register"
+        ]
+      },
+      {
+        "job_type": "projections.refresh",
+        "status": "pending",
+        "names": [
+          "timeline"
+        ]
+      },
+      {
+        "job_type": "operational_cases.reconcile",
+        "status": "pending",
+        "names": []
+      },
+      {
+        "job_type": "operational_cases.reconcile",
+        "status": "pending",
+        "names": []
+      }
+    ],
+    "final_processing": {
+      "ten_c46c515118": {
+        "projection": "business_performance",
+        "calculation_mode": "stored",
+        "state": "ready",
+        "processed_event_sequence": 9,
+        "target_event_sequence": 9,
+        "completed_at": "2026-10-06T07:16:26.325115+00:00",
+        "projection_version": 6,
+        "upstream_freshness": "unknown",
+        "consistency": "completed_snapshot",
+        "failure_code": null,
+        "guidance": null,
+        "lag_seconds": 0,
+        "delayed": false,
+        "clock_due_at": "2026-10-06T08:15:43.855179+00:00",
+        "rebuild": null,
+        "available": true
+      },
+      "ten_c33fec09e8": {
+        "projection": "business_performance",
+        "calculation_mode": "stored",
+        "state": "ready",
+        "processed_event_sequence": 9,
+        "target_event_sequence": 9,
+        "completed_at": "2026-10-06T07:16:32.742724+00:00",
+        "projection_version": 6,
+        "upstream_freshness": "unknown",
+        "consistency": "completed_snapshot",
+        "failure_code": null,
+        "guidance": null,
+        "lag_seconds": 0,
+        "delayed": false,
+        "clock_due_at": "2026-10-06T08:15:44.204162+00:00",
+        "rebuild": null,
+        "available": true
+      },
+      "ten_60da0e4cb5": {
+        "projection": "business_performance",
+        "calculation_mode": "stored",
+        "state": "ready",
+        "processed_event_sequence": 9,
+        "target_event_sequence": 9,
+        "completed_at": "2026-10-06T07:16:29.538841+00:00",
+        "projection_version": 6,
+        "upstream_freshness": "unknown",
+        "consistency": "completed_snapshot",
+        "failure_code": null,
+        "guidance": null,
+        "lag_seconds": 0,
+        "delayed": false,
+        "clock_due_at": "2026-10-06T08:15:44.420135+00:00",
+        "rebuild": null,
+        "available": true
+      }
+    },
+    "max_runs": {
+      "scheduler": 100,
+      "worker": 10
+    },
+    "max_seconds_per_sweep": 25,
+    "p95_seconds": 19.236888601000373,
+    "max_seconds": 19.236888601000373,
+    "missing": 0,
+    "errors": [],
+    "sweeps": {
+      "scheduler": [
+        {
+          "materialized": 12,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 9,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 10,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 1,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        }
+      ],
+      "worker": [
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        }
+      ]
+    },
+    "samples": [
+      {
+        "tenant": "ten_c46c515118",
+        "target": 7,
+        "lag_seconds": 13.66374976499992
+      },
+      {
+        "tenant": "ten_c33fec09e8",
+        "target": 7,
+        "lag_seconds": 19.236888601000373
+      },
+      {
+        "tenant": "ten_60da0e4cb5",
+        "target": 7,
+        "lag_seconds": 14.919668867999917
+      },
+      {
+        "tenant": "ten_c46c515118",
+        "target": 8,
+        "lag_seconds": 10.852880198000094
+      },
+      {
+        "tenant": "ten_c33fec09e8",
+        "target": 8,
+        "lag_seconds": 16.319215098999848
+      },
+      {
+        "tenant": "ten_60da0e4cb5",
+        "target": 8,
+        "lag_seconds": 11.828416915000162
+      },
+      {
+        "tenant": "ten_c46c515118",
+        "target": 9,
+        "lag_seconds": 7.926651125999797
+      },
+      {
+        "tenant": "ten_c33fec09e8",
+        "target": 9,
+        "lag_seconds": 13.337755795999783
+      },
+      {
+        "tenant": "ten_60da0e4cb5",
+        "target": 9,
+        "lag_seconds": 9.119647920999796
+      }
+    ]
+  },
+  "lag_seconds": 19.236888601000373,
+  "lag_reason": "Separate short shared-role probe; no viewers during bookings.",
+  "indexes": [
+    "business_mail_row_pkey",
+    "business_order_row_pkey",
+    "ix_business_mail_direction",
+    "ix_business_mail_page",
+    "ix_business_mail_waiting",
+    "ix_business_order_at_risk",
+    "ix_business_order_blocked",
+    "ix_business_order_cancelled",
+    "ix_business_order_clock",
+    "ix_business_order_complete",
+    "ix_business_order_complete_dispatch_sample",
+    "ix_business_order_completed_last_hour",
+    "ix_business_order_eligible",
+    "ix_business_order_first_dispatch_sample",
+    "ix_business_order_held",
+    "ix_business_order_overdue",
+    "ix_business_order_page",
+    "ix_business_order_partial",
+    "ix_business_order_ready",
+    "ix_business_order_received_last_hour",
+    "ix_business_order_reservation_blocked",
+    "ix_business_order_unshipped"
+  ]
+}

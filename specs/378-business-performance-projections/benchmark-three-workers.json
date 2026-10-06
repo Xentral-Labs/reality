@@ -1,0 +1,861 @@
+{
+  "recorded_at": "2026-10-06T07:20:29.093421+00:00",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "cpu": "",
+  "visible_cpus": 5,
+  "postgres": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+  "cpu_quota": "400000 100000",
+  "memory_limit": "17179869184",
+  "workload": {
+    "orders": 100,
+    "tenants": 3,
+    "viewers": 100,
+    "rounds": 2,
+    "cadence": 5,
+    "booking_rounds": 3,
+    "worker_processes": 3,
+    "output": "specs/378-business-performance-projections/benchmark-three-workers.json"
+  },
+  "distribution": "One item/customer/location per company; 90% open unreserved overdue, 10% cancelled; source-less cloned orders; no mail or shipment history.",
+  "booking_rate_per_second": 0,
+  "viewer_model": "100 ASGI HTTP viewers, phased 5s polling; local auth disabled; no network transport",
+  "rebuild": [
+    {
+      "tenant": "ten_3dbfb38287",
+      "orders": 100,
+      "seconds": 1.7529214080000202,
+      "units": 1,
+      "unit_p95_ms": 414.66848900017794
+    },
+    {
+      "tenant": "ten_1f36ed59c7",
+      "orders": 100,
+      "seconds": 0.5099561399997583,
+      "units": 1,
+      "unit_p95_ms": 493.41812000011487
+    },
+    {
+      "tenant": "ten_f08ce61f8f",
+      "orders": 100,
+      "seconds": 0.31780934400012484,
+      "units": 1,
+      "unit_p95_ms": 300.4197270001896
+    }
+  ],
+  "requests": 200,
+  "read_seconds": 10.04873128500003,
+  "api_p50_ms": 290.08848499984197,
+  "api_p95_ms": 1239.2311850003352,
+  "api_max_ms": 1758.381217999613,
+  "freshness": {
+    "booking_rate_per_second": 1,
+    "bookings": 9,
+    "viewers_during_bookings": 0,
+    "scheduler_cadence_seconds": 5,
+    "worker_cadence_seconds": 1,
+    "worker_processes": 3,
+    "pending_runs": [
+      {
+        "job_type": "operational_cases.reconcile",
+        "status": "pending",
+        "names": []
+      },
+      {
+        "job_type": "operational_cases.reconcile",
+        "status": "pending",
+        "names": []
+      }
+    ],
+    "final_processing": {
+      "ten_3dbfb38287": {
+        "projection": "business_performance",
+        "calculation_mode": "stored",
+        "state": "ready",
+        "processed_event_sequence": 9,
+        "target_event_sequence": 9,
+        "completed_at": "2026-10-06T07:20:22.107882+00:00",
+        "projection_version": 6,
+        "upstream_freshness": "unknown",
+        "consistency": "completed_snapshot",
+        "failure_code": null,
+        "guidance": null,
+        "lag_seconds": 0,
+        "delayed": false,
+        "clock_due_at": "2026-10-06T08:18:45.381184+00:00",
+        "rebuild": null,
+        "available": true
+      },
+      "ten_1f36ed59c7": {
+        "projection": "business_performance",
+        "calculation_mode": "stored",
+        "state": "ready",
+        "processed_event_sequence": 9,
+        "target_event_sequence": 9,
+        "completed_at": "2026-10-06T07:19:26.628137+00:00",
+        "projection_version": 6,
+        "upstream_freshness": "unknown",
+        "consistency": "completed_snapshot",
+        "failure_code": null,
+        "guidance": null,
+        "lag_seconds": 0,
+        "delayed": false,
+        "clock_due_at": "2026-10-06T08:18:45.852637+00:00",
+        "rebuild": null,
+        "available": true
+      },
+      "ten_f08ce61f8f": {
+        "projection": "business_performance",
+        "calculation_mode": "stored",
+        "state": "ready",
+        "processed_event_sequence": 9,
+        "target_event_sequence": 9,
+        "completed_at": "2026-10-06T07:19:22.126346+00:00",
+        "projection_version": 6,
+        "upstream_freshness": "unknown",
+        "consistency": "completed_snapshot",
+        "failure_code": null,
+        "guidance": null,
+        "lag_seconds": 0,
+        "delayed": false,
+        "clock_due_at": "2026-10-06T08:18:46.245644+00:00",
+        "rebuild": null,
+        "available": true
+      }
+    },
+    "max_runs": {
+      "scheduler": 100,
+      "worker": 10
+    },
+    "max_seconds_per_sweep": 25,
+    "p95_seconds": 65.11072443399962,
+    "max_seconds": 65.11072443399962,
+    "missing": 0,
+    "errors": [],
+    "sweeps": {
+      "scheduler": [
+        {
+          "materialized": 12,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 9,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 12,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 1,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 1,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        }
+      ],
+      "worker": [
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 0,
+          "succeeded": 0,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 2,
+          "succeeded": 2,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 2,
+          "succeeded": 2,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 2,
+          "succeeded": 2,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        },
+        {
+          "materialized": 0,
+          "deferred": 0,
+          "processed": 3,
+          "succeeded": 3,
+          "retry": 0,
+          "failed": 0,
+          "unresolved": 0,
+          "budget_exhausted": false
+        }
+      ]
+    },
+    "samples": [
+      {
+        "tenant": "ten_3dbfb38287",
+        "target": 7,
+        "lag_seconds": 6.975342766999802
+      },
+      {
+        "tenant": "ten_1f36ed59c7",
+        "target": 7,
+        "lag_seconds": 15.153067496999938
+      },
+      {
+        "tenant": "ten_f08ce61f8f",
+        "target": 7,
+        "lag_seconds": 10.25079609300019
+      },
+      {
+        "tenant": "ten_3dbfb38287",
+        "target": 8,
+        "lag_seconds": 4.265995492999991
+      },
+      {
+        "tenant": "ten_1f36ed59c7",
+        "target": 8,
+        "lag_seconds": 9.177806038000199
+      },
+      {
+        "tenant": "ten_f08ce61f8f",
+        "target": 8,
+        "lag_seconds": 5.105394359999991
+      },
+      {
+        "tenant": "ten_3dbfb38287",
+        "target": 9,
+        "lag_seconds": 65.11072443399962
+      },
+      {
+        "tenant": "ten_1f36ed59c7",
+        "target": 9,
+        "lag_seconds": 8.254516125999999
+      },
+      {
+        "tenant": "ten_f08ce61f8f",
+        "target": 9,
+        "lag_seconds": 3.9995154799999
+      }
+    ]
+  },
+  "lag_seconds": 65.11072443399962,
+  "lag_reason": "Separate short shared-role probe; no viewers during bookings.",
+  "query_plans": {
+    "blocked": [
+      {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 57.83,
+          "Total Cost": 57.9,
+          "Plan Rows": 30,
+          "Plan Width": 531,
+          "Actual Startup Time": 0.394,
+          "Actual Total Time": 0.41,
+          "Actual Rows": 91,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 26,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 57.83,
+              "Total Cost": 57.9,
+              "Plan Rows": 30,
+              "Plan Width": 531,
+              "Actual Startup Time": 0.393,
+              "Actual Total Time": 0.4,
+              "Actual Rows": 91,
+              "Actual Loops": 1,
+              "Sort Key": [
+                "received_sort",
+                "document_id"
+              ],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 116,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 26,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Bitmap Heap Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Relation Name": "business_order_row",
+                  "Alias": "business_order_row",
+                  "Startup Cost": 4.58,
+                  "Total Cost": 57.09,
+                  "Plan Rows": 30,
+                  "Plan Width": 531,
+                  "Actual Startup Time": 0.044,
+                  "Actual Total Time": 0.124,
+                  "Actual Rows": 91,
+                  "Actual Loops": 1,
+                  "Recheck Cond": "(((tenant_id)::text = 'ten_3dbfb38287'::text) AND ((generation)::text = 'bpg_eb19aaed97'::text) AND (flags @> '{blocked}'::character varying[]))",
+                  "Rows Removed by Index Recheck": 0,
+                  "Exact Heap Blocks": 22,
+                  "Lossy Heap Blocks": 0,
+                  "Shared Hit Blocks": 26,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0,
+                  "Plans": [
+                    {
+                      "Node Type": "Bitmap Index Scan",
+                      "Parent Relationship": "Outer",
+                      "Parallel Aware": false,
+                      "Async Capable": false,
+                      "Index Name": "ix_business_order_blocked",
+                      "Startup Cost": 0.0,
+                      "Total Cost": 4.57,
+                      "Plan Rows": 30,
+                      "Plan Width": 0,
+                      "Actual Startup Time": 0.034,
+                      "Actual Total Time": 0.034,
+                      "Actual Rows": 93,
+                      "Actual Loops": 1,
+                      "Index Cond": "(((tenant_id)::text = 'ten_3dbfb38287'::text) AND ((generation)::text = 'bpg_eb19aaed97'::text))",
+                      "Shared Hit Blocks": 4,
+                      "Shared Read Blocks": 0,
+                      "Shared Dirtied Blocks": 0,
+                      "Shared Written Blocks": 0,
+                      "Local Hit Blocks": 0,
+                      "Local Read Blocks": 0,
+                      "Local Dirtied Blocks": 0,
+                      "Local Written Blocks": 0,
+                      "Temp Read Blocks": 0,
+                      "Temp Written Blocks": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 8,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.249,
+        "Triggers": [],
+        "Execution Time": 0.438
+      }
+    ],
+    "complete": [
+      {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.12,
+          "Total Cost": 8.14,
+          "Plan Rows": 1,
+          "Plan Width": 531,
+          "Actual Startup Time": 0.005,
+          "Actual Total Time": 0.005,
+          "Actual Rows": 0,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 2,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "ix_business_order_complete",
+              "Relation Name": "business_order_row",
+              "Alias": "business_order_row",
+              "Startup Cost": 0.12,
+              "Total Cost": 8.14,
+              "Plan Rows": 1,
+              "Plan Width": 531,
+              "Actual Startup Time": 0.004,
+              "Actual Total Time": 0.004,
+              "Actual Rows": 0,
+              "Actual Loops": 1,
+              "Index Cond": "(((tenant_id)::text = 'ten_3dbfb38287'::text) AND ((generation)::text = 'bpg_eb19aaed97'::text))",
+              "Rows Removed by Index Recheck": 0,
+              "Shared Hit Blocks": 2,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 8,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.178,
+        "Triggers": [],
+        "Execution Time": 0.016
+      }
+    ],
+    "cancelled": [
+      {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 14.25,
+          "Total Cost": 14.26,
+          "Plan Rows": 3,
+          "Plan Width": 531,
+          "Actual Startup Time": 0.04,
+          "Actual Total Time": 0.042,
+          "Actual Rows": 9,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 9,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Sort",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 14.25,
+              "Total Cost": 14.26,
+              "Plan Rows": 3,
+              "Plan Width": 531,
+              "Actual Startup Time": 0.039,
+              "Actual Total Time": 0.041,
+              "Actual Rows": 9,
+              "Actual Loops": 1,
+              "Sort Key": [
+                "received_sort",
+                "document_id"
+              ],
+              "Sort Method": "quicksort",
+              "Sort Space Used": 29,
+              "Sort Space Type": "Memory",
+              "Shared Hit Blocks": 9,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Plans": [
+                {
+                  "Node Type": "Bitmap Heap Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Relation Name": "business_order_row",
+                  "Alias": "business_order_row",
+                  "Startup Cost": 4.17,
+                  "Total Cost": 14.22,
+                  "Plan Rows": 3,
+                  "Plan Width": 531,
+                  "Actual Startup Time": 0.016,
+                  "Actual Total Time": 0.026,
+                  "Actual Rows": 9,
+                  "Actual Loops": 1,
+                  "Recheck Cond": "(((tenant_id)::text = 'ten_3dbfb38287'::text) AND ((generation)::text = 'bpg_eb19aaed97'::text) AND (flags @> '{cancelled}'::character varying[]))",
+                  "Rows Removed by Index Recheck": 0,
+                  "Exact Heap Blocks": 8,
+                  "Lossy Heap Blocks": 0,
+                  "Shared Hit Blocks": 9,
+                  "Shared Read Blocks": 0,
+                  "Shared Dirtied Blocks": 0,
+                  "Shared Written Blocks": 0,
+                  "Local Hit Blocks": 0,
+                  "Local Read Blocks": 0,
+                  "Local Dirtied Blocks": 0,
+                  "Local Written Blocks": 0,
+                  "Temp Read Blocks": 0,
+                  "Temp Written Blocks": 0,
+                  "Plans": [
+                    {
+                      "Node Type": "Bitmap Index Scan",
+                      "Parent Relationship": "Outer",
+                      "Parallel Aware": false,
+                      "Async Capable": false,
+                      "Index Name": "ix_business_order_cancelled",
+                      "Startup Cost": 0.0,
+                      "Total Cost": 4.17,
+                      "Plan Rows": 3,
+                      "Plan Width": 0,
+                      "Actual Startup Time": 0.01,
+                      "Actual Total Time": 0.01,
+                      "Actual Rows": 9,
+                      "Actual Loops": 1,
+                      "Index Cond": "(((tenant_id)::text = 'ten_3dbfb38287'::text) AND ((generation)::text = 'bpg_eb19aaed97'::text))",
+                      "Shared Hit Blocks": 1,
+                      "Shared Read Blocks": 0,
+                      "Shared Dirtied Blocks": 0,
+                      "Shared Written Blocks": 0,
+                      "Local Hit Blocks": 0,
+                      "Local Read Blocks": 0,
+                      "Local Dirtied Blocks": 0,
+                      "Local Written Blocks": 0,
+                      "Temp Read Blocks": 0,
+                      "Temp Written Blocks": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 8,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.213,
+        "Triggers": [],
+        "Execution Time": 0.059
+      }
+    ]
+  },
+  "indexes": [
+    "business_mail_row_pkey",
+    "business_order_row_pkey",
+    "ix_business_mail_direction",
+    "ix_business_mail_page",
+    "ix_business_mail_waiting",
+    "ix_business_order_at_risk",
+    "ix_business_order_blocked",
+    "ix_business_order_cancelled",
+    "ix_business_order_clock",
+    "ix_business_order_complete",
+    "ix_business_order_complete_dispatch_sample",
+    "ix_business_order_completed_last_hour",
+    "ix_business_order_eligible",
+    "ix_business_order_first_dispatch_sample",
+    "ix_business_order_held",
+    "ix_business_order_overdue",
+    "ix_business_order_page",
+    "ix_business_order_partial",
+    "ix_business_order_ready",
+    "ix_business_order_received_last_hour",
+    "ix_business_order_reservation_blocked",
+    "ix_business_order_unshipped"
+  ]
+}

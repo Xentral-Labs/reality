@@ -559,7 +559,7 @@ def _elapsed(started: float) -> int:
 
 
 EXCLUDED_VIEW_SUFFIXES = ("/activity-signal",)
-EXCLUDED_VIEW_SEGMENTS = ("/storyline", "/analytics/reports")
+EXCLUDED_VIEW_SEGMENTS = ("/storyline", "/analytics/reports", "/interactions/business")
 
 
 def record_http_view(

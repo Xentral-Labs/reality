@@ -386,6 +386,9 @@ def test_rolled_back_event_and_failed_publication_leave_no_progress(
             projections.projection_snapshot(db, tenant, projections.INVENTORY) == before
         )
     with factory() as db, db.begin():
+        # This proof injects the generic row-replacement writer. Business has a
+        # dedicated writer and its own rollback proof; warm it before dispatch.
+        projections.rebuild_projections(db, tenant, [projections.BUSINESS_PERFORMANCE])
         dispatch(db, tenant)
     with factory() as db, db.begin():
         run = scheduled_jobs.claim_next(db, tenant)

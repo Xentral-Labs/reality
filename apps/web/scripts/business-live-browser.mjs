@@ -13,7 +13,10 @@ const browser = await chromium.launch({
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
 const base = process.env.UNIFIED_BASE_URL || "http://localhost:5177";
-let stale = false,
+let paged = false,
+  cold = false,
+  processingFailed = false,
+  stale = false,
   calls = 0;
 const errors = [],
   writes = [],
@@ -34,6 +37,15 @@ const order = {
   commitment_ids: ["commitment-1"],
 };
 const data = {
+  processing: {
+    available: true,
+    delayed: false,
+    state: "ready",
+    processed_event_sequence: 30,
+    target_event_sequence: 30,
+    lag_seconds: 0,
+    completed_at: "2026-10-05T10:30:00Z",
+  },
   observed_at: "2026-10-05T10:30:00Z",
   recent_documents: [
     {
@@ -126,11 +138,24 @@ await page.route("**/api/**", async (route) => {
       ? reply({}, 503)
       : reply({
           ...data,
+          processing: {
+            ...data.processing,
+            available: !cold,
+            delayed: cold || paged || processingFailed,
+            state: processingFailed ? "failed" : cold ? "rebuilding" : paged ? "pending" : "ready",
+            target_event_sequence: paged ? 35 : 30,
+            lag_seconds: paged ? 4 : 0,
+            rebuild: cold ? { phase: "orders", rows: 200 } : null,
+          },
+          orders_next_cursor: paged && !u.searchParams.get("order_cursor") ? "order-page-2" : null,
+          messages_next_cursor: paged && !u.searchParams.get("mail_cursor") ? "mail-page-2" : null,
           orders: ["reservation_blocked", "complete_dispatch_sample"].includes(
             u.searchParams.get("order_filter"),
           )
             ? []
-            : [order],
+            : paged && u.searchParams.get("order_cursor")
+              ? [{ ...order, document_id: "order-2", number: "S02" }]
+              : [order],
           messages:
             u.searchParams.get("mail_filter") === "outgoing"
               ? [
@@ -143,7 +168,15 @@ await page.route("**/api/**", async (route) => {
                     original: data.messages[0],
                   },
                 ]
-              : data.messages,
+              : paged && u.searchParams.get("mail_cursor")
+                ? [
+                    {
+                      ...data.messages[0],
+                      source_record_id: "mail-2",
+                      subject: "Second page message",
+                    },
+                  ]
+                : data.messages,
         });
   }
   if (p.includes("/inspector/")) {
@@ -315,6 +348,43 @@ try {
   await dashboard.getByRole("button", { name: "Komplettversand", exact: true }).click();
   await page.getByRole("dialog").getByText("Keine passenden Aufträge.", { exact: true }).waitFor();
   await page.getByRole("dialog").getByRole("button", { name: "Schließen", exact: true }).click();
+  // Real controls request the server's cursor, preserve filters and reset pages.
+  paged = true;
+  await page.goto(`${base}/app/inspector?tenant=company&inspector_view=business`);
+  await dashboard.waitFor();
+  await dashboard.getByText("Geschäftsdaten sind verzögert.", { exact: false }).waitFor();
+  assert.match(await dashboard.locator("[data-business-processing]").innerText(), /30.*35/);
+  await dashboard.getByRole("tab", { name: "Aufträge & Bestellungen", exact: true }).click();
+  await dashboard.getByRole("button", { name: "S01", exact: true }).waitFor();
+  await dashboard.getByRole("button", { name: "Nächste Seite", exact: true }).click();
+  await dashboard.getByRole("button", { name: "S02", exact: true }).waitFor();
+  await dashboard.getByRole("button", { name: "Vorherige Seite", exact: true }).click();
+  await dashboard.getByRole("button", { name: "S01", exact: true }).waitFor();
+  await dashboard.getByRole("tab", { name: "Nachrichten", exact: true }).click();
+  await dashboard.getByRole("button", { name: "Nächste Seite", exact: true }).click();
+  await dashboard.getByRole("button", { name: "Second page message", exact: true }).waitFor();
+  await dashboard.getByRole("button", { name: /Ausgehend.*1/ }).click();
+  await dashboard.getByRole("button", { name: "Reply to S01", exact: true }).waitFor();
+  assert.equal(
+    await dashboard.getByRole("button", { name: "Vorherige Seite", exact: true }).isEnabled(),
+    false,
+  );
+  processingFailed = true;
+  await page.goto(`${base}/app/inspector?tenant=company&inspector_view=business`);
+  await dashboard
+    .getByText("Verarbeitung der Geschäftsdaten fehlgeschlagen.", { exact: false })
+    .waitFor();
+  processingFailed = false;
+  cold = true;
+  await page.goto(`${base}/app/inspector?tenant=company&inspector_view=business`);
+  await dashboard
+    .getByText("Geschäftskennzahlen sind noch nicht verfügbar.", { exact: false })
+    .waitFor();
+  assert.equal(await dashboard.getByRole("button", { name: /Versandbereit/ }).count(), 0);
+  cold = false;
+  paged = false;
+  await page.goto(`${base}/app/inspector?tenant=company&inspector_view=business`);
+  await dashboard.getByRole("button", { name: /82.*Versandbereit/ }).waitFor();
   stale = true;
   await dashboard
     .getByText("Aktualisierung fehlgeschlagen.", { exact: false })
@@ -328,7 +398,7 @@ try {
   assert.deepEqual(writes, []);
   assert.ok(calls >= 3);
   console.log(
-    "PASS Business dashboard: counts, filtered drilldown, Inspector, inert mail, stale retention, mobile width, read-only requests",
+    "PASS Business dashboard: counts, filtered drilldown, cursor paging, processing/cold/failure states, Inspector, inert mail, stale retention, mobile width, read-only requests",
   );
 } finally {
   await browser.close();

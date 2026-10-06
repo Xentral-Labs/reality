@@ -53,6 +53,8 @@ export type BusinessOperations = {
     direction: string;
     recorded_at: string;
     reply_recorded?: boolean | null;
+    read_acknowledged?: boolean | null;
+    work_completed?: boolean | null;
     replies?: { source_record_id: string; subject: string; body: string; recorded_at: string }[];
     original?: {
       source_record_id: string;
@@ -61,7 +63,19 @@ export type BusinessOperations = {
       recorded_at: string;
     } | null;
   }[];
-  observed_at: string;
+  observed_at: string | null;
+  processing?: {
+    state: string;
+    lag_seconds?: number;
+    delayed: boolean;
+    available: boolean;
+    completed_at: string | null;
+    processed_event_sequence: number | null;
+    target_event_sequence: number;
+    rebuild: { phase: string; rows: number } | null;
+  };
+  orders_next_cursor?: string | null;
+  messages_next_cursor?: string | null;
   orders: BusinessOrder[];
   order_count: number;
   eligible_orders: number;
@@ -93,6 +107,9 @@ export type BusinessOperations = {
 
 export function BusinessLive({ tenant }: { tenant: string }) {
   const [data, setData] = useState<BusinessOperations | null>(null);
+  const [loadedTenant, setLoadedTenant] = useState(tenant);
+  const [loadedOrderCursor, setLoadedOrderCursor] = useState("");
+  const [loadedMailCursor, setLoadedMailCursor] = useState("");
   const [failed, setFailed] = useState(false);
   const [filter, setFilter] = useState("");
   const [loadedFilter, setLoadedFilter] = useState("");
@@ -101,6 +118,12 @@ export function BusinessLive({ tenant }: { tenant: string }) {
   const [mailFilter, setMailFilter] = useState("incoming");
   const [loadedMailFilter, setLoadedMailFilter] = useState("");
   const [mail, setMail] = useState<BusinessOperations["messages"][number] | null>(null);
+  const [orderPages, setOrderPages] = useState<string[]>([""]);
+  const [mailPages, setMailPages] = useState<string[]>([""]);
+  const orderCursor = orderPages[orderPages.length - 1];
+  const mailCursor = mailPages[mailPages.length - 1];
+  useEffect(() => setOrderPages([""]), [tenant, filter]);
+  useEffect(() => setMailPages([""]), [tenant, mailFilter]);
   const panelId = useId();
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   useEffect(() => {
@@ -113,15 +136,30 @@ export function BusinessLive({ tenant }: { tenant: string }) {
       controller = new AbortController();
       const timeout = window.setTimeout(() => controller?.abort(), 15000);
       try {
-        const value = await api.businessOperations(tenant, controller.signal, filter, mailFilter);
+        const value = await api.businessOperations(
+          tenant,
+          controller.signal,
+          filter,
+          mailFilter,
+          orderCursor,
+          mailCursor,
+        );
         if (!disposed) {
           setData(value);
+          setLoadedTenant(tenant);
+          setLoadedOrderCursor(orderCursor);
+          setLoadedMailCursor(mailCursor);
           setLoadedFilter(filter);
           setLoadedMailFilter(mailFilter);
           setFailed(false);
         }
       } catch {
-        if (!disposed) setFailed(true);
+        if (!disposed) {
+          setFailed(true);
+          // A newly published generation expires prior page cursors.
+          if (orderCursor) setOrderPages([""]);
+          if (mailCursor) setMailPages([""]);
+        }
       } finally {
         window.clearTimeout(timeout);
         busy = false;
@@ -134,9 +172,22 @@ export function BusinessLive({ tenant }: { tenant: string }) {
       controller?.abort();
       window.clearInterval(timer);
     };
-  }, [tenant, filter, mailFilter]);
-  if (!data)
+  }, [tenant, filter, mailFilter, orderCursor, mailCursor]);
+  if (!data || loadedTenant !== tenant)
     return <p role="status">{failed ? t("Business data could not be loaded.") : t("Loading…")}</p>;
+  if (data.processing && !data.processing.available)
+    return (
+      <section data-business-live data-business-processing>
+        <p role="status">
+          {t("Business data is delayed.")} {t("Business metrics are not available yet.")}
+        </p>
+        {data.processing.rebuild && (
+          <p>
+            {t("Rebuilding")}: {formatNumber(data.processing.rebuild.rows)}
+          </p>
+        )}
+      </section>
+    );
   const metrics: [string, number, string][] = [
     ["Ready to dispatch", data.ready_orders, "ready"],
     ["Blocked orders", data.blocked_orders, "blocked"],
@@ -171,7 +222,7 @@ export function BusinessLive({ tenant }: { tenant: string }) {
     value === null ? "—" : `${formatNumber(value)} ${t("min")}`;
   const activeTone = "border-accent bg-accent-soft";
   const inactiveTone = "border-border-subtle bg-surface";
-  const orders = data.orders.filter((o) => !filter || o.flags.includes(filter));
+  const orders = data.orders;
   const orderContent = (
     <>
       <div className="flex items-center justify-between">
@@ -179,7 +230,7 @@ export function BusinessLive({ tenant }: { tenant: string }) {
       </div>
       <p className="text-xs text-fg-muted">
         {t(
-          "Company-wide counts; the oldest 200 orders are available below. Dispatch is not customer arrival.",
+          "Company-wide counts; orders are paginated oldest first. Dispatch is not customer arrival.",
         )}
       </p>
       <div className="overflow-auto rounded-lg border border-border-subtle">
@@ -259,6 +310,27 @@ export function BusinessLive({ tenant }: { tenant: string }) {
           </tbody>
         </table>
       </div>
+      <div className="flex gap-3 py-2">
+        <button
+          disabled={orderPages.length === 1 || loadedOrderCursor !== orderCursor}
+          onClick={() => setOrderPages((p) => p.slice(0, -1))}
+        >
+          {t("Previous page")}
+        </button>
+        <button
+          disabled={
+            !data.orders_next_cursor ||
+            failed ||
+            loadedFilter !== filter ||
+            loadedOrderCursor !== orderCursor
+          }
+          onClick={() =>
+            data.orders_next_cursor && setOrderPages((p) => [...p, data.orders_next_cursor!])
+          }
+        >
+          {t("Next page")}
+        </button>
+      </div>
     </>
   );
   const mailContent = (
@@ -284,7 +356,7 @@ export function BusinessLive({ tenant }: { tenant: string }) {
       </div>
       <p className="mb-3 text-xs text-fg-muted">
         {t(
-          "Latest 50 matching messages. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.",
+          "Matching messages are paginated newest first. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.",
         )}
       </p>
       {loadedMailFilter !== mailFilter ? (
@@ -340,10 +412,60 @@ export function BusinessLive({ tenant }: { tenant: string }) {
           </table>
         </div>
       )}
+      <div className="flex gap-3 py-2">
+        <button
+          disabled={mailPages.length === 1 || loadedMailCursor !== mailCursor}
+          onClick={() => setMailPages((p) => p.slice(0, -1))}
+        >
+          {t("Previous page")}
+        </button>
+        <button
+          disabled={
+            !data.messages_next_cursor ||
+            failed ||
+            loadedMailFilter !== mailFilter ||
+            loadedMailCursor !== mailCursor
+          }
+          onClick={() =>
+            data.messages_next_cursor && setMailPages((p) => [...p, data.messages_next_cursor!])
+          }
+        >
+          {t("Next page")}
+        </button>
+      </div>
     </section>
   );
   return (
     <section className="space-y-4 py-3" data-business-live>
+      {data.processing && (
+        <p role="status" className="text-sm text-fg-muted" data-business-processing>
+          {data.processing.delayed
+            ? t("Business data is delayed.")
+            : t("Business data has been processed.")}{" "}
+          {t("Processed events")}: {formatNumber(data.processing.processed_event_sequence ?? 0)} /{" "}
+          {formatNumber(data.processing.target_event_sequence)}
+          {data.processing.lag_seconds !== undefined && (
+            <>
+              {" "}
+              · {t("Processing lag")}: {formatNumber(data.processing.lag_seconds)} {t("seconds")}
+            </>
+          )}
+          {data.processing.state === "failed" && <> · {t("Business processing failed.")}</>}
+          {data.processing.completed_at && (
+            <>
+              {" "}
+              · {t("Updated")}: {formatDateTime(data.processing.completed_at)}
+            </>
+          )}
+          {data.processing.rebuild && (
+            <>
+              {" "}
+              · {t("Rebuilding")}: {formatNumber(data.processing.rebuild.rows)}
+            </>
+          )}
+          {!data.processing.available && <> · {t("Business metrics are not available yet.")}</>}
+        </p>
+      )}
       <div
         className="flex gap-2 overflow-x-auto border-b border-border-subtle pb-2"
         role="tablist"
@@ -391,7 +513,7 @@ export function BusinessLive({ tenant }: { tenant: string }) {
       >
         {tab !== "overview" && (
           <p className="text-xs text-fg-muted">
-            {t("Updated")}: {formatDateTime(data.observed_at)}
+            {t("Updated")}: {data.observed_at ? formatDateTime(data.observed_at) : "—"}
             {failed && (
               <span role="status">
                 {" "}
@@ -406,7 +528,7 @@ export function BusinessLive({ tenant }: { tenant: string }) {
               <div className="flex flex-wrap justify-between gap-2">
                 <h2 className="text-lg font-semibold">{t("Business flow")}</h2>
                 <span className="text-xs text-fg-muted">
-                  {t("Updated")}: {formatDateTime(data.observed_at)}
+                  {t("Updated")}: {data.observed_at ? formatDateTime(data.observed_at) : "—"}
                 </span>
               </div>
               {failed && (
@@ -672,7 +794,7 @@ export function BusinessLive({ tenant }: { tenant: string }) {
       {filter && (
         <BusinessOrdersDialog title={t(labels[filter] || "Orders")} close={() => setFilter("")}>
           <p className="mb-3 text-xs text-fg-muted">
-            {t("Updated")}: {formatDateTime(data.observed_at)}
+            {t("Updated")}: {data.observed_at ? formatDateTime(data.observed_at) : "—"}
           </p>
           {loadedFilter !== filter ? (
             <p role="status">{failed ? t("Business data could not be loaded.") : t("Loading…")}</p>
@@ -692,7 +814,7 @@ export function BusinessLive({ tenant }: { tenant: string }) {
           close={() => setMailListOpen(false)}
         >
           <p className="mb-3 text-xs text-fg-muted">
-            {t("Updated")}: {formatDateTime(data.observed_at)}
+            {t("Updated")}: {data.observed_at ? formatDateTime(data.observed_at) : "—"}
           </p>
           {failed && (
             <p role="status">{t("Refresh failed. Showing the last recorded snapshot.")}</p>
@@ -702,6 +824,16 @@ export function BusinessLive({ tenant }: { tenant: string }) {
       )}
       {mail && (
         <BusinessOrdersDialog title={mail.subject} close={() => setMail(null)}>
+          <p className="text-xs text-fg-muted">
+            {t("Read acknowledgement")}:{" "}
+            {mail.read_acknowledged === true
+              ? t("Recorded")
+              : mail.read_acknowledged === false
+                ? t("Not recorded")
+                : t("Unknown")}
+            {" · "}
+            {t("Completed work")}: {t("Unknown")}
+          </p>
           {[
             {
               label: "Original incoming message",

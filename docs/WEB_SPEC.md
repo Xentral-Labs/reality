@@ -3670,3 +3670,6 @@ room for three-digit page sizes. Disabled and focused controls remain identifiab
 Native multiple/size listboxes and invisible register-chip overlays keep their
 rendering; forced colors restores the browser indicator. Shared CSS protects these
 rules from legacy page background/padding resets, including Control Tower filters.
+
+## Activities Business processing — spec 378
+The existing owner-only Business page retains its tabs, KPI meanings, exact correspondence and Inspector links. API reads use disposable projections with server-side filtering and keyset pagination. Previous/Next page controls expose all matching orders/messages. The page reports explicitly delayed/pending/rebuilding/failed data, processed/target event sequence and completion time. Bootstrap shows metrics unavailable until publication; network failures retain the last snapshot. Recorded reply, read acknowledgement and completed work remain distinct; provider freshness/delivery is unknown.

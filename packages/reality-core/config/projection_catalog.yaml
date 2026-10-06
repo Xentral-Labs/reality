@@ -102,3 +102,10 @@ projections:
     reads: [price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
     calculation: Direct party lists precede group lists and the default list; the highest valid minimum-quantity tier wins. Each parameterized question is calculated live from the current canonical pricing rules; no stored result or unrelated projection refresh is used.
     outputs: [unit_price, currency, unit, price_list_id, price_list_entry_id, source]
+  - name: Business performance
+    service: business_performance_snapshot
+    materialized_as: business_performance
+    consumers: [Activities Business]
+    reads: [business_event, document, source_record, commitment, reservation, movement, projection_row, business_order_row, business_mail_row]
+    calculation: Incremental disposable company order and correspondence observations, maintained in bounded resumable generations through the shared projection worker; canonical commitment terms and shipment readiness remain authoritative.
+    outputs: [order_count, ready_orders, overdue_orders, mailbox_counts, orders, messages, processing, orders_next_cursor, messages_next_cursor]

@@ -1159,6 +1159,11 @@ def _service(name: str) -> Any:
                 "shipping_plan_review": "review_plan",
             }[name],
         )
+
+    if name == "business_performance_snapshot":
+        from reality.services.business_projection import overview
+
+        return overview
     if name.startswith("operational_case_"):
         from reality.services import operational_cases
 
@@ -1658,7 +1663,9 @@ def load_application_catalog() -> dict[str, Any]:
         raise ValueError(
             f"Business Event catalog drift: missing={sorted(emitted - event_types)}, stale={sorted(event_types - emitted)}"
         )
-    registered = set(projection_service_module.OPERATIONAL_PROJECTIONS)
+    registered = set(projection_service_module.OPERATIONAL_PROJECTIONS) | set(
+        projection_service_module.MATERIALIZED_PROJECTIONS
+    )
     if registered != materialized_names:
         raise ValueError(
             f"Projection catalog drift: missing={sorted(registered - materialized_names)}, stale={sorted(materialized_names - registered)}"

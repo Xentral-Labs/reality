@@ -1,0 +1,7 @@
+# Research
+Decision: reuse the shared projection job and committed tenant event log. Rationale: existing transaction fencing, retries, tenant fairness and no API side effects. Alternative: new queue/broker rejected as unnecessary infrastructure.
+Decision: two typed derived tables with composite cohort/order indexes. Rationale: generic Text payload filtering alone does not offer efficient one-million-order ordered drilldowns. Alternative: full summary calculation at each read rejected because viewer cost grows with history.
+Decision: bounded generation build plus replay from the retained starting sequence. Rationale: business writes keep proceeding while disposable rows are rebuilt, without a long exported snapshot. Published progress explicitly signals lag; replay re-reads current Reality and updates contributions idempotently. Alternative: whole-company long transaction exceeds shared worker budget.
+No unresolved product questions; user scope retained exactly.
+
+Measured integration finding: a 100-viewer burst exhausted the default 5+5 API pool through post-response Storyline recording opening a second connection while the request still retained its session. The Business monitoring route is now excluded by the existing recorder exclusion contract, keeping this read-only dashboard out of observation writes and removing that pool deadlock. Other business-view recording is unchanged. The failed trial is retained as a limitation/fix trigger, not represented as a passing measurement.
