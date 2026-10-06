@@ -13,6 +13,211 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Control Tower": "Control Tower",
+    "Return to Control Tower": "Zurück zum Control Tower",
+    "Control Tower is unavailable for this company":
+      "Control Tower ist für diese Firma nicht verfügbar",
+    "Use the company menu at the top left to choose a business company with Control Tower enabled.":
+      "Wähle über das Firmenmenü oben links eine Firma, für die Control Tower verfügbar ist.",
+    "Back to Inbox": "Zurück zur Inbox",
+    "Company status": "Unternehmensstatus",
+    "Order status": "Aufträge",
+    "Message status": "Nachrichten",
+    "Supply status": "Nachschub",
+    "Stock status": "Bestand",
+    "Return status": "Retouren",
+    "Status details": "Status im Detail",
+    "Company-wide recorded conditions. Select an area for its details and evidence.":
+      "Firmenweiter Überblick. Bereich auswählen, um Details und Nachweise zu sehen.",
+    "Red: critical · Orange: pending work, attention or incomplete evidence · Green: no recorded deviation":
+      "Rot: kritisch · Orange: offene Arbeit, Abweichung oder unvollständige Daten · Grün: keine erfasste Abweichung",
+    "Activity period": "Zeitraum der Aktivität",
+    "Displayed range": "Wertebereich",
+    "Recorded return arrivals · total": "Erfasste Retoureneingänge · gesamt",
+    "Pending work": "Arbeit offen",
+    "Incoming messages · 60 min": "Eingegangen · 60 Min.",
+    "Fully received supplier lines": "Vollständig eingegangene Positionen",
+    "Backlog change · 60 min": "Rückstand verändert · 60 Min.",
+    "Live status is not confirmed": "Live-Status ist nicht bestätigt",
+    "Company in motion": "Unternehmen in Bewegung",
+    "Company-wide · live": "Firmenweit · live",
+    "Current queues and the last 60 minutes. Independent of the shipping day and site.":
+      "Aktuelle Rückstände und die letzten 60 Minuten. Unabhängig von Versandtag und Standort.",
+    "Operating flow evidence is unavailable": "Bewegungsdaten sind noch nicht verfügbar",
+    "Orders still to dispatch": "Noch zu versendende Aufträge",
+    "New orders · 60 min": "Neue Aufträge · 60 Min.",
+    "Dispatch records · 60 min": "Versandbuchungen · 60 Min.",
+    "Physical dispatch records": "Physische Versandbuchungen",
+    "Orders count once at first recording. Dispatch records are stock movements; confirmed handovers remain in the shipping chart.":
+      "Aufträge zählen bei ihrer ersten Erfassung einmal. Versandbuchungen belegen Warenbewegungen; bestätigte Übergaben stehen in der Versandkurve.",
+    "Messages & responses": "Nachrichten & Antworten",
+    "Without a recorded reply": "Ohne erfasste Antwort",
+    "Customer requests awaiting reply": "Offene Kundenanfragen",
+    "Not yet acknowledged": "Noch nicht als gelesen bestätigt",
+    "First replies · 60 min": "Beantwortet · 60 Min.",
+    "Messages awaiting reply": "Nachrichten ohne Antwort",
+    "Reply backlog covers the local simulator mailbox. Reading is not replying. Recorded replies do not prove delivery or completed work; provider reply coverage is unavailable.":
+      "Der Antwort-Rückstand umfasst die lokale Simulator-Mailbox. Lesen ist keine Antwort. Erfasste Antworten belegen weder Zustellung noch erledigte Vorgänge; der Antwortstatus externer Mailboxen ist unbekannt.",
+    "Expected goods & receipts": "Nachschub & Wareneingang",
+    "Supplier lines still expected": "Erwartete Lieferpositionen",
+    "Receipt records · 60 min": "Wareneingänge · 60 Min.",
+    "Expected lines without a date": "Davon ohne Liefertermin",
+    "Goods receipt records": "Gebuchte Wareneingänge",
+    "Expected work counts open supplier promise lines. A receipt record can be partial; purchase documents and goods quantities are not added together.":
+      "Gezählt werden offene Lieferzusagen der Lieferanten. Ein Wareneingang kann eine Teillieferung sein. Bestellbelege und Mengen verschiedener Waren werden nicht zusammengerechnet.",
+    "Stock risks": "Bestandsrisiken",
+    "Items with uncovered demand": "Artikel mit ungedecktem Bedarf",
+    "Current oversold-item exceptions compare open demand with physical stock and expected supply in compatible item units. No historical stock curve or new safety-stock target is inferred.":
+      "Die vorhandene Überverkaufsprüfung vergleicht offenen Bedarf mit Bestand und erwartetem Nachschub in passenden Artikeleinheiten. Eine historische Bestandskurve oder neue Sicherheitsbestände werden daraus nicht abgeleitet.",
+    "Returns & disposition": "Retouren & Bearbeitung",
+    "Arrived positions still to process": "Eingegangen, noch zu bearbeiten",
+    "Physically processed positions": "Physisch bearbeitete Positionen",
+    "Announced returns still expected": "Noch erwartete Retouren",
+    "Return arrivals · 60 min": "Retoureneingänge · 60 Min.",
+    "Return receipt records": "Gebuchte Retoureneingänge",
+    "Disposition movement records": "Gebuchte Bearbeitungsschritte",
+    "Arrivals and physical disposition are separate. Partial disposition stays open; physical processing does not prove refund or completion of the whole return case.":
+      "Eingang und physische Bearbeitung werden getrennt gezählt. Teilweise bearbeitete Positionen bleiben offen. Physische Bearbeitung belegt weder Erstattung noch Abschluss des gesamten Retourenvorgangs.",
+    "Critical recorded condition": "Kritische Abweichung",
+    "Recorded condition needs attention": "Erfasste Auffälligkeit",
+    "Work in progress": "In Bearbeitung",
+    "No finding in the evaluated scope": "Keine Abweichung im geprüften Bereich",
+    "Evidence incomplete": "Datenlage unvollständig",
+    "Current observation · risk history unavailable":
+      "Aktueller Stand · Risikoverlauf nicht belegt",
+    "Local mailbox · provider response status unknown":
+      "Lokale Mailbox · externer Antwortstatus unbekannt",
+    "recorded exceptions": "erfasste Abweichungen",
+    "positions with unknown disposition": "Positionen mit unbekanntem Bearbeitungsstand",
+    "Definition & evidence": "Definition & Nachweise",
+    "provider messages with unknown reply state":
+      "externe Nachrichten mit unbekanntem Antwortstatus",
+    "open delivery lines without an order link": "offene Lieferpositionen ohne Auftragszuordnung",
+    "Complete company totals; up to four evidence records shown.":
+      "Vollständige Firmenzahlen; bis zu vier Nachweise als Vorschau.",
+    "Open workspace": "Fachbereich öffnen",
+    "Status describes the recorded condition, not agent quality. Pending work is not automatically a failure.":
+      "Der Status beschreibt belegte Zustände. Offene Arbeit ist nicht automatisch ein Fehler und bewertet nicht die Qualität des Agenten.",
+    "60 minutes ago": "Vor 60 Minuten",
+    "No linked operational case": "Kein zugeordneter Vorgang",
+    "No blocker recorded": "Keine Ursache erfasst",
+    "All collection times": "Alle Abholzeiten",
+    "Shipping risks": "Versandrisiken",
+    "What is holding up shipping": "Was den Versand aufhält",
+    "Causes, responsibility and recorded case actions. Agents handle their cases automatically.":
+      "Ursachen, Zuständigkeit und erfasste Vorgangsaktionen. Agenten bearbeiten ihre Vorgänge automatisch.",
+    "Causes and recorded actions": "Ursachen und erfasste Aktionen",
+    actions: "Aktionen",
+    "shown of": "angezeigt von",
+    "affected orders": "betroffenen Aufträgen",
+    "Show fewer deviations": "Weniger Abweichungen anzeigen",
+    "Show more deviations": "Weitere Abweichungen anzeigen",
+    "Inspect all affected orders": "Alle betroffenen Aufträge ansehen",
+    Cases: "Vorgänge",
+    "Cases & takeover": "Vorgänge & Übernahme",
+    "The system automatically handles order fulfillment and announced returns.":
+      "Das System bearbeitet Auftragsabwicklungen und angekündigte Retouren automatisch.",
+    "Want to continue yourself? Select a case and confirm manual takeover. The system then stops starting new automated actions for that case.":
+      "Du möchtest selbst weitermachen? Wähle einen Vorgang und bestätige die manuelle Übernahme. Das System startet dann keine neuen automatischen Aktionen für diesen Vorgang.",
+    "Find stopped cases under Manually taken over. Taking over a case does not mark its work as completed.":
+      "Gestoppte Vorgänge findest du unter „Manuell übernommen“. Die Übernahme allein schließt den Vorgang nicht ab.",
+    "Select a case": "Vorgang auswählen",
+    "Hide case list": "Vorgangsliste schließen",
+    "Company-wide · order fulfillment and announced returns":
+      "Firmenweit · Auftragsabwicklung und angekündigte Retouren",
+    "Agents handle cases automatically. Inspect a case and take over its supported work when you need to.":
+      "Agenten bearbeiten Vorgänge automatisch. Du kannst einen Vorgang ansehen und bei Bedarf seine Auftragsabwicklung oder angekündigte Retoure vollständig selbst übernehmen.",
+    "With automation": "Automatisch betreut",
+    "Manually taken over": "Manuell übernommen",
+    "Search order or case": "Auftrag oder Vorgang suchen",
+    "All cases": "Alle Vorgänge",
+    "Case details": "Details zum Vorgang",
+    "cases on this page": "Vorgänge auf dieser Seite",
+    "matching cases": "passenden Vorgängen",
+    "Back to beginning": "Zum Anfang",
+    "Next cases": "Weitere Vorgänge",
+    "Next orders": "Weitere Aufträge",
+    "The open delivery quantity is not fully reserved.":
+      "Die offene Liefermenge ist noch nicht vollständig reserviert.",
+    "The delivery commitment has an active hold.":
+      "Für diese Lieferverpflichtung besteht eine aktive Sperre.",
+    "Work outside this day's plan": "Arbeit außerhalb dieses Tagesplans",
+    "Company-wide open work outside the selected day’s plan · no dispatch site or deadline is inferred":
+      "Firmenweit offene Arbeit außerhalb des gewählten Tagesplans · Versandstandort und Deadline sind nicht festgelegt",
+    "Each planned order counts once after every required dispatch quantity has been handed over. The forecast assumes current ready work and confirmed capacity.":
+      "Jeder geplante Auftrag zählt einmal, sobald alle erforderlichen Versandmengen übergeben wurden. Die Prognose setzt aktuell versandbereite Arbeit und bestätigte Kapazität voraus.",
+    "Technical evidence details": "Technische Nachweisdetails",
+    "All supported cases": "Alle unterstützten Vorgänge",
+    "Business impact": "Geschäftliche Auswirkung",
+    "Case inspection": "Vorgang ansehen",
+    "Case register filter": "Vorgangsfilter",
+    "Case-linked actions do not establish a response to this blocker or an external delivery outcome.":
+      "Diese Vorgangsaktionen belegen weder eine Reaktion auf diesen Blocker noch ein externes Zustellergebnis.",
+    "Close case inspection": "Vorgangsansicht schließen",
+    "Company-wide · fulfillment and announced returns":
+      "Firmenweit · Auftragsabwicklung und angekündigte Retouren",
+    "Continue in order workspace": "Im Auftragsbereich weiterarbeiten",
+    "Control receipt": "Beleg zur Übernahme oder Rückgabe",
+    "Inspect case": "Vorgang ansehen",
+    "Manually owned": "Manuell übernommen",
+    "Manually owned cases": "Manuell übernommene Vorgänge",
+    "Matching cases": "Passende Vorgänge",
+    "No deviations in the current shipping observation":
+      "Keine Abweichungen im aktuellen Versandstand",
+    "No recorded response on this case": "Keine Reaktion für diesen Vorgang erfasst",
+    "No supported adopted case": "Für diesen Auftrag ist keine Vorgangssteuerung aktiviert",
+    "Other business processes are visible in their specialist workspaces. Takeover is available only for supported cases.":
+      "Weitere Geschäftsprozesse sind in den Fachbereichen sichtbar. Eine Übernahme ist nur für unterstützte Vorgänge verfügbar.",
+    "Outstanding work": "Offene Arbeit",
+    "Recorded action": "Erfasste Aktion",
+    "Recorded blockers and actions on the affected cases":
+      "Belegte Blocker und erfasste Aktionen der betroffenen Vorgänge",
+    "Required evidence is incomplete": "Benötigte Nachweise sind unvollständig",
+    Responsibility: "Verantwortung",
+    "Shipping deviations": "Abweichungen im Versand",
+    "Showing a bounded sample. Inspect supporting orders for the full matching result.":
+      "Hier siehst du einen begrenzten Ausschnitt. Die zugehörigen Aufträge zeigen das vollständige passende Ergebnis.",
+    "Supported case register": "Vorgänge",
+    "Takeover reason": "Begründung der Übernahme",
+    "Operations cockpit is not enabled for this company.":
+      "Control Tower ist für diese Firma nicht aktiviert.",
+    "Complete pending changes before reading the operations cockpit.":
+      "Schließe ausstehende Änderungen ab, bevor du Control Tower abfragst.",
+    "Provide bounded, unambiguous shipping observation filters.":
+      "Gib begrenzte, eindeutige Filter für die Versandansicht an.",
+    "Provide a cursor from this exact shipping query.":
+      "Verwende einen Seitenschlüssel aus genau dieser Versandabfrage.",
+    "Operations cockpit": "Control Tower",
+    "See shipping performance, recorded activity and who controls each case.":
+      "Sieh den Versandfortschritt, erfasste Aktivitäten und die Verantwortung für jeden Vorgang.",
+    "A planning evidence reference is unavailable.":
+      "Ein Verweis auf Planungsdaten ist nicht verfügbar.",
+    "Planning evidence has unresolved intake or an exact plan/confirmation Source version that requires fresh review.":
+      "Planungsdaten sind noch nicht vollständig übernommen oder eine genaue Source-Version des Plans beziehungsweise der Bestätigung muss erneut geprüft werden.",
+    "Shipping-plan arguments do not match the selected create, revision or withdrawal contract.":
+      "Die Versandplan-Argumente entsprechen nicht dem gewählten Vertrag für Erstellung, Änderung oder Rücknahme.",
+    "Shipping-plan inputs do not satisfy the closed dispatch contract.":
+      "Die Versandplan-Eingaben erfüllen den festgelegten Versandvertrag nicht.",
+    "The plan's stated company zone differs from the current company calendar.":
+      "Die im Plan angegebene Firmenzeitzone weicht vom aktuellen Firmenkalender ab.",
+    "Revision or withdrawal requires the exact existing plan stream.":
+      "Eine Änderung oder Rücknahme benötigt den genauen bestehenden Planungsstrom.",
+    "The shipping plan changed since the selected source version.":
+      "Der Versandplan hat sich seit der gewählten Quellversion geändert.",
+    "Another current planning stream already defines this company/day/site.":
+      "Ein anderer aktueller Planungsstrom legt diese Firma, diesen Tag und diesen Standort bereits fest.",
+    "A planning commitment is unavailable.":
+      "Eine Lieferverpflichtung der Planung ist nicht verfügbar.",
+    "Planning requires accepted, non-cancelled customer order delivery work.":
+      "Die Planung benötigt akzeptierte, nicht stornierte Lieferverpflichtungen aus Kundenaufträgen.",
+    "The stated dispatch quantity differs from current accepted commitment terms.":
+      "Die angegebene Versandmenge weicht von den aktuellen akzeptierten Bedingungen der Lieferverpflichtung ab.",
+    "Planning evidence requires its executing exact reviewed proposal.":
+      "Planungsdaten benötigen den genauen geprüften Vorschlag, der gerade ausgeführt wird.",
+    "Shipping planning or confirmation meaning changed since review.":
+      "Die Bedeutung der Versandplanung oder Bestätigung hat sich seit der Prüfung geändert.",
+    "A commitment already belongs to another current dispatch plan. Withdraw or revise that exact plan first.":
+      "Eine Lieferverpflichtung gehört bereits zu einem anderen aktuellen Versandplan. Nimm zuerst genau diesen Plan zurück oder ändere ihn.",
     "Source record": "Quelldatensatz",
     "Open quantity": "Offene Menge",
     "Load more": "Mehr laden",
@@ -56,11 +261,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "New orders and announced returns will receive cases. Existing orders are not taken over.":
       "Neue Aufträge und angekündigte Retouren erhalten Vorgänge. Bestehende Aufträge werden nicht übernommen.",
     "Confirm activation": "Aktivierung bestätigen",
-    "No adopted cases in this view.": "Keine übernommenen Vorgänge in dieser Ansicht.",
-    "Order fulfillment": "Auftragserfüllung",
+    "No adopted cases in this view.": "Keine Vorgänge passen zu diesem Filter.",
+    "Order fulfillment": "Auftragsabwicklung",
     "Announced return": "Angekündigte Retoure",
     "Manually owned — automation stopped": "Manuell übernommen – Automation gestoppt",
-    "Automation owns this work": "Automation bearbeitet diesen Vorgang",
+    "Automation owns this work": "Automatisch betreut",
     "Work remains": "Arbeit ist noch offen",
     "Work withdrawn": "Arbeit zurückgezogen",
     "Work completed": "Arbeit abgeschlossen",
@@ -73,7 +278,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Ältere Pläne sind überholt und benötigen eine neue Prüfung.",
     "Related cases are not automatically taken over.":
       "Verbundene Vorgänge werden nicht automatisch mit übernommen.",
-    "Take over manually / stop automation": "Manuell übernehmen / Automation stoppen",
+    "Take over manually / stop automation": "Vorgang selbst übernehmen",
     "Review before returning to automation": "Vor Rückgabe an Automation prüfen",
     "Stop new automated actions for this case? Already started actions remain visible.":
       "Neue automatische Aktionen für diesen Vorgang stoppen? Bereits gestartete Aktionen bleiben sichtbar.",
@@ -2272,6 +2477,211 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Control Tower": "Control Tower",
+    "Return to Control Tower": "Terug naar Control Tower",
+    "Control Tower is unavailable for this company":
+      "Control Tower is niet beschikbaar voor dit bedrijf",
+    "Use the company menu at the top left to choose a business company with Control Tower enabled.":
+      "Kies via het bedrijfsmenu linksboven een bedrijf waarvoor Control Tower beschikbaar is.",
+    "Back to Inbox": "Terug naar Inbox",
+    "Company status": "Bedrijfsstatus",
+    "Order status": "Orders",
+    "Message status": "Berichten",
+    "Supply status": "Aanvoer",
+    "Stock status": "Voorraad",
+    "Return status": "Retouren",
+    "Status details": "Statusdetails",
+    "Company-wide recorded conditions. Select an area for its details and evidence.":
+      "Bedrijfsbreed overzicht. Selecteer een gebied voor details en bewijs.",
+    "Red: critical · Orange: pending work, attention or incomplete evidence · Green: no recorded deviation":
+      "Rood: kritiek · Oranje: open werk, aandacht of onvolledig bewijs · Groen: geen geregistreerde afwijking",
+    "Activity period": "Activiteitsperiode",
+    "Displayed range": "Waardenbereik",
+    "Recorded return arrivals · total": "Geregistreerde retourontvangsten · totaal",
+    "Pending work": "Open werk",
+    "Incoming messages · 60 min": "Binnengekomen · 60 min",
+    "Fully received supplier lines": "Volledig ontvangen leveringsregels",
+    "Backlog change · 60 min": "Verandering achterstand · 60 min",
+    "Live status is not confirmed": "Live-status is niet bevestigd",
+    "Company in motion": "Bedrijf in beweging",
+    "Company-wide · live": "Bedrijfsbreed · live",
+    "Current queues and the last 60 minutes. Independent of the shipping day and site.":
+      "Huidige achterstanden en de laatste 60 minuten. Onafhankelijk van verzenddag en locatie.",
+    "Operating flow evidence is unavailable":
+      "Gegevens over bedrijfsstromen zijn nog niet beschikbaar",
+    "Orders still to dispatch": "Nog te verzenden orders",
+    "New orders · 60 min": "Nieuwe orders · 60 min",
+    "Dispatch records · 60 min": "Verzendboekingen · 60 min",
+    "Physical dispatch records": "Fysieke verzendboekingen",
+    "Orders count once at first recording. Dispatch records are stock movements; confirmed handovers remain in the shipping chart.":
+      "Orders tellen één keer bij de eerste registratie. Verzendboekingen zijn voorraadbewegingen; bevestigde overdrachten staan in de verzendgrafiek.",
+    "Messages & responses": "Berichten en antwoorden",
+    "Without a recorded reply": "Zonder geregistreerd antwoord",
+    "Customer requests awaiting reply": "Klantvragen zonder antwoord",
+    "Not yet acknowledged": "Nog niet als gelezen bevestigd",
+    "First replies · 60 min": "Beantwoord · 60 min",
+    "Messages awaiting reply": "Berichten zonder antwoord",
+    "Reply backlog covers the local simulator mailbox. Reading is not replying. Recorded replies do not prove delivery or completed work; provider reply coverage is unavailable.":
+      "De antwoordachterstand betreft de lokale simulatormailbox. Lezen is niet antwoorden. Geregistreerde antwoorden bewijzen geen bezorging of afgerond werk; de antwoordstatus van externe mailboxen is onbekend.",
+    "Expected goods & receipts": "Aanvoer en goederenontvangst",
+    "Supplier lines still expected": "Verwachte leveringsregels",
+    "Receipt records · 60 min": "Goederenontvangsten · 60 min",
+    "Expected lines without a date": "Daarvan zonder leverdatum",
+    "Goods receipt records": "Geboekte goederenontvangsten",
+    "Expected work counts open supplier promise lines. A receipt record can be partial; purchase documents and goods quantities are not added together.":
+      "Open leveringsbeloften van leveranciers worden geteld. Een ontvangst kan gedeeltelijk zijn; inkoopdocumenten en hoeveelheden van verschillende artikelen worden niet opgeteld.",
+    "Stock risks": "Voorraadrisicos",
+    "Items with uncovered demand": "Artikelen met ongedekte vraag",
+    "Current oversold-item exceptions compare open demand with physical stock and expected supply in compatible item units. No historical stock curve or new safety-stock target is inferred.":
+      "De bestaande oververkoopcontrole vergelijkt open vraag met fysieke voorraad en verwachte aanvoer in passende eenheden. Er wordt geen historische voorraadgrafiek of nieuw veiligheidsvoorraaddoel afgeleid.",
+    "Returns & disposition": "Retouren en verwerking",
+    "Arrived positions still to process": "Ontvangen, nog te verwerken",
+    "Physically processed positions": "Fysiek verwerkte regels",
+    "Announced returns still expected": "Nog verwachte retouren",
+    "Return arrivals · 60 min": "Retourontvangsten · 60 min",
+    "Return receipt records": "Geboekte retourontvangsten",
+    "Disposition movement records": "Geboekte verwerkingsstappen",
+    "Arrivals and physical disposition are separate. Partial disposition stays open; physical processing does not prove refund or completion of the whole return case.":
+      "Ontvangst en fysieke verwerking worden apart geteld. Gedeeltelijk verwerkte regels blijven open. Fysieke verwerking bewijst geen terugbetaling of afronding van de hele retourzaak.",
+    "Critical recorded condition": "Kritieke afwijking",
+    "Recorded condition needs attention": "Geregistreerde afwijking",
+    "Work in progress": "Werk in uitvoering",
+    "No finding in the evaluated scope": "Geen afwijking in het beoordeelde bereik",
+    "Evidence incomplete": "Bewijs onvolledig",
+    "Current observation · risk history unavailable":
+      "Huidige stand · risicohistorie niet beschikbaar",
+    "Local mailbox · provider response status unknown":
+      "Lokale mailbox · externe antwoordstatus onbekend",
+    "recorded exceptions": "geregistreerde afwijkingen",
+    "positions with unknown disposition": "regels met onbekende verwerkingsstatus",
+    "Definition & evidence": "Definitie en bewijs",
+    "provider messages with unknown reply state": "externe berichten met onbekende antwoordstatus",
+    "open delivery lines without an order link": "open leveringsregels zonder orderkoppeling",
+    "Complete company totals; up to four evidence records shown.":
+      "Volledige bedrijfstotalen; maximaal vier bewijsrecords als voorbeeld.",
+    "Open workspace": "Werkgebied openen",
+    "Status describes the recorded condition, not agent quality. Pending work is not automatically a failure.":
+      "De status beschrijft geregistreerde omstandigheden. Open werk is niet automatisch een fout en beoordeelt niet de kwaliteit van de agent.",
+    "60 minutes ago": "60 minuten geleden",
+    "No linked operational case": "Geen gekoppeld operationeel dossier",
+    "No blocker recorded": "Geen blokkade vastgelegd",
+    "All collection times": "Alle ophaaltijden",
+    "Shipping risks": "Verzendrisico’s",
+    "What is holding up shipping": "Wat verzending tegenhoudt",
+    "Causes, responsibility and recorded case actions. Agents handle their cases automatically.":
+      "Oorzaken, verantwoordelijkheid en vastgelegde dossieracties. Agenten behandelen hun dossiers automatisch.",
+    "Causes and recorded actions": "Oorzaken en vastgelegde acties",
+    actions: "acties",
+    "shown of": "getoond van",
+    "affected orders": "betrokken orders",
+    "Show fewer deviations": "Minder afwijkingen tonen",
+    "Show more deviations": "Meer afwijkingen tonen",
+    "Inspect all affected orders": "Alle betrokken orders bekijken",
+    Cases: "Dossiers",
+    "Cases & takeover": "Dossiers en overname",
+    "The system automatically handles order fulfillment and announced returns.":
+      "Het systeem handelt orders en aangekondigde retouren automatisch af.",
+    "Want to continue yourself? Select a case and confirm manual takeover. The system then stops starting new automated actions for that case.":
+      "Wil je zelf verdergaan? Kies een dossier en bevestig de handmatige overname. Het systeem start dan geen nieuwe automatische acties voor dat dossier.",
+    "Find stopped cases under Manually taken over. Taking over a case does not mark its work as completed.":
+      "Gestopte dossiers vind je onder Handmatig overgenomen. Overname alleen voltooit het werk niet.",
+    "Select a case": "Dossier kiezen",
+    "Hide case list": "Dossierlijst sluiten",
+    "Company-wide · order fulfillment and announced returns":
+      "Bedrijfsbreed · orderafhandeling en aangekondigde retouren",
+    "Agents handle cases automatically. Inspect a case and take over its supported work when you need to.":
+      "Agenten behandelen dossiers automatisch. Bekijk een dossier en neem indien nodig de ondersteunde werkzaamheden volledig over.",
+    "With automation": "Automatisch beheerd",
+    "Manually taken over": "Handmatig overgenomen",
+    "Search order or case": "Order of dossier zoeken",
+    "All cases": "Alle dossiers",
+    "Case details": "Dossierdetails",
+    "cases on this page": "dossiers op deze pagina",
+    "matching cases": "overeenkomende dossiers",
+    "Back to beginning": "Naar het begin",
+    "Next cases": "Volgende dossiers",
+    "Next orders": "Volgende orders",
+    "The open delivery quantity is not fully reserved.":
+      "De open leverhoeveelheid is nog niet volledig gereserveerd.",
+    "The delivery commitment has an active hold.":
+      "Deze leververplichting heeft een actieve blokkade.",
+    "Work outside this day's plan": "Werk buiten deze dagplanning",
+    "Company-wide open work outside the selected day’s plan · no dispatch site or deadline is inferred":
+      "Bedrijfsbreed open werk buiten de gekozen dagplanning · geen verzendlocatie of deadline afgeleid",
+    "Each planned order counts once after every required dispatch quantity has been handed over. The forecast assumes current ready work and confirmed capacity.":
+      "Elke geplande order telt één keer wanneer alle vereiste verzendhoeveelheden zijn overgedragen. De prognose veronderstelt momenteel gereed werk en bevestigde capaciteit.",
+    "Technical evidence details": "Technische bewijsdetails",
+    "All supported cases": "Alle ondersteunde processen",
+    "Business impact": "Bedrijfsimpact",
+    "Case inspection": "Proces bekijken",
+    "Case register filter": "Procesfilter",
+    "Case-linked actions do not establish a response to this blocker or an external delivery outcome.":
+      "Deze procesacties bewijzen geen reactie op deze blokkade of externe aflevering.",
+    "Close case inspection": "Procesweergave sluiten",
+    "Company-wide · fulfillment and announced returns":
+      "Bedrijfsbreed · orderafhandeling en aangekondigde retouren",
+    "Continue in order workspace": "Verder in de orderwerkruimte",
+    "Control receipt": "Bewijs van overname of teruggave",
+    "Inspect case": "Proces bekijken",
+    "Manually owned": "Handmatig overgenomen",
+    "Manually owned cases": "Handmatig overgenomen processen",
+    "Matching cases": "Overeenkomende processen",
+    "No deviations in the current shipping observation":
+      "Geen afwijkingen in de huidige verzendwaarneming",
+    "No recorded response on this case": "Geen reactie voor dit proces vastgelegd",
+    "No supported adopted case": "Geen ondersteund gecoördineerd proces",
+    "Other business processes are visible in their specialist workspaces. Takeover is available only for supported cases.":
+      "Andere bedrijfsprocessen zijn zichtbaar in de specialistische werkruimten. Overname is alleen beschikbaar voor ondersteunde processen.",
+    "Outstanding work": "Openstaand werk",
+    "Recorded action": "Vastgelegde actie",
+    "Recorded blockers and actions on the affected cases":
+      "Vastgelegde blokkades en acties voor de betrokken processen",
+    "Required evidence is incomplete": "Vereist bewijs is onvolledig",
+    Responsibility: "Verantwoordelijkheid",
+    "Shipping deviations": "Verzendafwijkingen",
+    "Showing a bounded sample. Inspect supporting orders for the full matching result.":
+      "Je ziet een beperkte selectie. Bekijk de bijbehorende orders voor het volledige resultaat.",
+    "Supported case register": "Ondersteunde processen",
+    "Takeover reason": "Reden voor overname",
+    "Operations cockpit is not enabled for this company.":
+      "Het operationele overzicht is niet ingeschakeld voor dit bedrijf.",
+    "Complete pending changes before reading the operations cockpit.":
+      "Rond openstaande wijzigingen af voordat je het operationele overzicht opvraagt.",
+    "Provide bounded, unambiguous shipping observation filters.":
+      "Geef begrensde, eenduidige filters voor het verzendoverzicht op.",
+    "Provide a cursor from this exact shipping query.":
+      "Gebruik een paginacursor uit precies deze verzendquery.",
+    "Operations cockpit": "Control Tower",
+    "See shipping performance, recorded activity and who controls each case.":
+      "Bekijk de verzendprestaties, geregistreerde activiteiten en wie elk proces beheert.",
+    "A planning evidence reference is unavailable.":
+      "Een verwijzing naar planningsbewijs is niet beschikbaar.",
+    "Planning evidence has unresolved intake or an exact plan/confirmation Source version that requires fresh review.":
+      "Planningsbewijs is nog niet volledig verwerkt of een exacte Source-versie van het plan of de bevestiging moet opnieuw worden beoordeeld.",
+    "Shipping-plan arguments do not match the selected create, revision or withdrawal contract.":
+      "De verzendplanargumenten voldoen niet aan het gekozen contract voor aanmaken, herzien of intrekken.",
+    "Shipping-plan inputs do not satisfy the closed dispatch contract.":
+      "De verzendplaninvoer voldoet niet aan het vastgelegde verzendcontract.",
+    "The plan's stated company zone differs from the current company calendar.":
+      "De bedrijfstijdzone in het plan wijkt af van de huidige bedrijfskalender.",
+    "Revision or withdrawal requires the exact existing plan stream.":
+      "Herziening of intrekking vereist de exacte bestaande planningsstroom.",
+    "The shipping plan changed since the selected source version.":
+      "Het verzendplan is gewijzigd sinds de geselecteerde bronversie.",
+    "Another current planning stream already defines this company/day/site.":
+      "Een andere actuele planningsstroom bepaalt dit bedrijf, deze dag en deze locatie al.",
+    "A planning commitment is unavailable.":
+      "Een leververplichting in de planning is niet beschikbaar.",
+    "Planning requires accepted, non-cancelled customer order delivery work.":
+      "Planning vereist geaccepteerde, niet geannuleerde leververplichtingen uit klantorders.",
+    "The stated dispatch quantity differs from current accepted commitment terms.":
+      "De opgegeven verzendhoeveelheid wijkt af van de huidige geaccepteerde voorwaarden van de leververplichting.",
+    "Planning evidence requires its executing exact reviewed proposal.":
+      "Planningsbewijs vereist het exacte beoordeelde voorstel dat wordt uitgevoerd.",
+    "Shipping planning or confirmation meaning changed since review.":
+      "De betekenis van de verzendplanning of bevestiging is gewijzigd sinds de beoordeling.",
+    "A commitment already belongs to another current dispatch plan. Withdraw or revise that exact plan first.":
+      "Een leververplichting hoort al bij een ander actueel verzendplan. Trek eerst precies dat plan in of herzie het.",
     "Source record": "Bronrecord",
     "Open quantity": "Open hoeveelheid",
     "Load more": "Meer laden",
@@ -4226,6 +4636,210 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Control Tower": "Control Tower",
+    "Return to Control Tower": "Volver a Control Tower",
+    "Control Tower is unavailable for this company":
+      "Control Tower no está disponible para esta empresa",
+    "Use the company menu at the top left to choose a business company with Control Tower enabled.":
+      "Selecciona en el menú de empresas de arriba a la izquierda una empresa con Control Tower disponible.",
+    "Back to Inbox": "Volver a la bandeja de entrada",
+    "Company status": "Estado de la empresa",
+    "Order status": "Pedidos",
+    "Message status": "Mensajes",
+    "Supply status": "Abastecimiento",
+    "Stock status": "Existencias",
+    "Return status": "Devoluciones",
+    "Status details": "Detalles del estado",
+    "Company-wide recorded conditions. Select an area for its details and evidence.":
+      "Vista de toda la empresa. Selecciona un área para ver detalles y evidencias.",
+    "Red: critical · Orange: pending work, attention or incomplete evidence · Green: no recorded deviation":
+      "Rojo: crítico · Naranja: trabajo pendiente, atención o evidencia incompleta · Verde: sin desviación registrada",
+    "Activity period": "Periodo de actividad",
+    "Displayed range": "Rango de valores",
+    "Recorded return arrivals · total": "Devoluciones recibidas · total",
+    "Pending work": "Trabajo pendiente",
+    "Incoming messages · 60 min": "Recibidos · 60 min",
+    "Fully received supplier lines": "Líneas recibidas completas",
+    "Backlog change · 60 min": "Cambio de pendientes · 60 min",
+    "Live status is not confirmed": "Estado en vivo no confirmado",
+    "Company in motion": "Empresa en movimiento",
+    "Company-wide · live": "Toda la empresa · en vivo",
+    "Current queues and the last 60 minutes. Independent of the shipping day and site.":
+      "Pendientes actuales y los últimos 60 minutos. Independiente del día y lugar de envío.",
+    "Operating flow evidence is unavailable": "Los datos operativos aún no están disponibles",
+    "Orders still to dispatch": "Pedidos pendientes de envío",
+    "New orders · 60 min": "Pedidos nuevos · 60 min",
+    "Dispatch records · 60 min": "Registros de envío · 60 min",
+    "Physical dispatch records": "Registros de salida física",
+    "Orders count once at first recording. Dispatch records are stock movements; confirmed handovers remain in the shipping chart.":
+      "Cada pedido cuenta una vez en su primera captura. Las salidas son movimientos de existencias; las entregas confirmadas al transportista figuran en el gráfico de envíos.",
+    "Messages & responses": "Mensajes y respuestas",
+    "Without a recorded reply": "Sin respuesta registrada",
+    "Customer requests awaiting reply": "Consultas de clientes pendientes",
+    "Not yet acknowledged": "Lectura aún no confirmada",
+    "First replies · 60 min": "Respondidos · 60 min",
+    "Messages awaiting reply": "Mensajes sin respuesta",
+    "Reply backlog covers the local simulator mailbox. Reading is not replying. Recorded replies do not prove delivery or completed work; provider reply coverage is unavailable.":
+      "La cola de respuestas corresponde al buzón local del simulador. Leer no es responder. Las respuestas registradas no acreditan entrega ni trabajo terminado; el estado de respuesta de buzones externos es desconocido.",
+    "Expected goods & receipts": "Suministros y recepción",
+    "Supplier lines still expected": "Líneas de entrega pendientes",
+    "Receipt records · 60 min": "Recepciones · 60 min",
+    "Expected lines without a date": "Sin fecha de entrega",
+    "Goods receipt records": "Recepciones registradas",
+    "Expected work counts open supplier promise lines. A receipt record can be partial; purchase documents and goods quantities are not added together.":
+      "Se cuentan las promesas de entrega abiertas de proveedores. Una recepción puede ser parcial; no se suman documentos de compra ni cantidades de artículos diferentes.",
+    "Stock risks": "Riesgos de existencias",
+    "Items with uncovered demand": "Artículos con demanda sin cubrir",
+    "Current oversold-item exceptions compare open demand with physical stock and expected supply in compatible item units. No historical stock curve or new safety-stock target is inferred.":
+      "La comprobación existente de sobreventa compara demanda abierta con existencias y suministro esperado en unidades compatibles. No se infieren una curva histórica ni nuevos objetivos de seguridad.",
+    "Returns & disposition": "Devoluciones y tratamiento",
+    "Arrived positions still to process": "Recibidas, pendientes de tratamiento",
+    "Physically processed positions": "Líneas tratadas físicamente",
+    "Announced returns still expected": "Devoluciones aún esperadas",
+    "Return arrivals · 60 min": "Devoluciones recibidas · 60 min",
+    "Return receipt records": "Entradas de devoluciones",
+    "Disposition movement records": "Pasos de tratamiento registrados",
+    "Arrivals and physical disposition are separate. Partial disposition stays open; physical processing does not prove refund or completion of the whole return case.":
+      "La recepción y el tratamiento físico se cuentan por separado. El tratamiento parcial sigue pendiente; no acredita reembolso ni cierre de todo el caso.",
+    "Critical recorded condition": "Desviación crítica",
+    "Recorded condition needs attention": "Incidencia registrada",
+    "Work in progress": "En curso",
+    "No finding in the evaluated scope": "Sin desviaciones en el ámbito evaluado",
+    "Evidence incomplete": "Datos incompletos",
+    "Current observation · risk history unavailable":
+      "Estado actual · historial de riesgo no disponible",
+    "Local mailbox · provider response status unknown":
+      "Buzón local · respuestas externas desconocidas",
+    "recorded exceptions": "incidencias registradas",
+    "positions with unknown disposition": "líneas con tratamiento desconocido",
+    "Definition & evidence": "Definición y evidencia",
+    "provider messages with unknown reply state": "mensajes externos con respuesta desconocida",
+    "open delivery lines without an order link": "líneas abiertas sin pedido vinculado",
+    "Complete company totals; up to four evidence records shown.":
+      "Totales completos de la empresa; hasta cuatro registros de evidencia.",
+    "Open workspace": "Abrir área de trabajo",
+    "Status describes the recorded condition, not agent quality. Pending work is not automatically a failure.":
+      "El estado describe condiciones acreditadas. El trabajo pendiente no implica un fallo ni evalúa la calidad del agente.",
+    "60 minutes ago": "Hace 60 minutos",
+    "No linked operational case": "Sin caso operativo vinculado",
+    "No blocker recorded": "No hay bloqueo registrado",
+    "All collection times": "Todos los horarios de recogida",
+    "Shipping risks": "Riesgos de envío",
+    "What is holding up shipping": "Qué está frenando los envíos",
+    "Causes, responsibility and recorded case actions. Agents handle their cases automatically.":
+      "Causas, responsabilidad y acciones registradas. Los agentes gestionan sus casos automáticamente.",
+    "Causes and recorded actions": "Causas y acciones registradas",
+    actions: "acciones",
+    "shown of": "mostrados de",
+    "affected orders": "pedidos afectados",
+    "Show fewer deviations": "Mostrar menos incidencias",
+    "Show more deviations": "Mostrar más incidencias",
+    "Inspect all affected orders": "Ver todos los pedidos afectados",
+    Cases: "Casos",
+    "Cases & takeover": "Casos y gestión manual",
+    "The system automatically handles order fulfillment and announced returns.":
+      "El sistema gestiona automáticamente los pedidos y las devoluciones anunciadas.",
+    "Want to continue yourself? Select a case and confirm manual takeover. The system then stops starting new automated actions for that case.":
+      "¿Quieres continuar tú? Selecciona un caso y confirma la gestión manual. El sistema dejará de iniciar nuevas acciones automáticas para ese caso.",
+    "Find stopped cases under Manually taken over. Taking over a case does not mark its work as completed.":
+      "Los casos detenidos aparecen en Asumidos manualmente. Asumir un caso no significa que su trabajo esté terminado.",
+    "Select a case": "Seleccionar un caso",
+    "Hide case list": "Cerrar lista de casos",
+    "Company-wide · order fulfillment and announced returns":
+      "Toda la empresa · gestión de pedidos y devoluciones anunciadas",
+    "Agents handle cases automatically. Inspect a case and take over its supported work when you need to.":
+      "Los agentes gestionan los casos automáticamente. Consulta un caso y asume todo su trabajo compatible cuando lo necesites.",
+    "With automation": "Gestión automática",
+    "Manually taken over": "Asumidos manualmente",
+    "Search order or case": "Buscar pedido o caso",
+    "All cases": "Todos los casos",
+    "Case details": "Detalles del caso",
+    "cases on this page": "casos en esta página",
+    "matching cases": "casos coincidentes",
+    "Back to beginning": "Volver al inicio",
+    "Next cases": "Siguientes casos",
+    "Next orders": "Siguientes pedidos",
+    "The open delivery quantity is not fully reserved.":
+      "La cantidad pendiente de entrega aún no está completamente reservada.",
+    "The delivery commitment has an active hold.":
+      "Esta obligación de entrega tiene un bloqueo activo.",
+    "Work outside this day's plan": "Trabajo fuera del plan de este día",
+    "Company-wide open work outside the selected day’s plan · no dispatch site or deadline is inferred":
+      "Trabajo pendiente de toda la empresa fuera del plan del día elegido · sin centro de envío ni plazo inferidos",
+    "Each planned order counts once after every required dispatch quantity has been handed over. The forecast assumes current ready work and confirmed capacity.":
+      "Cada pedido planificado cuenta una vez cuando se entregan todas las cantidades de envío necesarias. La previsión supone trabajo actualmente listo y capacidad confirmada.",
+    "Technical evidence details": "Detalles técnicos de las pruebas",
+    "All supported cases": "Todos los procesos compatibles",
+    "Business impact": "Impacto empresarial",
+    "Case inspection": "Consultar proceso",
+    "Case register filter": "Filtro de procesos",
+    "Case-linked actions do not establish a response to this blocker or an external delivery outcome.":
+      "Estas acciones del proceso no acreditan una respuesta a este bloqueo ni una entrega externa.",
+    "Close case inspection": "Cerrar consulta del proceso",
+    "Company-wide · fulfillment and announced returns":
+      "Toda la empresa · cumplimiento de pedidos y devoluciones anunciadas",
+    "Continue in order workspace": "Continuar en el área de pedidos",
+    "Control receipt": "Registro de transferencia de control",
+    "Inspect case": "Consultar proceso",
+    "Manually owned": "Asumido manualmente",
+    "Manually owned cases": "Procesos asumidos manualmente",
+    "Matching cases": "Procesos coincidentes",
+    "No deviations in the current shipping observation":
+      "Sin desviaciones en la observación de envíos actual",
+    "No recorded response on this case": "Sin respuesta registrada para este proceso",
+    "No supported adopted case": "Sin proceso coordinado compatible",
+    "Other business processes are visible in their specialist workspaces. Takeover is available only for supported cases.":
+      "Los demás procesos empresariales se muestran en sus áreas especializadas. La transferencia de control está disponible solo para procesos compatibles.",
+    "Outstanding work": "Trabajo pendiente",
+    "Recorded action": "Acción registrada",
+    "Recorded blockers and actions on the affected cases":
+      "Bloqueos y acciones registrados en los procesos afectados",
+    "Required evidence is incomplete": "Las pruebas necesarias están incompletas",
+    Responsibility: "Responsabilidad",
+    "Shipping deviations": "Desviaciones de envíos",
+    "Showing a bounded sample. Inspect supporting orders for the full matching result.":
+      "Se muestra una selección limitada. Consulta los pedidos correspondientes para ver el resultado completo.",
+    "Supported case register": "Procesos compatibles",
+    "Takeover reason": "Motivo de la transferencia",
+    "Operations cockpit is not enabled for this company.":
+      "El centro de operaciones no está habilitado para esta empresa.",
+    "Complete pending changes before reading the operations cockpit.":
+      "Completa los cambios pendientes antes de consultar el centro de operaciones.",
+    "Provide bounded, unambiguous shipping observation filters.":
+      "Indica filtros limitados e inequívocos para el resumen de envíos.",
+    "Provide a cursor from this exact shipping query.":
+      "Utiliza un cursor de paginación de esta consulta exacta de envíos.",
+    "Operations cockpit": "Control Tower",
+    "See shipping performance, recorded activity and who controls each case.":
+      "Consulta el progreso de los envíos, la actividad registrada y quién controla cada proceso.",
+    "A planning evidence reference is unavailable.":
+      "Una referencia a los datos de planificación no está disponible.",
+    "Planning evidence has unresolved intake or an exact plan/confirmation Source version that requires fresh review.":
+      "Los datos de planificación tienen una importación sin resolver o una versión exacta de Source del plan o de la confirmación requiere una nueva revisión.",
+    "Shipping-plan arguments do not match the selected create, revision or withdrawal contract.":
+      "Los argumentos del plan de envío no cumplen el contrato elegido de creación, revisión o retirada.",
+    "Shipping-plan inputs do not satisfy the closed dispatch contract.":
+      "Los datos del plan de envío no cumplen el contrato de expedición establecido.",
+    "The plan's stated company zone differs from the current company calendar.":
+      "La zona horaria de la empresa indicada en el plan difiere del calendario actual de la empresa.",
+    "Revision or withdrawal requires the exact existing plan stream.":
+      "La revisión o retirada requiere el flujo de planificación existente exacto.",
+    "The shipping plan changed since the selected source version.":
+      "El plan de envío ha cambiado desde la versión de origen seleccionada.",
+    "Another current planning stream already defines this company/day/site.":
+      "Otro flujo de planificación actual ya define esta empresa, día y ubicación.",
+    "A planning commitment is unavailable.":
+      "Una obligación de entrega de la planificación no está disponible.",
+    "Planning requires accepted, non-cancelled customer order delivery work.":
+      "La planificación requiere obligaciones de entrega aceptadas y no canceladas de pedidos de clientes.",
+    "The stated dispatch quantity differs from current accepted commitment terms.":
+      "La cantidad de expedición indicada difiere de las condiciones actuales aceptadas de la obligación de entrega.",
+    "Planning evidence requires its executing exact reviewed proposal.":
+      "Los datos de planificación requieren la propuesta exacta revisada que se está ejecutando.",
+    "Shipping planning or confirmation meaning changed since review.":
+      "El significado de la planificación de envío o de la confirmación ha cambiado desde la revisión.",
+    "A commitment already belongs to another current dispatch plan. Withdraw or revise that exact plan first.":
+      "Una obligación de entrega ya pertenece a otro plan de envío actual. Retira o revisa primero ese plan exacto.",
     Refresh: "Actualizar",
     "Operational case not found.": "No se encontró el caso operativo.",
     "This object has no supported operational case policy.":
@@ -10841,6 +11455,19 @@ export const formatDateTime = (value: string | null | undefined) =>
       })
     : "—";
 /** Day, month and time without the year: for dense registers, with the full value as a tooltip. */
+/** Live observations use the chosen display zone and disclose its UTC offset. */
+export const formatZonedDateTime = (value: string | null | undefined) =>
+  value
+    ? date(value, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZoneName: "shortOffset",
+      })
+    : "—";
+
 export const formatShortDateTime = (value: string | null | undefined) =>
   value
     ? date(value, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
@@ -10848,6 +11475,33 @@ export const formatShortDateTime = (value: string | null | undefined) =>
 export const formatTime = (value: string | null | undefined, seconds = false) =>
   value
     ? date(value, { hour: "2-digit", minute: "2-digit", ...(seconds ? { second: "2-digit" } : {}) })
+    : "—";
+/** A stated business/site clock uses its explicit zone with the user's display locale. */
+export const formatTimeInZone = (
+  value: string | null | undefined,
+  timeZone: string,
+  seconds = false,
+) =>
+  value
+    ? new Intl.DateTimeFormat(active.locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        ...(seconds ? { second: "2-digit" } : {}),
+        timeZone,
+      }).format(new Date(value))
+    : "—";
+/** Collection deadlines retain the stated date and offset in their business/site zone. */
+export const formatDateTimeInZone = (value: string | null | undefined, timeZone: string) =>
+  value
+    ? new Intl.DateTimeFormat(active.locale, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZoneName: "shortOffset",
+        timeZone,
+      }).format(new Date(value))
     : "—";
 export const formatNumber = (value: string | number, maximumFractionDigits = 4) =>
   new Intl.NumberFormat(active.locale, { maximumFractionDigits }).format(Number(value));
@@ -28526,4 +29180,326 @@ Object.assign(dictionaries.es, {
   "Order states no order time.": "El pedido no indica la fecha del pedido.",
   "Order states no agreed delivery date.": "El pedido no indica una fecha de entrega acordada.",
   "Order states no order total.": "El pedido no indica un importe total.",
+});
+
+Object.assign(dictionaries.de, {
+  "A source-backed daily cohort and confirmed capacity are required to show these curves.":
+    "Für diese Kurven werden ein belegter Tagesplan und bestätigte Kapazitäten benötigt.",
+  "Access unavailable": "Zugriff nicht verfügbar",
+  "All dispatch sites": "Alle Versandstandorte",
+  "Basis identity": "Kennung der Grundlage",
+  "Business day": "Geschäftstag",
+  "Collection cut-offs": "Abholfristen",
+  "Company operations": "Unternehmensbetrieb",
+  Confirmed: "Bestätigt",
+  "Confirmed collection": "Bestätigte Abholung",
+  "Cumulative orders · company business day": "Kumulierte Aufträge · Geschäftstag der Firma",
+  "Cumulative shipping plan, confirmed handovers and future forecast":
+    "Kumulierter Versandplan, bestätigte Übergaben und Prognose",
+  "Current calculation basis": "Aktuelle Berechnungsgrundlage",
+  "Data observed at": "Datenstand um",
+  Deadline: "Frist",
+  "Dispatch site": "Versandstandort",
+  "Dispatch sites · split orders may appear at more than one site":
+    "Versandstandorte · geteilte Aufträge können an mehreren Standorten erscheinen",
+  Forecast: "Prognose",
+  "Forecast uses confirmed completion slots and current readiness. Requested collections do not add capacity.":
+    "Die Prognose nutzt bestätigte Kapazitäten und die aktuelle Versandfähigkeit. Angefragte Abholungen erhöhen die Kapazität nicht.",
+  "Hide calculation basis": "Berechnungsgrundlage ausblenden",
+  "Live observation": "Live-Beobachtung",
+  "Live updates suspended while hidden": "Aktualisierungen im Hintergrund pausiert",
+  "Matching orders": "Passende Aufträge",
+  "No orders match this observation": "Keine Aufträge entsprechen dieser Beobachtung",
+  "Observation gaps": "Lücken im Datenstand",
+  "Observe results. Take over a case only when you need to.":
+    "Ergebnisse beobachten. Vorgänge bei Bedarf selbst übernehmen.",
+  Observed: "Beobachtet",
+  "Pinned date": "Festes Datum",
+  "Previous observation — refresh failed": "Vorheriger Datenstand — Aktualisierung fehlgeschlagen",
+  "Re-evaluated against the current basis": "Mit aktueller Grundlage neu bewertet",
+  "Recorded blockers": "Erfasste Hindernisse",
+  "Requested collection": "Angefragte Abholung",
+  "Selected day has ended — no historical forecast is reconstructed.":
+    "Der gewählte Tag ist beendet — keine rückwirkende Prognose.",
+  "Shipping by end of day": "Versand bis Tagesende",
+  "Shipping plan unavailable": "Versandplan nicht verfügbar",
+  "Show calculation basis": "Berechnungsgrundlage anzeigen",
+  Site: "Standort",
+  "Supporting orders": "Zugehörige Aufträge",
+  "The supporting cohort is unavailable": "Die zugehörige Auftragsgruppe ist nicht verfügbar",
+  "Today · follows company day": "Heute · folgt dem Geschäftstag",
+  "Trace the result": "Ergebnis nachvollziehen",
+  Unavailable: "Nicht verfügbar",
+  "View supporting orders": "Zugehörige Aufträge ansehen",
+  "Due today": "Heute fällig",
+  "Due on selected day": "Am gewählten Tag fällig",
+  "Handed over": "Übergeben",
+  "Forecast by day end": "Prognose bis Tagesende",
+  "At risk": "Gefährdet",
+  "Shipping performance": "Versandleistung",
+  "Shipping plan": "Versandplan",
+  "Confirmed handovers": "Bestätigte Übergaben",
+  "Future forecast": "Prognose ab jetzt",
+});
+
+Object.assign(dictionaries.nl, {
+  "A source-backed daily cohort and confirmed capacity are required to show these curves.":
+    "Voor deze curves zijn een onderbouwde dagplanning en bevestigde capaciteit nodig.",
+  "Access unavailable": "Toegang niet beschikbaar",
+  "All dispatch sites": "Alle verzendlocaties",
+  "Basis identity": "Identiteit van de basis",
+  "Business day": "Bedrijfsdag",
+  "Collection cut-offs": "Ophaaldeadlines",
+  "Company operations": "Bedrijfsvoering",
+  Confirmed: "Bevestigd",
+  "Confirmed collection": "Bevestigde ophaling",
+  "Cumulative orders · company business day": "Cumulatieve orders · bedrijfsdag",
+  "Cumulative shipping plan, confirmed handovers and future forecast":
+    "Cumulatieve verzendplanning, bevestigde overdrachten en prognose",
+  "Current calculation basis": "Huidige berekeningsbasis",
+  "Data observed at": "Gegevens waargenomen om",
+  Deadline: "Verzenddeadline",
+  "Dispatch site": "Verzendlocatie",
+  "Dispatch sites · split orders may appear at more than one site":
+    "Verzendlocaties · gesplitste orders kunnen op meerdere locaties voorkomen",
+  Forecast: "Prognose",
+  "Forecast uses confirmed completion slots and current readiness. Requested collections do not add capacity.":
+    "De prognose gebruikt bevestigde capaciteit en de huidige verzendgereedheid. Aangevraagde ophalingen verhogen de capaciteit niet.",
+  "Hide calculation basis": "Berekeningsbasis verbergen",
+  "Live observation": "Live waarneming",
+  "Live updates suspended while hidden": "Updates gepauzeerd terwijl verborgen",
+  "Matching orders": "Overeenkomende orders",
+  "No orders match this observation": "Geen orders komen overeen met deze waarneming",
+  "Observation gaps": "Lacunes in de waarneming",
+  "Observe results. Take over a case only when you need to.":
+    "Bekijk resultaten. Neem een zaak alleen over als dat nodig is.",
+  Observed: "Waargenomen",
+  "Pinned date": "Vaste datum",
+  "Previous observation — refresh failed": "Vorige waarneming — vernieuwen mislukt",
+  "Re-evaluated against the current basis": "Opnieuw beoordeeld met de huidige basis",
+  "Recorded blockers": "Vastgelegde blokkades",
+  "Requested collection": "Aangevraagde ophaling",
+  "Selected day has ended — no historical forecast is reconstructed.":
+    "De geselecteerde dag is voorbij — geen achteraf gereconstrueerde prognose.",
+  "Shipping by end of day": "Verzending tot het einde van de dag",
+  "Shipping plan unavailable": "Verzendplanning niet beschikbaar",
+  "Show calculation basis": "Berekeningsbasis tonen",
+  Site: "Locatie",
+  "Supporting orders": "Onderliggende orders",
+  "The supporting cohort is unavailable": "De onderliggende ordergroep is niet beschikbaar",
+  "Today · follows company day": "Vandaag · volgt de bedrijfsdag",
+  "Trace the result": "Resultaat herleiden",
+  Unavailable: "Niet beschikbaar",
+  "View supporting orders": "Onderliggende orders bekijken",
+  "Due today": "Vandaag gepland",
+  "Due on selected day": "Gepland op de gekozen dag",
+  "Handed over": "Overgedragen",
+  "Forecast by day end": "Prognose tot het dageinde",
+  "At risk": "Risico",
+  "Shipping performance": "Verzendprestaties",
+  "Shipping plan": "Verzendplanning",
+  "Confirmed handovers": "Bevestigde overdrachten",
+  "Future forecast": "Prognose vanaf nu",
+});
+
+Object.assign(dictionaries.es, {
+  "A source-backed daily cohort and confirmed capacity are required to show these curves.":
+    "Estas curvas requieren una planificación diaria respaldada y capacidad confirmada.",
+  "Access unavailable": "Acceso no disponible",
+  "All dispatch sites": "Todos los centros de envío",
+  "Basis identity": "Identificador de la base",
+  "Business day": "Día operativo",
+  "Collection cut-offs": "Plazos de recogida",
+  "Company operations": "Operaciones de la empresa",
+  Confirmed: "Confirmado",
+  "Confirmed collection": "Recogida confirmada",
+  "Cumulative orders · company business day": "Pedidos acumulados · día operativo",
+  "Cumulative shipping plan, confirmed handovers and future forecast":
+    "Plan de envío acumulado, entregas confirmadas y previsión",
+  "Current calculation basis": "Base de cálculo actual",
+  "Data observed at": "Datos observados a las",
+  Deadline: "Plazo",
+  "Dispatch site": "Centro de envío",
+  "Dispatch sites · split orders may appear at more than one site":
+    "Centros de envío · los pedidos divididos pueden aparecer en varios centros",
+  Forecast: "Previsión",
+  "Forecast uses confirmed completion slots and current readiness. Requested collections do not add capacity.":
+    "La previsión utiliza capacidad confirmada y disponibilidad actual. Las recogidas solicitadas no añaden capacidad.",
+  "Hide calculation basis": "Ocultar base de cálculo",
+  "Live observation": "Observación en directo",
+  "Live updates suspended while hidden": "Actualizaciones pausadas mientras está oculto",
+  "Matching orders": "Pedidos coincidentes",
+  "No orders match this observation": "Ningún pedido coincide con esta observación",
+  "Observation gaps": "Lagunas en los datos",
+  "Observe results. Take over a case only when you need to.":
+    "Observe resultados. Asuma un caso solo cuando lo necesite.",
+  Observed: "Observado",
+  "Pinned date": "Fecha fija",
+  "Previous observation — refresh failed": "Datos anteriores — actualización fallida",
+  "Re-evaluated against the current basis": "Reevaluado con la base actual",
+  "Recorded blockers": "Bloqueos registrados",
+  "Requested collection": "Recogida solicitada",
+  "Selected day has ended — no historical forecast is reconstructed.":
+    "El día seleccionado ha terminado — no se reconstruye una previsión histórica.",
+  "Shipping by end of day": "Envíos hasta el final del día",
+  "Shipping plan unavailable": "Plan de envío no disponible",
+  "Show calculation basis": "Mostrar base de cálculo",
+  Site: "Centro",
+  "Supporting orders": "Pedidos relacionados",
+  "The supporting cohort is unavailable": "El grupo de pedidos no está disponible",
+  "Today · follows company day": "Hoy · sigue el día operativo",
+  "Trace the result": "Examinar el resultado",
+  Unavailable: "No disponible",
+  "View supporting orders": "Ver pedidos relacionados",
+  "Due today": "Vencen hoy",
+  "Due on selected day": "Vencen el día seleccionado",
+  "Handed over": "Entregados al transportista",
+  "Forecast by day end": "Previsión al final del día",
+  "At risk": "En riesgo",
+  "Shipping performance": "Rendimiento de envíos",
+  "Shipping plan": "Plan de envío",
+  "Confirmed handovers": "Entregas confirmadas",
+  "Future forecast": "Previsión futura",
+});
+
+Object.assign(dictionaries.de, {
+  "Access authorization and last use do not establish that an external Agent is connected or working now.":
+    "Zugriffsrecht und letzte Nutzung belegen nicht, dass ein externer Agent gerade verbunden ist oder arbeitet.",
+  "Access state": "Zugriffsstatus",
+  "Agent access overview is restricted to company owners":
+    "Die Übersicht der Agent-Zugänge ist Firmeninhabern vorbehalten",
+  "Agents & connections": "Agenten & Verbindungen",
+  "Compact view": "Kompakte Ansicht",
+  "Company-wide · recorded entities": "Firmenweit · erfasste Geschäftsobjekte",
+  "Coverage begins": "Erfassung ab",
+  "External runtime state is unknown":
+    "Der aktuelle Betriebszustand des externen Agenten ist unbekannt",
+  "Matching access records": "Passende Zugänge",
+  "Min.": "Minuten",
+  "New activity available": "Neue Aktivität verfügbar",
+  "Newly recorded entities in this window": "Neu erfasste Geschäftsobjekte in diesem Zeitraum",
+  "No access records match this filter": "Keine Zugänge entsprechen diesem Filter",
+  "No newly recorded business entities in this window":
+    "Keine neu erfassten Geschäftsobjekte in diesem Zeitraum",
+  "No use recorded": "Noch keine Nutzung erfasst",
+  OAuth: "OAuth-Zugang",
+  "Observed action": "Beobachtete Aktion",
+  "Open in Inspector": "Im Inspector öffnen",
+  "Partial coverage": "Teilweise erfasst",
+  "Pause following": "Mitlaufen pausieren",
+  "Permitted tools": "Erlaubte Werkzeuge",
+  "Recorded business entities per minute": "Erfasste Geschäftsobjekte pro Minute",
+  "Recording time determines this graph. It does not count completed shipments or successful Agent actions.":
+    "Die Kurve zeigt die Erfassungszeit. Sie zählt keine abgeschlossenen Sendungen oder erfolgreichen Agent-Aktionen.",
+  "Registered access": "Registrierte Zugänge",
+  "Resume following": "Mitlaufen fortsetzen",
+  "Return to cockpit": "Zurück zum Control Tower",
+  "Showing the latest 50 events · full totals are preserved":
+    "Die letzten 50 Ereignisse · Gesamtzahlen bleiben vollständig",
+  "View all accesses": "Alle Zugänge ansehen",
+});
+
+Object.assign(dictionaries.nl, {
+  "Access authorization and last use do not establish that an external Agent is connected or working now.":
+    "Toegang en laatste gebruik bewijzen niet dat een externe Agent nu verbonden is of werkt.",
+  "Access state": "Toegangsstatus",
+  "Agent access overview is restricted to company owners":
+    "Het overzicht van Agent-toegang is beperkt tot bedrijfseigenaren",
+  "Agents & connections": "Agents en verbindingen",
+  "Compact view": "Compacte weergave",
+  "Company-wide · recorded entities": "Bedrijfsbreed · vastgelegde objecten",
+  "Coverage begins": "Dekking begint",
+  "External runtime state is unknown": "De huidige runtime van de externe Agent is onbekend",
+  "Matching access records": "Overeenkomende toegangen",
+  "Min.": "minuten",
+  "New activity available": "Nieuwe activiteit beschikbaar",
+  "Newly recorded entities in this window": "Nieuw vastgelegde objecten in dit venster",
+  "No access records match this filter": "Geen toegangen komen overeen met dit filter",
+  "No newly recorded business entities in this window":
+    "Geen nieuw vastgelegde bedrijfsobjecten in dit venster",
+  "No use recorded": "Geen gebruik vastgelegd",
+  OAuth: "OAuth-toegang",
+  "Observed action": "Waargenomen actie",
+  "Open in Inspector": "Openen in Inspector",
+  "Partial coverage": "Gedeeltelijke dekking",
+  "Pause following": "Meelopen pauzeren",
+  "Permitted tools": "Toegestane hulpmiddelen",
+  "Recorded business entities per minute": "Vastgelegde bedrijfsobjecten per minuut",
+  "Recording time determines this graph. It does not count completed shipments or successful Agent actions.":
+    "De grafiek toont het tijdstip van vastlegging. Zij telt geen voltooide zendingen of geslaagde Agent-acties.",
+  "Registered access": "Geregistreerde toegang",
+  "Resume following": "Meelopen hervatten",
+  "Return to cockpit": "Terug naar cockpit",
+  "Showing the latest 50 events · full totals are preserved":
+    "Laatste 50 gebeurtenissen · totalen blijven volledig",
+  "View all accesses": "Alle toegangen bekijken",
+});
+
+Object.assign(dictionaries.es, {
+  "Access authorization and last use do not establish that an external Agent is connected or working now.":
+    "La autorización y el último uso no demuestran que un agente externo esté conectado o trabajando ahora.",
+  "Access state": "Estado de acceso",
+  "Agent access overview is restricted to company owners":
+    "La vista de accesos de agentes está restringida a propietarios",
+  "Agents & connections": "Agentes y conexiones",
+  "Compact view": "Vista compacta",
+  "Company-wide · recorded entities": "Toda la empresa · entidades registradas",
+  "Coverage begins": "Cobertura desde",
+  "External runtime state is unknown":
+    "El estado actual de ejecución del agente externo es desconocido",
+  "Matching access records": "Accesos coincidentes",
+  "Min.": "minutos",
+  "New activity available": "Nueva actividad disponible",
+  "Newly recorded entities in this window": "Entidades nuevas en este periodo",
+  "No access records match this filter": "Ningún acceso coincide con este filtro",
+  "No newly recorded business entities in this window": "No hay entidades nuevas en este periodo",
+  "No use recorded": "Sin uso registrado",
+  OAuth: "Acceso OAuth",
+  "Observed action": "Acción observada",
+  "Open in Inspector": "Abrir en Inspector",
+  "Partial coverage": "Cobertura parcial",
+  "Pause following": "Pausar seguimiento",
+  "Permitted tools": "Herramientas permitidas",
+  "Recorded business entities per minute": "Entidades registradas por minuto",
+  "Recording time determines this graph. It does not count completed shipments or successful Agent actions.":
+    "La gráfica utiliza la hora de registro. No cuenta envíos completados ni acciones exitosas de agentes.",
+  "Registered access": "Accesos registrados",
+  "Resume following": "Reanudar seguimiento",
+  "Return to cockpit": "Volver al panel operativo",
+  "Showing the latest 50 events · full totals are preserved":
+    "Últimos 50 eventos · totales completos",
+  "View all accesses": "Ver todos los accesos",
+});
+
+Object.assign(dictionaries.de, {
+  "Search business reference": "Geschäftsreferenz suchen",
+  "Case kind": "Vorgangsart",
+  Search: "Suchen",
+});
+
+Object.assign(dictionaries.nl, {
+  "Search business reference": "Bedrijfsreferentie zoeken",
+  "Case kind": "Type proces",
+  Search: "Zoeken",
+});
+
+Object.assign(dictionaries.es, {
+  "Search business reference": "Buscar referencia comercial",
+  "Case kind": "Tipo de caso",
+  Search: "Buscar",
+});
+
+Object.assign(dictionaries.de, {
+  "Basis preview is bounded to 50 records per section. Inspect supporting orders for full evidence.":
+    "Die Vorschau zeigt höchstens 50 Datensätze je Bereich. Die vollständigen Belege finden Sie bei den zugehörigen Aufträgen.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Basis preview is bounded to 50 records per section. Inspect supporting orders for full evidence.":
+    "Het voorbeeld toont maximaal 50 records per onderdeel. Bekijk de bijbehorende orders voor het volledige bewijs.",
+});
+
+Object.assign(dictionaries.es, {
+  "Basis preview is bounded to 50 records per section. Inspect supporting orders for full evidence.":
+    "La vista previa muestra hasta 50 registros por sección. Consulte los pedidos relacionados para ver todas las pruebas.",
 });

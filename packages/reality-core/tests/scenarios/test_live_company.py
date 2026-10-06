@@ -595,6 +595,23 @@ def test_arrival_requires_dispatch_and_goals_require_destination(
         live_company.reactions(session, business.tenant.id, run["run_id"], actual_now)[
             "arrivals"
         ]
+        == 0
+    )
+    handover = session.scalar(
+        select(ShipmentEvent).where(
+            ShipmentEvent.tenant_id == business.tenant.id,
+            ShipmentEvent.shipment_id == dispatch.id,
+            ShipmentEvent.event_type == "handed_over",
+        )
+    )
+    assert handover is not None and handover.occurred_at == actual_now
+    assert (
+        live_company.reactions(
+            session,
+            business.tenant.id,
+            run["run_id"],
+            actual_now + timedelta(minutes=1),
+        )["arrivals"]
         == 1
     )
     report = live_company.monitor(session, business.tenant.id, run["run_id"])
@@ -1525,4 +1542,232 @@ def test_automatic_order_states_price_local_document_day_and_replays(
             session, business.tenant.id, run["run_id"], "complete-order", instant
         )
         == first
+    )
+
+
+@pytest.mark.parametrize("full_mailbox", [False, True])
+@pytest.mark.parametrize("corrected", [False, True])
+@pytest.mark.parametrize("historical_delivered", [False, True])
+def test_carrier_handover_is_source_backed_and_independent_of_mail_pressure(
+    session,
+    business,
+    scheduled_owner,
+    monkeypatch,
+    full_mailbox,
+    corrected,
+    historical_delivered,
+):
+    import json
+    from datetime import timedelta
+
+    from reality.db.core import Movement, Shipment, ShipmentEvent
+    from reality.services import core, shipments
+
+    at = now()
+    monkeypatch.setattr(live_company, "now", lambda: at - timedelta(minutes=10))
+    run = live_company.start(
+        session,
+        business.tenant.id,
+        scheduled_owner.id,
+        request_id="handover",
+        confirmed=True,
+    )
+    monkeypatch.setattr(live_company, "now", now)
+    source = live_company._store(
+        session,
+        business.tenant.id,
+        "test",
+        "opening",
+        "handover-stock",
+        {"quantity": "20"},
+    )
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        20,
+        to_location_id=business.location.id,
+        source_record_id=source.id,
+        occurred_at=at - timedelta(minutes=6),
+        _commit=False,
+    )
+    from reality.db.core import Commitment, DocumentLine
+
+    mail = live_company.inject(
+        session,
+        business.tenant.id,
+        scheduled_owner.id,
+        run["run_id"],
+        {
+            "kind": "order",
+            "party_id": business.customer.id,
+            "item_id": business.item.id,
+            "quantity": 2,
+            "amount": "20",
+        },
+        request_id="handover-demand",
+        confirmed=True,
+        at=at - timedelta(minutes=5),
+    )
+    commitment = session.scalar(
+        select(Commitment).where(
+            Commitment.tenant_id == business.tenant.id,
+            Commitment.document_line_id.in_(
+                select(DocumentLine.id).where(
+                    DocumentLine.tenant_id == business.tenant.id,
+                    DocumentLine.document_id == mail["document_id"],
+                )
+            ),
+        )
+    )
+    core.reserve(session, business.tenant.id, commitment.id, _commit=False)
+    receipt = shipments.record_packaged_execution(
+        session,
+        business.tenant.id,
+        direction="outbound",
+        purpose="customer_delivery",
+        counterparty_id=business.customer.id,
+        carrier="Simulated carrier",
+        occurred_at=at - timedelta(minutes=3),
+        movements=[
+            {
+                "commitment_id": commitment.id,
+                "item_id": business.item.id,
+                "from_location_id": business.location.id,
+                "quantity": "2",
+            }
+        ],
+        commit=False,
+    )
+    shipment = session.get(Shipment, (business.tenant.id, receipt["shipment_id"]))
+    shipment.created_at = at - timedelta(minutes=3)
+    if corrected:
+        movement = session.scalar(
+            select(Movement).where(
+                Movement.tenant_id == business.tenant.id,
+                Movement.shipment_package_id == receipt["package_id"],
+                Movement.type == "shipment",
+            )
+        )
+        core.correct_movement(
+            session,
+            business.tenant.id,
+            movement.id,
+            reason="Retracted physical dispatch",
+            _commit=False,
+        )
+    if historical_delivered:
+        shipments.record_shipment_event(
+            session,
+            business.tenant.id,
+            shipment.id,
+            event_type="delivered",
+            reporter_type="carrier",
+            shipment_package_id=receipt["package_id"],
+            occurred_at=at - timedelta(minutes=1),
+            commit=False,
+        )
+    session.flush()
+    from reality.services.live_company_carrier import observe_carrier
+
+    assert (
+        observe_carrier(
+            session, business.tenant.id, "other-run", at - timedelta(minutes=10), at
+        )
+        == 0
+    )
+    blocked = corrected or historical_delivered
+    if full_mailbox:
+        monkeypatch.setattr(live_company, "inbox", lambda *args, **kwargs: [{}] * 2000)
+    before_mail = len(
+        list(
+            session.scalars(
+                select(SourceRecord.id).where(
+                    SourceRecord.tenant_id == business.tenant.id,
+                    SourceRecord.source_type == "incoming",
+                )
+            )
+        )
+    )
+    result = live_company.reactions(session, business.tenant.id, run["run_id"], at)
+    assert result["arrivals"] == 0
+    events = list(
+        session.scalars(
+            select(ShipmentEvent).where(
+                ShipmentEvent.tenant_id == business.tenant.id,
+                ShipmentEvent.shipment_id == shipment.id,
+                ShipmentEvent.event_type == "handed_over",
+            )
+        )
+    )
+    assert len(events) == (0 if blocked else 1)
+    if not blocked:
+        event = events[0]
+        assert event.occurred_at == at and event.reporter_type == "carrier"
+        evidence = session.get(
+            SourceRecord, (business.tenant.id, event.source_record_id)
+        )
+        payload = json.loads(evidence.payload)
+        assert payload["origin"] == "simulated_carrier"
+        assert payload["occurred_at"] == at.isoformat()
+        assert payload["package_id"] == receipt["package_id"]
+    live_company.reactions(session, business.tenant.id, run["run_id"], at)
+    assert len(
+        list(
+            session.scalars(
+                select(ShipmentEvent.id).where(
+                    ShipmentEvent.tenant_id == business.tenant.id,
+                    ShipmentEvent.shipment_id == shipment.id,
+                    ShipmentEvent.event_type == "handed_over",
+                )
+            )
+        )
+    ) == (0 if blocked else 1)
+    result = live_company.reactions(
+        session, business.tenant.id, run["run_id"], at + timedelta(minutes=1)
+    )
+    assert result["arrivals"] == (0 if blocked else 1)
+    if full_mailbox:
+        assert (
+            len(
+                list(
+                    session.scalars(
+                        select(SourceRecord.id).where(
+                            SourceRecord.tenant_id == business.tenant.id,
+                            SourceRecord.source_type == "incoming",
+                        )
+                    )
+                )
+            )
+            == before_mail
+        )
+    with pytest.raises(core.NotFound):
+        live_company.reactions(session, "other-company", run["run_id"], at)
+    event_count = len(
+        list(
+            session.scalars(
+                select(ShipmentEvent.id).where(
+                    ShipmentEvent.tenant_id == business.tenant.id
+                )
+            )
+        )
+    )
+    assert (
+        live_company.reactions(
+            session, business.tenant.id, run["run_id"], at + timedelta(hours=73)
+        )["arrivals"]
+        == 0
+    )
+    assert (
+        len(
+            list(
+                session.scalars(
+                    select(ShipmentEvent.id).where(
+                        ShipmentEvent.tenant_id == business.tenant.id
+                    )
+                )
+            )
+        )
+        == event_count
     )

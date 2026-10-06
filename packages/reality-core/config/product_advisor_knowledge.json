@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:10d739e662084cf709fcb64202e58ba5f8d915485f383aba8ac61ccc5cced24c",
+  "knowledge_version": "advisor-v1:sha256:19a8ec5cbeb99c40958bbed7326dcba87c24223d81900d538d9370b1b6864bea",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "c89e96456c803a13a73d0bccec4bd6f01c05230848772cf45f45f58ba5ed43c4"
+      "fingerprint": "71d0803f5c45b72ef11b63e59e8e84a190c65a96f8a34b56a447ea293932e219"
     },
     {
       "id": "source_document_product_evaluation",
@@ -6136,6 +6136,111 @@
       ],
       "language": "en",
       "fingerprint": "df2136641398c10d2b208c3a1c739589f0ea2281663222736448453eb323d5b6"
+    },
+    {
+      "id": "evidence_command_operations_cockpit",
+      "source_id": "source_executable_commands",
+      "subject": "Observe operations cockpit",
+      "title": "Observe operations cockpit",
+      "search_text": "operations_cockpit Observe operations cockpit Observe operations cockpit from current authorized held evidence; never change responsibility or business work. read",
+      "claim_text": "operations_cockpit is a governed read command for Observe operations cockpit from current authorized held evidence; never change responsibility or business work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operations_cockpit"
+      ],
+      "language": "en",
+      "fingerprint": "e7258814c4b60861eec90a25c7e5646b30f7c2183107f0b1d51aa163e52c2111"
+    },
+    {
+      "id": "evidence_command_shipping_performance",
+      "source_id": "source_executable_commands",
+      "subject": "Read shipping performance",
+      "title": "Read shipping performance",
+      "search_text": "shipping_performance Read shipping performance Read shipping performance from current authorized held evidence; never change responsibility or business work. read",
+      "claim_text": "shipping_performance is a governed read command for Read shipping performance from current authorized held evidence; never change responsibility or business work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "shipping_performance"
+      ],
+      "language": "en",
+      "fingerprint": "06b646e4c83151d96a497b434956629f8fc93af0e928bf4904c8da1a8482f8c6"
+    },
+    {
+      "id": "evidence_command_shipping_supporting_orders",
+      "source_id": "source_executable_commands",
+      "subject": "Read supporting shipping orders",
+      "title": "Read supporting shipping orders",
+      "search_text": "shipping_supporting_orders Read supporting shipping orders Read supporting shipping orders from current authorized held evidence; never change responsibility or business work. read",
+      "claim_text": "shipping_supporting_orders is a governed read command for Read supporting shipping orders from current authorized held evidence; never change responsibility or business work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "shipping_supporting_orders"
+      ],
+      "language": "en",
+      "fingerprint": "ab6c655cb3759ef60cee54948699ecfe3a7d681256fa6da7f4485a00197f3ff9"
+    },
+    {
+      "id": "evidence_command_operations_cockpit_activity",
+      "source_id": "source_executable_commands",
+      "subject": "Observe recorded business activity",
+      "title": "Observe recorded business activity",
+      "search_text": "operations_cockpit_activity Observe recorded business activity Observe recorded business activity from current authorized held evidence; never change responsibility or business work. read",
+      "claim_text": "operations_cockpit_activity is a governed read command for Observe recorded business activity from current authorized held evidence; never change responsibility or business work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operations_cockpit_activity"
+      ],
+      "language": "en",
+      "fingerprint": "f7eecafc27e8db5e198b960c7fbdff801c189510c379e3fecf76610df0e533f2"
+    },
+    {
+      "id": "evidence_command_operations_cockpit_agents",
+      "source_id": "source_executable_commands",
+      "subject": "Read named Agent accesses",
+      "title": "Read named Agent accesses",
+      "search_text": "operations_cockpit_agents Read named Agent accesses Read named Agent accesses from current authorized held evidence; never change responsibility or business work. read",
+      "claim_text": "operations_cockpit_agents is a governed read command for Read named Agent accesses from current authorized held evidence; never change responsibility or business work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operations_cockpit_agents"
+      ],
+      "language": "en",
+      "fingerprint": "80247096b9e6e7cf7bcecb319b2699a3ff6ef22ecff5dad4e8cfda32e406322d"
+    },
+    {
+      "id": "evidence_command_shipping_plan_state",
+      "source_id": "source_executable_commands",
+      "subject": "State shipping planning evidence",
+      "title": "State shipping planning evidence",
+      "search_text": "shipping_plan_state State shipping planning evidence Retain an exact reviewed plan, revision or withdrawal as immutable source-backed evidence; do not dispatch stock or execute providers. mutation",
+      "claim_text": "shipping_plan_state is a governed mutation command for Retain an exact reviewed plan, revision or withdrawal as immutable source-backed evidence; do not dispatch stock or execute providers..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "shipping_plan_state"
+      ],
+      "language": "en",
+      "fingerprint": "54934c58ca56e987533547e3af8394fb9dc00f086024d18a10eb8ad3e14e4b3d"
+    },
+    {
+      "id": "evidence_command_operational_case_register",
+      "source_id": "source_executable_commands",
+      "subject": "Read supported operational case register",
+      "title": "Read supported operational case register",
+      "search_text": "operational_case_register Read supported operational case register Observe full matching responsibility counts and a bounded page of adopted cases; never adopt or stop work. read",
+      "claim_text": "operational_case_register is a governed read command for Observe full matching responsibility counts and a bounded page of adopted cases; never adopt or stop work..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "operational_case_register"
+      ],
+      "language": "en",
+      "fingerprint": "162ddb5f6a7fcfb45f5f807776d730a714c46eb3624a8017e0cacf3ff6679839"
     },
     {
       "id": "evidence_command_operational_case_list",

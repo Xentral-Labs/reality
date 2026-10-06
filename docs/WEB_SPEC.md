@@ -132,6 +132,8 @@ The web application combines two modes without creating two products:
 
 The web UI must never create its own business logic. CLI, chat, demo and web all call the same application services/tools.
 
+The approved enterprise migration in spec 378 preserves shipping plan/handover/forecast curves, site cutoffs, exceptional case control, all-day observation and named Agent/access visibility. Its [implementation contract](features/operations-cockpit.md) records the implemented, optional, default-off cockpit route and its functional proofs. Home remains the default entry. Enterprise performance and a separate real-time soak remain pre-pilot acceptance gates.
+
 ### Compact chat answer basis — Spec 272
 
 Each new assistant reply can expose a collapsed **Basis for this answer** below its
@@ -3658,3 +3660,13 @@ inferred from a shipment ID. Empty stages stay visible as not recorded.
 ## Essential intake completeness — Spec 379
 
 Order and source-intake reviews show the shared service's allowed timing/commercial gaps in business language, translated through one presentation component. Unknown unit prices render as Unknown, separately from explicitly stated zero. The browser neither invents facts nor decides admission: coded source-required refusals and supported-unit rules remain in shared domain/services. Existing inspection, exact confirmation and source lineage remain unchanged.
+
+### Shared native select fields — Spec 225 FR-023
+
+Visible single-value selects share a themed, vertically centered chevron inset 12px
+from the end edge and reserve 40px end padding. Native selection, values, labels,
+keyboard and mobile pickers remain intact. Compact pagination stays 32px high with
+room for three-digit page sizes. Disabled and focused controls remain identifiable.
+Native multiple/size listboxes and invisible register-chip overlays keep their
+rendering; forced colors restores the browser indicator. Shared CSS protects these
+rules from legacy page background/padding resets, including Control Tower filters.

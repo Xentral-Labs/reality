@@ -329,7 +329,14 @@
     "operational_case_adopt": "orders",
     "operational_case_takeover": "orders",
     "operational_case_handback": "orders",
-    "operational_case_status": "orders"
+    "operational_case_status": "orders",
+    "shipping_plan_state": "tracking",
+    "operations_cockpit": "tracking",
+    "shipping_performance": "tracking",
+    "shipping_supporting_orders": "tracking",
+    "operations_cockpit_activity": "tracking",
+    "operations_cockpit_agents": "tracking",
+    "operational_case_register": "orders"
   },
   "entries": [
     {

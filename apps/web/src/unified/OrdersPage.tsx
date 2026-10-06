@@ -383,6 +383,8 @@ export function OrdersPage({
             key={`${tenant}:${entry || order || ""}`}
             tenant={tenant}
             documentId={entry || order || undefined}
+            initiallyOpen={Boolean(selection.cockpitOrigin && (entry || order))}
+            selection={selection}
           />
         )}
         <RegisterWorkbench>

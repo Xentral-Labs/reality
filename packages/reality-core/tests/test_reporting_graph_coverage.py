@@ -103,6 +103,15 @@ INFRASTRUCTURE = {
 # Slices this feature deliberately leaves for later. Each names why, so a deferral
 # stays distinguishable from a gap — the distinction the audit was written to make.
 DEFERRED = {
+    "shipping_planning_inputs": (
+        "Spec 378 source-backed dispatch requirements and capacity statements feed the canonical shipping cockpit. Cross-report measures, supersession and completion-slot grain require a separately reviewed analytics design; the cockpit and original Source trail already expose the operational evidence.",
+        {
+            "shipping_plan_statement",
+            "shipping_dispatch_requirement",
+            "shipping_capacity_window",
+        },
+        set(),
+    ),
     "agent_email_execution": (
         "Email dispatch authorizations and executor-bound receipt links expose personal correspondence. Their reporting grain and privacy policy need a separately reviewed analytics design; email_history and Decisions provide the operational evidence trail (spec 351).",
         {"email_dispatch", "email_dispatch_receipt", "email_business_link"},

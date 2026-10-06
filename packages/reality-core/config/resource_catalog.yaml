@@ -181,8 +181,8 @@ resources:
         ergänzen eine Gegenbuchung statt zu editieren. Eine Sendung ist die Lieferung, die
         Bewegungen zu einem Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
     synonyms: [goods receipt, goods issue, shipment, movement, transfer, adjustment, failed delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust, drop shipping, drop shipment, Streckengeschäft, Direktlieferung]
-    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession, delivery_failure, outbound_delivery, outbound_delivery_line, outbound_delivery_pick, misdelivery, shipment_advice_line]
-    match: "movement|shipment|dispatch|receive|delivery_failure|outbound_deliver|drop_ship"
+    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession, delivery_failure, outbound_delivery, outbound_delivery_line, outbound_delivery_pick, misdelivery, shipment_advice_line, shipping_plan_statement, shipping_dispatch_requirement, shipping_capacity_window]
+    match: "movement|shipment|dispatch|receive|delivery_failure|outbound_deliver|drop_ship|shipping_plan|shipping_performance|shipping_supporting|operations_cockpit"
     views: [movements, warehouse_queue]
     projections: []
     exceptions: [unexplained_movement, return_unresolved, misdelivery_outstanding]
@@ -596,6 +596,15 @@ labels:
   de:
     tools:
       operational_case_status: Vorgangsstatus prüfen
+      operations_cockpit: Leitstand anzeigen
+      shipping_performance: Versandleistung anzeigen
+      shipping_supporting_orders: Zugehörige Versandaufträge anzeigen
+      operations_cockpit_activity: Erfasste Geschäftsaktivität anzeigen
+      operations_cockpit_agents: Benannte Agent-Zugänge anzeigen
+      operational_case_register: Vorgangsregister anzeigen
+      shipping_plan_propose: Versandplan vorschlagen
+      shipping_plan_revise_propose: Versandplan ändern
+      shipping_plan_withdraw_propose: Versandplan zurücknehmen
       operational_case_list: Vorgänge anzeigen
       operational_case_explain: Vorgang erklären
       operational_case_object: Zugehörige Vorgänge finden
@@ -617,6 +626,13 @@ labels:
       reorder_points: Meldebestände anzeigen
     commands:
       operational_case_status: Vorgangsstatus prüfen
+      operations_cockpit: Leitstand anzeigen
+      shipping_performance: Versandleistung anzeigen
+      shipping_supporting_orders: Zugehörige Versandaufträge anzeigen
+      operations_cockpit_activity: Erfasste Geschäftsaktivität anzeigen
+      operations_cockpit_agents: Benannte Agent-Zugänge anzeigen
+      operational_case_register: Vorgangsregister anzeigen
+      shipping_plan_state: Versandplanung festhalten
       operational_case_list: Vorgänge anzeigen
       operational_case_explain: Vorgang erklären
       operational_case_object: Zugehörige Vorgänge finden

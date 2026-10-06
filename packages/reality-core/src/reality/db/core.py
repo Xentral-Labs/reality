@@ -3862,6 +3862,113 @@ class AISettings(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class ShippingPlanStatement(Base):
+    """Immutable accepted dispatch-planning evidence, never operational state."""
+
+    __tablename__ = "shipping_plan_statement"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "dispatch_location_id"], ["location.tenant_id", "location.id"]
+        ),
+        UniqueConstraint(
+            "tenant_id", "source_record_id", name="uq_shipping_plan_source"
+        ),
+        CheckConstraint(
+            "statement_kind IN ('plan', 'withdrawal')", name="ck_shipping_plan_kind"
+        ),
+        Index(
+            "ix_shipping_plan_scope",
+            "tenant_id",
+            "business_day",
+            "dispatch_location_id",
+        ),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
+    id: Mapped[str] = mapped_column(String)
+    source_record_id: Mapped[str] = mapped_column(String)
+    statement_kind: Mapped[str] = mapped_column(String)
+    dispatch_location_id: Mapped[str] = mapped_column(String)
+    business_day: Mapped[date] = mapped_column(Date)
+    business_time_zone: Mapped[str] = mapped_column(String)
+    site_time_zone: Mapped[str] = mapped_column(String)
+
+
+class ShippingDispatchRequirement(Base):
+    """Stated full commitment dispatch quantity/deadline for one plan version."""
+
+    __tablename__ = "shipping_dispatch_requirement"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "statement_id"],
+            ["shipping_plan_statement.tenant_id", "shipping_plan_statement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"], ["commitment.tenant_id", "commitment.id"]
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "statement_id",
+            "commitment_id",
+            name="uq_shipping_requirement_commitment",
+        ),
+        CheckConstraint("quantity > 0", name="ck_shipping_requirement_quantity"),
+        CheckConstraint(
+            "planned_handover_at IS NULL OR planned_handover_at <= dispatch_due_at",
+            name="ck_shipping_requirement_plan_time",
+        ),
+        Index("ix_shipping_requirement_commitment", "tenant_id", "commitment_id"),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
+    id: Mapped[str] = mapped_column(String)
+    statement_id: Mapped[str] = mapped_column(String)
+    commitment_id: Mapped[str] = mapped_column(String)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    dispatch_due_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    planned_handover_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class ShippingCapacityWindow(Base):
+    """Source-stated completion slots and collection cutoff for an exact plan."""
+
+    __tablename__ = "shipping_capacity_window"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "statement_id"],
+            ["shipping_plan_statement.tenant_id", "shipping_plan_statement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "confirmation_source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        CheckConstraint("completion_slots >= 0", name="ck_shipping_capacity_slots"),
+        CheckConstraint(
+            "starts_at < collection_cutoff_at AND collection_cutoff_at <= ends_at",
+            name="ck_shipping_capacity_interval",
+        ),
+        CheckConstraint(
+            "confirmation_state IN ('requested', 'confirmed') AND (confirmation_state <> 'confirmed' OR confirmation_source_record_id IS NOT NULL)",
+            name="ck_shipping_capacity_confirmation",
+        ),
+        Index("ix_shipping_capacity_statement", "tenant_id", "statement_id"),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
+    id: Mapped[str] = mapped_column(String)
+    statement_id: Mapped[str] = mapped_column(String)
+    starts_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    ends_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    collection_cutoff_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    completion_slots: Mapped[int] = mapped_column(Integer)
+    confirmation_state: Mapped[str] = mapped_column(String)
+    confirmation_source_record_id: Mapped[str | None] = mapped_column(String)
+
+
 class Secret(Base):
     """Tenant-scoped encrypted material; consumers retain only this opaque ID."""
 

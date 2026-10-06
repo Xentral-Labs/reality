@@ -9,7 +9,7 @@ import { Inspector } from "./Inspector";
 import { RegisterToolbar, RegisterWorkbench } from "./RegisterWorkbench";
 
 // Presentation only; the shared service owns event classification and business state.
-export function eventTitle(event: TimelineEvent): string {
+export function eventTitle(event: { type: string; business_title?: string }): string {
   const titles: Record<string, string> = {
     "party.created": t("Business partner created"),
     "item.created": t("Item created"),

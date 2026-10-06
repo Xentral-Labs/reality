@@ -287,6 +287,8 @@ jobs:
             test: tests/browser/unified_engine_room.py
           - journey: company-setup-live
             test: tests/browser/unified_company_setup_live.py
+          - journey: operations-cockpit
+            test: tests/browser/unified_operations_cockpit.py
           - journey: finance-rollout
             test: tests/browser/unified_finance_rollout.py
     services:

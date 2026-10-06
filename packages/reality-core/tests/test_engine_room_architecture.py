@@ -14,6 +14,9 @@ ALLOWED = {
     "services/interaction_recorder.py",
     "services/interactions.py",
     "web/interactions_api.py",
+    # Spec 378: an owner-only observation adapter consumes sanitized reader DTOs.
+    # Shipping calculations and business execution remain independent of telemetry.
+    "services/operations_cockpit.py",
 }
 TOUCHES = re.compile(
     r"reality\.db\.interactions|reality\.services\.interactions\b|"
@@ -34,6 +37,18 @@ def test_only_the_engine_room_reads_its_table():
     # Positive control: the scan finds the modules that legitimately touch it.
     assert {"services/interaction_recorder.py", "web/interactions_api.py"} <= touching
     assert touching <= ALLOWED, sorted(touching - ALLOWED)
+
+
+def test_cockpit_observation_uses_the_reader_without_direct_telemetry_access():
+    """The owner roster observes exact attribution through the Engine Room reader.
+
+    BUSINESS PURPOSE: Keep diagnostic observations out of business authority.
+    BUSINESS RULE: The cockpit consumes redacted DTOs and never queries telemetry.
+    """
+    source = (SOURCE / "services/operations_cockpit.py").read_text()
+    assert "reality.db.interactions" not in source
+    assert "Interaction" not in source
+    assert "interactions.latest_manual_actions(" in source
 
 
 def test_the_recorder_is_the_only_thing_business_code_calls():

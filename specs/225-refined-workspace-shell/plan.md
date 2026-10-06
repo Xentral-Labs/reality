@@ -239,3 +239,25 @@ update the register-footer 1168px expectation and explicitly open touch chat.
 Analyze: FR-022 maps to T024–026; no uncovered acceptance, ambiguity or critical finding.
 Run focused/full frontend contracts, shell and register browsers, build, formatting,
 spec policy and PR CI. Rollback restores 1024px docking; no migrations/catalog edits.
+
+## FR-023 shared native select plan
+
+Constitution Check I–VIII: PASS. Adapter-only CSS; no domain, service, tool, tenant,
+source, schema, persistence or catalog changes. Retain real HTML selects rather than
+introducing a menu widget or changing every caller. One shared selector in
+apps/web/src/tailwind.css applies the themed SVG chevron, 12px end inset, 40px end
+padding, constrained-container sizing and focus treatment. Its deliberate specificity survives legacy background
+and padding shorthands, including dynamically imported cockpit CSS. Exclude multiple,
+size and register-chip-select controls. In forced colors restore native appearance
+and remove the decorative image. Widen the existing compact pagination select only
+as required to retain its three-digit label; preserve its height and interaction.
+
+Tests first: apps/web/scripts/shared-select-browser.mjs with a small real-CSS fixture
+covers both themes, 320/390/1440px, standard/legacy/cockpit/compact fields, long labels,
+keyboard focus/selection, disabled/listbox/overlay exclusions and forced colors.
+Register it in browser-suite.json. Run existing settings, register-footer and cockpit
+browsers for integration; frontend contracts, build, format, localization, spec policy,
+lint and catalog freshness remain gates. Backend/migration checks are inapplicable.
+Inspect the deployed local cockpit and settings at port 8080. Only rebuild/restart
+web; preserve the simulator, business operator and business data.
+Rollback: revert shared CSS and fixture coverage; no migration or stored preference.

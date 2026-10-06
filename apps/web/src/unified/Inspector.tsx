@@ -11,6 +11,7 @@ import { ReadState } from "./ReadState";
 import { EmailEvidencePanel } from "./EmailEvidencePanel";
 import { ObjectCorrespondencePanel } from "./ObjectCorrespondencePanel";
 import { DecisionLine } from "./DecisionLine";
+import type { Selection } from "./routing";
 
 const compactGrid = "grid gap-4 md:grid-cols-2";
 const compactSection = "rounded-lg border border-border-default bg-surface p-4";
@@ -32,11 +33,13 @@ export function Inspector({
   target,
   close,
   actions,
+  selection,
 }: {
   tenant: string;
   target: { kind: string; id: string };
   close: () => void;
   actions?: (target: { kind: string; id: string }) => ReactNode;
+  selection?: Selection;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, select] = useState(target);
@@ -114,6 +117,7 @@ export function Inspector({
           <InspectorContent
             data={data}
             tenant={tenant}
+            selection={selection}
             selectedKind={selected.kind}
             follow={(target) => {
               setMemberPage(1);
@@ -145,6 +149,7 @@ export function InspectorContent({
   follow,
   compact = false,
   tenant,
+  selection,
 }: {
   data: Pick<InspectorData, "title" | "sections"> & Partial<InspectorData>;
   selectedKind: string;
@@ -152,6 +157,7 @@ export function InspectorContent({
   compact?: boolean;
   /** The company, so a decision behind the record can be opened. */
   tenant?: string;
+  selection?: Selection;
 }) {
   const sections = compact ? (data.preview_sections ?? data.sections.slice(0, 3)) : data.sections;
   const quickSections =
@@ -243,7 +249,12 @@ export function InspectorContent({
         </div>
       )}
       {!compact && tenant && selectedKind === "document" && data.id && (
-        <OperationalCaseDetail key={`${tenant}:${data.id}`} tenant={tenant} documentId={data.id} />
+        <OperationalCaseDetail
+          key={`${tenant}:${data.id}`}
+          tenant={tenant}
+          documentId={data.id}
+          selection={selection}
+        />
       )}
       {[
         ...sections.filter((section) => !quickSections.includes(section)),

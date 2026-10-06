@@ -254,6 +254,7 @@ export function InspectorRecordsPage({
           key={`${tenant}:${target.kind}:${target.id}`}
           tenant={tenant}
           target={target}
+          selection={selection}
           close={() => {
             setTarget(null);
             navigate({ inspectorTargetKind: "", inspectorTargetId: "" });

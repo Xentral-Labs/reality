@@ -6438,6 +6438,13 @@ def create_change_proposal(
         normalized_arguments, stock_count_review = review_stock_count(
             session, tenant_id, arguments
         )
+    shipping_plan_review = None
+    if tool_name == "shipping_plan_state":
+        from reality.services.shipping_plans import review_plan
+
+        normalized_arguments, shipping_plan_review = review_plan(
+            session, tenant_id, arguments
+        )
     delivery_rule_review = None
     if tool_name == "delivery_rule_set":
         from reality.services.delivery_rules import review_delivery_rule
@@ -6545,6 +6552,8 @@ def create_change_proposal(
         preview["party_merge"] = party_merge_review
     if reorder_review is not None:
         preview["reorder_point"] = reorder_review
+    if shipping_plan_review is not None:
+        preview["shipping_plan"] = shipping_plan_review
     if delivery_rule_review is not None:
         preview["delivery_rule"] = delivery_rule_review
     if stock_count_review is not None:
@@ -7351,6 +7360,7 @@ def approve_and_execute_proposal(
             "stock_block_scrap",
             "backorders_serve",
             "delivery_rule_set",
+            "shipping_plan_state",
             "stock_count",
             "external_stock_state",
             "outbound_delivery_plan",
@@ -7785,3 +7795,7 @@ TOOLS["graph.requests.create"] = Tool(
 from reality.tools.operational_cases import register as _register_operational_cases
 
 _register_operational_cases()
+
+from reality.tools.shipping_operations import register as _register_shipping_operations
+
+_register_shipping_operations()

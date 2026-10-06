@@ -15,6 +15,7 @@ from typing import Any
 
 from sqlalchemy import (
     Select,
+    String,
     and_,
     case,
     cast,
@@ -28,6 +29,8 @@ from sqlalchemy import (
     union_all,
 )
 from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -4011,8 +4014,33 @@ def movement_quantity(
     )
 
 
+def _id_cohort(column: Any, identities: Iterable[str | None]) -> ColumnElement[bool]:
+    """Represent exact opaque-ID membership with one PostgreSQL array parameter.
+
+    This changes binding shape only. Callers retain their explicit tenant scope,
+    including empty and nullable cohort semantics; no value or result is cached.
+    """
+    # Send one bound array-text value rather than adapting every member in Python.
+    # Array element quoting preserves commas, braces, quotes, backslashes, literal
+    # NULL, empty strings and nullable membership. It is never SQL interpolation.
+    elements = (
+        "NULL"
+        if identity is None
+        else '"' + identity.replace("\\", "\\\\").replace('"', '\\"') + '"'
+        for identity in identities
+    )
+    value = literal("{" + ",".join(elements) + "}", type_=String)
+    # Unnest the bound value once, instead of parsing the text-to-array cast
+    # independently for every candidate row in a filter.
+    return column.in_(select(func.unnest(cast(value, ARRAY(String)))))
+
+
 def _movement_quantities(
-    session: OrmSession, tenant_id: str, commitment_id: str | None = None
+    session: OrmSession,
+    tenant_id: str,
+    commitment_id: str | None = None,
+    *,
+    commitment_ids: Iterable[str] | None = None,
 ) -> dict[tuple[str | None, str], Decimal]:
     """
     Batch the same correction-aware quantities used by the scalar reader.
@@ -4049,6 +4077,14 @@ def _movement_quantities(
     if commitment_id is not None:
         recorded = recorded.where(Movement.commitment_id == commitment_id)
         reversed_values = reversed_values.where(Movement.commitment_id == commitment_id)
+    if commitment_ids is not None:
+        selected_ids = set(commitment_ids)
+        if not selected_ids:
+            return {}
+        recorded = recorded.where(_id_cohort(Movement.commitment_id, selected_ids))
+        reversed_values = reversed_values.where(
+            _id_cohort(Movement.commitment_id, selected_ids)
+        )
     quantities = {
         (identity, kind): decimal(value)
         for identity, kind, value in session.execute(recorded)
@@ -4190,7 +4226,9 @@ def commitment_revisions(
 
 
 def _effective_commitment_value(
-    commitment: Commitment, revisions: list[CommitmentRevision], field: str
+    commitment: Commitment | Row,
+    revisions: Sequence[CommitmentRevision | Row],
+    field: str,
 ) -> Any:
     """
     Read the latest stated non-null value from chronologically ordered revisions.
@@ -4271,6 +4309,8 @@ def commitment_terms(
     session: OrmSession,
     tenant_id: str,
     commitment_ids: Iterable[str] | None = None,
+    *,
+    _commitments: dict[str, Row] | None = None,
 ) -> dict[str, CommitmentTerms]:
     """
     `commitment_quantity`, `commitment_due_at`, `fulfilled_quantity`, `open_quantity`
@@ -4292,9 +4332,24 @@ def commitment_terms(
     ids = None if commitment_ids is None else set(commitment_ids)
     if ids is not None and not ids:
         return {}
-    rows = select(Commitment).where(Commitment.tenant_id == tenant_id)
+    narrow = bool(session.info.get("operations_snapshot_consistent"))
+    # Fresh read-only snapshots have no pending ORM state. Other callers retain
+    # their identity-map values and exact existing Decimal representation.
+    rows = select(
+        *(Commitment.id, Commitment.type, Commitment.quantity, Commitment.due_at)
+        if narrow
+        else (Commitment,)
+    ).where(Commitment.tenant_id == tenant_id)
     revisions_query = (
-        select(CommitmentRevision)
+        select(
+            *(
+                CommitmentRevision.commitment_id,
+                CommitmentRevision.quantity,
+                CommitmentRevision.due_at,
+            )
+            if narrow
+            else (CommitmentRevision,)
+        )
         .where(CommitmentRevision.tenant_id == tenant_id)
         .order_by(CommitmentRevision.stated_at, CommitmentRevision.id)
     )
@@ -4305,21 +4360,38 @@ def commitment_terms(
         .group_by(Reservation.commitment_id)
     )
     if ids is not None:
-        rows = rows.where(Commitment.id.in_(ids))
+        rows = rows.where(_id_cohort(Commitment.id, ids))
         revisions_query = revisions_query.where(
-            CommitmentRevision.commitment_id.in_(ids)
+            _id_cohort(CommitmentRevision.commitment_id, ids)
         )
-        reserved_query = reserved_query.where(Reservation.commitment_id.in_(ids))
-    revisions: dict[str, list[CommitmentRevision]] = {}
-    for revision in session.scalars(revisions_query):
+        reserved_query = reserved_query.where(
+            _id_cohort(Reservation.commitment_id, ids)
+        )
+    revisions: dict[str, list[CommitmentRevision | Row]] = {}
+    for revision in (
+        session.execute(revisions_query) if narrow else session.scalars(revisions_query)
+    ):
         revisions.setdefault(revision.commitment_id, []).append(revision)
-    movements = _movement_quantities(session, tenant_id)
+    movements = _movement_quantities(session, tenant_id, commitment_ids=ids)
     reserved = {
         identity: decimal(value) for identity, value in session.execute(reserved_query)
     }
     terms: dict[str, CommitmentTerms] = {}
     # reality-rule: core.commitment_terms.2
-    for commitment in session.scalars(rows):
+    observed_commitments = (
+        (
+            row
+            for identity, row in _commitments.items()
+            if row.tenant_id == tenant_id
+            and row.id == identity
+            and (ids is None or identity in ids)
+        )
+        if narrow and _commitments is not None and ids is not None
+        else session.execute(rows)
+        if narrow
+        else session.scalars(rows)
+    )
+    for commitment in observed_commitments:
         stated = revisions.get(commitment.id, [])
         quantity = decimal(_effective_commitment_value(commitment, stated, "quantity"))
         movement_type = (
@@ -4838,23 +4910,49 @@ def stock_at(
     # reality-rule: core.stock_at.1
     if location_id:
         _tenant_record(session, Location, tenant_id, location_id)
-    incoming = select(func.coalesce(func.sum(Movement.quantity), 0)).where(
-        Movement.tenant_id == tenant_id,
-        Movement.item_id == item_id,
-        Movement.to_location_id.is_not(None),
-    )
-    outgoing = select(func.coalesce(func.sum(Movement.quantity), 0)).where(
-        Movement.tenant_id == tenant_id,
-        Movement.item_id == item_id,
-        Movement.from_location_id.is_not(None),
-    )
-    if location_id:
-        incoming = incoming.where(Movement.to_location_id == location_id)
-        outgoing = outgoing.where(Movement.from_location_id == location_id)
     # reality-rule: core.stock_at.2
-    return decimal(session.scalar(incoming) or ZERO) - decimal(
-        session.scalar(outgoing) or ZERO
-    )
+    return _physical_stock_by_location(
+        session, tenant_id, {item_id}, location_id=location_id or None
+    ).get((item_id, location_id or None), ZERO)
+
+
+def _physical_stock_by_location(
+    session: OrmSession,
+    tenant_id: str,
+    item_ids: set[str],
+    *,
+    location_id: str | None = None,
+) -> dict[tuple[str, str | None], Decimal]:
+    """Group the canonical physical-stock calculation for one read cohort.
+
+    BUSINESS PURPOSE:
+    Share recorded incoming-minus-outgoing stock between scalar and batch readers.
+
+    BUSINESS RULE core.physical_stock.grouped:
+    Sum all same-company recorded movement quantities entering each requested item
+    and location, subtract quantities leaving them and include inverse corrections.
+    The None location contains the complete selected location scope. Callers validate
+    item/location admission; no balance or observation is persisted.
+    """
+    if not item_ids:
+        return {}
+    balances: dict[tuple[str, str | None], Decimal] = {}
+    # reality-rule: core.physical_stock.grouped
+    for column, sign in ((Movement.to_location_id, 1), (Movement.from_location_id, -1)):
+        query = select(Movement.item_id, column, func.sum(Movement.quantity)).where(
+            Movement.tenant_id == tenant_id,
+            Movement.item_id.in_(item_ids),
+            column.is_not(None),
+        )
+        if location_id is not None:
+            query = query.where(column == location_id)
+        for item, location, amount in session.execute(
+            query.group_by(Movement.item_id, column)
+        ):
+            delta = sign * decimal(amount)
+            balances[item, location] = balances.get((item, location), ZERO) + delta
+            balances[item, None] = balances.get((item, None), ZERO) + delta
+    return balances
 
 
 def active_reserved(

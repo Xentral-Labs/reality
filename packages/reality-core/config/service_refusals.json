@@ -2873,6 +2873,63 @@
       "values": {
         "field": "term"
       }
+    },
+    "case_already_adopted": {
+      "message": "Operational cases are already enabled for this company."
+    },
+    "shipping_plan_reference_unavailable": {
+      "message": "A planning evidence reference is unavailable."
+    },
+    "shipping_plan_source_unresolved": {
+      "message": "Planning evidence has unresolved intake or an exact plan/confirmation Source version that requires fresh review."
+    },
+    "shipping_plan_arguments_invalid": {
+      "message": "Shipping-plan arguments do not match the selected create, revision or withdrawal contract."
+    },
+    "shipping_plan_inputs_invalid": {
+      "message": "Shipping-plan inputs do not satisfy the closed dispatch contract."
+    },
+    "shipping_plan_calendar_changed": {
+      "message": "The plan's stated company zone differs from the current company calendar."
+    },
+    "shipping_plan_prior_required": {
+      "message": "Revision or withdrawal requires the exact existing plan stream."
+    },
+    "shipping_plan_version_changed": {
+      "message": "The shipping plan changed since the selected source version."
+    },
+    "shipping_plan_scope_conflict": {
+      "message": "Another current planning stream already defines this company/day/site."
+    },
+    "shipping_plan_commitment_unavailable": {
+      "message": "A planning commitment is unavailable."
+    },
+    "shipping_plan_commitment_invalid": {
+      "message": "Planning requires accepted, non-cancelled customer order delivery work."
+    },
+    "shipping_plan_quantity_changed": {
+      "message": "The stated dispatch quantity differs from current accepted commitment terms."
+    },
+    "shipping_plan_review_required": {
+      "message": "Planning evidence requires its executing exact reviewed proposal."
+    },
+    "shipping_plan_basis_changed": {
+      "message": "Shipping planning or confirmation meaning changed since review."
+    },
+    "shipping_plan_requirement_conflict": {
+      "message": "A commitment already belongs to another current dispatch plan. Withdraw or revise that exact plan first."
+    },
+    "operations_cockpit_unavailable": {
+      "message": "Operations cockpit is not enabled for this company."
+    },
+    "operations_cockpit_read_session_dirty": {
+      "message": "Complete pending changes before reading the operations cockpit."
+    },
+    "shipping_observation_filter_invalid": {
+      "message": "Provide bounded, unambiguous shipping observation filters."
+    },
+    "shipping_observation_cursor_invalid": {
+      "message": "Provide a cursor from this exact shipping query."
     }
   },
   "terms": [

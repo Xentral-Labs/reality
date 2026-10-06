@@ -1,6 +1,10 @@
 version: 1
 title: Business Events
 events:
+  - type: shipping_plan.stated
+    producer: shipping_plan_state
+    subject: shipping_plan_statement
+    invalidates: [Timeline, Tenant usage]
   - {type: operational_case.taken_over, producer: operational_case_takeover, subject: operational_case, invalidates: [Timeline, Tenant usage]}
   - {type: operational_case.handed_back, producer: operational_case_handback, subject: operational_case, invalidates: [Timeline, Tenant usage]}
   - {type: cost.attributed, producer: execute_cost_change, subject: action, invalidates: [Timeline, Tenant usage]}
