@@ -703,3 +703,105 @@ def test_register_exposes_default_cases_without_creating_legacy_adoption(
     result = cases.register_cases(session, business.tenant.id)
     assert result["coordination"]["coverage_ready"] is True
     assert result["total"] == 1
+
+
+def test_snapshot_shared_large_actions_preserve_review_without_opaque_input_transfer(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: Real enterprise batch actions must not multiply opaque payload transfer on a live register page.
+    # BUSINESS RULE: Original action results, per-case review obsolescence and source evidence match scalar reads; unused invocation input stays deferred.
+    from sqlalchemy import event
+
+    activate(session, business, scheduled_owner)
+    for index in range(2):
+        core.create_manual_order(
+            session,
+            business.tenant.id,
+            "sales",
+            f"SHARED-BATCH-{index}",
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "1",
+                    "gross_amount": "1",
+                }
+            ],
+            "1",
+            _commit=False,
+        )
+    session.flush()
+    identities = list(
+        session.scalars(
+            select(OperationalCase.id).where(
+                OperationalCase.tenant_id == business.tenant.id
+            )
+        )
+    )
+    frozen = {
+        identity: cases.business_review(session, business.tenant.id, identity)
+        for identity in identities
+    }
+    for status in ("executed", "proposed"):
+        action = ChangeProposal(
+            id=f"shared_large_{status}",
+            tenant_id=business.tenant.id,
+            type="tool:commitment_revise",
+            input=json.dumps({"opaque": "x" * 250000}),
+            output=json.dumps(
+                {"opaque": "y" * 250000, "_case_business_review": frozen}
+            ),
+            status=status,
+        )
+        session.add(action)
+        session.flush()
+        cases.bind_proposal(session, business.tenant.id, action.id, identities)
+    first = cases.explain(session, business.tenant.id, identities[0])
+    core.cancel_commitment(
+        session,
+        business.tenant.id,
+        first["work"][0]["commitment_id"],
+        reason="Customer cancelled",
+    )
+    session.flush()
+    session.expire_all()
+    expected = cases.register_cases(session, business.tenant.id, limit=20)
+    session.expire_all()
+    reads = []
+
+    def observe(connection, cursor, statement, parameters, context, executemany):
+        if statement.lstrip().upper().startswith("SELECT"):
+            reads.append(statement)
+
+    bind = session.get_bind()
+    event.listen(bind, "before_cursor_execute", observe)
+    session.info["operations_snapshot_consistent"] = True
+    try:
+        actual = cases.register_cases(session, business.tenant.id, limit=20)
+    finally:
+        session.info.pop("operations_snapshot_consistent", None)
+        event.remove(bind, "before_cursor_execute", observe)
+    assert actual == expected
+    for item in actual["items"]:
+        done = next(
+            action
+            for action in item["actions"]
+            if action["proposal_id"] == "shared_large_executed"
+        )
+        assert done["recorded_result_available"]
+        assert done["external_outcome"] == "not_established_by_execution_status"
+        proposed = next(
+            action
+            for action in item["actions"]
+            if action["proposal_id"] == "shared_large_proposed"
+        )
+        assert proposed["obsolete"] is (item["goal_state"] != "outstanding")
+    assert not any(
+        f"{ChangeProposal.__tablename__}.input" in statement for statement in reads
+    ), "Live action metadata transferred unused opaque invocation input"
+    assert session.get(
+        ChangeProposal, (business.tenant.id, "shared_large_executed")
+    ).input == json.dumps({"opaque": "x" * 250000})

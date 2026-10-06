@@ -200,3 +200,5 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T068 [FR-017] [FR-018] [DR-004] Restore spec 377 default coordination in the register; add regression proof for visibility without legacy adoption, read-only canonical readiness and unchanged scalar/batched case evidence. Show existing rollout/migration messages rather than an activation prompt.
 - [ ] T069 [DR-003] Rebase the approved shipping-input migration after current-main migration 0145, regenerate combined executable catalogs/fixtures and verify exact catalog coverage plus disposable upgrade/downgrade.
 - [ ] T070 [SC-006] Run integrated backend/frontend/browser/documentation gates, review the final diff and record actual results and open pre-pilot gates before preparing the PR. No merge or production enablement is included.
+
+- [ ] T071 [SC-004] Restore enterprise snapshot read performance with bounded deduplicated action metadata and exact original proposed-review inputs; first reproduce large shared-action transfer, preserve scalar parity, the 55-query budget and source/control/authority boundaries, then run the unchanged full enterprise and final CI gates.
