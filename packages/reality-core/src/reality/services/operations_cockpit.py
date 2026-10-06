@@ -192,9 +192,6 @@ def operations_cockpit(
             location_id=location_id,
             _deviations_only=True,
         )
-        supported = operational_cases.register_cases(
-            snapshot, tenant_id, limit=6, outstanding_only=True, _terms=terms
-        )
         affected = [row for row in orders if row["at_risk"] or row["coverage_gaps"]]
         from reality.db.operational_cases import OperationalCase
 
@@ -210,17 +207,29 @@ def operations_cockpit(
                 )
             )
         }
+        deviation_inputs = (
+            operational_cases._explanation_inputs(
+                snapshot, tenant_id, list(cases_by_order.values())
+            )
+            if cases_by_order and snapshot.info.get("operations_snapshot_consistent")
+            else None
+        )
         deviations = []
         for row in affected[:50]:
             case_id = cases_by_order.get(row["order_id"])
             explanation = (
                 operational_cases.explain(
-                    snapshot, tenant_id, case_id, action_limit=6, _terms=terms
+                    snapshot,
+                    tenant_id,
+                    case_id,
+                    action_limit=50 if deviation_inputs else 6,
+                    _terms=terms,
+                    _inputs=deviation_inputs,
                 )
                 if case_id
                 else None
             )
-            actions = explanation["actions"] if explanation else []
+            actions = explanation["actions"][:6] if explanation else []
             deviations.append(
                 {
                     **shipping_performance._json_value(row),
@@ -239,7 +248,6 @@ def operations_cockpit(
         return {
             "observed_at": shipping["observed_at"],
             "shipping": shipping,
-            "supported_cases": supported,
             "deviations": deviations,
             "deviation_total": len(affected),
             "deviations_has_more": len(affected) > 50,

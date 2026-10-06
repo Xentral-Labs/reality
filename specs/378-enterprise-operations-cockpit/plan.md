@@ -352,3 +352,42 @@ metadata, missing-reference and intake/current-required refusals. Existing
 source/version/snapshot proofs precede the equivalent query refinement; inspect
 its full-profile query plan and rerun complete CI. Spec impact: none, no new
 rule/schema/cache/authority. Constitution Check PASS.
+
+
+The final exact-head profile passes opening/site p95 (2.976 s) and committed
+visibility (2.928 s), but its four-read live cadence fails at 9.847 s in cycle 2.
+A newly accepted unreserved order activates commitment exception trace loading:
+that snapshot still materializes every historical Document/Source/Line before
+returning one current risk. Profiled activity rises from 1.960 to 7.211 s after
+one real canonical order commit. Restrict only the existing open-commitment input
+scope to its exact referenced documents, lines and original source metadata;
+leave all other class scopes and ordinary readers unchanged. Add independent
+scalar/snapshot risk/source-trace parity and historical payload/materialization
+proof first, then rerun unchanged live cadence and complete CI. Spec impact:
+none; equivalent read projection under DR-005/SC-004. Constitution Check PASS;
+no rule, source mutation, retained cache, schema or authority change.
+
+
+The actual UI never reads the shipping snapshot's duplicate `supported_cases`:
+its always-mounted responsibility panel already owns the independently authorized
+case-register lifecycle. Remove that redundant shipping calculation/field, retain
+the exact full register and case-linked deviation explanations, and explicitly
+define the independent authority in FR-033/contracts. Complete case counts remain
+asserted in every register request of the unchanged ten-observer four-read live
+profile; add the same full-count proof outside the shipping-only opening samples.
+No request, reader, live cycle, volume, limit, business claim or UI state is removed.
+Test that shipping does not invoke the register, and that the independent register
+retains complete evidence/counts, before implementation. Constitution Check PASS;
+no new authority, schema, timer or retained cache.
+
+
+Refine the reviewed trace cohort further to exactly the current finding IDs,
+collected before the existing three shared evidence reads. Ordinary derivation
+retains immediate traces; clean snapshot derivation fills the same immutable
+finding DTOs after its complete calculation. This avoids loading all 9,000 open
+orders to explain one unreserved arrival while retaining bounded queries when
+all promises are risky. Use existing full scalar/snapshot trace equality and a
+many-current-risk bounded-query regression; no findings or source links change.
+Case-linked shipping deviations also reuse the existing bounded original-action
+projection for their at-most-50 exact cases, and then preserve their existing
+six-action presentation limit. Constitution PASS; equivalent reads only.

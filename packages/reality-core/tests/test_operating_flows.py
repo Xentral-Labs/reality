@@ -331,10 +331,14 @@ def test_company_activity_flows_share_authorized_read_and_never_adopt_work(
     )
     assert activity["flows"]["orders"]["open_orders"] == 0
     assert "flows" not in value
-    assert value["supported_cases"]["adopted"] is True
-    assert value["supported_cases"][
-        "coordination"
-    ] == operational_cases.coordination_status(session, business.tenant.id)
+    assert "supported_cases" not in value
+    register = operations_cockpit.case_register(
+        session, business.tenant.id, Principal(scheduled_owner.id)
+    )
+    assert register["adopted"] is True
+    assert register["coordination"] == operational_cases.coordination_status(
+        session, business.tenant.id
+    )
     assert session.get(CaseAdoption, business.tenant.id) is None
     assert {
         model: session.scalar(
@@ -432,3 +436,122 @@ def test_snapshot_flows_keep_complete_totals_without_historical_orm_materializat
     assert actual == expected
     assert actual["orders"]["open_orders"] == 0
     assert loaded == []
+
+
+@pytest.mark.parametrize("current_count", [1, 61])
+def test_snapshot_current_risk_keeps_original_trace_without_historical_payloads(
+    session, business, current_count
+):
+    # BUSINESS PURPOSE: New unreserved orders must not make live observation load every historical source.
+    # BUSINESS RULE: Current risk and its original evidence remain identical to ordinary reads; history payloads stay outside the trace cohort.
+    from sqlalchemy import event, inspect
+    from sqlalchemy.orm import Session
+
+    from reality.db.core import Document, DocumentLine
+    from reality.services import exceptions
+
+    tenant = business.tenant.id
+    core.record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    history = set()
+    for i in range(6):
+        source_row, document, lines, promises = core.create_manual_order(
+            session,
+            tenant,
+            "sales",
+            f"TRACE-HISTORY-{i}",
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "1",
+                    "gross_amount": "1",
+                }
+            ],
+            "1",
+        )
+        history.update([source_row.id, document.id, *(line.id for line in lines)])
+        core.record_movement(
+            session,
+            tenant,
+            "shipment",
+            business.item.id,
+            "1",
+            from_location_id=business.location.id,
+            commitment_id=promises[0].id,
+        )
+    current_sources = {}
+    for index in range(current_count):
+        current_source, document, lines, promises = core.create_manual_order(
+            session,
+            tenant,
+            "sales",
+            f"TRACE-CURRENT-{index}",
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "1",
+                    "gross_amount": "1",
+                }
+            ],
+            "1",
+            customer_reference="Recorded customer request",
+        )
+        current_sources[current_source.id] = lines[0].id
+    at = now()
+    classes = ["outgoing_commitment_at_risk"]
+    with Session(session.connection(), autoflush=False) as reader:
+        expected = [
+            row.to_dict()
+            for row in exceptions.operational_exceptions(
+                reader, tenant, as_of=at, classes=classes
+            )
+        ]
+    loaded_history, source_payloads = [], []
+    query_count = 0
+
+    def queried(connection, cursor, statement, parameters, context, many):
+        nonlocal query_count
+        if statement.lstrip().upper().startswith("SELECT"):
+            query_count += 1
+
+    def retained(reader, row):
+        if isinstance(row, (Document, DocumentLine, SourceRecord)):
+            if row.id in history:
+                loaded_history.append(row.id)
+            if isinstance(row, SourceRecord) and row.id in current_sources:
+                source_payloads.append("payload" not in inspect(row).unloaded)
+
+    with Session(session.connection(), autoflush=False) as reader:
+        reader.info["operations_snapshot_consistent"] = True
+        event.listen(reader, "loaded_as_persistent", retained)
+        event.listen(reader.connection(), "before_cursor_execute", queried)
+        actual = [
+            row.to_dict()
+            for row in exceptions.operational_exceptions(
+                reader, tenant, as_of=at, classes=classes
+            )
+        ]
+        event.remove(reader.connection(), "before_cursor_execute", queried)
+    assert actual == expected
+    assert len(actual) == current_count
+    for finding in actual:
+        source_id = finding["trace"]["source_record_id"]
+        assert finding["trace"]["document_line_id"] == current_sources[source_id]
+        assert finding["trace"]["customer_reference"] == "Recorded customer request"
+    assert loaded_history == []
+    assert source_payloads == [False] * current_count
+    assert query_count <= 25, query_count

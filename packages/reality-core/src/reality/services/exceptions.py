@@ -590,6 +590,17 @@ def _commitment_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
     result: list[OperationalException] = []
+    inputs = _inputs(session, tenant_id)
+    defer_trace = bool(inputs is not None and inputs.open_commitments_only)
+    trace_rows: dict[str, Commitment] = {}
+
+    def trace(row: Commitment) -> dict[str, Any]:
+        """Batch only actual snapshot findings; ordinary traces stay immediate."""
+        if defer_trace:
+            trace_rows[row.id] = row
+            return {}
+        return _commitment_trace(session, tenant_id, row)
+
     rows = session.scalars(
         select(Commitment).where(
             Commitment.tenant_id == tenant_id, Commitment.status == "open"
@@ -653,7 +664,7 @@ def _commitment_exceptions(
                             "reserved_quantity": reserved,
                             "unreserved_quantity": unreserved,
                         },
-                        _commitment_trace(session, tenant_id, row),
+                        trace(row),
                         due_at,
                     )
                 )
@@ -695,7 +706,7 @@ def _commitment_exceptions(
                             "reserved_quantity": reserved,
                             "unreserved_quantity": unreserved,
                         },
-                        _commitment_trace(session, tenant_id, row),
+                        trace(row),
                         due_at,
                     )
                 )
@@ -717,7 +728,7 @@ def _commitment_exceptions(
                             "reserved_quantity": reserved,
                             "unreserved_quantity": unreserved,
                         },
-                        _commitment_trace(session, tenant_id, row),
+                        trace(row),
                         due_at,
                     )
                 )
@@ -745,10 +756,21 @@ def _commitment_exceptions(
                         "received_quantity": fulfilled,
                         "remaining_quantity": remaining,
                     },
-                    _commitment_trace(session, tenant_id, row),
+                    trace(row),
                     due_at,
                 )
             )
+    if defer_trace and inputs is not None:
+        inputs.trace_commitment_ids = set(trace_rows)
+        result = [
+            replace(
+                finding,
+                trace=_commitment_trace(
+                    session, tenant_id, trace_rows[finding.record_id]
+                ),
+            )
+            for finding in result
+        ]
     return result
 
 

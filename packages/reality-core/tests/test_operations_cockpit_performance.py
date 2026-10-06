@@ -390,12 +390,23 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
                 "forecast": 5000 if index >= 10 else 10000,
                 "risk": 0,
             }
-            assert value["supported_cases"]["counts"]["completed"] == 101000
-            assert value["supported_cases"]["counts"]["outstanding"] == 9000
+            assert "supported_cases" not in value
         payload = json.dumps(value).encode()
         return time.perf_counter() - began, query_count.get(), len(payload)
 
     cold, cold_queries, cold_bytes = read(0)
+    # Responsibility has its own UI observation, never a duplicate shipping read.
+    # Preserve the complete independent count/evidence proof after the first cold shipping read;
+    # every register request below still asserts exact counts during live commits.
+    with factory() as db:
+        register = operations_cockpit.case_register(
+            db, tenant, Principal(owner), limit=6, outstanding_only=True
+        )
+        assert register["counts"]["completed"] == 101000
+        assert register["counts"]["outstanding"] == 9000
+        assert register["total"] == 9000
+        assert len(register["items"]) == 6
+
     if os.environ.get("REALITY_COCKPIT_PROFILE") == "1":
         diagnostic_queries = []
 
@@ -547,11 +558,7 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
                 assert value["shipping"]["totals"]["due"] == 10000
                 assert value["shipping"]["totals"]["risk"] == 1
                 assert value["shipping"]["totals"]["forecast"] == 9999
-                assert (
-                    9000 + epoch - 1
-                    <= value["supported_cases"]["counts"]["outstanding"]
-                    <= 9000 + epoch
-                )
+                assert "supported_cases" not in value
             elif kind == "register":
                 value = operations_cockpit.case_register(
                     db, tenant, Principal(owner), limit=6, outstanding_only=True
