@@ -108,3 +108,8 @@ None. See Clarifications.
 | FR-003 | US1 2 | `tests/test_purchase_units.py` refusals, story O05 |
 | FR-004, DR-001, DR-002 | All | `tests/test_purchase_unit_adapters.py`; diff review (T016) |
 | FR-005, SC-001, SC-002 | US1 | `tests/scenarios/test_catalog_purchasing.py` (O05); `tests/test_business_journey_catalog.py` |
+
+
+## Subsequent sales admission rule
+
+[Spec 379 FR-007](../379-intake-completeness/spec.md) supersedes the earlier permissive sales-unit control. New known-item sales promises refuse explicit units different from the stock unit until a supported sales conversion is specified. The purchase-only relation and receipt conversion defined here remain unchanged.

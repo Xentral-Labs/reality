@@ -361,6 +361,11 @@ def preview_event(session, tenant, run_id, event):
         payload.update(
             item_id=item["id"], quantity=event["quantity"], amount=str(amount)
         )
+        if event.get("unit_price") is not None:
+            price = Decimal(str(event["unit_price"]))
+            if not price.is_finite() or price < 0:
+                raise ValueError("A stated unit price must be finite and non-negative")
+            payload["unit_price"] = str(price)
     return payload
 
 
@@ -392,9 +397,11 @@ def inject(
     if now() >= datetime.fromisoformat(config["ends_at"]):
         raise ValueError("Live run has ended")
     _run_limits(session, tenant, run_id, config, payload["kind"] == "order")
+    release_instant = at or now()
     document_id = payload["document_id"]
     receipt = {}
     if payload["kind"] == "order":
+        ordered_at = release_instant
         source, document, lines, commitments = core.create_manual_order(
             session,
             tenant,
@@ -408,12 +415,18 @@ def inject(
                     "item_id": payload["item_id"],
                     "quantity": str(payload["quantity"]),
                     "gross_amount": payload["amount"],
+                    **(
+                        {"unit_price": payload["unit_price"]}
+                        if "unit_price" in payload
+                        else {}
+                    ),
                 }
             ],
             payload["amount"],
             ship_to_party_id=payload["party_id"],
-            ordered_at=at or now(),
-            requested_delivery_at=(at or now()) + timedelta(hours=2),
+            document_date=core._company_day(session, tenant, ordered_at).isoformat(),
+            ordered_at=ordered_at,
+            requested_delivery_at=ordered_at + timedelta(hours=2),
             _commit=False,
         )
         document_id = document.id
@@ -437,7 +450,7 @@ def inject(
         "document_id": document_id,
         "thread_id": thread_id,
         "message_id": f"{run_id}:{request_id}",
-        "released_at": (at or now()).isoformat(),
+        "released_at": release_instant.isoformat(),
         "direction": "incoming",
         "status": "received",
     }
@@ -625,6 +638,7 @@ def tick(session, tenant, run_id, occurrence, at):
             "item_id": item["id"],
             "quantity": quantity,
             "amount": str(quantity * 10),
+            "unit_price": "10",
             "subject": f"Order for {quantity} {item['name']}",
             "body": f"Please deliver {quantity} {item['name']} to our receiving desk within two hours.",
         }

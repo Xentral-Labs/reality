@@ -326,33 +326,33 @@ def test_more_cartons_than_ordered_are_refused_in_pieces(session, business):
     assert refused.value.code == "movement_exceeds_commitment_open_quantity"
 
 
-def test_a_sales_line_in_another_unit_is_unchanged(session, business):
+def test_sales_purchase_unit_needs_its_own_supported_conversion(session, business):
     from reality.services import core
 
     _cartons(session, business)
-    _, _, lines, commitments = core.create_manual_order(
-        session,
-        business.tenant.id,
-        "sales",
-        "SO-301",
-        business.company.id,
-        business.customer.id,
-        business.location.id,
-        [
-            {
-                "item_id": business.item.id,
-                "quantity": "2",
-                "unit": "box",
-                "unit_price": "100",
-                "gross_amount": "200",
-            }
-        ],
-        "200",
-    )
-
-    # Selling in cartons is its own specification: the promise is as stated.
-    assert commitments[0].quantity == lines[0].quantity == Decimal("2.0000")
-    assert commitments[0].unit is None
+    # Spec 379 supersedes the earlier permissive sales control: the purchase
+    # relation does not authorize interpreting a sales box count as stock pieces.
+    with pytest.raises(core.InvalidOperation) as refused:
+        core.create_manual_order(
+            session,
+            business.tenant.id,
+            "sales",
+            "SO-301",
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "2",
+                    "unit": "box",
+                    "unit_price": "100",
+                    "gross_amount": "200",
+                }
+            ],
+            "200",
+        )
+    assert refused.value.code == "source_quantity_unit_unsupported"
 
 
 # --- T008: readers --------------------------------------------------------------------

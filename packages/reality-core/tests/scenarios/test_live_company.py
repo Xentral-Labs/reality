@@ -1479,3 +1479,50 @@ def test_change_mail_respects_actual_open_quantity(
         )
         assert any(m.get("case_family") == expected for m in incoming)
     assert core.commitment_terms(session, business.tenant.id) == before
+
+
+def test_automatic_order_states_price_local_document_day_and_replays(
+    session, business, scheduled_owner, monkeypatch
+):
+    import json
+    from datetime import UTC, date, datetime
+
+    from reality.db.core import Document, DocumentLine
+    from reality.services.company_time_zone import set_company_time_zone
+    from reality.web.api import tenant_evidence_documents
+
+    instant = datetime(2026, 10, 5, 23, 30, tzinfo=UTC)
+    monkeypatch.setattr(live_company, "now", lambda: instant)
+    set_company_time_zone(session, business.tenant.id, "Europe/Berlin")
+    run = live_company.start(
+        session,
+        business.tenant.id,
+        scheduled_owner.id,
+        request_id="complete-live",
+        confirmed=True,
+    )
+    first = live_company.tick(
+        session, business.tenant.id, run["run_id"], "complete-order", instant
+    )
+    mail = live_company.inbox(session, business.tenant.id, run["run_id"])[0]
+    document = session.get(Document, (business.tenant.id, mail["document_id"]))
+    source = session.get(SourceRecord, (business.tenant.id, document.source_record_id))
+    payload = json.loads(source.payload)
+    assert document.document_date == date(2026, 10, 6)
+    assert document.ordered_at == instant
+    line = session.scalar(
+        select(DocumentLine).where(DocumentLine.document_id == document.id)
+    )
+    assert line.unit_price == 10
+    assert payload["document_date"] == "2026-10-06"
+    assert payload["lines"][0]["unit_price"] == "10"
+    rows = tenant_evidence_documents(
+        business.tenant.id, session, page=1, size=50, document_type="sales_order"
+    )
+    assert rows["items"][0]["date"] == "2026-10-06"
+    assert (
+        live_company.tick(
+            session, business.tenant.id, run["run_id"], "complete-order", instant
+        )
+        == first
+    )

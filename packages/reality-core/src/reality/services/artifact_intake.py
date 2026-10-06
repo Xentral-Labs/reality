@@ -11,6 +11,7 @@ from reality.domain.intake import (
     PreparedIntake,
     content_digest,
 )
+from reality.domain.intake_completeness import is_unstated, order_issues
 from reality.services import core
 from reality.services.artifacts import get_artifact, materialize_artifact
 from reality.services.file_intake import RAW_BYTES, parse_item_csv
@@ -213,7 +214,15 @@ def _prepare_artifact(session, tenant_id, source, job):
 
         for number, row in enumerate(rows, 2):
             party = _party(session, tenant_id, row)
-            direction = str(row.get("direction") or "incoming").strip().lower()
+            direction = core._required_source_field(
+                row.get("direction"), "direction"
+            ).lower()
+            currency = core._required_source_field(
+                _value(row, "currency", None), "currency"
+            )
+            effective_text = core._required_source_field(
+                _value(row, "effective_at", None), "effective_at"
+            )
             if direction not in {"incoming", "outgoing"}:
                 raise core.InvalidOperation(code="intake_review_invalid")
             outgoing = direction == "outgoing"
@@ -226,16 +235,14 @@ def _prepare_artifact(session, tenant_id, source, job):
             refs.update(
                 {("party", party.id), ("account", control.id), ("account", cash.id)}
             )
-            effective = (
-                core.utc_datetime(_value(row, "effective_at")) or source.received_at
-            )
+            effective = core.utc_datetime(effective_text)
             effects.append(
                 Effect(
                     operation="supplier_payment" if outgoing else "customer_payment",
                     arguments={
                         "party_id": party.id,
                         "amount": str(core.positive(_value(row, "amount"), "amount")),
-                        "currency": str(_value(row, "currency", "EUR")),
+                        "currency": currency,
                         "payment_number": str(
                             row.get("payment_number")
                             or _value(row, "external_id")
@@ -273,7 +280,26 @@ def _prepare_artifact(session, tenant_id, source, job):
             location = _location(
                 session, tenant_id, str(_value(first, "location")).strip()
             )
-            currency = str(_value(first, "currency", "EUR"))
+            currency = core._required_source_field(
+                _value(first, "currency", None), "currency"
+            )
+            header = {}
+            for field in ("document_date", "ordered_at"):
+                stated_values = {
+                    str(row[field]).strip()
+                    for _, row in members
+                    if not is_unstated(row.get(field))
+                }
+                if len(stated_values) > 1:
+                    raise core.InvalidOperation(
+                        code="source_order_header_conflict", values={"field": field}
+                    )
+                header[field] = next(iter(stated_values), None)
+            document_date = (
+                core._document_day(header["document_date"])
+                if header["document_date"] is not None
+                else core._source_document_day(session, tenant_id, header["ordered_at"])
+            )
             refs.update({("party", party.id), ("location", location.id)})
             total_values = {
                 str(row.get("order_amount"))
@@ -293,7 +319,10 @@ def _prepare_artifact(session, tenant_id, source, job):
                         session, tenant_id, str(_value(row, "location")).strip()
                     ).id
                     != location.id
-                    or str(_value(row, "currency", "EUR")) != currency
+                    or core._required_source_field(
+                        _value(row, "currency", None), "currency"
+                    )
+                    != currency
                 ):
                     raise core.InvalidOperation(code="intake_review_invalid")
                 sku = str(_value(row, "sku") or "").strip()
@@ -344,6 +373,8 @@ def _prepare_artifact(session, tenant_id, source, job):
                     else None
                 )
                 unit = str(row.get("unit") or (item.unit if item else "pcs"))
+                if item:
+                    core._validate_sales_stock_unit(item, unit)
                 lines.append(
                     {
                         "item_id": item.id if item else None,
@@ -389,7 +420,8 @@ def _prepare_artifact(session, tenant_id, source, job):
                         "gross_amount": total,
                         "currency": currency,
                         "source_record_id": source.id,
-                        "ordered_at": first.get("ordered_at") or None,
+                        "document_date": document_date,
+                        "ordered_at": header["ordered_at"],
                         "requested_delivery_at": first.get("requested_delivery_at")
                         or None,
                         "customer_reference": str(
@@ -400,6 +432,7 @@ def _prepare_artifact(session, tenant_id, source, job):
                     },
                 )
             )
+            issues.extend(order_issues(effects[-1].arguments, lines))
             effects.extend(commitments)
             if party.credit_limit > 0 and commitments:
                 from reality.services.credit_exposure import credit_exposure

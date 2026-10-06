@@ -72,9 +72,16 @@ await page.route("**/api/**", async (route) => {
               ...args,
               type: args.direction === "sales" ? "sales_order" : "purchase_order",
             },
+            issues: [
+              "Order states no document date.",
+              "Order states no order time.",
+              "Order states no agreed delivery date.",
+              "Line 1 states no unit price.",
+            ],
             lines: args.lines.map((line) => ({
               ...line,
               unit: line.unit || "pcs",
+              unit_price: line.unit_price.trim() ? line.unit_price : null,
               description: line.description || "Desk lamp",
             })),
           },
@@ -169,7 +176,7 @@ try {
   await dialog.getByLabel("Stated order total", { exact: true }).fill("98.73");
   await dialog.getByLabel("Item", { exact: true }).selectOption("lamp");
   await dialog.getByLabel("Quantity", { exact: true }).fill("2");
-  await dialog.getByLabel("Unit price", { exact: true }).fill("12.50");
+  await dialog.getByLabel("Unit price", { exact: true }).fill("");
   await dialog.getByLabel("Stated line amount", { exact: true }).fill("24.91");
   await dialog.getByRole("button", { name: "Add line", exact: true }).click();
   await dialog.getByLabel("Item", { exact: true }).nth(1).selectOption("lamp");
@@ -184,6 +191,11 @@ try {
   assert.equal(prepared.arguments.lines.length, 2);
   assert.equal(prepared.arguments.gross_amount, "98.73");
   assert.equal(confirmations, 0);
+  await dialog
+    .locator("[data-order-completeness]")
+    .getByText("Order states no document date.", { exact: true })
+    .waitFor();
+  await dialog.getByText("Unknown", { exact: true }).waitFor();
   // Canonical richer intent survives a deterministic edit.
   proposal.review.intent.customer_reference = "Keep <original> reference";
   await page.reload();
@@ -199,6 +211,16 @@ try {
         await page.setViewportSize({ width, height: 1000 });
         await page.reload();
         await dialog.locator("pre").waitFor({ state: "attached" });
+        const dateGap = {
+          en: "Order states no document date.",
+          de: "Der Auftrag enthält kein Belegdatum.",
+          nl: "De order vermeldt geen documentdatum.",
+          es: "El pedido no indica una fecha de documento.",
+        }[lang];
+        await dialog
+          .locator("[data-order-completeness]")
+          .getByText(dateGap, { exact: true })
+          .waitFor();
         await page.evaluate(
           (theme) => document.documentElement.setAttribute("data-theme", theme),
           theme,

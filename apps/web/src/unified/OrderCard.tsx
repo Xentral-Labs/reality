@@ -1,3 +1,4 @@
+import { CompletenessIssues } from "./CompletenessIssues";
 import { useEffect, useRef, useState } from "react";
 import {
   api,
@@ -400,7 +401,7 @@ export function OrderCard({
                           className="br-control mt-2 w-full"
                           aria-label={t(label)}
                           inputMode="decimal"
-                          required
+                          required={key !== "unit_price"}
                           value={String(line[key])}
                           onChange={(e) => lineChange(index, { [key]: e.target.value })}
                         />
@@ -505,6 +506,7 @@ export function OrderCard({
                   {t("Warehouse")}: {review.state.references.location_id?.name}
                 </p>
               </div>
+              <CompletenessIssues issues={review.state.creation.issues ?? []} />
               <div className="space-y-3">
                 {review.state.creation.lines.map((line, index) => (
                   <div key={index} className="rounded-lg border border-border-default p-4">
@@ -545,10 +547,12 @@ export function OrderCard({
                       <p>
                         {t("Unit price")}
                         <strong className="mt-1 block">
-                          {formatMoney(
-                            line.unit_price,
-                            String(review.state.creation.document.currency),
-                          )}
+                          {line.unit_price === null
+                            ? t("Unknown")
+                            : formatMoney(
+                                line.unit_price,
+                                String(review.state.creation.document.currency),
+                              )}
                         </strong>
                       </p>
                       <p>

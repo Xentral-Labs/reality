@@ -105,10 +105,10 @@ profiles create typed operational records:
 | `item` | `sku`, `name` | `unit`, `item_type`, `tracking_type`, `purchase_unit`, `conversion_factor`, `lead_time_days` | none |
 | `party` | `name` | `party_type`/`type`, `roles`, `accounting_code`, `payment_term_code`, `default_currency`, `credit_limit`, `tax_identifier` | payment term by code |
 | `location` | `name` | `location_type`, `allows_stock` | none |
-| `sales_order` | `order_id` or `order_number`, `sku`, `quantity`, `location`, and `party_accounting_code` or `party_name` | `line_id`, `name`, `unit_price`/`price`, `currency`, `ordered_at`, `requested_delivery_at`, `customer_reference` | company party, customer party, item by SKU, location by exact name |
+| `sales_order` | `order_id` or `order_number`, `sku`, `quantity`, `currency`, `location`, and `party_accounting_code` or `party_name` | `line_id`, `name`, `unit_price`/`price`, `unit`, `line_amount`, `order_amount`, `document_date`, `ordered_at`, `requested_delivery_at`, `customer_reference` | company party, customer party, item by SKU, location by exact name |
 | `inventory_snapshot` | `sku`, `location`, `quantity` | none | item by SKU, location by exact name; prepares each difference as an adjustment against reviewed book stock, applied only after exact approval |
 | `external_stock` | `sku`, `location`, `quantity` | `stated_at`/`as_of`/`reported_at`/`snapshot_at`, `party_accounting_code` or `party_name` for who reported it | item by SKU, location by exact name; **compares only**: each row is an external stock statement, nothing moves, and a difference becomes `external_stock_differs` (spec 344); a row without a time is stated as of the file's arrival |
-| `bank_statement` | `amount`, and `party_accounting_code` or `party_name` | `direction`, `currency`, `effective_at`, `payment_number`/`external_id` | party by accounting code or exact name; payment and posting require current financial decision authority |
+| `bank_statement` | `amount`, `direction`, `currency`, `effective_at`, and `party_accounting_code` or `party_name` | `payment_number`/`external_id` | party by accounting code or exact name; payment and posting require current financial decision authority |
 
 Stable aliases are intentionally small: `article_number`/`item_number` for
 `sku`, `title`/`description` for `name`, `qty`/`stock` for `quantity`,
@@ -141,3 +141,8 @@ occurrences and provider receipts. Arbitrary message metadata remains lossless
 payload. Evidence intake does not approve an outgoing email; that exact proposal
 uses Decisions. Missing original bytes are explicit. No mailbox or mail transport
 runs inside Reality.
+
+
+## Essential completeness
+
+[The shared completeness contract](intake-completeness.md) (spec 379) distinguishes required financial facts from allowed incomplete orders. Newly prepared Shopify/file orders and normalized financial statements require a stated currency; bank files additionally require direction and booking time. Source arrival never substitutes for booking time. File orders preserve document_date or use their stated order instant as the company-local day, with visible review issues when both are absent. Existing raw retention, exact review and historical source immutability remain unchanged.

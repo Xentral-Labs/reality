@@ -2745,3 +2745,8 @@ English repository contract: `docs/features/operational-cases.md`.
 
 - `tests/scenarios/test_live_company.py` exercises measured/cohort filters, simulator waiting/reply lineage and stable empty/filled order Inspector stages with actual shipment, tracking, stated note and invoice records.
 - `apps/web/scripts/business-live-browser.mjs` exercises native KPI dialogs, focus restoration, compact tabs, exact incoming/outgoing thread display, shared order cards and tracking Inspector navigation, stale/mobile handling and read-only requests. UI screenshots use explicit HTTP fixtures; they are not live throughput proof.
+
+
+## Spec 379 — Essential intake completeness
+
+Owner-authorized scope: 2026-10-06. FR-001–009 and DR-001–003 map to `packages/reality-core/tests/test_intake_completeness.py`, `packages/reality-core/tests/scenarios/test_live_company.py` and existing intake/financial/purchase/adapter suites. The shared rule contract is `docs/features/intake-completeness.md`. Measured required checks and PR status are recorded in `specs/379-intake-completeness/verification.md`; no completed release checklist item is claimed before green gates.

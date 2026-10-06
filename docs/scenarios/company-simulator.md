@@ -214,3 +214,8 @@ Source-stated invoices, partial payments, supplier settlement, physical returns,
 The bounded test-company model does not claim VAT/payroll/regulatory or real transport coverage. Native Shopify payout formats still need authentic original evidence. Durable unbounded running/resume remains outside this controller.
 
 [Readable central month protocol with selected fixed prompt checkpoints](company-simulator-protocol.md) complements the authoritative YAML and the independent dynamic oracle. It also distinguishes unallocated known customer funds from provider lines with an unknown customer reference.
+
+
+## Essential live-order completeness (spec 379)
+
+Future automatic live orders explicitly state the world's EUR 10 unit quotation, one actual order/release instant and its company-local document day. Normal services retain those statements so the customer-order register has its source-backed date. A manual composer amount without a unit quotation remains an unknown price, never a reverse calculation. Existing orders/Sources are not rewritten. See the [shared completeness rules](../features/intake-completeness.md).

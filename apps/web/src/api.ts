@@ -3813,7 +3813,18 @@ export type OrderProposal = Omit<DeliveryProposal, "review" | "observation"> & {
     token: string;
     intent: OrderInput;
     state: {
-      creation: { direction: string; document: Record<string, unknown>; lines: OrderLineInput[] };
+      creation: {
+        direction: string;
+        document: Record<string, unknown>;
+        lines: Array<{
+          item_id: string;
+          quantity: string;
+          unit_price: string | null;
+          gross_amount: string;
+          [key: string]: unknown;
+        }>;
+        issues?: string[];
+      };
       references: Record<string, { id: string; name: string }>;
       items: Record<string, { id: string; name: string; sku: string; unit: string }>;
       /** Spec 310: a purchase line against the supplier's terms, by line index. */

@@ -110,7 +110,7 @@ def test_snapshot_waits_for_decision_and_binds_current_stock(
 def test_file_order_keeps_unstated_totals_unknown(
     session, business, scheduled_owner, tmp_path, monkeypatch
 ):
-    content = f"order_id,party_name,location,sku,quantity,unit_price\nFILE-ORDER,{business.customer.name},{business.location.name},{business.item.sku},2,5\n".encode()
+    content = f"order_id,party_name,location,sku,quantity,unit_price,currency\nFILE-ORDER,{business.customer.name},{business.location.name},{business.item.sku},2,5,EUR\n".encode()
     _, proposal = prepare_file(
         session, business, "sales_order", content, tmp_path, monkeypatch
     )
@@ -134,7 +134,7 @@ def test_file_order_keeps_unstated_totals_unknown(
 def test_bank_artifact_is_non_posting_before_owner_decision(
     session, business, scheduled_owner, tmp_path, monkeypatch
 ):
-    content = f"party_name,amount,currency,payment_number,effective_at\n{business.customer.name},12.30,EUR,BANK-FILE,2026-09-12T10:00:00Z\n".encode()
+    content = f"party_name,amount,currency,payment_number,effective_at,direction\n{business.customer.name},12.30,EUR,BANK-FILE,2026-09-12T10:00:00Z,incoming\n".encode()
     _, proposal = prepare_file(
         session, business, "bank_statement", content, tmp_path, monkeypatch
     )
@@ -211,9 +211,9 @@ def test_file_orders_keep_independent_source_identities(
     from reality.services.intake_batches import review_batch
 
     content = (
-        "order_id,party_name,location,sku,quantity,unit_price\n"
+        "order_id,party_name,location,sku,quantity,unit_price,currency\n"
         + "".join(
-            f"ORDER-{index},{business.customer.name},{business.location.name},{business.item.sku},2,5\n"
+            f"ORDER-{index},{business.customer.name},{business.location.name},{business.item.sku},2,5,EUR\n"
             for index in range(2)
         )
     ).encode()
@@ -254,8 +254,8 @@ def test_file_order_records_received_total_even_when_lines_disagree(
     session, business, scheduled_owner, tmp_path, monkeypatch, total
 ):
     content = (
-        f"order_id,party_name,location,sku,quantity,unit_price,line_amount,order_amount\n"
-        f"STATED,{business.customer.name},{business.location.name},{business.item.sku},2,5,7,{total}\n"
+        f"order_id,party_name,location,sku,quantity,unit_price,line_amount,order_amount,currency\n"
+        f"STATED,{business.customer.name},{business.location.name},{business.item.sku},2,5,7,{total},EUR\n"
     ).encode()
     _, proposal = prepare_file(
         session, business, "sales_order", content, tmp_path, monkeypatch
@@ -357,8 +357,8 @@ def test_unknown_order_total_renders_unknown_in_register_and_inspector(
     from reality.web.api import document_inspector, tenant_evidence_documents
 
     content = (
-        f"order_id,party_name,location,sku,quantity,unit_price\n"
-        f"UNKNOWN,{business.customer.name},{business.location.name},{business.item.sku},2,5\n"
+        f"order_id,party_name,location,sku,quantity,unit_price,currency\n"
+        f"UNKNOWN,{business.customer.name},{business.location.name},{business.item.sku},2,5,EUR\n"
     ).encode()
     _, proposal = prepare_file(
         session, business, "sales_order", content, tmp_path, monkeypatch

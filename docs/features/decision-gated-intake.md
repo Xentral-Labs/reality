@@ -104,3 +104,8 @@ Canonical business defaults are now part of retained preparation, so a later
 canonical default does not silently change approved meaning. Historical reviews
 keep their original digests. Legacy/demo and bank-file adapters still require the
 tracked cutover before this is described as all-path admission.
+
+
+## Essential-value admission
+
+Spec 379's [shared completeness rules](intake-completeness.md) apply to new preparation. Currency, bank direction and bank booking time cannot be invented from defaults or source arrival. Allowed order timing/commercial gaps remain visible review observations. Historical retained reviews keep their exact digests and values; raw remains lossless independently of acceptance.

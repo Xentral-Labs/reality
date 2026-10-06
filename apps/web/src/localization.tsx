@@ -28464,3 +28464,66 @@ Object.assign(dictionaries.es, {
     "Haz clic en una cifra para ver los pedidos correspondientes.",
   "Shipping performance": "Rendimiento de los envíos",
 });
+
+Object.assign(dictionaries.de, {
+  "The source must state {field}; no business effects were accepted.":
+    "Die Quelle muss {field} angeben; es wurden keine Geschäftsvorgänge übernommen.",
+  "Quantity unit {unit} cannot create a sales promise in stock unit {stock_unit}; a supported conversion is required.":
+    "Die Mengeneinheit {unit} kann nicht als Lieferzusage in der Lagereinheit {stock_unit} übernommen werden; dafür ist eine unterstützte Umrechnung erforderlich.",
+  "Rows of one order state conflicting {field} values.":
+    "Die Zeilen eines Auftrags enthalten widersprüchliche Angaben für {field}.",
+  currency: "Währung",
+  effective_at: "Buchungszeitpunkt",
+  direction: "Zahlungsrichtung",
+  document_date: "Belegdatum",
+  ordered_at: "Bestellzeitpunkt",
+});
+
+Object.assign(dictionaries.nl, {
+  "The source must state {field}; no business effects were accepted.":
+    "De bron moet {field} vermelden; er zijn geen zakelijke gevolgen verwerkt.",
+  "Quantity unit {unit} cannot create a sales promise in stock unit {stock_unit}; a supported conversion is required.":
+    "Hoeveelheidseenheid {unit} kan geen leverbelofte in voorraadeenheid {stock_unit} vormen; een ondersteunde omrekening is vereist.",
+  "Rows of one order state conflicting {field} values.":
+    "Regels van één order bevatten tegenstrijdige waarden voor {field}.",
+  currency: "Valuta",
+  effective_at: "Boekingstijd",
+  direction: "Betalingsrichting",
+  document_date: "Documentdatum",
+  ordered_at: "Besteltijd",
+});
+
+Object.assign(dictionaries.es, {
+  "The source must state {field}; no business effects were accepted.":
+    "La fuente debe indicar {field}; no se han aceptado efectos comerciales.",
+  "Quantity unit {unit} cannot create a sales promise in stock unit {stock_unit}; a supported conversion is required.":
+    "La unidad de cantidad {unit} no puede crear un compromiso de venta en la unidad de existencias {stock_unit}; se requiere una conversión compatible.",
+  "Rows of one order state conflicting {field} values.":
+    "Las filas de un mismo pedido indican valores contradictorios de {field}.",
+  currency: "Moneda",
+  effective_at: "Fecha de contabilización",
+  direction: "Dirección del pago",
+  document_date: "Fecha del documento",
+  ordered_at: "Fecha del pedido",
+});
+
+Object.assign(dictionaries.de, {
+  "Order states no document date.": "Der Auftrag enthält kein Belegdatum.",
+  "Order states no order time.": "Der Auftrag enthält keinen Bestellzeitpunkt.",
+  "Order states no agreed delivery date.": "Für den Auftrag ist kein Liefertermin angegeben.",
+  "Order states no order total.": "Der Auftrag enthält keinen Gesamtbetrag.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Order states no document date.": "De order vermeldt geen documentdatum.",
+  "Order states no order time.": "De order vermeldt geen besteltijd.",
+  "Order states no agreed delivery date.": "De order vermeldt geen afgesproken leverdatum.",
+  "Order states no order total.": "De order vermeldt geen totaalbedrag.",
+});
+
+Object.assign(dictionaries.es, {
+  "Order states no document date.": "El pedido no indica una fecha de documento.",
+  "Order states no order time.": "El pedido no indica la fecha del pedido.",
+  "Order states no agreed delivery date.": "El pedido no indica una fecha de entrega acordada.",
+  "Order states no order total.": "El pedido no indica un importe total.",
+});
