@@ -119,6 +119,7 @@
     "movement_create": "shipping"
   },
   "reads": {
+    "business_performance": {"topic": "orders", "mcp": [], "purpose": "understand"},
     "inventory": {
       "topic": "stock",
       "mcp": [

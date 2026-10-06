@@ -29509,3 +29509,62 @@ Object.assign(dictionaries.es, {
   "Basis preview is bounded to 50 records per section. Inspect supporting orders for full evidence.":
     "La vista previa muestra hasta 50 registros por sección. Consulte los pedidos relacionados para ver todas las pruebas.",
 });
+
+// Disposable Business read models (spec 378).
+Object.assign(dictionaries.de, {
+  "Business data is delayed.": "Geschäftsdaten sind verzögert.",
+  "Business data has been processed.": "Geschäftsdaten wurden verarbeitet.",
+  "Business metrics are not available yet.": "Geschäftskennzahlen sind noch nicht verfügbar.",
+  "Processed events": "Verarbeitete Änderungen",
+  Rebuilding: "Neuaufbau",
+  "Company-wide counts; orders are paginated oldest first. Dispatch is not customer arrival.":
+    "Zahlen für die ganze Firma; Aufträge werden seitenweise mit den ältesten zuerst angezeigt. Versand ist keine bestätigte Kundenankunft.",
+  "Matching messages are paginated newest first. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.":
+    "Passende Nachrichten werden seitenweise mit den neuesten zuerst angezeigt. Wartend bedeutet Simulatoranfrage ohne erfasste Antwort; eine Lesebestätigung allein ist keine Antwort.",
+});
+Object.assign(dictionaries.nl, {
+  "Business data is delayed.": "Bedrijfsgegevens zijn vertraagd.",
+  "Business data has been processed.": "Bedrijfsgegevens zijn verwerkt.",
+  "Business metrics are not available yet.": "Bedrijfscijfers zijn nog niet beschikbaar.",
+  "Processed events": "Verwerkte wijzigingen",
+  Rebuilding: "Opnieuw opbouwen",
+  "Company-wide counts; orders are paginated oldest first. Dispatch is not customer arrival.":
+    "Bedrijfsbrede aantallen; orders worden per pagina weergegeven, de oudste eerst. Verzending is geen aankomst bij de klant.",
+  "Matching messages are paginated newest first. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.":
+    "Passende berichten worden per pagina weergegeven, de nieuwste eerst. Wachtend betekent een simulatorverzoek zonder geregistreerd antwoord; leesbevestiging alleen is geen antwoord.",
+});
+Object.assign(dictionaries.es, {
+  "Business data is delayed.": "Los datos comerciales están retrasados.",
+  "Business data has been processed.": "Los datos comerciales se han procesado.",
+  "Business metrics are not available yet.": "Las métricas comerciales aún no están disponibles.",
+  "Processed events": "Cambios procesados",
+  Rebuilding: "Reconstrucción",
+  "Company-wide counts; orders are paginated oldest first. Dispatch is not customer arrival.":
+    "Cifras de toda la empresa; pedidos paginados del más antiguo al más reciente. Envío no significa llegada al cliente.",
+  "Matching messages are paginated newest first. Waiting means a simulator request without a recorded reply; acknowledgement alone is not an answer.":
+    "Mensajes coincidentes paginados del más reciente al más antiguo. En espera significa una solicitud del simulador sin respuesta registrada; una confirmación de lectura por sí sola no es una respuesta.",
+});
+
+Object.assign(dictionaries.de, {
+  "Previous page": "Vorherige Seite",
+  "Processing lag": "Verarbeitungsrückstand",
+  "Business processing failed.": "Verarbeitung der Geschäftsdaten fehlgeschlagen.",
+  "Read acknowledgement": "Lesebestätigung",
+  "Completed work": "Abgeschlossene Arbeit",
+});
+
+Object.assign(dictionaries.nl, {
+  "Previous page": "Vorige pagina",
+  "Processing lag": "Verwerkingsachterstand",
+  "Business processing failed.": "Verwerking van bedrijfsgegevens mislukt.",
+  "Read acknowledgement": "Leesbevestiging",
+  "Completed work": "Voltooid werk",
+});
+
+Object.assign(dictionaries.es, {
+  "Previous page": "Página anterior",
+  "Processing lag": "Retraso de procesamiento",
+  "Business processing failed.": "El procesamiento de datos comerciales ha fallado.",
+  "Read acknowledgement": "Confirmación de lectura",
+  "Completed work": "Trabajo completado",
+});

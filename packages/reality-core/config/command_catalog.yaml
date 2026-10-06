@@ -292,6 +292,12 @@ parameter_descriptions:
   price_list_id: Opaque identity of the sales or purchase price list.
   priority: Ordering used when more than one eligible rule could apply.
   principal: Authenticated human actor whose current company role is reauthorized when the command executes.
+  order_filter: Server-side Business order cohort flag; empty selects all orders.
+  mail_filter: Incoming, outgoing or waiting correspondence cohort; empty selects all messages.
+  order_cursor: Opaque tenant, generation and cohort-bound order page continuation.
+  mail_cursor: Opaque tenant, generation and cohort-bound correspondence page continuation.
+  order_limit: Business order page size from one to two hundred.
+  mail_limit: Business correspondence page size from one to fifty.
   projection_name: Stable name of the materialized read model to read or rebuild.
   predicate: Stable reviewed name of the observed property.
   preview_fingerprint: Canonical semantic identity of the server preview being confirmed.

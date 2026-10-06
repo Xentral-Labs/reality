@@ -662,7 +662,8 @@
         "view:fulfillment_blockers",
         "projection:fulfillment_queue",
         "projection:fulfillment_blockers",
-        "projection:commitment_register"
+        "projection:commitment_register",
+        "projection:business_performance"
       ],
       "actions": [
         "command:create_manual_order",
@@ -34764,6 +34765,56 @@
       "links": [],
       "label_de": "Preisfindung",
       "resources": ["terms"]
+    },
+    {
+      "id": "projection:business_performance",
+      "kind": "projection",
+      "key": "business_performance",
+      "label": "Business performance",
+      "area": "cross_functional",
+      "summary": "Incremental disposable company order and correspondence observations, maintained in bounded resumable generations through the shared projection worker; canonical commitment terms and shipment readiness remain authoritative.",
+      "read_modes": [
+        {
+          "query": "GET /api/tenants/{tenant}/projection-snapshots/business_performance",
+          "mode": "stored"
+        },
+        {
+          "query": "GET /api/tenants/{tenant}/projections/business_performance",
+          "mode": "stored"
+        }
+      ],
+      "refresh_events": [],
+      "clock_refresh_seconds": 60,
+      "service": "business_performance_snapshot",
+      "related_services": [],
+      "consumers": ["Activities Business"],
+      "reads": [
+        "business_event",
+        "document",
+        "source_record",
+        "commitment",
+        "reservation",
+        "movement",
+        "projection_row",
+        "business_order_row",
+        "business_mail_row"
+      ],
+      "outputs": [
+        "order_count",
+        "ready_orders",
+        "overdue_orders",
+        "mailbox_counts",
+        "orders",
+        "messages",
+        "processing",
+        "orders_next_cursor",
+        "messages_next_cursor"
+      ],
+      "views": [],
+      "tools": [],
+      "links": [],
+      "label_de": "Geschäftskennzahlen",
+      "resources": ["order"]
     },
     {
       "id": "exception:overdue_outgoing_customer_commitment",

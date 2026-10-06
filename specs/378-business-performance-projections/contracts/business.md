@@ -1,0 +1,3 @@
+# Business read contract
+`GET /api/tenants/{tenant}/interactions/business` retains owner authorization, existing response keys, order_filter and mail_filter. Add bounded order_limit/mail_limit plus independent order_cursor/mail_cursor. Default sizes remain 200/50. Returned `orders_next_cursor` and `messages_next_cursor` continue deterministic filtered pages. A cursor binds tenant, generation, filter and sort key; invalid/stale cursors fail 422 rather than crossing snapshots.
+`processing` contains state, explicitly delayed flag, processed/target sequence, completed_at, clock_due_at and rebuild progress. Uninitialized data is visibly unavailable. Provider freshness, work completion and verified delivery stay unknown. Reads do not write/enqueue/rebuild.

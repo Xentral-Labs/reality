@@ -971,6 +971,32 @@ stored result or unrelated projection refresh is used.
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
+### `business_performance` — Business performance {#projection-business_performance}
+
+Incremental disposable company order and correspondence observations, maintained in bounded
+resumable generations through the shared projection worker; canonical commitment terms and shipment
+readiness remain authoritative.
+
+**Verbraucher:** Activities Business · **Liest:** `business_event`, `document`, `source_record`,
+`commitment`, `reservation`, `movement`, `projection_row`, `business_order_row`, `business_mail_row`
+
+**Ausgaben:** `order_count`, `ready_orders`, `overdue_orders`, `mailbox_counts`, `orders`,
+`messages`, `processing`, `orders_next_cursor`, `messages_next_cursor`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage                                                      | Art                                        | Standard |
+| --------------------------------------------------------------------- | ------------------------------------------ | -------- |
+| `GET /api/tenants/{tenant}/projection-snapshots/business_performance` | Vorberechnet — im Hintergrund aktualisiert | —        |
+| `GET /api/tenants/{tenant}/projections/business_performance`          | Vorberechnet — im Hintergrund aktualisiert | —        |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+**Hintergrundaktualisierung nach:** —
+
+Zusätzlich alle 60 Sekunden für eine Hintergrundaktualisierung vorgesehen, auch ohne neues Business
+Event.
+
 ## Web Actions
 
 | Schlüssel                                                        | Bezeichnung                           | Command                                                                     | Bestätigung      | Voraussetzungen                                     |

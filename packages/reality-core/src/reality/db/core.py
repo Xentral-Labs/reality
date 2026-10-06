@@ -4158,6 +4158,7 @@ def index_foreign_keys(metadata: MetaData) -> list[Index]:
     return created
 
 
+from reality.db import business_projection as _business_projection  # noqa: F401
 from reality.db import cost_census_members as _cost_census_members  # noqa: F401
 from reality.db import cost_manifest_members as _cost_manifest_members  # noqa: F401
 from reality.db import cost_projections as _cost_projections  # noqa: F401

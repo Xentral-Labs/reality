@@ -160,7 +160,7 @@ resources:
     tables: [commitment, commitment_hold, commitment_revision, reservation, delivery_rule, commitment_substitute, prepayment_release]
     match: "commitment|reserv|order|promise|stale|fulfillment|hold|delivery_rule|backorder_against"
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
-    projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
+    projections: [fulfillment_queue, fulfillment_blockers, commitment_register, business_performance]
     exceptions:
       [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule, shipped_beyond_order, received_beyond_order, reservation_awaiting_prepayment, purchase_order_unconfirmed]
 
@@ -853,6 +853,7 @@ labels:
       fulfillment_blockers: Lieferhindernisse
       supply_demand: Zulauf & Bedarf
     projections:
+      business_performance: Geschäftskennzahlen
       fulfillment_queue: Versandvorrat
       fulfillment_blockers: Lieferhindernisse
       item_supply_demand: Zulauf und Bedarf je Artikel

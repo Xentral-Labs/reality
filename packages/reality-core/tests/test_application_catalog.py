@@ -9,7 +9,10 @@ import yaml
 from reality import catalogs
 from reality.catalogs import load_application_catalog, validate_tenant_isolation_catalog
 from reality.config import config_text
-from reality.services.projections import OPERATIONAL_PROJECTIONS
+from reality.services.projections import (
+    MATERIALIZED_PROJECTIONS,
+    OPERATIONAL_PROJECTIONS,
+)
 
 
 def test_split_catalog_is_complete_and_composed():
@@ -17,7 +20,11 @@ def test_split_catalog_is_complete_and_composed():
 
     assert catalog["command_count"] == 214
     assert catalog["event_count"] == 103
-    assert catalog["projection_count"] == len(OPERATIONAL_PROJECTIONS) == 13
+    assert (
+        catalog["projection_count"]
+        == len(set(OPERATIONAL_PROJECTIONS) | set(MATERIALIZED_PROJECTIONS))
+        == 14
+    )
     assert catalog["fact_predicate_count"] == 7
     assert catalog["operational_exception_classes"] == [
         "overdue_outgoing_customer_commitment",
@@ -79,8 +86,8 @@ def test_split_catalog_is_complete_and_composed():
         "reservation_awaiting_prepayment",
         "purchase_order_unconfirmed",
     ]
-    assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
-        OPERATIONAL_PROJECTIONS
+    assert {entry["materialized_as"] for entry in catalog["projections"]} == (
+        set(OPERATIONAL_PROJECTIONS) | set(MATERIALIZED_PROJECTIONS)
     )
     assert [workspace["key"] for workspace in catalog["workspaces"]] == [
         "company",

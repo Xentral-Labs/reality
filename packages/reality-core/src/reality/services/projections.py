@@ -58,6 +58,7 @@ PAYMENTS = "payments"
 JOURNAL = "journal"
 TIMELINE = "timeline"
 PRICE_RESOLUTION = "price_resolution"
+BUSINESS_PERFORMANCE = "business_performance"
 OPERATIONAL_PROJECTIONS = (
     FULFILLMENT_QUEUE,
     FULFILLMENT_BLOCKERS,
@@ -1215,6 +1216,12 @@ def derive_projection_rows(
     from reality.services.core import get_tenant
 
     get_tenant(session, tenant_id)
+    if projection_name == BUSINESS_PERFORMANCE:
+        # Explicit diagnostic derivation only. Production reads use stored data;
+        # the unchanged full reader is the independent reconciliation oracle.
+        from reality.services.business_performance import overview
+
+        return {"summary": overview(session, tenant_id)}
     # reality-rule: services.projections.derive_projection_rows.refusal-7
     if projection_name not in OPERATIONAL_PROJECTIONS:
         raise ValueError("Unknown operational projection.")
@@ -1234,11 +1241,11 @@ def derive_projection_rows(
 
 MATERIALIZED_PROJECTIONS = tuple(
     name for name in OPERATIONAL_PROJECTIONS if name != PRICE_RESOLUTION
-)
+) + (BUSINESS_PERFORMANCE,)
 #: Projections whose rows change because the clock moved, with no event to announce
-#: it, and which are therefore refreshed on a cadence rather than on a change.
+#: it. Exceptions retain their cadence; Business records exact next clock moments.
 #:
-#: Only exceptions belong here. An exception judges a promise against the moment it is
+#: An exception judges a promise against the moment it is
 #: read — overdue, standing so many days — so its rows move without anybody doing
 #: anything. The commitment register and the tenant usage summary were on this list
 #: too, and measurement says they do not belong: a promise's risk is `reserved < open`
@@ -1246,7 +1253,7 @@ MATERIALIZED_PROJECTIONS = tuple(
 #: latest timestamp. Neither reads the clock, so rebuilding them every minute was work
 #: that could not change an answer. `test_clock_sensitivity.py` keeps that honest: if
 #: one of them starts reading the clock, it fails and the name goes back on this list.
-TIME_SENSITIVE_PROJECTIONS = (EXCEPTIONS,)
+TIME_SENSITIVE_PROJECTIONS = (EXCEPTIONS, BUSINESS_PERFORMANCE)
 
 
 @lru_cache(maxsize=1)
@@ -1272,6 +1279,12 @@ def projection_dependencies() -> dict[str, frozenset[str]]:
 
 
 def relevant_event_target(tenant_id: str, name: str):
+    if name == BUSINESS_PERFORMANCE:
+        return (
+            select(func.coalesce(func.max(BusinessEvent.sequence), 0))
+            .where(BusinessEvent.tenant_id == tenant_id)
+            .scalar_subquery()
+        )
     dependencies = projection_dependencies()
     types = [kind for kind, affected in dependencies.items() if name in affected]
     return (
@@ -3089,13 +3102,23 @@ def rebuild_projections(
         or checkpoints[name].projection_version != PROJECTION_VERSION
         or checkpoints[name].last_event_sequence < targets[name]
         or (
-            name in TIME_SENSITIVE_PROJECTIONS
+            name == EXCEPTIONS
             and (now() - checkpoints[name].updated_at).total_seconds() >= 60
+        )
+        or (
+            name == BUSINESS_PERFORMANCE
+            and checkpoints[name].clock_due_at is not None
+            and checkpoints[name].clock_due_at <= now()
         )
     }
     count = 0
     # Financial builders remain independent even when tests forbid operational reads.
     for name in changed:
+        if name == BUSINESS_PERFORMANCE:
+            from reality.services.business_projection import refresh
+
+            count += refresh(session, tenant_id, force=force)
+            continue
         since = checkpoints[name].last_event_sequence if name in checkpoints else 0
         narrowing = (
             ChangeSet(None, "full rebuild requested")
@@ -3443,7 +3466,9 @@ def _explain_retained_order(
     from reality.services.operational_cases import object_cases
 
     result = {
-        "case_ids": object_cases(session, tenant_id, "document", document.id) if document else object_cases(session, tenant_id, "commitment", selected.id),
+        "case_ids": object_cases(session, tenant_id, "document", document.id)
+        if document
+        else object_cases(session, tenant_id, "commitment", selected.id),
         "fulfillment": {
             "order_key": document.id if document else selected.id,
             "document_id": document.id if document else None,

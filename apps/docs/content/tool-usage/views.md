@@ -960,6 +960,31 @@ stored result or unrelated projection refresh is used.
 
 [How this query runs](./views#read-execution)
 
+### `business_performance` — Business performance {#projection-business_performance}
+
+Incremental disposable company order and correspondence observations, maintained in bounded
+resumable generations through the shared projection worker; canonical commitment terms and shipment
+readiness remain authoritative.
+
+**Consumers:** Activities Business · **Reads:** `business_event`, `document`, `source_record`,
+`commitment`, `reservation`, `movement`, `projection_row`, `business_order_row`, `business_mail_row`
+
+**Outputs:** `order_count`, `ready_orders`, `overdue_orders`, `mailbox_counts`, `orders`,
+`messages`, `processing`, `orders_next_cursor`, `messages_next_cursor`
+
+**How this query runs**
+
+| Concrete query                                                        | Kind                           | Default |
+| --------------------------------------------------------------------- | ------------------------------ | ------- |
+| `GET /api/tenants/{tenant}/projection-snapshots/business_performance` | Stored — updated in background | —       |
+| `GET /api/tenants/{tenant}/projections/business_performance`          | Stored — updated in background | —       |
+
+[How this query runs](./views#read-execution)
+
+**Background refresh after:** —
+
+Also eligible for background refresh every 60 seconds, without a new business event.
+
 ## Web Actions
 
 | Key                                                              | Label                                 | Command                                                                     | Confirmation     | Prerequisites                                       |

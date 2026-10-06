@@ -2793,3 +2793,9 @@ Spec 378 visual consistency follow-up (FR-034–036): the existing cockpit brows
 Spec 378 FR-037–038: `apps/web/scripts/operations-cockpit-browser.mjs` covers the central status overview's placement, exact canonical states/metrics, keyboard same-page navigation, stale/missing neutrality and four-locale/theme/responsive reachability, preserving the complete cockpit regression.
 
 Spec 378 FR-039–040: `operations-cockpit-shell-browser.mjs` verifies permanent root/Home/switch discovery and disabled/failed capability isolation; `operations-cockpit-routing.test.mjs` preserves bookmark semantics with the Control Tower display title; complete cockpit regression and actual local root/company-switch proof verify rollout within this increment.
+
+## Spec 378 — Incremental Business performance
+- Contract: `docs/features/business-performance.md`; spec/plan/tasks: `specs/378-business-performance-projections/`.
+- `packages/reality-core/tests/test_business_projection.py`: FR-001–FR-008 and DR-001–DR-003; unchanged full-reader reconciliation, cohort pagination, acknowledgement versus reply, cancellation/corrections/revisions/holds/reservations, clock-only transitions, durable rebuild/restart, tenant/cursor isolation, shared dispatch and read-only behavior.
+- `scripts/benchmark_business_projection.py` and spec378 `benchmark.md`: FR-009; synthetic measured API/viewer cost and documented million-order multi-tenant load plan.
+- Catalog tables `business_order_row` and `business_mail_row`: disposable tenant/generation cache schema, indexed cohorts/clocks, migration roundtrip, generation/cursor isolation and independent authoritative reconciliation in `tests/test_business_projection.py`.

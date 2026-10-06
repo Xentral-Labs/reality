@@ -13,7 +13,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from reality.services import interactions
-from reality.services.business_performance import overview as business_overview
+from reality.services.business_projection import overview as business_overview
 from reality.services.core import InvalidOperation, NotFound
 from reality.web.api import (
     DatabaseSession,
@@ -139,11 +139,25 @@ def business_operations(
         pattern="^(|ready|blocked|reservation_blocked|held|overdue|at_risk|complete|partial|unshipped|eligible|received_last_hour|completed_last_hour|first_dispatch_sample|complete_dispatch_sample)$",
     ),
     mail_filter: str = Query("", pattern="^(|incoming|waiting|outgoing)$"),
+    order_cursor: str = Query("", max_length=2000),
+    mail_cursor: str = Query("", max_length=2000),
+    order_limit: int = Query(200, ge=1, le=200),
+    mail_limit: int = Query(50, ge=1, le=50),
 ) -> dict[str, Any]:
     _owner(request, session, tenant_id)
-    return business_overview(
-        session, tenant_id, order_filter=order_filter, mail_filter=mail_filter
-    )
+    try:
+        return business_overview(
+            session,
+            tenant_id,
+            order_filter=order_filter,
+            mail_filter=mail_filter,
+            order_cursor=order_cursor,
+            mail_cursor=mail_cursor,
+            order_limit=order_limit,
+            mail_limit=mail_limit,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/{interaction_id}/events")
