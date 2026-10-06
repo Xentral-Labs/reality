@@ -16,7 +16,7 @@ from contextvars import ContextVar
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from sqlalchemy import event, insert, text
+from sqlalchemy import event, func, insert, select, text
 from sqlalchemy.orm import sessionmaker
 
 from reality.db.core import (
@@ -32,7 +32,7 @@ from reality.db.core import (
     build_engine,
 )
 from reality.db.operational_cases import OperationalCase
-from reality.services import core, operational_cases, operations_cockpit
+from reality.services import core, operations_cockpit
 from reality.services.memberships import Principal
 from reality.tools.application import (
     approve_and_execute_proposal,
@@ -299,14 +299,16 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
                 confirming_principal=Principal(owner),
                 confirmed=True,
             )
-        operational_cases.adopt(
-            db,
-            tenant,
-            Principal(owner),
-            confirmed=True,
-            request_key="performance-adoption",
+        # Canonical plan acceptance already binds its supported cases by default.
+        # Seed only the remaining accepted-history fixture cases; preserve those
+        # actual identities and links instead of duplicating their order scope.
+        bound_orders = set(
+            db.scalars(
+                select(OperationalCase.order_document_id).where(
+                    OperationalCase.tenant_id == tenant
+                )
+            )
         )
-
         _bulk(
             db,
             OperationalCase,
@@ -320,7 +322,16 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
                     "created_at": observed if i < 10000 else historical,
                 }
                 for i in range(110000)
+                if f"perf_order_{i:06}" not in bound_orders
             ),
+        )
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(OperationalCase)
+                .where(OperationalCase.tenant_id == tenant)
+            )
+            == 110000
         )
         db.execute(text("ANALYZE"))
         db.commit()

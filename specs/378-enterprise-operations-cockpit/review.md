@@ -338,3 +338,26 @@ Spec impact: none; documentation wording only. The existing layout regression
 first reproduces the failure, then all nine repository-layout tests pass after
 the prose correction. Remaining final-head backend gates must pass before review
 readiness.
+
+Full shard 2 isolated two more legacy opt-in integration artifacts. The additive
+flow test now asserts default coordination, exact canonical readiness and unchanged
+company-scoped event/proposal/adoption/rollout/case counts instead of requiring a
+false compatibility flag. The orphaned `case_already_adopted` refusal is removed,
+matching current main and the executable refusal inventory. Neither correction
+reintroduces activation, writes during observation or a new authority boundary.
+
+Full shard 1 found the same default-coordination assumption in enterprise fixture
+setup: canonical plan acceptance already binds cases, then a legacy bulk seed
+tried to create a second case for the same order. The fixture now preserves
+canonical identities/links and inserts only missing accepted-history fixture
+cases, asserting exactly 110,000 cases. Legacy activation is removed. All
+10,000 active / 100,000 historical / 500,000 observations, ten readers, query and
+latency limits, full totals and sustained committed-change proofs are unchanged.
+The complete suite has now finished; its remaining findings are confined to
+these repaired default-coordination integration fixtures/vocabulary.
+
+All 15 affected operating-flow/refusal-inventory tests pass locally. Ruff, spec
+policy and whitespace checks pass; canonical documentation regeneration introduces
+no generated-file change. The corrected full enterprise profile is still running
+against isolated PostgreSQL; its unchanged limits and the final-head complete CI
+remain required before marking the PR ready.
