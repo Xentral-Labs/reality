@@ -828,8 +828,8 @@ async function assertMainCompanyFreePlay() {
   assert.equal(await page.locator("[data-free-play-entry]").count(), 0);
   const navigation = page.locator("a[data-navigation-item]");
   assert.deepEqual(
-    (await navigation.allTextContents()).slice(0, 2).map((text) => text.trim()),
-    ["Inbox", "Chat"],
+    (await navigation.allTextContents()).slice(0, 3).map((text) => text.trim()),
+    ["Control Tower", "Inbox", "Chat"],
   );
   await page.getByRole("link", { name: "Chat", exact: true }).click();
   await page.waitForURL(/\/app\/chat/);
