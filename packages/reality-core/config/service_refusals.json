@@ -2874,9 +2874,6 @@
         "field": "term"
       }
     },
-    "case_already_adopted": {
-      "message": "Operational cases are already enabled for this company."
-    },
     "shipping_plan_reference_unavailable": {
       "message": "A planning evidence reference is unavailable."
     },

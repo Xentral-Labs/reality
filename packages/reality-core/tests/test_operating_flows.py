@@ -291,16 +291,39 @@ def test_expanded_overview_shares_authorized_read_and_never_adopts_work(
     # BUSINESS RULE: Existing company membership and read-only feature guards protect the additive DTO without adopting cases.
     import pytest
 
-    from reality.services import operations_cockpit
+    from reality.db.core import ChangeProposal
+    from reality.db.operational_cases import CaseAdoption, CaseRollout, OperationalCase
+    from reality.services import operational_cases, operations_cockpit
     from reality.services.memberships import Principal
 
     monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     session.commit()
+    models = (BusinessEvent, ChangeProposal, CaseAdoption, CaseRollout, OperationalCase)
+    before = {
+        model: session.scalar(
+            select(func.count())
+            .select_from(model)
+            .where(model.tenant_id == business.tenant.id)
+        )
+        for model in models
+    }
     value = operations_cockpit.operations_cockpit(
         session, business.tenant.id, Principal(scheduled_owner.id)
     )
     assert value["flows"]["orders"]["open_orders"] == 0
-    assert value["supported_cases"]["adopted"] is False
+    assert value["supported_cases"]["adopted"] is True
+    assert value["supported_cases"][
+        "coordination"
+    ] == operational_cases.coordination_status(session, business.tenant.id)
+    assert session.get(CaseAdoption, business.tenant.id) is None
+    assert {
+        model: session.scalar(
+            select(func.count())
+            .select_from(model)
+            .where(model.tenant_id == business.tenant.id)
+        )
+        for model in models
+    } == before
     with pytest.raises(core.NotFound):
         operations_cockpit.operations_cockpit(
             session, business.tenant.id, Principal("unrelated-user")
