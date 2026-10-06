@@ -329,3 +329,12 @@ This updates the integration fixture to the approved navigation requirement and
 changes no product behavior. The repaired full Storyline browser script passes
 locally, as do formatting, spec policy and whitespace checks. The final-head
 matrix remains the readiness gate.
+
+Full backend shard 3 found a repository-layout wording regression in the coverage
+matrix: prose abbreviations used the forbidden legacy path token `backend/`.
+The documentation now spells out backend and browser regressions and backend JSON
+workload; measured outcomes are unchanged and the path invariant is not weakened.
+Spec impact: none; documentation wording only. The existing layout regression
+first reproduces the failure, then all nine repository-layout tests pass after
+the prose correction. Remaining final-head backend gates must pass before review
+readiness.

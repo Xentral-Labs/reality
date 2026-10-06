@@ -2766,9 +2766,9 @@ Owner-authorized scope: 2026-10-06. FR-001–009 and DR-001–003 map to `packag
 - `apps/web/scripts/operations-cockpit-routing.test.mjs`: FR-001/016/017; additive entry, validated day/live window, same-company structured specialist return and company-change context reset.
 - `apps/web/scripts/operations-cockpit-live.test.mjs`: FR-021/022/023; deterministic presentation-only read-controller cadence, timeout/backoff, cancellation, hidden/resume, access loss and eight-hour replacement bounds. Controlled eight-hour browser/business-fixture proof passes; the separate real-time soak remains pending.
 
-Functional service, populated fixture-browser and ordinary backend/browser regressions pass. The declared full backend/JSON enterprise workload passes separately. Large enterprise DOM timing and the eight-hour real-time soak remain open; neither is inferred from service timing.
+Functional service, populated fixture-browser and ordinary backend and browser regressions pass. The declared full backend JSON enterprise workload passes separately. Large enterprise DOM timing and the eight-hour real-time soak remain open; neither is inferred from service timing.
 
-| Spec 378 declared enterprise workload | `packages/reality-core/tests/test_operations_cockpit_performance.py` | Full 10,000 active / 100,000 historical / 500,000 observations, ten readers: backend/JSON opening p95 2.793 s and 480-request live p95 2.823 s PASS; enterprise DOM and real-time soak remain separate open gates. |
+| Spec 378 declared enterprise workload | `packages/reality-core/tests/test_operations_cockpit_performance.py` | Full 10,000 active / 100,000 historical / 500,000 observations, ten readers: backend JSON opening p95 2.793 s and 480-request live p95 2.823 s PASS; enterprise DOM and real-time soak remain separate open gates. |
 
 - `apps/web/scripts/operations-cockpit-shell-browser.mjs`: FR-001/016/017; full-shell optional entry, unchanged Home, on-demand chat and company capability reset.
 - `apps/web/scripts/operations-cockpit-session-browser.mjs`: FR-021/022/023 and SC-007; controlled-time browser lifecycle and stable inspection/review. Separate real-time pilot soak remains pending.
