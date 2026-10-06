@@ -1,6 +1,10 @@
 import type { Selection } from "./routing";
 
 const introductions = {
+  cockpit: {
+    title: "Control Tower",
+    description: "See shipping performance, recorded activity and who controls each case.",
+  },
   home: {
     title: "Welcome",
     description: "See open commitments, exceptions and decisions across your company.",

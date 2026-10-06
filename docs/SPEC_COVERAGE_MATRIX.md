@@ -2750,3 +2750,46 @@ English repository contract: `docs/features/operational-cases.md`.
 ## Spec 379 — Essential intake completeness
 
 Owner-authorized scope: 2026-10-06. FR-001–009 and DR-001–003 map to `packages/reality-core/tests/test_intake_completeness.py`, `packages/reality-core/tests/scenarios/test_live_company.py` and existing intake/financial/purchase/adapter suites. The shared rule contract is `docs/features/intake-completeness.md`. Measured required checks and PR status are recorded in `specs/379-intake-completeness/verification.md`; no completed release checklist item is claimed before green gates.
+
+## Optional enterprise operations cockpit (spec 378)
+
+- `docs/features/operations-cockpit.md`: canonical implemented optional cockpit contract, functional acceptance evidence and explicit pending enterprise-performance/real-time-soak gates under spec 378.
+- `packages/reality-core/tests/test_shipping_plan_inputs.py`: FR-003/006/007/008/009, DR-001/002/003; closed decimal/time/site inputs, source-backed reviewed writes, exact owner authority, preserved source versions and replay.
+- `packages/reality-core/tests/test_shipping_performance_domain.py`: FR-002–009/012 and DR-001/002; independent two-site completion-slot-v1 oracle, quantity/timing coverage, split-site deduplication, requested capacity and unknown-input behavior.
+- `packages/reality-core/tests/test_shipping_plan_migration.py`: DR-003; isolated additive upgrade/empty downgrade, retained-evidence rollback guard, shortest composite company links and no document-owned operational state.
+- `packages/reality-core/tests/test_shipping_performance.py`: FR-003–010/012/018 and DR-001/002/005; source-backed current cohort/quantity/timing reads, no-write proof, concurrent raw source changes, truthful daily horizon, complete supporting totals and bounded multi-page contracts. Enterprise timing remains pending.
+- `packages/reality-core/tests/test_shipping_performance_story.py`: US1 and FR-002–009/012; independently stated two-site business oracle built through shared evidence services, split-order deduplication, partial contents and a real canonical delivery hold.
+- `packages/reality-core/tests/test_operations_cockpit_adapters.py`: FR-001/017 and DR-003/005; default-off discovery, current member access and revocation/foreign-company refusal without business effects.
+- `packages/reality-core/tests/test_operations_cockpit_snapshots.py`: FR-010/018/021 and DR-003/005; committed concurrent Source changes prove read-only repeatable snapshots and fresh post-read membership revocation.
+- `packages/reality-core/tests/test_operations_cockpit.py`: FR-021/023/024 and DR-001/003/005; recording-time deduplication, full activity totals, partial coverage, exact manual credential attribution, OAuth attribution absence, complete named-access paging, owner restriction and secret redaction.
+- `apps/web/scripts/operations-cockpit-browser.mjs`: FR-002/010/016/018/021/022/024; populated fixture shipping curves, contextual order links, current basis, stale/missing input, stable presentation-only following, restricted Agent panel and 1440/390 presentation proof. Case controls, full language/theme/keyboard and populated mobile fixture proofs pass; the separate actual API/database-to-browser journey now passes; declared enterprise throughput remains pending.
+- `apps/web/scripts/operations-cockpit-routing.test.mjs`: FR-001/016/017; additive entry, validated day/live window, same-company structured specialist return and company-change context reset.
+- `apps/web/scripts/operations-cockpit-live.test.mjs`: FR-021/022/023; deterministic presentation-only read-controller cadence, timeout/backoff, cancellation, hidden/resume, access loss and eight-hour replacement bounds. Controlled eight-hour browser/business-fixture proof passes; the separate real-time soak remains pending.
+
+Functional service, populated fixture-browser and ordinary backend/browser regressions pass. The declared full backend/JSON enterprise workload passes separately. Large enterprise DOM timing and the eight-hour real-time soak remain open; neither is inferred from service timing.
+
+| Spec 378 declared enterprise workload | `packages/reality-core/tests/test_operations_cockpit_performance.py` | Full 10,000 active / 100,000 historical / 500,000 observations, ten readers: backend/JSON opening p95 2.793 s and 480-request live p95 2.823 s PASS; enterprise DOM and real-time soak remain separate open gates. |
+
+- `apps/web/scripts/operations-cockpit-shell-browser.mjs`: FR-001/016/017; full-shell optional entry, unchanged Home, on-demand chat and company capability reset.
+- `apps/web/scripts/operations-cockpit-session-browser.mjs`: FR-021/022/023 and SC-007; controlled-time browser lifecycle and stable inspection/review. Separate real-time pilot soak remains pending.
+
+- `packages/reality-core/tests/browser/unified_operations_cockpit.py` / `apps/web/scripts/operations-cockpit-live-browser.mjs`: FR-010/014/015/016/021 and SC-002; final real API/PostgreSQL commit-to-display at 3,384 ms, three-action exact case discovery, confirmed stored takeover reason and human-owned register. The CI live-browser matrix includes this passing journey. No fixture routing, simulated clock or production-company write is used.
+
+Final spec 378 integration additions: the case-register snapshot-time test passes without adoption or writes; the independently stale roster/register browser assertions retain exact read times; independent display-zone and business-clock assertions pass. The existing Engine Room read and architecture regressions enforce a redacted diagnostic-reader DTO with no direct telemetry access in the cockpit. Complete backend coverage was executed (6,673 collected); its six concrete integration failures have corrected targeted proofs, and all affected initializer failures/setup errors pass in thirteen controlled reruns. The final real demo and cockpit browser pair passes, including a committed-change-to-display measurement of 3,384 ms. Enterprise timing remains red and the real-time soak is unrun; this entry is not aggregate release acceptance.
+
+Spec 378 final read refinement evidence: 184 affected canonical shipping/source/
+review/control/snapshot regressions pass; actual committed-change/takeover
+browser passes with final source batching. The unchanged enterprise service/JSON
+workload passes in 238.12 s, including complete totals, twelve concurrent
+canonical new orders, five-second cadence and ten-second visibility. See the
+full hardware/distribution and explicit pending enterprise-DOM/real-time-soak
+boundaries in `specs/378-enterprise-operations-cockpit/quickstart.md`.
+
+Spec 378 operating flows follow-up (FR-028–033): `packages/reality-core/tests/test_operating_flows.py` proves complete correspondence/supplier cohorts, exact reply/ack lineage, first-recorded order deduplication, corrected/partial receipts and return disposition, canonical stock risk, temporal gaps and authorized read-only assembly. Existing cockpit snapshot/adapter/return regressions and `apps/web/scripts/operations-cockpit-browser.mjs` cover tenant authorization, five compact live cards, source links, unknown/stale status, language/theme/mobile and protected shipping/deviations. New enterprise workload and real-time pilot coverage remain pending measurement.
+
+Spec 378 visual consistency follow-up (FR-034–036): the existing cockpit browser family now verifies aligned metric/chart tracks and section typography/gaps at 1440/1920, four locales/light-dark, independent narrow-content breakpoints, 390px mobile, keyboard grouped selection and unchanged evidence/control/paging behavior. This is presentation evidence; enterprise/soak/rollout gates stay separate.
+
+
+Spec 378 FR-037–038: `apps/web/scripts/operations-cockpit-browser.mjs` covers the central status overview's placement, exact canonical states/metrics, keyboard same-page navigation, stale/missing neutrality and four-locale/theme/responsive reachability, preserving the complete cockpit regression.
+
+Spec 378 FR-039–040: `operations-cockpit-shell-browser.mjs` verifies permanent root/Home/switch discovery and disabled/failed capability isolation; `operations-cockpit-routing.test.mjs` preserves bookmark semantics with the Control Tower display title; complete cockpit regression and actual local root/company-switch proof verify rollout within this increment.

@@ -28,6 +28,7 @@ import { t } from "../localization";
 import { DeliveryWorkPage } from "./DeliveryWorkPage";
 import { Shell } from "./Shell";
 import { HomePage } from "./HomePage";
+import { OperationsCockpitPage } from "./OperationsCockpitPage";
 import { StorylinePage } from "./StorylinePage";
 import { ReadState } from "./ReadState";
 import { useCompanyContext } from "./useCompanyContext";
@@ -262,6 +263,8 @@ export default function UnifiedApp({
                     navigate(changes);
                   }}
                 />
+              ) : selection.route === "cockpit" ? (
+                <OperationsCockpitPage key={company.id} selection={selection} navigate={navigate} />
               ) : selection.route === "home" ? (
                 <HomePage
                   user={user.id}

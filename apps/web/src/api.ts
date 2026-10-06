@@ -5,6 +5,12 @@ import { clearPalettePreferences } from "./unified/commandPalettePreferences";
 import type { SignupPreferences } from "./signupPreferences";
 import type { Interaction, InteractionPage } from "./unified/engineRoomModel";
 import { shareInFlight } from "./inflightRead";
+import type {
+  AgentAccessPage,
+  CockpitActivity,
+  CockpitObservation,
+  ShippingOrderPage,
+} from "./unified/cockpitModel";
 
 export type CompanyProfileManifest = {
   tenant_id: string;
@@ -5174,6 +5180,7 @@ export const intakeBatches = {
 
 export type OperationalCase = {
   case_id: string;
+  business_reference?: string;
   kind: "order_fulfillment" | "customer_return";
   order_document_id: string | null;
   return_announcement_id: string | null;
@@ -5185,10 +5192,84 @@ export type OperationalCase = {
   related_case_ids: string[];
   unsettled_actions: string[];
   coverage_gaps: { source_record_id: string; status: string }[];
-  actions: { proposal_id: string; status: string; obsolete: boolean }[];
+  control?: null | {
+    actor_label: string;
+    actor_user_id: string;
+    recorded_at: string;
+    reason: string | null;
+    revision: number;
+    decision_id: string;
+    event_id: string;
+    transition: string;
+  };
+  actions_has_more?: boolean;
+  unsettled_action_total?: number;
+  actions: {
+    proposal_id: string;
+    status: string;
+    obsolete: boolean;
+    type?: string;
+    created_at?: string;
+    decided_at?: string;
+    recorded_result_available?: boolean;
+    external_outcome?: string;
+  }[];
   work: { commitment_id: string; open_quantity: string; status: string }[];
 };
+export const cockpitApi = {
+  activity: (tenant: string, minutes: number, signal?: AbortSignal) =>
+    request<CockpitActivity>(
+      `/api/tenants/${encodeURIComponent(tenant)}/operations-cockpit/activity?minutes=${minutes}`,
+      { signal },
+    ),
+  agents: (
+    tenant: string,
+    accessState: string = "active",
+    after: string = "",
+    limit: number = 6,
+    signal?: AbortSignal,
+  ) =>
+    request<AgentAccessPage>(
+      `/api/tenants/${encodeURIComponent(tenant)}/operations-cockpit/agents?${new URLSearchParams({ access_state: accessState, after, limit: String(limit) })}`,
+      { signal },
+    ),
+  capabilities: (tenant: string, signal?: AbortSignal) =>
+    request<{ enabled: boolean }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/operations-cockpit/capabilities`,
+      { signal },
+    ),
+  overview: (tenant: string, day: string, location: string, signal?: AbortSignal) =>
+    request<CockpitObservation>(
+      `/api/tenants/${encodeURIComponent(tenant)}/operations-cockpit?${new URLSearchParams({ day, ...(location ? { location_id: location } : {}) })}`,
+      { signal },
+    ),
+  orders: (tenant: string, filters: Record<string, string>, signal?: AbortSignal) =>
+    request<ShippingOrderPage>(
+      `/api/tenants/${encodeURIComponent(tenant)}/operations-cockpit/orders?${new URLSearchParams(filters)}`,
+      { signal },
+    ),
+};
+
+export type OperationalCaseRegisterPage = {
+  adopted: boolean;
+  coordination?: {
+    migration_ready: boolean;
+    coverage_ready: boolean;
+    last_error_code: string | null;
+  };
+  observed_at?: string;
+  counts: null | Record<string, number>;
+  total: number;
+  items: OperationalCase[];
+  has_more: boolean;
+  next_after: string | null;
+};
 export const operationalCases = {
+  register: (tenant: string, filters: Record<string, string>, signal?: AbortSignal) =>
+    request<OperationalCaseRegisterPage>(
+      `/api/tenants/${encodeURIComponent(tenant)}/operational-cases/register?${new URLSearchParams(filters)}`,
+      { signal },
+    ),
   status: (tenant: string) =>
     request<{
       adopted: boolean;
@@ -5206,21 +5287,22 @@ export const operationalCases = {
     request<{ case_ids: string[] }>(
       `/api/tenants/${tenant}/operational-cases/objects/document/${encodeURIComponent(documentId)}`,
     ),
-  explain: (tenant: string, caseId: string) =>
+  explain: (tenant: string, caseId: string, actionLimit?: number) =>
     request<OperationalCase>(
-      `/api/tenants/${tenant}/operational-cases/${encodeURIComponent(caseId)}`,
+      `/api/tenants/${tenant}/operational-cases/${encodeURIComponent(caseId)}${actionLimit ? `?action_limit=${actionLimit}` : ""}`,
     ),
   adopt: (tenant: string, requestKey: string) =>
     request(`/api/tenants/${tenant}/operational-cases/adoption`, {
       method: "POST",
       body: JSON.stringify({ confirmed: true, request_key: requestKey }),
     }),
-  takeover: (tenant: string, value: OperationalCase, requestKey: string) =>
+  takeover: (tenant: string, value: OperationalCase, requestKey: string, reason = "") =>
     request(`/api/tenants/${tenant}/operational-cases/${value.case_id}/takeover`, {
       method: "POST",
       body: JSON.stringify({
         confirmed: true,
         expected_revision: value.control_revision,
+        reason,
         request_key: requestKey,
       }),
     }),

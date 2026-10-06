@@ -71,6 +71,9 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
     }
     # Tables added by later migrations bring their own derived indexes with them.
     later_tables = {
+        "shipping_plan_statement",
+        "shipping_dispatch_requirement",
+        "shipping_capacity_window",
         "intake_review_mandate",
         "operational_case",
         "case_commitment_link",

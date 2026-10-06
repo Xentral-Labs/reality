@@ -7,6 +7,7 @@ export type Destination =
   | "demo-data"
   | "finance"
   | "home"
+  | "cockpit"
   | "copilot"
   | "work"
   | "decisions"
@@ -18,6 +19,13 @@ export type Destination =
   | "chat";
 export type Selection = {
   route: Destination;
+  cockpitDay?: string;
+  cockpitLocation?: string;
+  cockpitMeasure?: CockpitMeasure;
+  cockpitCase?: string;
+  cockpitBasis?: string;
+  cockpitMinutes?: 5 | 15 | 60;
+  cockpitOrigin?: CockpitOrigin;
   storylineChapter?: string;
   inspectorView?: string;
   /** The engine room's filter, as its `live_*` URL parameters (spec 266). */
@@ -87,6 +95,7 @@ export type Selection = {
 const routes = [
   "/app",
   "/app/",
+  "/app/cockpit",
   "/app/facts",
   "/app/inspector",
   "/app/settings",
@@ -115,6 +124,16 @@ export function readSelection(url: URL): Selection {
   const candidate = legacyExceptionRules ? "attention" : path === "free-play" ? "chat" : path;
   const page = Number(url.searchParams.get("page") || 1);
   return {
+    cockpitDay: cockpitDay(url.searchParams.get("cockpit_day")),
+    cockpitLocation: url.searchParams.get("cockpit_location") || "",
+    cockpitMeasure: cockpitMeasure(url.searchParams.get("cockpit_measure")),
+    cockpitCase: url.searchParams.get("cockpit_case") || "",
+    cockpitBasis: url.searchParams.get("cockpit_basis") || "",
+    cockpitMinutes: cockpitMinutes(url.searchParams.get("cockpit_minutes")),
+    cockpitOrigin: readCockpitOrigin(
+      url.searchParams.get("cockpit_origin"),
+      url.searchParams.get("tenant") || "",
+    ),
     attentionView:
       legacyExceptionRules || url.searchParams.get("attention_view") === "rules"
         ? "rules"
@@ -180,6 +199,7 @@ export function readSelection(url: URL): Selection {
       ? (url.searchParams.get("settings_view") as Selection["settingsView"])
       : "company",
     route: [
+      "cockpit",
       "facts",
       "inspector",
       "settings",
@@ -311,6 +331,19 @@ export function readSelection(url: URL): Selection {
 export function selectionUrl(selection: Selection): string {
   selection = normalizeInspectorSelection(selection);
   const query = new URLSearchParams();
+  if (selection.route === "cockpit") {
+    query.set("cockpit_day", cockpitDay(selection.cockpitDay));
+    query.set("cockpit_measure", cockpitMeasure(selection.cockpitMeasure));
+    query.set("cockpit_minutes", String(cockpitMinutes(selection.cockpitMinutes)));
+    if (selection.cockpitLocation) query.set("cockpit_location", selection.cockpitLocation);
+    if (selection.cockpitCase) query.set("cockpit_case", selection.cockpitCase);
+    if (selection.cockpitBasis) query.set("cockpit_basis", selection.cockpitBasis);
+  }
+  const origin = readCockpitOrigin(
+    JSON.stringify(selection.cockpitOrigin) ?? null,
+    selection.tenant,
+  );
+  if (origin) query.set("cockpit_origin", JSON.stringify(origin));
   if (selection.route === "inspector")
     query.set("inspector_view", selection.inspectorView || "overview");
   for (const key of ["tenant", "commitment", "proposal", "session", "q"] as const)
@@ -423,6 +456,12 @@ export function companySelection(selection: Selection, tenant: string): Selectio
   return {
     ...selection,
     tenant,
+    cockpitDay: "today",
+    cockpitLocation: "",
+    cockpitMeasure: "due",
+    cockpitCase: "",
+    cockpitBasis: "",
+    cockpitOrigin: undefined,
     tableSort: "",
     tableScope: "",
     tableDirection: "asc",
@@ -475,6 +514,15 @@ export function navigationSelection(selection: Selection, changes: Partial<Selec
       ? companySelection(selection, changes.tenant)
       : selection;
   const next = { ...base, ...changes };
+  if (next.tenant !== selection.tenant) {
+    next.cockpitDay = "today";
+    next.cockpitLocation = "";
+    next.cockpitMeasure = "due";
+    next.cockpitCase = "";
+    next.cockpitBasis = "";
+    next.cockpitOrigin = undefined;
+  }
+  next.cockpitOrigin = readCockpitOrigin(JSON.stringify(next.cockpitOrigin) ?? null, next.tenant);
   // Links to findings must leave the rule catalog, including links from rule previews.
   if (changes.route === "attention" && changes.attentionView === undefined)
     next.attentionView = "findings";
@@ -485,4 +533,85 @@ function normalizeInspectorSelection(selection: Selection): Selection {
   return selection.route === "inspector" && selection.inspectorView === "exceptions"
     ? { ...selection, route: "attention", attentionView: "rules" }
     : selection;
+}
+
+export type CockpitMeasure = "due" | "plan" | "handover" | "risk" | "forecast" | "unplanned";
+export type CockpitOrigin = {
+  tenant: string;
+  day: string;
+  location: string;
+  measure: CockpitMeasure;
+  case: string;
+  basis: string;
+  minutes: 5 | 15 | 60;
+};
+const cockpitMeasures = ["due", "plan", "handover", "risk", "forecast", "unplanned"];
+
+function cockpitDay(value: unknown): string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "today";
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value
+    ? value
+    : "today";
+}
+function cockpitMeasure(value: unknown): CockpitMeasure {
+  return typeof value === "string" && cockpitMeasures.includes(value)
+    ? (value as CockpitMeasure)
+    : "due";
+}
+function cockpitMinutes(value: unknown): 5 | 15 | 60 {
+  return value === 5 || value === "5" ? 5 : value === 60 || value === "60" ? 60 : 15;
+}
+function readCockpitOrigin(raw: string | null, tenant: string): CockpitOrigin | undefined {
+  if (!raw || raw.length > 4096 || !tenant) return undefined;
+  try {
+    const origin = JSON.parse(raw);
+    const keys = ["tenant", "day", "location", "measure", "case", "basis", "minutes"];
+    if (
+      !origin ||
+      typeof origin !== "object" ||
+      Array.isArray(origin) ||
+      Object.keys(origin).length !== keys.length ||
+      Object.keys(origin).some((key) => !keys.includes(key)) ||
+      keys.filter((key) => key !== "minutes").some((key) => typeof origin[key] !== "string") ||
+      origin.tenant !== tenant ||
+      (origin.day !== "today" && cockpitDay(origin.day) !== origin.day) ||
+      !cockpitMeasures.includes(origin.measure) ||
+      ![5, 15, 60].includes(origin.minutes)
+    )
+      return undefined;
+    return origin as CockpitOrigin;
+  } catch {
+    return undefined;
+  }
+}
+export function cockpitOriginSelection(selection: Selection): CockpitOrigin | undefined {
+  if (selection.route !== "cockpit" || !selection.tenant) return undefined;
+  return {
+    tenant: selection.tenant,
+    day: cockpitDay(selection.cockpitDay),
+    location: selection.cockpitLocation || "",
+    measure: cockpitMeasure(selection.cockpitMeasure),
+    case: selection.cockpitCase || "",
+    basis: selection.cockpitBasis || "",
+    minutes: cockpitMinutes(selection.cockpitMinutes),
+  };
+}
+export function cockpitReturnSelection(selection: Selection): Selection | null {
+  const origin = readCockpitOrigin(
+    JSON.stringify(selection.cockpitOrigin) ?? null,
+    selection.tenant,
+  );
+  return origin
+    ? {
+        ...companySelection(selection, selection.tenant),
+        route: "cockpit",
+        cockpitDay: origin.day,
+        cockpitLocation: origin.location,
+        cockpitMeasure: origin.measure,
+        cockpitCase: origin.case,
+        cockpitBasis: origin.basis,
+        cockpitMinutes: origin.minutes,
+      }
+    : null;
 }

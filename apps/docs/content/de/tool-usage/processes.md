@@ -1,8 +1,6 @@
 # Geschäftsprozesse
 
-Die Prozesse, die ein Berater Schritt für Schritt durchgeht: welches Objekt, welche Aktion, welche
-Liste danach zu prüfen ist und welche Klärfälle ein Schritt hinterlassen kann. Die Agenten-Playbooks
-erzählen den Ablauf; diese Seiten sind der Index in das ausführbare Vokabular.
+Die Prozesse, die ein Berater Schritt für Schritt durchgeht: welches Objekt, welche Aktion, welche Liste danach zu prüfen ist und welche Klärfälle ein Schritt hinterlassen kann. Die Agenten-Playbooks erzählen den Ablauf; diese Seiten sind der Index in das ausführbare Vokabular.
 
 > Automatisch aus `resource_catalog.yaml` erzeugt. Diese Seite nicht von Hand bearbeiten.
 
@@ -22,11 +20,9 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 
 **Aktionen**
 
-- [Kundenauftrag oder Bestellung anlegen](./commands#command-create_manual_order)
-  (`create_manual_order`)
+- [Kundenauftrag oder Bestellung anlegen](./commands#command-create_manual_order) (`create_manual_order`)
 
-**Danach prüfen:** [Aufträge](./views#view-orders) (`orders`),
-[Verpflichtungen](./views#view-commitments) (`commitments`)
+**Danach prüfen:** [Aufträge](./views#view-orders) (`orders`), [Verpflichtungen](./views#view-commitments) (`commitments`)
 
 **Kann hinterlassen:** [Auftrag hängt](./exceptions#exception-order_stalled) (`order_stalled`)
 
@@ -39,19 +35,9 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 - [Bestand reservieren](./commands#command-reserve) (`reserve`)
 - [Reservierung aufheben](./commands#command-release_reservation) (`release_reservation`)
 
-**Danach prüfen:** [Zulauf & Bedarf](./views#view-supply_demand) (`supply_demand`),
-[Reservierungen](./views#view-reservations) (`reservations`)
+**Danach prüfen:** [Zulauf & Bedarf](./views#view-supply_demand) (`supply_demand`), [Reservierungen](./views#view-reservations) (`reservations`)
 
-**Kann hinterlassen:**
-[Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
-(`outgoing_commitment_at_risk`),
-[Liefertermin gefährdet](./exceptions#exception-outgoing_commitment_due_soon)
-(`outgoing_commitment_due_soon`),
-[Reservierung übersteigt Bestand](./exceptions#exception-reservation_exceeds_stock)
-(`reservation_exceeds_stock`), [Artikel überverkauft](./exceptions#exception-item_oversold)
-(`item_oversold`),
-[Reservierung wartet auf Vorkasse](./exceptions#exception-reservation_awaiting_prepayment)
-(`reservation_awaiting_prepayment`)
+**Kann hinterlassen:** [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk) (`outgoing_commitment_at_risk`), [Liefertermin gefährdet](./exceptions#exception-outgoing_commitment_due_soon) (`outgoing_commitment_due_soon`), [Reservierung übersteigt Bestand](./exceptions#exception-reservation_exceeds_stock) (`reservation_exceeds_stock`), [Artikel überverkauft](./exceptions#exception-item_oversold) (`item_oversold`), [Reservierung wartet auf Vorkasse](./exceptions#exception-reservation_awaiting_prepayment) (`reservation_awaiting_prepayment`)
 
 ### 3. Sperren oder ändern
 
@@ -60,22 +46,12 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 **Aktionen**
 
 - [Verpflichtung sperren oder freigeben](./commands#command-hold_commitment) (`hold_commitment`)
-- [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
-  (`hold_party_delivery`)
+- [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery) (`hold_party_delivery`)
 - [Verpflichtung ändern](./commands#command-revise_commitment) (`revise_commitment`)
 
 **Danach prüfen:** [Lieferhindernisse](./views#view-fulfillment_blockers) (`fulfillment_blockers`)
 
-**Kann hinterlassen:**
-[Sperre der Verpflichtung nicht aufgehoben](./exceptions#exception-commitment_hold_unreleased)
-(`commitment_hold_unreleased`),
-[Liefersperre nicht aufgehoben](./exceptions#exception-party_hold_unreleased)
-(`party_hold_unreleased`), [Kreditlimit überschritten](./exceptions#exception-credit_limit_exceeded)
-(`credit_limit_exceeded`),
-[Auftrag wartet auf Vollständigkeit](./exceptions#exception-order_waiting_for_completeness)
-(`order_waiting_for_completeness`),
-[Rückstand gegen Kundenregel](./exceptions#exception-backorder_against_rule)
-(`backorder_against_rule`)
+**Kann hinterlassen:** [Sperre der Verpflichtung nicht aufgehoben](./exceptions#exception-commitment_hold_unreleased) (`commitment_hold_unreleased`), [Liefersperre nicht aufgehoben](./exceptions#exception-party_hold_unreleased) (`party_hold_unreleased`), [Kreditlimit überschritten](./exceptions#exception-credit_limit_exceeded) (`credit_limit_exceeded`), [Auftrag wartet auf Vollständigkeit](./exceptions#exception-order_waiting_for_completeness) (`order_waiting_for_completeness`), [Rückstand gegen Kundenregel](./exceptions#exception-backorder_against_rule) (`backorder_against_rule`)
 
 ### 4. Ware versenden und den Spediteur verfolgen
 
@@ -85,23 +61,18 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 
 - [Lieferung planen](./commands#command-plan_outbound_delivery) (`plan_outbound_delivery`)
 - [Lieferung kommissionieren](./commands#command-pick_outbound_delivery) (`pick_outbound_delivery`)
-- [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
-  (`record_packaged_execution`)
+- [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution) (`record_packaged_execution`)
 - [Sendungsavis erfassen](./commands#command-record_shipment_notice) (`record_shipment_notice`)
 - [Sendungsereignis erfassen](./commands#command-record_shipment_event) (`record_shipment_event`)
-- [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure)
-  (`record_delivery_failure`)
+- [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure) (`record_delivery_failure`)
 - [Streckengeschäft erfassen](./commands#command-record_drop_shipment) (`record_drop_shipment`)
 - [Explain a physical shipment](./commands#tool-shipment_explain) (`shipment_explain`)
 - [Failed delivery](./commands#tool-delivery_failure_summary) (`delivery_failure_summary`)
 - [Drop shipping](./commands#tool-drop_shipments) (`drop_shipments`)
 
-**Danach prüfen:** [Lagerarbeitsvorrat](./views#view-warehouse_queue) (`warehouse_queue`),
-[Lagerbewegungen](./views#view-movements) (`movements`)
+**Danach prüfen:** [Lagerarbeitsvorrat](./views#view-warehouse_queue) (`warehouse_queue`), [Lagerbewegungen](./views#view-movements) (`movements`)
 
-**Kann hinterlassen:**
-[Lieferverzug an Kunden](./exceptions#exception-overdue_outgoing_customer_commitment)
-(`overdue_outgoing_customer_commitment`)
+**Kann hinterlassen:** [Lieferverzug an Kunden](./exceptions#exception-overdue_outgoing_customer_commitment) (`overdue_outgoing_customer_commitment`)
 
 ### 5. Geliefertes fakturieren
 
@@ -114,11 +85,7 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 
 **Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`)
 
-**Kann hinterlassen:** [Geliefert, nicht fakturiert](./exceptions#exception-shipped_not_billed)
-(`shipped_not_billed`), [Fakturiert, nicht versandt](./exceptions#exception-billed_not_shipped)
-(`billed_not_shipped`),
-[Ausgangsrechnung nicht gebucht](./exceptions#exception-sales_invoice_unposted)
-(`sales_invoice_unposted`)
+**Kann hinterlassen:** [Geliefert, nicht fakturiert](./exceptions#exception-shipped_not_billed) (`shipped_not_billed`), [Fakturiert, nicht versandt](./exceptions#exception-billed_not_shipped) (`billed_not_shipped`), [Ausgangsrechnung nicht gebucht](./exceptions#exception-sales_invoice_unposted) (`sales_invoice_unposted`)
 
 ### 6. Zahlungseingang erfassen und zuordnen
 
@@ -127,20 +94,14 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 **Aktionen**
 
 - [Zahlungseingang buchen](./commands#command-post_customer_payment) (`post_customer_payment`)
-- [Zahlung zuordnen oder Guthaben verwenden](./commands#command-apply_settlement)
-  (`apply_settlement`)
+- [Zahlung zuordnen oder Guthaben verwenden](./commands#command-apply_settlement) (`apply_settlement`)
 - [Abzug akzeptieren](./commands#command-accept_adjustment) (`accept_adjustment`)
-- [Payment and credit context](./commands#tool-finance_settlement_context)
-  (`finance_settlement_context`)
+- [Payment and credit context](./commands#tool-finance_settlement_context) (`finance_settlement_context`)
 - [Party balances](./commands#tool-finance_party_balances) (`finance_party_balances`)
 
-**Danach prüfen:** [Zahlungen](./views#view-payments) (`payments`),
-[Offene Posten](./views#view-open_items) (`open_items`)
+**Danach prüfen:** [Zahlungen](./views#view-payments) (`payments`), [Offene Posten](./views#view-open_items) (`open_items`)
 
-**Kann hinterlassen:** [Überfällige Forderung](./exceptions#exception-overdue_receivable)
-(`overdue_receivable`),
-[Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event)
-(`unmatched_financial_event`)
+**Kann hinterlassen:** [Überfällige Forderung](./exceptions#exception-overdue_receivable) (`overdue_receivable`), [Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event) (`unmatched_financial_event`)
 
 ### 7. Verpflichtungen schließen
 
@@ -148,8 +109,7 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 
 **Aktionen**
 
-- [Schließen alter Verpflichtungen vorschauen](./commands#command-preview_stale_promise_closure)
-  (`preview_stale_promise_closure`)
+- [Schließen alter Verpflichtungen vorschauen](./commands#command-preview_stale_promise_closure) (`preview_stale_promise_closure`)
 - [Alte Verpflichtungen schließen](./commands#command-close_stale_promises) (`close_stale_promises`)
 
 **Danach prüfen:** [Verpflichtungen](./views#view-commitments) (`commitments`)
@@ -173,13 +133,9 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 - [Read item supply and demand](./commands#tool-item_supply_demand) (`item_supply_demand`)
 - [Read fulfillment blockers](./commands#tool-fulfillment_blockers) (`fulfillment_blockers`)
 
-**Danach prüfen:** [Zulauf & Bedarf](./views#view-supply_demand) (`supply_demand`),
-[Lieferhindernisse](./views#view-fulfillment_blockers) (`fulfillment_blockers`)
+**Danach prüfen:** [Zulauf & Bedarf](./views#view-supply_demand) (`supply_demand`), [Lieferhindernisse](./views#view-fulfillment_blockers) (`fulfillment_blockers`)
 
-**Kann hinterlassen:**
-[Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
-(`outgoing_commitment_at_risk`), [Artikel überverkauft](./exceptions#exception-item_oversold)
-(`item_oversold`)
+**Kann hinterlassen:** [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk) (`outgoing_commitment_at_risk`), [Artikel überverkauft](./exceptions#exception-item_oversold) (`item_oversold`)
 
 ### 2. Bestellung anlegen
 
@@ -187,16 +143,11 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Aktionen**
 
-- [Kundenauftrag oder Bestellung anlegen](./commands#command-create_manual_order)
-  (`create_manual_order`)
+- [Kundenauftrag oder Bestellung anlegen](./commands#command-create_manual_order) (`create_manual_order`)
 
 **Danach prüfen:** [Verpflichtungen](./views#view-commitments) (`commitments`)
 
-**Kann hinterlassen:**
-[Lieferverzug des Lieferanten](./exceptions#exception-overdue_incoming_supplier_commitment)
-(`overdue_incoming_supplier_commitment`),
-[Bestellung nicht bestätigt](./exceptions#exception-purchase_order_unconfirmed)
-(`purchase_order_unconfirmed`)
+**Kann hinterlassen:** [Lieferverzug des Lieferanten](./exceptions#exception-overdue_incoming_supplier_commitment) (`overdue_incoming_supplier_commitment`), [Bestellung nicht bestätigt](./exceptions#exception-purchase_order_unconfirmed) (`purchase_order_unconfirmed`)
 
 ### 3. Wareneingang buchen
 
@@ -205,22 +156,15 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 **Aktionen**
 
 - [Sendungsavis erfassen](./commands#command-record_shipment_notice) (`record_shipment_notice`)
-- [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
-  (`record_packaged_execution`)
+- [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution) (`record_packaged_execution`)
 - [Lagerbewegung buchen](./commands#command-record_movement) (`record_movement`)
 - [Ersatzartikel annehmen](./commands#command-accept_substitute) (`accept_substitute`)
 - [Charge anlegen](./commands#command-create_lot) (`create_lot`)
 - [Mindesthaltbarkeit angeben](./commands#command-state_lot_expiry) (`state_lot_expiry`)
 
-**Danach prüfen:** [Lagerbewegungen](./views#view-movements) (`movements`),
-[Bestand](./views#view-inventory) (`inventory`)
+**Danach prüfen:** [Lagerbewegungen](./views#view-movements) (`movements`), [Bestand](./views#view-inventory) (`inventory`)
 
-**Kann hinterlassen:** [Unerklärte Lagerbewegung](./exceptions#exception-unexplained_movement)
-(`unexplained_movement`), [Abgelaufener Bestand](./exceptions#exception-stock_expired)
-(`stock_expired`), [Mehr erhalten als bestellt](./exceptions#exception-received_beyond_order)
-(`received_beyond_order`),
-[Falscher Artikel geliefert](./exceptions#exception-misdelivery_outstanding)
-(`misdelivery_outstanding`)
+**Kann hinterlassen:** [Unerklärte Lagerbewegung](./exceptions#exception-unexplained_movement) (`unexplained_movement`), [Abgelaufener Bestand](./exceptions#exception-stock_expired) (`stock_expired`), [Mehr erhalten als bestellt](./exceptions#exception-received_beyond_order) (`received_beyond_order`), [Falscher Artikel geliefert](./exceptions#exception-misdelivery_outstanding) (`misdelivery_outstanding`)
 
 ### 4. Eingangsrechnung erfassen und buchen
 
@@ -228,18 +172,12 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Aktionen**
 
-- [Eingangsrechnung erfassen](./commands#command-record_supplier_invoice)
-  (`record_supplier_invoice`)
+- [Eingangsrechnung erfassen](./commands#command-record_supplier_invoice) (`record_supplier_invoice`)
 - [Eingangsrechnung buchen](./commands#command-post_supplier_invoice) (`post_supplier_invoice`)
 
 **Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`)
 
-**Kann hinterlassen:** [Wareneingang ohne Rechnung](./exceptions#exception-receipt_unbilled)
-(`receipt_unbilled`),
-[Eingangsrechnung nicht gebucht](./exceptions#exception-supplier_invoice_unposted)
-(`supplier_invoice_unposted`),
-[Doppelte Eingangsrechnung](./exceptions#exception-duplicate_supplier_invoice)
-(`duplicate_supplier_invoice`)
+**Kann hinterlassen:** [Wareneingang ohne Rechnung](./exceptions#exception-receipt_unbilled) (`receipt_unbilled`), [Eingangsrechnung nicht gebucht](./exceptions#exception-supplier_invoice_unposted) (`supplier_invoice_unposted`), [Doppelte Eingangsrechnung](./exceptions#exception-duplicate_supplier_invoice) (`duplicate_supplier_invoice`)
 
 ### 5. Rechnungsprüfung gegen Bestellung und Wareneingang
 
@@ -252,10 +190,7 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`)
 
-**Kann hinterlassen:** [Fakturiert, nicht geliefert](./exceptions#exception-billed_not_received)
-(`billed_not_received`),
-[Rechnungspreis weicht von der Vereinbarung ab](./exceptions#exception-invoice_price_differs)
-(`invoice_price_differs`)
+**Kann hinterlassen:** [Fakturiert, nicht geliefert](./exceptions#exception-billed_not_received) (`billed_not_received`), [Rechnungspreis weicht von der Vereinbarung ab](./exceptions#exception-invoice_price_differs) (`invoice_price_differs`)
 
 ### 6. Lieferanten per Zahllauf bezahlen
 
@@ -269,9 +204,7 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Danach prüfen:** [Zahlungen](./views#view-payments) (`payments`)
 
-**Kann hinterlassen:** [Überfällige Verbindlichkeit](./exceptions#exception-overdue_payable)
-(`overdue_payable`), [Skonto noch möglich](./exceptions#exception-purchase_discount_available)
-(`purchase_discount_available`)
+**Kann hinterlassen:** [Überfällige Verbindlichkeit](./exceptions#exception-overdue_payable) (`overdue_payable`), [Skonto noch möglich](./exceptions#exception-purchase_discount_available) (`purchase_discount_available`)
 
 ### 7. Lieferantengutschriften und Lieferantenretouren
 
@@ -279,26 +212,17 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Aktionen**
 
-- [Lieferantengutschrift buchen](./commands#command-post_supplier_credit_note)
-  (`post_supplier_credit_note`)
-- [Lieferantengutschrift mit Rechnung verrechnen](./commands#command-allocate_supplier_credit_note)
-  (`allocate_supplier_credit_note`)
+- [Lieferantengutschrift buchen](./commands#command-post_supplier_credit_note) (`post_supplier_credit_note`)
+- [Lieferantengutschrift mit Rechnung verrechnen](./commands#command-allocate_supplier_credit_note) (`allocate_supplier_credit_note`)
 - [Lieferantenerstattung buchen](./commands#command-post_supplier_refund) (`post_supplier_refund`)
 
 **Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`)
 
-**Kann hinterlassen:**
-[Lieferantenretoure nicht gutgeschrieben](./exceptions#exception-supplier_return_not_credited)
-(`supplier_return_not_credited`),
-[Lieferant hat mehr gutgeschrieben als zurückging](./exceptions#exception-supplier_credit_not_returned)
-(`supplier_credit_not_returned`),
-[Lieferantengutschrift nicht eingefordert](./exceptions#exception-supplier_credit_unclaimed)
-(`supplier_credit_unclaimed`)
+**Kann hinterlassen:** [Lieferantenretoure nicht gutgeschrieben](./exceptions#exception-supplier_return_not_credited) (`supplier_return_not_credited`), [Lieferant hat mehr gutgeschrieben als zurückging](./exceptions#exception-supplier_credit_not_returned) (`supplier_credit_not_returned`), [Lieferantengutschrift nicht eingefordert](./exceptions#exception-supplier_credit_unclaimed) (`supplier_credit_unclaimed`)
 
 ## Kundenretouren {#process-returns}
 
-Von der Ankündigung über den Retourenwareneingang und die Entscheidung bis zu Gutschrift oder
-Erstattung.
+Von der Ankündigung über den Retourenwareneingang und die Entscheidung bis zu Gutschrift oder Erstattung.
 
 [Playbook lesen](../agent-playbooks/returns)
 
@@ -309,15 +233,10 @@ Erstattung.
 **Aktionen**
 
 - [Retoure ankündigen](./commands#command-announce_customer_return) (`announce_customer_return`)
-- [Retourenankündigung zurückziehen](./commands#command-withdraw_return_announcement)
-  (`withdraw_return_announcement`)
+- [Retourenankündigung zurückziehen](./commands#command-withdraw_return_announcement) (`withdraw_return_announcement`)
 - [Angekündigte Retouren anzeigen](./commands#command-return_announcements) (`return_announcements`)
 
-**Kann hinterlassen:**
-[Angekündigte Retoure nicht eingetroffen](./exceptions#exception-announced_return_not_arrived)
-(`announced_return_not_arrived`),
-[Umtausch ohne Rücksendung](./exceptions#exception-exchange_without_return)
-(`exchange_without_return`)
+**Kann hinterlassen:** [Angekündigte Retoure nicht eingetroffen](./exceptions#exception-announced_return_not_arrived) (`announced_return_not_arrived`), [Umtausch ohne Rücksendung](./exceptions#exception-exchange_without_return) (`exchange_without_return`)
 
 ### 2. Die Ware kommt an
 
@@ -325,15 +244,12 @@ Erstattung.
 
 **Aktionen**
 
-- [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
-  (`record_packaged_execution`)
+- [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution) (`record_packaged_execution`)
 - [Lagerbewegung buchen](./commands#command-record_movement) (`record_movement`)
 
-**Danach prüfen:** [Lagerbewegungen](./views#view-movements) (`movements`),
-[Bestand](./views#view-inventory) (`inventory`)
+**Danach prüfen:** [Lagerbewegungen](./views#view-movements) (`movements`), [Bestand](./views#view-inventory) (`inventory`)
 
-**Kann hinterlassen:** [Retoure nicht bearbeitet](./exceptions#exception-return_unresolved)
-(`return_unresolved`)
+**Kann hinterlassen:** [Retoure nicht bearbeitet](./exceptions#exception-return_unresolved) (`return_unresolved`)
 
 ### 3. Gutschrift erteilen
 
@@ -343,17 +259,11 @@ Erstattung.
 
 - [Retourengutschrift erfassen](./commands#command-record_sales_credit) (`record_sales_credit`)
 - [Gutschrift buchen](./commands#command-post_sales_credit_note) (`post_sales_credit_note`)
-- [Manuellen Beleg erfassen](./commands#command-create_manual_document_with_lines)
-  (`create_manual_document_with_lines`)
+- [Manuellen Beleg erfassen](./commands#command-create_manual_document_with_lines) (`create_manual_document_with_lines`)
 
 **Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`)
 
-**Kann hinterlassen:**
-[Retourniert, nicht gutgeschrieben](./exceptions#exception-returned_not_credited)
-(`returned_not_credited`),
-[Gutgeschrieben, nicht retourniert](./exceptions#exception-credited_not_returned)
-(`credited_not_returned`), [Gutschrift nicht gebucht](./exceptions#exception-credit_note_unposted)
-(`credit_note_unposted`)
+**Kann hinterlassen:** [Retourniert, nicht gutgeschrieben](./exceptions#exception-returned_not_credited) (`returned_not_credited`), [Gutgeschrieben, nicht retourniert](./exceptions#exception-credited_not_returned) (`credited_not_returned`), [Gutschrift nicht gebucht](./exceptions#exception-credit_note_unposted) (`credit_note_unposted`)
 
 ### 4. Gutschrift verrechnen oder erstatten
 
@@ -361,21 +271,17 @@ Erstattung.
 
 **Aktionen**
 
-- [Gutschrift mit Rechnung verrechnen](./commands#command-allocate_credit_note)
-  (`allocate_credit_note`)
+- [Gutschrift mit Rechnung verrechnen](./commands#command-allocate_credit_note) (`allocate_credit_note`)
 - [Kundenerstattung buchen](./commands#command-post_customer_refund) (`post_customer_refund`)
 - [Available credit](./commands#tool-finance_credits) (`finance_credits`)
 
-**Danach prüfen:** [Zahlungen](./views#view-payments) (`payments`),
-[Offene Posten](./views#view-open_items) (`open_items`)
+**Danach prüfen:** [Zahlungen](./views#view-payments) (`payments`), [Offene Posten](./views#view-open_items) (`open_items`)
 
-**Kann hinterlassen:** [Gutschrift nicht ausgeglichen](./exceptions#exception-credit_note_unsettled)
-(`credit_note_unsettled`)
+**Kann hinterlassen:** [Gutschrift nicht ausgeglichen](./exceptions#exception-credit_note_unsettled) (`credit_note_unsettled`)
 
 ## Stammdaten und Quellen {#process-master_data}
 
-Geschäftspartner, Artikel, Lagerorte, Preise und Konditionen anlegen, die liefernden Systeme
-anbinden und aktuell halten.
+Geschäftspartner, Artikel, Lagerorte, Preise und Konditionen anlegen, die liefernden Systeme anbinden und aktuell halten.
 
 [Playbook lesen](../agent-playbooks/master-data-and-sources)
 
@@ -388,14 +294,11 @@ anbinden und aktuell halten.
 - [Geschäftspartner anlegen](./commands#command-create_party) (`create_party`)
 - [Artikel anlegen](./commands#command-create_item) (`create_item`)
 - [Lagerort anlegen](./commands#command-create_location) (`create_location`)
-- [Stammdatensatz aktivieren oder deaktivieren](./commands#command-set_master_data_active)
-  (`set_master_data_active`)
+- [Stammdatensatz aktivieren oder deaktivieren](./commands#command-set_master_data_active) (`set_master_data_active`)
 
-**Danach prüfen:** [Geschäftspartner](./views#view-parties) (`parties`),
-[Artikel](./views#view-items) (`items`), [Lagerorte](./views#view-locations) (`locations`)
+**Danach prüfen:** [Geschäftspartner](./views#view-parties) (`parties`), [Artikel](./views#view-items) (`items`), [Lagerorte](./views#view-locations) (`locations`)
 
-**Kann hinterlassen:** [Einheiten nicht vergleichbar](./exceptions#exception-units_not_comparable)
-(`units_not_comparable`)
+**Kann hinterlassen:** [Einheiten nicht vergleichbar](./exceptions#exception-units_not_comparable) (`units_not_comparable`)
 
 ### 2. Aktuell halten
 
@@ -407,8 +310,7 @@ anbinden und aktuell halten.
 - [Artikel ändern](./commands#command-update_item) (`update_item`)
 - [Lagerort ändern](./commands#command-update_location) (`update_location`)
 
-**Danach prüfen:** [Geschäftspartner](./views#view-parties) (`parties`),
-[Artikel](./views#view-items) (`items`), [Lagerorte](./views#view-locations) (`locations`)
+**Danach prüfen:** [Geschäftspartner](./views#view-parties) (`parties`), [Artikel](./views#view-items) (`items`), [Lagerorte](./views#view-locations) (`locations`)
 
 ### 3. Preise
 
@@ -424,11 +326,7 @@ anbinden und aktuell halten.
 
 **Danach prüfen:** [Konditionen](./views#view-commercial_terms) (`commercial_terms`)
 
-**Kann hinterlassen:**
-[Rechnungspreis weicht von der Vereinbarung ab](./exceptions#exception-invoice_price_differs)
-(`invoice_price_differs`),
-[Unter Einkaufspreis verkauft](./exceptions#exception-sold_below_purchase_price)
-(`sold_below_purchase_price`)
+**Kann hinterlassen:** [Rechnungspreis weicht von der Vereinbarung ab](./exceptions#exception-invoice_price_differs) (`invoice_price_differs`), [Unter Einkaufspreis verkauft](./exceptions#exception-sold_below_purchase_price) (`sold_below_purchase_price`)
 
 ### 4. Quelle registrieren und festlegen
 
@@ -437,17 +335,13 @@ anbinden und aktuell halten.
 **Aktionen**
 
 - [Quellsystem anlegen](./commands#command-create_source_system) (`create_source_system`)
-- [Quellfähigkeit festlegen](./commands#command-create_source_capability)
-  (`create_source_capability`)
+- [Quellfähigkeit festlegen](./commands#command-create_source_capability) (`create_source_capability`)
 - [Connector einrichten](./commands#command-install_connector_shell) (`install_connector_shell`)
 - [Quelldaten importieren](./commands#command-enqueue_source) (`enqueue_source`)
 
-**Danach prüfen:** [Quellen & Importe](./views#view-sources_imports) (`sources_imports`),
-[Belege](./views#view-documents) (`documents`)
+**Danach prüfen:** [Quellen & Importe](./views#view-sources_imports) (`sources_imports`), [Belege](./views#view-documents) (`documents`)
 
-**Kann hinterlassen:** [Quelle verstummt](./exceptions#exception-silent_source) (`silent_source`),
-[Quelle nicht interpretierbar](./exceptions#exception-source_interpretation_failure)
-(`source_interpretation_failure`)
+**Kann hinterlassen:** [Quelle verstummt](./exceptions#exception-silent_source) (`silent_source`), [Quelle nicht interpretierbar](./exceptions#exception-source_interpretation_failure) (`source_interpretation_failure`)
 
 ### 5. Einen fehlenden Sachverhalt als Fact erfassen
 
@@ -457,8 +351,7 @@ anbinden und aktuell halten.
 
 - [Fact erfassen](./commands#command-observe_fact) (`observe_fact`)
 - [List missing information](./commands#tool-reality_gaps) (`reality_gaps`)
-- [Propose missing information](./commands#tool-reality_gap_create_propose)
-  (`reality_gap_create_propose`)
+- [Propose missing information](./commands#tool-reality_gap_create_propose) (`reality_gap_create_propose`)
 
 **Danach prüfen:** [Belege](./views#view-documents) (`documents`)
 
@@ -490,8 +383,7 @@ Konten, Eröffnungsbuchungen, die Zuordnung zum externen Buchhaltungssystem und 
 - [Kontext der Eröffnungsposten anzeigen](./commands#command-opening_context) (`opening_context`)
 - [Eröffnungsposten importieren](./commands#command-import_opening) (`import_opening`)
 
-**Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`),
-[Journal](./views#view-journal) (`journal`)
+**Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`), [Journal](./views#view-journal) (`journal`)
 
 ### 3. Buchungen dem externen Buchhaltungssystem zuordnen
 
@@ -499,8 +391,7 @@ Konten, Eröffnungsbuchungen, die Zuordnung zum externen Buchhaltungssystem und 
 
 **Aktionen**
 
-- [Buchhaltungsziel pflegen](./commands#command-maintain_target_configuration)
-  (`maintain_target_configuration`)
+- [Buchhaltungsziel pflegen](./commands#command-maintain_target_configuration) (`maintain_target_configuration`)
 - [Finanzreferenz pflegen](./commands#command-maintain_reference) (`maintain_reference`)
 - [Quellcode zuordnen](./commands#command-set_source_mapping) (`set_source_mapping`)
 - [Finanzkomponente zuordnen](./commands#command-assign_component) (`assign_component`)
@@ -513,13 +404,9 @@ Konten, Eröffnungsbuchungen, die Zuordnung zum externen Buchhaltungssystem und 
 
 **Aktionen**
 
-- [Buchung stornieren](./commands#command-reverse_ledger_posting_group)
-  (`reverse_ledger_posting_group`)
+- [Buchung stornieren](./commands#command-reverse_ledger_posting_group) (`reverse_ledger_posting_group`)
 - [Lagerbewegung korrigieren](./commands#command-correct_movement) (`correct_movement`)
 
-**Danach prüfen:** [Journal](./views#view-journal) (`journal`),
-[Lagerbewegungen](./views#view-movements) (`movements`)
+**Danach prüfen:** [Journal](./views#view-journal) (`journal`), [Lagerbewegungen](./views#view-movements) (`movements`)
 
-**Kann hinterlassen:**
-[Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event)
-(`unmatched_financial_event`)
+**Kann hinterlassen:** [Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event) (`unmatched_financial_event`)

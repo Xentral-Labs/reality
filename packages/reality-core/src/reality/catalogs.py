@@ -61,6 +61,7 @@ from reality.services import return_dispositions as return_disposition_service_m
 from reality.services import reviewed_item_imports as item_import_service_module
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
+from reality.services import shipping_plans as shipping_plan_service_module
 from reality.services import stock_blocks as stock_block_service_module
 from reality.services import stock_counts as stock_count_service_module
 from reality.services import supplier_item_numbers as supplier_item_service_module
@@ -247,6 +248,7 @@ TENANT_SERVICE_MODULES = {
     "reality.services.payment_intake": payment_intake_service_module,
     "reality.services.playground": playground_service_module,
     "reality.services.shipments": shipment_service_module,
+    "reality.services.shipping_plans": shipping_plan_service_module,
 }
 
 
@@ -1130,19 +1132,51 @@ def load_tenant_isolation_catalog() -> TenantIsolationCatalog:
 
 
 def _service(name: str) -> Any:
+    if name in {
+        "operations_cockpit",
+        "operations_cockpit_activity",
+        "operations_cockpit_agents",
+        "shipping_performance",
+        "shipping_supporting_orders",
+    }:
+        from reality.services import operations_cockpit, shipping_performance
+
+        bindings = {
+            "operations_cockpit": operations_cockpit.operations_cockpit,
+            "operations_cockpit_activity": operations_cockpit.activity,
+            "operations_cockpit_agents": operations_cockpit.agents,
+            "shipping_performance": shipping_performance.shipping_performance,
+            "shipping_supporting_orders": shipping_performance.shipping_supporting_orders,
+        }
+        return bindings[name]
+    if name in {"shipping_plan_state", "shipping_plan_review"}:
+        from reality.services import shipping_plans
+
+        return getattr(
+            shipping_plans,
+            {
+                "shipping_plan_state": "state_plan",
+                "shipping_plan_review": "review_plan",
+            }[name],
+        )
     if name.startswith("operational_case_"):
         from reality.services import operational_cases
 
-        return getattr(operational_cases, {
-            "operational_case_status": "coordination_status",
-            "operational_case_list": "list_cases",
-            "operational_case_explain": "explain",
-            "operational_case_object": "object_cases",
-            "operational_case_handback_preview": "handback_preview",
-            "operational_case_adopt": "adopt",
-            "operational_case_takeover": "takeover",
-            "operational_case_handback": "handback",
-        }.get(name, ""), None)
+        return getattr(
+            operational_cases,
+            {
+                "operational_case_list": "list_cases",
+                "operational_case_status": "coordination_status",
+                "operational_case_register": "register_cases",
+                "operational_case_explain": "explain",
+                "operational_case_object": "object_cases",
+                "operational_case_handback_preview": "handback_preview",
+                "operational_case_adopt": "adopt",
+                "operational_case_takeover": "takeover",
+                "operational_case_handback": "handback",
+            }.get(name, ""),
+            None,
+        )
     if name == "email_dispatch_authorize":
         return email_service_module.authorize_dispatch
     if hasattr(costing_service_module, name):
@@ -1418,6 +1452,7 @@ def _literal_business_events() -> set[str]:
         finance_source_mapping_module,
         finance_target_mapping_module,
         shipment_service_module,
+        shipping_plan_service_module,
     ):
         source = Path(inspect.getsourcefile(module) or "")
         tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))

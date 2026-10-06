@@ -1,10 +1,11 @@
 """Stable responsibility over accepted goals, without a second business ledger."""
 
+import base64
 import hashlib
 import json
 
-from sqlalchemy import func, inspect, select
-from sqlalchemy.orm import Session
+from sqlalchemy import cast, func, inspect, or_, select
+from sqlalchemy.orm import Session, load_only
 
 from reality.db.core import (
     AppUser,
@@ -419,7 +420,6 @@ def _control_replay(session, tenant_id, action_type, request_key, arguments):
     # Request keys are bounded exact control identifiers, never business identity.
     if not isinstance(request_key, str) or not 1 <= len(request_key) <= 128:
         raise core.InvalidOperation(code="case_request_invalid")
-    from sqlalchemy import cast
     from sqlalchemy.dialects.postgresql import JSONB
 
     tool_type = "tool:operational_case_" + action_type.removeprefix("case:")
@@ -549,24 +549,56 @@ def _work(session, tenant_id, case):
     ]
 
 
-def _coverage_gaps(session, tenant_id, case):
+def _source_gap(source_id, current_id, job_status):
+    """Canonical coverage of an original source's current interpretation."""
+    if current_id is not None and (
+        (job_status is not None and job_status != "completed")
+        or (job_status is None and current_id != source_id)
+    ):
+        return {
+            "source_record_id": current_id,
+            "status": job_status
+            if job_status is not None
+            else "interpretation_missing",
+        }
+    return None
+
+
+def _coverage_gaps(
+    session, tenant_id, case, *, _records=None, _work_rows=None, _source_gaps=None
+):
     # Only authoritative order source streams relevant to this goal are required.
     gaps = []
+
+    def record(model, identity):
+        held = (_records or {}).get((model, identity))
+        return (
+            held
+            if held is not None
+            else core._tenant_record_read(session, model, tenant_id, identity)
+        )
+
     docs = {
-        row.document_id for row in _work(session, tenant_id, case) if row.document_id
+        row.document_id
+        for row in (
+            _work_rows if _work_rows is not None else _work(session, tenant_id, case)
+        )
+        if row.document_id
     }
     source_ids = set()
     for doc_id in sorted(docs):
-        doc = core._tenant_record_read(session, Document, tenant_id, doc_id)
+        doc = record(Document, doc_id)
         if doc.source_record_id:
             source_ids.add(doc.source_record_id)
     if case.return_announcement_id:
-        announcement = core._tenant_record_read(
-            session, ReturnAnnouncement, tenant_id, case.return_announcement_id
-        )
+        announcement = record(ReturnAnnouncement, case.return_announcement_id)
         if announcement.source_record_id:
             source_ids.add(announcement.source_record_id)
     for source_id in sorted(source_ids):
+        if _source_gaps is not None and source_id in _source_gaps:
+            if _source_gaps[source_id] is not None:
+                gaps.append(_source_gaps[source_id])
+            continue
         source = core._tenant_record_read(session, SourceRecord, tenant_id, source_id)
         stream = session.scalar(
             select(SourceStream).where(
@@ -584,21 +616,310 @@ def _coverage_gaps(session, tenant_id, case):
                 ImportJob.source_record_id == stream.current_source_record_id,
             )
         )
-        if (job is not None and job.status != "completed") or (
-            job is None and stream.current_source_record_id != source.id
-        ):
-            gaps.append(
-                {
-                    "source_record_id": stream.current_source_record_id,
-                    "status": job.status
-                    if job is not None
-                    else "interpretation_missing",
-                }
-            )
+        gap = _source_gap(
+            source.id,
+            stream.current_source_record_id,
+            job.status if job is not None else None,
+        )
+        if gap is not None:
+            gaps.append(gap)
     return gaps
 
 
-def explain(session: Session, tenant_id: str, case_id: str):
+def _explanation_inputs(session: Session, tenant_id: str, page: list[str]):
+    """Hold bounded original inputs for one read-only register observation.
+
+    No input survives this call's DTO assembly. Tenant-scoped original records
+    feed the existing explanation/domain rules; action previews and executing
+    totals remain independent. Ordinary and mutating callers never use this path.
+    """
+    from reality.db.scheduled_jobs import ScheduledJobRun
+
+    records = {}
+
+    def hold(model, predicate, *options, _empty=False):
+        if _empty:
+            return []
+        values = list(
+            session.scalars(
+                select(model)
+                .where(model.tenant_id == tenant_id, predicate)
+                .options(*options)
+            )
+        )
+        records.update({(model, row.id): row for row in values})
+        return values
+
+    cases = hold(OperationalCase, OperationalCase.id.in_(page))
+    return_ids = {
+        row.return_announcement_id for row in cases if row.return_announcement_id
+    }
+    announcements = hold(
+        ReturnAnnouncement, ReturnAnnouncement.id.in_(return_ids), _empty=not return_ids
+    )
+    return_by_id = {row.id: row for row in announcements}
+    commitments = hold(
+        Commitment,
+        or_(
+            (
+                Commitment.document_id.in_(
+                    {row.order_document_id for row in cases if row.order_document_id}
+                )
+            )
+            & (Commitment.type == "customer_delivery"),
+            Commitment.id.in_({row.commitment_id for row in announcements}),
+        ),
+    )
+    by_doc = {}
+    for row in sorted(commitments, key=lambda value: value.id):
+        if row.type == "customer_delivery":
+            by_doc.setdefault(row.document_id, []).append(row)
+    work = {
+        row.id: by_doc.get(row.order_document_id, [])
+        if row.kind == "order_fulfillment"
+        else [
+            records[
+                (Commitment, return_by_id[row.return_announcement_id].commitment_id)
+            ]
+        ]
+        for row in cases
+    }
+    docs = hold(
+        Document,
+        Document.id.in_(
+            {row.document_id for row in commitments if row.document_id}
+            | {row.order_document_id for row in cases if row.order_document_id}
+        ),
+    )
+    source_ids = {
+        row.source_record_id for row in docs + announcements if row.source_record_id
+    }
+    sources = hold(
+        SourceRecord,
+        SourceRecord.id.in_(source_ids),
+        load_only(
+            SourceRecord.id,
+            SourceRecord.tenant_id,
+            SourceRecord.source_system,
+            SourceRecord.source_type,
+            SourceRecord.external_id,
+        ),
+        _empty=not source_ids,
+    )
+    source_gaps = {}
+    for source, current_id, job_status in (
+        session.execute(
+            select(
+                SourceRecord.id, SourceStream.current_source_record_id, ImportJob.status
+            )
+            .outerjoin(
+                SourceStream,
+                (SourceStream.tenant_id == tenant_id)
+                & (SourceStream.source_system == SourceRecord.source_system)
+                & (SourceStream.source_type == SourceRecord.source_type)
+                & (SourceStream.external_id == SourceRecord.external_id),
+            )
+            .outerjoin(
+                ImportJob,
+                (ImportJob.tenant_id == tenant_id)
+                & (ImportJob.source_record_id == SourceStream.current_source_record_id),
+            )
+            .where(
+                SourceRecord.tenant_id == tenant_id,
+                SourceRecord.id.in_({row.id for row in sources}),
+            )
+        )
+        if sources
+        else []
+    ):
+        source_gaps[source] = _source_gap(source, current_id, job_status)
+
+    related = {row.id: [] for row in cases}
+    returns_by_commitment = {}
+    for commitment_id, case_id in session.execute(
+        select(ReturnAnnouncement.commitment_id, OperationalCase.id)
+        .join(
+            OperationalCase,
+            (OperationalCase.tenant_id == tenant_id)
+            & (OperationalCase.return_announcement_id == ReturnAnnouncement.id),
+        )
+        .where(
+            ReturnAnnouncement.tenant_id == tenant_id,
+            ReturnAnnouncement.commitment_id.in_({row.id for row in commitments}),
+        )
+    ):
+        returns_by_commitment.setdefault(commitment_id, []).append(case_id)
+    linked_by_commitment = {}
+    for commitment_id, case_id in (
+        session.execute(
+            select(CaseCommitmentLink.commitment_id, CaseCommitmentLink.case_id).where(
+                CaseCommitmentLink.tenant_id == tenant_id,
+                CaseCommitmentLink.commitment_id.in_(
+                    {row.commitment_id for row in announcements}
+                ),
+            )
+        )
+        if announcements
+        else []
+    ):
+        linked_by_commitment.setdefault(commitment_id, []).append(case_id)
+    for case in cases:
+        lookup = (
+            returns_by_commitment
+            if case.kind == "order_fulfillment"
+            else linked_by_commitment
+        )
+        related[case.id] = [
+            identity for row in work[case.id] for identity in lookup.get(row.id, [])
+        ]
+
+    ranked = (
+        select(
+            CaseProposalLink.case_id,
+            CaseProposalLink.proposal_id,
+            func.row_number()
+            .over(
+                partition_by=CaseProposalLink.case_id,
+                order_by=(ChangeProposal.created_at.desc(), ChangeProposal.id.desc()),
+            )
+            .label("position"),
+        )
+        .join(
+            ChangeProposal,
+            (ChangeProposal.tenant_id == tenant_id)
+            & (ChangeProposal.id == CaseProposalLink.proposal_id),
+        )
+        .where(
+            CaseProposalLink.tenant_id == tenant_id, CaseProposalLink.case_id.in_(page)
+        )
+        .subquery()
+    )
+    links = {identity: [] for identity in page}
+    for link, action in session.execute(
+        select(CaseProposalLink, ChangeProposal)
+        .join(
+            ChangeProposal,
+            (ChangeProposal.tenant_id == tenant_id)
+            & (ChangeProposal.id == CaseProposalLink.proposal_id),
+        )
+        .join(
+            ranked,
+            (ranked.c.case_id == CaseProposalLink.case_id)
+            & (ranked.c.proposal_id == CaseProposalLink.proposal_id),
+        )
+        .where(CaseProposalLink.tenant_id == tenant_id, ranked.c.position <= 51)
+        .order_by(CaseProposalLink.case_id, ranked.c.position)
+    ):
+        links[link.case_id].append(link)
+        records[(ChangeProposal, action.id)] = action
+    executing = (
+        select(
+            CaseProposalLink.case_id,
+            ChangeProposal.id,
+            func.count().over(partition_by=CaseProposalLink.case_id).label("total"),
+            func.row_number()
+            .over(partition_by=CaseProposalLink.case_id, order_by=ChangeProposal.id)
+            .label("position"),
+        )
+        .join(
+            ChangeProposal,
+            (ChangeProposal.tenant_id == tenant_id)
+            & (ChangeProposal.id == CaseProposalLink.proposal_id),
+        )
+        .where(
+            CaseProposalLink.tenant_id == tenant_id,
+            CaseProposalLink.case_id.in_(page),
+            ChangeProposal.status == "executing",
+        )
+        .subquery()
+    )
+    unsettled = {identity: [] for identity in page}
+    totals = {identity: 0 for identity in page}
+    for case_id, identity, total in (
+        session.execute(
+            select(executing.c.case_id, executing.c.id, executing.c.total)
+            .where(executing.c.position <= 50)
+            .order_by(executing.c.case_id, executing.c.id)
+        )
+        if any(links.values())
+        else []
+    ):
+        unsettled[case_id].append(identity)
+        totals[case_id] = total
+    controls = {
+        row.subject_id: row
+        for row in session.scalars(
+            select(BusinessEvent)
+            .where(
+                BusinessEvent.tenant_id == tenant_id,
+                BusinessEvent.subject_type == "operational_case",
+                BusinessEvent.subject_id.in_(page),
+                BusinessEvent.event_type.in_(
+                    ("operational_case.taken_over", "operational_case.handed_back")
+                ),
+            )
+            .distinct(BusinessEvent.subject_id)
+            .order_by(BusinessEvent.subject_id, BusinessEvent.sequence.desc())
+        )
+    }
+    decision_ids = {row.action_id for row in controls.values() if row.action_id}
+    decisions = hold(
+        ChangeProposal, ChangeProposal.id.in_(decision_ids), _empty=not decision_ids
+    )
+    actors = {
+        row.id: row
+        for row in session.scalars(
+            select(AppUser).where(
+                AppUser.id.in_(
+                    {
+                        row.decided_by_user_id
+                        for row in decisions
+                        if row.decided_by_user_id
+                    }
+                    if decisions
+                    else {}
+                )
+            )
+        )
+    }
+    consumer = (
+        session.get(CaseConsumerCheckpoint, (tenant_id, 1)),
+        session.get(TenantEventProgress, tenant_id),
+        session.scalar(
+            select(ScheduledJobRun)
+            .where(
+                ScheduledJobRun.tenant_id == tenant_id,
+                ScheduledJobRun.job_type == "operational_cases.reconcile",
+            )
+            .order_by(ScheduledJobRun.created_at.desc(), ScheduledJobRun.id.desc())
+            .limit(1)
+        ),
+    )
+    return {
+        "session": session,
+        "tenant_id": tenant_id,
+        "records": records,
+        "work": work,
+        "source_gaps": source_gaps,
+        "related": related,
+        "links": links,
+        "unsettled": unsettled,
+        "totals": totals,
+        "controls": controls,
+        "actors": actors,
+        "consumer": consumer,
+    }
+
+
+def explain(
+    session: Session,
+    tenant_id: str,
+    case_id: str,
+    *,
+    action_limit: int | None = None,
+    _terms: dict | None = None,
+    _inputs: dict | None = None,
+):
     """
     BUSINESS PURPOSE:
     Explain current work, ownership, source coverage, related goals and unresolved executions from held Reality.
@@ -606,38 +927,76 @@ def explain(session: Session, tenant_id: str, case_id: str):
     BUSINESS RULE services.operational_cases.explain.result:
     Return only the canonical same-company result after the function's source, control and authority checks; never perform provider transport.
     """
-    case = _case(session, tenant_id, case_id)
-    commitments = _work(session, tenant_id, case)
+    if action_limit is not None and (
+        type(action_limit) is not int or not 1 <= action_limit <= 50
+    ):
+        raise core.InvalidOperation(code="case_selection_too_large")
+    inputs = (
+        _inputs
+        if (
+            session.info.get("operations_snapshot_consistent")
+            and _inputs is not None
+            and _inputs["session"] is session
+            and _inputs["tenant_id"] == tenant_id
+            and (OperationalCase, case_id) in _inputs["records"]
+            and action_limit == 50
+        )
+        else None
+    )
+
+    def record(model, identity):
+        held = inputs["records"].get((model, identity)) if inputs else None
+        return (
+            held
+            if held is not None
+            else core._tenant_record_read(session, model, tenant_id, identity)
+        )
+
+    case = (
+        record(OperationalCase, case_id)
+        if inputs
+        else _case(session, tenant_id, case_id)
+    )
+    commitments = inputs["work"][case_id] if inputs else _work(session, tenant_id, case)
     work = [
         {
             "commitment_id": row.id,
-            "open_quantity": str(core.open_quantity(session, tenant_id, row.id)),
+            "open_quantity": str(
+                _terms[row.id].open
+                if _terms is not None and row.id in _terms
+                else core.open_quantity(session, tenant_id, row.id)
+            ),
             "status": row.status,
         }
         for row in commitments
     ]
-    related = []
+    related = inputs["related"][case_id] if inputs else []
     if case.kind == "order_fulfillment":
         ids = [row.id for row in commitments]
-        related = list(
-            session.scalars(
-                select(OperationalCase.id)
-                .join(
-                    ReturnAnnouncement,
-                    (ReturnAnnouncement.tenant_id == OperationalCase.tenant_id)
-                    & (ReturnAnnouncement.id == OperationalCase.return_announcement_id),
-                )
-                .where(
-                    OperationalCase.tenant_id == tenant_id,
-                    ReturnAnnouncement.commitment_id.in_(ids),
+        related = (
+            related
+            if inputs
+            else list(
+                session.scalars(
+                    select(OperationalCase.id)
+                    .join(
+                        ReturnAnnouncement,
+                        (ReturnAnnouncement.tenant_id == OperationalCase.tenant_id)
+                        & (
+                            ReturnAnnouncement.id
+                            == OperationalCase.return_announcement_id
+                        ),
+                    )
+                    .where(
+                        OperationalCase.tenant_id == tenant_id,
+                        ReturnAnnouncement.commitment_id.in_(ids),
+                    )
                 )
             )
         )
         state = fulfillment_state(work)
     else:
-        ann = core._tenant_record_read(
-            session, ReturnAnnouncement, tenant_id, case.return_announcement_id
-        )
+        ann = record(ReturnAnnouncement, case.return_announcement_id)
         state = return_state(ann.status)
         work = [
             {
@@ -649,24 +1008,61 @@ def explain(session: Session, tenant_id: str, case_id: str):
                 "status": ann.status,
             }
         ]
-        for row in commitments:
-            related.extend(object_cases(session, tenant_id, "commitment", row.id))
-    links = list(
-        session.scalars(
-            select(CaseProposalLink)
-            .where(
-                CaseProposalLink.tenant_id == tenant_id,
-                CaseProposalLink.case_id == case.id,
+        if not inputs:
+            for row in commitments:
+                related.extend(object_cases(session, tenant_id, "commitment", row.id))
+    links_query = select(CaseProposalLink).where(
+        CaseProposalLink.tenant_id == tenant_id, CaseProposalLink.case_id == case.id
+    )
+    if action_limit is not None:
+        links_query = (
+            links_query.join(
+                ChangeProposal,
+                (ChangeProposal.tenant_id == tenant_id)
+                & (ChangeProposal.id == CaseProposalLink.proposal_id),
             )
-            .order_by(CaseProposalLink.proposal_id)
+            .order_by(ChangeProposal.created_at.desc(), ChangeProposal.id.desc())
+            .limit(action_limit + 1)
+        )
+    else:
+        links_query = links_query.order_by(CaseProposalLink.proposal_id)
+    links = inputs["links"][case_id] if inputs else list(session.scalars(links_query))
+    unresolved_query = (
+        select(ChangeProposal.id)
+        .join(
+            CaseProposalLink,
+            (CaseProposalLink.tenant_id == tenant_id)
+            & (CaseProposalLink.proposal_id == ChangeProposal.id),
+        )
+        .where(
+            ChangeProposal.tenant_id == tenant_id,
+            CaseProposalLink.case_id == case_id,
+            ChangeProposal.status == "executing",
+        )
+    )
+    unresolved_total = (
+        inputs["totals"][case_id]
+        if inputs
+        else session.scalar(
+            select(func.count()).select_from(unresolved_query.subquery())
+        )
+    )
+    unresolved_ids = (
+        inputs["unsettled"][case_id]
+        if inputs
+        else list(
+            session.scalars(
+                unresolved_query.order_by(ChangeProposal.id).limit(
+                    50 if action_limit is not None else None
+                )
+            )
         )
     )
     actions = []
     current_business_review = None
-    for link in links:
-        action = core._tenant_record_read(
-            session, ChangeProposal, tenant_id, link.proposal_id
-        )
+    actions_has_more = action_limit is not None and len(links) > action_limit
+    for link in links[:action_limit] if action_limit is not None else links:
+        action = record(ChangeProposal, link.proposal_id)
         reason = None
         if action.status == "proposed":
             if link.bound_control_revision != case.control_revision:
@@ -695,32 +1091,88 @@ def explain(session: Session, tenant_id: str, case_id: str):
                 "status": action.status,
                 "obsolete": reason is not None,
                 "obsolescence_reason": reason,
+                "type": action.type,
+                "actor_type": action.actor_type,
+                "created_at": action.created_at.isoformat(),
+                "decided_at": action.decided_at.isoformat()
+                if action.decided_at
+                else None,
+                "recorded_result_available": action.status != "proposed"
+                and action.output not in {"", "{}"},
+                "external_outcome": "not_established_by_execution_status",
             }
         )
-    checkpoint = session.get(CaseConsumerCheckpoint, (tenant_id, 1))
-    progress = (
-        session.scalar(
-            select(TenantEventProgress.last_event_sequence).where(
-                TenantEventProgress.tenant_id == tenant_id
+    control_event = (
+        inputs["controls"].get(case_id)
+        if inputs
+        else session.scalar(
+            select(BusinessEvent)
+            .where(
+                BusinessEvent.tenant_id == tenant_id,
+                BusinessEvent.subject_type == "operational_case",
+                BusinessEvent.subject_id == case_id,
+                BusinessEvent.event_type.in_(
+                    ("operational_case.taken_over", "operational_case.handed_back")
+                ),
+            )
+            .order_by(BusinessEvent.sequence.desc())
+            .limit(1)
+        )
+    )
+    control = None
+    control_payload = (
+        json.loads(control_event.payload) if control_event is not None else {}
+    )
+    if (
+        control_event is not None
+        and control_payload.get("revision") == case.control_revision
+    ):
+        decision = (
+            inputs["records"].get((ChangeProposal, control_event.action_id))
+            if inputs
+            else session.scalar(
+                select(ChangeProposal).where(
+                    ChangeProposal.tenant_id == tenant_id,
+                    ChangeProposal.id == control_event.action_id,
+                )
             )
         )
-        or 0
-    )
-    from reality.db.scheduled_jobs import ScheduledJobRun
+        if decision is not None and decision.decided_by_user_id:
+            actor = (
+                inputs["actors"].get(decision.decided_by_user_id)
+                if inputs
+                else session.get(AppUser, decision.decided_by_user_id)
+            )
+            control = {
+                "decision_id": decision.id,
+                "event_id": control_event.id,
+                "revision": case.control_revision,
+                "actor_user_id": decision.decided_by_user_id,
+                "actor_label": actor.display_name if actor else None,
+                "recorded_at": control_event.recorded_at.isoformat(),
+                "reason": control_payload.get("reason"),
+                "transition": control_event.event_type,
+            }
+    if inputs:
+        checkpoint, progress, latest_run = inputs["consumer"]
+    else:
+        checkpoint = session.get(CaseConsumerCheckpoint, (tenant_id, 1))
+        progress = session.get(TenantEventProgress, tenant_id)
+        from reality.db.scheduled_jobs import ScheduledJobRun
 
-    latest_run = session.scalar(
-        select(ScheduledJobRun)
-        .where(
-            ScheduledJobRun.tenant_id == tenant_id,
-            ScheduledJobRun.job_type == "operational_cases.reconcile",
+        latest_run = session.scalar(
+            select(ScheduledJobRun)
+            .where(
+                ScheduledJobRun.tenant_id == tenant_id,
+                ScheduledJobRun.job_type == "operational_cases.reconcile",
+            )
+            .order_by(ScheduledJobRun.created_at.desc(), ScheduledJobRun.id.desc())
+            .limit(1)
         )
-        .order_by(ScheduledJobRun.created_at.desc(), ScheduledJobRun.id.desc())
-        .limit(1)
-    )
     # reality-rule: services.operational_cases.explain.result
     return {
         "consumer": {
-            "latest_sequence": progress,
+            "latest_sequence": progress.last_event_sequence if progress else 0,
             "incorporated_sequence": checkpoint.incorporated_sequence
             if checkpoint
             else None,
@@ -728,12 +1180,18 @@ def explain(session: Session, tenant_id: str, case_id: str):
             "last_error_code": latest_run.last_error_code if latest_run else None,
         },
         "case_id": case.id,
+        "business_reference": (
+            record(Document, case.order_document_id).number
+            if case.kind == "order_fulfillment"
+            else record(ReturnAnnouncement, case.return_announcement_id).reference
+        ),
         "kind": case.kind,
         "order_document_id": case.order_document_id,
         "return_announcement_id": case.return_announcement_id,
         "control_mode": case.control_mode,
         "control_revision": case.control_revision,
         "takeover_user_id": case.takeover_user_id,
+        "control": control,
         "goal_state": state,
         "work": work,
         "source_record_ids": sorted(
@@ -741,11 +1199,7 @@ def explain(session: Session, tenant_id: str, case_id: str):
                 doc.source_record_id
                 for row in commitments
                 if row.document_id
-                for doc in [
-                    core._tenant_record_read(
-                        session, Document, tenant_id, row.document_id
-                    )
-                ]
+                for doc in [record(Document, row.document_id)]
                 if doc.source_record_id
             }
             | (
@@ -760,10 +1214,17 @@ def explain(session: Session, tenant_id: str, case_id: str):
         ],
         "related_case_ids": sorted(set(related)),
         "actions": actions,
-        "unsettled_actions": [
-            row["proposal_id"] for row in actions if row["status"] == "executing"
-        ],
-        "coverage_gaps": _coverage_gaps(session, tenant_id, case),
+        "actions_has_more": actions_has_more,
+        "unsettled_actions": unresolved_ids,
+        "unsettled_action_total": unresolved_total,
+        "coverage_gaps": _coverage_gaps(
+            session,
+            tenant_id,
+            case,
+            _records=inputs["records"] if inputs else None,
+            _work_rows=commitments if inputs else None,
+            _source_gaps=inputs["source_gaps"] if inputs else None,
+        ),
         "incorporated_sequence": checkpoint.incorporated_sequence
         if checkpoint
         else None,
@@ -793,6 +1254,218 @@ def list_cases(session: Session, tenant_id: str, *, after: str = "", limit: int 
             .limit(limit)
         )
     ]
+
+
+def register_cases(
+    session: Session,
+    tenant_id: str,
+    *,
+    kind: str | None = None,
+    query: str = "",
+    control_mode: str | None = None,
+    outstanding_only: bool = False,
+    after: str = "",
+    limit: int = 50,
+    _terms: dict | None = None,
+):
+    """
+    BUSINESS PURPOSE:
+    Find supported responsibility boundaries, including completed human-owned work.
+
+    BUSINESS RULE services.operational_cases.register.complete:
+    Read the full supported same-company cohort and use the canonical domain goal
+    rules/current commitment terms before counts and filters. Completion never
+    implicitly removes human responsibility and a read never adopts history.
+
+    BUSINESS RULE services.operational_cases.register.paging:
+    Bind an opaque cursor to the exact company/kind/control/outstanding context.
+    Return complete matching totals before bounded page and action detail limits.
+    """
+    # reality-rule: services.operational_cases.register.complete
+    core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
+    if (
+        not isinstance(query, str)
+        or len(query) > 200
+        or type(limit) is not int
+        or not 1 <= limit <= 100
+        or kind not in {None, *KINDS}
+        or control_mode not in {None, "automation", "human"}
+        or type(outstanding_only) is not bool
+    ):
+        raise core.InvalidOperation(code="case_selection_too_large")
+    scope = _digest(
+        {
+            "tenant": tenant_id,
+            "kind": kind,
+            "query": query,
+            "control_mode": control_mode,
+            "outstanding_only": outstanding_only,
+        }
+    )
+    cursor = ""
+    if after:
+        try:
+            if not isinstance(after, str) or len(after) > 4096:
+                raise ValueError
+            value = json.loads(base64.b64decode(after, altchars=b"-_", validate=True))
+            if (
+                set(value) != {"scope", "after"}
+                or value["scope"] != scope
+                or not isinstance(value["after"], str)
+            ):
+                raise ValueError
+            cursor = value["after"]
+        except (ValueError, TypeError, KeyError) as error:
+            raise core.InvalidOperation(code="case_request_invalid") from error
+    coordination = coordination_status(session, tenant_id)
+    order_ids = select(OperationalCase.order_document_id).where(
+        OperationalCase.tenant_id == tenant_id,
+        OperationalCase.kind == "order_fulfillment",
+    )
+    commitments = list(
+        session.execute(
+            select(Commitment.id, Commitment.document_id, Commitment.status).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_id.in_(order_ids),
+                Commitment.type == "customer_delivery",
+                Commitment.status == "open",
+            )
+        )
+    )
+    terms = dict(_terms or {})
+    missing = {row.id for row in commitments} - set(terms)
+    terms.update(core.commitment_terms(session, tenant_id, missing))
+    by_order = {}
+    for row in commitments:
+        by_order.setdefault(row.document_id, []).append(
+            {"status": row.status, "open_quantity": terms[row.id].open}
+        )
+    outstanding_orders = {
+        identity
+        for identity, work in by_order.items()
+        if fulfillment_state(work) == "outstanding"
+    }
+    outstanding_order = (OperationalCase.kind == "order_fulfillment") & (
+        core._id_cohort(OperationalCase.order_document_id, outstanding_orders)
+    )
+    return_scope = select(OperationalCase.return_announcement_id).where(
+        OperationalCase.tenant_id == tenant_id,
+        OperationalCase.kind == "customer_return",
+    )
+    recorded_statuses = set(
+        session.scalars(
+            select(ReturnAnnouncement.status)
+            .where(
+                ReturnAnnouncement.tenant_id == tenant_id,
+                ReturnAnnouncement.id.in_(return_scope),
+            )
+            .distinct()
+        )
+    )
+
+    def return_goal(goal):
+        return (
+            OperationalCase.kind == "customer_return"
+        ) & OperationalCase.return_announcement_id.in_(
+            select(ReturnAnnouncement.id).where(
+                ReturnAnnouncement.tenant_id == tenant_id,
+                ReturnAnnouncement.status.in_(
+                    {
+                        status
+                        for status in recorded_statuses
+                        if return_state(status) == goal
+                    }
+                ),
+            )
+        )
+
+    outstanding = outstanding_order | return_goal("outstanding")
+    completed = (
+        (OperationalCase.kind == "order_fulfillment") & ~outstanding_order
+    ) | return_goal("completed")
+    abandoned = return_goal("abandoned")
+    counts = dict(
+        session.execute(
+            select(
+                func.count()
+                .filter(OperationalCase.control_mode == "automation")
+                .label("automation"),
+                func.count()
+                .filter(OperationalCase.control_mode == "human")
+                .label("human"),
+                func.count().filter(outstanding).label("outstanding"),
+                func.count().filter(completed).label("completed"),
+                func.count().filter(abandoned).label("abandoned"),
+            ).where(OperationalCase.tenant_id == tenant_id)
+        )
+        .one()
+        ._mapping
+    )
+    selected = select(OperationalCase.id).where(OperationalCase.tenant_id == tenant_id)
+    if kind is not None:
+        selected = selected.where(OperationalCase.kind == kind)
+    if control_mode is not None:
+        selected = selected.where(OperationalCase.control_mode == control_mode)
+    if outstanding_only:
+        selected = selected.where(outstanding)
+    if query:
+        matching_orders = select(Document.id).where(
+            Document.tenant_id == tenant_id,
+            func.lower(Document.number).contains(query.lower(), autoescape=True),
+        )
+        matching_returns = select(ReturnAnnouncement.id).where(
+            ReturnAnnouncement.tenant_id == tenant_id,
+            func.lower(ReturnAnnouncement.reference).contains(
+                query.lower(), autoescape=True
+            ),
+        )
+        selected = selected.where(
+            or_(
+                func.lower(OperationalCase.id).contains(query.lower(), autoescape=True),
+                OperationalCase.order_document_id.in_(matching_orders),
+                OperationalCase.return_announcement_id.in_(matching_returns),
+            )
+        )
+    total = session.scalar(select(func.count()).select_from(selected.subquery()))
+    # reality-rule: services.operational_cases.register.paging
+    page = list(
+        session.scalars(
+            selected.where(OperationalCase.id > cursor)
+            .order_by(OperationalCase.id)
+            .limit(limit + 1)
+        )
+    )
+    has_more = len(page) > limit
+    page = page[:limit]
+    inputs = (
+        _explanation_inputs(session, tenant_id, page)
+        if (page and session.info.get("operations_snapshot_consistent"))
+        else None
+    )
+    return {
+        "adopted": True,
+        "coordination": coordination,
+        "kinds": list(KINDS),
+        "counts": counts,
+        "total": total,
+        "items": [
+            explain(
+                session,
+                tenant_id,
+                identity,
+                action_limit=50,
+                _terms=terms,
+                _inputs=inputs,
+            )
+            for identity in page
+        ],
+        "has_more": has_more,
+        "next_after": base64.urlsafe_b64encode(
+            json.dumps({"scope": scope, "after": page[-1]}).encode()
+        ).decode()
+        if has_more
+        else None,
+    }
 
 
 def takeover(
@@ -846,6 +1519,10 @@ def takeover(
         {"revision": case.control_revision, "reason": reason},
         action_id=decision.id,
     )
+    result = explain(session, tenant_id, case_id)
+    if decision.type == "case:takeover":
+        decision.output = json.dumps(result, sort_keys=True, default=str)
+        session.flush()
     if _commit:
         session.commit()
     # reality-rule: services.operational_cases.takeover.result
@@ -940,6 +1617,10 @@ def handback(
         {"revision": case.control_revision},
         action_id=decision.id,
     )
+    result = explain(session, tenant_id, case_id)
+    if decision.type == "case:handback":
+        decision.output = json.dumps(result, sort_keys=True, default=str)
+        session.flush()
     if _commit:
         session.commit()
     # reality-rule: services.operational_cases.handback.result

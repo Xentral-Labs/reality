@@ -105,3 +105,11 @@ T046 precedes T047; T048 follows. FR-020 is covered by all three tasks.
 - [x] T024 Add FR-022 regressions in refined-shell-browser.mjs, register-footer-browser.mjs, unified-chat-composer-browser.mjs and unified-app-contract.test.mjs before implementation.
 - [x] T025 Implement shared resize/default/overlay behavior in Shell.tsx and tailwind.css (FR-022).
 - [x] T026 Verify shell/register browser behavior, contracts, build, formatting and spec policy; document evidence in review.md and docs/WEB_SPEC.md (FR-022).
+
+## FR-023 shared native select presentation
+
+- [x] T049 [US1/US3] Add the shared-select real-CSS fixture/browser matrix in apps/web/scripts/fixtures/ and apps/web/scripts/shared-select-browser.mjs, register it in browser-suite.json, and observe the crowded-arrow regression before implementation (FR-023).
+- [x] T050 [US1/US3] Implement themed inset chevrons and preserved native accessibility/exclusions in apps/web/src/tailwind.css; retain readable compact pagination fields and update docs/WEB_SPEC.md (FR-023).
+- [x] T051 Verify the shared-select matrix, settings/register/cockpit browsers and frontend gates; inspect the local deployed UI and record evidence in review.md (FR-023).
+
+T049 precedes T050; T051 follows. No business logic or backend changes.

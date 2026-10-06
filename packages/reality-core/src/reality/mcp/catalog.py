@@ -206,7 +206,7 @@ def _agent_review_schema():
     return AgentReviewEvidence.model_json_schema()
 
 
-def _propose(application_name: str) -> ToolHandler:
+def _propose(application_name: str, *, shipping_mode: str | None = None) -> ToolHandler:
     def handler(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
         """
         BUSINESS PURPOSE:
@@ -221,6 +221,28 @@ def _propose(application_name: str) -> ToolHandler:
         normalized = {
             key: value for key, value in arguments.items() if value is not None
         }
+        if shipping_mode is not None:
+            required_prior = shipping_mode != "create"
+            allowed = (
+                {"plan", "plan_id", "prior_source_record_id"}
+                if required_prior
+                else {"plan"}
+            )
+            plan = normalized.get("plan")
+            expected_kind = "withdrawal" if shipping_mode == "withdraw" else "plan"
+            if (
+                set(normalized) - allowed
+                or not isinstance(plan, dict)
+                or plan.get("statement_kind", "plan") != expected_kind
+                or (
+                    required_prior
+                    and not all(
+                        normalized.get(key)
+                        for key in ("plan_id", "prior_source_record_id")
+                    )
+                )
+            ):
+                raise InvalidOperation(code="shipping_plan_arguments_invalid")
         if application_name == "source_ingest":
             normalized.setdefault("source_system", "manual_upload")
             normalized.setdefault("source_type", "data_drop")
@@ -742,7 +764,20 @@ MCP_TOOL_CATALOG = (
         "Read current cases and responsibility. This does not create work.",
         "read",
         "Operational cases",
-        _object_schema({"after": {**STRING, "description": "Last case identity of the preceding page."}, "limit": {"type": "integer", "minimum": 1, "maximum": 100, "description": "Maximum cases per page; defaults to 100."}}),
+        _object_schema(
+            {
+                "after": {
+                    **STRING,
+                    "description": "Last case identity of the preceding page.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "description": "Maximum cases per page; defaults to 100.",
+                },
+            }
+        ),
         _read("operational_case_list"),
     ),
     MCPToolDefinition(
@@ -4941,6 +4976,135 @@ MCP_TOOL_CATALOG += (
         ReportDispatch.model_json_schema(),
         _email_mutation("report_dispatch"),
     ),
+)
+
+
+def _shipping_plan_schema(
+    *, revision: bool, withdrawal: bool = False
+) -> dict[str, Any]:
+    from reality.domain.shipping_performance import PlanInput
+
+    plan = PlanInput.model_json_schema()
+    definitions = plan.pop("$defs", {})
+    definitions["RequirementInput"]["properties"]["quantity"] = {
+        "type": "string",
+        "pattern": r"^[0-9]+(?:\.[0-9]{1,4})?$",
+        "description": "Source-stated full commitment quantity in its canonical unit; decimal string, never binary float.",
+    }
+    plan["properties"]["statement_kind"] = {
+        "type": "string",
+        "const": "withdrawal" if withdrawal else "plan",
+    }
+    if withdrawal:
+        plan["required"].append("statement_kind")
+    properties = {"plan": plan}
+    required = ["plan"]
+    if revision:
+        properties.update({"plan_id": STRING, "prior_source_record_id": STRING})
+        required += ["plan_id", "prior_source_record_id"]
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": required,
+        "additionalProperties": False,
+        "$defs": definitions,
+    }
+
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "shipping_plan_propose",
+        "Propose a shipping plan",
+        "Prepare exact source-stated dispatch requirements and confirmed/requested completion-slot capacity. The current owner reviews and confirms; no shipping or provider execution occurs.",
+        "propose",
+        "Operations",
+        _shipping_plan_schema(revision=False),
+        _propose("shipping_plan_state", shipping_mode="create"),
+    ),
+    MCPToolDefinition(
+        "shipping_plan_revise_propose",
+        "Revise a shipping plan",
+        "Prepare a new immutable version of the exact current plan stream, binding prior source version, commitment terms and original capacity confirmation.",
+        "propose",
+        "Operations",
+        _shipping_plan_schema(revision=True),
+        _propose("shipping_plan_state", shipping_mode="revise"),
+    ),
+    MCPToolDefinition(
+        "shipping_plan_withdraw_propose",
+        "Withdraw a shipping plan",
+        "Prepare an exact source-backed withdrawal header with no requirements/capacity children; retained history and business commitments remain intact.",
+        "propose",
+        "Operations",
+        _shipping_plan_schema(revision=True, withdrawal=True),
+        _propose("shipping_plan_state", shipping_mode="withdraw"),
+    ),
+)
+
+
+from reality.tools.shipping_operations import (
+    ActivityQuery,
+    AgentsQuery,
+    CaseRegisterQuery,
+    OrdersQuery,
+    OverviewQuery,
+)
+
+
+def _cockpit_query_schema(model) -> dict[str, Any]:
+    schema = model.model_json_schema()
+    schema.setdefault("required", [])
+    return schema
+
+
+MCP_TOOL_CATALOG += tuple(
+    MCPToolDefinition(
+        name,
+        label,
+        description,
+        "read",
+        "Operations",
+        _cockpit_query_schema(model),
+        _read(name),
+    )
+    for name, label, description, model in (
+        (
+            "operational_case_register",
+            "Read supported case register",
+            "Read full matching totals and bounded supported-case pages, including completed human-owned work.",
+            CaseRegisterQuery,
+        ),
+        (
+            "operations_cockpit",
+            "Observe the operations cockpit",
+            "Read the authorized company/day shipping snapshot and company-wide order, message, supply, stock-risk and return flows; availability defaults off.",
+            OverviewQuery,
+        ),
+        (
+            "shipping_performance",
+            "Read shipping performance",
+            "Read the canonical timed plan, confirmed handovers and future forecast with provenance.",
+            OverviewQuery,
+        ),
+        (
+            "shipping_supporting_orders",
+            "Read supporting shipping orders",
+            "Read a full-result filtered shipping cohort with bounded pages and current basis comparison.",
+            OrdersQuery,
+        ),
+        (
+            "operations_cockpit_activity",
+            "Observe live business activity",
+            "Read recent first-recorded business entities, independently of shipping day/site; never throughput.",
+            ActivityQuery,
+        ),
+        (
+            "operations_cockpit_agents",
+            "Read named Agent accesses",
+            "Owner-only redacted inventory of authorized access records; last use is not current runtime liveness.",
+            AgentsQuery,
+        ),
+    )
 )
 
 MCP_TOOL_REGISTRY = {tool.name: tool for tool in MCP_TOOL_CATALOG}

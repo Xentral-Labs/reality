@@ -8,6 +8,56 @@
       "effect": "Report observed default coordination readiness and truthful platform version provenance."
     },
     {
+      "name": "Observe operations cockpit",
+      "service": "operations_cockpit",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Observe operations cockpit from current authorized held evidence; never change responsibility or business work."
+    },
+    {
+      "name": "Read shipping performance",
+      "service": "shipping_performance",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Read shipping performance from current authorized held evidence; never change responsibility or business work."
+    },
+    {
+      "name": "Read supporting shipping orders",
+      "service": "shipping_supporting_orders",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Read supporting shipping orders from current authorized held evidence; never change responsibility or business work."
+    },
+    {
+      "name": "Observe recorded business activity",
+      "service": "operations_cockpit_activity",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Observe recorded business activity from current authorized held evidence; never change responsibility or business work."
+    },
+    {
+      "name": "Read named Agent accesses",
+      "service": "operations_cockpit_agents",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Read named Agent accesses from current authorized held evidence; never change responsibility or business work."
+    },
+    {
+      "name": "State shipping planning evidence",
+      "service": "shipping_plan_state",
+      "related_services": ["shipping_plan_review"],
+      "mode": "mutation",
+      "adapters": ["CLI", "API", "Web", "MCP", "Chat"],
+      "effect": "Retain an exact reviewed plan, revision or withdrawal as immutable source-backed evidence; do not dispatch stock or execute providers."
+    },
+    {
+      "name": "Read supported operational case register",
+      "service": "operational_case_register",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Observe full matching responsibility counts and a bounded page of adopted cases; never adopt or stop work."
+    },
+    {
       "name": "Operational case list",
       "service": "operational_case_list",
       "mode": "read",

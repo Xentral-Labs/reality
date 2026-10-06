@@ -194,3 +194,42 @@ The shell resize/draft/focus acceptance passed in CI without production changes.
 
 The adapted composer browser passes locally: reference header, attachments, voice
 draft/teardown, keyboard, immediate message echo and send-failure retention.
+
+
+## FR-023 shared native select review (2026-10-06)
+
+Owner scope: application-wide native select presentation, explicitly authorized.
+Pre-implementation analysis: FR-023 maps to T049–T051 and US1/US3; no ambiguity,
+uncovered acceptance or critical Constitution finding. Adapter-only implementation
+retains native selects, labels, values and events. No business/service/schema changes.
+
+A real-CSS regression failed on native appearance before implementation
+(`/private/tmp/reality-select-red.log`). Shared CSS now uses one themed decorative
+chevron with 12px inset and 40px end padding. A constrained-container regression
+exposed native auto-minimum sizing in legacy settings/filter fields; min-width: 0
+and max-width: 100% retain room for the indicator and bound long text. Compact page
+size fields widen from 64px to 76px while remaining 32px high. Invisible chip overlays,
+multiple/size listboxes and custom reference controls remain excluded; forced colors
+restores native appearance. Native letter selection and Tab focus traversal passed.
+
+Verification passed: shared-select matrix at 320/390/1440px in both themes, disabled
+controls, label/indicator geometry, theme changes, native selection/focus and forced
+colors; the existing settings browser with 48 localized screenshots; populated/empty
+register footer geometry and existing interactions; the complete cockpit browser;
+478/478 frontend contracts; full frontend formatting; build; localization coverage
+3005/3005 per language; spec policy, core lint and whitespace checks.
+Logs: `/private/tmp/reality-select-{matrix,settings,register,cockpit,contracts,build,i18n,format,spec,lint}.log`.
+
+The catalog generation stages completed; the optional repository-wide
+`docs-catalog-check` HEAD-diff assertion reports the already uncommitted spec-378
+catalog/generated-document changes. FR-023 adds no executable catalog vocabulary.
+This is not a green full-branch CI claim; unrelated existing rollout/CI gates remain
+open and no changes were staged to conceal the HEAD comparison.
+
+The web image built and only the existing web service was recreated at port 8080.
+Actual current-company cockpit and personal settings both report the shared indicator,
+40px reserved padding and centered 12px end inset. Existing System preference,
+selection values and business state were preserved. Default browser viewport restored;
+temporary audit tabs closed. Screenshot:
+`/Users/benediktsauter/.codex/visualizations/2026/10/06/01a10ffd-6b60-7800-bb0e-c8f98d6a29f1/control-tower-shared-selects.png`.
+Rollback is CSS-only; no migration, new dependency or operator restart.

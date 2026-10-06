@@ -15,6 +15,8 @@ from reality.db.core import (
     Document,
     DocumentLine,
     LedgerEntry,
+    Location,
+    PartyHold,
     PaymentTerm,
     Reservation,
 )
@@ -293,6 +295,7 @@ def fulfillment_readiness(
     proposed_quantity: Decimal | None = None,
     from_location_id: str | None = None,
     _delivery_rule: bool = True,
+    _inputs: dict | None = None,
 ) -> FulfillmentReadiness:
     """
     Derive payment readiness for one customer-delivery commitment.
@@ -384,10 +387,13 @@ def fulfillment_readiness(
     BUSINESS RULE readiness.result:
     Return quantities, payment amounts, invoice/allocation identities, active hold identities and consolidated invoice evidence. Ship-ready requires positive open quantity and no blockers.
     """
-    commitment = session.scalar(
-        select(Commitment).where(
-            Commitment.tenant_id == tenant_id,
-            Commitment.id == commitment_id,
+    commitment = (
+        _inputs["commitments"].get(commitment_id)
+        if _inputs
+        else session.scalar(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id, Commitment.id == commitment_id
+            )
         )
     )
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-237
@@ -399,10 +405,14 @@ def fulfillment_readiness(
             code="fulfillment_readiness_customer_commitment_required"
         )
     # reality-rule: readiness.open_quantity
-    open_quantity = max(
-        commitment_quantity(session, tenant_id, commitment.id)
-        - movement_quantity(session, tenant_id, commitment.id, "shipment"),
-        ZERO,
+    open_quantity = (
+        _inputs["terms"][commitment.id].open
+        if _inputs
+        else max(
+            commitment_quantity(session, tenant_id, commitment.id)
+            - movement_quantity(session, tenant_id, commitment.id, "shipment"),
+            ZERO,
+        )
     )
     checked_quantity = open_quantity if proposed_quantity is None else proposed_quantity
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-249
@@ -411,22 +421,36 @@ def fulfillment_readiness(
     ):
         raise InvalidOperation(code="fulfillment_shipment_quantity_invalid")
     # reality-rule: readiness.reservations
-    reserved_by_location = {
-        location_id: Decimal(quantity)
-        for location_id, quantity in session.execute(
-            select(Reservation.location_id, func.sum(Reservation.quantity))
-            .where(
-                Reservation.tenant_id == tenant_id,
-                Reservation.commitment_id == commitment.id,
-                Reservation.status == "active",
+    reserved_by_location = (
+        _inputs["reservations"].get(commitment.id, {})
+        if _inputs
+        else {
+            location_id: Decimal(quantity)
+            for location_id, quantity in session.execute(
+                select(Reservation.location_id, func.sum(Reservation.quantity))
+                .where(
+                    Reservation.tenant_id == tenant_id,
+                    Reservation.commitment_id == commitment.id,
+                    Reservation.status == "active",
+                )
+                .group_by(Reservation.location_id)
             )
-            .group_by(Reservation.location_id)
-        )
-    }
+        }
+    )
 
     def physical_at(location_id: str | None) -> Decimal:
         # Spec 304: blocked stock never ships, so it is not stock behind a
         # promise either.
+        if _inputs:
+            if not commitment.item_id:
+                return ZERO
+            if location_id and location_id not in _inputs["locations"]:
+                from reality.services.core import NotFound
+
+                raise NotFound(code="record_not_found", values={"record": "Location"})
+            return _inputs["stock"].get(
+                (commitment.item_id, location_id), ZERO
+            ) - _inputs["blocked"].get((commitment.item_id, location_id), ZERO)
         return (
             stock_at(session, tenant_id, commitment.item_id, location_id)
             - blocked_quantity(session, tenant_id, commitment.item_id, location_id)
@@ -446,19 +470,27 @@ def fulfillment_readiness(
         physical_quantity, ready_quantity = stock_cover(
             commitment.location_id, reserved_by_location, physical_at
         )
-    commitment_hold_ids = tuple(
-        session.scalars(
-            select(CommitmentHold.id)
-            .where(
-                CommitmentHold.tenant_id == tenant_id,
-                CommitmentHold.commitment_id == commitment.id,
-                CommitmentHold.released_at.is_(None),
+    commitment_hold_ids = (
+        _inputs["holds"].get(commitment.id, ())
+        if _inputs
+        else tuple(
+            session.scalars(
+                select(CommitmentHold.id)
+                .where(
+                    CommitmentHold.tenant_id == tenant_id,
+                    CommitmentHold.commitment_id == commitment.id,
+                    CommitmentHold.released_at.is_(None),
+                )
+                .order_by(CommitmentHold.id)
             )
-            .order_by(CommitmentHold.id)
         )
     )
     party_hold = (
-        active_party_delivery_hold(session, tenant_id, commitment.to_party_id)
+        (
+            _inputs["party_holds"].get(commitment.to_party_id)
+            if _inputs
+            else active_party_delivery_hold(session, tenant_id, commitment.to_party_id)
+        )
         if commitment.to_party_id
         else None
     )
@@ -499,10 +531,14 @@ def fulfillment_readiness(
             commitment_hold_ids,
             party_hold_ids,
         )
-    order = session.scalar(
-        select(Document).where(
-            Document.tenant_id == tenant_id,
-            Document.id == commitment.document_id,
+    order = (
+        _inputs["orders"].get(commitment.document_id)
+        if _inputs
+        else session.scalar(
+            select(Document).where(
+                Document.tenant_id == tenant_id,
+                Document.id == commitment.document_id,
+            )
         )
     )
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-341
@@ -515,14 +551,24 @@ def fulfillment_readiness(
         from reality.services.delivery_rules import order_ships_complete
 
         if not order_ships_complete(
-            session, tenant_id, order.id, commitment.id, checked_quantity, open_quantity
+            session,
+            tenant_id,
+            order.id,
+            commitment.id,
+            checked_quantity,
+            open_quantity,
+            _effective_rule=_inputs["rules"][order.id] if _inputs else None,
         ):
             operational_blockers.append("ship_complete_incomplete")
     term = (
-        session.scalar(
-            select(PaymentTerm).where(
-                PaymentTerm.tenant_id == tenant_id,
-                PaymentTerm.id == order.payment_term_id,
+        (
+            _inputs["payment_terms"].get(order.payment_term_id)
+            if _inputs
+            else session.scalar(
+                select(PaymentTerm).where(
+                    PaymentTerm.tenant_id == tenant_id,
+                    PaymentTerm.id == order.payment_term_id,
+                )
             )
         )
         if order.payment_term_id
@@ -861,3 +907,198 @@ def require_paid_prepayment(
                 "received_currency": readiness.currency,
             },
         )
+
+
+def fulfillment_readiness_batch(
+    session: Session,
+    tenant_id: str,
+    dispatch_locations: dict[str, str | None],
+    *,
+    _terms: dict | None = None,
+    _commitments: dict | None = None,
+    _orders: dict | None = None,
+) -> dict[str, FulfillmentReadiness]:
+    """
+    BUSINESS PURPOSE:
+    Reuse exact canonical readiness for a complete dispatch cohort with grouped
+    snapshot inputs instead of repeating stable quantity/stock/hold/policy reads.
+
+    BUSINESS RULE readiness.batch.shared:
+    Restrict every input to the requested company and its commitments; preload
+    canonical terms, recorded physical stock and open-block quantities. No input
+    or result survives this call. Every result still runs fulfillment_readiness,
+    including complete-order and qualifying prepayment rules.
+    """
+    from collections import defaultdict
+
+    from reality.services import core, delivery_rules
+
+    # reality-rule: readiness.batch.shared
+    ids = set(dispatch_locations)
+    if not ids:
+        return {}
+    narrow = bool(session.info.get("operations_snapshot_consistent"))
+    commitment_query = select(
+        *(
+            Commitment.id,
+            Commitment.tenant_id,
+            Commitment.type,
+            Commitment.document_id,
+            Commitment.item_id,
+            Commitment.location_id,
+            Commitment.to_party_id,
+            Commitment.currency,
+        )
+        if narrow
+        else (Commitment,)
+    ).where(Commitment.tenant_id == tenant_id, core._id_cohort(Commitment.id, ids))
+    commitments = (
+        {
+            identity: row
+            for identity, row in _commitments.items()
+            if identity in ids and row.id == identity and row.tenant_id == tenant_id
+        }
+        if narrow and _commitments is not None
+        else {
+            row.id: row
+            for row in (
+                session.execute(commitment_query)
+                if narrow
+                else session.scalars(commitment_query)
+            )
+        }
+    )
+    if len(commitments) != len(ids):
+        raise InvalidOperation(code="fulfillment_commitment_not_found")
+    order_query = select(
+        *(
+            Document.id,
+            Document.tenant_id,
+            Document.type,
+            Document.party_id,
+            Document.payment_term_id,
+            Document.gross_amount,
+            Document.currency,
+        )
+        if narrow
+        else (Document,)
+    ).where(
+        Document.tenant_id == tenant_id,
+        core._id_cohort(Document.id, {row.document_id for row in commitments.values()}),
+    )
+    document_ids = {row.document_id for row in commitments.values()}
+    orders = (
+        {
+            identity: row
+            for identity, row in _orders.items()
+            if identity in document_ids
+            and row.id == identity
+            and row.tenant_id == tenant_id
+        }
+        if narrow and _orders is not None
+        else {
+            row.id: row
+            for row in (
+                session.execute(order_query) if narrow else session.scalars(order_query)
+            )
+        }
+    )
+    reservations = defaultdict(dict)
+    for identity, location, amount in session.execute(
+        select(
+            Reservation.commitment_id,
+            Reservation.location_id,
+            func.sum(Reservation.quantity),
+        )
+        .where(
+            Reservation.tenant_id == tenant_id,
+            core._id_cohort(Reservation.commitment_id, ids),
+            Reservation.status == "active",
+        )
+        .group_by(Reservation.commitment_id, Reservation.location_id)
+    ):
+        reservations[identity][location] = Decimal(amount)
+    items = {row.item_id for row in commitments.values() if row.item_id}
+    stock = core._physical_stock_by_location(session, tenant_id, items)
+    blocks = core._open_stock_blocks(tenant_id)
+    blocked = defaultdict(lambda: ZERO)
+    for item, location, amount in session.execute(
+        select(blocks.c.item_id, blocks.c.location_id, func.sum(blocks.c.quantity))
+        .where(blocks.c.item_id.in_(items))
+        .group_by(blocks.c.item_id, blocks.c.location_id)
+    ):
+        if location is not None:
+            blocked[item, location] += Decimal(amount)
+        blocked[item, None] += Decimal(amount)
+    holds = defaultdict(list)
+    for identity, hold in session.execute(
+        select(CommitmentHold.commitment_id, CommitmentHold.id)
+        .where(
+            CommitmentHold.tenant_id == tenant_id,
+            core._id_cohort(CommitmentHold.commitment_id, ids),
+            CommitmentHold.released_at.is_(None),
+        )
+        .order_by(CommitmentHold.id)
+    ):
+        holds[identity].append(hold)
+    party_holds = {}
+    for hold in session.scalars(
+        select(PartyHold)
+        .where(
+            PartyHold.tenant_id == tenant_id,
+            PartyHold.party_id.in_({row.to_party_id for row in commitments.values()}),
+            PartyHold.hold_type == "delivery",
+            PartyHold.released_at.is_(None),
+        )
+        .order_by(PartyHold.created_at.desc())
+    ):
+        party_holds.setdefault(hold.party_id, hold)
+    inputs = {
+        "commitments": commitments,
+        "orders": orders,
+        "terms": _terms
+        if _terms is not None
+        else core.commitment_terms(session, tenant_id, ids),
+        "reservations": reservations,
+        "stock": stock,
+        "blocked": blocked,
+        "holds": {identity: tuple(value) for identity, value in holds.items()},
+        "party_holds": party_holds,
+        "rules": delivery_rules.effective_rules(
+            session, tenant_id, list(orders), _orders=orders if narrow else None
+        ),
+        "payment_terms": {
+            row.id: row
+            for row in session.scalars(
+                select(PaymentTerm).where(
+                    PaymentTerm.tenant_id == tenant_id,
+                    PaymentTerm.id.in_(
+                        {row.payment_term_id for row in orders.values()}
+                    ),
+                )
+            )
+        },
+        "locations": set(
+            session.scalars(
+                select(Location.id).where(
+                    Location.tenant_id == tenant_id,
+                    Location.id.in_(
+                        {
+                            *dispatch_locations.values(),
+                            *(
+                                location
+                                for locations in reservations.values()
+                                for location in locations
+                            ),
+                        }
+                    ),
+                )
+            )
+        ),
+    }
+    return {
+        identity: fulfillment_readiness(
+            session, tenant_id, identity, from_location_id=location, _inputs=inputs
+        )
+        for identity, location in dispatch_locations.items()
+    }

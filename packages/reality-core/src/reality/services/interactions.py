@@ -440,12 +440,14 @@ def _view(row, users, tokens, proposals, written, language="en") -> dict[str, An
 
 
 def events_of(
-    session: Session, tenant_id: str, interaction_id: str
+    session: Session, tenant_id: str, interaction_id: str, *, limit: int | None = None
 ) -> list[BusinessEvent]:
     """The committed business events one interaction caused, in sequence order."""
     row = session.get(Interaction, (tenant_id, interaction_id))
     if row is None:
         raise NotFound("Interaction not found.")
+    if limit is not None and (type(limit) is not int or not 1 <= limit <= 100):
+        raise InvalidOperation(code="shipping_observation_filter_invalid")
     if not row.event_ranges:
         return []
     return list(
@@ -461,8 +463,77 @@ def events_of(
                 ),
             )
             .order_by(BusinessEvent.sequence)
+            .limit(limit)
         )
     )
+
+
+def latest_manual_actions(
+    session: Session, tenant_id: str, token_ids: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Return exact, sanitized diagnostic attribution for one bounded owner roster.
+
+    BUSINESS PURPOSE:
+    Let the owner observe named access activity without exporting telemetry rows.
+
+    BUSINESS RULE interactions.manual_actions.scope:
+    Match only same-company MCP interactions with the exact recorded manual token
+    identity. Return the latest recorded action, never a claim of current execution.
+    Callers enforce owner access; telemetry never determines business outcomes.
+
+    BUSINESS RULE interactions.manual_actions.redaction:
+    Return operation/outcome, exact proposal and at most fifty committed event
+    references. Never return summaries, personal metadata or credential material.
+    """
+    from sqlalchemy import func
+
+    if len(token_ids) > 50:
+        raise InvalidOperation(code="shipping_observation_filter_invalid")
+    if not token_ids:
+        return {}
+    # reality-rule: interactions.manual_actions.scope
+    latest = (
+        select(
+            Interaction.id,
+            func.row_number()
+            .over(
+                partition_by=Interaction.mcp_token_id,
+                order_by=(Interaction.recorded_at.desc(), Interaction.cursor.desc()),
+            )
+            .label("rank"),
+        )
+        .where(
+            Interaction.tenant_id == tenant_id,
+            Interaction.channel == "mcp",
+            Interaction.mcp_token_id.in_(token_ids),
+        )
+        .subquery()
+    )
+    result = {}
+    for action in session.scalars(
+        select(Interaction)
+        .join(latest, latest.c.id == Interaction.id)
+        .where(Interaction.tenant_id == tenant_id, latest.c.rank == 1)
+    ):
+        # reality-rule: interactions.manual_actions.redaction
+        evidence = events_of(session, tenant_id, action.id, limit=50)
+        result[action.mcp_token_id] = {
+            "interaction_id": action.id,
+            "operation": action.operation,
+            "outcome": action.outcome,
+            "recorded_at": action.recorded_at.isoformat(),
+            "proposal_id": action.proposal_id,
+            "business_references": [
+                {
+                    "event_id": event.id,
+                    "record_type": event.subject_type,
+                    "record_id": event.subject_id,
+                }
+                for event in evidence
+            ],
+            "references_bounded": len(evidence) == 50,
+        }
+    return result
 
 
 def pulse(

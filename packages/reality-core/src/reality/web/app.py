@@ -39,6 +39,7 @@ from reality.web.journey_guide_api import proposal_router as journey_proposal_ro
 from reality.web.journey_guide_api import router as journey_guide_router
 from reality.web.mcp_authorization import router as mcp_authorization_router
 from reality.web.operational_cases import router as operational_case_router
+from reality.web.operations_cockpit import router as operations_cockpit_router
 from reality.web.playground import router as playground_router
 from reality.web.storyline_api import account_router as storyline_account_router
 from reality.web.storyline_api import tenant_router as storyline_tenant_router
@@ -272,7 +273,14 @@ async def protect_application_api(request: Request, call_next):
         "/api/journey-proposals",
         "/healthz",
     }
-    if not path.startswith("/api/") or path in public_paths or (path == "/api/business-logic/entries" or path.startswith("/api/business-logic/entries/")):
+    if (
+        not path.startswith("/api/")
+        or path in public_paths
+        or (
+            path == "/api/business-logic/entries"
+            or path.startswith("/api/business-logic/entries/")
+        )
+    ):
         return await call_next(request)
 
     def authorize():
@@ -333,6 +341,7 @@ app.include_router(journey_admin_router)
 app.include_router(journey_internal_router)
 app.include_router(business_blueprint_router)
 app.include_router(operational_case_router)
+app.include_router(operations_cockpit_router)
 app.include_router(api_router)
 app.include_router(public_api_router)
 app.include_router(playground_router)

@@ -71,6 +71,37 @@ explicit_operations:
   - reality.services.playground:confirm_step
   - reality.services.playground:reject_step
 families:
+  - key: shipping_planning_evidence
+    description: Shipping plan review, history and confirmed acceptance bind the selected company only.
+    classification: boundary
+    reason: Exact source, location, promise and owner-confirmed proposal references are company-scoped before evidence acceptance.
+    authority: 378/DR-003
+    operations: &shipping_plan_operations
+      - reality.services.shipping_plans:source_basis
+      - reality.services.shipping_plans:current_statements
+      - reality.services.shipping_plans:review_plan
+      - reality.services.shipping_plans:state_plan
+      - tool:shipping_plan_state
+    evidence:
+      - id: tests/test_shipping_plan_inputs.py::test_all_shipping_plan_boundaries_refuse_foreign_references_without_writes
+        assertion: boundary
+        operations: *shipping_plan_operations
+  - key: operations_cockpit
+    description: Optional company observations verify active membership, exact credential attribution and owner inventory disclosure.
+    classification: boundary
+    reason: Read-only observation never grants company or case authority.
+    authority: 378/DR-003/DR-005
+    operations: &operations_cockpit_reads
+      - tool:operations_cockpit
+      - tool:shipping_performance
+      - tool:shipping_supporting_orders
+      - tool:operations_cockpit_activity
+      - tool:operations_cockpit_agents
+      - tool:operational_case_register
+    evidence:
+      - id: tests/test_operations_cockpit_adapters.py::test_cockpit_read_tools_refuse_foreign_company_without_business_effects
+        assertion: boundary
+        operations: *operations_cockpit_reads
   - key: operational_cases
     description: Operational responsibility stays inside the selected company; controls
       require active real membership.

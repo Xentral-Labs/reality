@@ -51,6 +51,100 @@ def activate(session, business, owner):
     return result
 
 
+def test_case_register_keeps_completed_human_work_and_exact_control_attribution(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: A human can always find the exact case they removed from automation.
+    # BUSINESS RULE: Completion does not erase responsibility; control attribution comes from retained decisions/events.
+    activate(session, business, scheduled_owner)
+    commitment = order(session, business)
+    case_id = cases.list_cases(session, business.tenant.id)[0]["case_id"]
+    principal = Principal(scheduled_owner.id)
+    result = cases.takeover(
+        session,
+        business.tenant.id,
+        case_id,
+        principal,
+        expected_revision=1,
+        request_key="register-take",
+        confirmed=True,
+        reason="Handle the customer escalation myself",
+    )
+    assert result["control"]["actor_user_id"] == scheduled_owner.id
+    assert result["control"]["reason"] == "Handle the customer escalation myself"
+    assert result["control"]["decision_id"] and result["control"]["event_id"]
+    repeated = cases.takeover(
+        session,
+        business.tenant.id,
+        case_id,
+        principal,
+        expected_revision=1,
+        request_key="register-take",
+        confirmed=True,
+        reason="Handle the customer escalation myself",
+    )
+    assert repeated == result
+    for row in cases.explain(session, business.tenant.id, case_id)["work"]:
+        core.cancel_commitment(
+            session,
+            business.tenant.id,
+            row["commitment_id"],
+            reason="Customer cancelled",
+        )
+    register = cases.register_cases(session, business.tenant.id, control_mode="human")
+    assert register["total"] == 1 and register["items"][0]["goal_state"] == "completed"
+    assert register["counts"]["human"] == 1
+    assert (
+        cases.register_cases(
+            session, business.tenant.id, control_mode="human", outstanding_only=True
+        )["total"]
+        == 0
+    )
+    assert commitment.document_id == register["items"][0]["order_document_id"]
+
+
+def test_case_register_cursor_is_bound_to_company_and_filters(
+    session, business, scheduled_owner
+):
+    activate(session, business, scheduled_owner)
+    order(session, business)
+    for arguments in (
+        {"limit": True},
+        {"kind": "purchase"},
+        {"control_mode": "robot"},
+        {"outstanding_only": "true"},
+        {"after": "not-a-cursor"},
+    ):
+        with pytest.raises(core.InvalidOperation):
+            cases.register_cases(session, business.tenant.id, **arguments)
+
+
+def test_bounded_case_actions_keep_complete_unresolved_execution_visibility(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: A compact explanation must never hide an execution already started.
+    # BUSINESS RULE: Display samples are independent of complete unresolved-execution evidence.
+    activate(session, business, scheduled_owner)
+    order(session, business)
+    case_id = cases.list_cases(session, business.tenant.id)[0]["case_id"]
+    for index in range(4):
+        action = ChangeProposal(
+            id=f"action_{index}",
+            tenant_id=business.tenant.id,
+            type="tool:commitment_revise",
+            input="{}",
+            output="{}",
+            status="executing" if index == 3 else "executed",
+        )
+        session.add(action)
+        session.flush()
+        cases.bind_proposal(session, business.tenant.id, action.id, [case_id])
+    compact = cases.explain(session, business.tenant.id, case_id, action_limit=1)
+    assert len(compact["actions"]) == 1 and compact["actions_has_more"]
+    assert compact["unsettled_action_total"] == 1
+    assert compact["unsettled_actions"] == ["action_3"]
+
+
 def test_staging_does_not_create_case(session, business, scheduled_owner):
     activate(session, business, scheduled_owner)
     payload = json.loads(FIXTURE.read_text())
@@ -287,3 +381,313 @@ def test_foreign_case_and_missing_principal_refused(session, business, scheduled
             request_key="take-5",
             confirmed=True,
         )
+
+
+def test_register_search_is_company_scoped_and_does_not_treat_numbers_as_identity(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: An operator can locate a business reference in a complete supported register.
+    # BUSINESS RULE: A display-number search only filters exact opaque cases; it grants no control or identity binding.
+    activate(session, business, scheduled_owner)
+    for number in ("SEARCH-ALPHA", "SEARCH-BETA"):
+        core.create_manual_order(
+            session,
+            business.tenant.id,
+            "sales",
+            number,
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "1",
+                    "gross_amount": "1",
+                }
+            ],
+            "1",
+        )
+    result = cases.register_cases(session, business.tenant.id, query="alpha")
+    assert result["total"] == 1
+    assert result["items"][0]["business_reference"] == "SEARCH-ALPHA"
+    assert result["counts"]["outstanding"] == 2
+    assert cases.register_cases(session, business.tenant.id, query="%")["total"] == 0
+    case_id = result["items"][0]["case_id"]
+    assert (
+        cases.register_cases(session, business.tenant.id, query=case_id)["total"] == 1
+    )
+
+
+def test_register_complete_counts_and_all_pages_exceed_two_hundred_cases(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: Larger human registers remain discoverable beyond display samples.
+    # BUSINESS RULE: Page cursors retain complete counts and every matching case exactly once.
+    activate(session, business, scheduled_owner)
+    expected = set()
+    for index in range(205):
+        _, doc, _, _ = core.create_manual_order(
+            session,
+            business.tenant.id,
+            "sales",
+            f"PAGE-{index}",
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "1",
+                    "gross_amount": "1",
+                }
+            ],
+            "1",
+            _commit=False,
+        )
+        expected.add(doc.id)
+    session.flush()
+    found = []
+    cursor = ""
+    while True:
+        page = cases.register_cases(
+            session, business.tenant.id, query="PAGE-", after=cursor, limit=100
+        )
+        assert page["total"] == 205 and page["counts"]["outstanding"] == 205
+        found.extend(row["order_document_id"] for row in page["items"])
+        if not page["has_more"]:
+            break
+        cursor = page["next_after"]
+    assert len(found) == 205 and set(found) == expected
+    with pytest.raises(core.InvalidOperation):
+        cases.register_cases(session, business.tenant.id, query="other", after=cursor)
+
+
+def test_snapshot_register_batches_original_inputs_without_losing_case_evidence(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: A large-company live register retains explainable work without per-case query fan-out.
+    # BUSINESS RULE: Bounded previews preserve canonical source/control/action results and complete unsettled counts.
+    from datetime import timedelta
+
+    from sqlalchemy import event
+
+    activate(session, business, scheduled_owner)
+    commitment = order(session, business)
+    source_case = cases.object_cases(
+        session, business.tenant.id, "document", commitment.document_id
+    )[0]
+    for index in range(6):
+        core.create_manual_order(
+            session,
+            business.tenant.id,
+            "sales",
+            f"BATCH-{index}",
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "1",
+                    "gross_amount": "1",
+                }
+            ],
+            "1",
+            _commit=False,
+        )
+    session.flush()
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        "30",
+        to_location_id=business.location.id,
+    )
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+    )
+    announcement = core.announce_customer_return(
+        session,
+        business.tenant.id,
+        commitment.id,
+        "1",
+        reference="Independent return",
+    )
+    manual = session.scalars(
+        select(OperationalCase).where(
+            OperationalCase.tenant_id == business.tenant.id,
+            OperationalCase.order_document_id != commitment.document_id,
+        )
+    ).first()
+    for row in cases.explain(session, business.tenant.id, manual.id)["work"]:
+        core.cancel_commitment(
+            session,
+            business.tenant.id,
+            row["commitment_id"],
+            reason="Customer cancellation",
+        )
+    for index in range(52):
+        action = ChangeProposal(
+            id=f"batch_action_{index:03}",
+            tenant_id=business.tenant.id,
+            type="tool:commitment_revise",
+            input="{}",
+            output="{}",
+            status="proposed" if index == 0 else "executing",
+            created_at=now() + timedelta(seconds=1) if index == 0 else now(),
+        )
+        session.add(action)
+        session.flush()
+        cases.bind_proposal(session, business.tenant.id, action.id, [source_case])
+    cases.takeover(
+        session,
+        business.tenant.id,
+        source_case,
+        Principal(scheduled_owner.id),
+        expected_revision=1,
+        request_key="batch-take",
+        confirmed=True,
+        reason="Personally resolve the customer escalation",
+    )
+    payload = json.loads(FIXTURE.read_text())
+    payload["note"] = "A newer customer source awaits interpretation"
+    core.enqueue_shopify_order(
+        session,
+        business.tenant.id,
+        payload,
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+    )
+    session.flush()
+    session.expire_all()
+    expected = cases.register_cases(session, business.tenant.id, limit=20)
+    session.expire_all()
+    reads = []
+
+    def observe(connection, cursor, statement, parameters, context, executemany):
+        if statement.lstrip().upper().startswith("SELECT"):
+            reads.append(statement)
+
+    bind = session.get_bind()
+    event.listen(bind, "before_cursor_execute", observe)
+    session.info["operations_snapshot_consistent"] = True
+    try:
+        actual = cases.register_cases(session, business.tenant.id, limit=20)
+    finally:
+        session.info.pop("operations_snapshot_consistent", None)
+        event.remove(bind, "before_cursor_execute", observe)
+    assert actual == expected
+    explained = next(row for row in actual["items"] if row["case_id"] == source_case)
+    assert (
+        explained["control"]["reason"] == "Personally resolve the customer escalation"
+    )
+    assert explained["control"]["actor_user_id"] == scheduled_owner.id
+    assert explained["source_record_ids"]
+    assert explained["unsettled_action_total"] == 51
+    assert len(explained["unsettled_actions"]) == 50
+    assert explained["actions_has_more"]
+    assert explained["coverage_gaps"]
+    assert explained["actions"][0]["proposal_id"] == "batch_action_000"
+    assert explained["actions"][0]["obsolescence_reason"] == "control_revision_changed"
+    returned = next(
+        row
+        for row in actual["items"]
+        if row["return_announcement_id"] == announcement.id
+    )
+    assert returned["control_mode"] == "automation"
+    assert source_case in returned["related_case_ids"]
+    assert returned["case_id"] in explained["related_case_ids"]
+    assert (
+        next(row for row in actual["items"] if row["case_id"] == manual.id)[
+            "goal_state"
+        ]
+        == "completed"
+    )
+    assert len(reads) <= 55, f"A bounded eight-case page issued {len(reads)} reads"
+
+
+def test_case_explanation_inputs_never_cross_company_or_override_other_read_limits(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: Faster live reads retain exact company and explanation scope.
+    # BUSINESS RULE: Private original inputs belong to one snapshot/session/company and the bounded register read only.
+    activate(session, business, scheduled_owner)
+    commitment = order(session, business)
+    case_id = cases.object_cases(
+        session, business.tenant.id, "document", commitment.document_id
+    )[0]
+    expected = {
+        limit: cases.explain(session, business.tenant.id, case_id, action_limit=limit)
+        for limit in (None, 1, 50)
+    }
+    session.info["operations_snapshot_consistent"] = True
+    try:
+        inputs = cases._explanation_inputs(session, business.tenant.id, [case_id])
+        for limit in (None, 1, 50):
+            assert (
+                cases.explain(
+                    session,
+                    business.tenant.id,
+                    case_id,
+                    action_limit=limit,
+                    _inputs=inputs,
+                )
+                == expected[limit]
+            )
+        with pytest.raises(core.NotFound) as refused:
+            cases.explain(
+                session, "foreign-company", case_id, action_limit=50, _inputs=inputs
+            )
+        assert refused.value.code == "case_not_found"
+        foreign_inputs = {**inputs, "tenant_id": "foreign-company"}
+        assert (
+            cases.explain(
+                session,
+                business.tenant.id,
+                case_id,
+                action_limit=50,
+                _inputs=foreign_inputs,
+            )
+            == expected[50]
+        )
+    finally:
+        session.info.pop("operations_snapshot_consistent", None)
+    assert (
+        cases.explain(
+            session, business.tenant.id, case_id, action_limit=50, _inputs=inputs
+        )
+        == expected[50]
+    )
+
+
+def test_register_exposes_default_cases_without_creating_legacy_adoption(session, business):
+    # BUSINESS PURPOSE: Control Tower must show current accepted work without owner activation.
+    # BUSINESS RULE: Reads preserve platform coordination and do not adopt history or emit events.
+    from reality.db.core import BusinessEvent
+    from reality.db.operational_cases import CaseAdoption
+
+    commitment = order(session, business)
+    before = list(session.scalars(select(BusinessEvent.id)))
+    result = cases.register_cases(session, business.tenant.id)
+    assert result["adopted"] is True
+    assert result["total"] == result["counts"]["outstanding"] == 1
+    assert result["items"][0]["order_document_id"] == commitment.document_id
+    assert result["coordination"]["rollout_provenance"] == "platform_version"
+    assert result["coordination"]["coverage_ready"] is False
+    assert session.get(CaseAdoption, business.tenant.id) is None
+    assert list(session.scalars(select(BusinessEvent.id))) == before
+    cases.reconcile_events(session, business.tenant.id)
+    result = cases.register_cases(session, business.tenant.id)
+    assert result["coordination"]["coverage_ready"] is True
+    assert result["total"] == 1

@@ -1,14 +1,33 @@
 import { useEffect, useState } from "react";
 import { operationalCases, type OperationalCase } from "../api";
+import { useOperationalCaseControls } from "./useOperationalCaseControls";
+import { OperationalCaseControls } from "./OperationalCaseControls";
 import { t } from "../localization";
+import { navigationSelection, selectionUrl, type Selection } from "./routing";
 
 export function OperationalCaseDetail({
   tenant,
   documentId,
+  initiallyOpen = false,
+  selection,
 }: {
   tenant: string;
   documentId?: string;
+  initiallyOpen?: boolean;
+  selection?: Selection;
 }) {
+  const [expanded, setExpanded] = useState(initiallyOpen);
+  const inspectorLink = (kind: string, id: string) =>
+    selection?.tenant === tenant
+      ? selectionUrl(
+          navigationSelection(selection, {
+            route: "inspector",
+            inspectorView: "records",
+            inspectorTargetKind: kind,
+            inspectorTargetId: id,
+          }),
+        )
+      : `/app/inspector?tenant=${encodeURIComponent(tenant)}&inspector_view=records&inspector_target_kind=${kind}&inspector_target_id=${encodeURIComponent(id)}`;
   const [status, setStatus] = useState<{
     adopted: boolean;
     migration_ready: boolean;
@@ -18,12 +37,21 @@ export function OperationalCaseDetail({
   } | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [rows, setRows] = useState<OperationalCase[]>([]);
-  const [review, setReview] = useState<(OperationalCase & { digest: string }) | null>(null);
-  const [confirm, setConfirm] = useState<OperationalCase | null>(null);
-  const [requestKey, setRequestKey] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [refresh, setRefresh] = useState(0);
+  const controls = useOperationalCaseControls(tenant, documentId || "");
+  const {
+    setReview,
+    setConfirm,
+    confirm,
+    requestKey,
+    setRequestKey,
+    busy,
+    setBusy,
+    error,
+    setError,
+    refresh,
+    setRefresh,
+    act,
+  } = controls;
   useEffect(() => {
     let active = true;
     setStatus(null);
@@ -61,33 +89,6 @@ export function OperationalCaseDetail({
       active = false;
     };
   }, [tenant, documentId, refresh]);
-  async function act(operation: () => Promise<unknown>) {
-    setBusy(true);
-    setError("");
-    try {
-      await operation();
-      setReview(null);
-      setConfirm(null);
-      setRefresh((value) => value + 1);
-    } catch (failure: unknown) {
-      setError(String(failure));
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function prepare(value: OperationalCase) {
-    setBusy(true);
-    setError("");
-    setReview(null);
-    setRequestKey(crypto.randomUUID());
-    try {
-      setReview(await operationalCases.review(tenant, value.case_id));
-    } catch (failure: unknown) {
-      setError(String(failure));
-    } finally {
-      setBusy(false);
-    }
-  }
   const visible = documentId
     ? rows.filter(
         (row) =>
@@ -99,7 +100,12 @@ export function OperationalCaseDetail({
       )
     : rows;
   return (
-    <details className="br-card" data-operational-cases>
+    <details
+      className="br-card"
+      data-operational-cases
+      open={expanded}
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+    >
       <summary>{t("Operational cases")}</summary>
       <button className="br-btn" disabled={busy} onClick={() => setRefresh((value) => value + 1)}>
         {t("Refresh")}
@@ -164,7 +170,10 @@ export function OperationalCaseDetail({
           </button>
           <p>
             <a
-              href={`/app/inspector?tenant=${encodeURIComponent(tenant)}&inspector_view=records&inspector_target_kind=${row.order_document_id ? "document" : "commitment"}&inspector_target_id=${encodeURIComponent(row.order_document_id || row.work[0]?.commitment_id || "")}`}
+              href={inspectorLink(
+                row.order_document_id ? "document" : "commitment",
+                row.order_document_id || row.work[0]?.commitment_id || "",
+              )}
             >
               {t("Show details")}
             </a>
@@ -172,20 +181,14 @@ export function OperationalCaseDetail({
           <ul>
             {row.work.map((work) => (
               <li key={work.commitment_id}>
-                <a
-                  href={`/app/inspector?tenant=${encodeURIComponent(tenant)}&inspector_view=records&inspector_target_kind=commitment&inspector_target_id=${encodeURIComponent(work.commitment_id)}`}
-                >
-                  {work.commitment_id}
-                </a>
+                <a href={inspectorLink("commitment", work.commitment_id)}>{work.commitment_id}</a>
                 {" · "}
                 {t("Open quantity")}: {work.open_quantity}
               </li>
             ))}
             {row.source_record_ids.map((id) => (
               <li key={id}>
-                <a
-                  href={`/app/inspector?tenant=${encodeURIComponent(tenant)}&inspector_view=records&inspector_target_kind=source_record&inspector_target_id=${encodeURIComponent(id)}`}
-                >
+                <a href={inspectorLink("source_record", id)}>
                   {t("Source record")}: {id}
                 </a>
               </li>
@@ -211,75 +214,11 @@ export function OperationalCaseDetail({
               {row.related_case_ids.join(", ")}
             </p>
           )}
-          {status?.can_control && row.control_mode === "automation" && (
-            <button
-              className="br-btn"
-              disabled={busy}
-              onClick={() => {
-                setReview(null);
-                setRequestKey(crypto.randomUUID());
-                setConfirm(row);
-              }}
-            >
-              {t("Take over manually / stop automation")}
-            </button>
-          )}
-          {status?.can_control && row.control_mode === "human" && (
-            <button className="br-btn" disabled={busy} onClick={() => prepare(row)}>
-              {t("Review before returning to automation")}
-            </button>
-          )}
-          {confirm?.case_id === row.case_id && (
-            <div>
-              <p>
-                {t(
-                  "Stop new automated actions for this case? Already started actions remain visible.",
-                )}
-              </p>
-              <button
-                className="br-btn"
-                disabled={busy}
-                onClick={() => act(() => operationalCases.takeover(tenant, row, requestKey))}
-              >
-                {t("Confirm manual takeover")}
-              </button>
-              <button className="br-btn" disabled={busy} onClick={() => setConfirm(null)}>
-                {t("Cancel")}
-              </button>
-            </div>
-          )}
-          {review?.case_id === row.case_id && (
-            <div>
-              <p>
-                {t(
-                  "The current state will be checked again when you confirm. Old plans will not be resumed.",
-                )}
-              </p>
-              <ul>
-                {review.work.map((work) => (
-                  <li key={work.commitment_id}>
-                    {work.commitment_id}: {work.open_quantity}
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="br-btn"
-                disabled={
-                  busy || review.unsettled_actions.length > 0 || review.coverage_gaps.length > 0
-                }
-                onClick={() =>
-                  act(() =>
-                    operationalCases.handback(tenant, row.case_id, review.digest, requestKey),
-                  )
-                }
-              >
-                {t("Return to automation")}
-              </button>
-              <button className="br-btn" disabled={busy} onClick={() => setReview(null)}>
-                {t("Cancel")}
-              </button>
-            </div>
-          )}
+          <OperationalCaseControls
+            row={row}
+            controls={controls}
+            canControl={Boolean(status?.can_control)}
+          />
         </section>
       ))}
     </details>

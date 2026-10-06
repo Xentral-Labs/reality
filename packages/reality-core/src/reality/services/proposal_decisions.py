@@ -64,6 +64,9 @@ def resolve_decision_policy(
         checks.append(
             "report_author" if tool == "graph.reports.change" else "request_author"
         )
+    if tool == "shipping_plan_state":
+        checks.append("shipping_owner")
+        authority = "company_owner"
     if tool in MEMBERSHIP_MUTATION_TOOLS:
         checks.append("membership_identity")
         checks.append("membership_owner")
@@ -122,6 +125,19 @@ def require_decision_authority(
     from reality.services.delivery_actions import require_delivery_principal
     from reality.services.memberships import require_owner
 
+    if "shipping_owner" in policy.checks:
+        from reality.mcp.principal import current_mcp_principal
+        from reality.services.operational_cases import _member
+
+        if phase == "preflight" and not confirmed:
+            raise InvalidOperation(code="review_confirmation_required")
+        if current_mcp_principal() is not None:
+            raise InvalidOperation(code="case_human_confirmation_required")
+        if principal is None:
+            raise InvalidOperation(code="company_owner_access_required")
+        member = _member(session, tenant_id, principal)
+        session.refresh(member)
+        require_owner(session, tenant_id, principal)
     if "mandate_owner" in policy.checks:
         if phase == "preflight" and not confirmed:
             raise InvalidOperation(code="review_confirmation_required")

@@ -844,14 +844,8 @@ def monitor(session, tenant, run_id):
 
 def reactions(session, tenant, run_id, at):
     """External evidence follows actual purchases/dispatch, not fixture policy actions."""
-    from reality.db.core import (
-        Commitment,
-        MovementCorrection,
-        Shipment,
-        ShipmentEvent,
-        ShipmentPackage,
-    )
     from reality.services import shipments
+    from reality.services.live_company_carrier import observe_carrier
 
     _, config = _run(session, tenant, run_id, lock=True)
     system = _namespace(run_id)
@@ -859,6 +853,7 @@ def reactions(session, tenant, run_id, at):
     if at >= datetime.fromisoformat(config["ends_at"]):
         return {"messages": 0, "receipts": 0, "arrivals": 0, "payments": 0}
     counts = {"messages": 0, "receipts": 0, "arrivals": 0, "payments": 0}
+    counts["arrivals"] = observe_carrier(session, tenant, run_id, start_at, at)
     # Reserve a bounded batch of mailbox slots before recording due evidence.
     # Backpressure waits for the operator; it is not a failed business booking.
     unread = len(inbox(session, tenant, run_id, limit=config["max_backlog"] + 1))
@@ -1089,90 +1084,6 @@ def reactions(session, tenant, run_id, at):
                     at=at,
                 )
                 counts["receipts"] += 1
-    packages = list(
-        session.execute(
-            select(Shipment, ShipmentPackage)
-            .join(
-                ShipmentPackage,
-                (ShipmentPackage.tenant_id == Shipment.tenant_id)
-                & (ShipmentPackage.shipment_id == Shipment.id),
-            )
-            .where(
-                Shipment.tenant_id == tenant,
-                Shipment.purpose == "customer_delivery",
-                exists().where(
-                    Movement.tenant_id == tenant,
-                    Movement.shipment_package_id == ShipmentPackage.id,
-                    Movement.type == "shipment",
-                    Movement.occurred_at <= at - timedelta(minutes=2),
-                    ~exists().where(
-                        MovementCorrection.tenant_id == tenant,
-                        MovementCorrection.original_movement_id == Movement.id,
-                    ),
-                ),
-                ~exists().where(
-                    ShipmentEvent.tenant_id == tenant,
-                    ShipmentEvent.shipment_package_id == ShipmentPackage.id,
-                    ShipmentEvent.event_type == "delivered",
-                ),
-                Shipment.created_at >= start_at,
-                Shipment.created_at <= at - timedelta(minutes=2),
-            )
-            .limit(30)
-        )
-    )
-    for shipment, package in packages:
-        key = "arrival:" + package.id
-        if _source(session, tenant, system, "world_effect", key):
-            continue
-        delivered = session.scalar(
-            select(ShipmentEvent.id)
-            .where(
-                ShipmentEvent.tenant_id == tenant,
-                ShipmentEvent.shipment_package_id == package.id,
-                ShipmentEvent.event_type == "delivered",
-            )
-            .limit(1)
-        )
-        if delivered:
-            continue
-        source = _store(
-            session,
-            tenant,
-            system,
-            "carrier_evidence",
-            key,
-            {
-                "shipment_id": shipment.id,
-                "package_id": package.id,
-                "event_type": "delivered",
-            },
-        )
-        event = shipments.record_shipment_event(
-            session,
-            tenant,
-            shipment.id,
-            event_type="delivered",
-            reporter_type="carrier",
-            shipment_package_id=package.id,
-            source_record_id=source.id,
-            external_event_id=run_id + key,
-            occurred_at=at,
-            commit=False,
-        )
-        _store(
-            session,
-            tenant,
-            system,
-            "world_effect",
-            key,
-            {
-                "kind": "customer_arrival",
-                "shipment_id": shipment.id,
-                "shipment_event_id": event.id,
-            },
-        )
-        counts["arrivals"] += 1
     from sqlalchemy.orm import aliased
 
     from reality.services.live_company_mail import customer_conversations

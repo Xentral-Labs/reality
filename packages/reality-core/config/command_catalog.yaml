@@ -6,6 +6,14 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  action_limit: Optional bounded embedded case-action evidence; complete unresolved-execution totals remain independent of the display limit.
+  day: Today resolved against CompanyTimeZone at observation, or an exact ISO calendar date.
+  measure: Exact shipping measure selecting due work, timed plan, effective handover, future forecast or deadline risk.
+  from_at: Inclusive interval beginning; pair with until instead of a cumulative at instant.
+  until: Exclusive interval end as an explicit timezone-aware business-day instant.
+  basis_key: Previously inspected shipping observation identity; changed evidence is disclosed on re-evaluation.
+  minutes: Independent company-wide rolling recorded-entity window of 5, 15 or 60 minutes.
+  access_state: Effective access-state selection; active, inactive, revoked or all.
   after: Opaque last case identity of the preceding page; never a sequence or external correlation.
   limit: Bounded maximum number of cases to read, from 1 through 100.
   case_id: Opaque same-company goal responsibility identity; never an external correlation or execution authorization.
@@ -345,6 +353,8 @@ parameter_descriptions:
   valid_from: Inclusive UTC instant from which a rule or price may be selected.
   valid_until: Optional inclusive UTC instant after which a rule or price is no longer selected.
   value: Scalar observation value validated and canonicalized by its predicate contract.
+  control_mode: Optional current operational responsibility filter; automation or human.
+  outstanding_only: Whether to restrict the register to canonically outstanding work.
 
 commands:
   - name: Operational case status
@@ -354,6 +364,115 @@ commands:
     reads: [case_rollout, case_consumer_checkpoint, tenant_event_progress, scheduled_job_run]
     writes: []
     effect: Report observed default coordination readiness and truthful platform version provenance.
+  - name: Observe operations cockpit
+    service: operations_cockpit
+    application_tool: operations_cockpit
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - source_record
+    - shipping_plan_statement
+    - shipping_dispatch_requirement
+    - shipping_capacity_window
+    - commitment
+    - movement
+    - shipment_event
+    writes: []
+    effect: Observe operations cockpit from current authorized held evidence; never change responsibility or business work.
+  - name: Read shipping performance
+    service: shipping_performance
+    application_tool: shipping_performance
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - source_record
+    - shipping_plan_statement
+    - shipping_dispatch_requirement
+    - shipping_capacity_window
+    - commitment
+    - movement
+    - shipment_event
+    writes: []
+    effect: Read shipping performance from current authorized held evidence; never change responsibility or business work.
+  - name: Read supporting shipping orders
+    service: shipping_supporting_orders
+    application_tool: shipping_supporting_orders
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - source_record
+    - shipping_plan_statement
+    - shipping_dispatch_requirement
+    - shipping_capacity_window
+    - commitment
+    - movement
+    - shipment_event
+    writes: []
+    effect: Read supporting shipping orders from current authorized held evidence; never change responsibility or business work.
+  - name: Observe recorded business activity
+    service: operations_cockpit_activity
+    application_tool: operations_cockpit_activity
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - business_event
+    - document
+    writes: []
+    effect: Observe recorded business activity from current authorized held evidence; never change responsibility or business work.
+  - name: Read named Agent accesses
+    service: operations_cockpit_agents
+    application_tool: operations_cockpit_agents
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - mcp_access_token
+    - mcp_client_grant
+    - interaction
+    writes: []
+    effect: Read named Agent accesses from current authorized held evidence; never change responsibility or business work.
+  - name: State shipping planning evidence
+    service: shipping_plan_state
+    related_services: [shipping_plan_review]
+    application_tool: shipping_plan_state
+    mode: mutation
+    adapters: [CLI, API, Web, MCP, Chat]
+    confirmation: required
+    reads: [commitment, document, location, source_record, shipping_plan_statement]
+    writes: [shipping_plan_statement, shipping_dispatch_requirement, shipping_capacity_window, source_record, business_event]
+    effect: Retain an exact reviewed plan, revision or withdrawal as immutable source-backed evidence; do not dispatch stock or execute providers.
+  - name: Read supported operational case register
+    service: operational_case_register
+    application_tool: operational_case_register
+    mode: read
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [operational_case, commitment, movement, return_announcement, business_event, action]
+    writes: []
+    effect: Observe full matching responsibility counts and a bounded page of adopted cases; never adopt or stop work.
   - name: Operational case list
     service: operational_case_list
     mode: read
@@ -2375,6 +2494,245 @@ capability_guidance:
       do_not_use:
       - scenario: Treat successful refund evidence as a payout request.
         reason: Refund intent and live payout are not supported.
+  operations_cockpit:
+    kind: read
+    application_tool: operations_cockpit
+    purpose: Observe operations cockpit from the same guarded optional operations surface.
+    use_when:
+    - An authorized observer needs current evidence and full matching totals.
+    do_not_use_when:
+    - Confirming an action, dispatching goods or asserting current external runtime liveness.
+    required_context:
+    - Current active company membership and an enabled operations cockpit; inventory additionally requires owner access.
+    data_basis:
+    - source_record
+    - shipping_plan_statement
+    - shipping_dispatch_requirement
+    - shipping_capacity_window
+    - commitment
+    - movement
+    - shipment_event
+    limitations:
+    - Only accepted held evidence is observed; unknown input stays unavailable and samples do not define totals.
+    freshness: Fresh consistent read-only snapshot with observation time and current post-read access checks.
+    empty_result: Known empty cohorts are zero; missing input is unavailable.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign references, revoked access, disabled feature and invalid filters are refused.
+    unknown_when:
+    - Required source/evidence coverage or exact execution identity is absent.
+    next_steps:
+    - Inspect exact business/evidence references before separately reviewing any intervention.
+    verification:
+      role: context
+      proves:
+      - Current held observation, scope, coverage and retained attribution.
+      does_not_prove:
+      - Provider delivery, external runtime liveness or authority to mutate.
+    examples:
+      use:
+      - scenario: Observe the current company.
+        reason: Read-only evidence and full totals explain current operations.
+      do_not_use:
+      - scenario: Stop a case.
+        reason: Use the existing separately reviewed case takeover.
+  shipping_performance:
+    kind: read
+    application_tool: shipping_performance
+    purpose: Read shipping performance from the same guarded optional operations surface.
+    use_when:
+    - An authorized observer needs current evidence and full matching totals.
+    do_not_use_when:
+    - Confirming an action, dispatching goods or asserting current external runtime liveness.
+    required_context:
+    - Current active company membership and an enabled operations cockpit; inventory additionally requires owner access.
+    data_basis:
+    - source_record
+    - shipping_plan_statement
+    - shipping_dispatch_requirement
+    - shipping_capacity_window
+    - commitment
+    - movement
+    - shipment_event
+    limitations:
+    - Only accepted held evidence is observed; unknown input stays unavailable and samples do not define totals.
+    freshness: Fresh consistent read-only snapshot with observation time and current post-read access checks.
+    empty_result: Known empty cohorts are zero; missing input is unavailable.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign references, revoked access, disabled feature and invalid filters are refused.
+    unknown_when:
+    - Required source/evidence coverage or exact execution identity is absent.
+    next_steps:
+    - Inspect exact business/evidence references before separately reviewing any intervention.
+    verification:
+      role: context
+      proves:
+      - Current held observation, scope, coverage and retained attribution.
+      does_not_prove:
+      - Provider delivery, external runtime liveness or authority to mutate.
+    examples:
+      use:
+      - scenario: Observe the current company.
+        reason: Read-only evidence and full totals explain current operations.
+      do_not_use:
+      - scenario: Stop a case.
+        reason: Use the existing separately reviewed case takeover.
+  shipping_supporting_orders:
+    kind: read
+    application_tool: shipping_supporting_orders
+    purpose: Read supporting shipping orders from the same guarded optional operations surface.
+    use_when:
+    - An authorized observer needs current evidence and full matching totals.
+    do_not_use_when:
+    - Confirming an action, dispatching goods or asserting current external runtime liveness.
+    required_context:
+    - Current active company membership and an enabled operations cockpit; inventory additionally requires owner access.
+    data_basis:
+    - source_record
+    - shipping_plan_statement
+    - shipping_dispatch_requirement
+    - shipping_capacity_window
+    - commitment
+    - movement
+    - shipment_event
+    limitations:
+    - Only accepted held evidence is observed; unknown input stays unavailable and samples do not define totals.
+    freshness: Fresh consistent read-only snapshot with observation time and current post-read access checks.
+    empty_result: Known empty cohorts are zero; missing input is unavailable.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign references, revoked access, disabled feature and invalid filters are refused.
+    unknown_when:
+    - Required source/evidence coverage or exact execution identity is absent.
+    next_steps:
+    - Inspect exact business/evidence references before separately reviewing any intervention.
+    verification:
+      role: context
+      proves:
+      - Current held observation, scope, coverage and retained attribution.
+      does_not_prove:
+      - Provider delivery, external runtime liveness or authority to mutate.
+    examples:
+      use:
+      - scenario: Observe the current company.
+        reason: Read-only evidence and full totals explain current operations.
+      do_not_use:
+      - scenario: Stop a case.
+        reason: Use the existing separately reviewed case takeover.
+  operations_cockpit_activity:
+    kind: read
+    application_tool: operations_cockpit_activity
+    purpose: Observe recorded business activity from the same guarded optional operations surface.
+    use_when:
+    - An authorized observer needs current evidence and full matching totals.
+    do_not_use_when:
+    - Confirming an action, dispatching goods or asserting current external runtime liveness.
+    required_context:
+    - Current active company membership and an enabled operations cockpit; inventory additionally requires owner access.
+    data_basis:
+    - business_event
+    - document
+    limitations:
+    - Only accepted held evidence is observed; unknown input stays unavailable and samples do not define totals.
+    freshness: Fresh consistent read-only snapshot with observation time and current post-read access checks.
+    empty_result: Known empty cohorts are zero; missing input is unavailable.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign references, revoked access, disabled feature and invalid filters are refused.
+    unknown_when:
+    - Required source/evidence coverage or exact execution identity is absent.
+    next_steps:
+    - Inspect exact business/evidence references before separately reviewing any intervention.
+    verification:
+      role: context
+      proves:
+      - Current held observation, scope, coverage and retained attribution.
+      does_not_prove:
+      - Provider delivery, external runtime liveness or authority to mutate.
+    examples:
+      use:
+      - scenario: Observe the current company.
+        reason: Read-only evidence and full totals explain current operations.
+      do_not_use:
+      - scenario: Stop a case.
+        reason: Use the existing separately reviewed case takeover.
+  operations_cockpit_agents:
+    kind: read
+    application_tool: operations_cockpit_agents
+    purpose: Read named Agent accesses from the same guarded optional operations surface.
+    use_when:
+    - An authorized observer needs current evidence and full matching totals.
+    do_not_use_when:
+    - Confirming an action, dispatching goods or asserting current external runtime liveness.
+    required_context:
+    - Current active company membership and an enabled operations cockpit; inventory additionally requires owner access.
+    data_basis:
+    - mcp_access_token
+    - mcp_client_grant
+    - interaction
+    limitations:
+    - Only accepted held evidence is observed; unknown input stays unavailable and samples do not define totals.
+    freshness: Fresh consistent read-only snapshot with observation time and current post-read access checks.
+    empty_result: Known empty cohorts are zero; missing input is unavailable.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign references, revoked access, disabled feature and invalid filters are refused.
+    unknown_when:
+    - Required source/evidence coverage or exact execution identity is absent.
+    next_steps:
+    - Inspect exact business/evidence references before separately reviewing any intervention.
+    verification:
+      role: context
+      proves:
+      - Current held observation, scope, coverage and retained attribution.
+      does_not_prove:
+      - Provider delivery, external runtime liveness or authority to mutate.
+    examples:
+      use:
+      - scenario: Observe the current company.
+        reason: Read-only evidence and full totals explain current operations.
+      do_not_use:
+      - scenario: Stop a case.
+        reason: Use the existing separately reviewed case takeover.
+  operational_case_register:
+    kind: read
+    application_tool: operational_case_register
+    purpose: Read supported operational case responsibility from the same guarded optional operations surface.
+    use_when:
+    - An authorized observer needs current evidence and full matching totals.
+    do_not_use_when:
+    - Confirming an action, dispatching goods or asserting current external runtime liveness.
+    required_context:
+    - Current active company membership and an enabled operations cockpit.
+    data_basis:
+    - operational_case
+    - commitment
+    - business_event
+    limitations:
+    - Only accepted held evidence is observed; unknown input stays unavailable and samples do not define totals.
+    freshness: Fresh consistent read-only snapshot with observation time and current post-read access checks.
+    empty_result: Known empty cohorts are zero; missing input is unavailable.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign references, revoked access, disabled feature and invalid filters are refused.
+    unknown_when:
+    - Required source/evidence coverage or exact execution identity is absent.
+    next_steps:
+    - Inspect exact business/evidence references before separately reviewing any intervention.
+    verification:
+      role: context
+      proves:
+      - Current held observation, scope, coverage and retained attribution.
+      does_not_prove:
+      - Provider delivery, external runtime liveness or authority to mutate.
+    examples:
+      use:
+      - scenario: Observe the current company.
+        reason: Read-only evidence and full totals explain current operations.
+      do_not_use:
+      - scenario: Stop a case.
+        reason: Use the existing separately reviewed case takeover.
   operational_case_list:
     kind: read
     application_tool: operational_case_list
@@ -6748,6 +7106,15 @@ agent_command_coverage:
   operational_case_status:
     classification: eligible
     tools: [operational_case_status]
+  operations_cockpit: {classification: eligible, tools: [operations_cockpit]}
+  shipping_performance: {classification: eligible, tools: [shipping_performance]}
+  shipping_supporting_orders: {classification: eligible, tools: [shipping_supporting_orders]}
+  operations_cockpit_activity: {classification: eligible, tools: [operations_cockpit_activity]}
+  operations_cockpit_agents: {classification: eligible, tools: [operations_cockpit_agents]}
+  operational_case_register: {classification: eligible, tools: [operational_case_register]}
+  shipping_plan_state:
+    classification: eligible
+    tools: [shipping_plan_propose, shipping_plan_revise_propose, shipping_plan_withdraw_propose]
   operational_case_list:
     classification: eligible
     tools:

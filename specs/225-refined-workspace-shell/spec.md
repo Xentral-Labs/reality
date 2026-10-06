@@ -295,3 +295,31 @@ until explicitly opened. Touch controls retain their target sizes.
 Scope approved by the user's request; no unresolved clarification or new service,
 record, persistence setting or dependency. FR-021's 1168px docking assumption is
 superseded: at that width an explicit chat is an overlay and does not shrink search.
+
+## Shared native select presentation (2026-10-06)
+
+FR-023: Visible single-value native select fields throughout the web application use
+one shared decorative chevron, centered vertically and inset 12px from the end edge,
+with at least 40px reserved end padding so labels cannot collide with the indicator.
+The indicator follows Light/Dark presentation. Existing field sizes, labels, option
+values, selection events, focus order and mobile native pickers remain intact. Compact
+pagination fields retain their density but allow three-digit page sizes without clipping.
+Fields shrink within constrained containers without letting long text displace the
+indicator. Disabled fields remain identifiable; keyboard focus remains visible. Native listboxes
+(multiple or size attributes), invisible register-chip overlays and custom reference
+comboboxes retain their existing rendering. Forced-colors mode restores the browser's
+native indicator when decorative images are unavailable.
+
+Acceptance (US1/US3): shared forms, settings, header filters, Control Tower filters,
+compact pagination and register chips are readable at 320, 390 and 1440px in both
+themes. Long option text reserves indicator space; native keyboard selection and
+existing settings/filter interaction tests pass. Forced-colors mode retains an
+indicator and focus, with no duplicate chevron on filter chips or listboxes.
+Scope review: the owner explicitly requested an application-wide correction after
+reviewing the crowded native arrow. No unresolved clarification, new business action,
+API, schema, permission or dependency. This follow-up concerns the shared web client;
+static documentation and the separate simulator spectator retain their own controls.
+
+| Requirement | Story | Tasks | Verification |
+|---|---|---|---|
+| FR-023 | US1/US3 | T049–T051 | Shared-select browser matrix, settings/register/cockpit browsers |

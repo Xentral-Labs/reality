@@ -32,6 +32,7 @@ from reality.db.core import (
 from reality.services.business_locks import lock_delivery_state
 from reality.services.core import (
     InvalidOperation,
+    _id_cohort,
     _require_business_mutation,
     _tenant_record,
     emit_business_event,
@@ -262,7 +263,11 @@ def effective_delivery_rule(
 
 
 def effective_rules(
-    session: Session, tenant_id: str, document_ids: list[str]
+    session: Session,
+    tenant_id: str,
+    document_ids: list[str],
+    *,
+    _orders: dict | None = None,
 ) -> dict[str, dict[str, Any]]:
     """
     The effective rule of many orders in three reads, for readers that need many.
@@ -287,18 +292,30 @@ def effective_rules(
     if not ids:
         return {}
     # The order's own party is its customer: the shortest true link.
-    customers = dict(
-        session.execute(
-            select(Document.id, Document.party_id).where(
-                Document.tenant_id == tenant_id, Document.id.in_(ids)
-            )
-        ).all()
-    )
+    customers = None
+    if session.info.get("operations_snapshot_consistent") and _orders is not None:
+        scoped = {
+            identity: row.party_id
+            for identity, row in _orders.items()
+            if identity in ids and row.id == identity and row.tenant_id == tenant_id
+        }
+        # Incomplete/foreign inputs never substitute the permissive default for
+        # a real customer rule. Fall back to the canonical scoped document read.
+        if set(scoped) == ids:
+            customers = scoped
+    if customers is None:
+        customers = dict(
+            session.execute(
+                select(Document.id, Document.party_id).where(
+                    Document.tenant_id == tenant_id, _id_cohort(Document.id, ids)
+                )
+            ).all()
+        )
     rules = list(
         session.scalars(
             select(DeliveryRule).where(
                 DeliveryRule.tenant_id == tenant_id,
-                (DeliveryRule.document_id.in_(ids))
+                (_id_cohort(DeliveryRule.document_id, ids))
                 | (DeliveryRule.party_id.in_(set(customers.values()) - {None})),
             )
         )
@@ -415,6 +432,8 @@ def order_ships_complete(
     commitment_id: str,
     checked_quantity: Any,
     open_quantity: Any,
+    *,
+    _effective_rule: dict[str, Any] | None = None,
 ) -> bool:
     """
     Whether a line may ship as checked under its order's rule.
@@ -436,9 +455,9 @@ def order_ships_complete(
     Require every other open customer-delivery line of this order to be ship-ready in full. Use shared fulfillment readiness without re-entering this delivery-policy check. Cancelled and fulfilled lines are excluded by the open-lines reader.
     """
     # reality-rule: delivery_policy.complete.partial_allowed
-    if effective_rules(session, tenant_id, [order_id])[order_id]["rule"] != (
-        "ship_complete"
-    ):
+    if (_effective_rule or effective_rules(session, tenant_id, [order_id])[order_id])[
+        "rule"
+    ] != ("ship_complete"):
         return True
     # reality-rule: delivery_policy.complete.full_line
     if checked_quantity < open_quantity:

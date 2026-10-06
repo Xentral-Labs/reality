@@ -2,6 +2,7 @@
 const current = new Set([
   "",
   "facts",
+  "cockpit",
   "inspector",
   "settings",
   "orders-deliveries",

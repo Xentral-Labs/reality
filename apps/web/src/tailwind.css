@@ -43,6 +43,7 @@
   --text-default: #344054;
   --text-secondary: #475467;
   --text-muted: #667085;
+  --native-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --text-quiet: #98a2b3;
   --text-inverse: #ffffff;
   /* Text on saturated solid fills (danger buttons): light in both themes. */
@@ -101,6 +102,7 @@
   --text-default: #e4e7ec;
   --text-secondary: #d0d5dd;
   --text-muted: #98a2b3;
+  --native-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2398a2b3' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   /* Lifted to clear AA on the dark ground (4.53:1) while staying
      clearly below --text-muted (6.89:1). */
   --text-quiet: #788194;
@@ -2405,7 +2407,7 @@ textarea {
   font-size: 12px;
 }
 .erp-pagination-tools select {
-  width: 64px;
+  width: 76px;
   min-height: 32px;
   padding: 4px 6px;
   font-size: 12px;
@@ -5124,4 +5126,33 @@ textarea.br-control.rule-draft-editor {
   height: 6px;
   border-radius: 999px;
   background: var(--color-success-500, #12b76a);
+}
+
+/* Shared native selects keep their picker and events. The root/body specificity
+   protects indicator space from legacy page background/padding shorthands. */
+:root body select:not([multiple], [size], .register-chip-select) {
+  appearance: none;
+  background-image: var(--native-select-chevron);
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  background-position: right 12px center;
+  padding-inline-end: 40px;
+  min-width: 0;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+:root body select:not([multiple], [size], .register-chip-select):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+:root body select:not([multiple], [size], .register-chip-select):disabled {
+  cursor: not-allowed;
+  color: var(--text-quiet);
+  background-color: var(--surface-sunken);
+}
+@media (forced-colors: active) {
+  :root body select:not([multiple], [size], .register-chip-select) {
+    appearance: auto;
+    background-image: none;
+  }
 }

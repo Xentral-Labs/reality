@@ -1352,6 +1352,61 @@ company_time_zone_app = typer.Typer(
 app.add_typer(company_time_zone_app, name="company-time-zone")
 
 
+@app.command("shipping-plan-propose")
+def shipping_plan_propose_command(payload_file: Path, tenant: str | None = None):
+    """Prepare a reviewed shipping statement from exact JSON; never auto-confirm it."""
+    from reality.tools.application import create_change_proposal
+
+    arguments = json.loads(payload_file.read_text(encoding="utf-8"))
+    with Session() as session:
+        selected = selected_tenant(session, tenant)
+        proposal = create_change_proposal(
+            session, selected.id, "shipping_plan_state", arguments
+        )
+        con.print_json(
+            data={
+                "proposal_id": proposal.id,
+                "status": proposal.status,
+                "preview": json.loads(proposal.output),
+                "requires_confirmation": True,
+            },
+            default=str,
+        )
+
+
+@app.command("operations-cockpit-read")
+def operations_cockpit_read_command(
+    user_id: str,
+    tool: str = "operations_cockpit",
+    arguments: str = "{}",
+    tenant: str | None = None,
+):
+    """Trusted local read attributed to a current company member; never control work."""
+    from reality.services.memberships import Principal
+    from reality.tools.application import run_read_tool
+    from reality.tools.shipping_operations import viewer_context
+
+    if tool not in {
+        "operations_cockpit",
+        "shipping_performance",
+        "shipping_supporting_orders",
+        "operations_cockpit_activity",
+        "operations_cockpit_agents",
+        "operational_case_register",
+    }:
+        raise typer.BadParameter("Select an operations cockpit read tool.")
+    with Session() as session:
+        selected = selected_tenant(session, tenant)
+        with viewer_context(session, selected.id, Principal(user_id)):
+            try:
+                result = run_read_tool(
+                    session, selected.id, tool, json.loads(arguments)
+                )
+            except (NotFound, InvalidOperation) as error:
+                raise typer.BadParameter(str(error)) from error
+        con.print_json(data=result, default=str)
+
+
 @company_time_zone_app.command("show")
 def company_time_zone_show_command(tenant: str | None = None):
     """The company time zone and whether it was stated."""

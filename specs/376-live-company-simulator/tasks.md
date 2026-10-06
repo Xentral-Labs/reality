@@ -22,3 +22,7 @@ Do not describe the unchecked end-to-end/operator/capacity acceptance as passed.
 - [x] T016 Verify simulator acceptance/replay/takeover/handback integration and document default readiness plus operator coordination duties (FR-019).
 
 - [x] T017 Test and implement diverse early customer changes, late follow-ups and supplier clarifications; document timing and unchanged request-only authority (FR-020).
+
+- [x] T018 Add failing carrier-observation regression for distinct handover/arrival timing, replay, mailbox pressure, corrected-only contents and unchanged announcements/history (FR-021–022).
+- [x] T019 Implement bounded source-backed carrier observations before the mail gate through the existing reactions/service boundary (FR-021–022).
+- [x] T020 Run live-company/shipment/cockpit regression and required lint/spec gates; restart existing workers and verify new source-linked handovers in the retained cockpit (FR-021–022).

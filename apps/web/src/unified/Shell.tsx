@@ -15,6 +15,7 @@ import { usePendingDecisions, useWorkCount } from "./workCounts";
 import { withWorkCount } from "./TabWorkCount";
 import { RegisterHeader, RegisterHeaderTarget } from "./RegisterWorkbench";
 import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorSections";
+import { ReadState } from "./ReadState";
 import { CompanySwitcher } from "./CompanySwitcher";
 import { ChatPage } from "./ChatPage";
 import { ActionLauncher, type DeliveryAction } from "./ActionLauncher";
@@ -46,11 +47,12 @@ import {
   Database,
   X,
   Info,
+  Radar,
 } from "lucide-react";
-import { deliveryApi, operationsApi, type AuthUser, type Tenant } from "../api";
+import { cockpitApi, deliveryApi, operationsApi, type AuthUser, type Tenant } from "../api";
 import { readThemePreference, applyTheme, watchSystemTheme } from "../theme";
 import { t } from "../localization";
-import { selectionUrl, type Selection } from "./routing";
+import { cockpitReturnSelection, selectionUrl, type Selection } from "./routing";
 
 export function Shell({
   user,
@@ -71,9 +73,41 @@ export function Shell({
   children: ReactNode;
   openAction: (tool: DeliveryAction) => void;
 }) {
-  const [chatOpen, setChatOpen] = useState(
+  const [generalChatOpen, setGeneralChatOpen] = useState(
     () => window.innerWidth >= 1280 || selection.route === "copilot",
   );
+  const [cockpitChatOpen, setCockpitChatOpen] = useState(false);
+  const chatOpen = selection.route === "cockpit" ? cockpitChatOpen : generalChatOpen;
+  const setChatOpen = selection.route === "cockpit" ? setCockpitChatOpen : setGeneralChatOpen;
+  const [cockpitCapability, setCockpitCapability] = useState({
+    tenant: "",
+    enabled: false,
+    resolved: false,
+  });
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    setCockpitChatOpen(false);
+    cockpitApi
+      .capabilities(company.id, controller.signal)
+      .then((result) => {
+        if (active)
+          setCockpitCapability({
+            tenant: company.id,
+            enabled: result.enabled === true,
+            resolved: true,
+          });
+      })
+      .catch(() => {
+        if (active) setCockpitCapability({ tenant: company.id, enabled: false, resolved: true });
+      });
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [company.id]);
+  const cockpitResolved = cockpitCapability.tenant === company.id && cockpitCapability.resolved;
+  const cockpitAvailable = cockpitCapability.tenant === company.id && cockpitCapability.enabled;
   const [chatCanDock, setChatCanDock] = useState(
     () => window.matchMedia("(min-width: 1280px)").matches,
   );
@@ -90,7 +124,7 @@ export function Shell({
     };
     media.addEventListener("change", changed);
     return () => media.removeEventListener("change", changed);
-  }, []);
+  }, [selection.route]);
   useEffect(() => {
     if (selection.route === "copilot") setChatOpen(true);
   }, [selection.route]);
@@ -98,7 +132,7 @@ export function Shell({
     const show = () => setChatOpen(true);
     window.addEventListener("reality:open-chat", show);
     return () => window.removeEventListener("reality:open-chat", show);
-  }, []);
+  }, [selection.route]);
   // Storyline has its own protocol column; the chat dock stays closed there.
   const dockOpen = chatOpen && selection.route !== "storyline" && selection.route !== "chat";
   const [registerHeader, setRegisterHeader] = useState<HTMLDivElement | null>(null);
@@ -170,6 +204,13 @@ export function Shell({
   const inspectorIcons = [Waypoints, FileText, History, Zap];
   const destinations = [
     {
+      label: "Control Tower",
+      target: { route: "cockpit", page: 1, q: "" } as Partial<Selection>,
+      Icon: Radar,
+      active: selection.route === "cockpit",
+      badge: "",
+    },
+    {
       label: "Inbox",
       target: welcomeSelection,
       Icon: Inbox,
@@ -185,6 +226,7 @@ export function Shell({
     },
   ];
   const introduction = pageIntroduction(selection);
+  const cockpitReturn = cockpitReturnSelection(selection);
   const contentTitle = inbox
     ? "Inbox"
     : selection.route === "inspector"
@@ -292,6 +334,18 @@ export function Shell({
               >
                 <Menu size={18} />
               </button>
+              {cockpitReturn && (
+                <a
+                  className="br-btn"
+                  href={selectionUrl(cockpitReturn)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    navigate(cockpitReturn);
+                  }}
+                >
+                  {t("Return to Control Tower")}
+                </a>
+              )}
               <div className="page-view-tabs shell-header-tabs" data-page-tabs hidden={!hasTabs}>
                 <div className="page-view-tabs-target" ref={setRegisterHeader} />
               </div>
@@ -779,7 +833,29 @@ export function Shell({
                     </nav>
                   </RegisterHeader>
                 )}
-                {children}
+                {selection.route === "cockpit" && !cockpitResolved ? (
+                  <ReadState loading rows={4} />
+                ) : selection.route === "cockpit" && !cockpitAvailable ? (
+                  <section
+                    className="br-card mx-auto max-w-3xl space-y-4 rounded-xl border border-border-default bg-surface p-6"
+                    data-control-tower-unavailable
+                  >
+                    <h2 className="text-lg font-semibold text-fg-strong">
+                      {t("Control Tower is unavailable for this company")}
+                    </h2>
+                    <p className="text-sm text-fg-muted">{company.name}</p>
+                    <p>
+                      {t(
+                        "Use the company menu at the top left to choose a business company with Control Tower enabled.",
+                      )}
+                    </p>
+                    <button className="br-btn" onClick={() => navigate({ route: "home" })}>
+                      {t("Back to Inbox")}
+                    </button>
+                  </section>
+                ) : (
+                  children
+                )}
               </main>
               <aside
                 id="global-chat"

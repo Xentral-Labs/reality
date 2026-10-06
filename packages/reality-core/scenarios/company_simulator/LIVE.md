@@ -275,11 +275,12 @@ code. The full 6,448-test run predates this merge; head CI remains a separate ga
 
 ## Operational-case integration proof
 
-The simulator-specific regression enables company adoption through the normal
-owner service, accepts a live order, verifies one stable case across intake and
+The original simulator-specific regression exercised the legacy owner adoption
+service; current spec 377 coordination is automatic. It accepts a live order and
+verifies one stable case across intake and
 consumer replay, confirms manual takeover blocks automated commitment changes,
 and verifies fresh work is allowed after exact reviewed handback. Simulator launch
-itself leaves adoption disabled. The normal shared registry includes both simulator
+uses default coordination without a separate activation step. The normal shared registry includes both simulator
 jobs and operational-case reconciliation; no additional scheduler is needed.
 Stock-ready/dispatch timing metrics do not grant case ownership or business approval.
 
@@ -316,3 +317,51 @@ shared order cards and tracking Inspector navigation, stale snapshots/mobile and
 read-only requests. Web contracts passed 463 tests; build, all four localization
 audits, formatting, lint, business annotations and spec policy passed. No full
 backend rerun or external-model/multi-day trial is claimed for this UI follow-up.
+
+## Carrier observations and cockpit progress (spec 376 FR-021–022)
+
+The existing reactions job observes actual effective packaged dispatches belonging to this retained run. After physical dispatch becomes eligible it authors a separate immutable synthetic carrier handover Source/Event at the actual reaction observation, then records synthetic arrival in a later observation. It never backdates handover from a movement or arrival, and retained already-delivered packages without handover remain historical evidence gaps. Announcement-only, corrected-only and other-run work does not create a handover. Replay is deduplicated through retained source/event identities. These are local simulated carrier observations, not real provider receipts.
+
+Mailbox pressure still bounds correspondence and the receipt/payment flows that generate mail; it does not block bounded carrier observations of already dispatched packages. The same PostgreSQL reactions schedule/worker executes both, without a browser timer or additional queue. The operating agent continues using ordinary reservations, outbound plans, dispatch and Finance services; it must not fabricate carrier confirmation to improve the cockpit. Shipping plan/capacity inputs remain independently reviewed, and newly arriving orders outside a fixed plan are not silently enrolled.
+
+
+## Retained-run recovery and Control Tower interpretation
+
+A full operator must service older correspondence as well as new dispatch-ready
+orders. Start each invocation from the oldest unread page without a retained
+forward cursor. A cursor is pagination within a scan, not permission to forget
+older unhandled mail. Historical handoffs record receipts and blockers; they must
+not override the current operating mandate with a repeated small-shipment script.
+If the oldest work is blocked, reply truthfully or record a specific source-linked
+escalation and acknowledge only the actually examined, processed message. An
+acknowledgement does not resolve the outstanding business escalation. Missing case
+coverage or human ownership remains a fulfillment guard; it does not justify
+silently ignoring the associated customer question.
+
+At high mailbox pressure, the shared reactions job postpones supplier/payment
+correspondence and receipts. The existing gate is unread mail greater than
+`max_backlog - 200` (1,800 for the default 2,000-message bound). Carrier observations
+of already-dispatched packages run before that gate. A pending purchase with no
+receipt may therefore be waiting for mailbox recovery rather than a missing
+shipping worker. Drain genuinely handled older mail, re-read purchase state and
+compare uncovered demand with effective incoming supply and recorded terms. Do not
+change bounds, acknowledge unexamined mail or create receipt/payment evidence to
+make a chart move. Every round still checks supplier mail, purchasing and Finance;
+zero pending proposals or a few shipment acknowledgements is not a complete round.
+
+The Control Tower's company-wide rolling activity and reviewed daily shipping plan
+have different scopes. New orders, actual dispatches, replies, receipts and accepted
+returns update from their own recorded evidence. "Shipping by end of day" follows
+the currently accepted plan's exact cohort, company calendar and confirmed capacity.
+Later incoming orders remain outside that fixed cohort until an authorized owner
+reviews a plan revision. Auto-refresh never approves or revises planning inputs.
+New shipments outside the plan can therefore move the company-wide chart while the
+daily confirmed-handover total remains unchanged. A dispatch booking, carrier
+handover and customer arrival are separate observations. Historical missing
+handover times stay missing. Incoming return emails do not become accepted returns
+by themselves, and pending supplier commitments without dates remain unknown risks.
+
+For a retained demo, inspect unplanned work, current plan/calendar/cutoffs, oldest
+unread mail, missing case coverage and manual responsibility before diagnosing a
+static daily curve. Report these separate causes and actual before/after effects;
+do not claim that a live browser or connected credential proves a working agent.

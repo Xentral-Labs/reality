@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
+import { isShellBackgroundRead } from "./shell-background-reads.mjs";
 
 /** The moment a question becomes a report of your own.
  *
@@ -213,6 +214,7 @@ async function open(language = "en") {
         items: [],
         page: { number: 1, size: 50, total: 0, pages: 1, has_next: false, has_previous: false },
       });
+    if (isShellBackgroundRead(request.method(), path)) return reply({}, 404);
     unmatched.push(path);
     return reply({ items: [] });
   });

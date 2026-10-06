@@ -1,0 +1,185 @@
+import { useEffect, useRef, useState } from "react";
+import { cockpitApi } from "../api";
+import { t } from "../localization";
+import { useCockpitLiveRead } from "./useCockpitLiveRead";
+import { ReadState } from "./ReadState";
+import { ShippingDayPanel, cockpitTime } from "./ShippingDayPanel";
+import { ShippingSupportingOrders } from "./ShippingSupportingOrders";
+import { OperationsActivityPanel } from "./OperationsActivityPanel";
+import { OperationalCaseRegister } from "./OperationalCaseRegister";
+import { OperationsDeviationsPanel } from "./OperationsDeviationsPanel";
+import { OperatingFlowsPanel, OperatingStatusPanel } from "./OperatingFlowsPanel";
+import { AgentAccessPanel } from "./AgentAccessPanel";
+import type { ShippingMeasure } from "./cockpitModel";
+import type { Selection } from "./routing";
+import "./operationsCockpit.css";
+
+export function OperationsCockpitPage({
+  selection,
+  navigate,
+}: {
+  selection: Selection;
+  navigate: (changes: Partial<Selection>) => void;
+}) {
+  const inspectionTrigger = useRef<HTMLElement | SVGElement | null>(null);
+  const [inspection, setInspection] = useState<{ at?: string; day: string } | null>(null);
+  const [sites, setSites] = useState<{ location_id: string; name: string }[]>([]);
+  const day = selection.cockpitDay || "today",
+    location = selection.cockpitLocation || "";
+  const state = useCockpitLiveRead(`${selection.tenant}:${day}:${location}`, (signal) =>
+    cockpitApi.overview(selection.tenant, day, location, signal),
+  );
+  const value = state.data?.shipping;
+  useEffect(() => {
+    setInspection(null);
+    setSites([]);
+  }, [selection.tenant]);
+  useEffect(() => {
+    if (value && !location) setSites(value.sites);
+  }, [value, location]);
+  useEffect(() => {
+    if (state.status === "denied") navigate({ route: "home" });
+  }, [state.status, navigate]);
+  const inspect = (measure: ShippingMeasure, at?: string) => {
+    inspectionTrigger.current =
+      document.activeElement instanceof HTMLElement || document.activeElement instanceof SVGElement
+        ? document.activeElement
+        : null;
+    navigate({ cockpitMeasure: measure, cockpitBasis: value?.basis_key });
+    if (value) setInspection({ at, day: value.business_day });
+  };
+  return (
+    <div className="operations-cockpit">
+      <header className="cockpit-header">
+        <div>
+          <span className="cockpit-eyebrow">{t("Company operations")}</span>
+          <h1>{t("Control Tower")}</h1>
+          <p>{t("Observe results. Take over a case only when you need to.")}</p>
+        </div>
+        <div className="cockpit-filters">
+          <label className="br-field">
+            {t("Business day")}
+            <select
+              className="br-control"
+              value={day === "today" ? "today" : "pinned"}
+              onChange={(event) =>
+                navigate({
+                  cockpitDay:
+                    event.target.value === "today" ? "today" : value?.business_day || "today",
+                })
+              }
+            >
+              <option value="today">{t("Today · follows company day")}</option>
+              <option value="pinned" disabled={!value}>
+                {t("Pinned date")}
+              </option>
+            </select>
+          </label>
+          {day !== "today" && (
+            <label className="br-field">
+              {t("Date")}
+              <input
+                className="br-control"
+                type="date"
+                value={day}
+                onChange={(event) => {
+                  if (event.target.value) navigate({ cockpitDay: event.target.value });
+                }}
+              />
+            </label>
+          )}
+          <label className="br-field">
+            {t("Dispatch site")}
+            <select
+              className="br-control"
+              value={location}
+              onChange={(event) => navigate({ cockpitLocation: event.target.value })}
+            >
+              <option value="">{t("All dispatch sites")}</option>
+              {(sites.length ? sites : value?.sites || []).map((site) => (
+                <option key={site.location_id} value={site.location_id}>
+                  {site.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </header>
+      <div className={`cockpit-status ${state.status}`} role="status">
+        <span className="cockpit-status-dot" />
+        <strong>
+          {t(
+            state.status === "current"
+              ? "Live observation"
+              : state.status === "stale"
+                ? "Previous observation — refresh failed"
+                : state.status === "suspended"
+                  ? "Live updates suspended while hidden"
+                  : state.status === "denied"
+                    ? "Access unavailable"
+                    : "Loading…",
+          )}
+        </strong>
+        {value && (
+          <span>
+            {t("Data observed at")} {cockpitTime(value.observed_at, value.time_zone)} ·{" "}
+            {value.business_day}
+          </span>
+        )}
+      </div>
+      {!value && Boolean(state.error) && (
+        <ReadState
+          error={state.error instanceof Error ? state.error.message : t("Could not load this view")}
+        />
+      )}
+      {!value && !state.error && <ReadState loading rows={7} />}
+      {value && (
+        <>
+          <OperatingStatusPanel value={state.data?.flows} stale={state.status !== "current"} />
+          <OperationalCaseRegister
+            key={selection.tenant}
+            selection={selection}
+            zone={value.time_zone}
+          />
+          <ShippingDayPanel value={value} inspect={inspect} selection={selection} />
+          {inspection && (
+            <ShippingSupportingOrders
+              key={`${selection.tenant}:${day}:${location}:${selection.cockpitMeasure}:${inspection.at}`}
+              selection={selection}
+              at={inspection.at}
+              resolvedDay={inspection.day}
+              basis={selection.cockpitBasis || value.basis_key}
+              zone={value.time_zone}
+              close={() => {
+                setInspection(null);
+                requestAnimationFrame(() =>
+                  inspectionTrigger.current?.focus({ preventScroll: true }),
+                );
+              }}
+            />
+          )}
+          <OperatingFlowsPanel
+            value={state.data?.flows}
+            selection={selection}
+            stale={state.status !== "current"}
+          />
+          <div className="cockpit-live-grid">
+            <OperationsActivityPanel
+              key={selection.tenant}
+              selection={selection}
+              navigate={navigate}
+            />
+            <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />
+          </div>
+          {state.data && (
+            <OperationsDeviationsPanel
+              value={state.data}
+              selection={selection}
+              inspect={() => inspect("risk")}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+}

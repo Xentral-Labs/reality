@@ -87,9 +87,45 @@ def object_cases(
     )
 
 
+@router.get("/register")
+def register_cases(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    kind: str | None = None,
+    query: str = Query("", max_length=200),
+    control_mode: str | None = None,
+    outstanding_only: bool = False,
+    after: str = "",
+    limit: int = Query(50, ge=1, le=100),
+):
+    from reality.services.operations_cockpit import case_register
+
+    return _respond(
+        lambda: case_register(
+            session,
+            tenant_id,
+            request_principal(request),
+            kind=kind,
+            query=query,
+            control_mode=control_mode,
+            outstanding_only=outstanding_only,
+            after=after,
+            limit=limit,
+        )
+    )
+
+
 @router.get("/{case_id}")
-def explain(tenant_id: str, case_id: str, session: DatabaseSession):
-    return _respond(lambda: cases.explain(session, tenant_id, case_id))
+def explain(
+    tenant_id: str,
+    case_id: str,
+    session: DatabaseSession,
+    action_limit: int | None = Query(None, ge=1, le=50),
+):
+    return _respond(
+        lambda: cases.explain(session, tenant_id, case_id, action_limit=action_limit)
+    )
 
 
 @router.post("/{case_id}/takeover")

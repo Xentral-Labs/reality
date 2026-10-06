@@ -1,4 +1,5 @@
 export const invariantTerms = new Map([
+  ["Control Tower", "Owner-selected operations workspace name (spec 378 FR-040)"],
   ["Esc", "Standard Escape keyboard key label"],
   ["Cypher", "Established query-language name (spec 228)"],
   ["Inbox", "Unified daily-work product label (spec 225)"],

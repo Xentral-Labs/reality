@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:10d739e662084cf709fcb64202e58ba5f8d915485f383aba8ac61ccc5cced24c",
+  "knowledge_version": "advisor-v1:sha256:19a8ec5cbeb99c40958bbed7326dcba87c24223d81900d538d9370b1b6864bea",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -774,6 +774,7 @@
       ],
       "evidence_ids": [
         "evidence_command_operational_case_status",
+        "evidence_command_operational_case_register",
         "evidence_command_operational_case_list",
         "evidence_command_operational_case_explain",
         "evidence_command_operational_case_object",
@@ -785,6 +786,10 @@
       "tools": [
         {
           "name": "operational_case_status",
+          "mode": "read"
+        },
+        {
+          "name": "operational_case_register",
           "mode": "read"
         },
         {
@@ -1449,6 +1454,7 @@
         "Lagerplatz"
       ],
       "evidence_ids": [
+        "evidence_command_shipping_plan_state",
         "evidence_command_prepare_intake",
         "evidence_command_apply_prepared_intake",
         "evidence_command_create_manual_order",
@@ -1481,6 +1487,10 @@
         "evidence_command_record_return_disposition"
       ],
       "tools": [
+        {
+          "name": "shipping_plan_state",
+          "mode": "mutation"
+        },
         {
           "name": "prepare_intake",
           "mode": "mutation"
@@ -1707,6 +1717,11 @@
         "Liefersperre"
       ],
       "evidence_ids": [
+        "evidence_command_operations_cockpit",
+        "evidence_command_shipping_performance",
+        "evidence_command_shipping_supporting_orders",
+        "evidence_command_shipping_plan_state",
+        "evidence_command_operational_case_register",
         "evidence_command_operational_case_list",
         "evidence_command_operational_case_explain",
         "evidence_command_operational_case_object",
@@ -1768,6 +1783,26 @@
         "evidence_command_assign_line_item"
       ],
       "tools": [
+        {
+          "name": "operations_cockpit",
+          "mode": "read"
+        },
+        {
+          "name": "shipping_performance",
+          "mode": "read"
+        },
+        {
+          "name": "shipping_supporting_orders",
+          "mode": "read"
+        },
+        {
+          "name": "shipping_plan_state",
+          "mode": "mutation"
+        },
+        {
+          "name": "operational_case_register",
+          "mode": "read"
+        },
         {
           "name": "operational_case_list",
           "mode": "read"
@@ -2037,6 +2072,13 @@
         "Direktlieferung"
       ],
       "evidence_ids": [
+        "evidence_command_operations_cockpit",
+        "evidence_command_shipping_performance",
+        "evidence_command_shipping_supporting_orders",
+        "evidence_command_operations_cockpit_activity",
+        "evidence_command_operations_cockpit_agents",
+        "evidence_command_shipping_plan_state",
+        "evidence_command_operational_case_register",
         "evidence_command_email_dispatch_authorize",
         "evidence_command_propose_cost_review",
         "evidence_command_cost_review_draft",
@@ -2083,6 +2125,34 @@
         "evidence_command_record_return_disposition"
       ],
       "tools": [
+        {
+          "name": "operations_cockpit",
+          "mode": "read"
+        },
+        {
+          "name": "shipping_performance",
+          "mode": "read"
+        },
+        {
+          "name": "shipping_supporting_orders",
+          "mode": "read"
+        },
+        {
+          "name": "operations_cockpit_activity",
+          "mode": "read"
+        },
+        {
+          "name": "operations_cockpit_agents",
+          "mode": "read"
+        },
+        {
+          "name": "shipping_plan_state",
+          "mode": "mutation"
+        },
+        {
+          "name": "operational_case_register",
+          "mode": "read"
+        },
         {
           "name": "email_dispatch_authorize",
           "mode": "mutation"
@@ -3149,6 +3219,7 @@
         "Wiedereinlagerungsgebühr"
       ],
       "evidence_ids": [
+        "evidence_command_operational_case_register",
         "evidence_command_operational_case_list",
         "evidence_command_operational_case_explain",
         "evidence_command_operational_case_object",
@@ -3167,6 +3238,10 @@
         "evidence_command_record_return_disposition"
       ],
       "tools": [
+        {
+          "name": "operational_case_register",
+          "mode": "read"
+        },
         {
           "name": "operational_case_list",
           "mode": "read"
@@ -3251,6 +3326,8 @@
         "Quelle"
       ],
       "evidence_ids": [
+        "evidence_command_operations_cockpit_activity",
+        "evidence_command_shipping_plan_state",
         "evidence_command_prepare_batch",
         "evidence_command_review_batch",
         "evidence_command_batch_status",
@@ -3317,9 +3394,7 @@
         "evidence_command_notice_detail",
         "evidence_command_record_notice",
         "evidence_command_reverse_notice",
-        "evidence_command_run_context",
         "evidence_command_confirm_run",
-        "evidence_command_record_handover",
         "evidence_command_record_return",
         "evidence_command_settle_payout",
         "evidence_command_record_sales_invoice",
@@ -3333,6 +3408,14 @@
         "evidence_command_assign_line_item"
       ],
       "tools": [
+        {
+          "name": "operations_cockpit_activity",
+          "mode": "read"
+        },
+        {
+          "name": "shipping_plan_state",
+          "mode": "mutation"
+        },
         {
           "name": "prepare_batch",
           "mode": "mutation"
@@ -3598,15 +3681,7 @@
           "mode": "mutation"
         },
         {
-          "name": "run_context",
-          "mode": "query"
-        },
-        {
           "name": "confirm_run",
-          "mode": "mutation"
-        },
-        {
-          "name": "record_handover",
           "mode": "mutation"
         },
         {
@@ -3729,11 +3804,16 @@
         "Verlauf"
       ],
       "evidence_ids": [
+        "evidence_command_operations_cockpit_activity",
         "evidence_command_business_journey_guide",
         "evidence_command_business_journey_proposal_create",
         "evidence_command_business_journey_vote_set"
       ],
       "tools": [
+        {
+          "name": "operations_cockpit_activity",
+          "mode": "read"
+        },
         {
           "name": "business_journey_guide",
           "mode": "read"
