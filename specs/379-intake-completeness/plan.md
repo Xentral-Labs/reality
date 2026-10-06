@@ -31,6 +31,7 @@ Pre- and post-design checks pass. No exception or unresolved product decision is
 - `packages/reality-core/src/reality/domain/intake_completeness.py`: pure required-value, currency, order-gap and stock-unit rules.
 - `services/core.py`: translate pure validation to localized errors, preserve omitted price, observe order gaps in previews and enforce sales-unit meaning.
 - `services/shopify_intake.py`, `services/artifact_intake.py`, `services/intake.py`: require source currency and bank date/direction; append shared order gaps; carry file dates; retain profile unit inheritance and unknown-item evidence.
+- `mcp/catalog.py`: advertise optional/blank manual prices and existing known-item unit inheritance consistently with the shared services; retain direct-null refusal.
 - `services/file_interpreters.py`: expose existing date/unit/amount mapping fields and required bank mapping fields.
 - `services/live_company.py`: author one timestamp, company-local document day and explicit synthetic unit price before normal order recording.
 - `config/service_refusals.json`: English/German field-specific errors.

@@ -5,7 +5,7 @@ from typing import Any
 
 
 class MissingEssentialValue(ValueError):
-    def __init__(self, field: str):
+    def __init__(self, field: str) -> None:
         self.field = field
         super().__init__(field)
 

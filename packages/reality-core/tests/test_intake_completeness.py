@@ -7,6 +7,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from jsonschema import ValidationError, validate
 from sqlalchemy import func, select
 from test_artifact_intake_admission import prepare_file
 from test_unified_source_api import client_for
@@ -19,6 +20,7 @@ from reality.db.core import (
     LedgerEntry,
     SourceRecord,
 )
+from reality.mcp.catalog import MCP_TOOL_REGISTRY, dispatch_tool
 from reality.services import core
 from reality.services.company_time_zone import set_company_time_zone
 from reality.services.intake import apply_prepared_intake, prepare_intake, review_intake
@@ -395,3 +397,99 @@ def test_completeness_policy_distinguishes_absence_from_zero():
         "gross_amount": "0",
     }
     assert order_issues(document, [{"unit_price": 0, "gross_amount": 0}]) == ()
+
+
+@pytest.mark.parametrize("price", [None, "", "  ", "0"])
+def test_agent_schema_and_confirmed_order_preserve_unknown_price(
+    session, business, price
+):
+    arguments = manual_arguments(business)
+    if price is not None:
+        arguments["lines"][0]["unit_price"] = price
+    validate(arguments, MCP_TOOL_REGISTRY["order_create_propose"].input_schema)
+    proposal = dispatch_tool(
+        session,
+        business.tenant.id,
+        "order_create_propose",
+        arguments,
+        allowed_access=("propose",),
+    )
+    assert session.scalar(select(func.count()).select_from(Document)) == 0
+    output = dispatch_tool(
+        session,
+        business.tenant.id,
+        "proposal_approve_and_execute",
+        {
+            "proposal_id": proposal["proposal_id"],
+            "approved": True,
+            "review_token": proposal["preview"]["token"],
+        },
+        allowed_access=("confirm",),
+    )["output"]
+    line = session.get(
+        DocumentLine, (business.tenant.id, output["document_line_ids"][0])
+    )
+    assert line.unit == business.item.unit
+    assert line.unit_price == (Decimal(0) if price == "0" else None)
+    assert line.gross_amount == Decimal(20)
+
+
+@pytest.mark.parametrize(
+    "tool",
+    [
+        "order_create_propose",
+        "document_create_propose",
+        "supplier_invoice_free_record_propose",
+    ],
+)
+def test_exported_manual_price_contract_allows_absence_but_refuses_null(tool):
+    line_schema = MCP_TOOL_REGISTRY[tool].input_schema["properties"]["lines"]["items"]
+    line = {"quantity": "2", "gross_amount": "20", "unit": "pcs"}
+    validate(line, line_schema)
+    for price in ("", "  ", "0"):
+        validate({**line, "unit_price": price}, line_schema)
+    for price in (None, "not a price"):
+        with pytest.raises(ValidationError):
+            validate({**line, "unit_price": price}, line_schema)
+
+
+@pytest.mark.parametrize("missing", ["currency", "stock_unit"])
+def test_demo_order_uses_the_same_essential_source_rules(session, business, missing):
+    payload = {
+        "schema_version": 1,
+        "synthetic": True,
+        "schedule_id": "schedule-379",
+        "delivery_id": "delivery-379",
+        "number": "DEMO-379",
+        "ordered_at": "2026-10-06T10:00:00Z",
+        "due_at": "2026-10-06T12:00:00Z",
+        "company_party_id": business.company.id,
+        "customer_party_id": business.customer.id,
+        "location_id": business.location.id,
+        "currency": None if missing == "currency" else "EUR",
+        "gross_amount": "20",
+        "lines": [
+            {
+                "item_id": business.item.id,
+                "source_line_id": "demo-line-379",
+                "quantity": "2",
+                "unit": "box" if missing == "stock_unit" else business.item.unit,
+                "unit_price": "10",
+                "gross_amount": "20",
+            }
+        ],
+    }
+    source, job = core.enqueue_source(
+        session, business.tenant.id, "demo_data", "order", "essential-379", payload
+    )
+    with pytest.raises(core.InvalidOperation) as refused:
+        prepare_intake(session, business.tenant.id, job.id)
+    assert refused.value.code == (
+        "source_field_required"
+        if missing == "currency"
+        else "source_quantity_unit_unsupported"
+    )
+    assert json.loads(source.payload) == payload
+    assert job.status == "failed"
+    assert session.scalar(select(func.count()).select_from(Document)) == 0
+    assert session.scalar(select(func.count()).select_from(Commitment)) == 0

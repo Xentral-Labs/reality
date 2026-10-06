@@ -74,7 +74,7 @@ test("live MCP verifier compares names, required fields, enums and nested shapes
   assert.match(output, /matches generated reference/u);
 });
 
-test("generated MCP reference preserves canonical enums and nested required fields", () => {
+test("generated MCP reference preserves canonical enums and nested required and optional fields", () => {
   const reference = JSON.parse(
     fs.readFileSync(path.join(docsRoot, ".vitepress/data/tool-usage.json"), "utf8"),
   );
@@ -101,8 +101,19 @@ test("generated MCP reference preserves canonical enums and nested required fiel
   ]);
   for (const field of ["supplier_id", "number", "currency", "gross_amount", "lines"])
     assert.equal(parameter("supplier_invoice_free_record_propose", field).required, true);
-  for (const field of ["lines[].quantity", "lines[].unit_price", "lines[].gross_amount"])
+  for (const field of ["lines[].quantity", "lines[].gross_amount"])
     assert.equal(parameter("supplier_invoice_free_record_propose", field).required, true);
+  for (const tool of [
+    "order_create_propose",
+    "document_create_propose",
+    "supplier_invoice_free_record_propose",
+  ]) {
+    const price = parameter(tool, "lines[].unit_price");
+    assert.equal(price.required, false);
+    assert.equal(price.type, "string");
+    assert.match(price.description, /Omit or leave blank/);
+  }
+  assert.equal(parameter("order_create_propose", "lines[].unit").required, false);
   for (const field of ["lines[].invoice_line_id", "lines[].quantity", "lines[].gross_amount"])
     assert.equal(parameter("sales_credit_record_propose", field).required, true);
 });

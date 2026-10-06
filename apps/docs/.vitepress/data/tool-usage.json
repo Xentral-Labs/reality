@@ -7452,15 +7452,15 @@
         {
           "name": "lines[].unit",
           "type": "string",
-          "required": true,
+          "required": false,
           "description": "Unit of measure in which the quantity is expressed.",
           "depth": 1
         },
         {
           "name": "lines[].unit_price",
           "type": "string",
-          "required": true,
-          "description": "Decimal monetary amount for one unit before quantity multiplication.",
+          "required": false,
+          "description": "Omit or leave blank when no unit price was stated. Zero is a stated free price.",
           "depth": 1
         },
         {
@@ -9286,8 +9286,8 @@
         {
           "name": "lines[].unit_price",
           "type": "string",
-          "required": true,
-          "description": "Decimal monetary amount for one unit before quantity multiplication.",
+          "required": false,
+          "description": "Omit or leave blank when no unit price was stated. Zero is a stated free price.",
           "depth": 1
         },
         {
@@ -10749,8 +10749,8 @@
         {
           "name": "lines[].unit_price",
           "type": "string",
-          "required": true,
-          "description": "Decimal monetary amount for one unit before quantity multiplication.",
+          "required": false,
+          "description": "Omit or leave blank when no unit price was stated. Zero is a stated free price.",
           "depth": 1
         },
         {

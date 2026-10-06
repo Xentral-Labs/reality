@@ -465,6 +465,7 @@ def _demo_order_plan(session, tenant_id, source, job):
     """Prepare only the values stated by one complete synthetic order."""
     from reality.integrations.demo_data import DemoOrder
 
+    core._required_source_field(json.loads(source.payload).get("currency"), "currency")
     order = DemoOrder.model_validate_json(source.payload)
     references = [
         _reference(session, tenant_id, "party", order.company_party_id),
@@ -474,6 +475,8 @@ def _demo_order_plan(session, tenant_id, source, job):
     lines = [line.model_dump(mode="json") for line in order.lines]
     commitments = []
     for index, line in enumerate(order.lines):
+        item = core._tenant_record_read(session, Item, tenant_id, line.item_id)
+        core._validate_sales_stock_unit(item, line.unit)
         references.append(_reference(session, tenant_id, "item", line.item_id))
         commitments.append(
             Effect(

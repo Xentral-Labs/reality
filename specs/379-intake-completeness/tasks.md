@@ -13,7 +13,7 @@
 ## User Story 2: incomplete orders
 
 - [x] T005 [US2] Add failing omission/zero price, review-gap and file-date/local-midnight/header-conflict proofs in tests/test_intake_completeness.py (FR-003/004/005, DR-001/002).
-- [x] T006 [US2] Preserve omitted prices and expose shared order gaps in services/core.py, services/shopify_intake.py, services/intake.py and services/artifact_intake.py; add file mapping fields and render shared issues/Unknown in apps/web/src/unified/CompletenessIssues.tsx, OrderCard.tsx and IntakeBatchReview.tsx with the existing order-entry browser proof (FR-003/004/005).
+- [x] T006 [US2] Preserve omitted prices and expose shared order gaps in services/core.py, services/shopify_intake.py, services/intake.py and services/artifact_intake.py; add file mapping fields and render shared issues/Unknown in apps/web/src/unified/CompletenessIssues.tsx, OrderCard.tsx and IntakeBatchReview.tsx with the existing order-entry browser proof and matching exported MCP input schemas in mcp/catalog.py (FR-003/004/005).
 
 ## User Story 3: simulator and units
 
@@ -23,8 +23,8 @@
 ## Verification and review
 
 - [x] T009 Document the shared rule matrix in docs/features/intake-completeness.md and update source/simulator contracts and specs/SPEC_COVERAGE_MATRIX evidence; generate catalogs (FR-009).
-- [ ] T010 Run affected and complete required backend/frontend/docs/spec gates; record measured verification in specs/379-intake-completeness/verification.md (all FR/DR, SC-003).
-- [ ] T011 Review final diff, create/attach the PR and resolve every failing CI job on its current head; record actual status without merging.
+- [x] T010 Run affected and complete required backend/frontend/docs/spec gates; record measured verification in specs/379-intake-completeness/verification.md (all FR/DR, SC-003).
+- [x] T011 Review final diff, create/attach the PR and resolve every failing CI job on its current head; record actual status without merging.
 
 ## Dependencies and implementation strategy
 

@@ -6,7 +6,7 @@ An incoming source is evidence even when incomplete. Raw SourceRecord/SourceArti
 
 | Value and path | New preparation/recording behavior | Allowed incomplete behavior |
 |---|---|---|
-| Currency on Shopify/file orders and normalized invoice/payment sources | Require a nonblank source value; no implicit EUR | Direct human forms retain their visible currency default |
+| Currency on Shopify/file/synthetic orders and normalized invoice/payment sources | Require a nonblank source value; no implicit EUR | Direct human forms retain their visible currency default |
 | Bank-file payment direction and booking instant | Require incoming/outgoing and effective_at; missing values refuse before posting | Raw remains available; received_at is never a booking substitute |
 | Manual document unit price | Omission/blank remains unknown; explicit 0 stays 0 | Explicit-null direct manual validation remains unchanged; source-carried null stays unknown |
 | Order document date | File profile preserves document_date; otherwise the stated ordered_at instant becomes the company-local day | Neither stated: retain unknown and expose review issue; never use today's date |
@@ -14,6 +14,8 @@ An incoming source is evidence even when incomplete. Raw SourceRecord/SourceArti
 | Order total and line amount | Preserve exact source values and report absence | Unknown is not zero; do not multiply quantity by unit price to fill it |
 | Known-item physical sales unit | Omitted unit uses the recorded item stock unit under the profile contract; explicit unsupported different unit refuses a promise | Unknown item lines remain evidence without a physical promise; existing purchase conversion remains separate |
 | Automatic live simulator order | Author an explicit EUR 10 unit quotation, one order instant and its company-local document day | Manual composer amount without an explicit unit quotation remains unknown; no reverse price calculation |
+
+Exported manual-order/document/free-supplier-invoice tool schemas accept omitted/blank unit prices and reject direct null; manual orders can omit the unit to inherit the recorded item stock unit. Agent schemas and shared recording services use the same absence meaning.
 
 Order completeness observations use the shared domain policy and appear in retained intake reviews and manual-order previews. They are not persisted operational status. The existing unknown-item/missing-price exception and explicit billing amount paths remain in force. Missing essentials use stable field-specific localized refusals and existing preparation failure outcomes.
 

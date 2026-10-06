@@ -1926,12 +1926,19 @@ BOOLEAN = {"type": "boolean"}
 INTEGER = {"type": "integer"}
 STRING_ARRAY = {"type": "array", "items": STRING, "minItems": 1, "uniqueItems": True}
 
+# Spec 379: absence differs from a stated free price; direct null remains invalid.
+MANUAL_UNIT_PRICE = {
+    "type": "string",
+    "pattern": r"^(?:-?[0-9]+(?:\.[0-9]+)?|\s*)$",
+    "description": "Omit or leave blank when no unit price was stated. Zero is a stated free price.",
+}
+
 ORDER_LINE = _object_schema(
     {
         "item_id": STRING,
         "quantity": DECIMAL_STRING,
         "unit": STRING,
-        "unit_price": DECIMAL_STRING,
+        "unit_price": MANUAL_UNIT_PRICE,
         "gross_amount": DECIMAL_STRING,
         "description": {"type": "string", "default": ""},
         "promised_at": OPTIONAL_STRING,
@@ -1942,7 +1949,7 @@ ORDER_LINE = _object_schema(
         # Spec 345: a purchase order line may name it by the supplier's number.
         "supplier_item_number": OPTIONAL_STRING,
     },
-    required=("quantity", "unit", "unit_price", "gross_amount"),
+    required=("quantity", "gross_amount"),
 )
 
 ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
@@ -2520,7 +2527,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                             "description": OPTIONAL_STRING,
                             "quantity": DECIMAL_STRING,
                             "unit": OPTIONAL_STRING,
-                            "unit_price": DECIMAL_STRING,
+                            "unit_price": MANUAL_UNIT_PRICE,
                             "gross_amount": DECIMAL_STRING,
                             "line_type": OPTIONAL_STRING,
                             "promised_at": OPTIONAL_STRING,
@@ -2530,7 +2537,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                             # the item by the supplier's own number.
                             "supplier_item_number": OPTIONAL_STRING,
                         },
-                        required=("quantity", "unit_price", "gross_amount"),
+                        required=("quantity", "gross_amount"),
                     ),
                 },
                 "gross_amount": DECIMAL_STRING,
@@ -2905,11 +2912,11 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                             "description": OPTIONAL_STRING,
                             "quantity": DECIMAL_STRING,
                             "unit": OPTIONAL_STRING,
-                            "unit_price": DECIMAL_STRING,
+                            "unit_price": MANUAL_UNIT_PRICE,
                             "gross_amount": DECIMAL_STRING,
                             "line_type": OPTIONAL_STRING,
                         },
-                        required=("quantity", "unit_price", "gross_amount"),
+                        required=("quantity", "gross_amount"),
                     ),
                 },
             },

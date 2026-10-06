@@ -3772,7 +3772,7 @@ order.
 | `lines[].description`  | `string` | no       | Human-readable explanation of the record or rule.                                                                                      | —       |
 | `lines[].quantity`     | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                | —       |
 | `lines[].unit`         | `string` | no       | Unit of measure in which the quantity is expressed.                                                                                    | —       |
-| `lines[].unit_price`   | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                                   | —       |
+| `lines[].unit_price`   | `string` | no       | Omit or leave blank when no unit price was stated. Zero is a stated free price.                                                        | —       |
 | `lines[].gross_amount` | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                   | —       |
 | `lines[].line_type`    | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                            | —       |
 
@@ -4630,8 +4630,8 @@ Record a manual order as Source and Document Evidence with derived Commitments.
 | `lines`                        | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                | —       |
 | `lines[].item_id`              | `string` | no       | Opaque identity of the operational item reference.                                                                          | —       |
 | `lines[].quantity`             | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                     | —       |
-| `lines[].unit`                 | `string` | yes      | Unit of measure in which the quantity is expressed.                                                                         | —       |
-| `lines[].unit_price`           | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                        | —       |
+| `lines[].unit`                 | `string` | no       | Unit of measure in which the quantity is expressed.                                                                         | —       |
+| `lines[].unit_price`           | `string` | no       | Omit or leave blank when no unit price was stated. Zero is a stated free price.                                             | —       |
 | `lines[].gross_amount`         | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                        | —       |
 | `lines[].description`          | `string` | no       | Human-readable explanation of the record or rule.                                                                           | —       |
 | `lines[].promised_at`          | `string` | no       | UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.                    | —       |
@@ -7923,7 +7923,7 @@ document_create_propose document_type number party_id lines gross_amount [curren
 | `lines[].description`             | `string` | no       | Human-readable explanation of the record or rule.                                                                                                                           | —       |
 | `lines[].quantity`                | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                     | —       |
 | `lines[].unit`                    | `string` | no       | Unit of measure in which the quantity is expressed.                                                                                                                         | —       |
-| `lines[].unit_price`              | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                                                                        | —       |
+| `lines[].unit_price`              | `string` | no       | Omit or leave blank when no unit price was stated. Zero is a stated free price.                                                                                             | —       |
 | `lines[].gross_amount`            | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                                                        | —       |
 | `lines[].line_type`               | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                                                                 | —       |
 | `lines[].promised_at`             | `string` | no       | UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.                                                                    | —       |
