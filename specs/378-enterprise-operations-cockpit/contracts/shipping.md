@@ -66,3 +66,5 @@ Use day 2026-10-06, company Europe/Berlin, observation 14:30, two explicit dispa
 - Add separate cancellation, late import, foreign source, multi-page supporting-order and DST stories. Expected values must be hard-coded/calculated independently of the production evaluator.
 
 This oracle proves calculation semantics only; it does not claim real carrier capacity or full-company autonomy.
+
+Fingerprint format `shipping-inputs-v2` hashes every canonical frozen fulfillment-readiness field for every included requirement, preserving exact values and ordering. The disclosed first-fifty readiness preview and every selected supporting/deviation order retain the existing readable evidence shape. Unused readable dictionaries are not materialized; complete calculation and fingerprint inputs remain unsampled.

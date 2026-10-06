@@ -210,3 +210,5 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T074 [DR-005/SC-004] Bound current commitment exception tracing to its exact open-promise document/line/source cohort; first reproduce historical payload materialization after a real unreserved order, preserve full scalar/snapshot source-trace parity, then run the unchanged live cadence and final CI gates.
 
 - [ ] T075 [FR-033/SC-004] Remove the UI-unused duplicate register calculation from shipping snapshots; first prove independent complete register authority and absent duplicate work, preserve all four live readers and case-linked deviation evidence, then run the unchanged enterprise and full CI gates.
+
+- [ ] T076 [FR-046/SC-004] First reproduce full-cohort readable-readiness allocation, then use a versioned complete canonical-field fingerprint with bounded unchanged readable preview/order details. Prove full/scalar/supporting parity and complete canonical-field coverage; rerun unchanged enterprise latency and complete CI.

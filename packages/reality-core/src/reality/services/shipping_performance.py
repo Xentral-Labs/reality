@@ -544,7 +544,7 @@ def _read_shipping(
         )
         readiness = readiness_results[commitment.id]
         ready = exited >= row.quantity or readiness.ship_ready
-        readiness_basis[commitment.id] = readiness.as_dict(include_interpretation=False)
+        readiness_basis[commitment.id] = readiness.__dict__
         physical_basis[commitment.id] = [
             {
                 "movement_id": movement.id,
@@ -636,6 +636,7 @@ def _read_shipping(
     if changed:
         totals = dict.fromkeys(totals)
     basis = {
+        "fingerprint_format": "shipping-inputs-v2",
         "context": {
             "tenant_id": tenant_id,
             "business_day": selected_day.isoformat(),
@@ -665,6 +666,12 @@ def _read_shipping(
     basis_key = hashlib.sha256(
         json.dumps(basis, default=str, sort_keys=True).encode()
     ).hexdigest()
+    preview = _basis_preview(basis)
+    readable_readiness = {
+        identity: readiness_results[identity].as_dict(include_interpretation=False)
+        for identity in preview["readiness"]
+    }
+    preview["readiness"] = readable_readiness.copy()
     sites = []
     for statement, _ in active:
         values = result["sites"].get(
@@ -696,7 +703,7 @@ def _read_shipping(
         "day_start": start.isoformat(),
         "day_end": end.isoformat(),
         "basis_key": basis_key,
-        "basis": _basis_preview(basis),
+        "basis": preview,
         "coverage": {
             "cohort": "complete"
             if complete
@@ -762,6 +769,21 @@ def _read_shipping(
     for row in work:
         grouped[row.order_id].append(row)
     risk_order_ids = set(result["risk_order_ids"])
+    selected_groups = [
+        (identity, units)
+        for identity, units in sorted(grouped.items())
+        # Projection follows the complete calculation and full fingerprint. The
+        # overview never consumes healthy order details; supporting reads do.
+        if not (narrow and _deviations_only)
+        or identity in risk_order_ids
+        or any(row.coverage_gaps for row in units)
+    ]
+    for _, units in selected_groups:
+        for row in units:
+            if row.commitment_id not in readable_readiness:
+                readable_readiness[row.commitment_id] = readiness_results[
+                    row.commitment_id
+                ].as_dict(include_interpretation=False)
     orders = [
         {
             "order_id": identity,
@@ -783,7 +805,8 @@ def _read_shipping(
                 }
             ),
             "readiness": {
-                row.commitment_id: readiness_basis[row.commitment_id] for row in units
+                row.commitment_id: readable_readiness[row.commitment_id]
+                for row in units
             },
             "location_ids": sorted({row.location_id for row in units}),
             "due_at": max(row.due_at for row in units).isoformat(),
@@ -796,7 +819,7 @@ def _read_shipping(
             else None,
             "risk_requirements": risk_by_order[identity],
             "blockers": {
-                row.commitment_id: readiness_basis[row.commitment_id]["blockers"]
+                row.commitment_id: readable_readiness[row.commitment_id]["blockers"]
                 for row in units
             },
             "coverage_gaps": sorted(
@@ -806,12 +829,7 @@ def _read_shipping(
                 row.commitment_id: physical_basis[row.commitment_id] for row in units
             },
         }
-        for identity, units in sorted(grouped.items())
-        # Projection follows the complete calculation and full fingerprint. The
-        # overview never consumes healthy order details; supporting reads do.
-        if not (narrow and _deviations_only)
-        or identity in risk_order_ids
-        or any(row.coverage_gaps for row in units)
+        for identity, units in selected_groups
     ]
     return _json_value(snapshot), orders, terms
 
