@@ -417,3 +417,36 @@ FR-042–044/T062–064 are verified for the owner-authorized frontend refinemen
 Complete Prettier validation, all 478 frontend contracts, 3,005/3,005 audited entries per language and production build pass. Final affected-file formatting passes (`/private/tmp/reality-case-entry-final-format.log`), as do lint/spec policy and diff whitespace (`/private/tmp/reality-case-entry-lint.log`, `/private/tmp/reality-case-entry-spec.log`). No service, tool/schema, polling, mandate or mutation contract changed; generated tool references are unaffected. The existing web image build and web-only `--no-deps` activation pass (`/private/tmp/reality-case-entry-web-image.log`, `/private/tmp/reality-case-entry-web-activation.log`).
 
 Actual port-8080 observation confirms the collapsed entry before shipping, 827px entry width at the natural 915px viewport, no page overflow, all five operating areas and all three shipping series. It shows 184 automatic cases and one existing manually owned case. The human shortcut returns `LIVE-f1ad500666008054` with manually owned/automation stopped and open work; this verification performs no takeover or handback. The default outstanding-view disclosure was collapsed again, and the retained tab remains available. Screenshot: `/Users/benediktsauter/.codex/visualizations/2026/10/06/01a10ffd-6b60-7800-bb0e-c8f98d6a29f1/control-tower-case-entry.png`. Observation advanced from 19:24 to 19:25 UTC during this read-only check. No appearance preference/viewport changed, and simulator/Claude/API/MCP/background roles were not restarted. The fixture-only server is stopped. Final scope review confirms truthful existing counts, existing supported case scope, full confirmation safeguards and preserved Source/Evidence/Reality links. Earlier enterprise/soak/rollout gates remain open.
+
+## Combined current-main PR verification (2026-10-06)
+
+The isolated PR checkout is based on main `bb74d120` and preserves spec 377 default
+coordination and spec 379 source-completeness rules. Migration 0146 follows 0145;
+no running local company database or operator checkout is changed by this review.
+
+The new no-activation register regression first failed with hidden accepted work,
+then passed. It checks known counts, platform readiness, read-only event history,
+absence of fabricated legacy adoption and readiness after canonical reconciliation.
+The existing scalar/batched parity proof includes current consumer sequence values.
+
+`make spec-check`, `make lint`, business annotations, frontend formatting/build,
+all **478 frontend contracts**, and **3,003/3,003 localization keys** in each of the
+four languages pass. Chromium passes populated shipping/flows/evidence/control
+presentation, permanent shell navigation, shared selects, existing case controls
+and analytics-save clarity. Documentation formatting, **145 Node contracts**,
+**16 generator tests**, **16 repository-script tests** and the documentation build
+pass. Public references are regenerated with the documentation's actual Prettier
+runtime; raw generation without that runtime is not the CI representation.
+
+The controlled browser session previously allowed host wall time to advance in
+addition to its explicit eight simulated hours. On a heavily loaded local host this
+exceeded the unchanged request-budget assertion. The revised harness pauses its
+clock before opening the app and advances only through explicit steps. This changes
+no production timer or budget and does not stand in for the separate real-time soak.
+
+The full PostgreSQL suite runs in four CI shards on PR #382. A redundant local full
+run was stopped to preserve resources for the running demo and targeted proofs;
+its partial results are not full-suite evidence. Local live-browser attempts timed
+out at the unchanged 90-second database-migration bound, while the identical
+current-main Control Tower journey passes in CI. No timeout threshold was weakened.
+Final head-specific CI and targeted results are recorded after completion.

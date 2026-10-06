@@ -300,3 +300,15 @@ Spec policy and Ruff pass. The populated four-locale/theme/responsive cockpit
 browser proof and full-shell navigation proof pass on the combined checkout.
 Complete backend, frontend, live-browser and documentation results are pending;
 this record does not mark aggregate acceptance or production readiness complete.
+
+### PR validation refinement
+
+Frontend formatting, 478 contracts, 3,003 keys per locale and production build pass.
+Document generation now uses the actual formatting runtime, removing unrelated
+raw-output churn; documentation contracts/build and tooling checks pass. The first
+PR documentation job reproduced the raw-versus-formatted output difference.
+The controlled-session harness now excludes host wall time while keeping the exact
+eight-hour progression and request/memory/state assertions; it changes no runtime
+behavior. A local live journey hit its unchanged migration timeout under concurrent
+load; the same journey passes in CI, including absence of legacy owner activation.
+The complete final-head CI result remains required before review readiness.

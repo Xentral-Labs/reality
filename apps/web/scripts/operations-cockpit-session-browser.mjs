@@ -16,7 +16,9 @@ let hidden = false,
   version = 1,
   denied = false;
 page.on("pageerror", (error) => failures.push(error.message));
-await page.clock.install({ time: new Date("2026-10-06T23:30:00Z") });
+// Keep host execution time out of the controlled eight-hour budget.
+await page.clock.install({ time: new Date("2026-10-06T23:00:00Z") });
+await page.clock.pauseAt(new Date("2026-10-06T23:30:00Z"));
 await page.addInitScript(() => {
   Object.defineProperty(document, "visibilityState", {
     configurable: true,
@@ -242,7 +244,7 @@ try {
   await page.locator('[data-activity-event="event_2"]').waitFor();
   assert(
     [...counts.values()].every((count) => count < 5800),
-    "Each endpoint has a bounded five-second request rate",
+    `Each endpoint has a bounded five-second request rate: ${JSON.stringify(Object.fromEntries(counts))}`,
   );
   assert.deepEqual(
     supportingDays,

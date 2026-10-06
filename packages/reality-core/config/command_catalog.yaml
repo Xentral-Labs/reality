@@ -470,7 +470,7 @@ commands:
     application_tool: operational_case_register
     mode: read
     adapters: [CLI, Web, API, MCP, Chat]
-    reads: [operational_case, commitment, movement, return_announcement, business_event, action]
+    reads: [operational_case, commitment, movement, return_announcement, business_event, action, case_rollout, case_consumer_checkpoint, tenant_event_progress, scheduled_job_run]
     writes: []
     effect: Observe full matching responsibility counts and a bounded page of adopted cases; never adopt or stop work.
   - name: Operational case list
