@@ -55,7 +55,12 @@ def snapshot(session, tenant_id: str) -> dict[tuple[str, str], object]:
     return {
         (row.projection_name, row.record_key): _content(json.loads(row.payload))
         for row in session.scalars(
-            select(ProjectionRow).where(ProjectionRow.tenant_id == tenant_id)
+            select(ProjectionRow).where(
+                ProjectionRow.tenant_id == tenant_id,
+                # Business stores generation/cursor/clock coordination here;
+                # its commercial rows have a dedicated independent-oracle proof.
+                ProjectionRow.projection_name != projections.BUSINESS_PERFORMANCE,
+            )
         )
     }
 
@@ -166,7 +171,13 @@ def test_every_materialized_projection_is_covered_by_the_comparison(session, bus
     a_little_business(session, business)
     projections.refresh_operational_projections(session, tenant, force=True)
     built = {name for name, _ in snapshot(session, tenant)}
-    missing = set(projections.MATERIALIZED_PROJECTIONS) - built
+    # Business has generational coordination rather than generic commercial
+    # rows. Its incremental/full rows are covered against the unchanged legacy
+    # calculation in test_business_projection, including interleaved writes.
+    generic = set(projections.MATERIALIZED_PROJECTIONS) - {
+        projections.BUSINESS_PERFORMANCE
+    }
+    missing = generic - built
     assert not missing, (
         f"{sorted(missing)} produced no rows for this fixture, so the equivalence "
         "property does not cover them. Give the fixture a record they hold, or say "

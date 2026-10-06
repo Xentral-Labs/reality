@@ -1327,8 +1327,9 @@ def catalog_code(
         raise ValueError("No code is available for this catalog entry.")
     sources = []
     for reader in readers:
+        source_reader = inspect.unwrap(reader)
         path = (
-            Path(inspect.getsourcefile(reader))
+            Path(inspect.getsourcefile(source_reader))
             .resolve()
             .relative_to(Path(__file__).resolve().parent)
         )
@@ -1367,6 +1368,7 @@ def _type_name(annotation: Any) -> str:
 
 def _service_contract(name: str, descriptions: dict[str, str]) -> dict[str, Any]:
     service = _service(name)
+    source_service = inspect.unwrap(service)
     hints = get_type_hints(service)
     inputs = []
     for parameter_name, parameter in inspect.signature(service).parameters.items():
@@ -1393,11 +1395,11 @@ def _service_contract(name: str, descriptions: dict[str, str]) -> dict[str, Any]
         "service": name,
         "source": {
             "path": "packages/reality-core/src/reality/"
-            + Path(inspect.getsourcefile(service))
+            + Path(inspect.getsourcefile(source_service))
             .resolve()
             .relative_to(Path(__file__).resolve().parent)
             .as_posix(),
-            "function": service.__name__,
+            "function": source_service.__name__,
         },
         "inputs": inputs,
         "returns": _type_name(hints.get("return", inspect.Signature.empty)),

@@ -79,7 +79,22 @@ def test_downgrade_preserves_internal_job_history(postgres_database, monkeypatch
             assert len(runs) > 1, "one run per projection behind (spec 181 FR-004)"
             tenant_id, run_id = tenant.id, runs[0].id
             db.commit()
-        # The queue is refused before the history is: restoring the per-company
+        # The newer disposable cache must drain before its tables can be removed.
+        with pytest.raises(RuntimeError, match="Drain Business projection jobs"):
+            command.downgrade(config, "0056_physical_shipments")
+        with Session(engine) as db:
+            db.execute(
+                ScheduledJobRun.__table__.update()
+                .where(
+                    ScheduledJobRun.tenant_id == tenant_id,
+                    ScheduledJobRun.configuration["arguments"]["names"].contains(
+                        ["business_performance"]
+                    ),
+                )
+                .values(status="succeeded")
+            )
+            db.commit()
+        # The remaining queue is refused before the history is: restoring the per-company
         # index cannot be done while a company holds several unfinished runs.
         with pytest.raises(RuntimeError, match="more than one unfinished refresh run"):
             command.downgrade(config, "0056_physical_shipments")
