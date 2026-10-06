@@ -341,3 +341,14 @@ supporting-order/evidence readers. This is chart aggregation, not cohort samplin
 or invented handover times. Test independent dense-series counts, duplicate
 times/opening/end/out-of-window behavior before implementation. Constitution
 PASS; no business rule/schema/authority/cache change or unresolved clarification.
+
+Exact-head CI confirms every other gate, but SC-004 remains red at 3.235 s p95
+(3.075 s cold; 3.087 s committed-change visibility). Preserve the unchanged
+three-second limit. The source basis currently transfers original/current
+metadata twice and joins the entire source table before selecting latest stream
+versions. Replace these with one tenant-correlated LATERAL latest-version read
+using the existing stream/version index. Preserve complete original/current
+metadata, missing-reference and intake/current-required refusals. Existing
+source/version/snapshot proofs precede the equivalent query refinement; inspect
+its full-profile query plan and rerun complete CI. Spec impact: none, no new
+rule/schema/cache/authority. Constitution Check PASS.

@@ -7,7 +7,7 @@ from datetime import date
 from typing import Any, NamedTuple
 
 from pydantic import ValidationError
-from sqlalchemy import cast, select
+from sqlalchemy import cast, select, true
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Session, aliased
 
@@ -76,43 +76,34 @@ def _source_basis_inputs(
         SourceRecord.version,
         SourceRecord.payload_hash,
     )
-    rows = session.execute(
-        select(*columns).where(
+    current = aliased(SourceRecord)
+    current_columns = tuple(getattr(current, column.key) for column in columns)
+    latest_source = (
+        select(*current_columns)
+        .where(
+            current.tenant_id == SourceRecord.tenant_id,
+            current.source_system == SourceRecord.source_system,
+            current.source_type == SourceRecord.source_type,
+            current.external_id == SourceRecord.external_id,
+        )
+        .order_by(current.version.desc())
+        .limit(1)
+        .correlate(SourceRecord)
+        .lateral()
+    )
+    rows = []
+    latest = {}
+    for combined in session.execute(
+        select(*columns, *latest_source.c)
+        .join(latest_source, true())
+        .where(
             SourceRecord.tenant_id == tenant_id,
             core._id_cohort(SourceRecord.id, source_ids),
         )
-    ).all()
-    identities = {(system, kind, external) for _, system, kind, external, _, _ in rows}
-    latest = {}
-    if identities:
-        original = aliased(SourceRecord)
-        for row in session.execute(
-            select(*columns)
-            .join(
-                original,
-                (original.tenant_id == SourceRecord.tenant_id)
-                & (original.source_system == SourceRecord.source_system)
-                & (original.source_type == SourceRecord.source_type)
-                & (original.external_id == SourceRecord.external_id),
-            )
-            .where(
-                SourceRecord.tenant_id == tenant_id,
-                original.tenant_id == tenant_id,
-                core._id_cohort(original.id, source_ids),
-            )
-            .distinct(
-                SourceRecord.source_system,
-                SourceRecord.source_type,
-                SourceRecord.external_id,
-            )
-            .order_by(
-                SourceRecord.source_system,
-                SourceRecord.source_type,
-                SourceRecord.external_id,
-                SourceRecord.version.desc(),
-            )
-        ):
-            latest[tuple(row[1:4])] = tuple(row)
+    ):
+        original, current_row = tuple(combined[:6]), tuple(combined[6:])
+        rows.append(original)
+        latest[original[1:4]] = current_row
     jobs = dict(
         session.execute(
             select(ImportJob.source_record_id, ImportJob.status).where(
