@@ -93,7 +93,7 @@ New live orders state their commercial and timing facts consistently; physical o
 
 - **FR-001**: Monetary external source preparation MUST require a nonblank stated currency and MUST NOT assume EUR. Direct human form defaults remain visible and unchanged.
 - **FR-002**: Bank-file payment preparation MUST require explicit incoming/outgoing direction and a stated booking instant; received time MUST NOT substitute for booking time.
-- **FR-003**: Omitted/blank manual document unit prices MUST remain unknown; explicit zero MUST remain zero; direct explicit-null validation remains unchanged.
+- **FR-003**: Omitted/blank manual document unit prices MUST remain unknown; explicit zero MUST remain zero; direct explicit-null validation remains unchanged. Exported manual tool input schemas MUST admit omitted/blank prices and known-item unit inheritance without requesting a guessed zero.
 - **FR-004**: Shared order completeness observations MUST identify missing document date, order instant, agreed delivery date, unit prices, line amounts and order total in retained reviews/previews without inventing values or refusing legitimate incompleteness.
 - **FR-005**: File orders MUST preserve a stated document date, or derive the company-local day from a stated order instant when the profile defines that meaning; contradictory header dates in one coherent order MUST refuse after parsing; equivalent representations of one instant MUST remain admissible. No timing evidence MUST remain unknown.
 - **FR-006**: Future simulator orders MUST state their document date and one consistent release/order instant; automatic orders MUST also state the authored unit price through normal services; the source payload MUST retain them.

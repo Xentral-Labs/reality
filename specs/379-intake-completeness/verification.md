@@ -6,6 +6,10 @@ The focused pre-implementation regression run produced 25 expected failures and 
 
 Final review added a failing proof for two timezone representations of one instant. Header consistency now compares parsed dates/UTC instants while keeping original row payloads unchanged.
 
+Exported MCP schemas also had seven failing parity proofs: they requested a guessed price/unit before reaching the shared service. The corrected schemas permit omitted/blank prices and existing item-unit inheritance, refuse direct null/malformed prices, and confirmed MCP orders retain unknown/zero distinctly.
+
+The native synthetic-order profile had two failing parity proofs as well: missing currency used a generic refusal and a stated box unit could produce a piece-stock promise. It now calls the same essential-value and stock-unit services, preserving the complete synthetic profile and retained failure boundary.
+
 ## Local gates
 
 - Spec policy, Ruff and business annotations: passed; 650 described functions, 115 described tests, no remaining required annotations.
@@ -19,9 +23,15 @@ Final review added a failing proof for two timezone representations of one insta
 - Date/header and artifact regression matrix after refinement: 53 passed in 24.30 seconds.
 - New admission and all affected historical stock/analysis/MCP reader suites: 318 passed in 118.60 seconds. Historical fixtures use explicit source/evidence/commitment service writers; new-admission refusals remain exercised directly.
 
+- Manual MCP/catalog/document/invoice/customer/supplier adapter suite after schema correction: 105 passed in 36.94 seconds; final exported string-price schema controls: 7 passed in 10.13 seconds. Generated tool inputs were refreshed.
+- Final essential-intake and native-demo admission, generation and settlement suite: 85 passed in 166.44 seconds.
+- Final docs contracts: 145 passed; formatting and production build passed. Final Ruff, Spec policy, annotations and regenerated catalogs passed.
+
 ## Complete PR verification
 
-The required GitHub Quality gates run on the PR's current head: all four PostgreSQL shards, backend aggregate, frontend, seven fixture-browser shards, eight real-backend browser journeys, documentation and Spec policy. The first full run passed both unaffected PostgreSQL shards and all browser/frontend/docs gates; its 17 reader-fixture failures were repaired and covered by the 318-test local run. The final current-head full run remains the completion gate; its actual results will be recorded after completion.
+[Full regression run 37455739839](https://github.com/Xentral-Labs/reality/actions/runs/37455739839) passed all 24 Quality gates on commit 7d54e900: 6,616 PostgreSQL tests passed with 11 skips across four shards; all seven fixture-browser shards, eight real-backend browser journeys, backend aggregate, frontend, documentation and Spec policy passed. The first full run's 17 historical reader-fixture failures were repaired and covered by the 318-test local run.
+
+The final MCP schema/native-demo refinement is additionally covered by the local suites recorded above. [PR 381 checks](https://github.com/Xentral-Labs/reality/pull/381/checks) provide the authoritative, commit-specific status of the final published head. Every final-head Quality gate must pass before delivery; the PR description records that measured result after the run finishes.
 
 ## Review and rollout
 
