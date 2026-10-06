@@ -121,7 +121,7 @@ test("business object lists keep views and projections separately discoverable",
     assert.ok(list.includes("badge-projection"));
     assert.ok(list.includes("badge-view"));
     const overview = await render(locale, "", "resources");
-    assert.match(overview, /8 (lists|Listen)/u);
+    assert.match(overview, /9 (lists|Listen)/u);
     const search = await render(locale, "", "resources", "order", "fulfillment_queue");
     assert.ok(search.split('class="tool-usage-detail')[0].includes(">fulfillment_queue</code>"));
   }

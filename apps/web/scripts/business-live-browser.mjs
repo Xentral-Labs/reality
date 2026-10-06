@@ -381,6 +381,13 @@ try {
     .getByText("Geschäftskennzahlen sind noch nicht verfügbar.", { exact: false })
     .waitFor();
   assert.equal(await dashboard.getByRole("button", { name: /Versandbereit/ }).count(), 0);
+  processingFailed = true;
+  await page.goto(`${base}/app/inspector?tenant=company&inspector_view=business`);
+  await dashboard
+    .getByText("Verarbeitung der Geschäftsdaten fehlgeschlagen.", { exact: false })
+    .waitFor();
+  assert.equal(await dashboard.getByRole("button", { name: /Versandbereit/ }).count(), 0);
+  processingFailed = false;
   cold = false;
   paged = false;
   await page.goto(`${base}/app/inspector?tenant=company&inspector_view=business`);
