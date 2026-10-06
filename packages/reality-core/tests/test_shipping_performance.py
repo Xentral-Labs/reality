@@ -1139,3 +1139,159 @@ def test_batched_original_source_metadata_preserves_per_statement_scope_and_erro
         shipping_plans.source_basis(
             session, business.tenant.id, {original.id}, _inputs=inputs
         )
+
+
+def test_ready_overview_materializes_only_disclosed_readiness_evidence(
+    session, business, scheduled_owner, monkeypatch
+):
+    # BUSINESS PURPOSE: Full enterprise cohorts retain exact fingerprints without allocating unused readable evidence.
+    # BUSINESS RULE: Every readiness input remains fingerprinted; only fifty preview entries are rendered for an entirely ready narrow overview.
+    from reality.services.fulfillment_readiness import FulfillmentReadiness
+    from reality.services.shipping_performance import _read_shipping
+
+    _, value, _ = staged_plan(session, business)
+    for index in range(62):
+        _, _, _, commitments = core.create_manual_order(
+            session,
+            business.tenant.id,
+            "sales",
+            f"READY-PREVIEW-{index}",
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "1",
+                    "gross_amount": "1",
+                }
+            ],
+            "1",
+        )
+        value["requirements"].append(
+            {
+                **value["requirements"][0],
+                "commitment_id": commitments[0].id,
+                "quantity": "1",
+            }
+        )
+    confirmation, _, _ = core.store_source_record(
+        session,
+        business.tenant.id,
+        "carrier",
+        "capacity_confirmation",
+        "ready-preview-capacity",
+        {
+            "completion_slots": 1000,
+            "unit": "site-cohort order completion",
+            "work_mix": [row["commitment_id"] for row in value["requirements"]],
+        },
+    )
+    value["capacity_windows"] = payload()["capacity_windows"]
+    value["capacity_windows"][0]["completion_slots"] = 1000
+    value["capacity_windows"][0]["confirmation_source_record_id"] = confirmation.id
+    accept(
+        session,
+        business,
+        scheduled_owner,
+        create_change_proposal(
+            session, business.tenant.id, "shipping_plan_state", {"plan": value}
+        ),
+    )
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        "1000",
+        to_location_id=business.location.id,
+        occurred_at=OBSERVED,
+    )
+    for requirement in value["requirements"]:
+        core.reserve(
+            session, business.tenant.id, requirement["commitment_id"], _commit=False
+        )
+    session.flush()
+    session.expire_all()
+    full = _read_shipping(
+        session, business.tenant.id, day="2026-10-06", observed_at=OBSERVED
+    )
+    assert full[0]["totals"] == {"due": 63, "handed_over": 0, "forecast": 63, "risk": 0}
+    rendered = []
+    original = FulfillmentReadiness.as_dict
+
+    def counted(self, *, include_interpretation=True):
+        rendered.append(self.commitment_id)
+        return original(self, include_interpretation=include_interpretation)
+
+    monkeypatch.setattr(FulfillmentReadiness, "as_dict", counted)
+    session.info["operations_snapshot_consistent"] = True
+    try:
+        projected = _read_shipping(
+            session,
+            business.tenant.id,
+            day="2026-10-06",
+            observed_at=OBSERVED,
+            _deviations_only=True,
+        )
+    finally:
+        session.info.pop("operations_snapshot_consistent", None)
+    assert projected[0] == full[0]
+    assert projected[1] == []
+    assert projected[0]["basis"]["disclosure"]["complete_counts"]["readiness"] == 63
+    assert set(rendered) == set(projected[0]["basis"]["readiness"])
+    assert len(rendered) == 50
+
+
+def test_shipping_fingerprint_contains_every_canonical_readiness_field(
+    session, business, planned_shipping, monkeypatch
+):
+    # BUSINESS PURPOSE: Compact evidence hashing must retain all canonical inputs including fields not rendered in ordinary evidence.
+    # BUSINESS RULE: Versioned fingerprints contain every frozen readiness field without sampling or nested interpretation duplicates.
+    import hashlib
+    import json
+    from dataclasses import fields
+
+    from reality.services.fulfillment_readiness import (
+        FulfillmentReadiness,
+        fulfillment_readiness,
+    )
+    from reality.services.shipping_performance import _json_value, _read_shipping
+
+    readiness = fulfillment_readiness(session, business.tenant.id, planned_shipping.id)
+    captured = []
+    original = hashlib.sha256
+
+    def capture(value=b"", **kwargs):
+        if b'"fingerprint_format": "shipping-inputs-v2"' in value:
+            captured.append(json.loads(value))
+        return original(value, **kwargs)
+
+    monkeypatch.setattr(hashlib, "sha256", capture)
+    snapshot, _, _ = _read_shipping(
+        session, business.tenant.id, day="2026-10-06", observed_at=OBSERVED
+    )
+    assert len(captured) == 1
+    compact = captured[0]["readiness"][planned_shipping.id]
+    assert set(compact) == {field.name for field in fields(FulfillmentReadiness)}
+    assert compact == _json_value(readiness.__dict__)
+    assert snapshot["basis"]["readiness"][planned_shipping.id] == readiness.as_dict(
+        include_interpretation=False
+    )
+    for field in fields(FulfillmentReadiness):
+        changed = {
+            **captured[0],
+            "readiness": {
+                planned_shipping.id: {
+                    **compact,
+                    field.name: ["different", compact[field.name]],
+                }
+            },
+        }
+        assert (
+            original(
+                json.dumps(changed, default=str, sort_keys=True).encode()
+            ).hexdigest()
+            != snapshot["basis_key"]
+        )

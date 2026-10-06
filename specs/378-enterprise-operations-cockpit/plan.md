@@ -398,3 +398,7 @@ failing CI runs, including every live epoch and final visibility; normal pytest
 capture otherwise omits passing measurements. This changes only verification
 artifact reporting, not product behavior, scenario data, time or acceptance.
 Spec impact: none; no additional business authority or Constitution exception.
+
+## Complete canonical readiness fingerprint
+
+Review before implementation: replace duplicated readable readiness dictionaries in the full hash input with every canonical frozen-readiness dataclass field, under fingerprint format `shipping-inputs-v2`. Preserve exact Decimal strings, tuple ordering, all IDs and every future declared field. Generate unchanged readable dictionaries only for the first-fifty disclosed preview and selected full/deviation order details, reusing each within the call. No cache survives the call, no rule/schema/source changes. Tests first: a 63-ready-order complete cohort must materialize only fifty readable previews in the narrow overview; full/scalar/supporting parity and canonical-field fingerprint sensitivity remain mandatory. Constitution Check PASS; FR-046/SC-004.
