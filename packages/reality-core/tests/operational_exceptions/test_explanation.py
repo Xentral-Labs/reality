@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from legacy_order_support import legacy_sales_order
 
 from reality.db.core import now
 from reality.services import core
@@ -826,11 +827,10 @@ def units_that_do_not_meet(session, business):
     """One order line in boxes, invoiced in pieces, on an item that says nothing."""
     from reality.services.core import (
         create_manual_document_with_lines,
-        create_manual_order,
     )
 
     item = create_item(session, business.tenant.id, "BIKE-CRATE", "Bike Crate")
-    _, _document, lines, _commitments = create_manual_order(
+    _, _document, lines, _commitments = legacy_sales_order(
         session,
         business.tenant.id,
         "sales",

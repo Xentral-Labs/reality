@@ -75,6 +75,8 @@ Coded refusals name the field. Existing preparation savepoints preserve raw and 
 
 No migration. Newly prepared bank files require stated direction/date/currency; incomplete files stay retained for correction/reimport. Existing reviews remain exact. Rollback restores former admission behavior but cannot rewrite accepted evidence. Deploy shared adapters/core together. Existing undated simulator orders are unchanged.
 
+Historical reader fixtures construct retained pre-379 shapes through explicit source/evidence/commitment services in `tests/legacy_order_support.py`. They keep legacy mismatch explanations covered without admitting new unsupported orders or bypassing the admission validator.
+
 ## Review Risks
 
 - Do not make optional price/total/deadline a universal order rejection.

@@ -6,6 +6,7 @@ per item, with the orders grouped by their stated sales channel.
 
 from decimal import Decimal
 
+from legacy_order_support import legacy_sales_order
 from sqlalchemy import event
 
 from reality.services import core
@@ -25,7 +26,8 @@ def _stock(session, business, quantity, item=None):
 
 def _sell(session, business, number, quantity, channel, *, item=None, unit="pcs"):
     item = item or business.item
-    _, order, _, commitments = core.create_manual_order(
+    record = legacy_sales_order if unit != item.unit else core.create_manual_order
+    _, order, _, commitments = record(
         session,
         business.tenant.id,
         "sales",

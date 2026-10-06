@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from conftest import record_by_id
 from intake_review_support import accept_import_job as process_import_job
+from legacy_order_support import legacy_sales_order
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -1514,7 +1515,12 @@ def order(
     unit_price="9.00",
 ):
     """One order line with the commitment that promises its delivery."""
-    _, document, lines, commitments = create_manual_order(
+    record = (
+        legacy_sales_order
+        if direction == "sales" and unit != business.item.unit
+        else create_manual_order
+    )
+    _, document, lines, commitments = record(
         session,
         business.tenant.id,
         direction,
@@ -4066,7 +4072,7 @@ def sold_in_boxes(session, business, item, *, number, billed, unit="pcs"):
         200,
         to_location_id=business.location.id,
     )
-    _, _document, lines, commitments = create_manual_order(
+    _, _document, lines, commitments = legacy_sales_order(
         session,
         business.tenant.id,
         "sales",

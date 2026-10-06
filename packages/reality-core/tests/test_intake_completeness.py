@@ -286,6 +286,23 @@ def test_coherent_file_order_refuses_conflicting_header_dates(
     assert session.scalar(select(func.count()).select_from(Document)) == 0
 
 
+def test_coherent_file_order_accepts_equivalent_header_instants(
+    session, business, scheduled_owner, tmp_path, monkeypatch
+):
+    set_company_time_zone(session, business.tenant.id, "Europe/Berlin")
+    rows = [
+        order_row(business, ordered_at="2026-10-05T23:30:00Z"),
+        order_row(business, ordered_at="2026-10-06T01:30:00+02:00"),
+    ]
+    _, proposal = prepare_file(
+        session, business, "sales_order", file_content(rows), tmp_path, monkeypatch
+    )
+    accept(session, business, scheduled_owner, proposal)
+    order = session.scalar(select(Document).where(Document.type == "sales_order"))
+    assert order.ordered_at == core.utc_datetime("2026-10-05T23:30:00Z")
+    assert order.document_date == date(2026, 10, 6)
+
+
 @pytest.mark.parametrize("path", ["manual", "file"])
 def test_unsupported_sales_quantity_unit_refuses_before_promises(
     session, business, tmp_path, monkeypatch, path

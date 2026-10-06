@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from legacy_order_support import legacy_sales_order
 from sqlalchemy import event
 
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, dispatch_tool
@@ -401,7 +402,7 @@ def test_unit_mismatch_and_missing_unit_are_not_converted(session, business):
 
     assert quantity_unit(SimpleNamespace(unit=""))["unit_status"] == "unknown"
     assert quantity_unit(None)["unit"] is None
-    _source, document, _lines, _ = create_manual_order(
+    _source, document, _lines, _ = legacy_sales_order(
         session,
         business.tenant.id,
         "sales",
