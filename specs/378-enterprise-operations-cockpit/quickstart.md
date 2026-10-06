@@ -450,3 +450,19 @@ its partial results are not full-suite evidence. Local live-browser attempts tim
 out at the unchanged 90-second database-migration bound, while the identical
 current-main Control Tower journey passes in CI. No timeout threshold was weakened.
 Final head-specific CI and targeted results are recorded after completion.
+
+The paused-clock session passes all eight controlled hours: the four observation
+endpoints issue 5,747–5,753 reads, preserve bounded charts and exact review state,
+retain investigation-day context across midnight, reset company context and report
+zero browser errors. This is deterministic proof, not the real-time pilot soak.
+
+The combined targeted PostgreSQL group passed 84 tests and skipped the existing
+credential-dependent case, while exposing two test-fixture assumptions. One
+ordering fixture compared repeatedly sampled wall times instead of a fixed
+attributable ordering instant; the other expected no retained planning actions
+before default coordination. Both repaired regressions pass (2 tests, 13.44 s),
+including the unchanged 55-read budget and scalar/batched parity. The deviation
+proof now verifies exact proposed/executed planning actions, explicit absence of
+causal-response/provider-outcome claims and no invented next check. No production
+response rule or action ordering was weakened. Final full-suite CI remains the PR
+review gate and its head-specific result is recorded in the PR description.

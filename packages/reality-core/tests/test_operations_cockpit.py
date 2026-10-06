@@ -200,7 +200,7 @@ def test_cockpit_deviation_preserves_causal_blockers_without_inventing_a_respons
     session, business, scheduled_owner, monkeypatch, planned_shipping
 ):
     # BUSINESS PURPOSE: An observer sees the actual reason work cannot progress.
-    # BUSINESS RULE: Missing recorded reaction remains missing; responsibility does not prove a response.
+    # BUSINESS RULE: Planning actions stay visible without becoming causal blocker responses or provider outcomes.
     commitment = planned_shipping
     core.hold_commitment(
         session,
@@ -220,5 +220,21 @@ def test_cockpit_deviation_preserves_causal_blockers_without_inventing_a_respons
     assert value["deviations"][0]["order_id"] == commitment.document_id
     blockers = value["deviations"][0]["blockers"][commitment.id]
     assert any(row["code"] == "commitment_hold" for row in blockers)
-    assert value["deviations"][0]["recorded_case_actions"] == []
-    assert value["deviations"][0]["response_state"] == "no_recorded_response"
+    deviation = value["deviations"][0]
+    # Default coordination now retains the prepared/accepted planning proposals.
+    # They are real case-linked actions, not proof of a response to the later hold.
+    assert len(deviation["recorded_case_actions"]) == 2
+    assert {row["type"] for row in deviation["recorded_case_actions"]} == {
+        "tool:shipping_plan_state"
+    }
+    assert {row["status"] for row in deviation["recorded_case_actions"]} == {
+        "proposed",
+        "executed",
+    }
+    assert deviation["response_state"] == "recorded_case_actions"
+    assert deviation["response_scope"] == "case_linked_no_causal_assertion"
+    assert deviation["next_recorded_check"] is None
+    assert all(
+        row["external_outcome"] == "not_established_by_execution_status"
+        for row in deviation["recorded_case_actions"]
+    )

@@ -312,3 +312,11 @@ eight-hour progression and request/memory/state assertions; it changes no runtim
 behavior. A local live journey hit its unchanged migration timeout under concurrent
 load; the same journey passes in CI, including absence of legacy owner activation.
 The complete final-head CI result remains required before review readiness.
+
+The corrected controlled session passes all eight simulated hours, 5,747–5,753
+observation reads per endpoint and zero browser errors. The final targeted group
+isolated two fixture assumptions (wall-time ordering and default-linked planning
+history); both regressions pass after fixture-only corrections, retaining the
+55-query budget and explicit no-causal-response/provider-outcome guarantee.
+The final-head complete CI result is the remaining PR readiness gate; the PR
+records that evidence without representing the separate pilot soak as complete.
