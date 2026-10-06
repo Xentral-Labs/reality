@@ -17,7 +17,7 @@ An incoming source is evidence even when incomplete. Raw SourceRecord/SourceArti
 
 Order completeness observations use the shared domain policy and appear in retained intake reviews and manual-order previews. They are not persisted operational status. The existing unknown-item/missing-price exception and explicit billing amount paths remain in force. Missing essentials use stable field-specific localized refusals and existing preparation failure outcomes.
 
-One coherent file order cannot state contradictory document_date or ordered_at header values across its rows. Original row payloads remain unchanged. Dates with an explicit source document day keep that day even if the order instant belongs to another day. Company timezone state remains part of the exact review.
+One coherent file order cannot state contradictory document_date or ordered_at header values across its rows. Compare parsed days/UTC instants, so equivalent timezone representations do not create a false conflict. Original row payloads remain unchanged. Dates with an explicit source document day keep that day even if the order instant belongs to another day. Company timezone state remains part of the exact review.
 
 No schema, new queue, new confirmation cycle or agent authority is introduced. Existing approved reviews keep their original digest and exact accepted intent. Historical SourceRecords, orders and prices are never backfilled or rewritten by rollout. Existing undated simulator orders require separate reviewed remediation if the owner requests it.
 

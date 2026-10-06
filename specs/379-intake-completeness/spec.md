@@ -83,7 +83,7 @@ New live orders state their commercial and timing facts consistently; physical o
 
 - Null, omitted, whitespace and explicitly zero values; malformed dates; non-finite quantities/amounts.
 - A stated document date that differs from the order date, and instants near local midnight.
-- Multiple rows of one order with contradictory stated header dates.
+- Multiple rows of one order with contradictory stated header dates; equivalent timezone representations of one instant are consistent.
 - Cross-company references, duplicate release/import, stale review, independent bulk units and rollback.
 - Historical reviews keep their digest and no existing source is rewritten.
 
@@ -95,7 +95,7 @@ New live orders state their commercial and timing facts consistently; physical o
 - **FR-002**: Bank-file payment preparation MUST require explicit incoming/outgoing direction and a stated booking instant; received time MUST NOT substitute for booking time.
 - **FR-003**: Omitted/blank manual document unit prices MUST remain unknown; explicit zero MUST remain zero; direct explicit-null validation remains unchanged.
 - **FR-004**: Shared order completeness observations MUST identify missing document date, order instant, agreed delivery date, unit prices, line amounts and order total in retained reviews/previews without inventing values or refusing legitimate incompleteness.
-- **FR-005**: File orders MUST preserve a stated document date, or derive the company-local day from a stated order instant when the profile defines that meaning; contradictory header dates in one coherent order MUST refuse. No timing evidence MUST remain unknown.
+- **FR-005**: File orders MUST preserve a stated document date, or derive the company-local day from a stated order instant when the profile defines that meaning; contradictory header dates in one coherent order MUST refuse after parsing; equivalent representations of one instant MUST remain admissible. No timing evidence MUST remain unknown.
 - **FR-006**: Future simulator orders MUST state their document date and one consistent release/order instant; automatic orders MUST also state the authored unit price through normal services; the source payload MUST retain them.
 - **FR-007**: Known-item sales promises MUST use the stock unit, refusing explicitly different unsupported units. Existing known-item profile inheritance, unknown-item evidence and purchase conversion MUST remain intact.
 - **FR-008**: Missing-essential refusals MUST identify the field through the existing localized refusal mechanism and retain a safe preparation-phase failure without accepted effects.

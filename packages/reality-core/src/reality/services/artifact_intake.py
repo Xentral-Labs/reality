@@ -285,8 +285,13 @@ def _prepare_artifact(session, tenant_id, source, job):
             )
             header = {}
             for field in ("document_date", "ordered_at"):
+                parse = (
+                    core._document_day
+                    if field == "document_date"
+                    else core.utc_datetime
+                )
                 stated_values = {
-                    str(row[field]).strip()
+                    parse(str(row[field]).strip())
                     for _, row in members
                     if not is_unstated(row.get(field))
                 }
@@ -294,7 +299,8 @@ def _prepare_artifact(session, tenant_id, source, job):
                     raise core.InvalidOperation(
                         code="source_order_header_conflict", values={"field": field}
                     )
-                header[field] = next(iter(stated_values), None)
+                stated = next(iter(stated_values), None)
+                header[field] = stated.isoformat() if stated is not None else None
             document_date = (
                 core._document_day(header["document_date"])
                 if header["document_date"] is not None
