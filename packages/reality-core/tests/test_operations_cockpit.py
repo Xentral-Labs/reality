@@ -266,3 +266,36 @@ def test_dense_shipping_series_aggregate_every_order_at_exact_boundaries():
         )
         assert point["count"] == expected
     assert points[-1]["count"] == sum(value <= end for value in times.values())
+
+
+def test_shipping_snapshot_does_not_repeat_independent_responsibility_register(
+    session, business, planned_shipping, scheduled_owner, monkeypatch
+):
+    # BUSINESS PURPOSE: Shipping live refresh must not recompute a register the responsibility panel already reads independently.
+    # BUSINESS RULE: Keep full canonical register counts/evidence in its own observation and shipping totals/deviations in theirs.
+    from reality.services import operational_cases
+
+    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
+    tenant = business.tenant.id
+    principal = Principal(scheduled_owner.id)
+    session.flush()
+    before = operations_cockpit.case_register(session, tenant, principal)
+    assert before["counts"]["automation"] > 0
+    original = operational_cases.register_cases
+    calls = []
+
+    def registered(*args, **kwargs):
+        calls.append(True)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(operational_cases, "register_cases", registered)
+    overview = operations_cockpit.operations_cockpit(
+        session, tenant, principal, day=OBSERVED.date().isoformat()
+    )
+    assert "supported_cases" not in overview
+    assert calls == []
+    after = operations_cockpit.case_register(session, tenant, principal)
+    assert after["counts"] == before["counts"]
+    assert after["items"] == before["items"]
+    assert calls == [True]
+    assert overview["shipping"]["totals"]["due"] == 1

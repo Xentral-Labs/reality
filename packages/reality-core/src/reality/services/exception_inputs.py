@@ -9,8 +9,8 @@ from decimal import Decimal
 from functools import cached_property
 from typing import Any
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select, true
+from sqlalchemy.orm import Session, load_only
 
 from reality.db.core import (
     Commitment,
@@ -45,6 +45,7 @@ class _ExceptionInputs:
         self.session = session
         self.tenant_id = tenant_id
         self.open_commitments_only = open_commitments_only
+        self.trace_commitment_ids: set[str] | None = None
         # Reads several classes share within one evaluation (the open items register,
         # for one); like every input here it lives no longer than the scope.
         self.cache: dict[Any, Any] = {}
@@ -136,33 +137,80 @@ class _ExceptionInputs:
 
     @cached_property
     def documents(self) -> dict[str, Document]:
-        return {
-            row.id: row
-            for row in self.session.scalars(
-                select(Document).where(Document.tenant_id == self.tenant_id)
+        query = select(Document).where(Document.tenant_id == self.tenant_id)
+        if self.open_commitments_only:
+            query = query.where(
+                Document.id.in_(
+                    select(Commitment.document_id).where(
+                        Commitment.tenant_id == self.tenant_id,
+                        Commitment.status == "open",
+                        Commitment.id.in_(self.trace_commitment_ids)
+                        if self.trace_commitment_ids is not None
+                        else true(),
+                    )
+                )
+            ).options(
+                load_only(
+                    Document.id,
+                    Document.tenant_id,
+                    Document.number,
+                    Document.customer_reference,
+                    Document.source_record_id,
+                )
             )
-        }
+        return {row.id: row for row in self.session.scalars(query)}
 
     @cached_property
     def sources(self) -> dict[str, SourceRecord]:
-        return {
-            row.id: row
-            for row in self.session.scalars(
-                select(SourceRecord)
-                .join(Document, Document.source_record_id == SourceRecord.id)
-                .where(Document.tenant_id == self.tenant_id)
-                .distinct()
+        query = (
+            select(SourceRecord)
+            .join(
+                Document,
+                (Document.source_record_id == SourceRecord.id)
+                & (Document.tenant_id == SourceRecord.tenant_id),
             )
-        }
+            .where(
+                SourceRecord.tenant_id == self.tenant_id,
+                Document.tenant_id == self.tenant_id,
+            )
+        )
+        if self.open_commitments_only:
+            query = query.where(
+                Document.id.in_(
+                    select(Commitment.document_id).where(
+                        Commitment.tenant_id == self.tenant_id,
+                        Commitment.status == "open",
+                        Commitment.id.in_(self.trace_commitment_ids)
+                        if self.trace_commitment_ids is not None
+                        else true(),
+                    )
+                )
+            ).options(
+                load_only(
+                    SourceRecord.id,
+                    SourceRecord.tenant_id,
+                    SourceRecord.source_system,
+                    SourceRecord.external_id,
+                )
+            )
+        return {row.id: row for row in self.session.scalars(query.distinct())}
 
     @cached_property
     def lines(self) -> dict[str, DocumentLine]:
-        return {
-            row.id: row
-            for row in self.session.scalars(
-                select(DocumentLine).where(DocumentLine.tenant_id == self.tenant_id)
-            )
-        }
+        query = select(DocumentLine).where(DocumentLine.tenant_id == self.tenant_id)
+        if self.open_commitments_only:
+            query = query.where(
+                DocumentLine.id.in_(
+                    select(Commitment.document_line_id).where(
+                        Commitment.tenant_id == self.tenant_id,
+                        Commitment.status == "open",
+                        Commitment.id.in_(self.trace_commitment_ids)
+                        if self.trace_commitment_ids is not None
+                        else true(),
+                    )
+                )
+            ).options(load_only(DocumentLine.id, DocumentLine.tenant_id))
+        return {row.id: row for row in self.session.scalars(query)}
 
     @cached_property
     def items(self) -> dict[str, Item]:

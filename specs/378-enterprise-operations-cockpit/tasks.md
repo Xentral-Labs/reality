@@ -206,3 +206,7 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T072 [FR-033/SC-004] Separate independent company flow observations into the existing activity snapshot/lifecycle; verify exact authority, stale/filter/isolation semantics and complete four-read enterprise cadence.
 
 - [ ] T073 [FR-023/SC-004] Bound dense daily shipping series with disclosed exact cumulative five-minute aggregation; verify full counts, exact source/supporting trace, endpoints and enterprise/browser gates.
+
+- [ ] T074 [DR-005/SC-004] Bound current commitment exception tracing to its exact open-promise document/line/source cohort; first reproduce historical payload materialization after a real unreserved order, preserve full scalar/snapshot source-trace parity, then run the unchanged live cadence and final CI gates.
+
+- [ ] T075 [FR-033/SC-004] Remove the UI-unused duplicate register calculation from shipping snapshots; first prove independent complete register authority and absent duplicate work, preserve all four live readers and case-linked deviation evidence, then run the unchanged enterprise and full CI gates.

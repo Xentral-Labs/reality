@@ -47,7 +47,7 @@ Snapshot includes:
 - `observed_at`, company business day/time zone, selected Location, `basis_key` and observation watermark.
 - Coverage by plan/cohort/site/handover/timed-Soll/capacity/forecast; known-empty differs from missing input.
 - `shipping`: full cohort totals, actual/plan/future-forecast series, per-site rows, relevant site cut-offs and inspectable basis. The basis fingerprint includes the full canonical source/quantity/readiness/physical input set and exact company/day/site/calendar context. The response discloses at most 50 work/source/revision/readiness/physical records per section with complete sizes and an explicit preview marker; this limit never samples the calculation. Paged supporting orders retain exact source IDs and full canonical readiness/physical evidence. Interpretation notices are presentation text, not duplicated fingerprint inputs.
-- `supported_cases`: complete registered-case counts with explicit canonical coordination/kind coverage, not six-family company autonomy claims.
+Complete registered-case counts, items and canonical coordination/kind coverage come from the existing independent case-register observation. Shipping snapshots do not duplicate that register; exact case-linked deviation evidence remains in the shipping snapshot. This separation never implies six-family company autonomy or atomicity between the independent reads.
 - `deviations`: exact affected business IDs, causal records, responsibility and recorded responses/outcome/next check, only where evidence exists.
 
 Values use returned quantity/count/money meaning; frontend does not recompute totals or infer a status. No merchandise-value/48-hour-risk or seven-day-SLA claim is added until its own canonical measure exists.
