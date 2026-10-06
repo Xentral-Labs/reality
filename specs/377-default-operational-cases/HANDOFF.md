@@ -1,3 +1,7 @@
+# Historical implementation handoff
+
+The default-on implementation is now on main; the current spec, plan and runtime take precedence over this original design handoff.
+
 # Implementation handoff
 
 ## Copyable code-agent task

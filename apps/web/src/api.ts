@@ -2159,6 +2159,11 @@ export const api = {
     request<{ events: InteractionEvent[] }>(
       `/api/tenants/${tenant}/interactions/${encodeURIComponent(interaction)}/events`,
     ),
+  businessOperations: (tenant: string, signal?: AbortSignal, orderFilter = "", mailFilter = "") =>
+    request<import("./unified/BusinessLive").BusinessOperations>(
+      `/api/tenants/${tenant}/interactions/business?${new URLSearchParams({ order_filter: orderFilter, mail_filter: mailFilter })}`,
+      { signal },
+    ),
   interactionSeries: (tenant: string, query: URLSearchParams, signal?: AbortSignal) =>
     request<InteractionSeries>(`/api/tenants/${tenant}/interactions/series?${query}`, { signal }),
   interactionsPulse: (tenant: string, signal?: AbortSignal) =>

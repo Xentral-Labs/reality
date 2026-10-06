@@ -169,3 +169,15 @@ Existing suites that must stay green: `test_storyline_trace.py`, `test_home_read
 | Constitution exception | Why needed | Simpler alternative rejected | Approval |
 |---|---|---|---|
 | None | — | — | — |
+
+## Business view extension
+
+Reviewed user requirements FR-B01–B04. Constitution Check PASS: no schema, scheduler or mutable business authority; a tenant-scoped service derives from core commitment terms and correction-aware Movements. Existing owner/admission checks protect a read-only HTTP adapter. React renders service results and links through Inspector. Tests cover fulfillment transitions first, holds, tenant isolation and adapter permissions. No estimated completion duration without recorded evidence. Initial risk horizon is explicitly two hours; report full-company order scope and bounded drilldown lists.
+
+Scale review: reuse `projections._open_work_rows` directly with current open commitments and batched terms. This is the existing calculation, not a read from an eventually refreshed cache; normal orders avoid a per-order readiness query loop. Prepayment remains the existing specialized calculation. Reuse `core.inventory_rows` for stock and retain direct Inspector paths. API scopes remain owner-only, including the new `order_filter` query. The service returns at most 200 filtered orders, 100 replenishment lines/items, 50 recorded emails and 20 recent documents; counts are independent of these display bounds.
+
+Reviewed KPI drilldown request: reuse the Business endpoint and existing native-dialog/Inspector patterns. Add only derived sample/time-window flags and per-order timing observations, no stored authority or schema. Filter before the existing limit. Test matching cohorts in service and immediate dialog/loading/empty/keyboard/detail transitions in Chromium.
+
+Reviewed compact-table/correspondence/order-detail extension: single top-level tab panel, server-filtered 50-message cohorts and exact simulator message_id/in_reply_to lineage. Waiting/answered describe recorded replies, not business completion or provider read state. Reuse the shared order Inspector for fixed summary cards and canonical terms/billed-line/package associations; show only explicitly stated delivery-note references from shipment Sources. No transport or booking changes. Test inherited Inspector presentation and normal record navigation.
+
+Reviewed overview UX refinement (FR-B09): retain the business summary first, group orders and dispatch performance, then communication tiles with explicit message labels and explanatory copy. Presentation only; unchanged counts, filtering and source semantics. Constitution Check PASS. Verify ordering, click-through, keyboard/mobile and existing dashboard browser proof.

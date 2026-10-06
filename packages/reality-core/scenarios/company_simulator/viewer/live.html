@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Reality Company Simulator · Live</title
+  ><link rel="stylesheet" href="/stories.css" /><link
+    rel="stylesheet"
+    href="/live.css"
+  />
+  <body>
+    <main class="wrap">
+      <header>
+        <div class="brand">☀ Reality Company Simulator</div>
+        <span class="pill">Live outside world · external agent</span>
+      </header>
+      <h1>A live view of your company.</h1>
+      <p id="status" class="muted">Connecting to this run…</p>
+      <section
+        id="performance"
+        class="tiles"
+        aria-label="Shipping performance"
+      ></section>
+      <p id="performance-summary" class="muted"></p>
+      <section id="performance-orders" class="workspace" hidden></section>
+      <div id="tiles" class="tiles"></div>
+      <details class="checkpanel">
+        <summary>Reality checks & case coverage</summary>
+        <p id="checks" class="muted"></p>
+      </details>
+      <div class="sectionhead">
+        <h2>What's happening right now</h2>
+        <button id="compose" class="primary">＋ Trigger an event</button>
+      </div>
+      <div class="flow-layout">
+        <section class="flow-panel" aria-label="Live business flow">
+          <nav class="tabs" id="directions" aria-label="Flow direction">
+            <button data-direction="all">Everything</button
+            ><button data-direction="incoming">↙ Incoming</button
+            ><button data-direction="outgoing">↗ Outgoing</button
+            ><button data-direction="activity">✓ Business actions</button>
+          </nav>
+          <p class="muted" id="flowcount"></p>
+          <div id="flow"></div>
+        </section>
+        <section class="party-panel" aria-label="Customers and suppliers">
+          <div class="sectionhead">
+            <h2>Customers & suppliers</h2>
+            <button id="all" class="quiet">Everyone</button>
+          </div>
+          <div id="people" class="people"></div>
+        </section>
+      </div>
+      <section id="workspace" class="workspace">
+        <h2 id="heading">Company workspace</h2>
+        <p id="partycounts" class="muted"></p>
+        <nav class="tabs" id="workspace-tabs" aria-label="Party workspace">
+          <button data-tab="overview">Overview</button
+          ><button data-tab="mail">Emails</button
+          ><button data-tab="orders">Orders</button
+          ><button data-tab="documents">Documents</button>
+        </nav>
+        <div id="workspace-content"></div>
+      </section>
+      <p id="limits" class="footer"></p>
+      <p class="footer">
+        Intake runs through the shared scheduler and worker. Your external agent
+        operates independently. No real email is sent. Stop/pause the world with
+        the live CLI; closing this window does not stop it.
+      </p>
+    </main>
+    <div id="shade" class="shade" hidden></div>
+    <aside id="drawer" class="drawer" hidden>
+      <button id="close" class="close">×</button>
+      <div id="detail"></div>
+    </aside>
+    <dialog id="composer">
+      <form id="eventform">
+        <h2>Trigger a world event</h2>
+        <label
+          >Template<select name="kind">
+            <option value="customer_email">Customer email</option>
+            <option value="status_query">Delivery enquiry</option>
+            <option value="order">New order + message</option>
+            <option value="cancellation">Cancellation request</option>
+            <option value="return_request">Return request</option>
+            <option value="supplier_email">Supplier email</option>
+            <option value="supplier_delay">Supplier delay</option>
+          </select></label
+        ><label>Sender<select name="party_id" id="sender"></select></label
+        ><label
+          >Related order<select name="document_id" id="related"></select></label
+        ><label
+          >Item (new orders)<select name="item_id" id="item"></select></label
+        ><label
+          >Quantity<input
+            name="quantity"
+            type="number"
+            min="1"
+            max="100"
+            value="2" /></label
+        ><label>Stated total EUR<input name="amount" value="20" /></label
+        ><label
+          >Subject<input
+            name="subject"
+            value="A question about my order"
+            maxlength="300" /></label
+        ><label
+          >Message<textarea name="body" rows="4">
+Could you update me on the delivery?</textarea>
+        </label>
+        <p id="previewnote">Preview creates no mail or bookings.</p>
+        <pre id="preview"></pre>
+        <div class="tabs">
+          <button type="submit" class="primary">Preview exact event</button
+          ><button type="button" id="inject" class="primary" disabled>
+            Release this event</button
+          ><button type="button" id="cancel" class="quiet">Close</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="/live.js"></script>
+  </body>
+</html>

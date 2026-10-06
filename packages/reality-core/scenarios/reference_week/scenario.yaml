@@ -1,0 +1,1804 @@
+# Literal independent oracle; see docs/scenarios/reality-reference-week.md.
+id: reality-reference-week
+version: 1
+adapter: reference_week
+start: '2026-10-05T08:00:00Z'
+items:
+  A: {name: Workshop lamp, unit: pcs, sales_price: '10.00', purchase_price: '6.00'}
+  B: {name: Mounting bracket, unit: pcs, sales_price: '5.00', purchase_price: '3.00'}
+  C: {name: Power adapter, unit: pcs, sales_price: '8.00', purchase_price: '4.00'}
+customers: {K1: Workshop Test, K2: Retail Test, K3: Studio Test}
+supplier: {SUP: North Supply Test}
+locations: [W1, W2]
+orders:
+  S1:
+    customer: K1
+    lines: {A: 6, B: 2}
+    total: '70.00'
+    amounts: {A: '60.00', B: '10.00'}
+    promised_at: '2026-10-05T10:00:00+00:00'
+  S2:
+    customer: K2
+    lines: {A: 8}
+    total: '80.00'
+    amounts: {A: '80.00'}
+    promised_at: '2026-10-05T12:00:00+00:00'
+  S3:
+    customer: K3
+    lines: {A: 10, B: 4}
+    total: '120.00'
+    amounts: {A: '100.00', B: '20.00'}
+    promised_at: '2026-10-05T14:00:00+00:00'
+  S4:
+    customer: K1
+    lines: {B: 3}
+    total: '15.00'
+    amounts: {B: '15.00'}
+    promised_at: '2026-10-05T18:00:00+00:00'
+  S5:
+    customer: K2
+    lines: {A: 5, C: 3}
+    total: '74.00'
+    amounts: {A: '50.00', C: '24.00'}
+    promised_at: '2026-10-06T11:00:00+00:00'
+  S6:
+    customer: K3
+    lines: {A: 7, B: 2, C: 4}
+    total: '112.00'
+    amounts: {A: '70.00', B: '10.00', C: '32.00'}
+    promised_at: '2026-10-07T11:00:00+00:00'
+  S7:
+    customer: K1
+    lines: {A: 6, B: 5, C: 4}
+    total: '117.00'
+    amounts: {A: '60.00', B: '25.00', C: '32.00'}
+    promised_at: '2026-10-08T10:00:00+00:00'
+  S8:
+    customer: K2
+    lines: {A: 4, B: 2, C: 2}
+    total: '66.00'
+    amounts: {A: '40.00', B: '10.00', C: '16.00'}
+    promised_at: '2026-10-09T11:00:00+00:00'
+  S9:
+    customer: K3
+    lines: {A: 3, B: 3, C: 1}
+    total: '53.00'
+    amounts: {A: '30.00', B: '15.00', C: '8.00'}
+    promised_at: '2026-10-10T13:00:00+00:00'
+  S10:
+    customer: K1
+    lines: {A: 2, B: 1, C: 2}
+    total: '41.00'
+    amounts: {A: '20.00', B: '5.00', C: '16.00'}
+    promised_at: '2026-10-11T11:00:00+00:00'
+  PO1:
+    supplier: SUP
+    lines: {A: 20, C: 10}
+    total: '160.00'
+    amounts: {A: '120.00', C: '40.00'}
+    promised_at: '2026-10-06T08:00:00+00:00'
+  PO2:
+    supplier: SUP
+    lines: {A: 16, B: 12, C: 10}
+    total: '172.00'
+    amounts: {A: '96.00', B: '36.00', C: '40.00'}
+    promised_at: '2026-10-09T08:00:00+00:00'
+events:
+- id: E00
+  day: 1
+  minute: 0
+  steps: []
+  checkpoint: Z0
+  expected:
+    physical: {}
+    reserved: {}
+    free: {}
+    customer_open: {}
+    supplier_open: {}
+    counts: {items: 0, customers: 0, suppliers: 0, locations: 0, sales_orders: 0, purchase_orders: 0, open_sales_orders: 0,
+      customer_commitments: 0, supplier_commitments: 0, ledger_entries: 0, customer_open: 0, customer_fulfilled: 0,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines: {}
+    evidence_errors: []
+    invariants: []
+    return_open: {}
+- id: E01
+  day: 1
+  minute: 5
+  steps:
+  - {action: masters}
+  checkpoint: Z1
+  expected:
+    physical: {A: '0', B: '0', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '0', B: '0', C: '0'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 0, purchase_orders: 0, open_sales_orders: 0,
+      customer_commitments: 0, supplier_commitments: 0, ledger_entries: 0, customer_open: 0, customer_fulfilled: 0,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines: {}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '0', B: '0', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E02
+  day: 1
+  minute: 15
+  steps:
+  - action: opening
+    quantities: {A: 20, B: 12}
+  checkpoint: Z2
+  expected:
+    physical: {A: '20', B: '12', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '20', B: '12', C: '0'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 0, purchase_orders: 0, open_sales_orders: 0,
+      customer_commitments: 0, supplier_commitments: 0, ledger_entries: 0, customer_open: 0, customer_fulfilled: 0,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines: {}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '20', B: '12', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E03
+  day: 1
+  minute: 60
+  steps:
+  - {action: order, order: S1}
+  expected:
+    physical: {A: '20', B: '12', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '20', B: '12', C: '0'}
+    customer_open: {A: '6', B: '2', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 1, purchase_orders: 0, open_sales_orders: 1,
+      customer_commitments: 2, supplier_commitments: 0, ledger_entries: 0, customer_open: 2, customer_fulfilled: 0,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '0', reserved: '0', status: open, open: '6', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '0', reserved: '0', status: open, open: '2', line_amount: '10', document_amount: '70'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '20', B: '12', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E04
+  day: 1
+  minute: 75
+  steps:
+  - action: reserve
+    order: S1
+    quantities: {A: 6, B: 2}
+  expected:
+    physical: {A: '20', B: '12', C: '0'}
+    reserved: {A: '6', B: '2', C: '0'}
+    free: {A: '14', B: '10', C: '0'}
+    customer_open: {A: '6', B: '2', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 1, purchase_orders: 0, open_sales_orders: 1,
+      customer_commitments: 2, supplier_commitments: 0, ledger_entries: 0, customer_open: 2, customer_fulfilled: 0,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '0', reserved: '6', status: open, open: '6', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '0', reserved: '2', status: open, open: '2', line_amount: '10', document_amount: '70'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '20', B: '12', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E05
+  day: 1
+  minute: 120
+  steps:
+  - action: ship
+    order: S1
+    quantities: {A: 6, B: 2}
+  expected:
+    physical: {A: '14', B: '10', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '14', B: '10', C: '0'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 1, purchase_orders: 0, open_sales_orders: 0,
+      customer_commitments: 2, supplier_commitments: 0, ledger_entries: 0, customer_open: 0, customer_fulfilled: 2,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '14', B: '10', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E06
+  day: 1
+  minute: 180
+  steps:
+  - {action: order, order: S2}
+  - action: reserve
+    order: S2
+    quantities: {A: 8}
+  expected:
+    physical: {A: '14', B: '10', C: '0'}
+    reserved: {A: '8', B: '0', C: '0'}
+    free: {A: '6', B: '10', C: '0'}
+    customer_open: {A: '8', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 2, purchase_orders: 0, open_sales_orders: 1,
+      customer_commitments: 3, supplier_commitments: 0, ledger_entries: 0, customer_open: 1, customer_fulfilled: 2,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '0', reserved: '8', status: open, open: '8', line_amount: '80', document_amount: '80'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '14', B: '10', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E07
+  day: 1
+  minute: 240
+  steps:
+  - action: ship
+    order: S2
+    quantities: {A: 8}
+  expected:
+    physical: {A: '6', B: '10', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '6', B: '10', C: '0'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 2, purchase_orders: 0, open_sales_orders: 0,
+      customer_commitments: 3, supplier_commitments: 0, ledger_entries: 0, customer_open: 0, customer_fulfilled: 3,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '6', B: '10', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E08
+  day: 1
+  minute: 300
+  steps:
+  - {action: order, order: S3}
+  - action: reserve
+    order: S3
+    quantities: {A: 6, B: 4}
+  checkpoint: M1
+  expected:
+    physical: {A: '6', B: '10', C: '0'}
+    reserved: {A: '6', B: '4', C: '0'}
+    free: {A: '0', B: '6', C: '0'}
+    customer_open: {A: '10', B: '4', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 3, purchase_orders: 0, open_sales_orders: 1,
+      customer_commitments: 5, supplier_commitments: 0, ledger_entries: 0, customer_open: 2, customer_fulfilled: 3,
+      customer_cancelled: 0, supplier_open: 0, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '0', reserved: '6', status: open, open: '10', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '0', reserved: '4', status: open, open: '4', line_amount: '20', document_amount: '120'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '6', B: '10', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E09
+  day: 1
+  minute: 315
+  steps:
+  - {action: order, order: PO1}
+  expected:
+    physical: {A: '6', B: '10', C: '0'}
+    reserved: {A: '6', B: '4', C: '0'}
+    free: {A: '0', B: '6', C: '0'}
+    customer_open: {A: '10', B: '4', C: '0'}
+    supplier_open: {A: '20', B: '0', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 3, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 5, supplier_commitments: 2, ledger_entries: 0, customer_open: 2, customer_fulfilled: 3,
+      customer_cancelled: 0, supplier_open: 2, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '0', reserved: '6', status: open, open: '10', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '0', reserved: '4', status: open, open: '4', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '0', reserved: '0', status: open, open: '20', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '160'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '6', B: '10', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E10
+  day: 1
+  minute: 360
+  steps:
+  - action: ship
+    order: S3
+    quantities: {A: 6, B: 4}
+  checkpoint: M2
+  expected:
+    physical: {A: '0', B: '6', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '0', B: '6', C: '0'}
+    customer_open: {A: '4', B: '0', C: '0'}
+    supplier_open: {A: '20', B: '0', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 3, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 5, supplier_commitments: 2, ledger_entries: 0, customer_open: 1, customer_fulfilled: 4,
+      customer_cancelled: 0, supplier_open: 2, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '6', reserved: '0', status: open, open: '4', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '0', reserved: '0', status: open, open: '20', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '160'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '0', B: '6', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E11
+  day: 1
+  minute: 420
+  steps:
+  - {action: order, order: S4}
+  - action: reserve
+    order: S4
+    quantities: {B: 3}
+  expected:
+    physical: {A: '0', B: '6', C: '0'}
+    reserved: {A: '0', B: '3', C: '0'}
+    free: {A: '0', B: '3', C: '0'}
+    customer_open: {A: '4', B: '3', C: '0'}
+    supplier_open: {A: '20', B: '0', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 4, purchase_orders: 1, open_sales_orders: 2,
+      customer_commitments: 6, supplier_commitments: 2, ledger_entries: 0, customer_open: 2, customer_fulfilled: 4,
+      customer_cancelled: 0, supplier_open: 2, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '6', reserved: '0', status: open, open: '4', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '0', reserved: '0', status: open, open: '20', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '3', status: open, open: '3', line_amount: '15', document_amount: '15'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '0', B: '6', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E12
+  day: 1
+  minute: 480
+  steps:
+  - {action: cancel, reason: Customer cancelled all 3 brackets before dispatch, order: S4}
+  checkpoint: M3
+  expected:
+    physical: {A: '0', B: '6', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '0', B: '6', C: '0'}
+    customer_open: {A: '4', B: '0', C: '0'}
+    supplier_open: {A: '20', B: '0', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 4, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 6, supplier_commitments: 2, ledger_entries: 0, customer_open: 1, customer_fulfilled: 4,
+      customer_cancelled: 1, supplier_open: 2, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '6', reserved: '0', status: open, open: '4', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '0', reserved: '0', status: open, open: '20', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '0', B: '6', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E13
+  day: 1
+  minute: 540
+  steps:
+  - {action: replay, order: S3}
+  expected:
+    physical: {A: '0', B: '6', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '0', B: '6', C: '0'}
+    customer_open: {A: '4', B: '0', C: '0'}
+    supplier_open: {A: '20', B: '0', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 4, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 6, supplier_commitments: 2, ledger_entries: 0, customer_open: 1, customer_fulfilled: 4,
+      customer_cancelled: 1, supplier_open: 2, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '6', reserved: '0', status: open, open: '4', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '0', reserved: '0', status: open, open: '20', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '0', B: '6', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E14
+  day: 1
+  minute: 1439
+  steps: []
+  checkpoint: M4
+  expected:
+    physical: {A: '0', B: '6', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '0', B: '6', C: '0'}
+    customer_open: {A: '4', B: '0', C: '0'}
+    supplier_open: {A: '20', B: '0', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 4, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 6, supplier_commitments: 2, ledger_entries: 0, customer_open: 1, customer_fulfilled: 4,
+      customer_cancelled: 1, supplier_open: 2, supplier_fulfilled: 0, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '6', reserved: '0', status: open, open: '4', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '0', reserved: '0', status: open, open: '20', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '0', B: '6', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E15
+  day: 2
+  minute: 0
+  steps:
+  - action: receive
+    order: PO1
+    quantities: {A: 12, C: 10}
+  expected:
+    physical: {A: '12', B: '6', C: '10'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '12', B: '6', C: '10'}
+    customer_open: {A: '4', B: '0', C: '0'}
+    supplier_open: {A: '8', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 4, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 6, supplier_commitments: 2, ledger_entries: 0, customer_open: 1, customer_fulfilled: 4,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 1, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '6', reserved: '0', status: open, open: '4', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '12', reserved: '0', status: open, open: '8', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '12', B: '6', C: '10'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E16
+  day: 2
+  minute: 15
+  steps:
+  - action: reserve
+    order: S3
+    quantities: {A: 4}
+  checkpoint: M5
+  expected:
+    physical: {A: '12', B: '6', C: '10'}
+    reserved: {A: '4', B: '0', C: '0'}
+    free: {A: '8', B: '6', C: '10'}
+    customer_open: {A: '4', B: '0', C: '0'}
+    supplier_open: {A: '8', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 4, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 6, supplier_commitments: 2, ledger_entries: 0, customer_open: 1, customer_fulfilled: 4,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 1, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '6', reserved: '4', status: open, open: '4', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '12', reserved: '0', status: open, open: '8', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '12', B: '6', C: '10'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E17
+  day: 2
+  minute: 60
+  steps:
+  - action: ship
+    order: S3
+    quantities: {A: 4}
+  expected:
+    physical: {A: '8', B: '6', C: '10'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '8', B: '6', C: '10'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '8', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 4, purchase_orders: 1, open_sales_orders: 0,
+      customer_commitments: 6, supplier_commitments: 2, ledger_entries: 0, customer_open: 0, customer_fulfilled: 5,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 1, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '12', reserved: '0', status: open, open: '8', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '8', B: '6', C: '10'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E18a
+  day: 2
+  minute: 120
+  steps:
+  - {action: order, order: S5}
+  expected:
+    physical: {A: '8', B: '6', C: '10'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '8', B: '6', C: '10'}
+    customer_open: {A: '5', B: '0', C: '3'}
+    supplier_open: {A: '8', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 5, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 8, supplier_commitments: 2, ledger_entries: 0, customer_open: 2, customer_fulfilled: 5,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 1, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '12', reserved: '0', status: open, open: '8', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '0', reserved: '0', status: open, open: '5', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '0', reserved: '0', status: open, open: '3', line_amount: '24', document_amount: '74'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '8', B: '6', C: '10'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E18b
+  day: 2
+  minute: 135
+  steps:
+  - action: reserve
+    order: S5
+    quantities: {A: 5, C: 3}
+  expected:
+    physical: {A: '8', B: '6', C: '10'}
+    reserved: {A: '5', B: '0', C: '3'}
+    free: {A: '3', B: '6', C: '7'}
+    customer_open: {A: '5', B: '0', C: '3'}
+    supplier_open: {A: '8', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 5, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 8, supplier_commitments: 2, ledger_entries: 0, customer_open: 2, customer_fulfilled: 5,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 1, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '12', reserved: '0', status: open, open: '8', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '0', reserved: '5', status: open, open: '5', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '0', reserved: '3', status: open, open: '3', line_amount: '24', document_amount: '74'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '8', B: '6', C: '10'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E18
+  day: 2
+  minute: 180
+  steps:
+  - action: ship
+    order: S5
+    quantities: {A: 5, C: 3}
+  checkpoint: M6
+  expected:
+    physical: {A: '3', B: '6', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '3', B: '6', C: '7'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '8', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 5, purchase_orders: 1, open_sales_orders: 0,
+      customer_commitments: 8, supplier_commitments: 2, ledger_entries: 0, customer_open: 0, customer_fulfilled: 7,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 1, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '12', reserved: '0', status: open, open: '8', line_amount: '120', document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '3', B: '6', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E19
+  day: 3
+  minute: 0
+  steps:
+  - action: receive
+    order: PO1
+    quantities: {A: 8}
+  expected:
+    physical: {A: '11', B: '6', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '11', B: '6', C: '7'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 5, purchase_orders: 1, open_sales_orders: 0,
+      customer_commitments: 8, supplier_commitments: 2, ledger_entries: 0, customer_open: 0, customer_fulfilled: 7,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 2, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '11', B: '6', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E20a
+  day: 3
+  minute: 120
+  steps:
+  - {action: order, order: S6}
+  expected:
+    physical: {A: '11', B: '6', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '11', B: '6', C: '7'}
+    customer_open: {A: '7', B: '2', C: '4'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 6, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 11, supplier_commitments: 2, ledger_entries: 0, customer_open: 3, customer_fulfilled: 7,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 2, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '0', reserved: '0', status: open, open: '7', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '0', reserved: '0', status: open, open: '2', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '0', reserved: '0', status: open, open: '4', line_amount: '32', document_amount: '112'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '11', B: '6', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E20b
+  day: 3
+  minute: 135
+  steps:
+  - action: reserve
+    order: S6
+    quantities: {A: 7, B: 2, C: 4}
+  expected:
+    physical: {A: '11', B: '6', C: '7'}
+    reserved: {A: '7', B: '2', C: '4'}
+    free: {A: '4', B: '4', C: '3'}
+    customer_open: {A: '7', B: '2', C: '4'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 6, purchase_orders: 1, open_sales_orders: 1,
+      customer_commitments: 11, supplier_commitments: 2, ledger_entries: 0, customer_open: 3, customer_fulfilled: 7,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 2, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '0', reserved: '7', status: open, open: '7', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '0', reserved: '2', status: open, open: '2', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '0', reserved: '4', status: open, open: '4', line_amount: '32', document_amount: '112'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '11', B: '6', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E20
+  day: 3
+  minute: 180
+  steps:
+  - action: ship
+    order: S6
+    quantities: {A: 7, B: 2, C: 4}
+  expected:
+    physical: {A: '4', B: '4', C: '3'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '4', B: '4', C: '3'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 6, purchase_orders: 1, open_sales_orders: 0,
+      customer_commitments: 11, supplier_commitments: 2, ledger_entries: 0, customer_open: 0, customer_fulfilled: 10,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 2, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '4', B: '4', C: '3'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E21
+  day: 3
+  minute: 195
+  steps:
+  - {action: order, order: PO2}
+  checkpoint: M7
+  expected:
+    physical: {A: '4', B: '4', C: '3'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '4', B: '4', C: '3'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '16', B: '12', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 6, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 11, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 10,
+      customer_cancelled: 1, supplier_open: 3, supplier_fulfilled: 2, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '0', reserved: '0', status: open, open: '16', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '0', reserved: '0', status: open, open: '12', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '172'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '4', B: '4', C: '3'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E22
+  day: 4
+  minute: 60
+  steps:
+  - {action: order, order: S7}
+  - action: reserve
+    order: S7
+    quantities: {A: 4, B: 4, C: 3}
+  checkpoint: M8
+  expected:
+    physical: {A: '4', B: '4', C: '3'}
+    reserved: {A: '4', B: '4', C: '3'}
+    free: {A: '0', B: '0', C: '0'}
+    customer_open: {A: '6', B: '5', C: '4'}
+    supplier_open: {A: '16', B: '12', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 7, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 14, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 10,
+      customer_cancelled: 1, supplier_open: 3, supplier_fulfilled: 2, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '0', reserved: '0', status: open, open: '16', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '0', reserved: '0', status: open, open: '12', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '0', reserved: '4', status: open, open: '6', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '0', reserved: '4', status: open, open: '5', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '0', reserved: '3', status: open, open: '4', line_amount: '32', document_amount: '117'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '4', B: '4', C: '3'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E23
+  day: 4
+  minute: 120
+  steps:
+  - action: ship
+    order: S7
+    quantities: {A: 4, B: 4, C: 3}
+  checkpoint: M9
+  expected:
+    physical: {A: '0', B: '0', C: '0'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '0', B: '0', C: '0'}
+    customer_open: {A: '2', B: '1', C: '1'}
+    supplier_open: {A: '16', B: '12', C: '10'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 7, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 14, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 10,
+      customer_cancelled: 1, supplier_open: 3, supplier_fulfilled: 2, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '0', reserved: '0', status: open, open: '16', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '0', reserved: '0', status: open, open: '12', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '0', reserved: '0', status: open, open: '10', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '4', reserved: '0', status: open, open: '2', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '4', reserved: '0', status: open, open: '1', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '3', reserved: '0', status: open, open: '1', line_amount: '32', document_amount: '117'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '0', B: '0', C: '0'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E24
+  day: 5
+  minute: 0
+  steps:
+  - action: receive
+    order: PO2
+    quantities: {A: 16, B: 6, C: 10}
+  expected:
+    physical: {A: '16', B: '6', C: '10'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '16', B: '6', C: '10'}
+    customer_open: {A: '2', B: '1', C: '1'}
+    supplier_open: {A: '0', B: '6', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 7, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 14, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 10,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 4, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '6', reserved: '0', status: open, open: '6', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '4', reserved: '0', status: open, open: '2', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '4', reserved: '0', status: open, open: '1', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '3', reserved: '0', status: open, open: '1', line_amount: '32', document_amount: '117'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '16', B: '6', C: '10'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E25a
+  day: 5
+  minute: 15
+  steps:
+  - action: reserve
+    order: S7
+    quantities: {A: 2, B: 1, C: 1}
+  expected:
+    physical: {A: '16', B: '6', C: '10'}
+    reserved: {A: '2', B: '1', C: '1'}
+    free: {A: '14', B: '5', C: '9'}
+    customer_open: {A: '2', B: '1', C: '1'}
+    supplier_open: {A: '0', B: '6', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 7, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 14, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 10,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 4, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '6', reserved: '0', status: open, open: '6', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '4', reserved: '2', status: open, open: '2', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '4', reserved: '1', status: open, open: '1', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '3', reserved: '1', status: open, open: '1', line_amount: '32', document_amount: '117'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '16', B: '6', C: '10'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E25
+  day: 5
+  minute: 60
+  steps:
+  - action: ship
+    order: S7
+    quantities: {A: 2, B: 1, C: 1}
+  expected:
+    physical: {A: '14', B: '5', C: '9'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '14', B: '5', C: '9'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '6', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 7, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 14, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 13,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 4, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '6', reserved: '0', status: open, open: '6', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '14', B: '5', C: '9'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E26a
+  day: 5
+  minute: 120
+  steps:
+  - {action: order, order: S8}
+  expected:
+    physical: {A: '14', B: '5', C: '9'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '14', B: '5', C: '9'}
+    customer_open: {A: '4', B: '2', C: '2'}
+    supplier_open: {A: '0', B: '6', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 8, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 17, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 13,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 4, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '6', reserved: '0', status: open, open: '6', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '0', reserved: '0', status: open, open: '4', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '0', reserved: '0', status: open, open: '2', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '0', reserved: '0', status: open, open: '2', line_amount: '16', document_amount: '66'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '14', B: '5', C: '9'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E26b
+  day: 5
+  minute: 135
+  steps:
+  - action: reserve
+    order: S8
+    quantities: {A: 4, B: 2, C: 2}
+  expected:
+    physical: {A: '14', B: '5', C: '9'}
+    reserved: {A: '4', B: '2', C: '2'}
+    free: {A: '10', B: '3', C: '7'}
+    customer_open: {A: '4', B: '2', C: '2'}
+    supplier_open: {A: '0', B: '6', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 8, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 17, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 13,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 4, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '6', reserved: '0', status: open, open: '6', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '0', reserved: '4', status: open, open: '4', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '0', reserved: '2', status: open, open: '2', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '0', reserved: '2', status: open, open: '2', line_amount: '16', document_amount: '66'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '14', B: '5', C: '9'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E26
+  day: 5
+  minute: 180
+  steps:
+  - action: ship
+    order: S8
+    quantities: {A: 4, B: 2, C: 2}
+  checkpoint: M10
+  expected:
+    physical: {A: '10', B: '3', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '10', B: '3', C: '7'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '6', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 8, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 17, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 16,
+      customer_cancelled: 1, supplier_open: 1, supplier_fulfilled: 4, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '6', reserved: '0', status: open, open: '6', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '10', B: '3', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E27
+  day: 6
+  minute: 0
+  steps:
+  - action: receive
+    order: PO2
+    quantities: {B: 6}
+  expected:
+    physical: {A: '10', B: '9', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '10', B: '9', C: '7'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 8, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 17, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 16,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '10', B: '9', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E28
+  day: 6
+  minute: 60
+  steps:
+  - action: announce_return
+    reason: Customer returning 2 lamps; no replacement requested
+    order: S5
+    quantities: {A: 2}
+  expected:
+    physical: {A: '10', B: '9', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '10', B: '9', C: '7'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 8, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 17, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 16,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '10', B: '9', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '2', B: '0', C: '0'}
+- id: E29
+  day: 6
+  minute: 120
+  steps:
+  - action: return
+    order: S5
+    quantities: {A: 2}
+  expected:
+    physical: {A: '12', B: '9', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '12', B: '9', C: '7'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 8, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 17, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 16,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '12', B: '9', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E30
+  day: 6
+  minute: 180
+  steps:
+  - action: adjustment
+    reason: 'Count evidence: 8 brackets counted against 9 recorded; loss 1'
+    quantities: {B: 1}
+  expected:
+    physical: {A: '12', B: '8', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '12', B: '8', C: '7'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 8, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 17, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 16,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '12', B: '8', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E31a
+  day: 6
+  minute: 240
+  steps:
+  - {action: order, order: S9}
+  expected:
+    physical: {A: '12', B: '8', C: '7'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '12', B: '8', C: '7'}
+    customer_open: {A: '3', B: '3', C: '1'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 9, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 20, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 16,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '0', reserved: '0', status: open, open: '3', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '0', reserved: '0', status: open, open: '3', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '0', reserved: '0', status: open, open: '1', line_amount: '8', document_amount: '53'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '12', B: '8', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E31b
+  day: 6
+  minute: 255
+  steps:
+  - action: reserve
+    order: S9
+    quantities: {A: 3, B: 3, C: 1}
+  expected:
+    physical: {A: '12', B: '8', C: '7'}
+    reserved: {A: '3', B: '3', C: '1'}
+    free: {A: '9', B: '5', C: '6'}
+    customer_open: {A: '3', B: '3', C: '1'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 9, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 20, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 16,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '0', reserved: '3', status: open, open: '3', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '0', reserved: '3', status: open, open: '3', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '0', reserved: '1', status: open, open: '1', line_amount: '8', document_amount: '53'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '12', B: '8', C: '7'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E31
+  day: 6
+  minute: 300
+  steps:
+  - action: ship
+    order: S9
+    quantities: {A: 3, B: 3, C: 1}
+  checkpoint: M11
+  expected:
+    physical: {A: '9', B: '5', C: '6'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '9', B: '5', C: '6'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 9, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 20, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 19,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '8', document_amount: '53'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '9', B: '5', C: '6'}
+      W2: {A: '0', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E32
+  day: 7
+  minute: 60
+  steps:
+  - action: transfer
+    quantities: {A: 3}
+  checkpoint: M12
+  expected:
+    physical: {A: '9', B: '5', C: '6'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '9', B: '5', C: '6'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 9, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 20, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 19,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '8', document_amount: '53'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '6', B: '5', C: '6'}
+      W2: {A: '3', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E33a
+  day: 7
+  minute: 120
+  steps:
+  - {action: order, order: S10}
+  expected:
+    physical: {A: '9', B: '5', C: '6'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '9', B: '5', C: '6'}
+    customer_open: {A: '2', B: '1', C: '2'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 10, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 23, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 19,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '8', document_amount: '53'}
+      S10:A: {quantity: '2', fulfilled: '0', reserved: '0', status: open, open: '2', line_amount: '20', document_amount: '41'}
+      S10:B: {quantity: '1', fulfilled: '0', reserved: '0', status: open, open: '1', line_amount: '5', document_amount: '41'}
+      S10:C: {quantity: '2', fulfilled: '0', reserved: '0', status: open, open: '2', line_amount: '16', document_amount: '41'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '6', B: '5', C: '6'}
+      W2: {A: '3', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E33b
+  day: 7
+  minute: 135
+  steps:
+  - action: reserve
+    order: S10
+    quantities: {A: 2, B: 1, C: 2}
+  expected:
+    physical: {A: '9', B: '5', C: '6'}
+    reserved: {A: '2', B: '1', C: '2'}
+    free: {A: '7', B: '4', C: '4'}
+    customer_open: {A: '2', B: '1', C: '2'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 10, purchase_orders: 2, open_sales_orders: 1,
+      customer_commitments: 23, supplier_commitments: 5, ledger_entries: 0, customer_open: 3, customer_fulfilled: 19,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '8', document_amount: '53'}
+      S10:A: {quantity: '2', fulfilled: '0', reserved: '2', status: open, open: '2', line_amount: '20', document_amount: '41'}
+      S10:B: {quantity: '1', fulfilled: '0', reserved: '1', status: open, open: '1', line_amount: '5', document_amount: '41'}
+      S10:C: {quantity: '2', fulfilled: '0', reserved: '2', status: open, open: '2', line_amount: '16', document_amount: '41'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '6', B: '5', C: '6'}
+      W2: {A: '3', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E33
+  day: 7
+  minute: 180
+  steps:
+  - action: ship
+    order: S10
+    quantities: {A: 2, B: 1, C: 2}
+  expected:
+    physical: {A: '7', B: '4', C: '4'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '7', B: '4', C: '4'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 10, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 23, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 22,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '8', document_amount: '53'}
+      S10:A: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '41'}
+      S10:B: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '5', document_amount: '41'}
+      S10:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '41'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '4', B: '4', C: '4'}
+      W2: {A: '3', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}
+- id: E34
+  day: 7
+  minute: 1439
+  steps: []
+  checkpoint: M13
+  expected:
+    physical: {A: '7', B: '4', C: '4'}
+    reserved: {A: '0', B: '0', C: '0'}
+    free: {A: '7', B: '4', C: '4'}
+    customer_open: {A: '0', B: '0', C: '0'}
+    supplier_open: {A: '0', B: '0', C: '0'}
+    counts: {items: 3, customers: 3, suppliers: 1, locations: 2, sales_orders: 10, purchase_orders: 2, open_sales_orders: 0,
+      customer_commitments: 23, supplier_commitments: 5, ledger_entries: 0, customer_open: 0, customer_fulfilled: 22,
+      customer_cancelled: 1, supplier_open: 0, supplier_fulfilled: 5, supplier_cancelled: 0}
+    lines:
+      S1:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '70'}
+      S1:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '70'}
+      S2:A: {quantity: '8', fulfilled: '8', reserved: '0', status: fulfilled, open: '0', line_amount: '80', document_amount: '80'}
+      S3:A: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '100', document_amount: '120'}
+      S3:B: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '120'}
+      PO1:A: {quantity: '20', fulfilled: '20', reserved: '0', status: fulfilled, open: '0', line_amount: '120',
+        document_amount: '160'}
+      PO1:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '160'}
+      S4:B: {quantity: '3', fulfilled: '0', reserved: '0', status: cancelled, open: '0', line_amount: '15', document_amount: '15'}
+      S5:A: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '50', document_amount: '74'}
+      S5:C: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '24', document_amount: '74'}
+      S6:A: {quantity: '7', fulfilled: '7', reserved: '0', status: fulfilled, open: '0', line_amount: '70', document_amount: '112'}
+      S6:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '112'}
+      S6:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '112'}
+      PO2:A: {quantity: '16', fulfilled: '16', reserved: '0', status: fulfilled, open: '0', line_amount: '96', document_amount: '172'}
+      PO2:B: {quantity: '12', fulfilled: '12', reserved: '0', status: fulfilled, open: '0', line_amount: '36', document_amount: '172'}
+      PO2:C: {quantity: '10', fulfilled: '10', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '172'}
+      S7:A: {quantity: '6', fulfilled: '6', reserved: '0', status: fulfilled, open: '0', line_amount: '60', document_amount: '117'}
+      S7:B: {quantity: '5', fulfilled: '5', reserved: '0', status: fulfilled, open: '0', line_amount: '25', document_amount: '117'}
+      S7:C: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '32', document_amount: '117'}
+      S8:A: {quantity: '4', fulfilled: '4', reserved: '0', status: fulfilled, open: '0', line_amount: '40', document_amount: '66'}
+      S8:B: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '10', document_amount: '66'}
+      S8:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '66'}
+      S9:A: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '30', document_amount: '53'}
+      S9:B: {quantity: '3', fulfilled: '3', reserved: '0', status: fulfilled, open: '0', line_amount: '15', document_amount: '53'}
+      S9:C: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '8', document_amount: '53'}
+      S10:A: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '20', document_amount: '41'}
+      S10:B: {quantity: '1', fulfilled: '1', reserved: '0', status: fulfilled, open: '0', line_amount: '5', document_amount: '41'}
+      S10:C: {quantity: '2', fulfilled: '2', reserved: '0', status: fulfilled, open: '0', line_amount: '16', document_amount: '41'}
+    evidence_errors: []
+    invariants: []
+    locations:
+      W1: {A: '4', B: '4', C: '4'}
+      W2: {A: '3', B: '0', C: '0'}
+    movement_totals:
+      opening_stock: {A: '20', B: '12', C: '0'}
+      receipt: {A: '36', B: '12', C: '20'}
+      shipment: {A: '51', B: '19', C: '16'}
+      return: {A: '2', B: '0', C: '0'}
+      adjustment: {A: '0', B: '1', C: '0'}
+      transfer: {A: '3', B: '0', C: '0'}
+    return_open: {A: '0', B: '0', C: '0'}

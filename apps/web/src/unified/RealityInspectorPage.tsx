@@ -15,6 +15,7 @@ import { TableProvider } from "./TableContext";
 import { type GraphTarget } from "./ObjectGraph";
 import { RulesWorkbench } from "./RulesWorkbench";
 import { ActivityDrawer } from "./ActivityDrawer";
+import { BusinessLive } from "./BusinessLive";
 import { EngineRoom } from "./EngineRoom";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
@@ -297,6 +298,7 @@ export function RealityInspectorPage({
         <ActivityDrawer embedded tenant={tenant} companyName={companyName} close={() => {}} />
       )}
       {tab === "live" && <EngineRoom selection={selection} navigate={navigate} />}
+      {tab === "business" && <BusinessLive key={tenant} tenant={tenant} />}
     </div>
   );
 }

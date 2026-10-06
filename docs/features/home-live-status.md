@@ -93,3 +93,16 @@ component, as soon as a check completes without the combined ready result. The
 "Your company, in motion" heading and the "View all activity" button are removed;
 full history stays in Reality Inspector · Activities. Polling, periods, stale
 handling, readiness semantics and drilldowns are unchanged.
+
+Activities → Business (spec 266) is an additional read-only owner surface. Its
+five-second browser polling reports recorded business operations, not scheduler
+or operator health. Snapshot time and refresh failure remain explicit; unread
+mail describes the local simulator inbox only. It neither starts background
+work nor infers agent liveness from business activity.
+
+Business now selects compact table panels through top tabs and opens KPI order
+cohorts in immediate dialogs. Correspondence distinguishes recorded incoming/outgoing
+counts from simulator-local unanswered requests. A recorded reply is not business
+completion, acknowledgement is not an answer, and outgoing evidence is not verified
+recipient delivery. Shared order Inspector summaries preserve fixed empty stages
+and exact record links; no workflow or approval behavior changes.

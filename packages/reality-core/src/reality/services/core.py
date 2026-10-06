@@ -9894,6 +9894,7 @@ def create_manual_order(
     sales_channel: str = "",
     payment_term_code: str = "",
     ship_to_party_id: str | None = None,
+    _commit: bool = True,
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[Commitment]]:
     """
     Atomically turn one manual order payload into Evidence and Reality.
@@ -10057,10 +10058,14 @@ def create_manual_order(
             hold_if_over_credit_limit(
                 session, tenant_id, document, commitments, action_id=action_id
             )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
         return source, document, document_lines, commitments
     except Exception:
-        session.rollback()
+        if _commit:
+            session.rollback()
         raise
 
 

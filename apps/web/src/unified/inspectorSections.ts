@@ -1,7 +1,7 @@
 export const inspectorSections = [
   { label: "Business Recorder", tabs: ["overview", "graph"] },
   { label: "Business Facts", tabs: ["facts", "rules"] },
-  { label: "Activities", tabs: ["history", "live"] },
+  { label: "Activities", tabs: ["history", "live", "business"] },
   { label: "Tools", tabs: ["commands", "views"] },
 ];
 const labels: Record<string, string> = {
@@ -13,6 +13,7 @@ const labels: Record<string, string> = {
   views: "Calculated views",
   history: "History",
   live: "Live",
+  business: "Business",
   commands: "Actions",
 };
 export const inspectorSection = (view = "overview") =>
@@ -23,5 +24,5 @@ export const inspectorTabs = (view: string, owner = true) =>
   ["commands", "views"].includes(view)
     ? [["commands", "Tools"] as const]
     : inspectorSection(view)
-        .tabs.filter((key) => owner || key !== "live")
+        .tabs.filter((key) => owner || !["live", "business"].includes(key))
         .map((key) => [key, labels[key]] as const);
