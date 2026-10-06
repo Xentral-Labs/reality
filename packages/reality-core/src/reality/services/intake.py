@@ -39,6 +39,7 @@ from reality.domain.intake import (
     canonical_json,
     content_digest,
 )
+from reality.domain.intake_completeness import order_issues
 from reality.services import core
 from reality.services.business_locks import lock_delivery_state
 from reality.services.delivery_actions import require_delivery_principal
@@ -516,6 +517,7 @@ def _demo_order_plan(session, tenant_id, source, job):
         source_version=source.version,
         import_job_id=job.id,
         profile="demo.order",
+        issues=order_issues(document, lines),
         mapping=json.loads(job.input),
         references=tuple(
             {(row.record_type, row.record_id): row for row in references}.values()
@@ -538,6 +540,7 @@ def _payment_plan(
     )
 
     payload = json.loads(source.payload)
+    core._required_source_field(payload.get("currency"), "currency")
     if (source.source_system, source.source_type) == (
         "demo_data",
         "payment",
@@ -623,6 +626,7 @@ def _invoice_plan(session, tenant_id, source, job):
     from reality.services.payment_intake import NormalisedInvoice, _invoice_fields
 
     payload = json.loads(source.payload)
+    core._required_source_field(payload.get("currency"), "currency")
     if (source.source_system, source.source_type) == (
         "demo_data",
         "invoice",

@@ -2854,6 +2854,25 @@
     },
     "case_schema_not_ready": {
       "message": "Operational case upgrade is not ready. Apply the required migration before continuing automation."
+    },
+    "source_field_required": {
+      "message": "The source must state {field}; no business effects were accepted.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "source_quantity_unit_unsupported": {
+      "message": "Quantity unit {unit} cannot create a sales promise in stock unit {stock_unit}; a supported conversion is required.",
+      "values": {
+        "unit": "text",
+        "stock_unit": "text"
+      }
+    },
+    "source_order_header_conflict": {
+      "message": "Rows of one order state conflicting {field} values.",
+      "values": {
+        "field": "term"
+      }
     }
   },
   "terms": [
@@ -2933,6 +2952,11 @@
     "sku",
     "tax",
     "type",
-    "unit"
+    "unit",
+    "currency",
+    "effective_at",
+    "direction",
+    "document_date",
+    "ordered_at"
   ]
 }

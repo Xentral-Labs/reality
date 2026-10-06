@@ -276,7 +276,7 @@ def test_unstated_order_total_stays_unknown_in_delivery_readiness(
         "2",
         to_location_id=business.location.id,
     )
-    content = f"order_id,sku,party_name,location,quantity,unit_price\nUNSTATED-DELIVERY,{business.item.sku},{business.customer.name},{business.location.name},2,10\n".encode()
+    content = f"order_id,sku,party_name,location,quantity,unit_price,currency\nUNSTATED-DELIVERY,{business.item.sku},{business.customer.name},{business.location.name},2,10,EUR\n".encode()
     _, proposal = prepare_file(
         session, business, "sales_order", content, tmp_path, monkeypatch
     )

@@ -3653,3 +3653,8 @@ movements. Invoice links use billed order positions or explicit down-payment/pro
 order references. Delivery-note references are displayed only when explicitly stated
 as `delivery_note_number` by the linked shipment Source; no number is generated or
 inferred from a shipment ID. Empty stages stay visible as not recorded.
+
+
+## Essential intake completeness — Spec 379
+
+Order and source-intake reviews show the shared service's allowed timing/commercial gaps in business language, translated through one presentation component. Unknown unit prices render as Unknown, separately from explicitly stated zero. The browser neither invents facts nor decides admission: coded source-required refusals and supported-unit rules remain in shared domain/services. Existing inspection, exact confirmation and source lineage remain unchanged.

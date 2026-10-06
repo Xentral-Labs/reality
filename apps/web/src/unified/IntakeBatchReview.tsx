@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { CompletenessIssues } from "./CompletenessIssues";
 import { api, intakeBatches, itemImports } from "../api";
 import { formatNumber, t } from "../localization";
 import { BusinessFieldList, TechnicalDetails } from "./DecisionReview";
@@ -69,20 +70,7 @@ export function IntakeMeaning({
       ) : (
         <BusinessFieldList record={fallback} />
       )}
-      {issues.length > 0 && (
-        <ul className="mt-3 list-disc pl-5 text-sm">
-          {issues.map((issue, index) => {
-            const match = /^line:(\d+):(amount_unstated|price_unstated|item_unknown)$/.exec(issue);
-            const label =
-              match?.[2] === "amount_unstated"
-                ? "Line amount was not stated."
-                : match?.[2] === "price_unstated"
-                  ? "Unit price was not stated."
-                  : "Unknown item";
-            return <li key={index}>{match ? `${Number(match[1]) + 1}: ${t(label)}` : issue}</li>;
-          })}
-        </ul>
-      )}
+      <CompletenessIssues issues={issues} />
     </div>
   );
 }

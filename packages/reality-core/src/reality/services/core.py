@@ -9764,6 +9764,27 @@ def _purchase_promise_quantity(item: Item, quantity: Decimal, unit: str) -> Deci
     return converted
 
 
+def _required_source_field(value: Any, field: str) -> str:
+    from reality.domain.intake_completeness import MissingEssentialValue, required_text
+
+    try:
+        return required_text(value, field)
+    except MissingEssentialValue as error:
+        raise InvalidOperation(
+            code="source_field_required", values={"field": field}
+        ) from error
+
+
+def _validate_sales_stock_unit(item: Item, unit: str) -> None:
+    from reality.domain.intake_completeness import stock_unit_matches
+
+    if not stock_unit_matches(unit, item.unit):
+        raise InvalidOperation(
+            code="source_quantity_unit_unsupported",
+            values={"unit": unit, "stock_unit": item.unit},
+        )
+
+
 def _preview_manual_order(
     session: OrmSession,
     tenant_id: str,
@@ -9833,6 +9854,9 @@ def _preview_manual_order(
         ]
     except (TypeError, ValueError, ArithmeticError, AttributeError) as error:
         raise InvalidOperation(code="manual_order_value_invalid") from error
+    if direction == "sales":
+        for line, item in zip(normalized, items, strict=True):
+            _validate_sales_stock_unit(item, line["unit"])
     if direction == "purchase":
         # Spec 301: the promise of a purchase line is in the stock unit. The line
         # keeps what it states; the converted promise rides on the preview only
@@ -9871,7 +9895,14 @@ def _preview_manual_order(
         )
         if existing:
             raise InvalidOperation(code="manual_order_already_recorded")
-    return {"document": values, "lines": normalized, "direction": direction}
+    from reality.domain.intake_completeness import order_issues
+
+    return {
+        "document": values,
+        "lines": normalized,
+        "direction": direction,
+        "issues": list(order_issues(values, normalized)),
+    }
 
 
 def create_manual_order(
@@ -10247,9 +10278,8 @@ def _normalize_manual_line_input(
         elif supplier_mapping is not None and supplier_mapping.item_id != item.id:
             raise InvalidOperation(code="supplier_item_number_conflicts_with_item")
     quantity = positive(raw.get("quantity", 0))
-    # Absent means the form stated none (0, as ever). An explicit null is kept
-    # only when it is carried over from a source line that stated no price
-    # (spec 314); a person entering a line states a price, 0 for a free one.
+    # Absence is unknown, never a stated free price (spec 379). Direct explicit
+    # null keeps its existing refusal; source-carried null remains admissible.
     if "unit_price" in raw and raw["unit_price"] is None:
         if not _carry_unstated_price:
             raise InvalidOperation(
@@ -10257,7 +10287,10 @@ def _normalize_manual_line_input(
             )
         unit_price = None
     else:
-        unit_price = decimal(raw.get("unit_price", 0))
+        from reality.domain.intake_completeness import is_unstated
+
+        stated_price = raw.get("unit_price")
+        unit_price = None if is_unstated(stated_price) else decimal(stated_price)
     raw_total = raw.get("gross_amount")
     if (
         raw_total is None or str(raw_total).strip() == ""

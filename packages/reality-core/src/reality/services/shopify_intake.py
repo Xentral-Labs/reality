@@ -32,6 +32,7 @@ def prepare_order(
     from reality.services.intake import _reference
 
     payload = json.loads(source.payload)
+    currency = core._required_source_field(payload.get("currency"), "currency")
     if not 1 <= len(payload.get("line_items", [])) <= 500:
         raise core.InvalidOperation(code="intake_package_too_large")
     mapping = json.loads(job.input)
@@ -121,7 +122,7 @@ def prepare_order(
                         "quantity": quantity,
                         "due_at": promised_at or None,
                         "amount": amount,
-                        "currency": payload.get("currency", "EUR"),
+                        "currency": currency,
                         "line_index": index,
                     },
                 )
@@ -132,7 +133,7 @@ def prepare_order(
         "party_id": customer_id,
         "lines": lines,
         "gross_amount": str(core.decimal(payload["total_price"])),
-        "currency": payload.get("currency", "EUR"),
+        "currency": currency,
         "document_date": core._source_document_day(
             session, tenant_id, payload.get("created_at")
         ),
@@ -148,6 +149,9 @@ def prepare_order(
         _carry_unstated_price=True,
         _carry_unstated_amount=True,
     )
+    from reality.domain.intake_completeness import order_issues
+
+    issues.extend(order_issues(document, lines))
     document["_source_line_payloads"] = payload["line_items"]
     observations = []
     holds = []
