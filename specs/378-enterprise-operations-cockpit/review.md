@@ -320,3 +320,12 @@ history); both regressions pass after fixture-only corrections, retaining the
 55-query budget and explicit no-causal-response/provider-outcome guarantee.
 The final-head complete CI result is the remaining PR readiness gate; the PR
 records that evidence without representing the separate pilot soak as complete.
+
+The complete browser matrix exposed a stale Storyline assertion that expected
+Inbox and Chat to be the first two navigation links. FR-039 requires the persistent
+Control Tower destination before them. The regression now asserts all three links
+in order while preserving the existing Chat navigation and selected-page checks.
+This updates the integration fixture to the approved navigation requirement and
+changes no product behavior. The repaired full Storyline browser script passes
+locally, as do formatting, spec policy and whitespace checks. The final-head
+matrix remains the readiness gate.
