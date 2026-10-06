@@ -361,3 +361,19 @@ policy and whitespace checks pass; canonical documentation regeneration introduc
 no generated-file change. The corrected full enterprise profile is still running
 against isolated PostgreSQL; its unchanged limits and the final-head complete CI
 remain required before marking the PR ready.
+
+The corrected local full workload reaches its real observations and exposes a
+performance failure (cold 12.988 s, ten-reader p95 19.231 s, committed-change
+13.613 s). Source/action totals are correct; no threshold is relaxed. The bounded
+register currently joins large shared original action input/output for each case.
+SC-004/T036/T071 plan a snapshot-only equivalent projection, exact scalar parity
+and a meaningful large shared-action regression before implementation. Constitution
+Check PASS; no schema, business rule, mutation authority or persisted cache change.
+
+The shared large-action regression first fails specifically on opaque invocation
+input transfer, then passes with the equivalent projection. All 32 affected
+case/flow/snapshot tests pass, including original per-case proposed-review
+obsolescence, executing totals, privacy/limit boundaries and the unchanged
+55-query budget. Stored original invocation input remains lossless and available.
+Canonical documentation generation has no output change; lint/spec/whitespace
+checks pass. Full enterprise latency and final-head complete CI remain pending.

@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 
+from sqlalchemy import case as sql_case
 from sqlalchemy import cast, func, inspect, or_, select
 from sqlalchemy.orm import Session, load_only
 
@@ -795,13 +796,8 @@ def _explanation_inputs(session: Session, tenant_id: str, page: list[str]):
         .subquery()
     )
     links = {identity: [] for identity in page}
-    for link, action in session.execute(
-        select(CaseProposalLink, ChangeProposal)
-        .join(
-            ChangeProposal,
-            (ChangeProposal.tenant_id == tenant_id)
-            & (ChangeProposal.id == CaseProposalLink.proposal_id),
-        )
+    for link in session.scalars(
+        select(CaseProposalLink)
         .join(
             ranked,
             (ranked.c.case_id == CaseProposalLink.case_id)
@@ -811,7 +807,6 @@ def _explanation_inputs(session: Session, tenant_id: str, page: list[str]):
         .order_by(CaseProposalLink.case_id, ranked.c.position)
     ):
         links[link.case_id].append(link)
-        records[(ChangeProposal, action.id)] = action
     executing = (
         select(
             CaseProposalLink.case_id,
@@ -863,9 +858,51 @@ def _explanation_inputs(session: Session, tenant_id: str, page: list[str]):
         )
     }
     decision_ids = {row.action_id for row in controls.values() if row.action_id}
-    decisions = hold(
-        ChangeProposal, ChangeProposal.id.in_(decision_ids), _empty=not decision_ids
-    )
+    action_ids = decision_ids | {
+        link.proposal_id for values in links.values() for link in values
+    }
+    action_previews = {}
+    action_results = {}
+    for action, preview, has_result in (
+        session.execute(
+            select(
+                ChangeProposal,
+                sql_case(
+                    (ChangeProposal.status == "proposed", ChangeProposal.output),
+                    else_=None,
+                ).label("original_review_output"),
+                sql_case(
+                    (ChangeProposal.output.collate("C").in_(("", "{}")), False),
+                    else_=True,
+                ).label("recorded_result_available"),
+            )
+            .where(
+                ChangeProposal.tenant_id == tenant_id, ChangeProposal.id.in_(action_ids)
+            )
+            .options(
+                load_only(
+                    ChangeProposal.tenant_id,
+                    ChangeProposal.id,
+                    ChangeProposal.type,
+                    ChangeProposal.status,
+                    ChangeProposal.actor_type,
+                    ChangeProposal.created_at,
+                    ChangeProposal.decided_at,
+                    ChangeProposal.decided_by_user_id,
+                )
+            )
+        )
+        if action_ids
+        else []
+    ):
+        records[(ChangeProposal, action.id)] = action
+        action_previews[action.id] = preview
+        action_results[action.id] = has_result
+    decisions = [
+        records[(ChangeProposal, identity)]
+        for identity in decision_ids
+        if (ChangeProposal, identity) in records
+    ]
     actors = {
         row.id: row
         for row in session.scalars(
@@ -903,6 +940,9 @@ def _explanation_inputs(session: Session, tenant_id: str, page: list[str]):
         "source_gaps": source_gaps,
         "related": related,
         "links": links,
+        "action_previews": action_previews,
+        "parsed_action_previews": {},
+        "action_results": action_results,
         "unsettled": unsettled,
         "totals": totals,
         "controls": controls,
@@ -1068,7 +1108,14 @@ def explain(
             if link.bound_control_revision != case.control_revision:
                 reason = "control_revision_changed"
             else:
-                preview = json.loads(action.output)
+                if inputs:
+                    if action.id not in inputs["parsed_action_previews"]:
+                        inputs["parsed_action_previews"][action.id] = json.loads(
+                            inputs["action_previews"][action.id]
+                        )
+                    preview = inputs["parsed_action_previews"][action.id]
+                else:
+                    preview = json.loads(action.output)
                 frozen = (
                     preview.get("_case_business_review", {}).get(case.id)
                     if isinstance(preview, dict)
@@ -1098,7 +1145,11 @@ def explain(
                 if action.decided_at
                 else None,
                 "recorded_result_available": action.status != "proposed"
-                and action.output not in {"", "{}"},
+                and (
+                    inputs["action_results"][action.id]
+                    if inputs
+                    else action.output not in {"", "{}"}
+                ),
                 "external_outcome": "not_established_by_execution_status",
             }
         )
