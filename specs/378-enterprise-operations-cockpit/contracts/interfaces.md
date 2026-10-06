@@ -91,3 +91,15 @@ Initial loading, known empty, unavailable feature/input, partial coverage, stale
 ### Essential planning source disclosure
 
 `basis.planning_source_record_ids` retains every exact daily-plan and capacity-confirmation Source identity. The bounded `basis.sources` metadata preview selects those identities across all sites before sampling order sources. Source metadata remains capped at fifty entries globally, full source/work counts remain disclosed, and the fingerprint is still calculated from the complete original basis. All planning IDs remain available even when essential metadata itself exceeds the preview bound. This is observation/provenance data, not stored authority or permission.
+
+Company-wide `flows` are returned by the existing activity observation, alongside
+recorded activity, with their own observation timestamp. The shipping overview
+retains shipping/case/deviation evidence. Day/site changes never restart company
+flow reads. These independent authorized snapshots retain exactly the existing
+four read lifecycles; do not claim atomicity between them.
+
+Shipping returns `series_resolution_seconds` per series: zero for exact event
+points, 300 for exact full-cohort cumulative five-minute boundaries on dense
+curves. Dense series include opening/terminal counts and retain complete basis
+fingerprints and supporting-order evidence. The UI explicitly discloses the
+aggregation; an interval count never asserts a new physical event timestamp.

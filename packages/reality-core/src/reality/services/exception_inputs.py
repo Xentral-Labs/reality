@@ -39,20 +39,49 @@ class _ExceptionInputs:
     Each input is read at most once per evaluation and never retained beyond it.
     """
 
-    def __init__(self, session: Session, tenant_id: str) -> None:
+    def __init__(
+        self, session: Session, tenant_id: str, *, open_commitments_only: bool = False
+    ) -> None:
         self.session = session
         self.tenant_id = tenant_id
+        self.open_commitments_only = open_commitments_only
         # Reads several classes share within one evaluation (the open items register,
         # for one); like every input here it lives no longer than the scope.
         self.cache: dict[Any, Any] = {}
 
     @cached_property
     def terms(self) -> dict[str, tuple[datetime | None, Decimal, int]]:
-        revisions: dict[str, list[CommitmentRevision]] = defaultdict(list)
-        for revision in self.session.scalars(
-            select(CommitmentRevision)
-            .where(CommitmentRevision.tenant_id == self.tenant_id)
-            .order_by(CommitmentRevision.stated_at, CommitmentRevision.id)
+        narrow = bool(self.session.info.get("operations_snapshot_consistent"))
+        cohort = select(Commitment.id).where(Commitment.tenant_id == self.tenant_id)
+        if self.open_commitments_only:
+            cohort = cohort.where(Commitment.status == "open")
+        revisions: dict[str, list] = defaultdict(list)
+        revision_query = select(
+            *(
+                CommitmentRevision.commitment_id,
+                CommitmentRevision.due_at,
+                CommitmentRevision.quantity,
+            )
+            if narrow
+            else (CommitmentRevision,)
+        ).where(CommitmentRevision.tenant_id == self.tenant_id)
+        query = select(
+            *(Commitment.id, Commitment.due_at, Commitment.quantity)
+            if narrow
+            else (Commitment,)
+        ).where(Commitment.tenant_id == self.tenant_id)
+        if self.open_commitments_only:
+            revision_query = revision_query.where(
+                CommitmentRevision.commitment_id.in_(cohort)
+            )
+            query = query.where(Commitment.status == "open")
+        revision_query = revision_query.order_by(
+            CommitmentRevision.stated_at, CommitmentRevision.id
+        )
+        for revision in (
+            self.session.execute(revision_query)
+            if narrow
+            else self.session.scalars(revision_query)
         ):
             revisions[revision.commitment_id].append(revision)
         return {
@@ -63,14 +92,18 @@ class _ExceptionInputs:
                 ),
                 len(revisions[row.id]),
             )
-            for row in self.session.scalars(
-                select(Commitment).where(Commitment.tenant_id == self.tenant_id)
+            for row in (
+                self.session.execute(query) if narrow else self.session.scalars(query)
             )
         }
 
     @cached_property
     def movements(self) -> dict[tuple[str | None, str], Decimal]:
-        return _movement_quantities(self.session, self.tenant_id)
+        return _movement_quantities(
+            self.session,
+            self.tenant_id,
+            commitment_ids=set(self.terms) if self.open_commitments_only else None,
+        )
 
     @cached_property
     def last_movements(self) -> dict[tuple[str | None, str], datetime]:
@@ -190,9 +223,15 @@ def _inputs(session: Session, tenant_id: str) -> _ExceptionInputs | None:
 
 
 @contextmanager
-def _exception_input_scope(session: Session, tenant_id: str) -> Iterator[None]:
+def _exception_input_scope(
+    session: Session, tenant_id: str, *, open_commitments_only: bool = False
+) -> Iterator[None]:
     """Never retain input facts beyond this evaluation, including on failure."""
-    token = _current.set(_ExceptionInputs(session, tenant_id))
+    token = _current.set(
+        _ExceptionInputs(
+            session, tenant_id, open_commitments_only=open_commitments_only
+        )
+    )
     try:
         yield
     finally:

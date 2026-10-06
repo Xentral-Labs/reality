@@ -153,6 +153,52 @@ def fulfillment_expressions():
     return reserved, fulfilled, open_quantity
 
 
+def _fulfillment_cohort(tenant_id: str):
+    """Project complete original delivery inputs with canonical effective terms.
+
+    BUSINESS PURPOSE:
+    Keep full company delivery totals without materializing historical ORM objects.
+
+    BUSINESS RULE services.delivery_reads.fulfillment_cohort.shared:
+    Reuse latest explicit revisions and the canonical correction-aware movement
+    aggregate. Cancellation is excluded, and fulfillment selects shipment for
+    customer promises and receipt for supplier promises, as in commitment_terms.
+    """
+    from reality.services.core import _movement_quantity_query
+
+    net = _movement_quantity_query(tenant_id).subquery()
+    fulfilled = func.coalesce(net.c.quantity, 0)
+    remaining = func.greatest(effective_value("quantity") - fulfilled, 0)
+    # reality-rule: services.delivery_reads.fulfillment_cohort.shared
+    return (
+        select(
+            Commitment.id,
+            Commitment.type,
+            Commitment.document_id,
+            Commitment.created_at,
+            effective_value("due_at").label("due_at"),
+            fulfilled.label("fulfilled"),
+            remaining.label("open"),
+        )
+        .outerjoin(
+            net,
+            (net.c.commitment_id == Commitment.id)
+            & (
+                net.c.type
+                == case(
+                    (Commitment.type == "customer_delivery", "shipment"),
+                    else_="receipt",
+                )
+            ),
+        )
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.status != "cancelled",
+            Commitment.type.in_(["customer_delivery", "supplier_delivery"]),
+        )
+    )
+
+
 def _query(tenant_id: str, commitment_type: str = "customer_delivery"):
     party_id = (
         Commitment.from_party_id

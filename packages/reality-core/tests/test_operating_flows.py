@@ -2,16 +2,32 @@
 
 from datetime import timedelta
 
+import pytest
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, SourceRecord, now
 from reality.services import core
 
 
+@pytest.fixture(autouse=True, params=[False, True])
+def snapshot_mode(session, request):
+    session.info["operating_flows_test_snapshot"] = request.param
+
+
 def observe(session, business, at):
     from reality.services.operating_flows import observe
 
-    return observe(session, business.tenant.id, observed_at=at)
+    session.flush()
+    previous = session.info.get("operations_snapshot_consistent")
+    if session.info.get("operating_flows_test_snapshot"):
+        session.info["operations_snapshot_consistent"] = True
+    try:
+        return observe(session, business.tenant.id, observed_at=at)
+    finally:
+        if previous is None:
+            session.info.pop("operations_snapshot_consistent", None)
+        else:
+            session.info["operations_snapshot_consistent"] = previous
 
 
 def source(session, business, system, kind, key, payload, at):
@@ -284,7 +300,7 @@ def test_mail_future_evidence_and_company_creation_are_explicit_gaps(session, bu
     assert value["messages"]["series"][-1]["unanswered"] == 1
 
 
-def test_expanded_overview_shares_authorized_read_and_never_adopts_work(
+def test_company_activity_flows_share_authorized_read_and_never_adopt_work(
     session, business, scheduled_owner, monkeypatch
 ):
     # BUSINESS PURPOSE: Web/CLI/MCP use one authorized observation, including its complete operating flows.
@@ -310,7 +326,11 @@ def test_expanded_overview_shares_authorized_read_and_never_adopts_work(
     value = operations_cockpit.operations_cockpit(
         session, business.tenant.id, Principal(scheduled_owner.id)
     )
-    assert value["flows"]["orders"]["open_orders"] == 0
+    activity = operations_cockpit.activity(
+        session, business.tenant.id, Principal(scheduled_owner.id)
+    )
+    assert activity["flows"]["orders"]["open_orders"] == 0
+    assert "flows" not in value
     assert value["supported_cases"]["adopted"] is True
     assert value["supported_cases"][
         "coordination"
@@ -350,3 +370,65 @@ def test_supplier_totals_are_complete_beyond_the_evidence_preview(session, busin
     assert value["supply"]["open_lines"] == 7
     assert len(value["supply"]["evidence"]) == 4
     assert value["supply"]["signal"] == "progress"
+
+
+def test_snapshot_flows_keep_complete_totals_without_historical_orm_materialization(
+    session, business
+):
+    # BUSINESS PURPOSE: Live company totals must retain history without loading entire historical promise objects.
+    # BUSINESS RULE: Clean snapshots preserve exact canonical scalar results and leave original callers unchanged.
+    from sqlalchemy import event
+    from sqlalchemy.orm import Session
+
+    from reality.db.core import Commitment
+
+    at = now()
+    tenant = business.tenant.id
+    core.record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+        occurred_at=at - timedelta(days=2),
+    )
+    for i in range(20):
+        promise = core.create_commitment(
+            session,
+            tenant,
+            "customer_delivery",
+            business.company.id,
+            business.customer.id,
+            business.item.id,
+            business.location.id,
+            "1",
+            None,
+        )
+        core.record_movement(
+            session,
+            tenant,
+            "shipment",
+            business.item.id,
+            "1",
+            from_location_id=business.location.id,
+            commitment_id=promise.id,
+            occurred_at=at - timedelta(days=1),
+        )
+    session.flush()
+    session.info.pop("operations_snapshot_consistent", None)
+    session.info["operating_flows_test_snapshot"] = False
+    expected = observe(session, business, at)
+    loaded = []
+
+    def retained(reader, row):
+        if isinstance(row, Commitment):
+            loaded.append(row.id)
+
+    with Session(session.connection(), autoflush=False) as reader:
+        reader.info["operations_snapshot_consistent"] = True
+        event.listen(reader, "loaded_as_persistent", retained)
+        actual = observe(reader, business, at)
+    assert actual == expected
+    assert actual["orders"]["open_orders"] == 0
+    assert loaded == []

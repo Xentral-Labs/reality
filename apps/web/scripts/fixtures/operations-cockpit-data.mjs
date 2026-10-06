@@ -45,6 +45,7 @@ export const shipping = {
   excluded: [],
   opening_baseline: { handover: 0, plan: 0 },
   forecast_horizon: "future",
+  series_resolution_seconds: { plan: 0, handover: 0, forecast: 300 },
   series: {
     plan: [
       { at: at("12:00"), count: 1 },

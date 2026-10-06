@@ -111,6 +111,11 @@ export function ShippingDayPanel({
               </button>
             ))}
           </div>
+          {Object.values(value.series_resolution_seconds || {}).some((seconds) => seconds > 0) && (
+            <p className="cockpit-note" data-shipping-resolution>
+              {t("Five-minute chart intervals · every order included")}
+            </p>
+          )}
           <svg
             className="cockpit-chart"
             viewBox="0 0 960 295"

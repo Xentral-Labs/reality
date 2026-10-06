@@ -377,3 +377,59 @@ obsolescence, executing totals, privacy/limit boundaries and the unchanged
 55-query budget. Stored original invocation input remains lossless and available.
 Canonical documentation generation has no output change; lint/spec/whitespace
 checks pass. Full enterprise latency and final-head complete CI remain pending.
+
+The late-day local workload reproduces a fixture-time failure before latency
+measurement: its fourteen-minute canonical setup consumes more than the spare
+capacity in the remaining same-day window (9,932 forecast instead of 10,000).
+The shipping reader already accepts an explicit business observation instant.
+Pin that instant to fixture capture only in this profile; retain real monotonic
+latency, real concurrent PostgreSQL writes, all volumes and all limits. This
+restores a reproducible business scenario independently of runner time, without
+changing forecast rules or product behavior. Spec impact: none. Constitution
+Check PASS; the observed failing scenario supplies the regression evidence.
+
+The measured profile attributes the remaining read cost to historical ORM
+materialization in operating flows and exception inputs. Refine only clean
+cockpit snapshots: use the canonical delivery SQL expressions for complete
+open/supplier-received cohorts, and scope the commitment exception inputs to
+the exact open promises that its derivator evaluates. Other exception classes
+retain separate original scopes, and ordinary callers retain ORM semantics.
+Test scalar/snapshot full DTO parity and absence of historical promise ORM
+materialization first; then rerun unchanged enterprise and full CI gates.
+Spec impact: none; equivalent read projections only. Constitution Check PASS.
+No new rule, schema, retained cache, case family or mutation authority.
+
+Measured shipping/site reads currently repeat independent company-wide flows.
+Place those flows in the existing authorized activity snapshot instead, and lift
+its existing UI lifecycle to the page to serve status, flow and activity panels.
+Retain four read lifecycles, current timestamps, stale/access isolation, filter
+separation and stable child investigation state. No timer/endpoint/schema/rule or
+cache is added. FR-033/contracts now explicitly define the observation boundary.
+Test activity flow authority/absence from shipping first, then fixture/all-day
+UI and unchanged four-read enterprise cadence. Constitution PASS; no unresolved
+clarification or critical review conflict.
+
+The full forecast currently transports one point per completion slot (10,000 in
+the declared profile). FR-023 now makes the bounded daily curve explicit: keep
+small exact-event series; aggregate dense series into exact cumulative counts
+at five-minute boundaries, including endpoints, and disclose resolution. Count
+every source-backed order before projection; retain full fingerprint and exact
+supporting-order/evidence readers. This is chart aggregation, not cohort sampling
+or invented handover times. Test independent dense-series counts, duplicate
+times/opening/end/out-of-window behavior before implementation. Constitution
+PASS; no business rule/schema/authority/cache change or unresolved clarification.
+
+The full targeted quantity/exception/case/flow selection passes 305 tests. Its
+source-inspection assertion ran while source offsets changed and failed on stale
+loaded code; the unchanged test passes in a fresh process. The final 24
+activity/flow/snapshot tests pass. All 44 shipping/curve tests pass, including
+independent dense cumulative counts. The complete cockpit browser proof and
+production web build pass, including explicit independent stale states and
+localized curve-resolution disclosure. Lint/spec/annotations and generated
+references pass. No performance limit was raised. Held-fixture diagnostics
+reduce response size from 373,336 to 109,565 bytes and ten-reader p95 from
+4.442 to 3.742 s on the concurrently loaded local stack; these are diagnostics,
+not a fresh accepted enterprise run. Final-head full CI, controlled session and
+unchanged enterprise timing remain required before readiness. Final exact-head
+results will be recorded in the PR body; real-time soak/UI aggregate pilot gates
+remain separate.

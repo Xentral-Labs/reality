@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { cockpitApi } from "../api";
 import {
   formatZonedDateTime as formatDateTime,
   formatNumber,
   formatTime,
   t,
 } from "../localization";
-import { useCockpitLiveRead } from "./useCockpitLiveRead";
-import type { CockpitActivityEvent } from "./cockpitModel";
+import type { LiveReadState } from "./cockpitLiveRead";
+import type { CockpitActivity, CockpitActivityEvent } from "./cockpitModel";
 import {
   cockpitOriginSelection,
   navigationSelection,
@@ -20,14 +19,13 @@ import { eventTitle } from "./ActivityDrawer";
 export function OperationsActivityPanel({
   selection,
   navigate,
+  state,
 }: {
   selection: Selection;
+  state: LiveReadState<CockpitActivity>;
   navigate: (changes: Partial<Selection>) => void;
 }) {
   const minutes = selection.cockpitMinutes || 15;
-  const state = useCockpitLiveRead(`${selection.tenant}:activity:${minutes}`, (signal) =>
-    cockpitApi.activity(selection.tenant, minutes, signal),
-  );
   const value = state.data;
   useEffect(() => {
     if (state.status === "denied") {

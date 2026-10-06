@@ -795,7 +795,11 @@ def emit_business_event(
     # No raw-source notification becomes an operational goal.
     from reality.services.case_policies import reconcile_event
 
-    if event_type in {"commitment.revised", "movement.corrected", "document_line.item_assigned"}:
+    if event_type in {
+        "commitment.revised",
+        "movement.corrected",
+        "document_line.item_assigned",
+    }:
         session.flush()
         reconcile_event(session, tenant_id, event)
     return event
@@ -4035,6 +4039,51 @@ def _id_cohort(column: Any, identities: Iterable[str | None]) -> ColumnElement[b
     return column.in_(select(func.unnest(cast(value, ARRAY(String)))))
 
 
+def _movement_quantity_query(
+    tenant_id: str,
+    *,
+    commitment_id: str | None = None,
+    commitment_ids: Iterable[str] | None = None,
+):
+    """Return canonical correction-aware movement groups for a company.
+
+    BUSINESS PURPOSE:
+    Share exact net physical quantities between batch maps and SQL observations.
+
+    BUSINESS RULE core.movement_quantity_query.net:
+    Sum recorded quantities and subtract each same-company corrected original
+    in its original promise/type group; replacement movements count ordinarily.
+    """
+    from sqlalchemy import union_all
+
+    # reality-rule: core.movement_quantity_query.net
+    recorded = select(Movement.commitment_id, Movement.type, Movement.quantity).where(
+        Movement.tenant_id == tenant_id
+    )
+    corrected = (
+        select(Movement.commitment_id, Movement.type, -Movement.quantity)
+        .join(
+            MovementCorrection, MovementCorrection.original_movement_id == Movement.id
+        )
+        .where(
+            Movement.tenant_id == tenant_id, MovementCorrection.tenant_id == tenant_id
+        )
+    )
+    if commitment_id is not None:
+        recorded = recorded.where(Movement.commitment_id == commitment_id)
+        corrected = corrected.where(Movement.commitment_id == commitment_id)
+    if commitment_ids is not None:
+        cohort = set(commitment_ids)
+        recorded = recorded.where(_id_cohort(Movement.commitment_id, cohort))
+        corrected = corrected.where(_id_cohort(Movement.commitment_id, cohort))
+    signed = union_all(recorded, corrected).subquery()
+    return select(
+        signed.c.commitment_id,
+        signed.c.type,
+        func.sum(signed.c.quantity).label("quantity"),
+    ).group_by(signed.c.commitment_id, signed.c.type)
+
+
 def _movement_quantities(
     session: OrmSession,
     tenant_id: str,
@@ -4057,43 +4106,21 @@ def _movement_quantities(
     BUSINESS RULE core._movement_quantities.3:
     Subtract each corrected original quantity from its recorded group; replacement movements count through the ordinary recorded sum.
     """
+    selected_ids = None if commitment_ids is None else set(commitment_ids)
+    if selected_ids is not None and not selected_ids:
+        return {}
     # reality-rule: core._movement_quantities.1
-    recorded = (
-        select(Movement.commitment_id, Movement.type, func.sum(Movement.quantity))
-        .where(Movement.tenant_id == tenant_id)
-        .group_by(Movement.commitment_id, Movement.type)
+    net = _movement_quantity_query(
+        tenant_id, commitment_id=commitment_id, commitment_ids=selected_ids
     )
     # reality-rule: core._movement_quantities.2
-    reversed_values = (
-        select(Movement.commitment_id, Movement.type, func.sum(Movement.quantity))
-        .select_from(MovementCorrection)
-        .join(Movement, Movement.id == MovementCorrection.original_movement_id)
-        .where(
-            MovementCorrection.tenant_id == tenant_id,
-            Movement.tenant_id == tenant_id,
-        )
-        .group_by(Movement.commitment_id, Movement.type)
-    )
-    if commitment_id is not None:
-        recorded = recorded.where(Movement.commitment_id == commitment_id)
-        reversed_values = reversed_values.where(Movement.commitment_id == commitment_id)
-    if commitment_ids is not None:
-        selected_ids = set(commitment_ids)
-        if not selected_ids:
-            return {}
-        recorded = recorded.where(_id_cohort(Movement.commitment_id, selected_ids))
-        reversed_values = reversed_values.where(
-            _id_cohort(Movement.commitment_id, selected_ids)
-        )
-    quantities = {
-        (identity, kind): decimal(value)
-        for identity, kind, value in session.execute(recorded)
-    }
+    groups = net.subquery()
+    query = select(groups.c.commitment_id, groups.c.type, groups.c.quantity)
     # reality-rule: core._movement_quantities.3
-    for identity, kind, value in session.execute(reversed_values):
-        key = (identity, kind)
-        quantities[key] = quantities.get(key, ZERO) - decimal(value)
-    return quantities
+    return {
+        (identity, kind): decimal(value)
+        for identity, kind, value in session.execute(query)
+    }
 
 
 def fulfilled_quantity(

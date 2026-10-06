@@ -238,3 +238,31 @@ def test_cockpit_deviation_preserves_causal_blockers_without_inventing_a_respons
         row["external_outcome"] == "not_established_by_execution_status"
         for row in deviation["recorded_case_actions"]
     )
+
+
+def test_dense_shipping_series_aggregate_every_order_at_exact_boundaries():
+    # BUSINESS PURPOSE: An enterprise forecast must remain readable without losing source-backed order counts.
+    # BUSINESS RULE: Dense curves contain complete cumulative counts at bounded disclosed boundaries, including opening and terminal values.
+    from datetime import UTC, datetime, timedelta
+
+    from reality.services.shipping_performance import _series
+
+    start = datetime(2026, 10, 6, tzinfo=UTC)
+    end = start + timedelta(hours=25)
+    times = {str(i): start + timedelta(seconds=i * 70) for i in range(1400)}
+    times["earlier"] = start - timedelta(seconds=1)
+    times["duplicate"] = times["17"]
+    times["terminal"] = end
+    points = _series(times, start, end)
+    assert len(points) <= 302
+    assert points[0]["at"] == start.isoformat()
+    assert points[-1]["at"] == end.isoformat()
+    for index, point in enumerate(points):
+        instant = datetime.fromisoformat(point["at"])
+        expected = (
+            sum(value < start for value in times.values())
+            if index == 0
+            else sum(value <= instant for value in times.values())
+        )
+        assert point["count"] == expected
+    assert points[-1]["count"] == sum(value <= end for value in times.values())

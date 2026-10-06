@@ -265,8 +265,31 @@ await page.route("**/api/**", (route) => {
   }
   if (url.pathname.endsWith("/operational-cases/case_d")) return reply(caseRow());
   if (url.pathname.endsWith("/capabilities")) return reply({ enabled: true });
-  if (url.pathname.endsWith("/activity"))
+  if (url.pathname.endsWith("/activity")) {
+    if (failure) return reply({ detail: "Temporarily unavailable" }, 503);
     return reply({
+      flows: absentFlows
+        ? undefined
+        : summaryVariants
+          ? {
+              ...flows,
+              orders: { ...flows.orders, signal: "attention" },
+              returns: { ...flows.returns, signal: "clear" },
+            }
+          : missing
+            ? {
+                ...flows,
+                messages: {
+                  ...flows.messages,
+                  signal: "unknown",
+                  coverage: "unavailable",
+                  unanswered: null,
+                  customer_requests: null,
+                  unread: null,
+                  series: flows.messages.series.map((point) => ({ ...point, unanswered: null })),
+                },
+              }
+            : flows,
       observed_at: at("12:30"),
       start: at("12:15"),
       coverage_start: at("12:15"),
@@ -297,6 +320,7 @@ await page.route("**/api/**", (route) => {
       ],
       has_more: false,
     });
+  }
   if (url.pathname.endsWith("/agents"))
     if (staleAccess) return reply({ detail: "Temporarily unavailable" }, 503);
     else
@@ -372,28 +396,6 @@ await page.route("**/api/**", (route) => {
     if (failure) return reply({ detail: "Temporarily unavailable" }, 503);
     return reply({
       observed_at: shipping.observed_at,
-      flows: absentFlows
-        ? undefined
-        : summaryVariants
-          ? {
-              ...flows,
-              orders: { ...flows.orders, signal: "attention" },
-              returns: { ...flows.returns, signal: "clear" },
-            }
-          : missing
-            ? {
-                ...flows,
-                messages: {
-                  ...flows.messages,
-                  signal: "unknown",
-                  coverage: "unavailable",
-                  unanswered: null,
-                  customer_requests: null,
-                  unread: null,
-                  series: flows.messages.series.map((point) => ({ ...point, unanswered: null })),
-                },
-              }
-            : flows,
       deviations: denseEvidence
         ? Array.from({ length: 8 }, (_, index) => ({
             order_id: `order_dense_${index}`,
@@ -804,8 +806,13 @@ try {
   await page.setViewportSize({ width: 1440, height: 1050 });
   failure = true;
   await page
+    .locator(".cockpit-status")
     .getByText("Previous observation — refresh failed", { exact: true })
     .waitFor({ timeout: 15000 });
+  await page
+    .getByLabel("Recorded business activity")
+    .getByText("Previous observation — refresh failed", { exact: true })
+    .waitFor();
   assert.equal(
     await page.locator("[data-shipping-series]").count(),
     3,

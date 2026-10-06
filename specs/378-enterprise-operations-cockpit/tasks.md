@@ -202,3 +202,7 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T070 [SC-006] Run integrated backend/frontend/browser/documentation gates, review the final diff and record actual results and open pre-pilot gates before preparing the PR. No merge or production enablement is included.
 
 - [ ] T071 [SC-004] Restore enterprise snapshot read performance with bounded deduplicated action metadata and exact original proposed-review inputs; first reproduce large shared-action transfer, preserve scalar parity, the 55-query budget and source/control/authority boundaries, then run the unchanged full enterprise and final CI gates.
+
+- [ ] T072 [FR-033/SC-004] Separate independent company flow observations into the existing activity snapshot/lifecycle; verify exact authority, stale/filter/isolation semantics and complete four-read enterprise cadence.
+
+- [ ] T073 [FR-023/SC-004] Bound dense daily shipping series with disclosed exact cumulative five-minute aggregation; verify full counts, exact source/supporting trace, endpoints and enterprise/browser gates.
