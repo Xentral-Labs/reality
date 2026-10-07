@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 
 import pytest
+from sqlalchemy import select
+
 from reality.db.core import ChangeProposal, now, uid
 from reality.db.operational_cases import OperationalCase
 from reality.services import core
@@ -11,7 +13,6 @@ from reality.services import operational_cases as cases
 from reality.services.case_action_guards import automated_execution, guard_operation
 from reality.services.intake import apply_prepared_intake, prepare_intake, review_intake
 from reality.services.memberships import Principal
-from sqlalchemy import select
 
 FIXTURE = Path(__file__).parent.parent / "fixtures/shopify/order_10473.json"
 
