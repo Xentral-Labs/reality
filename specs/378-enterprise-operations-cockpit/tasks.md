@@ -212,3 +212,7 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T075 [FR-033/SC-004] Remove the UI-unused duplicate register calculation from shipping snapshots; first prove independent complete register authority and absent duplicate work, preserve all four live readers and case-linked deviation evidence, then run the unchanged enterprise and full CI gates.
 
 - [ ] T076 [FR-046/SC-004] First reproduce full-cohort readable-readiness allocation, then use a versioned complete canonical-field fingerprint with bounded unchanged readable preview/order details. Prove full/scalar/supporting parity and complete canonical-field coverage; rerun unchanged enterprise latency and complete CI.
+
+- [ ] T077 [DR-005/SC-004] First reproduce current promise/physical ORM allocation, then project exact metadata and reuse canonical grouped net fulfillment in clean stock reads. Preserve independent unit/revision/correction/kit/tenant/source parity; rerun the unchanged full four-reader enterprise and complete CI gates.
+
+- [ ] T078 [FR-018/DR-005/SC-004] First reproduce redundant viewer queries; add a fresh joined canonical member read preserving all original checks/callers. Prove stale-cache and committed user/company/member/role revocations plus independent coalesced waiter authority; run unchanged enterprise/full CI.

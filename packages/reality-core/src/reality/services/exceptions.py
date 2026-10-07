@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import case, func, or_, select
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session, aliased, undefer
 
 from reality.db.core import (
@@ -459,7 +460,7 @@ def _quantity(
 
 
 def _promise_due_at(
-    session: Session, tenant_id: str, commitment: Commitment
+    session: Session, tenant_id: str, commitment: Commitment | Row[Any]
 ) -> tuple[datetime | None, int]:
     """The date a promise is due on now, and how many times that has moved.
 
@@ -479,7 +480,7 @@ def _promise_due_at(
 
 
 def _promise_quantity(
-    session: Session, tenant_id: str, commitment: Commitment
+    session: Session, tenant_id: str, commitment: Commitment | Row[Any]
 ) -> Decimal:
     """How much a promise is for now, through the one service-layer rule.
 
@@ -494,7 +495,7 @@ def _promise_quantity(
     return commitment_quantity(session, tenant_id, commitment.id)
 
 
-def _revision_values(commitment: Commitment, moves: int) -> dict[str, Any]:
+def _revision_values(commitment: Commitment | Row[Any], moves: int) -> dict[str, Any]:
     """What an entry adds when the promise has been moved, and nothing when not.
 
     Conditional on purpose: an entry for a promise nobody revised is identical
@@ -534,7 +535,7 @@ def _fulfilled_quantity(
 
 
 def _commitment_trace(
-    session: Session, tenant_id: str, row: Commitment
+    session: Session, tenant_id: str, row: Commitment | Row[Any]
 ) -> dict[str, Any]:
     inputs = _inputs(session, tenant_id)
     if inputs is not None and row.id in inputs.terms:
@@ -592,20 +593,27 @@ def _commitment_exceptions(
     result: list[OperationalException] = []
     inputs = _inputs(session, tenant_id)
     defer_trace = bool(inputs is not None and inputs.open_commitments_only)
-    trace_rows: dict[str, Commitment] = {}
+    trace_rows: dict[str, Commitment | Row[Any]] = {}
 
-    def trace(row: Commitment) -> dict[str, Any]:
+    def trace(row: Commitment | Row[Any]) -> dict[str, Any]:
         """Batch only actual snapshot findings; ordinary traces stay immediate."""
         if defer_trace:
             trace_rows[row.id] = row
             return {}
         return _commitment_trace(session, tenant_id, row)
 
-    rows = session.scalars(
-        select(Commitment).where(
-            Commitment.tenant_id == tenant_id, Commitment.status == "open"
+    query = select(
+        *(
+            Commitment.id,
+            Commitment.type,
+            Commitment.due_at,
+            Commitment.document_id,
+            Commitment.document_line_id,
         )
-    )
+        if defer_trace
+        else (Commitment,)
+    ).where(Commitment.tenant_id == tenant_id, Commitment.status == "open")
+    rows = session.execute(query) if defer_trace else session.scalars(query)
     from reality.services.drop_shipping import drop_ship_cover
 
     # Spec 337: what a supplier still ships straight to the customer is never
@@ -1012,7 +1020,7 @@ def _quantity_in_agreed_unit(
 def _in_promise_unit(
     session: Session,
     tenant_id: str,
-    commitment: Commitment,
+    commitment: Commitment | Row[Any],
     line: DocumentLine,
     quantity: Decimal | None,
 ) -> tuple[Decimal | None, str]:
@@ -1094,7 +1102,7 @@ def _read_order_line_promises(
 
 
 def _order_line_trace(
-    commitment: Commitment, line: DocumentLine, document: Document
+    commitment: Commitment | Row[Any], line: DocumentLine, document: Document
 ) -> dict[str, Any]:
     return {
         "document_line_id": line.id,
@@ -3058,7 +3066,7 @@ def _payment_authorization_expired_exceptions(
     return result
 
 
-def _lowered_at(session: Session, tenant_id: str, commitment: Commitment):
+def _lowered_at(session: Session, tenant_id: str, commitment: Commitment | Row[Any]):
     """When the quantity in force was last stated, else the promise's due date."""
     from reality.db.core import CommitmentRevision
 
@@ -3658,6 +3666,27 @@ def _item_oversold_exceptions(
     unit = func.coalesce(DocumentLine.unit, Item.unit)
 
     def open_promises(commitment_type: str, item_ids=None):
+        observed_fulfilled = fulfilled
+        net = None
+        if session.info.get("operations_snapshot_consistent"):
+            from reality.services.core import _movement_quantity_query
+
+            scope = select(Commitment.id).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.type == commitment_type,
+                Commitment.status == "open",
+            )
+            if item_ids is not None:
+                scope = scope.where(Commitment.item_id.in_(item_ids))
+            movement_type = (
+                "shipment" if commitment_type == "customer_delivery" else "receipt"
+            )
+            grouped = _movement_quantity_query(tenant_id)
+            net = grouped.where(
+                grouped.selected_columns.commitment_id.in_(scope),
+                grouped.selected_columns.type == movement_type,
+            ).subquery()
+            observed_fulfilled = func.coalesce(net.c.quantity, 0)
         query = (
             select(
                 Commitment.id,
@@ -3667,7 +3696,7 @@ def _item_oversold_exceptions(
                 Document.sales_channel,
                 unit.label("unit"),
                 promised.label("promised"),
-                fulfilled.label("fulfilled"),
+                observed_fulfilled.label("fulfilled"),
                 Commitment.unit.label("held_unit"),
                 DocumentLine.quantity.label("line_quantity"),
                 Item,
@@ -3695,6 +3724,8 @@ def _item_oversold_exceptions(
             )
             .order_by(Commitment.created_at, Commitment.id)
         )
+        if net is not None:
+            query = query.outerjoin(net, net.c.commitment_id == Commitment.id)
         if item_ids is not None:
             query = query.where(Commitment.item_id.in_(item_ids))
         return session.execute(query).all()

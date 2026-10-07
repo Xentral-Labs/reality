@@ -1295,3 +1295,61 @@ def test_shipping_fingerprint_contains_every_canonical_readiness_field(
             ).hexdigest()
             != snapshot["basis_key"]
         )
+
+
+@pytest.mark.parametrize("missing_package", [False, True])
+def test_snapshot_physical_projection_preserves_handover_without_orm_materialization(
+    session, business, planned_shipping, missing_package
+):
+    # BUSINESS PURPOSE: Complete handover evidence remains exact without retaining unused physical ORM state during live observation.
+    # BUSINESS RULE: Linked and unresolved package evidence retain scalar/snapshot parity, including quantities, timing, coverage, source IDs and full fingerprint.
+    from sqlalchemy import event
+    from sqlalchemy.orm import Session
+
+    from reality.db.core import Movement, Shipment, ShipmentPackage
+    from reality.services.shipping_performance import _read_shipping
+
+    shipment, package, _ = record_shipment_notice(
+        session,
+        business.tenant.id,
+        direction="outbound",
+        purpose="customer_delivery",
+        counterparty_id=business.customer.id,
+    )
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        str(planned_shipping.quantity),
+        from_location_id=business.location.id,
+        commitment_id=planned_shipping.id,
+        shipment_package_id=None if missing_package else package.id,
+        occurred_at=OBSERVED.replace(hour=12, minute=0),
+    )
+    record_shipment_event(
+        session,
+        business.tenant.id,
+        shipment.id,
+        event_type="handed_over",
+        reporter_type="carrier",
+        occurred_at=OBSERVED.replace(minute=10),
+    )
+    session.flush()
+    arguments = {"day": "2026-10-06", "observed_at": OBSERVED}
+    with Session(session.connection(), autoflush=False) as reader:
+        expected = _read_shipping(reader, business.tenant.id, **arguments)
+    loaded = []
+
+    def retained(reader, row):
+        if isinstance(row, (Movement, Shipment, ShipmentPackage)):
+            loaded.append((type(row).__name__, row.id))
+
+    with Session(session.connection(), autoflush=False) as reader:
+        reader.info["operations_snapshot_consistent"] = True
+        event.listen(reader, "loaded_as_persistent", retained)
+        actual = _read_shipping(reader, business.tenant.id, **arguments)
+    assert actual == expected
+    assert actual[0]["totals"]["due"] == 1
+    assert actual[0]["totals"]["handed_over"] == (0 if missing_package else 1)
+    assert loaded == []

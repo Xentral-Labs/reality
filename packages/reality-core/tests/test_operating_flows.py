@@ -447,7 +447,7 @@ def test_snapshot_current_risk_keeps_original_trace_without_historical_payloads(
     from sqlalchemy import event, inspect
     from sqlalchemy.orm import Session
 
-    from reality.db.core import Document, DocumentLine
+    from reality.db.core import Commitment, Document, DocumentLine
     from reality.services import exceptions
 
     tenant = business.tenant.id
@@ -520,7 +520,7 @@ def test_snapshot_current_risk_keeps_original_trace_without_historical_payloads(
                 reader, tenant, as_of=at, classes=classes
             )
         ]
-    loaded_history, source_payloads = [], []
+    loaded_history, source_payloads, loaded_promises = [], [], []
     query_count = 0
 
     def queried(connection, cursor, statement, parameters, context, many):
@@ -529,6 +529,8 @@ def test_snapshot_current_risk_keeps_original_trace_without_historical_payloads(
             query_count += 1
 
     def retained(reader, row):
+        if isinstance(row, Commitment):
+            loaded_promises.append(row.id)
         if isinstance(row, (Document, DocumentLine, SourceRecord)):
             if row.id in history:
                 loaded_history.append(row.id)
@@ -552,6 +554,7 @@ def test_snapshot_current_risk_keeps_original_trace_without_historical_payloads(
         source_id = finding["trace"]["source_record_id"]
         assert finding["trace"]["document_line_id"] == current_sources[source_id]
         assert finding["trace"]["customer_reference"] == "Recorded customer request"
+    assert loaded_promises == []
     assert loaded_history == []
     assert source_payloads == [False] * current_count
     assert query_count <= 25, query_count

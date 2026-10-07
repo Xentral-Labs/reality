@@ -6,11 +6,18 @@ per item, with the orders grouped by their stated sales channel.
 
 from decimal import Decimal
 
+import pytest
 from legacy_order_support import legacy_sales_order
 from sqlalchemy import event
+from sqlalchemy.orm import Session
 
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
+
+
+@pytest.fixture(autouse=True, params=[False, True])
+def snapshot_mode(session, request):
+    session.info["item_oversold_test_snapshot"] = request.param
 
 
 def _stock(session, business, quantity, item=None):
@@ -74,6 +81,22 @@ def _buy(session, business, number, quantity, *, unit="pcs"):
 
 
 def _oversold(session, tenant):
+    if session.info.get("item_oversold_test_snapshot"):
+        session.flush()
+        at = core.now()
+        expected = [
+            row.to_dict()
+            for row in operational_exceptions(
+                session, tenant, as_of=at, classes=["item_oversold"]
+            )
+        ]
+        with Session(session.connection(), autoflush=False) as reader:
+            reader.info["operations_snapshot_consistent"] = True
+            actual = operational_exceptions(
+                reader, tenant, as_of=at, classes=["item_oversold"]
+            )
+        assert [row.to_dict() for row in actual] == expected
+        return {row.record_id: row for row in actual}
     return {
         row.record_id: row
         for row in operational_exceptions(session, tenant)

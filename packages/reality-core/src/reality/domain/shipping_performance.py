@@ -4,7 +4,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from fractions import Fraction
 from itertools import pairwise
 from typing import Any, Literal, Self
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -315,7 +314,11 @@ def evaluate(
                 )
             ],
             key=lambda key: (
-                min(row.due_at for row in units[key] if row.handed_over_at is None),
+                units[key][0].due_at
+                if len(units[key]) == 1
+                else min(
+                    row.due_at for row in units[key] if row.handed_over_at is None
+                ),
                 key[1],
             ),
         )
@@ -347,10 +350,7 @@ def evaluate(
                     "Capacity must retain its original positive interval/cutoff."
                 )
             for slot in range(1, remaining + 1):
-                offset = Fraction(period * slot, window.slots)
-                micros = (
-                    offset.numerator + offset.denominator - 1
-                ) // offset.denominator
+                micros = (period * slot + window.slots - 1) // window.slots
                 instant = start + timedelta(microseconds=micros)
                 if instant > window.cutoff_at or not candidates:
                     break
@@ -359,7 +359,11 @@ def evaluate(
     def company_times(times: dict[tuple[str, str], datetime]) -> dict[str, datetime]:
         result = {}
         for order, keys in orders.items():
-            if all(key in times for key in keys):
+            if len(keys) == 1:
+                instant = times.get(keys[0])
+                if instant is not None:
+                    result[order] = instant
+            elif all(key in times for key in keys):
                 result[order] = max(times[key] for key in keys)
         return result
 

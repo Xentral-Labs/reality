@@ -190,3 +190,26 @@ def test_risk_retains_the_individual_earlier_deadline_in_a_split_site_order():
     )
     assert earlier["due_at"] == at("15:45")
     assert earlier["code"] == "after_deadline"
+
+
+def test_completion_slots_preserve_exact_ceiling_at_microsecond_boundaries():
+    # BUSINESS PURPOSE: Efficient forecasting must retain the original conservative completion timing at sub-microsecond fractions.
+    # BUSINESS RULE: Three confirmed slots across seven microseconds complete after three, five and seven microseconds; split-site completion remains quantity-complete.
+    from datetime import timedelta
+
+    beginning = at("14:30")
+    ending = beginning + timedelta(microseconds=7)
+    requirements = [
+        DispatchWork(str(i), str(i), "V", Decimal(1), at("15:00"), None, None, True)
+        for i in range(3)
+    ]
+    result = evaluate(
+        requirements,
+        [Capacity("V", beginning, ending, ending, 3, "confirmed")],
+        observed_at=beginning,
+    )
+    assert result["forecast_times"] == {
+        str(i): beginning + timedelta(microseconds=micros)
+        for i, micros in enumerate((3, 5, 7))
+    }
+    assert result["risk_order_ids"] == []
