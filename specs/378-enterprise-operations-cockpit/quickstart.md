@@ -775,3 +775,6 @@ cutoff and existing focus/control/live checks), 478 frontend contracts, four
 3058-key localization audits, production web build/image, formatting, spec policy
 and whitespace pass. Actual port 8080 tables and original proposal links are
 verified. Domain/services/DTOs remain unchanged; previous release gates stay open.
+
+
+FR-082 stacked monitoring: open Control Tower on port 8080. Right column shows Zuletzt passiert above Angemeldete Agenten together, without a selector. For controls, open Business cases in operation, then Cases & takeover; select a case or the manual register and use the unchanged exact confirmation/review. A cockpit_case bookmark opens both upper disclosures. Closing/reopening retains the prepared reason and analysis does not reset it. Latest complete cockpit browser, 478 frontend contracts, four 3056-key audits, build/image/format/spec checks pass. Existing CI/enterprise/soak gates stay open.

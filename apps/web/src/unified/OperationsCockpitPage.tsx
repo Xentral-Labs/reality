@@ -185,7 +185,15 @@ export function OperationsCockpitPage({
             selection={selection}
             supporting={
               <div key={selection.tenant}>
-                <BusinessCaseOverview selection={selection} snapshot={caseObservation} />
+                <BusinessCaseOverview selection={selection} snapshot={caseObservation}>
+                  <OperationalCaseRegister
+                    key={selection.tenant}
+                    selection={selection}
+                    embedded
+                    showOwnershipTotals={false}
+                    onObservation={setCaseObservation}
+                  />
+                </BusinessCaseOverview>
                 <details className="cockpit-upper-disclosure" data-shipping-briefing>
                   <summary>
                     <strong>{t("Shipping deviations & recorded actions")}</strong>
@@ -269,26 +277,15 @@ export function OperationsCockpitPage({
             <div className="cockpit-log-column">
               <OperationsWorkspacePanel
                 key={selection.tenant}
-                responsibility={
-                  <OperationalCaseRegister
-                    key={selection.tenant}
-                    selection={selection}
-                    embedded
-                    onObservation={setCaseObservation}
-                  />
-                }
                 activity={
                   <OperationsActivityPanel
                     state={activityState}
                     key={selection.tenant}
                     selection={selection}
                     navigate={navigate}
-                    embedded
                   />
                 }
-                agents={
-                  <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} embedded />
-                }
+                agents={<AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />}
               />
             </div>
           </div>
