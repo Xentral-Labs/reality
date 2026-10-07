@@ -202,7 +202,7 @@ export function OperationsCockpitPage({
                           <strong>{t("What is holding up shipping")}</strong>
                           <span>
                             {t("Affected orders")}:{" "}
-                            {state.data.deviation_total === undefined
+                            {state.data.deviation_total == null
                               ? "—"
                               : formatNumber(state.data.deviation_total)}
                           </span>

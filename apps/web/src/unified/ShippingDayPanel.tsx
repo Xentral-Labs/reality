@@ -46,6 +46,22 @@ export function ShippingDayPanel({
   const start = Date.parse(value.day_start),
     end = Date.parse(value.day_end);
   const all = Object.values(value.series).flatMap((points) => points || []);
+  const daily = value.daily_activity;
+  const dailySeries: Partial<
+    Record<"booked_orders" | "handed_over_packages", ShippingPoint[] | null>
+  > = daily?.series || {};
+  const dailyCeiling = Math.max(
+    1,
+    ...Object.values(dailySeries)
+      .flatMap((points) => points || [])
+      .map((point) => point.count),
+  );
+  const dailySourceIds = (daily?.evidence || []).flatMap((row) => [
+    ...(typeof row.source_record_id === "string" ? [row.source_record_id] : []),
+    ...(Array.isArray(row.source_ids)
+      ? row.source_ids.filter((id): id is string => typeof id === "string")
+      : []),
+  ]);
   const ceiling = Math.max(1, value.totals.due || 0, ...all.map((point) => point.count));
   const x = (at: string) =>
     plotLeft + ((Date.parse(at) - start) / (end - start)) * (plotRight - plotLeft);
@@ -107,12 +123,113 @@ export function ShippingDayPanel({
       <button className="br-link cockpit-text-action" onClick={() => inspect("unplanned")}>
         {t("Work outside this day's plan")}
       </button>
+      {daily && (
+        <section
+          className="cockpit-daily-actuals"
+          data-shipping-actuals
+          aria-label={t("Observed shipping activity")}
+        >
+          <h3>{t("Observed shipping activity")}</h3>
+          <p className="cockpit-note">
+            {t("Selected business day · independent of the shipping plan")}
+          </p>
+          <dl className="cockpit-daily-counts">
+            <div>
+              <dt>{t("Orders with a shipment booking")}</dt>
+              <dd>{daily.booked_orders === null ? "—" : formatNumber(daily.booked_orders)}</dd>
+            </div>
+            <div>
+              <dt>{t("Confirmed package handovers")}</dt>
+              <dd>
+                {daily.handed_over_packages === null
+                  ? "—"
+                  : formatNumber(daily.handed_over_packages)}
+              </dd>
+            </div>
+          </dl>
+          {value.coverage.cohort === "unavailable" && (
+            <>
+              <div className="cockpit-legend">
+                <span className="cockpit-series-label plan">
+                  <i />
+                  {t("Orders with a shipment booking")}
+                </span>
+                <span className="cockpit-series-label handover">
+                  <i />
+                  {t("Confirmed package handovers")}
+                </span>
+              </div>
+              <svg
+                className="cockpit-chart"
+                ref={plot}
+                viewBox={`0 0 ${plotWidth} 200`}
+                role="img"
+                aria-label={t("Observed shipping activity")}
+              >
+                {[0, 0.5, 1].map((fraction) => (
+                  <g key={fraction}>
+                    <line
+                      x1={plotLeft}
+                      x2={plotRight}
+                      y1={160 - fraction * 120}
+                      y2={160 - fraction * 120}
+                      className="cockpit-grid-line"
+                    />
+                    <text x={plotLeft - 10} y={164 - fraction * 120} textAnchor="end">
+                      {formatNumber(Math.round(dailyCeiling * fraction))}
+                    </text>
+                  </g>
+                ))}
+                {timeTicks.map((fraction) => (
+                  <text
+                    key={fraction}
+                    x={plotLeft + fraction * (plotRight - plotLeft)}
+                    y="185"
+                    textAnchor={fraction === 0 ? "start" : fraction === 1 ? "end" : "middle"}
+                  >
+                    {cockpitTime(
+                      new Date(start + fraction * (end - start)).toISOString(),
+                      value.time_zone,
+                    )}
+                  </text>
+                ))}
+                {Object.entries(dailySeries).map(([key, points]) =>
+                  points?.length ? (
+                    <path
+                      key={key}
+                      data-daily-shipping-series={key}
+                      className={`cockpit-series ${key === "booked_orders" ? "plan" : "handover"}`}
+                      d={points
+                        .map(
+                          (point, index) =>
+                            `${index ? "H" : "M"}${x(point.at)}${index ? "V" : ","}${160 - (point.count / dailyCeiling) * 120}`,
+                        )
+                        .join(" ")}
+                    >
+                      <title>
+                        {t(
+                          key === "booked_orders"
+                            ? "Orders with a shipment booking"
+                            : "Confirmed package handovers",
+                        )}
+                      </title>
+                    </path>
+                  ) : null,
+                )}
+              </svg>
+            </>
+          )}
+          <p className="cockpit-note">
+            {t("Bookings may be partial. Package handovers are not completed plan orders.")}
+          </p>
+        </section>
+      )}
       {value.coverage.cohort === "unavailable" ? (
         <div className="cockpit-unavailable" role="status">
           <strong>{t("Shipping plan unavailable")}</strong>
           <p>
             {t(
-              "A source-backed daily cohort and confirmed capacity are required to show these curves.",
+              "Only plan comparison and forecast require an accepted daily plan and confirmed capacity. Observed shipping remains visible above.",
             )}
           </p>
         </div>
@@ -354,13 +471,40 @@ export function ShippingDayPanel({
               "Each planned order counts once after every required dispatch quantity has been handed over. The forecast assumes current ready work and confirmed capacity.",
             )}
           </p>
+          {daily && daily.evidence.length > 0 && (
+            <ul aria-label={t("Observed shipping activity")}>
+              {daily.evidence.slice(0, 8).map((row, index) => {
+                const kind = typeof row.movement_id === "string" ? "movement" : "shipment_package";
+                const id =
+                  typeof row.movement_id === "string" ? row.movement_id : String(row.package_id);
+                return (
+                  <li key={`${id}-${index}`}>
+                    <a
+                      href={selectionUrl(
+                        navigationSelection(selection, {
+                          route: "inspector",
+                          inspectorView: "records",
+                          inspectorTargetKind: kind,
+                          inspectorTargetId: id,
+                          cockpitOrigin: cockpitOriginSelection(selection),
+                        }),
+                      )}
+                    >
+                      {t(kind === "movement" ? "Movement" : "Package")} · {id}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           <ul>
             {[
-              ...new Set(
-                Object.values(
+              ...new Set([
+                ...dailySourceIds,
+                ...Object.values(
                   (value.basis.sources || {}) as Record<string, Record<string, unknown>>,
                 ).flatMap((sources) => Object.keys(sources)),
-              ),
+              ]),
             ]
               .slice(0, 50)
               .map((id) => (

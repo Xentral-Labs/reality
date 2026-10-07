@@ -26,3 +26,9 @@ Do not describe the unchecked end-to-end/operator/capacity acceptance as passed.
 - [x] T018 Add failing carrier-observation regression for distinct handover/arrival timing, replay, mailbox pressure, corrected-only contents and unchanged announcements/history (FR-021–022).
 - [x] T019 Implement bounded source-backed carrier observations before the mail gate through the existing reactions/service boundary (FR-021–022).
 - [x] T020 Run live-company/shipment/cockpit regression and required lint/spec gates; restart existing workers and verify new source-linked handovers in the retained cockpit (FR-021–022).
+
+## Local daily shipping planning fixture recovery
+
+- [x] T090 Add failing scenario tests for day/replay/next-day/existing-plan/authority/calendar/source semantics of the trusted local daily shipping fixture.
+- [x] T091 Implement scenarios/company_simulator/daily_shipping.py through existing shared source/proposal/owner-confirmation services and document the local invocation boundary in LIVE.md.
+- [x] T092 Verify scenario and shipping regressions, wire the existing local supervisor without restarting its active business round, record today's accepted synthetic planning/source evidence and next-day guard proof; no production rollout.

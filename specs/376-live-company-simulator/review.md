@@ -25,3 +25,30 @@ Meaningful test-first failures established missing separate handover/arrival tim
 The existing worker image was rebuilt and the ordinary worker plus three tenant-scoped simulator workers recreated, without migrations, new schedules or new operators. A canonical service read at **18:03:39 UTC** showed due **853**, handed-over **34**, forecast **406**, risk **819**, with complete reported cohort/handover/forecast coverage. The recorded handover series advanced from 0 to 29 at 17:59:49 and to 34 at 18:02:22, visibly in the real port-8080 cockpit. These are fulfilled order counts; an independent tenant/run/source join at 18:03:55 found **60 source-backed package handover events**, and later carrier delivery observations were also present. Order and package counts are not interchangeable.
 
 The existing sole Claude operator progressed to round 98 (started 18:01:18 UTC); the canonical prompt retains the complete purchasing, correspondence, fulfillment, finance and coordination routine. A local prompt clarification requires oldest-first bounded mailbox processing and recognizes actual Compose scheduling roles. Claude Desktop supervises the existing operator; no competing business writer or new credential was created. Old delivered packages without recorded handover times remain untouched. The retained reviewed shipping plan is fixed; later intake requires a separately reviewed plan revision. Multi-day capacity and broader feature rollout acceptance remain open.
+
+
+## Trusted local daily shipping fixture recovery (2026-10-07)
+
+Explicit owner authorization covers recovery of the retained local live demo.
+Requirements, plan and T090–092 were reviewed before implementation; Constitution
+PASS. The fixture uses normal immutable-source, proposal review and exact observed
+owner-confirmation services. It is not an MCP tool, worker handler or provider
+confirmation mandate. Existing statements, including withdrawals and work assigned
+to prior current plans, are preserved. Customer delivery promises are unchanged.
+
+Five PostgreSQL scenario tests passed after correcting the intake test quantities
+from strings to the required integers. The final ten-test daily shipping/cockpit/
+scenario regression passed, covering owner/tenant/active-run refusal, empty work,
+replay, next-day unassigned intake, independent existing-plan preservation and
+spring/autumn company-calendar DST boundaries. Scoped lint, annotations and spec
+policy passed. See spec 378 review for browser/build/actual-activity evidence.
+
+The existing local supervisor invokes the exact fixture before finite Claude
+rounds, with a bounded timeout and failure receipt that does not stop ordinary
+operator work. It gracefully resumed round 137 after the active round completed;
+its first check returned the accepted 2026-10-07 statement sps_a0b21f39e4.
+The accepted synthetic Source src_2cf014a65f states 500 slots and hour-22 company
+cutoff for 46 otherwise unassigned run commitments. This is a local demonstration
+choice, not verified real carrier capacity. No extra loop, schedule, queue, agent
+credential or migrations were introduced. Next-day fixture creation is tested,
+not yet witnessed at a real midnight; wider multi-day acceptance remains open.

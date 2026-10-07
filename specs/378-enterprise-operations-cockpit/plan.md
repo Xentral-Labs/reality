@@ -605,3 +605,7 @@ phone/theme/language coverage. Verify relevant backend suites, frontend contract
 audit/build/format/spec policy and full cockpit browser matrix; review and activate
 API + web only, preserving simulator/MCP workers. Rollback is prior API/web image;
 no data migration. Existing enterprise and real-soak release gates remain open.
+
+## Daily plan absence recovery
+
+FR-071–072: Add a read-only physical activity projection in shipping_performance.py using effective Movement and ShipmentEvent/Package relationships, scoped to tenant, dispatch location and company-day interval. Return distinct booked orders and effective first-handed-over packages, cumulative points and a bounded original-record/source preview within the existing fingerprint/snapshot. Keep canonical cohort totals unchanged. Render a compact actual-activity strip/plot independently of missing-plan feedback; unknown deviation total remains unknown. No schema, endpoint, tool, timer or business authority changes. Tests cover deduplication, correction/supersession, boundaries and isolation before implementation, then frontend contracts, browser fixture proof, formatting/localization/build and actual local inspection. Constitution Check: PASS on all eight principles; observations are read-time only, recorded timestamps are preserved. Existing enterprise release gates remain open. Rollback: remove additive DTO/UI projection without changing stored business data.

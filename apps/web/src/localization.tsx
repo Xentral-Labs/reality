@@ -29722,3 +29722,45 @@ Object.assign(dictionaries.es, {
   "Read acknowledgement": "Confirmación de lectura",
   "Completed work": "Trabajo completado",
 });
+
+Object.assign(dictionaries.de, {
+  "Observed shipping activity": "Erfasste Versandaktivität",
+  "Selected business day · independent of the shipping plan":
+    "Ausgewählter Geschäftstag · unabhängig vom Versandplan",
+  "Orders with a shipment booking": "Aufträge mit Versandbuchung",
+  "Confirmed package handovers": "Bestätigte Paketübergaben",
+  "Bookings may be partial. Package handovers are not completed plan orders.":
+    "Buchungen können Teillieferungen sein. Paketübergaben zählen nicht als abgeschlossene Planaufträge.",
+  "Only plan comparison and forecast require an accepted daily plan and confirmed capacity. Observed shipping remains visible above.":
+    "Nur Planvergleich und Prognose benötigen einen bestätigten Tagesplan und belegte Kapazitäten. Die erfasste Versandaktivität bleibt oben sichtbar.",
+  "Shipping deviations cannot be evaluated without a complete daily plan.":
+    "Versandabweichungen können ohne vollständigen Tagesplan nicht bewertet werden.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Observed shipping activity": "Geregistreerde verzendactiviteit",
+  "Selected business day · independent of the shipping plan":
+    "Geselecteerde werkdag · onafhankelijk van het verzendplan",
+  "Orders with a shipment booking": "Orders met een verzendboeking",
+  "Confirmed package handovers": "Bevestigde pakketoverdrachten",
+  "Bookings may be partial. Package handovers are not completed plan orders.":
+    "Boekingen kunnen gedeeltelijk zijn. Pakketoverdrachten zijn geen voltooide planorders.",
+  "Only plan comparison and forecast require an accepted daily plan and confirmed capacity. Observed shipping remains visible above.":
+    "Alleen planvergelijking en prognose vereisen een geaccepteerd dagplan en bevestigde capaciteit. Geregistreerde verzending blijft hierboven zichtbaar.",
+  "Shipping deviations cannot be evaluated without a complete daily plan.":
+    "Verzendafwijkingen kunnen zonder volledig dagplan niet worden beoordeeld.",
+});
+
+Object.assign(dictionaries.es, {
+  "Observed shipping activity": "Actividad de envío registrada",
+  "Selected business day · independent of the shipping plan":
+    "Día seleccionado · independiente del plan de envío",
+  "Orders with a shipment booking": "Pedidos con un registro de envío",
+  "Confirmed package handovers": "Entregas de paquetes confirmadas",
+  "Bookings may be partial. Package handovers are not completed plan orders.":
+    "Los registros pueden ser parciales. Las entregas de paquetes no son pedidos del plan completados.",
+  "Only plan comparison and forecast require an accepted daily plan and confirmed capacity. Observed shipping remains visible above.":
+    "Solo la comparación y la previsión requieren un plan diario aceptado y capacidad confirmada. La actividad registrada sigue visible arriba.",
+  "Shipping deviations cannot be evaluated without a complete daily plan.":
+    "No se pueden evaluar desviaciones de envío sin un plan diario completo.",
+});

@@ -68,3 +68,7 @@ Use day 2026-10-06, company Europe/Berlin, observation 14:30, two explicit dispa
 This oracle proves calculation semantics only; it does not claim real carrier capacity or full-company autonomy.
 
 Fingerprint format `shipping-inputs-v2` hashes every canonical frozen fulfillment-readiness field for every included requirement, preserving exact values and ordering. The disclosed first-fifty readiness preview and every selected supporting/deviation order retain the existing readable evidence shape. Unused readable dictionaries are not materialized; complete calculation and fingerprint inputs remain unsampled.
+
+## Independent actual daily activity
+
+FR-071–072 add `daily_activity` inside the existing observation: distinct customer orders with effective shipment bookings in the selected company-day/site, and distinct outbound customer-delivery packages whose first effective source-backed handover occurred in that day after physical dispatch. These are separate units, not completed cohort orders. Future/unknown timestamps, corrected movements and superseded events cannot add activity; retries do not multiply it. Counts/series remain available without an accepted plan; plan metrics retain existing authority/unknown semantics. Complete fingerprints include full physical evidence, while the returned source/record preview is bounded to fifty and discloses its complete size. The existing snapshot readers/cadence remain unchanged. Missing/incomplete cohort deviations are unknown, not a safe zero.
