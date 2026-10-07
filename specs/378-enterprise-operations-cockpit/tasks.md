@@ -371,3 +371,9 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T148 [FR-086] Add failing integrated Shell single-title/standard-inset/header-controls and complete cockpit compact-toolbar/shared-filter/responsive proofs in operations-cockpit-shell-browser.mjs and operations-cockpit-browser.mjs.
 - [x] T149 [FR-086] Remove OperationsCockpitPage.tsx duplicate hero/nested padding and reuse FilterChip.tsx in a compact wrapping scope/status toolbar through operationsCockpit.css; preserve all reads/control semantics.
 - [x] T150 [FR-086] Verify both browser suites/contracts/audit/build/image/format/spec, inspect actual local header and update durable contracts/review/existing ready PR.
+
+
+## Recent-activity chart alignment (FR-084 refinement)
+
+- [x] T151 [FR-084] Remove nested chart framing/inset in operationsCockpit.css; preserve visible count, plot baseline and live controls.
+- [x] T152 [FR-084] Verify existing complete cockpit browser matrix, production build, format/spec/diff, actual local screenshot and update existing PR.

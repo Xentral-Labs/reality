@@ -2132,11 +2132,7 @@ a.cockpit-status-link:focus-visible {
 
 /* Motion responds only to changed current observations; no continuous busy animation. */
 .cockpit-activity-signal {
-  padding: 10px 12px;
   margin-top: 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--surface);
 }
 .cockpit-activity-signal .cockpit-activity-total {
   margin: 0 0 8px;
