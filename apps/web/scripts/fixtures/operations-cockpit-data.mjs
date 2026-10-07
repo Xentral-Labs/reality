@@ -79,6 +79,8 @@ export const flows = {
     receipts: i === 5 ? 3 : 0,
     return_arrivals: i === 7 ? 2 : 0,
     return_dispositions: i === 8 ? 1 : 0,
+    messages_incoming: i === 1 ? 2 : 0,
+    message_first_replies: i === 8 ? 34 : 0,
   })),
   orders: {
     signal: "progress",

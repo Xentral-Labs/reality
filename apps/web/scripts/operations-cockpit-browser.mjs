@@ -102,14 +102,16 @@ async function assertFlowAlignment(label) {
     `${label}: prominent status indicators do not clip`,
   );
   const cards = await page.locator("[data-flow-area]").evaluateAll((elements) =>
-    elements.map((element) => ({
-      area: element.getAttribute("data-flow-area"),
-      top: element.getBoundingClientRect().top,
-      metricTops: [...element.querySelectorAll("dd")].map(
-        (node) => node.getBoundingClientRect().top,
-      ),
-      chartTop: element.querySelector(".cockpit-flow-curve")?.getBoundingClientRect().top,
-    })),
+    elements
+      .filter((element) => !element.hidden)
+      .map((element) => ({
+        area: element.getAttribute("data-flow-area"),
+        top: element.getBoundingClientRect().top,
+        metricTops: [...element.querySelectorAll("dd")].map(
+          (node) => node.getBoundingClientRect().top,
+        ),
+        chartTop: element.querySelector(".cockpit-flow-curve")?.getBoundingClientRect().top,
+      })),
   );
   for (const card of cards) {
     const peers = cards.filter((peer) => Math.abs(peer.top - card.top) < 2);
@@ -128,6 +130,14 @@ async function assertFlowAlignment(label) {
       }
     }
   }
+  const metricSpacing = await page
+    .locator("[data-flow-area]:not([hidden]) dl")
+    .evaluate((element) => getComputedStyle(element).rowGap);
+  assert.equal(
+    metricSpacing,
+    "16px",
+    `${label}: selected analysis keeps explicit metric-row spacing`,
+  );
   const rhythm = await page.locator("[data-operating-flows]").evaluate((element) => ({
     margin: getComputedStyle(element).marginTop,
     outerGap:
@@ -136,7 +146,7 @@ async function assertFlowAlignment(label) {
     headingSize: getComputedStyle(element.querySelector("h2")).fontSize,
     sharedSize: getComputedStyle(document.querySelector(".cockpit-shipping h2")).fontSize,
     contentGap:
-      element.querySelector(".cockpit-flow-grid").getBoundingClientRect().top -
+      element.querySelector(".cockpit-analysis-selector").getBoundingClientRect().top -
       element.querySelector("header").getBoundingClientRect().bottom,
   }));
   assert.equal(rhythm.margin, "0px", `${label}: section does not stack outer margins`);
@@ -498,6 +508,11 @@ try {
   const summary = page.locator("[data-operating-status]");
   assert.equal(await summary.count(), 1, "a central status overview is present");
   assert.equal(await summary.locator("[data-status-area]").count(), 5);
+  assert.equal(await summary.locator("[data-instrument-strip]").count(), 6);
+  assert.match(
+    await summary.locator('[data-instrument-area="finance"]').textContent(),
+    /Not available/,
+  );
   assert(
     await summary.evaluate(
       (element) =>
@@ -557,33 +572,46 @@ try {
   await page.locator(".operations-cockpit").evaluate((element) => {
     element.style.maxWidth = "720px";
   });
-  const narrow = await page
-    .locator("[data-flow-area]")
-    .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().top));
-  assert.equal(narrow[0], narrow[1], "a narrow docked-content layout keeps two comparison columns");
-  assert(narrow[2] > narrow[0], "a narrow docked-content layout wraps the third flow card");
+  assert.equal(
+    await page.locator("[data-flow-area]:visible").count(),
+    1,
+    "narrow analysis shows one selected area",
+  );
   await page.locator(".operations-cockpit").evaluate((element) => {
     element.style.maxWidth = "440px";
   });
   const single = await page.locator("[data-flow-area]").evaluateAll((elements) =>
-    elements.map((element) => ({
-      top: element.getBoundingClientRect().top,
-      display: getComputedStyle(element).display,
-      overflow: element.scrollWidth > element.clientWidth,
-    })),
+    elements
+      .filter((element) => !element.hidden)
+      .map((element) => ({
+        top: element.getBoundingClientRect().top,
+        display: getComputedStyle(element).display,
+        overflow: element.scrollWidth > element.clientWidth,
+      })),
   );
   assert(
-    single.every((card) => card.display === "flex" && !card.overflow),
+    single.every((card) => card.display === "block" && !card.overflow),
     "single-column content releases comparison spacing without clipping",
   );
-  assert(
-    single[1].top > single[0].top,
-    "a docked single-column layout stacks cards at a wide viewport",
-  );
+  assert.equal(single.length, 1, "only the selected analysis occupies space");
   await page.locator(".operations-cockpit").evaluate((element) => {
     element.style.maxWidth = "";
   });
+  await page.locator('[data-status-area="messages"] a').click();
   const mailbox = page.locator('[data-flow-area="messages"]');
+  assert.equal(await mailbox.locator('[data-analysis-kind="flow"] [data-flow-series]').count(), 2);
+  assert.equal(
+    await mailbox.locator('[data-analysis-kind="backlog"] [data-flow-series]').count(),
+    1,
+  );
+  await mailbox.getByText("Definition & evidence", { exact: true }).click();
+  await page.waitForTimeout(5500);
+  assert(await mailbox.isVisible(), "live refresh retains the selected analysis");
+  assert(
+    await mailbox.locator("details").evaluate((el) => el.open),
+    "live refresh retains evidence disclosure",
+  );
+  await mailbox.getByText("Definition & evidence", { exact: true }).click();
   assert.equal(await mailbox.locator("dd").first().textContent(), "8");
   assert.equal(
     await mailbox.locator("dd").nth(2).textContent(),
@@ -861,7 +889,11 @@ try {
   );
   await page.getByText("Operating flow evidence is unavailable", { exact: true }).waitFor();
   assert.equal(await summary.locator('[data-signal="unknown"]').count(), 5);
-  assert.equal(await summary.getByRole("link").count(), 0, "missing cards have no dead navigation");
+  assert.equal(
+    await summary.locator("[data-status-area] a").count(),
+    0,
+    "missing cards have no dead navigation",
+  );
   assert.deepEqual(await summary.locator("[data-status-metric]").allTextContents(), [
     "—",
     "—",
@@ -892,24 +924,41 @@ try {
         path: `/private/tmp/reality-378-cockpit-${language}-${theme}-390.png`,
         fullPage: true,
       });
-      for (const width of [1440, 1920]) {
+      for (const width of [320, 390, 1440, 1920]) {
         await page.setViewportSize({ width, height: 1050 });
         await assertFlowAlignment(`${language}/${theme}/${width}`);
+        assert(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          `${language}/${theme}/${width}: viewport remains bounded; ${JSON.stringify(
+            await page.evaluate(() =>
+              [...document.querySelectorAll("body *")]
+                .filter((el) => el.getBoundingClientRect().right > innerWidth + 0.1)
+                .map((el) => ({
+                  tag: el.tagName,
+                  cls: el.className,
+                  right: el.getBoundingClientRect().right,
+                  text: el.textContent?.slice(0, 60),
+                }))
+                .slice(0, 12),
+            ),
+          )}`,
+        );
       }
       await page.setViewportSize({ width: 390, height: 844 });
 
       if (language === "de" && theme === "light") {
         await page.setViewportSize({ width: 1440, height: 1050 });
         const layout = await page.locator("[data-flow-area]").evaluateAll((elements) =>
-          elements.map((element) => {
-            const rect = element.getBoundingClientRect();
-            return { top: rect.top, width: rect.width };
-          }),
+          elements
+            .filter((element) => !element.hidden)
+            .map((element) => {
+              const rect = element.getBoundingClientRect();
+              return { top: rect.top, width: rect.width };
+            }),
         );
-        assert.equal(layout.length, 5);
-        assert.equal(layout[0].top, layout[2].top, "three desktop flow cards share the first row");
-        assert.equal(layout[3].top, layout[4].top, "stock and returns share the second row");
-        assert.equal(layout[3].width, layout[4].width, "second-row cards have equal width");
+        assert.equal(layout.length, 1, "desktop retains one focused analysis");
+        await page.locator('[data-status-area="messages"] a').click();
+        assert.equal(await page.locator('[data-flow-area="messages"] svg').count(), 2);
 
         await page.screenshot({
           path: "/private/tmp/reality-378-cockpit-de-light-1440.png",

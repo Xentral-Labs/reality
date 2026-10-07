@@ -968,6 +968,154 @@
 .cockpit-status-overview .cockpit-card-heading {
   margin-bottom: 16px;
 }
+
+/* Instrument signals describe areas, never an inferred share of risky work. */
+.cockpit-instruments .cockpit-status-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.cockpit-instruments .cockpit-status-link {
+  gap: 12px;
+  padding: 16px 14px;
+}
+.cockpit-instruments .cockpit-status-tile {
+  border-top-width: 1px;
+  border-top-color: var(--signal-color);
+}
+.cockpit-instruments .cockpit-status-tile[data-selected="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.cockpit-instruments .cockpit-status-metric-row {
+  flex-direction: column-reverse;
+  align-items: start;
+  justify-content: start;
+  gap: 5px;
+}
+.cockpit-instruments .cockpit-status-metric-row strong {
+  font-size: 32px;
+  line-height: 1.2;
+}
+.cockpit-instruments .cockpit-status-metric-row > span {
+  min-height: 34px;
+  font-size: 12px;
+}
+.cockpit-instrument-strip {
+  display: flex;
+  gap: 3px;
+  height: 28px;
+}
+.cockpit-instrument-strip > i {
+  flex: 1;
+  background: var(--signal-color);
+  border-radius: 2px;
+}
+.cockpit-instruments .cockpit-status-condition {
+  align-items: start;
+  min-height: 54px;
+  gap: 7px;
+}
+.cockpit-instruments .cockpit-status-indicator {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+.cockpit-analysis-selector {
+  margin-bottom: 16px;
+}
+.cockpit-analysis-grid {
+  display: block;
+}
+.cockpit-analysis-card {
+  display: block;
+}
+.cockpit-analysis-card[hidden] {
+  display: none !important;
+}
+.cockpit-flow-card.cockpit-analysis-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: none;
+  grid-row: auto;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+.cockpit-flow-card.cockpit-analysis-card dl > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: start;
+  gap: 6px;
+}
+.cockpit-analysis-card .cockpit-flow-chart {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  padding-top: 4px;
+}
+.cockpit-analysis-plot:only-child {
+  grid-column: 1 / -1;
+}
+.cockpit-analysis-plot {
+  min-width: 0;
+}
+.cockpit-analysis-plot h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.cockpit-analysis-plot .cockpit-flow-curve {
+  display: block;
+  width: 100%;
+  height: 190px;
+}
+.cockpit-analysis-plot .cockpit-flow-curve text {
+  fill: var(--text-muted);
+  font-size: 12px;
+}
+.cockpit-analysis-plot .cockpit-flow-line {
+  stroke: var(--accent);
+}
+.cockpit-analysis-plot .cockpit-flow-line.line-1 {
+  stroke: var(--text-default);
+  stroke-dasharray: 5 4;
+}
+.cockpit-analysis-plot .cockpit-flow-legend,
+.cockpit-analysis-plot .cockpit-flow-axis-labels {
+  font-size: 12px;
+}
+.cockpit-analysis-plot .cockpit-flow-legend span::before {
+  background: var(--accent);
+}
+.cockpit-analysis-plot .cockpit-flow-legend .line-1::before {
+  background: transparent;
+  border-top: 2px dashed var(--text-default);
+}
+@container (max-width: 1100px) {
+  .cockpit-instruments .cockpit-status-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container (max-width: 700px) {
+  .cockpit-instruments .cockpit-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cockpit-analysis-card .cockpit-flow-chart {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cockpit-analysis-card dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 400px) {
+  .cockpit-instruments .cockpit-status-condition {
+    font-size: 11px;
+  }
+  .cockpit-instruments .cockpit-status-link {
+    padding: 12px 10px;
+  }
+}
 .cockpit-status-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

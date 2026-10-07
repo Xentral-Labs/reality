@@ -145,7 +145,14 @@ export type OperatingFlows = {
   start: string;
   coverage_start: string;
   scope: string;
-  buckets: { start: string; end: string; known: boolean; [key: string]: unknown }[];
+  buckets: {
+    start: string;
+    end: string;
+    known: boolean;
+    messages_incoming?: number | null;
+    message_first_replies?: number | null;
+    [key: string]: unknown;
+  }[];
   messages: FlowArea & {
     coverage: string;
     series: { at: string; unanswered: number | null }[];

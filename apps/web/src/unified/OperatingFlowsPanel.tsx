@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { formatNumber, formatZonedDateTime, t } from "../localization";
 import type { FlowArea, OperatingFlows } from "./cockpitModel";
 import {
@@ -8,8 +9,9 @@ import {
 } from "./routing";
 
 type Metric = { key: string; label: string };
+export type OperatingAreaKey = "orders" | "messages" | "supply" | "stock" | "returns";
 const areas: {
-  key: "orders" | "messages" | "supply" | "stock" | "returns";
+  key: OperatingAreaKey;
   title: string;
   metrics: Metric[];
   lines: { key: string; label: string }[];
@@ -42,7 +44,10 @@ const areas: {
       { key: "incoming_last_hour", label: "Incoming messages · 60 min" },
       { key: "first_replies_last_hour", label: "First replies · 60 min" },
     ],
-    lines: [{ key: "unanswered", label: "Messages awaiting reply" }],
+    lines: [
+      { key: "messages_incoming", label: "Incoming messages" },
+      { key: "message_first_replies", label: "First recorded replies" },
+    ],
     explanation:
       "Reply backlog covers the local simulator mailbox. Reading is not replying. Recorded replies do not prove delivery or completed work; provider reply coverage is unavailable.",
     destination: { route: "inspector", inspectorView: "business" },
@@ -94,10 +99,22 @@ const signalLabels = {
   attention: "Recorded condition needs attention",
   progress: "Pending work",
   clear: "No finding in the evaluated scope",
-  unknown: "Evidence incomplete",
+  unknown: "Data incomplete",
 };
 
-export function OperatingStatusPanel({ value, stale }: { value?: OperatingFlows; stale: boolean }) {
+export function OperatingStatusPanel({
+  value,
+  stale,
+  selected,
+  select,
+  selection,
+}: {
+  value?: OperatingFlows;
+  stale: boolean;
+  selected: OperatingAreaKey;
+  select: (area: OperatingAreaKey) => void;
+  selection: Selection;
+}) {
   const titles = {
     orders: "Order status",
     messages: "Message status",
@@ -107,13 +124,14 @@ export function OperatingStatusPanel({ value, stale }: { value?: OperatingFlows;
   };
   return (
     <section
-      className="br-card cockpit-card cockpit-status-overview"
+      className="cockpit-status-overview cockpit-instruments"
       aria-labelledby="operating-status-heading"
       data-operating-status
     >
       <header className="cockpit-card-heading">
         <div>
-          <h2 id="operating-status-heading">{t("Company status")}</h2>
+          <span className="cockpit-eyebrow">{t("Company-wide · live")}</span>
+          <h2 id="operating-status-heading">{t("Company instruments")}</h2>
           <p>
             {t("Company-wide recorded conditions. Select an area for its details and evidence.")}
           </p>
@@ -127,10 +145,6 @@ export function OperatingStatusPanel({ value, stale }: { value?: OperatingFlows;
           const contents = (
             <>
               <span className="cockpit-status-area-title">{t(titles[area.key])}</span>
-              <span className="cockpit-status-condition">
-                <span className="cockpit-status-indicator" aria-hidden="true" />
-                <strong>{t(signalLabels[signal])}</strong>
-              </span>
               <span className="cockpit-status-metric-row">
                 <span>{t(metric.label)}</span>
                 <strong data-status-metric>
@@ -138,6 +152,15 @@ export function OperatingStatusPanel({ value, stale }: { value?: OperatingFlows;
                     ? formatNumber(data[metric.key] as number)
                     : "—"}
                 </strong>
+              </span>
+              <span className="cockpit-instrument-strip" data-instrument-strip aria-hidden="true">
+                {Array.from({ length: 18 }, (_, index) => (
+                  <i key={index} />
+                ))}
+              </span>
+              <span className="cockpit-status-condition">
+                <span className="cockpit-status-indicator" aria-hidden="true" />
+                <strong>{t(signalLabels[signal])}</strong>
               </span>
               {data && (
                 <span className="cockpit-status-detail">
@@ -152,9 +175,15 @@ export function OperatingStatusPanel({ value, stale }: { value?: OperatingFlows;
               key={area.key}
               data-status-area={area.key}
               data-signal={signal}
+              data-selected={selected === area.key}
             >
               {data ? (
-                <a className="br-link cockpit-status-link" href={`#cockpit-flow-${area.key}`}>
+                <a
+                  className="br-link cockpit-status-link"
+                  href={`#cockpit-flow-${area.key}`}
+                  onClick={() => select(area.key)}
+                  aria-current={selected === area.key ? "true" : undefined}
+                >
                   {contents}
                 </a>
               ) : (
@@ -163,6 +192,34 @@ export function OperatingStatusPanel({ value, stale }: { value?: OperatingFlows;
             </li>
           );
         })}
+        <li className="br-card cockpit-status-tile unknown" data-instrument-area="finance">
+          <a
+            className="br-link cockpit-status-link"
+            href={selectionUrl(
+              navigationSelection(selection, {
+                route: "finance",
+                financeView: "open-items",
+                cockpitOrigin: cockpitOriginSelection(selection),
+              }),
+            )}
+          >
+            <span className="cockpit-status-area-title">{t("Finance")}</span>
+            <span className="cockpit-status-metric-row">
+              <span>{t("Not available in this observation")}</span>
+              <strong>—</strong>
+            </span>
+            <span className="cockpit-instrument-strip" data-instrument-strip aria-hidden="true">
+              {Array.from({ length: 18 }, (_, index) => (
+                <i key={index} />
+              ))}
+            </span>
+            <span className="cockpit-status-condition">
+              <span className="cockpit-status-indicator" aria-hidden="true" />
+              <strong>{t("Data incomplete")}</strong>
+            </span>
+            <span className="cockpit-status-detail">{t("Open workspace")} →</span>
+          </a>
+        </li>
       </ul>
       <p className="cockpit-note">
         {t(
@@ -176,23 +233,56 @@ export function OperatingStatusPanel({ value, stale }: { value?: OperatingFlows;
 function Curve({
   lines,
   level = false,
+  title,
 }: {
   lines: { label: string; values: (number | null)[] }[];
   level?: boolean;
+  title: string;
 }) {
+  const container = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(360);
+  useEffect(() => {
+    if (!container.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
+    });
+    observer.observe(container.current);
+    return () => observer.disconnect();
+  }, []);
   const known = lines.flatMap((line) => line.values.filter((n): n is number => n !== null));
-  const minimum = level && known.length ? Math.min(...known) : 0;
-  const maximum = known.length ? Math.max(...known) : 0;
+  const minimum = level && known.length ? Math.max(0, Math.min(...known) - 1) : 0;
+  const maximum = known.length ? Math.max(...known) + (level ? 1 : 0) : 0;
   const range = Math.max(1, maximum - minimum);
+  const left = 50,
+    right = width - 10,
+    top = 30,
+    bottom = 143;
+  const y = (value: number) => bottom - ((value - minimum) * (bottom - top)) / range;
   return (
-    <>
+    <div
+      className="cockpit-analysis-plot"
+      ref={container}
+      data-analysis-kind={level ? "backlog" : "flow"}
+    >
+      <h4>{t(title)}</h4>
       <svg
-        viewBox="0 0 260 64"
+        viewBox={`0 0 ${width} 190`}
         role="img"
-        aria-label={lines.map((line) => t(line.label)).join(" · ")}
+        aria-label={`${t(title)} · ${lines.map((line) => t(line.label)).join(" · ")}`}
         className="cockpit-flow-curve"
       >
-        <path d="M0 58 H260" className="cockpit-flow-axis" />
+        <title>{t(title)}</title>
+        <text x={left} y={14}>
+          {t(level ? "Open messages" : "Records per interval")}
+        </text>
+        {[minimum, minimum + range / 2, minimum + range].map((value, index) => (
+          <g key={index}>
+            <path d={`M${left} ${y(value)} H${right}`} className="cockpit-flow-axis" />
+            <text x={left - 8} y={y(value) + 4} textAnchor="end">
+              {formatNumber(value)}
+            </text>
+          </g>
+        ))}
         {lines.map((line, index) => {
           let open = false;
           const path = line.values
@@ -203,19 +293,36 @@ function Curve({
               }
               const command = open ? "L" : "M";
               open = true;
-              return `${command}${(i * 260) / Math.max(1, line.values.length - 1)},${58 - ((value - minimum) * 50) / range}`;
+              return `${command}${left + (i * (right - left)) / Math.max(1, line.values.length - 1)},${y(value)}`;
             })
             .join(" ");
-          return <path key={line.label} d={path} className={`cockpit-flow-line line-${index}`} />;
+          return (
+            <path
+              key={line.label}
+              d={path}
+              className={`cockpit-flow-line line-${index}`}
+              data-flow-series={line.label}
+            >
+              <title>{t(line.label)}</title>
+            </path>
+          );
         })}
+        <text x={left} y={166}>
+          {t("60 minutes ago")}
+        </text>
+        <text x={right} y={166} textAnchor="end">
+          {t("Now")}
+        </text>
+        <text x={right} y={187} textAnchor="end">
+          {t("Last 60 minutes")}
+        </text>
       </svg>
       <div className="cockpit-flow-axis-labels">
-        <span>{t("60 minutes ago")}</span>
         <span>
           {t("Displayed range")}:{" "}
           {known.length ? `${formatNumber(minimum)}–${formatNumber(maximum)}` : "—"}
         </span>
-        <span>{t("Now")}</span>
+        {!known.length && <span>{t("Data incomplete")}</span>}
       </div>
       <div className="cockpit-flow-legend">
         {lines.map((line, i) => (
@@ -224,7 +331,10 @@ function Curve({
           </span>
         ))}
       </div>
-    </>
+      {!level && (
+        <p className="cockpit-note">{t("Five-minute intervals; edge intervals may be shorter.")}</p>
+      )}
+    </div>
   );
 }
 
@@ -232,10 +342,14 @@ export function OperatingFlowsPanel({
   value,
   selection,
   stale,
+  selected,
+  select,
 }: {
   value?: OperatingFlows;
   selection: Selection;
   stale: boolean;
+  selected: OperatingAreaKey;
+  select: (area: OperatingAreaKey) => void;
 }) {
   if (!value)
     return (
@@ -249,7 +363,7 @@ export function OperatingFlowsPanel({
       <header className="cockpit-card-heading">
         <div>
           <span className="cockpit-eyebrow">{t("Company-wide · live")}</span>
-          <h2 id="flows-heading">{t("Company in motion")}</h2>
+          <h2 id="flows-heading">{t("Flow analysis")}</h2>
           <p>
             {t("Current queues and the last 60 minutes. Independent of the shipping day and site.")}
           </p>
@@ -263,31 +377,45 @@ export function OperatingFlowsPanel({
           {t("Live status is not confirmed")}
         </p>
       )}
-      <div className="cockpit-flow-grid">
+      <div
+        className="cockpit-selection cockpit-analysis-selector"
+        role="group"
+        aria-label={t("Analysis area")}
+      >
+        {areas.map((area) => (
+          <button
+            className="br-btn"
+            type="button"
+            key={area.key}
+            aria-pressed={selected === area.key}
+            onClick={() => select(area.key)}
+          >
+            {t(area.title)}
+          </button>
+        ))}
+      </div>
+      <div className="cockpit-flow-grid cockpit-analysis-grid">
         {areas.map((area) => {
           const data: FlowArea = value[area.key];
           const signal = stale ? "unknown" : data.signal;
-          const lines =
-            area.key === "messages"
-              ? [
-                  {
-                    label: area.lines[0].label,
-                    values: value.messages.series.map((point) => point.unanswered),
-                  },
-                ]
-              : area.lines.map((line) => ({
-                  label: line.label,
-                  values: value.buckets.map((bucket) =>
-                    bucket.known ? Number(bucket[line.key] || 0) : null,
-                  ),
-                }));
+          const lines = area.lines.map((line) => ({
+            label: line.label,
+            values: value.buckets.map((bucket) =>
+              bucket.known &&
+              (area.key !== "messages" || value.messages.coverage !== "unavailable") &&
+              typeof bucket[line.key] === "number"
+                ? (bucket[line.key] as number)
+                : null,
+            ),
+          }));
           return (
             <article
-              className="cockpit-card cockpit-flow-card"
+              className="cockpit-card cockpit-flow-card cockpit-analysis-card"
               data-flow-area={area.key}
               id={`cockpit-flow-${area.key}`}
               tabIndex={-1}
               key={area.key}
+              hidden={selected !== area.key}
             >
               <h3>{t(area.title)}</h3>
               <p className={`cockpit-flow-signal ${signal}`}>
@@ -307,7 +435,26 @@ export function OperatingFlowsPanel({
                 ))}
               </dl>
               <div className="cockpit-flow-chart" data-flow-chart>
-                {lines.length > 0 && <Curve lines={lines} level={area.key === "messages"} />}
+                {lines.length > 0 && (
+                  <Curve
+                    lines={lines}
+                    title={
+                      area.key === "messages" ? "Incoming & first replies" : "Recorded movements"
+                    }
+                  />
+                )}
+                {area.key === "messages" && (
+                  <Curve
+                    title="Unanswered backlog"
+                    lines={[
+                      {
+                        label: "Messages awaiting reply",
+                        values: value.messages.series.map((point) => point.unanswered),
+                      },
+                    ]}
+                    level
+                  />
+                )}
                 {area.key === "stock" && (
                   <p className="cockpit-note">
                     {t("Current observation · risk history unavailable")}

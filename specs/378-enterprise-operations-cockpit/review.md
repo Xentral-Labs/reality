@@ -548,3 +548,20 @@ schema, field, cached observation, query workload, cadence or threshold change.
 The private scalar Connection result is fully buffered once within its current read call, preserving every row, label and value while avoiding one driver fetch call per row. The result is consumed only by its original caller; no shared/completed result is retained. Existing typed metadata, same-transaction and ordinary/dirty Session proofs cover this allocation boundary.
 
 The new regressions first fail on unused promise/document cohort construction and the absent private execution boundary; the fixture is corrected to canonical composite tenant identity before accepting that failure. Both then pass with exact scalar terms/readiness and pending-state autoflush. The full affected selection passes 133 shipping/source/domain/story/cockpit/snapshot/readiness/delivery-policy tests. After final call-local buffering, all five targeted typed-transaction, dirty/ordinary Session, preloaded, scalar-readiness and full observation/fingerprint proofs pass again. Canonical lint/format, Spec Kit policy, business annotations and generated-reference freshness pass. Original workload/cadence/query/latency limits are unchanged. Full exact-head CI remains the final readiness gate; the real-time soak and aggregate browser/display pilot gates remain open. The separately requested instrument-dashboard concept is not part of this functional PR.
+
+
+## Instrument console follow-up review — 2026-10-07
+
+Scope: FR-047–051, T082–T086. All five requirements have implementation and proof
+coverage. Identifiers were rebased onto the merged feature's existing FR-046 and
+T081 boundaries before final review. No critical unresolved finding remains in this
+bounded increment. The custom requirements-quality checklist stays reviewer-owned;
+it does not claim execution acceptance or close earlier pilot/enterprise gates.
+
+Review preserves canonical area conditions, exact first-reply authority, nullable
+coverage, physical-record units, source drill-through, four shared live reads and
+reviewed whole-case controls. Decorative strips never claim risk fractions. Finance
+and stock history are explicit limitations. A legacy CSS rule's metric-row spacing
+was corrected with stronger component scoping and a responsive regression assertion.
+The local obsolete migration-chain repair is deployment compatibility only, recorded
+with backup and exact frozen-DDL parity in quickstart; no source migration was added.

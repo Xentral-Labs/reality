@@ -1,5 +1,29 @@
 # Operations cockpit
 
+## Instrument console refinement (FR-047–051)
+
+The owner-approved console presents the five canonical areas as compact instruments
+with complete primary counts, labelled three-color conditions and decorative signal
+strips. Strips are area conditions, never risk proportions. Finance is an explicitly
+unavailable observation with a normal workspace link. Selecting an instrument or local
+area control opens one detailed analysis; bookmarked anchors and live-refresh selection
+are retained, inactive evidence panels stay mounted, and company changes reset context.
+
+Local correspondence adds incoming/first-recorded-reply counters to the existing
+five-minute operating buckets, derived from the already scoped full mail cohort with
+no additional query. Intervals are half-open except the last includes the observation
+instant, matching existing inclusive-hour totals. Unknown mailbox/company coverage is
+nullable; providers do not acquire an inferred reply state. Separate intake/reply and
+unanswered-backlog diagrams retain canonical units and evidence. Other plots retain
+physical record semantics and stock stays current-only. No financial observation,
+business status, timer, mandate or business mutation is introduced.
+
+Verified locally on 2026-10-07: 53 affected PostgreSQL tests, 478 frontend contracts,
+full cockpit and shell browser checks, four-language/theme responsive proofs and
+controlled eight-hour observation passed. API/web were activated on port 8080 and
+checked against actual changing company data; see [validation](../../specs/378-enterprise-operations-cockpit/quickstart.md).
+The existing background rollout remains separate from instrument availability.
+
 Authority: [spec 378](../../specs/378-enterprise-operations-cockpit/spec.md).
 Design and protected reference: [migration map](../../specs/378-enterprise-operations-cockpit/migration-map.md).
 

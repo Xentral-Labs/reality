@@ -8,7 +8,11 @@ import { ShippingSupportingOrders } from "./ShippingSupportingOrders";
 import { OperationsActivityPanel } from "./OperationsActivityPanel";
 import { OperationalCaseRegister } from "./OperationalCaseRegister";
 import { OperationsDeviationsPanel } from "./OperationsDeviationsPanel";
-import { OperatingFlowsPanel, OperatingStatusPanel } from "./OperatingFlowsPanel";
+import {
+  OperatingFlowsPanel,
+  OperatingStatusPanel,
+  type OperatingAreaKey,
+} from "./OperatingFlowsPanel";
 import { AgentAccessPanel } from "./AgentAccessPanel";
 import type { ShippingMeasure } from "./cockpitModel";
 import type { Selection } from "./routing";
@@ -24,6 +28,38 @@ export function OperationsCockpitPage({
   const inspectionTrigger = useRef<HTMLElement | SVGElement | null>(null);
   const [inspection, setInspection] = useState<{ at?: string; day: string } | null>(null);
   const [sites, setSites] = useState<{ location_id: string; name: string }[]>([]);
+  const bookmarkedArea = (): OperatingAreaKey => {
+    const area = window.location.hash.replace("#cockpit-flow-", "");
+    return ["orders", "messages", "supply", "stock", "returns"].includes(area)
+      ? (area as OperatingAreaKey)
+      : "orders";
+  };
+  const [selectedArea, setSelectedArea] = useState<OperatingAreaKey>(bookmarkedArea);
+  const previousCompany = useRef(selection.tenant);
+  const selectArea = (area: OperatingAreaKey) => {
+    setSelectedArea(area);
+    if (window.location.hash !== `#cockpit-flow-${area}`)
+      window.location.hash = `cockpit-flow-${area}`;
+    requestAnimationFrame(() => {
+      const detail = document.getElementById(`cockpit-flow-${area}`);
+      detail?.focus({ preventScroll: true });
+      detail?.scrollIntoView({ block: "start" });
+    });
+  };
+  useEffect(() => {
+    const change = () => setSelectedArea(bookmarkedArea());
+    window.addEventListener("hashchange", change);
+    return () => window.removeEventListener("hashchange", change);
+  }, []);
+  useEffect(() => {
+    if (previousCompany.current !== selection.tenant) {
+      previousCompany.current = selection.tenant;
+      setSelectedArea("orders");
+      if (window.location.hash.startsWith("#cockpit-flow-")) {
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    }
+  }, [selection.tenant]);
   const day = selection.cockpitDay || "today",
     location = selection.cockpitLocation || "";
   const state = useCockpitLiveRead(`${selection.tenant}:${day}:${location}`, (signal) =>
@@ -142,6 +178,9 @@ export function OperationsCockpitPage({
           <OperatingStatusPanel
             value={activityState.data?.flows}
             stale={activityState.status !== "current"}
+            selected={selectedArea}
+            select={selectArea}
+            selection={selection}
           />
           <OperationalCaseRegister
             key={selection.tenant}
@@ -169,6 +208,8 @@ export function OperationsCockpitPage({
             value={activityState.data?.flows}
             selection={selection}
             stale={activityState.status !== "current"}
+            selected={selectedArea}
+            select={selectArea}
           />
           <div className="cockpit-live-grid">
             <OperationsActivityPanel

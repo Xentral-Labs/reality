@@ -1,5 +1,16 @@
 # Tasks: Enterprise operations cockpit
 
+## Instrument console follow-up (FR-047–051)
+
+Dependency order: T082/T083 before T084/T085; T086 after both implementations.
+Existing incomplete enterprise/soak tasks are not part of this bounded increment.
+
+- [x] T082 [US5] Add failing console selection, preserved curves/evidence, refresh/disclosure and responsive proofs in `apps/web/scripts/operations-cockpit-browser.mjs` and fixture data (FR-047–048, FR-050–051).
+- [x] T083 [US5] Add failing mail bucket reconciliation, exact lineage and missing-company coverage proofs in `packages/reality-core/tests/test_operating_flows.py` (FR-049).
+- [x] T084 [US5] Implement console/selected analysis and labelled responsive charts in `apps/web/src/unified/OperatingFlowsPanel.tsx`, `OperationsCockpitPage.tsx`, `operationsCockpit.css` and four-language `localization.tsx` (FR-047–048, FR-050–051).
+- [x] T085 [US5] Add canonical local incoming/first-reply buckets in `packages/reality-core/src/reality/services/operating_flows.py` and nullable web DTO fields in `apps/web/src/unified/cockpitModel.ts`, with no extra reads or rules (FR-049).
+- [x] T086 Run affected backend/frontend/browser/live/build/i18n/format/spec/lint/doc gates, review the bounded diff and activate API/web only; record local viewing evidence in `specs/378-enterprise-operations-cockpit/quickstart.md` and `docs/features/operations-cockpit.md` (FR-047–051).
+
 **Language**: English
 **Input**: Approved product `spec.md`, proposed `plan.md`, research/data model/contracts and `quickstart.md`.
 **Execution gate**: Owner approved the prepared concept and concrete proposal on 2026-10-06. The input/schema/model and live/Agent scope gates are satisfied; see `review.md` for the no-CRITICAL analysis and permission to proceed with the still-unmarked review checklists. Implementation is authorized; only proven tasks may be completed. Production rollout and runtime acceptance remain separate.

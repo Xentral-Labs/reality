@@ -1,5 +1,40 @@
 # Implementation Plan: Enterprise operations cockpit
 
+## Instrument console follow-up (FR-047–051)
+
+Owner scope approval: 2026-10-07, proceed autonomously and provide a local viewing URL.
+Constitution Check: PASS for all eight principles before and after design. No schema,
+new business authority, external effect, dependency, timer, identity or permission change.
+The existing custom checklists remain reviewer-owned; the owner explicitly authorized
+this bounded follow-up without closing their markers or the earlier rollout gates.
+
+Extend the existing operating flow read with local incoming/first-reply interval counts
+from the already tenant-scoped mail cohort. Reuse the exact same-run first reply matching
+and the existing half-open physical-flow bucket intervals; include the final observation
+instant only in the final mail bucket to reconcile the inclusive existing hour totals.
+Uncovered company time stays unknown. No extra SQL, persisted field or catalog entry.
+Add nullable counters to existing bucket DTOs; absent counters remain unknown in clients.
+Do not derive supply/stock/order/return history from unmatched measurement units.
+
+Present five canonical instruments and an explicitly unavailable Finance entry. Reuse
+canonical signals without estimating risky proportions. Lift selected area state into
+OperationsCockpitPage, derive initial bookmarked selection, listen for hash navigation,
+reset at company change and keep details mounted with hidden inactive articles. An
+accessible local area selector and the instrument anchors choose the same state. Retain
+existing shipping, case register, agent/activity and deviation components in order.
+Replace tiny detail sparklines with responsive labelled SVGs; messages use separate
+intake/reply and backlog plots, including truthful missing/partial coverage.
+
+Test first: canonical duplicate/run/company mail bucket proofs and existing product
+browser navigation, refresh/disclosure, unavailable, theme/locale, responsiveness and
+case-control regression. Then implement service → DTO → web presentation. Run affected
+backend tests, frontend contracts, cockpit/shell/live-session browser checks, build,
+formatting, i18n, spec, annotation and lint gates. Activate only API and web locally;
+leave operator, simulator and workers running. An actual local legacy migration-chain
+mismatch may be reconciled only after backup and exact existing-DDL parity, using
+the already-reviewed frozen case migration; this adds no new feature schema design. Rollback: restore the bounded
+frontend presentation and additive mail projection; no data migration is needed.
+
 **Feature**: `378-enterprise-operations-cockpit` | **Date**: 2026-10-06 | **Spec**: [spec.md](spec.md)
 **Checkout**: `feat/company-reference-simulator`; no branch switch during planning.
 **Language**: English

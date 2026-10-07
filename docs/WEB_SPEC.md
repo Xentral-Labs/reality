@@ -4,6 +4,12 @@
 
 **Simple on the surface. Fully explainable underneath.**
 
+Spec 378 FR-047–051 refines the optional Control Tower into a compact instrument
+console and selected flow analysis. Message intake/first-reply and backlog diagrams
+remain separate; physical flows keep their measurement units, Finance is explicitly
+unavailable, and shipping/agent/manual-case controls retain their existing meaning.
+See [the cockpit contract](features/operations-cockpit.md).
+
 ## Company Settings Access — Spec 326
 
 Company cards distinguish Owner, Member and No company membership from the actual

@@ -260,6 +260,56 @@ An operations leader leaves the cockpit open throughout a working day and sees r
 
 ## Requirement Traceability
 
+### Instrument console refinement approved on 2026-10-07
+
+The owner approved the Instrument console concept and explicitly retained detailed
+incoming/processed diagrams. This refinement supersedes the simultaneous default
+five-card layout in FR-035 while retaining every metric, definition and evidence link.
+
+- **FR-047**: The top company-wide overview MUST use compact instruments with a large
+  primary count, a labelled classic traffic-light condition and a decorative signal
+  strip. It MUST retain the five canonical areas. Finance MUST be explicitly unavailable
+  in this observation, with a link to its existing workspace and no invented count.
+  The strip describes the canonical area condition, never a proportion of risky work.
+- **FR-048**: Selecting an instrument MUST reveal that area's detailed analysis while
+  retaining same-page anchors and keyboard navigation. A labelled area selector MUST
+  allow switching analysis without scrolling to the top. All existing evidence,
+  specialist links and supported case controls MUST remain accessible. Selection and
+  evidence disclosures MUST survive live refresh, and company changes MUST reset selection.
+- **FR-049**: Message analysis MUST show two distinct diagrams: local incoming versus
+  first recorded replies in five-minute buckets, and unanswered backlog over the last
+  hour. Duplicate replies, reading/acknowledgements, foreign company/run replies and
+  unassociated provider messages MUST NOT inflate answered work. Missing/partial
+  coverage MUST stay explicit. Missing bucket counters MUST never render as zero.
+- **FR-050**: Other detailed diagrams MUST retain canonical units: orders recorded
+  versus physical dispatch records, goods receipt records, and return arrivals versus
+  disposition movement records. Stock MUST stay current-only. The browser MUST NOT
+  infer queue history from incompatible counts, agent quality, completed cases or
+  successful external delivery. Shipping plan/handover/forecast, cutoffs, supporting
+  orders, deviations, access inventory and reviewed case controls MUST remain intact.
+- **FR-051**: Instruments, analysis metrics and curves MUST fit 320px, 390px, docked
+  720px and desktop widths in both themes and four languages. Diagrams MUST provide
+  readable count/time axes, series labels and missing observations. No new poller,
+  business write, stored status, dependency or default-route/capability change is allowed.
+
+Acceptance scenarios: (1) keyboard-select Messages and compare the two explicitly
+labelled diagrams and complete totals; (2) switch to Returns and inspect actual
+movement units/evidence; (3) refresh while a disclosure is open and retain selection;
+(4) navigate a bookmarked area and reset on company change; (5) stale/unknown coverage
+cannot become green or zero; (6) all display sizes retain shipping and manual controls.
+Success: each evidenced area is reachable in one instrument selection, message
+incoming/first-reply bucket sums match canonical totals for a fully covered hour,
+and the supported widths have no page-level horizontal overflow.
+
+| Requirement | Proof tasks |
+| --- | --- |
+| FR-047–048 | T082, T084, T086 |
+| FR-049 | T083, T085, T086 |
+| FR-050–051 | T082, T084, T086 |
+
+The owner authorized autonomous implementation and local viewing on 2026-10-07.
+Existing reviewer-owned checklists and outstanding enterprise/soak gates remain open.
+
 | Requirement | Scenario(s) | Planned test/evidence |
 | --- | --- | --- |
 | FR-001 | US4.1, US4.3 | Optional-entry navigation and rollback/access regression |
