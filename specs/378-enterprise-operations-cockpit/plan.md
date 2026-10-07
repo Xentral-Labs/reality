@@ -1,5 +1,30 @@
 # Implementation Plan: Enterprise operations cockpit
 
+## Preview parity implementation (FR-052–056)
+
+Owner-approved scope, 2026-10-07. Constitution Check PASS: all observations are derived
+at read time, no schema, authority, permission, external effect or polling change.
+Supersedes the earlier FR-042 placement and FR-047 uniform decorative strip.
+
+Tests first: full-cohort dated/undated supplier partition, order worst-line deduplication,
+canonical due-soon supersession, unavailable message risk and read-only scalar/snapshot
+parity; browser geometry, exact counts/legend and named access/manual previews. Implement
+service partition from already-loaded identities/findings, then additive DTO and thin UI.
+Use continuous proportional widths rather than rounding eighteen squares: small positive
+categories retain their true proportion. Unknown is hatched and never a green inference.
+
+Reuse the existing four live reads. Default register scope becomes human-owned for its
+compact preview; choosing an automatic case switches the existing read to outstanding.
+Keep the event list mounted in a bounded scrolling region, move its recording-rate chart
+behind a disclosure, and place the existing access panel under the log in the same column.
+Use the shared surfaces and container-responsive two-row grid; stack message plots.
+
+Verification: affected service/adapter tests, frontend contracts/build/i18n/format,
+full cockpit browser matrix and controlled live lifecycle, spec/annotation/lint/catalog.
+Activate API/web only and inspect the real 8080 company. Preserve all earlier pilot and
+enterprise performance gates. Missing current-day shipping input is not fixed by UI.
+
+
 ## Instrument console follow-up (FR-047–051)
 
 Owner scope approval: 2026-10-07, proceed autonomously and provide a local viewing URL.

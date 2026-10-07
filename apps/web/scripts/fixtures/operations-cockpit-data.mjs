@@ -148,3 +148,60 @@ export const flows = {
     evidence: [{ kind: "movement", id: "return_flow", label: "Return receipt" }],
   },
 };
+
+// Explicit illustrative partitions for presentation proof; service tests prove authority.
+Object.assign(flows.orders, {
+  risk: {
+    total: 67,
+    in_plan: 50,
+    at_risk: 10,
+    critical: 5,
+    unclassified: 2,
+    coverage: "partial",
+    scope: "open_orders",
+  },
+});
+Object.assign(flows.messages, {
+  risk: {
+    total: 8,
+    in_plan: null,
+    at_risk: null,
+    critical: null,
+    unclassified: 8,
+    coverage: "unavailable",
+    scope: "unanswered_local_messages",
+  },
+});
+Object.assign(flows.supply, {
+  risk: {
+    total: 17,
+    in_plan: 12,
+    at_risk: 2,
+    critical: 2,
+    unclassified: 1,
+    coverage: "partial",
+    scope: "open_supplier_lines",
+  },
+});
+Object.assign(flows.stock, {
+  risk: {
+    total: 2,
+    in_plan: 0,
+    at_risk: 0,
+    critical: 2,
+    unclassified: 0,
+    coverage: "complete",
+    scope: "oversold_items",
+  },
+});
+Object.assign(flows.returns, {
+  risk: {
+    total: 2,
+    in_plan: 0,
+    at_risk: 1,
+    critical: 0,
+    unclassified: 1,
+    coverage: "partial",
+    scope: "pending_return_positions",
+  },
+});

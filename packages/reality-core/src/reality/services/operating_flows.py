@@ -20,7 +20,11 @@ from reality.db.core import (
 from reality.services import core, exceptions, return_dispositions
 
 CLASSES = {
-    "orders": ["overdue_outgoing_customer_commitment", "outgoing_commitment_at_risk"],
+    "orders": [
+        "overdue_outgoing_customer_commitment",
+        "outgoing_commitment_due_soon",
+        "outgoing_commitment_at_risk",
+    ],
     "supply": ["overdue_incoming_supplier_commitment"],
     "stock": ["item_oversold"],
     "returns": ["return_unresolved", "announced_return_not_arrived"],
@@ -39,6 +43,37 @@ def _signal(findings: list, pending: int = 0, *, unknown: bool = False) -> str:
 
 def _evidence(kind: str, identity: str, label: str) -> dict:
     return {"kind": kind, "id": identity, "label": label}
+
+
+def _risk_partition(
+    scope: str, members: list[tuple[str, str, bool]], findings: list
+) -> dict:
+    """Partition the complete primary cohort; worst held condition wins per identity."""
+    rank = {"in_plan": 0, "unclassified": 1, "at_risk": 2, "critical": 3}
+    units: dict[str, str] = {}
+    records: dict[str, str] = {}
+    for record_id, unit_id, assessed in members:
+        records[record_id] = unit_id
+        category = "in_plan" if assessed else "unclassified"
+        if rank[category] >= rank.get(units.get(unit_id, "in_plan"), 0):
+            units[unit_id] = category
+    for finding in findings:
+        unit = records.get(finding.record_id)
+        if unit is None:
+            continue
+        category = "critical" if finding.severity in {"high", "critical"} else "at_risk"
+        if rank[category] > rank[units[unit]]:
+            units[unit] = category
+    counts = {
+        category: sum(value == category for value in units.values())
+        for category in rank
+    }
+    return {
+        "scope": scope,
+        "total": len(units),
+        **counts,
+        "coverage": "partial" if counts["unclassified"] else "complete",
+    }
 
 
 def _mail(
@@ -473,6 +508,39 @@ def observe(
                 for m in (pending + unknown + resolved)[:4]
             ],
         },
+    }
+    values["orders"]["risk"] = _risk_partition(
+        "open_orders",
+        [
+            (row.id, row.document_id, row.due_at is not None)
+            for row in outgoing
+            if row.document_id
+        ],
+        grouped["orders"],
+    )
+    values["supply"]["risk"] = _risk_partition(
+        "open_supplier_lines",
+        [(row.id, row.id, row.due_at is not None) for row in incoming],
+        grouped["supply"],
+    )
+    values["stock"]["risk"] = _risk_partition(
+        "oversold_items",
+        [(row.record_id, row.record_id, True) for row in grouped["stock"]],
+        grouped["stock"],
+    )
+    values["returns"]["risk"] = _risk_partition(
+        "pending_return_positions",
+        [(row.id, row.id, False) for row in pending],
+        grouped["returns"],
+    )
+    mail["risk"] = {
+        "scope": "unanswered_local_messages",
+        "total": mail["unanswered"],
+        "in_plan": None,
+        "at_risk": None,
+        "critical": None,
+        "unclassified": mail["unanswered"],
+        "coverage": "unavailable",
     }
     for key, rows in grouped.items():
         values[key]["exception_total"] = len(rows)

@@ -103,3 +103,20 @@ points, 300 for exact full-cohort cumulative five-minute boundaries on dense
 curves. Dense series include opening/terminal counts and retain complete basis
 fingerprints and supporting-order evidence. The UI explicitly discloses the
 aggregation; an interval count never asserts a new physical event timestamp.
+
+
+### Primary-cohort risk partitions (FR-053)
+
+Each existing flow area adds optional `risk`: `scope`, nullable `total`, nullable
+`in_plan`, `at_risk`, `critical`, `unclassified`, and `coverage` (complete/partial/unavailable).
+Known counts are disjoint and reconcile to the full displayed primary count. Order
+identities collapse all open lines at their worst condition; missing delivery dates
+remain unclassified unless a stronger existing finding is held. High/critical
+exception severity is Critical; other held findings are At risk. Due-soon customer
+exceptions are included alongside overdue/unreserved findings because they supersede
+the latter. Supplier scope is open lines, stock scope only oversold items, and return
+scope pending physical positions. Missing learned return findings do not establish
+timeliness. Message urgency counters remain null without held deadlines, while
+the complete unanswered count is unclassified; missing mailbox coverage keeps all
+counts null. No financial risk observation is invented. Derive all partitions from
+already loaded tenant-scoped cohorts/findings; no stored status or additional SQL.

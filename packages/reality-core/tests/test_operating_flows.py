@@ -690,3 +690,105 @@ def test_full_delivery_cohort_preserves_independent_revision_fields_and_correcti
     assert row.due_at == revised_due == terms.due_at
     assert row.fulfilled == Decimal(0) == terms.fulfilled
     assert row.open == Decimal(8) == terms.open
+
+
+def test_instrument_risk_partitions_complete_supplier_work_before_preview(
+    session, business
+):
+    # BUSINESS PURPOSE: Mixed risk meters must describe all expected supplier work, including missing dates.
+    # BUSINESS RULE: Exact existing high-severity findings are critical; dated work without findings is in plan and undated work is unclassified.
+    at = now()
+    for due in [at + timedelta(days=2)] * 7 + [at - timedelta(days=2)] * 5 + [None] * 2:
+        core.create_commitment(
+            session,
+            business.tenant.id,
+            "supplier_delivery",
+            business.supplier.id,
+            business.company.id,
+            business.item.id,
+            business.location.id,
+            "3",
+            due,
+        )
+    value = observe(session, business, at)
+    assert value["supply"]["risk"] == {
+        "total": 14,
+        "in_plan": 7,
+        "at_risk": 0,
+        "critical": 5,
+        "unclassified": 2,
+        "coverage": "partial",
+        "scope": "open_supplier_lines",
+    }
+    assert len(value["supply"]["exceptions"]) == 4
+    assert value["messages"]["risk"]["in_plan"] is None
+    assert value["messages"]["risk"]["total"] is None
+
+
+def test_instrument_order_risk_deduplicates_lines_and_due_soon_supersession(
+    session, business
+):
+    # BUSINESS PURPOSE: A multi-line order occupies only one risk segment and imminent work cannot disappear from assessment.
+    # BUSINESS RULE: Collapse opaque order identities with worst canonical severity, including due-soon findings that supersede unreserved work.
+    at = now()
+    document = core.create_document(
+        session,
+        business.tenant.id,
+        "sales_order",
+        "SO-risk",
+        business.customer.id,
+        "10",
+    )
+    for due in [at + timedelta(hours=1), None, at - timedelta(days=1)]:
+        core.create_commitment(
+            session,
+            business.tenant.id,
+            "customer_delivery",
+            business.company.id,
+            business.customer.id,
+            business.item.id,
+            business.location.id,
+            "3",
+            due,
+            document_id=document.id,
+        )
+    value = observe(session, business, at)
+    assert value["orders"]["risk"] == {
+        "total": 1,
+        "in_plan": 0,
+        "at_risk": 0,
+        "critical": 1,
+        "unclassified": 0,
+        "coverage": "complete",
+        "scope": "open_orders",
+    }
+    assert "outgoing_commitment_due_soon" in value["orders"]["evaluated_classes"]
+    assert any(
+        row["class_id"] == "outgoing_commitment_due_soon"
+        for row in value["orders"]["exceptions"]
+    )
+
+
+def test_message_pending_count_does_not_invent_urgency(session, business):
+    # BUSINESS PURPOSE: An open customer message must not become a made-up SLA violation or a green success.
+    # BUSINESS RULE: Retain the full unanswered count with null urgency counters and explicit unclassified coverage.
+    at = now()
+    source(
+        session,
+        business,
+        "company_simulator:risk",
+        "incoming",
+        "one",
+        {"message_id": "one", "kind": "customer_email"},
+        at - timedelta(minutes=2),
+    )
+    risk = observe(session, business, at)["messages"]["risk"]
+    assert risk == {
+        "total": 1,
+        "in_plan": None,
+        "at_risk": None,
+        "critical": None,
+        "unclassified": 1,
+        "coverage": "unavailable",
+        "scope": "unanswered_local_messages",
+    }

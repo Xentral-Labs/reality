@@ -1,8 +1,54 @@
 # Feature Specification: Enterprise operations cockpit — shipping and case control
 
+## Approved preview parity refinement (2026-10-07)
+
+The owner explicitly approved matching the supplied instrument-console preview,
+including mixed risk meters and its two-row layout. No unresolved clarification.
+
+- **FR-052**: After the instruments and legend, place shipping on the left and the
+  recent business-event log with the single registered Agent/access inventory on the
+  right. Below, place selected detailed analysis on the left and the existing whole-case
+  responsibility register on the right. Stack these regions in the same reading order
+  in narrow content. Preserve every diagram, evidence path, inspection and reviewed action.
+- **FR-053**: Each instrument MUST show exact primary-cohort counts labelled In plan,
+  At risk and Critical, plus an explicit unclassified count when needed. Derive disjoint
+  counts in the shared operating-flows service from the complete scoped cohort before
+  preview limits, using opaque identities and existing exception severities: high/critical
+  is Critical, other findings At risk, no finding in a dated assessed delivery cohort
+  In plan. Orders collapse all open lines to one order with worst finding winning;
+  missing dates stay unclassified unless an actual finding is stronger. Include the
+  canonical due-soon class that supersedes unreserved findings. Supply counts open lines;
+  stock counts only the displayed oversold-item subset, never all inventory. Pending
+  return positions without a held exception stay unclassified because absence of a
+  learned resolution threshold is not evidence of timeliness. Message urgency has no
+  held SLA/deadline assessment; its three risk counters MUST remain null and the known
+  unanswered cohort unclassified. Finance and unavailable observations stay unknown.
+  No new threshold, stored classification, business status or SQL query is introduced.
+- **FR-054**: Render the meter as proportional colored widths with exact counts in text,
+  and show a swatch legend directly below: In plan / At risk / Critical / Unclassified;
+  explain that segments refer to the displayed open cohort. Green means no finding in
+  the evaluated scope, not completed work or certified service quality. Empty cohorts
+  and stale/missing assessment MUST NOT become a filled green meter or a false zero.
+- **FR-055**: The recent-event log MUST be compact by default, with recorded timestamps,
+  business labels and exact evidence links. Preserve its full bounded event list,
+  pause/inspection state and recording-rate diagram via an explicit disclosure. Show
+  the existing named Agent inventory immediately beneath it; keep permission/runtime
+  limitations and all-access filtering without adding a second poller.
+- **FR-056**: Responsibility MUST explain that supported cases run automatically and
+  confirmed manual takeover stops new automated actions for that whole case. Show
+  complete ownership counts and a compact initial human-owned case preview from the
+  same register read; selection opens the existing filters/review controls. Preserve
+  pending review/reason/revision state, company isolation and all lifecycle warnings.
+
+Acceptance: desktop two-row alignment; narrow reading order; selecting Messages changes
+only the lower detail panel and preserves both diagrams; mixed risk widths reconcile
+with exact counts; unknown SLA is visible; named Agents and manually owned cases are
+visible without expanding unrelated tables. Four languages and both themes are required.
+
+
 ## Owner-requested case takeover discoverability (2026-10-06)
 
-- **FR-042**: A compact case ownership/whole-case takeover entry MUST appear directly after company status and before shipping. Show complete automatic/human counts from the existing case register read. Case search, filters, inspection and pagination are initially collapsed so routine observation remains compact. Explicit selection and a bookmarked case open the adjacent workspace. Do not add a second register, read, poller, global overlay or mutation.
+- **FR-042**: A compact case ownership/whole-case takeover entry MUST appear alongside the selected detail analysis in the second console row (FR-052 supersedes the original position). Show complete automatic/human counts from the existing case register read. Case search, filters, inspection and pagination are initially collapsed so routine observation remains compact. Explicit selection and a bookmarked case open the adjacent workspace. Do not add a second register, read, poller, global overlay or mutation.
 - **FR-043**: Explain in business language that the system automatically handles supported order-fulfillment/announced-return cases under default coordination; the operator selects one and confirms manual takeover, blocking new automated starts for that entire supported case. Identify where manually taken-over cases appear and that takeover alone does not complete the work. Preserve already-started-action and related-case scope disclosures in the reviewed confirmation.
 - **FR-044**: Labelled automatic/human count buttons and a selection disclosure MUST provide keyboard-accessible entry to the existing register. Human entry shows the existing human-owned filter (including completed work); automatic entry shows supported open work without changing the meaning of the automatic total. Opening/closing is presentation-only, preserving selected inspection, review/reason/request state and live reads; it MUST NOT itself stop, complete or hand back work. The bounded entry/workspace wraps in all four languages, both themes and mobile/narrow content without overflow; shipping curves and all existing observations remain intact.
 
@@ -267,10 +313,10 @@ incoming/processed diagrams. This refinement supersedes the simultaneous default
 five-card layout in FR-035 while retaining every metric, definition and evidence link.
 
 - **FR-047**: The top company-wide overview MUST use compact instruments with a large
-  primary count, a labelled classic traffic-light condition and a decorative signal
-  strip. It MUST retain the five canonical areas. Finance MUST be explicitly unavailable
+  primary count, a labelled classic traffic-light condition and a proportionate risk
+  meter (FR-053 supersedes the original decorative strip). It MUST retain the five canonical areas. Finance MUST be explicitly unavailable
   in this observation, with a link to its existing workspace and no invented count.
-  The strip describes the canonical area condition, never a proportion of risky work.
+  The meter uses only the complete, explicitly defined primary cohort and the canonical classifications described in FR-053.
 - **FR-048**: Selecting an instrument MUST reveal that area's detailed analysis while
   retaining same-page anchors and keyboard navigation. A labelled area selector MUST
   allow switching analysis without scrolling to the top. All existing evidence,

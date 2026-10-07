@@ -1,5 +1,13 @@
 # Tasks: Enterprise operations cockpit
 
+## Preview parity follow-up (FR-052–056)
+
+- [x] T087 Add failing service proofs for complete risk partitions, deduplication, canonical due-soon and unknown urgency, and browser proofs for the requested two-row geometry, legend, Agent/manual visibility.
+- [x] T088 Derive additive risk partitions in the shared operating-flows reader from existing complete scoped cohorts; add the nullable DTO and truthful mixed instrument meters.
+- [x] T089 Arrange shipping/log/Agent and selected analysis/responsibility rows; preserve rate and detail diagrams, evidence, live state and reviewed manual controls.
+- [ ] T090 Run affected checks, inspect both themes/narrow views and the real local company, update PR 383 and record exact evidence without closing earlier rollout gates.
+
+
 ## Instrument console follow-up (FR-047–051)
 
 Dependency order: T082/T083 before T084/T085; T086 after both implementations.

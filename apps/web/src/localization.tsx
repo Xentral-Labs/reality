@@ -13,6 +13,25 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Not assessed": "Nicht eingestuft",
+    "In plan": "Im Plan",
+    "Segments: share of the displayed open work": "Segmente: Anteil der angezeigten offenen Arbeit",
+    "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.":
+      "Im Plan: kein Befund im geprüften Bereich. Fehlende Fristen oder Bewertungen bleiben nicht eingestuft.",
+    "Risk counts use the complete displayed cohort, with each identity counted once at its worst recorded condition. High or critical findings are red; other findings are orange.":
+      "Die Aufteilung umfasst die gesamte angezeigte offene Arbeit. Jeder Vorgang zählt einmal mit seinem schwersten erfassten Befund. Hohe oder kritische Befunde sind rot, andere Befunde orange.",
+    "Message deadlines are not recorded; urgency cannot be assessed.":
+      "Für Nachrichten sind keine Antwortfristen erfasst; ihre Dringlichkeit ist nicht bewertbar.",
+    "Pending returns without a recorded finding remain unclassified; a missing learned threshold does not prove timeliness.":
+      "Offene Retouren ohne erfassten Befund bleiben nicht eingestuft. Eine fehlende Erfahrungsgrenze belegt keine fristgerechte Bearbeitung.",
+    "Stock segments cover only items with uncovered demand, not all stocked items.":
+      "Bestandssegmente umfassen nur Artikel mit ungedecktem Bedarf, nicht den gesamten Lagerbestand.",
+    "Recording rate & period": "Erfassungsrate & Zeitraum",
+    "Live event log": "Live-Ereignisse",
+    "Registered Agents": "Registrierte Agenten",
+    "No manually owned cases": "Keine manuell übernommenen Vorgänge",
+    "More cases are available in the manual register.":
+      "Weitere Vorgänge findest du im manuellen Register.",
     "Last 60 minutes": "Letzte 60 Minuten",
     "Data incomplete": "Datenlage unvollständig",
     "Company instruments": "Instrumentenpult",
@@ -1393,7 +1412,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "New reservations": "Neue Reservations",
     "Stock movements": "Warenbewegungen",
     "Other documents": "Weitere Belege",
-    "Recorded business activity": "Erfasste Geschäftsvorgänge",
+    "Recorded business activity": "Gerade passiert",
     "minutes per bar": "Minuten pro Balken",
     "Activity over time": "Aktivität im Zeitverlauf",
     "Recorded activities": "erfasste Vorgänge",
@@ -2492,6 +2511,26 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Not assessed": "Niet beoordeeld",
+    "In plan": "Volgens plan",
+    "At risk": "Risico",
+    "Segments: share of the displayed open work": "Segmenten: aandeel van het getoonde open werk",
+    "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.":
+      "Volgens plan: geen bevinding binnen het beoordeelde bereik. Ontbrekende termijnen of beoordelingen blijven ongeclassificeerd.",
+    "Risk counts use the complete displayed cohort, with each identity counted once at its worst recorded condition. High or critical findings are red; other findings are orange.":
+      "De verdeling omvat de volledige getoonde groep. Elke identiteit telt eenmaal met de zwaarste vastgelegde bevinding. Ernstige of kritieke bevindingen zijn rood; andere bevindingen oranje.",
+    "Message deadlines are not recorded; urgency cannot be assessed.":
+      "Antwoordtermijnen zijn niet vastgelegd; urgentie kan niet worden beoordeeld.",
+    "Pending returns without a recorded finding remain unclassified; a missing learned threshold does not prove timeliness.":
+      "Open retouren zonder vastgelegde bevinding blijven ongeclassificeerd; een ontbrekende geleerde grens bewijst geen tijdigheid.",
+    "Stock segments cover only items with uncovered demand, not all stocked items.":
+      "Voorraadsegmenten omvatten alleen artikelen met ongedekte vraag, niet de volledige voorraad.",
+    "Recording rate & period": "Registratiesnelheid en periode",
+    "Live event log": "Live-gebeurtenissen",
+    "Registered Agents": "Geregistreerde agenten",
+    "No manually owned cases": "Geen handmatig overgenomen dossiers",
+    "More cases are available in the manual register.":
+      "Meer dossiers staan in het handmatige register.",
     "Last 60 minutes": "Laatste 60 minuten",
     "Data incomplete": "Gegevens onvolledig",
     "Company instruments": "Bedrijfsinstrumenten",
@@ -4666,6 +4705,26 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Not assessed": "Sin evaluar",
+    "In plan": "Según lo previsto",
+    "At risk": "En riesgo",
+    "Segments: share of the displayed open work":
+      "Segmentos: proporción del trabajo pendiente mostrado",
+    "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.":
+      "Según lo previsto: sin incidencias en el ámbito evaluado. Los plazos o evaluaciones ausentes quedan sin clasificar.",
+    "Risk counts use the complete displayed cohort, with each identity counted once at its worst recorded condition. High or critical findings are red; other findings are orange.":
+      "La distribución abarca todo el grupo mostrado. Cada identidad se cuenta una vez con su incidencia más grave. Las incidencias altas o críticas son rojas; las demás, naranjas.",
+    "Message deadlines are not recorded; urgency cannot be assessed.":
+      "No hay plazos registrados para los mensajes; no se puede evaluar su urgencia.",
+    "Pending returns without a recorded finding remain unclassified; a missing learned threshold does not prove timeliness.":
+      "Las devoluciones pendientes sin incidencia registrada quedan sin clasificar; la ausencia de un umbral aprendido no demuestra puntualidad.",
+    "Stock segments cover only items with uncovered demand, not all stocked items.":
+      "Los segmentos de existencias solo incluyen artículos con demanda sin cubrir, no todo el inventario.",
+    "Recording rate & period": "Ritmo de registro y período",
+    "Live event log": "Eventos en directo",
+    "Registered Agents": "Agentes registrados",
+    "No manually owned cases": "No hay casos asumidos manualmente",
+    "More cases are available in the manual register.": "Hay más casos en el registro manual.",
     "Last 60 minutes": "Últimos 60 minutos",
     "Data incomplete": "Datos incompletos",
     "Company instruments": "Panel de instrumentos",

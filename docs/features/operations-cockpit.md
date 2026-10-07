@@ -1,10 +1,33 @@
 # Operations cockpit
 
+## Preview parity refinement (FR-052–056)
+
+Shipping and the recent recorded-business-event log occupy the first row, with the
+existing named Agent/access roster beneath the log. Selected detail analysis and
+whole-case responsibility occupy the second row. Narrow content stacks these regions
+in reading order; both mail plots, the disclosed recording-rate plot, shipping evidence
+and reviewed controls remain available through the existing four live reads.
+
+The shared flow reader partitions each displayed primary cohort before evidence limits.
+Orders count once at their worst line finding; supplier work counts open lines. Existing
+high/critical findings are red, other findings orange, assessed dated deliveries with
+no evaluated finding green. Missing dates remain unclassified unless a stronger finding
+is held. The canonical due-soon class is included because it supersedes unreserved work.
+Stock covers only oversold items. Returns without a held finding remain unclassified,
+as a missing learned threshold cannot establish timeliness. Message urgency counters
+remain null without recorded response deadlines; the known unanswered count remains
+visible. Finance stays unavailable. Nothing is persisted and no extra query is added.
+
+The single case register initially reads human-owned work for a visible manual preview;
+choosing an automatic case switches its existing filter. Ownership counts remain full
+and takeover/handback still require the existing exact reviewed confirmation.
+
 ## Instrument console refinement (FR-047–051)
 
 The owner-approved console presents the five canonical areas as compact instruments
-with complete primary counts, labelled three-color conditions and decorative signal
-strips. Strips are area conditions, never risk proportions. Finance is an explicitly
+with complete primary counts and labelled three-color conditions. The FR-052–056
+preview parity refinement replaces decorative strips with exact complete-cohort
+risk partitions and proportional meters, including explicit unclassified coverage. Finance is an explicitly
 unavailable observation with a normal workspace link. Selecting an instrument or local
 area control opens one detailed analysis; bookmarked anchors and live-refresh selection
 are retained, inactive evidence panels stay mounted, and company changes reset context.

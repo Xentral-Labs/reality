@@ -33,6 +33,7 @@ export function OperationsActivityPanel({
       setInspected(null);
     }
   }, [state.status]);
+  const [rateExpanded, setRateExpanded] = useState(false);
   const [held, setHeld] = useState<CockpitActivityEvent[] | null>(null);
   const [inspected, setInspected] = useState<CockpitActivityEvent | null>(null);
   useEffect(() => {
@@ -57,20 +58,8 @@ export function OperationsActivityPanel({
     <section className="cockpit-card cockpit-activity" aria-labelledby="activity-title">
       <div className="cockpit-card-heading">
         <div>
-          <span className="cockpit-eyebrow">{t("Company-wide · recorded entities")}</span>
+          <span className="cockpit-eyebrow">{t("Live event log")}</span>
           <h2 id="activity-title">{t("Recorded business activity")}</h2>
-        </div>
-        <div className="cockpit-selection" role="group" aria-label={t("Activity period")}>
-          {([5, 15, 60] as const).map((window) => (
-            <button
-              className="br-btn"
-              key={window}
-              aria-pressed={minutes === window}
-              onClick={() => navigate({ cockpitMinutes: window })}
-            >
-              {window} {t("Min.")}
-            </button>
-          ))}
         </div>
       </div>
       {state.status === "stale" && (
@@ -86,34 +75,53 @@ export function OperationsActivityPanel({
       )}
       {value && (
         <>
-          <div className="cockpit-activity-total">
-            <strong>{formatNumber(value.total)}</strong>
-            <span>{t("Newly recorded entities in this window")}</span>
-          </div>
-          <div
-            className="cockpit-activity-chart"
-            role="img"
-            aria-label={t("Recorded business entities per minute")}
+          <details
+            className="cockpit-recording-rate"
+            open={rateExpanded}
+            onToggle={(event) => setRateExpanded(event.currentTarget.open)}
           >
-            {value.buckets.map((bucket) => (
-              <div
-                key={bucket.start}
-                className={bucket.partial ? "partial" : ""}
-                style={{ height: `${Math.max(2, (bucket.total / maximum) * 100)}%` }}
-              >
-                <span>{formatNumber(bucket.total)}</span>
-                <title>
-                  {formatDateTime(bucket.start)} · {formatNumber(bucket.total)}
-                  {bucket.partial ? ` · ${t("Partial coverage")}` : ""}
-                </title>
-              </div>
-            ))}
-          </div>
-          <p className="cockpit-footnote">
-            {t(
-              "Recording time determines this graph. It does not count completed shipments or successful Agent actions.",
-            )}
-          </p>
+            <summary>{t("Recording rate & period")}</summary>
+            <div className="cockpit-selection" role="group" aria-label={t("Activity period")}>
+              {([5, 15, 60] as const).map((window) => (
+                <button
+                  className="br-btn"
+                  key={window}
+                  aria-pressed={minutes === window}
+                  onClick={() => navigate({ cockpitMinutes: window })}
+                >
+                  {window} {t("Min.")}
+                </button>
+              ))}
+            </div>
+            <div className="cockpit-activity-total">
+              <strong>{formatNumber(value.total)}</strong>
+              <span>{t("Newly recorded entities in this window")}</span>
+            </div>
+            <div
+              className="cockpit-activity-chart"
+              role="img"
+              aria-label={t("Recorded business entities per minute")}
+            >
+              {value.buckets.map((bucket) => (
+                <div
+                  key={bucket.start}
+                  className={bucket.partial ? "partial" : ""}
+                  style={{ height: `${Math.max(2, (bucket.total / maximum) * 100)}%` }}
+                >
+                  <span>{formatNumber(bucket.total)}</span>
+                  <title>
+                    {formatDateTime(bucket.start)} · {formatNumber(bucket.total)}
+                    {bucket.partial ? ` · ${t("Partial coverage")}` : ""}
+                  </title>
+                </div>
+              ))}
+            </div>
+            <p className="cockpit-footnote">
+              {t(
+                "Recording time determines this graph. It does not count completed shipments or successful Agent actions.",
+              )}
+            </p>
+          </details>
           <div className="cockpit-actions">
             <button className="br-btn" onClick={() => setHeld(held ? null : value.events)}>
               {t(held ? "Resume following" : "Pause following")}
