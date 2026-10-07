@@ -285,3 +285,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T110 [FR-073] Add failing product browser proof of one selected-topic h2 per primary card and shared typography across six analysis/three workspace views.
 - [x] T111 [FR-073] Centralize visible topic headings in OperatingFlowsPanel/OperationsWorkspacePanel with explicit embedded child presentation and stable accessible region names; retain context, controls and state.
 - [x] T112 [FR-073] Run required frontend/browser/build/audit/policy checks, inspect and activate the local web, review the diff and update existing PR while retaining enterprise/CI gates.
+
+
+## Full instrument tile activation
+
+- [x] T113 [FR-074] Add failing browser proofs for whole-tile pointer hits, native keyboard all-work activation and focus restoration; retain direct risk filtering.
+- [x] T114 [FR-074] Expand the native primary trigger across the tile with separate risk controls and full-tile feedback; update localized instruction in OperatingFlowsPanel/localization/operationsCockpit.css.
+- [x] T115 [FR-074] Run frontend/browser/build/audit/format/spec checks, activate only web locally, inspect actual tile/dialog behavior and update existing PR with review evidence; retain enterprise/CI gates.

@@ -1701,3 +1701,35 @@ a.cockpit-status-link:focus-visible {
   justify-content: flex-end;
   margin-bottom: 16px;
 }
+
+/* One native primary trigger covers the tile; risk shortcuts stay independent. */
+.cockpit-status-tile {
+  position: relative;
+}
+.cockpit-metric-trigger {
+  position: static;
+}
+.cockpit-metric-trigger:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  z-index: 1;
+}
+.cockpit-metric-trigger:hover {
+  text-decoration: none;
+}
+.cockpit-metric-trigger:not(:disabled):hover::after {
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.cockpit-metric-trigger:focus-visible {
+  outline: none;
+}
+.cockpit-metric-trigger:focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.cockpit-status-tile .cockpit-risk-trigger {
+  position: relative;
+  z-index: 2;
+}

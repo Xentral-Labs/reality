@@ -623,3 +623,17 @@ each card, selected-topic changes, matched typography and retained state. Run
 frontend contracts, localization/format/build/spec checks and actual local browser
 inspection. Constitution Check: PASS, presentation only with no authority changes.
 Rollback: restore prior component headers; no stored data changes.
+
+
+## Full instrument tile activation
+
+FR-074: Extend the existing native primary-count button's hit area to its containing
+tile using a positioned CSS pseudo-element. Risk buttons remain siblings above that
+hit layer; disabled primary buttons create no hit layer. Keep the same handlers,
+dialog and exact shared snapshots. Retain full-tile hover/focus and update the short
+four-language instruction. Browser tests first click title/meter/status/padding,
+check all-work selection and keyboard/focus, and retain the existing risk/filter/
+modal/full-matrix proofs. Verify frontend contracts, audit/format/build/spec policy,
+then activate only the web locally and update existing PR. Constitution PASS; no
+service/schema/business/authority/polling change. Rollback removes the additive hit
+area styling and restores the existing count instruction.

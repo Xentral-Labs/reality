@@ -233,3 +233,9 @@ The two primary console cards use one selected-topic heading (spec 378 FR-073):
 Flow analysis and Operations workspace are category eyebrows; the current shipping/
 flow or responsibility/log/Agent topic is the sole primary h2. Embedded views retain
 context, accessible region names, icon actions and state without repeated headings.
+
+Available instrument tiles open their same compact all-work inspection from the
+whole primary hit area (spec 378 FR-074). The native primary trigger supports
+Enter/Space and full-tile focus feedback; sibling risk controls retain their exact
+filtered group. Unavailable counts do not acquire an inspection action, and Finance
+retains its workspace link. No extra request, navigation or business action.

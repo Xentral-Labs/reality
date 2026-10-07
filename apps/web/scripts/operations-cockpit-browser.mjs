@@ -805,6 +805,56 @@ try {
     );
     assert((await tile.locator("button").count()) >= 4, "counts open compact inspection");
   }
+  for (const area of ["orders", "messages", "supply", "stock", "returns"]) {
+    const tile = summary.locator(`[data-status-area="${area}"]`);
+    const size = await tile.boundingBox();
+    const points = await tile.evaluate((el) => {
+      const card = el.getBoundingClientRect();
+      return [
+        ".cockpit-status-area-title",
+        ".cockpit-instrument-strip",
+        ".cockpit-status-condition",
+      ].map((selector) => {
+        const rect = el.querySelector(selector).getBoundingClientRect();
+        return {
+          x: rect.left - card.left + rect.width / 2,
+          y: rect.top - card.top + rect.height / 2,
+        };
+      });
+    });
+    points.push({ x: 8, y: size.height - 8 });
+    const primary = tile.locator(".cockpit-metric-trigger");
+    for (const position of points) {
+      await tile.click({ position });
+      const dialog = page.getByRole("dialog", { name: "Quick inspection", exact: true });
+      await dialog.waitFor();
+      assert.equal(
+        await dialog.getByRole("combobox", { name: "Risk group", exact: true }).inputValue(),
+        "all",
+        "whole tile opens all work",
+      );
+      assert.equal(
+        await dialog.locator(".cockpit-eyebrow").textContent(),
+        await page.locator(`.cockpit-analysis-selector option[value="${area}"]`).textContent(),
+      );
+      await dialog.press("Escape");
+      assert(
+        await primary.evaluate((el) => document.activeElement === el),
+        "whole-tile close restores native trigger focus",
+      );
+    }
+    for (const key of ["Enter", "Space"]) {
+      await primary.focus();
+      await primary.press(key);
+      const dialog = page.getByRole("dialog", { name: "Quick inspection", exact: true });
+      await dialog.waitFor();
+      assert.equal(
+        await dialog.getByRole("combobox", { name: "Risk group", exact: true }).inputValue(),
+        "all",
+      );
+      await dialog.press("Escape");
+    }
+  }
   const areaSelector = page.getByRole("combobox", { name: "Analysis area", exact: true });
   assert.equal(await areaSelector.count(), 1, "analysis owns exactly one selector");
   assert.equal(await page.locator(".cockpit-analysis-selector button").count(), 0);
@@ -840,7 +890,7 @@ try {
     true,
     "Escape restores risk trigger focus",
   );
-  await summary.locator('[data-status-area="orders"] [data-status-metric]').click();
+  await summary.locator('[data-status-area="orders"] .cockpit-metric-trigger').click();
   await inspection.waitFor();
   assert.equal(await inspection.locator("tbody tr").count(), 8, "order preview stays bounded");
   await inspection.getByRole("button", { name: "Close", exact: true }).click();

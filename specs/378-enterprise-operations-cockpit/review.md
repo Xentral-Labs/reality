@@ -778,3 +778,37 @@ descriptions/actions remain available. Screenshot:
 The retained current-day observations and operator remain live. Final diff review
 passed; no dangling embedded heading references, duplicate topic headings or
 changes to control/state semantics.
+
+
+FR-074 pre-implementation analysis: explicit owner requests whole-tile inspection.
+One requirement maps to T113–115 and product hit-area/keyboard/filter/focus proof.
+Constitution PASS, no unresolved clarification or critical inconsistency; existing
+FR-068–070 exact read-only inspection semantics are preserved. Reviewer-owned
+rollout/performance checklists remain outside the authorized presentation repair.
+
+
+FR-074 product proof: before implementation, clicking the tile title timed out
+waiting for Quick inspection, reproducing the reported missing hit area. After
+implementation, the full cockpit browser matrix passed, including title, meter,
+status and padding pointer hits across all five available areas, all-work selection,
+Enter/Space and Escape focus restoration. Existing direct risk filtering, exact
+member previews, stale/empty evidence, viewport/history/source/manual/live state,
+phone/desktop geometry and theme/language proofs remain green. The hit layer is
+owned by the existing native button, with sibling risk buttons above it; there are
+no nested buttons or delegated business handlers. Finance and unavailable primary
+counts retain their previous behavior. Native frontend build, scoped formatting
+and spec policy passed. Existing enterprise/CI/rollout qualification remains open.
+
+All 478 frontend contracts passed, four-language localization audits remain
+3044/3044 with the tile instruction translated, production/frontend image builds
+and formatting passed. The temporary fixture server was stopped after the browser
+proof. No backend schema, service, catalog, authority or polling change.
+
+Local activation proof: only the web container was recreated. In the actual
+company on port 8080, a pointer click on the Stock tile title opened Quick
+inspection with All open work selected and both underlying item rows. Escape
+closed the dialog. Screenshot: /private/tmp/reality-instrument-panel/
+control-tower-tile-inspection.png. Final scoped diff review passed; no business
+reader, automatic agent action or runtime fixture was changed. Existing ready
+PR 383 receives this verified presentation change; enterprise qualification
+and current-head CI remain independent gates.
