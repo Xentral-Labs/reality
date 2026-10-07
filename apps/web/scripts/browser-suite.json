@@ -187,5 +187,8 @@
     "unified-workspaces-browser.mjs",
     "verification-return-browser.mjs",
     "workspace-tab-counts-browser.mjs"
-  ]
+  ],
+  "timeouts_seconds": {
+    "operations-cockpit-session-browser.mjs": 600
+  }
 }

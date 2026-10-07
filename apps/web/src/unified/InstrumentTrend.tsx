@@ -1,4 +1,4 @@
-import { formatNumber, t } from "../localization";
+import { formatNumber, formatTime, formatZonedDateTime, t } from "../localization";
 import type { OperatingFlows } from "./cockpitModel";
 import { instrumentTrend, miniTrendPath } from "./instrumentMiniTrend";
 
@@ -61,6 +61,18 @@ export function InstrumentTrend({
       </span>
       <span className="cockpit-mini-period">
         {t(stale ? "Previous observation" : "Last 60 minutes")}
+        {value?.observed_at && (
+          <>
+            {" · "}
+            <time
+              dateTime={value.observed_at}
+              title={`${t("Data observed at")} ${formatZonedDateTime(value.observed_at)}`}
+              aria-label={`${t("Data observed at")} ${formatZonedDateTime(value.observed_at)}`}
+            >
+              {formatTime(value.observed_at)}
+            </time>
+          </>
+        )}
       </span>
     </span>
   );

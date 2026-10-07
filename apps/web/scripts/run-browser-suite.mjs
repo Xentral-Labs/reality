@@ -73,7 +73,10 @@ const run = (script) =>
     });
     child.stdout.on("data", (chunk) => (output += chunk));
     child.stderr.on("data", (chunk) => (output += chunk));
-    const timer = setTimeout(() => child.kill("SIGKILL"), timeout);
+    const scriptTimeout = process.env.BROWSER_SUITE_TIMEOUT
+      ? timeout
+      : (suite.timeouts_seconds?.[script] || 300) * 1000;
+    const timer = setTimeout(() => child.kill("SIGKILL"), scriptTimeout);
     child.on("close", (code) => {
       clearTimeout(timer);
       resolve({ script, code, seconds: Math.round((Date.now() - started) / 1000), output });

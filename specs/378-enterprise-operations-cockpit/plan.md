@@ -732,3 +732,8 @@ Constitution I–VIII PASS; owner explicitly requests autonomous consistency wit
 ## Recent-activity visual alignment (FR-084 refinement)
 
 Owner requests removal of the nested chart frame. Scope is only operationsCockpit.css: remove signal border, radius, background and horizontal padding; preserve chart height, baseline, bar geometry, counts, scope, pause and reader behavior. Constitution I–VIII PASS; no ambiguity or domain/service/schema change. Verify with the existing full cockpit browser matrix, production build, formatting, spec policy and actual local screenshot. No new tests for this reversible styling change; existing live/control/responsive proofs cover retained behavior. Rollback restores the prior scoped CSS.
+
+
+## Mini-trend observation time (FR-085 refinement)
+
+Use existing value.observed_at in InstrumentTrend.tsx beside the period; formatTime uses the user timezone, a semantic time datetime and localized full-date title/label expose exact meaning. Preserve stale wording and absent observation. Add matrix assertions before implementation for six exact timestamps and Berlin presentation, retain contained responsive footers. Constitution I–VIII PASS; owner explicitly requests this narrow presentation. No new clock, polling, data/schema or authority. Existing full cockpit/contracts/i18n/build and actual visual proof apply.
