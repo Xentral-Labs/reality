@@ -1,0 +1,218 @@
+{
+  "ci_run_url": "https://github.com/Xentral-Labs/reality/actions/runs/37594673723",
+  "job_id": 112704340083,
+  "execution": "Enterprise profile inside ordinary two-worker pytest shard; failed live p95 gate",
+  "measurements": [
+    {
+      "cold_seconds": 2.213709459000029,
+      "cold_queries": 33,
+      "cold_payload_bytes": 111226
+    },
+    {
+      "hardware": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "python": "3.12.14",
+      "cpu_count": 4,
+      "memory_bytes": 16766414848,
+      "postgres": {
+        "version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+        "shared_buffers": "128MB",
+        "work_mem": "4MB",
+        "max_connections": "100",
+        "max_parallel_workers_per_gather": "2"
+      },
+      "pool_size": 80,
+      "max_overflow": 5,
+      "query_counts": [
+        33,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        34,
+        34,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "payload_bytes": [
+        111226,
+        111226,
+        111226,
+        111226,
+        111226,
+        111226,
+        111226,
+        111226,
+        111226,
+        111226,
+        110585,
+        110585,
+        110585,
+        110585,
+        110585,
+        110585,
+        110585,
+        110585,
+        110585,
+        110585
+      ],
+      "cold_method": "First application read after fixture ANALYZE; PostgreSQL OS/shared buffers are not flushed.",
+      "active": 10000,
+      "historical": 100000,
+      "shipment_observations": 500000,
+      "readers": 10,
+      "cold_seconds": 2.213709459000029,
+      "samples": [
+        1.9394682370000282,
+        1.9491431420000254,
+        1.9393283910000036,
+        1.941207615000053,
+        1.9387710720000086,
+        1.92765681700007,
+        1.9316726499999959,
+        1.9376990630000819,
+        1.9329083569999739,
+        1.9203259419999767,
+        1.948630900000012,
+        2.099883243000022,
+        2.0381434919999037,
+        2.1035741489999964,
+        2.0535354569999527,
+        2.099669468000002,
+        2.0320804380000936,
+        2.093341334999991,
+        2.0641159870000365,
+        2.0972814330000347
+      ],
+      "p95_seconds": 2.099883243000022,
+      "commit_to_observation_seconds": 2.406338011999992,
+      "distribution": "Two sites, one item, partial-allowed EUR orders, 1000 complete active, 9000 ready active, 100000 fulfilled historical, no prepayment; exact canonical owner-reviewed plans."
+    },
+    {
+      "epoch": 1,
+      "cycle_seconds": 3.3062495609999587,
+      "write_seconds": 0.8456720450000148,
+      "read_p95_seconds": 3.280587166000032
+    },
+    {
+      "epoch": 2,
+      "cycle_seconds": 3.2613178269999707,
+      "write_seconds": 0.5063526790000878,
+      "read_p95_seconds": 3.2337576230000877
+    },
+    {
+      "epoch": 3,
+      "cycle_seconds": 3.3412332060000836,
+      "write_seconds": 0.6460561700000653,
+      "read_p95_seconds": 3.3191779389999283
+    },
+    {
+      "epoch": 4,
+      "cycle_seconds": 3.46207574999994,
+      "write_seconds": 0.5780632849999847,
+      "read_p95_seconds": 3.4444436030000816
+    },
+    {
+      "epoch": 5,
+      "cycle_seconds": 3.7820737470000267,
+      "write_seconds": 0.40678476599998703,
+      "read_p95_seconds": 3.7556501860000253
+    },
+    {
+      "epoch": 6,
+      "cycle_seconds": 3.560984799000039,
+      "write_seconds": 0.6919301670000095,
+      "read_p95_seconds": 3.532694397
+    },
+    {
+      "epoch": 7,
+      "cycle_seconds": 3.447174458999939,
+      "write_seconds": 1.5182047360000297,
+      "read_p95_seconds": 3.4291014140000016
+    },
+    {
+      "epoch": 8,
+      "cycle_seconds": 3.2850339540000277,
+      "write_seconds": 1.1908536269999104,
+      "read_p95_seconds": 3.267450212999961
+    },
+    {
+      "epoch": 9,
+      "cycle_seconds": 3.5085041950000004,
+      "write_seconds": 1.4660675420000189,
+      "read_p95_seconds": 3.4829386190000378
+    },
+    {
+      "epoch": 10,
+      "cycle_seconds": 3.6098056219999535,
+      "write_seconds": 1.5925136969999585,
+      "read_p95_seconds": 3.581996262000075
+    },
+    {
+      "epoch": 11,
+      "cycle_seconds": 3.6776534690000062,
+      "write_seconds": 0.969026144000054,
+      "read_p95_seconds": 3.6580610569999408
+    },
+    {
+      "epoch": 12,
+      "cycle_seconds": 3.163239535999992,
+      "write_seconds": 0.5402651899999,
+      "read_p95_seconds": 3.1498709740000095
+    },
+    {
+      "live_seconds": 60,
+      "live_requests": 480,
+      "live_p95_seconds": 3.5653014389999953,
+      "live_p95_by_kind_seconds": {
+        "overview": 3.72773426699996,
+        "register": 2.0834207069999593,
+        "activity": 2.7205106840000326,
+        "agents": 0.21143555300000116
+      },
+      "live_max_queries": 47,
+      "live_max_payload_bytes": 113901,
+      "cycle_seconds": [
+        3.3062495609999587,
+        3.2613178269999707,
+        3.3412332060000836,
+        3.46207574999994,
+        3.7820737470000267,
+        3.560984799000039,
+        3.447174458999939,
+        3.2850339540000277,
+        3.5085041950000004,
+        3.6098056219999535,
+        3.6776534690000062,
+        3.163239535999992
+      ],
+      "write_seconds": [
+        0.8456720450000148,
+        0.5063526790000878,
+        0.6460561700000653,
+        0.5780632849999847,
+        0.40678476599998703,
+        0.6919301670000095,
+        1.5182047360000297,
+        1.1908536269999104,
+        1.4660675420000189,
+        1.5925136969999585,
+        0.969026144000054,
+        0.5402651899999
+      ],
+      "committed_new_orders": 12,
+      "last_commit_to_verified_observation_seconds": 5.030425840000021,
+      "writer_mode": "Concurrent canonical writer; old/new exact snapshot parity and mandatory next-cycle visibility"
+    }
+  ]
+}
