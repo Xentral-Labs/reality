@@ -39,6 +39,13 @@ PostgreSQL databases and fixed timestamps where business dates affect behavior.
 
 ## Required assertions
 
+The declared isolated enterprise timing profile runs in its own `enterprise`
+backend CI matrix entry, without another pytest worker or fixture on that runner.
+The four ordinary shards retain two pytest workers and exclude only that file;
+the enterprise entry runs the entire file and remains part of `backend-quality`.
+Its internal concurrent readers/writer, cohort, latency thresholds and duration
+artifact are unchanged. This isolates benchmark measurement, not business activity.
+
 - Every business query is isolated by tenant, including aggregate queries.
 - Money and quantities are compared as Decimal values, never binary floats.
 - Source payloads round-trip losslessly and existing SourceRecords are not updated.

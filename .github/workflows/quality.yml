@@ -62,9 +62,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Keep two workers per runner while distributing the suite across
-        # isolated PostgreSQL jobs to reduce the backend gate's critical path.
-        shard: [0, 1, 2, 3]
+        # Keep two workers for ordinary regressions. The declared isolated
+        # enterprise timing profile gets its own runner/database so another
+        # pytest worker cannot distort its unchanged latency/cadence gates.
+        shard: [0, 1, 2, 3, enterprise]
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -119,13 +120,25 @@ jobs:
           REALITY_AUTH_MODE: disabled
           SHARD: ${{ matrix.shard }}
         run: |
-          mapfile -t test_files < <(
-            python3 scripts/ci_backend_test_shard.py packages/reality-core/tests \
-              --shard "$SHARD" --total 4 --relative-to packages/reality-core
-          )
+          enterprise_file=tests/test_operations_cockpit_performance.py
+          test_files=()
+          pytest_args=()
+          if [ "$SHARD" = enterprise ]; then
+            test_files=("$enterprise_file")
+          else
+            while IFS= read -r test_file; do
+              if [ "$test_file" != "$enterprise_file" ]; then
+                test_files+=("$test_file")
+              fi
+            done < <(
+              python3 scripts/ci_backend_test_shard.py packages/reality-core/tests \
+                --shard "$SHARD" --total 4 --relative-to packages/reality-core
+            )
+            pytest_args=(-n 2 --dist worksteal)
+          fi
           test "${#test_files[@]}" -gt 0
           cd packages/reality-core
-          pytest -n 2 --dist worksteal --durations=20 \
+          pytest "${pytest_args[@]}" --durations=20 \
             --junitxml "$RUNNER_TEMP/backend-durations-$SHARD.xml" "${test_files[@]}"
       - name: Upload test durations
         if: always()
