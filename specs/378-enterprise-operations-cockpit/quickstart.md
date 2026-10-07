@@ -778,3 +778,6 @@ verified. Domain/services/DTOs remain unchanged; previous release gates stay ope
 
 
 FR-082 stacked monitoring: open Control Tower on port 8080. Right column shows Zuletzt passiert above Angemeldete Agenten together, without a selector. For controls, open Business cases in operation, then Cases & takeover; select a case or the manual register and use the unchanged exact confirmation/review. A cockpit_case bookmark opens both upper disclosures. Closing/reopening retains the prepared reason and analysis does not reset it. Latest complete cockpit browser, 478 frontend contracts, four 3056-key audits, build/image/format/spec checks pass. Existing CI/enterprise/soak gates stay open.
+
+
+FR-083 compact legend: the four risk keys remain in a centered single desktop row. Activate the Info summary to read the original scope explanation; Escape closes it and returns focus. Actual port-8080 German footer measures 31px instead of 77px. Full cockpit browser matrix, 478 frontend contracts, four 3056-key audits, production build/image and format/spec checks pass. Existing release gates remain open.
