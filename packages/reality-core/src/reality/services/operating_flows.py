@@ -41,7 +41,9 @@ def _evidence(kind: str, identity: str, label: str) -> dict:
     return {"kind": kind, "id": identity, "label": label}
 
 
-def _mail(session: Session, tenant: str, observed: datetime, instants: list) -> dict:
+def _mail(
+    session: Session, tenant: str, observed: datetime, instants: list, buckets: list
+) -> dict:
     reply, ack = aliased(SourceRecord), aliased(SourceRecord)
     replies = (
         select(
@@ -158,6 +160,26 @@ def _mail(session: Session, tenant: str, observed: datetime, instants: list) -> 
         }
         for at in instants
     ]
+    for index, bucket in enumerate(buckets):
+        start = datetime.fromisoformat(bucket["start"])
+        end = datetime.fromisoformat(bucket["end"])
+        final = index == len(buckets) - 1
+
+        def contains(
+            at: datetime | None,
+            start: datetime = start,
+            end: datetime = end,
+            final: bool = final,
+        ) -> bool:
+            return at is not None and start <= at and (at < end or final and at == end)
+
+        covered = scope_present and bucket["known"]
+        bucket["messages_incoming"] = (
+            sum(contains(row.received_at) for row in rows) if covered else None
+        )
+        bucket["message_first_replies"] = (
+            sum(contains(row.answered) for row in rows) if covered else None
+        )
     return {
         "coverage": coverage,
         "provider_reply_coverage": "unavailable",
@@ -369,7 +391,6 @@ def observe(
         for a in core.return_announcements(session, tenant_id, status="open")
         if core.announcement_outstanding(session, tenant_id, a) > 0
     ]
-    mail = _mail(session, tenant_id, observed, instants)
     # reality-rule: operating_flows.timing
     buckets = []
     for i, start in enumerate([first + timedelta(minutes=5 * j) for j in range(13)]):
@@ -393,6 +414,7 @@ def observe(
                 ),
             }
         )
+    mail = _mail(session, tenant_id, observed, instants, buckets)
     for point in mail["series"]:
         if datetime.fromisoformat(point["at"]) < tenant.created_at:
             point["unanswered"] = None

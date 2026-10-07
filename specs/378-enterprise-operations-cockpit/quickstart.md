@@ -466,3 +466,64 @@ proof now verifies exact proposed/executed planning actions, explicit absence of
 causal-response/provider-outcome claims and no invented next check. No production
 response rule or action ordering was weakened. Final full-suite CI remains the PR
 review gate and its head-specific result is recorded in the PR description.
+
+
+## Instrument console increment — 2026-10-07
+
+Owner-approved FR-047–051 add compact instruments and one selected detailed analysis.
+The reviewed implementation tree was identical to current main after PR #382 merged;
+the follow-up uses its own branch, retaining the optimized activity-owned flow read.
+No shipping/case authority, schema definition, poller or extra SQL query is introduced.
+
+Executed proof: 24 operating-flow tests and 29 cockpit adapter/snapshot tests passed
+against a disposable PostgreSQL database, including scalar/snapshot modes, exact mail
+lineage, missing scope and inclusive-hour/bucket boundary reconciliation. The 478
+frontend contracts passed. Production TypeScript/Vite build, final formatting,
+four-language audit (3,015 used strings), full-shell browser checks, specification
+policy, Ruff, generated catalog freshness and business annotation audit passed.
+The controlled eight-hour browser session passed with zero errors and each live
+endpoint below the unchanged 5,800-request budget. This is controlled-time proof,
+not the unrun real-time eight-hour pilot soak.
+
+The first mail boundary fixture failed because its observation minute was not aligned
+to clock buckets; the corrected test fixes that independent premise and separately
+proves a partial rolling-hour start. The first language audit exposed a missing time
+label and a protected domain-term mismatch; both were corrected and the final audit
+passed. The obsolete original-checkout live-session proof exceeded the endpoint budget;
+the final merged shared-reader architecture passed without weakening that budget.
+
+Local activation uses the reviewed API/web build context and the original stack's
+configuration. A real-browser check found the older local database at the obsolete
+`0145_shipping_plan_inputs` revision without `case_rollout`. Before any schema change,
+a complete custom-format local backup was saved. The old and canonical shipping DDL
+were proved identical after whitespace normalization (all eight statements). Only
+the already-reviewed frozen `0145_default_operational_cases.upgrade` was executed
+transactionally, with a five-second lock timeout and a sixty-second statement timeout;
+the revision was then reconciled to canonical `0146_shipping_plan_inputs`. Existing
+shipping inputs, cases, manual ownership and immutable business records were retained.
+No business record was rewritten, no scenario input was invented and no job or
+external effect was submitted. Operator, simulator, MCP and worker processes retained
+their running state. Full background platform reconciliation remains separately visible.
+
+Real local API `/healthz` and web responded HTTP 200. The actual company showed
+separate incoming/first-reply and backlog curves with real counts, current event
+activity and one existing human-owned case. The sole confirmed demo shipping plan
+is dated 2026-10-06: a pinned view showed 853 due and 35 confirmed handovers. Today's
+missing plan remains unavailable; a finished day's future forecast is not reconstructed.
+Finance remains explicitly unavailable in this projection. Observed values change live
+and are proof observations, not fixed acceptance targets.
+
+Final responsive proof passed in both themes and all four languages at 320/390/1440/1920px,
+with existing docked-container coverage retained. The narrow-screen spacing change
+initially exposed long-label overflow; explicit metric-cell wrapping and the unchanged
+page-width assertion resolved it. The final browser run also proves a sixteen-pixel
+metric-row gap, preserving source disclosures, selected analysis and case confirmation.
+
+The final web image was activated and reloaded in the actual local browser. Its
+selected analysis computed the asserted 16px metric-row gap. The confirmed demo
+shipping plan and handover curves remained present. The actual unanswered count
+changed from 1,985 to 1,945 during inspection; automated case totals and recent
+business events also advanced. The manually owned case stayed visible as automation
+stopped. Both HTTP health and web returned 200; the existing simulator/MCP containers
+kept their uptime. Existing platform rollout coverage remains incomplete and is
+shown explicitly, rather than represented as complete autonomy verification.

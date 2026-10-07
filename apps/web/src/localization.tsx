@@ -13,6 +13,21 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Last 60 minutes": "Letzte 60 Minuten",
+    "Data incomplete": "Datenlage unvollständig",
+    "Company instruments": "Instrumentenpult",
+    "Not available in this observation": "In dieser Ansicht nicht verfügbar",
+    "Flow analysis": "Detailanalyse",
+    "Analysis area": "Analysebereich",
+    "Incoming & first replies": "Eingang & erste Antworten",
+    "Unanswered backlog": "Nachrichten ohne Antwort",
+    "Recorded movements": "Erfasste Bewegungen",
+    "Records per interval": "Datensätze je Intervall",
+    "Open messages": "Offene Nachrichten",
+    "Incoming messages": "Eingegangene Nachrichten",
+    "First recorded replies": "Erste erfasste Antworten",
+    "Five-minute intervals; edge intervals may be shorter.":
+      "Fünf-Minuten-Intervalle; Randintervalle können kürzer sein.",
     "Control Tower": "Control Tower",
     "Return to Control Tower": "Zurück zum Control Tower",
     "Control Tower is unavailable for this company":
@@ -2477,6 +2492,21 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Last 60 minutes": "Laatste 60 minuten",
+    "Data incomplete": "Gegevens onvolledig",
+    "Company instruments": "Bedrijfsinstrumenten",
+    "Not available in this observation": "Niet beschikbaar in deze observatie",
+    "Flow analysis": "Stroomanalyse",
+    "Analysis area": "Analysegebied",
+    "Incoming & first replies": "Binnenkomst en eerste antwoorden",
+    "Unanswered backlog": "Onbeantwoorde berichten",
+    "Recorded movements": "Vastgelegde bewegingen",
+    "Records per interval": "Registraties per interval",
+    "Open messages": "Open berichten",
+    "Incoming messages": "Binnengekomen berichten",
+    "First recorded replies": "Eerste vastgelegde antwoorden",
+    "Five-minute intervals; edge intervals may be shorter.":
+      "Intervallen van vijf minuten; randintervallen kunnen korter zijn.",
     "Control Tower": "Control Tower",
     "Return to Control Tower": "Terug naar Control Tower",
     "Control Tower is unavailable for this company":
@@ -4636,6 +4666,21 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Last 60 minutes": "Últimos 60 minutos",
+    "Data incomplete": "Datos incompletos",
+    "Company instruments": "Panel de instrumentos",
+    "Not available in this observation": "No disponible en esta observación",
+    "Flow analysis": "Análisis de flujos",
+    "Analysis area": "Área de análisis",
+    "Incoming & first replies": "Entradas y primeras respuestas",
+    "Unanswered backlog": "Mensajes sin respuesta",
+    "Recorded movements": "Movimientos registrados",
+    "Records per interval": "Registros por intervalo",
+    "Open messages": "Mensajes abiertos",
+    "Incoming messages": "Mensajes recibidos",
+    "First recorded replies": "Primeras respuestas registradas",
+    "Five-minute intervals; edge intervals may be shorter.":
+      "Intervalos de cinco minutos; los intervalos extremos pueden ser más cortos.",
     "Control Tower": "Control Tower",
     "Return to Control Tower": "Volver a Control Tower",
     "Control Tower is unavailable for this company":

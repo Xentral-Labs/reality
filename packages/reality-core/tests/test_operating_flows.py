@@ -124,7 +124,61 @@ def test_messages_count_full_lineage_not_acknowledgements_or_preview(session, bu
     assert max(p["unanswered"] or 0 for p in mail["series"]) == 205
     assert mail["series"][-1]["unanswered"] == 204
     assert len(mail["series"]) == 13
+    assert sum(b["messages_incoming"] for b in value["buckets"]) == 205
+    assert sum(b["message_first_replies"] for b in value["buckets"]) == 1
+    assert (
+        sum(b["messages_incoming"] for b in value["buckets"])
+        == mail["incoming_last_hour"]
+    )
+    assert (
+        sum(b["message_first_replies"] for b in value["buckets"])
+        == mail["first_replies_last_hour"]
+    )
     assert session.scalar(select(func.count()).select_from(SourceRecord)) == before
+
+
+def test_mail_intervals_include_observation_once_and_preserve_unknown_time(
+    session, business
+):
+    # BUSINESS PURPOSE: The live interval chart reconciles the whole hour without losing the latest arrival or reply.
+    # BUSINESS RULE: Include the exact observation instant only in the final interval; uncovered company time stays unknown.
+    at = now()
+    at = at.replace(minute=at.minute // 5 * 5, second=0, microsecond=0)
+    business.tenant.created_at = at - timedelta(hours=2)
+    system = "company_simulator:boundary"
+    for index, minute in enumerate([60, 55, 5, 0]):
+        source(
+            session,
+            business,
+            system,
+            "incoming",
+            f"boundary-{index}",
+            {"direction": "incoming", "message_id": f"boundary-{index}"},
+            at - timedelta(minutes=minute),
+        )
+    source(
+        session,
+        business,
+        system,
+        "outgoing",
+        "reply-at-observation",
+        {"direction": "outgoing", "in_reply_to": "boundary-0"},
+        at,
+    )
+    value = observe(session, business, at)
+    assert sum(b["messages_incoming"] for b in value["buckets"]) == 4
+    assert sum(b["message_first_replies"] for b in value["buckets"]) == 1
+    assert value["buckets"][-1]["messages_incoming"] == 2
+    assert value["buckets"][-1]["message_first_replies"] == 1
+    assert value["messages"]["unanswered"] == 3
+    partial = observe(session, business, at + timedelta(minutes=2))
+    assert sum(b["messages_incoming"] for b in partial["buckets"]) == 3
+    assert sum(b["message_first_replies"] for b in partial["buckets"]) == 1
+    business.tenant.created_at = at - timedelta(minutes=20)
+    value = observe(session, business, at)
+    assert value["buckets"][0]["messages_incoming"] is None
+    assert value["buckets"][0]["message_first_replies"] is None
+    assert value["buckets"][-1]["messages_incoming"] == 2
 
 
 def test_supplier_work_and_returns_keep_partial_and_corrected_positions(
@@ -232,6 +286,8 @@ def test_order_recording_deduplicates_and_unknown_mail_is_not_empty_success(
     assert value["messages"]["coverage"] == "unavailable"
     assert value["messages"]["unanswered"] is None
     assert value["messages"]["signal"] == "unknown"
+    assert all(b["messages_incoming"] is None for b in value["buckets"])
+    assert all(b["message_first_replies"] is None for b in value["buckets"])
     assert session.scalar(select(func.count()).select_from(BusinessEvent)) == before
 
 
