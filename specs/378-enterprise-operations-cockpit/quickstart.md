@@ -745,3 +745,23 @@ inspection-audit-final.log (3038/3038 in each language), inspection-build-final.
 inspection-format.log, inspection-spec.log, inspection-docs.log, inspection-images.log,
 inspection-activation.log, instrument-stock-preview-live.png.
 Existing final-head enterprise/CI and separate real-time soak gates remain open.
+
+
+## Upper overview and source-backed briefing follow-up (FR-079/080)
+
+On port 8080, expand Business cases in operation below the instrument legend.
+Registered cases, open work and automation/human ownership have separate columns;
+select a supported count to inspect at most six exact matching original cases.
+Current whole-case kinds are order fulfillment and announced returns. Unsupported
+families show unavailable counts and incomplete rollout remains explicit.
+Expand Shipping deviations & recorded actions to see at most three original order
+causes, ownership and recorded actions. All affected orders/full evidence remain
+available in shipping analysis. Actions do not establish actor, causality or external
+success. Refresh and area changes retain disclosures; company changes reset them.
+
+Local verification: 55 affected PostgreSQL tests, 478 frontend contracts, the final
+complete locale/theme/viewport cockpit browser matrix including incomplete rollout,
+four 3057-key audits, production API/web images, formatting, scoped Ruff/annotations,
+spec policy and catalog freshness pass. Read-only actual-company preview confirms
+one existing manual case. Current-head CI/enterprise performance/pilot-soak remain
+open release gates.

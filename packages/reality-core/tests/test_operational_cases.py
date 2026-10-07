@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 
 import pytest
-from sqlalchemy import select
-
 from reality.db.core import ChangeProposal, now, uid
 from reality.db.operational_cases import OperationalCase
 from reality.services import core
@@ -13,6 +11,7 @@ from reality.services import operational_cases as cases
 from reality.services.case_action_guards import automated_execution, guard_operation
 from reality.services.intake import apply_prepared_intake, prepare_intake, review_intake
 from reality.services.memberships import Principal
+from sqlalchemy import select
 
 FIXTURE = Path(__file__).parent.parent / "fixtures/shopify/order_10473.json"
 
@@ -94,6 +93,10 @@ def test_case_register_keeps_completed_human_work_and_exact_control_attribution(
     register = cases.register_cases(session, business.tenant.id, control_mode="human")
     assert register["total"] == 1 and register["items"][0]["goal_state"] == "completed"
     assert register["counts"]["human"] == 1
+    assert register["kind_counts"]["order_fulfillment"]["human"] == 1
+    assert register["kind_counts"]["order_fulfillment"]["completed"] == 1
+    assert register["kind_counts"]["order_fulfillment"]["outstanding"] == 0
+    assert register["kind_counts"]["customer_return"]["human"] == 0
     assert (
         cases.register_cases(
             session, business.tenant.id, control_mode="human", outstanding_only=True
@@ -355,6 +358,10 @@ def test_announced_return_is_distinct_and_not_transferred(
     assert {c["kind"] for c in result} == {"order_fulfillment", "customer_return"}
     ret = next(c for c in result if c["kind"] == "customer_return")
     assert ret["return_announcement_id"] == announcement.id
+    register = cases.register_cases(session, business.tenant.id)
+    assert register["kind_counts"]["customer_return"]["total"] == 1
+    assert register["kind_counts"]["customer_return"]["outstanding"] == 1
+    assert register["kind_counts"]["order_fulfillment"]["total"] == 1
     fulfillment = next(c for c in result if c["kind"] == "order_fulfillment")
     cases.takeover(
         session,
@@ -805,3 +812,31 @@ def test_snapshot_shared_large_actions_preserve_review_without_opaque_input_tran
     assert session.get(
         ChangeProposal, (business.tenant.id, "shared_large_executed")
     ).input == json.dumps({"opaque": "x" * 250000})
+
+
+def test_register_kind_counts_are_complete_and_independent_of_page_filters(
+    session, business, scheduled_owner
+):
+    # BUSINESS PURPOSE: The company overview distinguishes complete case ownership from current open work.
+    # BUSINESS RULE: Canonical per-kind observations partition the original tenant-scoped counts, independently of a filtered preview.
+    activate(session, business, scheduled_owner)
+    order(session, business)
+    whole = cases.register_cases(session, business.tenant.id, limit=1)
+    filtered = cases.register_cases(
+        session,
+        business.tenant.id,
+        kind="customer_return",
+        query="missing",
+        control_mode="human",
+    )
+    assert filtered["total"] == 0
+    assert filtered["kind_counts"] == whole["kind_counts"]
+    assert whole["kind_counts"]["order_fulfillment"]["outstanding"] == 1
+    assert set(whole["kind_counts"]) == {"order_fulfillment", "customer_return"}
+    for key, count in whole["counts"].items():
+        assert sum(row[key] for row in whole["kind_counts"].values()) == count
+    other = core.create_tenant(session, name="Unrelated case overview")
+    assert all(
+        not any(row.values())
+        for row in cases.register_cases(session, other.id)["kind_counts"].values()
+    )

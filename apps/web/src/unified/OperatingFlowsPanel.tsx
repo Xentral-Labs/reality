@@ -352,10 +352,12 @@ export function OperatingStatusPanel({
   value,
   stale,
   selection,
+  supporting,
 }: {
   value?: OperatingFlows;
   stale: boolean;
   selection: Selection;
+  supporting?: ReactNode;
 }) {
   const [inspection, setInspection] = useState<{
     area: OperatingAreaKey;
@@ -486,6 +488,7 @@ export function OperatingStatusPanel({
           )}
         </p>
       </footer>
+      {supporting}
     </section>
   );
 }

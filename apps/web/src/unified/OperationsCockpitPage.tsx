@@ -17,6 +17,7 @@ import { OperationsWorkspacePanel } from "./OperationsWorkspacePanel";
 import { AgentAccessPanel } from "./AgentAccessPanel";
 import type { ShippingMeasure } from "./cockpitModel";
 import type { Selection } from "./routing";
+import { BusinessCaseOverview, type BusinessCaseSnapshot } from "./BusinessCaseOverview";
 import "./operationsCockpit.css";
 
 export function OperationsCockpitPage({
@@ -26,6 +27,7 @@ export function OperationsCockpitPage({
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
 }) {
+  const [caseObservation, setCaseObservation] = useState<BusinessCaseSnapshot | null>(null);
   const inspectionTrigger = useRef<HTMLElement | SVGElement | null>(null);
   const [inspection, setInspection] = useState<{ at?: string; day: string } | null>(null);
   const [sites, setSites] = useState<{ location_id: string; name: string }[]>([]);
@@ -181,6 +183,31 @@ export function OperationsCockpitPage({
             value={activityState.data?.flows}
             stale={activityState.status !== "current"}
             selection={selection}
+            supporting={
+              <div key={selection.tenant}>
+                <BusinessCaseOverview selection={selection} snapshot={caseObservation} />
+                <details className="cockpit-upper-disclosure" data-shipping-briefing>
+                  <summary>
+                    <strong>{t("Shipping deviations & recorded actions")}</strong>
+                    <span
+                      className={`cockpit-business-badge ${state.data?.deviation_total == null ? "attention" : state.data.deviation_total > 0 ? "risk" : "automatic"}`}
+                    >
+                      {t("Affected orders")} ·{" "}
+                      {state.data?.deviation_total == null
+                        ? "—"
+                        : formatNumber(state.data.deviation_total)}
+                    </span>
+                  </summary>
+                  <OperationsDeviationsPanel
+                    value={state.data!}
+                    selection={selection}
+                    inspect={() => inspect("risk")}
+                    embedded
+                    compact
+                  />
+                </details>
+              </div>
+            }
           />
           <div className="cockpit-console-row" data-console-primary>
             <div className="cockpit-analysis-column">
@@ -243,7 +270,12 @@ export function OperationsCockpitPage({
               <OperationsWorkspacePanel
                 key={selection.tenant}
                 responsibility={
-                  <OperationalCaseRegister key={selection.tenant} selection={selection} embedded />
+                  <OperationalCaseRegister
+                    key={selection.tenant}
+                    selection={selection}
+                    embedded
+                    onObservation={setCaseObservation}
+                  />
                 }
                 activity={
                   <OperationsActivityPanel

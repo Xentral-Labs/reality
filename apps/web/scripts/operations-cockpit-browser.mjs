@@ -263,6 +263,7 @@ async function assertShippingGrouping(label) {
 }
 
 async function assertContentGrouping(label) {
+  await page.locator("[data-flow-area]:not([hidden]) [data-metric-period]").first().waitFor();
   const groups = await page
     .locator("[data-flow-area]:not([hidden]) [data-metric-period]")
     .evaluateAll((elements) =>
@@ -533,6 +534,24 @@ await page.route("**/api/**", (route) => {
               completed: 0,
               abandoned: 0,
             },
+            kind_counts: {
+              order_fulfillment: {
+                total: largeCaseCounts ? 15801 : 1,
+                automation: largeCaseCounts ? 12345 : controlMode === "automation" ? 1 : 0,
+                human: largeCaseCounts ? 3456 : controlMode === "human" ? 1 : 0,
+                outstanding: largeCaseCounts ? 15801 : 1,
+                completed: 0,
+                abandoned: 0,
+              },
+              customer_return: {
+                total: 0,
+                automation: 0,
+                human: 0,
+                outstanding: 0,
+                completed: 0,
+                abandoned: 0,
+              },
+            },
             items:
               controlMode === "human" || url.searchParams.get("control_mode") !== "human"
                 ? [caseRow()]
@@ -721,7 +740,7 @@ await page.route("**/api/**", (route) => {
                       detail: `Recorded blocker ${index}-${blocker}`,
                     })),
                   },
-            recorded_case_actions: Array.from({ length: 40 }, (_, action) => ({
+            recorded_case_actions: Array.from({ length: index === 2 ? 0 : 40 }, (_, action) => ({
               proposal_id: `act_dense_${index}_${action}`,
               type: `Recorded action ${action}`,
               status: "executed",
@@ -801,6 +820,117 @@ try {
     /12:30.*GMT/,
     "general observation follows the UTC viewer instead of the Berlin shipping clock",
   );
+  assert.equal(
+    await page.locator("[data-business-case-overview]").count(),
+    1,
+    "upper business case table retained",
+  );
+  assert.equal(
+    await page.locator("[data-shipping-briefing]").count(),
+    1,
+    "upper evidence briefing retained",
+  );
+  const businessCases = page.locator("[data-business-case-overview]");
+  assert.equal(
+    await businessCases.evaluate((el) => el.open),
+    false,
+    "business overview starts compact",
+  );
+  await businessCases.locator("summary").click();
+  await businessCases
+    .locator('[data-business-kind="order_fulfillment"] button')
+    .first()
+    .waitFor({ state: "visible" });
+  assert.equal(
+    await businessCases.locator("tbody tr").count(),
+    6,
+    "six families retain explicit support limits",
+  );
+  assert.equal(await businessCases.locator('[data-business-kind="unsupported"]').count(), 4);
+  assert.deepEqual(
+    await businessCases
+      .locator('[data-business-kind="order_fulfillment"] button')
+      .allTextContents(),
+    ["1", "1", "1", "0"],
+  );
+  const ownershipPreview = businessCases.getByRole("button", {
+    name: "Order fulfillment · With automation",
+    exact: true,
+  });
+  await ownershipPreview.focus();
+  await ownershipPreview.press("Enter");
+  const businessDialog = page.getByRole("dialog", { name: "Business case inspection" });
+  await businessDialog.getByText("SO-104", { exact: true }).waitFor();
+  assert(
+    reads.some(
+      (url) =>
+        url.pathname.endsWith("/register") &&
+        url.searchParams.get("kind") === "order_fulfillment" &&
+        url.searchParams.get("control_mode") === "automation" &&
+        url.searchParams.get("limit") === "6",
+    ),
+    "case preview uses exact canonical filters",
+  );
+  assert(
+    await businessDialog.getByRole("link", { name: "SO-104", exact: true }).getAttribute("href"),
+  );
+  await page.keyboard.press("Escape");
+  assert.equal(await businessDialog.count(), 0);
+  assert(
+    await ownershipPreview.evaluate((el) => document.activeElement === el),
+    "case preview restores native focus",
+  );
+  assert.equal(writes.length, 0, "overview inspection has no business writes");
+  for (const [label, key, expected] of [
+    ["Work remains", "outstanding_only", "true"],
+    ["Manually taken over", "control_mode", "human"],
+  ]) {
+    await businessCases
+      .getByRole("button", { name: `Order fulfillment · ${label}`, exact: true })
+      .click();
+    const dialog = page.getByRole("dialog", { name: "Business case inspection" });
+    await dialog.getByText(label, { exact: true }).first().waitFor();
+    await page.waitForTimeout(100);
+    assert(
+      reads.some(
+        (url) =>
+          url.pathname.endsWith("/register") &&
+          url.searchParams.get("kind") === "order_fulfillment" &&
+          url.searchParams.get(key) === expected,
+      ),
+    );
+    await page.keyboard.press("Escape");
+  }
+  await businessCases.locator("summary").click();
+  const briefing = page.locator("[data-shipping-briefing]");
+  await briefing.locator("summary").click();
+  assert.equal(await briefing.locator("[data-briefing-order]").count(), 3);
+  assert(
+    await briefing
+      .getByText("No recorded response on this case", { exact: true })
+      .first()
+      .isVisible(),
+  );
+  assert(
+    await briefing
+      .getByText(
+        "Case-linked actions do not establish a response to this blocker or an external delivery outcome.",
+        { exact: true },
+      )
+      .isVisible(),
+  );
+  assert(
+    await briefing
+      .getByRole("link", { name: "Recorded action 0 · executed", exact: true })
+      .first()
+      .isVisible(),
+  );
+  await businessCases.locator("summary").click();
+  await page.waitForTimeout(5500);
+  assert(await businessCases.evaluate((el) => el.open), "case disclosure survives live refresh");
+  assert(await briefing.evaluate((el) => el.open), "briefing survives live refresh");
+  await businessCases.locator("summary").click();
+  await briefing.locator("summary").click();
   await assertInstrumentGrouping("initial instruments");
   await assertShippingGrouping("initial unified shipping");
   await page.locator("[data-shipping-sites] > summary").click();
@@ -1794,6 +1924,20 @@ try {
         await assertFlowAlignment(`${language}/${theme}/${width}/shipping`);
         await assertShippingGrouping(`${language}/${theme}/${width}/shipping`);
         await assertInstrumentGrouping(`${language}/${theme}/${width}/instruments`);
+        await page.locator("[data-business-case-overview] > summary").click();
+        assert(await page.locator("[data-business-case-overview] table").isVisible());
+        assert(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          `${language}/${theme}/${width}: case table scroll is contained`,
+        );
+        await page.locator("[data-business-case-overview] > summary").click();
+        await page.locator("[data-shipping-briefing] > summary").click();
+        assert(await page.locator("[data-deviation-briefing]").isVisible());
+        assert(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          `${language}/${theme}/${width}: briefing is contained`,
+        );
+        await page.locator("[data-shipping-briefing] > summary").click();
         await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         await assertFlowAlignment(`${language}/${theme}/${width}/messages`);
         for (const area of ["orders", "messages", "supply", "stock", "returns"]) {
@@ -1951,7 +2095,18 @@ try {
     (process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177") +
       "/scripts/fixtures/operations-cockpit-harness.html",
   );
-  await page.getByText("Operational case upgrade is still reconciling existing work.").waitFor();
+  await page
+    .locator("[data-case-register]")
+    .getByText("Operational case upgrade is still reconciling existing work.")
+    .waitFor();
+  await page.locator("[data-business-case-overview] > summary").click();
+  assert(
+    await page
+      .locator("[data-business-case-overview]")
+      .getByText("Operational case upgrade is still reconciling existing work.")
+      .isVisible(),
+  );
+  await page.locator("[data-business-case-overview] > summary").click();
   await page.getByText("With automation: 0", { exact: true }).waitFor();
   await page.getByText("Manually taken over: 0", { exact: true }).waitFor();
   staleAccess = staleCases = true;

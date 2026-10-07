@@ -321,3 +321,11 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T126 [FR-078] Add failing shared instrument boundary, aligned tile slots, risk label/count geometry, centered legend and known-zero versus unknown meter proofs in apps/web/scripts/operations-cockpit-browser.mjs.
 - [x] T127 [FR-078] Group the overview/legend and labelled risk rows in OperatingFlowsPanel.tsx; align responsive tile slots and simplify meter/spacing in operationsCockpit.css without changing inspection handlers.
 - [x] T128 [FR-078] Run cockpit browser/contracts/audit/build/format/spec checks, inspect actual local web, review unchanged authority and update existing PR/contract with evidence.
+
+
+## Business case overview and evidence briefing
+
+- [x] T129 [FR-079 FR-080] Add test-first grouped register/tenant/completed-human assertions in test_operational_cases.py and upper case/briefing/filter/disclosure proofs in operations-cockpit-browser.mjs.
+- [x] T130 [FR-079] Group the existing canonical register aggregate in services/operational_cases.py without new evaluators/queries; add API response typing and same-live-page publication in OperationalCaseRegister/OperationsCockpitPage.
+- [x] T131 [FR-079 FR-080] Add BusinessCaseOverview.tsx read-only previews, compact deviation briefing/supporting disclosures, contained theme/table/badge CSS and all four translations; retain original services/control and full shipping evidence.
+- [x] T132 [FR-079 FR-080] Run PostgreSQL/frontend/browser/build/audit/lint/spec/catalog checks, review semantics, activate only API/web and inspect actual live overview; update existing PR/contracts/evidence.

@@ -13,6 +13,26 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Business cases in operation": "Geschäftsvorgänge im Betrieb",
+    "Business case inspection": "Geschäftsvorgänge ansehen",
+    "Registered cases": "Vorgänge gesamt",
+    "Responsibility and open work by case kind": "Verantwortung und offene Arbeit je Vorgangstyp",
+    "Not available as a controllable case": "Nicht als steuerbarer Vorgang verfügbar",
+    "No case takeover": "Keine Vorgangsübernahme",
+    "Automation and manual ownership include completed cases. Open work is shown separately; ownership does not prove an Agent is currently running.":
+      "Automatische und manuelle Verantwortung umfassen auch abgeschlossene Vorgänge. Offene Arbeit steht separat; Verantwortung bestätigt keine laufende Agenten-Ausführung.",
+    "Only order fulfillment and announced returns currently support whole-case takeover. Other case families are not available.":
+      "Ganze Vorgänge lassen sich derzeit für Auftragsabwicklung und angekündigte Retouren übernehmen. Die übrigen Vorgangsarten sind dafür noch nicht verfügbar.",
+    "Shipping deviations & recorded actions": "Versandabweichungen & erfasste Aktionen",
+    "Recorded case action": "Erfasste Aktion am Vorgang",
+    "Reservations and shipping": "Reservierungen und Versand",
+    "Supplier work": "Lieferantenabwicklung",
+    "Receipt and physical processing": "Eingang und physische Bearbeitung",
+    "Message handling": "Anfragen und Antworten",
+    "Financial clarification": "Finanzklärung",
+    "Financial work": "Abgleich und Zuordnung",
+    "Source and structure": "Quellen und Struktur",
+    "Customer inquiries": "Kundenanfragen",
     "Current status": "Aktueller Stand",
     "Select a tile to inspect its records.":
       "Klicke auf eine Kachel, um die zugehörigen Einträge zu sehen.",
@@ -1430,7 +1450,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "New reservations": "Neue Reservations",
     "Stock movements": "Warenbewegungen",
     "Other documents": "Weitere Belege",
-    "Recorded business activity": "Gerade passiert",
+    "Recorded business activity": "Zuletzt passiert",
     "minutes per bar": "Minuten pro Balken",
     "Activity over time": "Aktivität im Zeitverlauf",
     "Recorded activities": "erfasste Vorgänge",
@@ -2529,6 +2549,27 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Business cases in operation": "Bedrijfsdossiers in uitvoering",
+    "Business case inspection": "Bedrijfsdossiers bekijken",
+    "Registered cases": "Dossiers totaal",
+    "Responsibility and open work by case kind":
+      "Verantwoordelijkheid en open werk per dossiertype",
+    "Not available as a controllable case": "Niet beschikbaar als bestuurbaar dossier",
+    "No case takeover": "Geen dossierovername",
+    "Automation and manual ownership include completed cases. Open work is shown separately; ownership does not prove an Agent is currently running.":
+      "Automatisch en handmatig beheer omvat ook voltooide dossiers. Open werk wordt apart getoond; beheer bewijst niet dat een Agent actief is.",
+    "Only order fulfillment and announced returns currently support whole-case takeover. Other case families are not available.":
+      "Volledige dossierovername is nu beschikbaar voor orderafhandeling en aangekondigde retouren. Andere dossiertypen zijn nog niet beschikbaar.",
+    "Shipping deviations & recorded actions": "Verzendafwijkingen en vastgelegde acties",
+    "Recorded case action": "Vastgelegde dossieractie",
+    "Reservations and shipping": "Reserveringen en verzending",
+    "Supplier work": "Leverancierswerk",
+    "Receipt and physical processing": "Ontvangst en fysieke verwerking",
+    "Message handling": "Vragen en antwoorden",
+    "Financial clarification": "Financiële afstemming",
+    "Financial work": "Afstemming en toewijzing",
+    "Source and structure": "Bronnen en structuur",
+    "Customer inquiries": "Klantvragen",
     "Current status": "Huidige stand",
     "Select a tile to inspect its records.":
       "Klik op een tegel om de bijbehorende records te bekijken.",
@@ -4741,6 +4782,27 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Business cases in operation": "Casos de negocio en operación",
+    "Business case inspection": "Consultar casos de negocio",
+    "Registered cases": "Casos registrados",
+    "Responsibility and open work by case kind":
+      "Responsabilidad y trabajo abierto por tipo de caso",
+    "Not available as a controllable case": "No disponible como caso controlable",
+    "No case takeover": "Sin toma de control",
+    "Automation and manual ownership include completed cases. Open work is shown separately; ownership does not prove an Agent is currently running.":
+      "La responsabilidad automática y manual incluye casos completados. El trabajo abierto se muestra aparte; la responsabilidad no prueba que un Agente esté activo.",
+    "Only order fulfillment and announced returns currently support whole-case takeover. Other case families are not available.":
+      "Actualmente se pueden asumir casos completos de cumplimiento de pedidos y devoluciones anunciadas. Los demás tipos aún no están disponibles.",
+    "Shipping deviations & recorded actions": "Desviaciones de envío y acciones registradas",
+    "Recorded case action": "Acción registrada en el caso",
+    "Reservations and shipping": "Reservas y envío",
+    "Supplier work": "Gestión de proveedores",
+    "Receipt and physical processing": "Recepción y procesamiento físico",
+    "Message handling": "Consultas y respuestas",
+    "Financial clarification": "Aclaración financiera",
+    "Financial work": "Conciliación y asignación",
+    "Source and structure": "Fuentes y estructura",
+    "Customer inquiries": "Consultas de clientes",
     "Current status": "Estado actual",
     "Select a tile to inspect its records.": "Pulsa una tarjeta para ver sus registros.",
     "Quick inspection": "Vista rápida",
