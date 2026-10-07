@@ -319,7 +319,7 @@ The shared centered legend keeps the four original risk meanings visible in one 
 
 ### Observed live feedback (FR-084)
 
-The recent-activity card always shows the existing recorded-entity rate in a compact per-minute band, scoped to its selected period. This is newly recorded orders/documents, reservations and movements; it is not tool-call volume, reply throughput or proof of successful Agent execution. Exact source links and the detailed measurement explanation remain available.
+The recent-activity card always shows the existing recorded-entity rate in a compact per-minute band, scoped to its selected period. The count and plot align with the card content without a nested frame or horizontal inset; only the subtle plot baseline remains. This is newly recorded orders/documents, reservations and movements; it is not tool-call volume, reply throughput or proof of successful Agent execution. Exact source links and the detailed measurement explanation remain available.
 
 Primary instruments briefly highlight a changed current count in a neutral accent. The tooltip states the numeric observation difference without assigning success or causality. Newly displayed events with a later recorded sequence receive one finite entry/highlight. Initial history and repeated/older records remain quiet. Pause/inspection retains its event list; resume follows the current observation. Context changes and stale/suspended/denied reads reset the feedback baseline. Reduced-motion preference disables entry/flash and bar transitions. These signals introduce no recurring readers, business writes or synthetic activity.
 
