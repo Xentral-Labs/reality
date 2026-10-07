@@ -420,3 +420,21 @@ Spec impact: none. Preserve DR-005/SC-004 and canonical revision/correction rule
 Preserve complete DR-005/FR-046 inputs and exact standard v2 fingerprint bytes. A same-company source is necessarily at least its own stream version: retrieve only strictly newer metadata, otherwise retain every original field as the latest metadata. Keep all intake/current-required refusals. Avoid circular-container tracking only for the constructed acyclic typed basis; independently compare the full bytes with the standard encoder. Select exact deviation IDs and bounded preview keys after full calculations; never prune the calculation/hash/supporting cohort. Run full source, allocation, shipping and control regressions, then unchanged enterprise acceptance.
 
 The final shipping-only refinement may project owner-reviewed Action headers to all original source identities and all original quantity-revision bindings for clean observations only. Preserve missing/empty legacy review and binding semantics. All original Action payloads and ordinary/mutating validation remain unchanged, and every current source/readiness input stays in the full v2 fingerprint. Independent retained-input equality and complete scalar/snapshot proofs precede this allocation change.
+
+
+The cc4d599d exact-head run passes every functional/browser/installer gate,
+opening/site p95 1.852 s, all twelve live cycles (maximum 3.168 s), and final
+visibility 5.051 s. Aggregate live p95 alone remains red at 3.062 s; overview
+p95 is 3.120 s. Preserve the original three-second limit and complete workload.
+Profiled complete shipping inputs still allocate unused cohort filters for
+preloaded canonical promises/documents, and repeat ORM row-processing for fresh
+scalar-only metadata. Review equivalent allocation only: build unused statements
+only in their actual read branch, and execute selected scalar metadata through
+the same Session-owned transaction Connection only in a clean consistent
+snapshot. Ordinary/dirty readers retain Session execution/autoflush; no ORM
+entity query changes. Independent exact typed-value/transaction/dirty-state
+and preloaded canonical parity regressions precede implementation. Spec impact:
+none under DR-005/FR-046/SC-004. Constitution Check PASS; no authority, source,
+schema, field, cached observation, query workload, cadence or threshold change.
+
+The private scalar Connection result is fully buffered once within its current read call, preserving every row, label and value while avoiding one driver fetch call per row. The result is consumed only by its original caller; no shared/completed result is retained. Existing typed metadata, same-transaction and ordinary/dirty Session proofs cover this allocation boundary.

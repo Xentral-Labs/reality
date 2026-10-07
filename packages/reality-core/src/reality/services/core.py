@@ -4019,6 +4019,20 @@ def movement_quantity(
     )
 
 
+def _metadata_execute(session: OrmSession, statement: Any) -> Result[Any]:
+    """Execute scalar metadata in the same clean snapshot transaction.
+
+    Scalar-only observation statements need no ORM identity processing. Pending
+    or ordinary sessions keep their original autoflush/Session execution; entity
+    statements are never routed through this private allocation boundary.
+    """
+    if session.info.get("operations_snapshot_consistent") and not (
+        session.new or session.dirty or session.deleted
+    ):
+        return session.connection().execute(statement).freeze()()
+    return session.execute(statement)
+
+
 def _metadata_rows(result: Result[Any]) -> Iterator[Any]:
     """Keep exact selected metadata in call-scoped immutable tuple records.
 
@@ -4374,11 +4388,16 @@ def commitment_terms(
     narrow = bool(session.info.get("operations_snapshot_consistent"))
     # Fresh read-only snapshots have no pending ORM state. Other callers retain
     # their identity-map values and exact existing Decimal representation.
-    rows = select(
-        *(Commitment.id, Commitment.type, Commitment.quantity, Commitment.due_at)
-        if narrow
-        else (Commitment,)
-    ).where(Commitment.tenant_id == tenant_id)
+    preloaded = narrow and _commitments is not None and ids is not None
+    rows = (
+        None
+        if preloaded
+        else select(
+            *(Commitment.id, Commitment.type, Commitment.quantity, Commitment.due_at)
+            if narrow
+            else (Commitment,)
+        ).where(Commitment.tenant_id == tenant_id)
+    )
     revisions_query = (
         select(
             *(
@@ -4399,7 +4418,8 @@ def commitment_terms(
         .group_by(Reservation.commitment_id)
     )
     if ids is not None:
-        rows = rows.where(_id_cohort(Commitment.id, ids))
+        if rows is not None:
+            rows = rows.where(_id_cohort(Commitment.id, ids))
         revisions_query = revisions_query.where(
             _id_cohort(CommitmentRevision.commitment_id, ids)
         )
@@ -4408,7 +4428,7 @@ def commitment_terms(
         )
     revisions: dict[str, list[CommitmentRevision | Row]] = {}
     for revision in (
-        _metadata_rows(session.execute(revisions_query))
+        _metadata_rows(_metadata_execute(session, revisions_query))
         if narrow
         else session.scalars(revisions_query)
     ):
@@ -4428,7 +4448,7 @@ def commitment_terms(
             and (ids is None or identity in ids)
         )
         if narrow and _commitments is not None and ids is not None
-        else _metadata_rows(session.execute(rows))
+        else _metadata_rows(_metadata_execute(session, rows))
         if narrow
         else session.scalars(rows)
     )

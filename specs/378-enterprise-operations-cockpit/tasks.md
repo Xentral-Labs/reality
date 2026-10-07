@@ -220,3 +220,5 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T079 Preserve exact immutable scalar metadata and latest-stated revision/correction parity while removing repeated row dispatch and correlated revision work; rerun unchanged complete enterprise CI before readiness.
 
 - [ ] T080 Preserve exact current-source metadata and standard v2 fingerprint bytes while reducing shipping-only transfer/allocation; verify complete source/refusal/supporting parity and unchanged full CI before readiness.
+
+- [ ] T081 Avoid unused preloaded cohort construction and fresh scalar ORM allocation while preserving typed metadata, the same transaction, dirty-reader/autoflush behavior, exact canonical parity and all unchanged enterprise/CI gates.

@@ -192,14 +192,15 @@ def _reviewed_shipping_inputs(
         .scalar_subquery()
     )
     fallback = case((projected, None), else_=reviewed)
-    rows = session.execute(
+    rows = core._metadata_execute(
+        session,
         select(
             headers.c.id,
             projected.label("projected"),
             sources.label("sources"),
             commitments.label("commitments"),
             fallback.label("fallback"),
-        )
+        ),
     )
     return {
         row.id: {
@@ -283,11 +284,12 @@ def _read_shipping(
     statement_ids = {statement.id for statement, _ in active}
     requirements = list(
         core._metadata_rows(
-            session.execute(
+            core._metadata_execute(
+                session,
                 select(*ShippingDispatchRequirement.__table__.columns).where(
                     ShippingDispatchRequirement.tenant_id == tenant_id,
                     ShippingDispatchRequirement.statement_id.in_(statement_ids),
-                )
+                ),
             )
         )
     )
@@ -327,11 +329,12 @@ def _read_shipping(
     commitments = {
         row.id: row
         for row in core._metadata_rows(
-            session.execute(
+            core._metadata_execute(
+                session,
                 select(*commitment_columns).where(
                     Commitment.tenant_id == tenant_id,
                     core._id_cohort(Commitment.id, ids),
-                )
+                ),
             )
         )
     }
@@ -339,7 +342,8 @@ def _read_shipping(
         {
             row.id: row
             for row in core._metadata_rows(
-                session.execute(
+                core._metadata_execute(
+                    session,
                     select(
                         Document.id,
                         Document.tenant_id,
@@ -356,7 +360,7 @@ def _read_shipping(
                             Document.id,
                             {row.document_id for row in commitments.values()},
                         ),
-                    )
+                    ),
                 )
             )
         }
@@ -368,7 +372,8 @@ def _read_shipping(
     )
     revisions = {}
     revision_sources = {}
-    for row in session.execute(
+    for row in core._metadata_execute(
+        session,
         select(
             CommitmentRevision.id,
             CommitmentRevision.commitment_id,
@@ -379,7 +384,7 @@ def _read_shipping(
             core._id_cohort(CommitmentRevision.commitment_id, ids),
             CommitmentRevision.quantity.is_not(None),
         )
-        .order_by(CommitmentRevision.stated_at, CommitmentRevision.id)
+        .order_by(CommitmentRevision.stated_at, CommitmentRevision.id),
     ):
         revisions[row.commitment_id] = row.id
         revision_sources[row.commitment_id] = row.source_record_id
