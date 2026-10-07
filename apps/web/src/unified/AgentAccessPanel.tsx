@@ -35,7 +35,7 @@ export function AgentAccessPanel({
   if (state.status === "denied")
     return (
       <section className="cockpit-card cockpit-access-panel" data-agent-access>
-        {!embedded && <h2>{t("Agents & connections")}</h2>}
+        {!embedded && <h2>{t("Registered Agents")}</h2>}
         <p className="cockpit-note">{t("Agent access overview is restricted to company owners")}</p>
       </section>
     );
@@ -44,13 +44,13 @@ export function AgentAccessPanel({
       className="cockpit-card cockpit-access-panel"
       data-agent-access
       aria-labelledby={embedded ? undefined : "agents-title"}
-      aria-label={embedded ? t("Agents & connections") : undefined}
+      aria-label={embedded ? t("Registered Agents") : undefined}
     >
       <div className={`cockpit-card-heading ${embedded ? "cockpit-context-actions" : ""}`}>
         {!embedded && (
           <div>
-            <span className="cockpit-eyebrow">{t("Registered Agents")}</span>
-            <h2 id="agents-title">{t("Agents & connections")}</h2>
+            <span className="cockpit-eyebrow">{t("Agent access")}</span>
+            <h2 id="agents-title">{t("Registered Agents")}</h2>
           </div>
         )}
         <button

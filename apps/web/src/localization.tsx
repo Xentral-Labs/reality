@@ -67,7 +67,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Bestandssegmente umfassen nur Artikel mit ungedecktem Bedarf, nicht den gesamten Lagerbestand.",
     "Recording rate & period": "Erfassungsrate & Zeitraum",
     "Live event log": "Live-Ereignisse",
-    "Registered Agents": "Registrierte Agenten",
+    "Registered Agents": "Angemeldete Agenten",
+    "Agent access": "Agentenzugänge",
     "No manually owned cases": "Keine manuell übernommenen Vorgänge",
     "More cases are available in the manual register.":
       "Weitere Vorgänge findest du im manuellen Register.",
@@ -2607,6 +2608,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Recording rate & period": "Registratiesnelheid en periode",
     "Live event log": "Live-gebeurtenissen",
     "Registered Agents": "Geregistreerde agenten",
+    "Agent access": "Agenttoegang",
     "No manually owned cases": "Geen handmatig overgenomen dossiers",
     "More cases are available in the manual register.":
       "Meer dossiers staan in het handmatige register.",
@@ -4841,6 +4843,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Recording rate & period": "Ritmo de registro y período",
     "Live event log": "Eventos en directo",
     "Registered Agents": "Agentes registrados",
+    "Agent access": "Acceso de agentes",
     "No manually owned cases": "No hay casos asumidos manualmente",
     "More cases are available in the manual register.": "Hay más casos en el registro manual.",
     "Last 60 minutes": "Últimos 60 minutos",

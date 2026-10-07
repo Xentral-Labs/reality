@@ -303,3 +303,10 @@ order across the table width; additional previews and full supporting-order
 inspection retain their existing scope. Tables scroll horizontally within their
 own labelled keyboard-focusable region on narrow screens. No business read, rule,
 DTO, timer, control or confirmation changes.
+
+
+### Stacked monitoring and upper case controls (FR-082)
+
+The right column now displays Recorded business activity and Registered Agents simultaneously as separate cards (German: Zuletzt passiert / Angemeldete Agenten), with no right-view selector or duplicate responsibility panel. Whole-case control lives in the upper Business cases in operation disclosure, under Cases & takeover. The same single mounted OperationalCaseRegister reader supplies upper totals; the embedded control entry omits duplicate ownership counts. Supported kinds, exact takeover/handback reviews, evidence links, stale/denied states and owner restrictions are unchanged. Bookmarked case IDs open both containing disclosures; closing them or switching analysis retains a prepared review. Company changes reset local context. Access authorization/last use remains distinct from Agent runtime state.
+
+Verified by the full operations-cockpit-browser.mjs locale/theme/viewport matrix, 478 frontend contracts, four 3056-key audits, production build/image, format/spec checks and actual local company proof on port 8080. Source, service, API, scheduler and execution authority are unchanged. See spec 378 review/quickstart for evidence; earlier release gates remain open.

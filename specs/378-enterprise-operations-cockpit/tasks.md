@@ -336,3 +336,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T133 [FR-081] Add failing shared-table/column/summary-row and narrow containment assertions in apps/web/scripts/operations-cockpit-browser.mjs, retaining evidence 39, preview expansion, scope/focus and live proofs.
 - [x] T134 [FR-081] Share DeviationTable rendering in OperationsDeviationsPanel.tsx, replace card-grid styles in operationsCockpit.css and localize the cause column, preserving exact DTO/control semantics.
 - [x] T135 [FR-081] Verify browser/contracts/audit/build/format/spec checks, inspect actual local web, review unchanged evidence/authority and update durable contract and PR.
+
+
+## Stacked monitoring and one responsibility entry
+
+- [x] T136 [FR-082] Add failing stacked monitoring/upper-only controls and bookmark proofs in operations-cockpit-browser.mjs, adapting obsolete view-selector checks without dropping review/authority/state tests.
+- [x] T137 [FR-082] Stack standalone event/Agent cards, move the single mounted register into upper disclosures, omit duplicate totals and update German Agent heading and scoped CSS.
+- [x] T138 [FR-082] Run browser/contracts/audit/build/format/spec checks, review preserved business controls, activate only web and inspect actual company; update durable contract and existing PR.

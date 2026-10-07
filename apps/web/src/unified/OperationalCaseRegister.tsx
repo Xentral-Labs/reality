@@ -15,10 +15,12 @@ import {
 export function OperationalCaseRegister({
   selection,
   embedded = false,
+  showOwnershipTotals = true,
   onObservation,
 }: {
   selection: Selection;
   embedded?: boolean;
+  showOwnershipTotals?: boolean;
   onObservation?: (value: {
     tenant: string;
     page?: OperationalCaseRegisterPage;
@@ -221,26 +223,28 @@ export function OperationalCaseRegister({
           </p>
         </div>
         <div className="cockpit-case-entry-actions">
-          <div className="cockpit-case-counts">
-            {(["automation", "human"] as const).map((owner) => (
-              <button
-                className="br-btn cockpit-case-count"
-                key={owner}
-                data-case-count={owner}
-                aria-controls={workspaceId}
-                aria-expanded={expanded}
-                disabled={controls.busy}
-                onClick={() => {
-                  setMode(owner === "human" ? "human" : "outstanding");
-                  setCursor("");
-                  setExpanded(true);
-                }}
-              >
-                <span>{t(owner === "human" ? "Manually taken over" : "With automation")}:</span>{" "}
-                <strong>{page?.counts ? formatNumber(page.counts[owner]) : "—"}</strong>
-              </button>
-            ))}
-          </div>
+          {showOwnershipTotals && (
+            <div className="cockpit-case-counts">
+              {(["automation", "human"] as const).map((owner) => (
+                <button
+                  className="br-btn cockpit-case-count"
+                  key={owner}
+                  data-case-count={owner}
+                  aria-controls={workspaceId}
+                  aria-expanded={expanded}
+                  disabled={controls.busy}
+                  onClick={() => {
+                    setMode(owner === "human" ? "human" : "outstanding");
+                    setCursor("");
+                    setExpanded(true);
+                  }}
+                >
+                  <span>{t(owner === "human" ? "Manually taken over" : "With automation")}:</span>{" "}
+                  <strong>{page?.counts ? formatNumber(page.counts[owner]) : "—"}</strong>
+                </button>
+              ))}
+            </div>
+          )}
           <button
             className="br-btn cockpit-case-toggle"
             aria-expanded={expanded}

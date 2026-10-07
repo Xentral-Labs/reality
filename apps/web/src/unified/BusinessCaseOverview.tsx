@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { operationalCases, type OperationalCaseRegisterPage } from "../api";
 import { formatNumber, formatZonedDateTime, t } from "../localization";
 import { ReadState } from "./ReadState";
@@ -162,10 +162,20 @@ function CasePreview({
 export function BusinessCaseOverview({
   selection,
   snapshot,
+  children,
 }: {
   selection: Selection;
   snapshot: BusinessCaseSnapshot | null;
+  children: ReactNode;
 }) {
+  const overview = useRef<HTMLDetailsElement>(null);
+  const management = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (selection.cockpitCase) {
+      if (overview.current) overview.current.open = true;
+      if (management.current) management.current.open = true;
+    }
+  }, [selection.cockpitCase]);
   const [inspection, setInspection] = useState<Inspection | null>(null);
   useEffect(() => {
     if (snapshot?.status === "denied") setInspection(null);
@@ -175,7 +185,7 @@ export function BusinessCaseOverview({
       ? snapshot.page
       : undefined;
   return (
-    <details className="cockpit-upper-disclosure" data-business-case-overview>
+    <details ref={overview} className="cockpit-upper-disclosure" data-business-case-overview>
       <summary>
         <strong>{t("Business cases in operation")}</strong>
         <span className="cockpit-business-badge automatic">
@@ -265,6 +275,10 @@ export function BusinessCaseOverview({
           {t("Data observed at")}: {formatZonedDateTime(page.observed_at)}
         </p>
       )}
+      <details ref={management} className="cockpit-case-management" data-case-management>
+        <summary>{t("Cases & takeover")}</summary>
+        {children}
+      </details>
       {inspection && page && (
         <CasePreview
           key={`${selection.tenant}:${inspection.kind}:${inspection.filter}`}
