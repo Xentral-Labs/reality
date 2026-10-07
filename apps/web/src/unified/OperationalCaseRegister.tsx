@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { operationalCases, type OperationalCase } from "../api";
-import { formatDateTimeInZone, formatNumber, t } from "../localization";
+import { formatZonedDateTime, formatNumber, t } from "../localization";
 import { ReadState } from "./ReadState";
 import { useCockpitLiveRead } from "./useCockpitLiveRead";
 import { useOperationalCaseControls } from "./useOperationalCaseControls";
@@ -14,11 +14,9 @@ import {
 
 export function OperationalCaseRegister({
   selection,
-  zone,
   embedded = false,
 }: {
   selection: Selection;
-  zone: string;
   embedded?: boolean;
 }) {
   const workspaceId = useId();
@@ -140,7 +138,7 @@ export function OperationalCaseRegister({
           <span>{selected.control.actor_label}</span> ·{" "}
           {selected.control.recorded_at ? (
             <time data-control-time dateTime={selected.control.recorded_at}>
-              {formatDateTimeInZone(selected.control.recorded_at, zone)}
+              {formatZonedDateTime(selected.control.recorded_at)}
             </time>
           ) : (
             "—"
@@ -265,7 +263,7 @@ export function OperationalCaseRegister({
           {t("Data observed at")}:{" "}
           {page.observed_at ? (
             <time data-observed-at dateTime={page.observed_at}>
-              {formatDateTimeInZone(page.observed_at, zone)}
+              {formatZonedDateTime(page.observed_at)}
             </time>
           ) : (
             t("Unknown")

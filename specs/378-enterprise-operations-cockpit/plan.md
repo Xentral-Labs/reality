@@ -655,3 +655,18 @@ localization, format and spec policy follow; activate only web and inspect actua
 company. Constitution PASS for all eight principles, explicit owner presentation
 request has no unresolved clarification. Rollback restores the prior grouping
 markup/styles without affecting data. Existing performance/CI/release gates remain.
+
+
+## Viewer observation timezone regression
+
+FR-019 repair: use existing formatZonedDateTime for general observation metadata
+in OperationsCockpitPage, OperationalCaseRegister and ShippingSupportingOrders.
+Use formatCalendarDate to retain the business calendar date in ShippingDayPanel context.
+Remove the case register's company-zone override; retain shipping's explicit
+business/site clock formatting and UTC dateTime attributes. Existing product
+regression first fails on the UTC header, then verifies UTC/Tokyo observation
+metadata alongside unchanged business clocks/cutoffs and stale-time retention.
+Run full cockpit browser, frontend contracts/audit/build/format/spec checks,
+activate only web and inspect the actual Berlin preference. Constitution PASS;
+no unresolved clarification, schema, preference mutation, service or authority
+change. Rollback restores the prior formatter call. Earlier release gates remain.

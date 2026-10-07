@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
-import { formatDateTimeInZone, formatNumber, formatTimeInZone, t } from "../localization";
+import {
+  formatCalendarDate,
+  formatDateTimeInZone,
+  formatNumber,
+  formatTimeInZone,
+  t,
+} from "../localization";
 import {
   cockpitOriginSelection,
   navigationSelection,
@@ -96,7 +102,11 @@ export function ShippingDayPanel({
             </>
           )}
           <p>
-            {t("Cumulative orders · company business day")} · {value.time_zone}
+            {t("Cumulative orders · company business day")} ·{" "}
+            <time data-shipping-business-day dateTime={value.business_day}>
+              {formatCalendarDate(value.business_day)}
+            </time>{" "}
+            · {value.time_zone}
           </p>
         </div>
         <button

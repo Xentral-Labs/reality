@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cockpitApi } from "../api";
-import { formatNumber, t } from "../localization";
+import { formatNumber, formatZonedDateTime, t } from "../localization";
 import { ReadState } from "./ReadState";
 import {
   cockpitOriginSelection,
@@ -118,7 +118,9 @@ export function ShippingSupportingOrders({
           <p className="cockpit-note">
             {t("Business day")}: {resolvedDay} · {t("Matching orders")}:{" "}
             {page.total === null ? "—" : formatNumber(page.total)} · {t("Observed")}{" "}
-            {cockpitTime(page.observed_at, zone)}
+            <time data-supporting-observed-at dateTime={page.observed_at}>
+              {formatZonedDateTime(page.observed_at)}
+            </time>
             {page.re_evaluated ? ` · ${t("Re-evaluated against the current basis")}` : ""}
           </p>
           {selection.cockpitMeasure === "unplanned" && (

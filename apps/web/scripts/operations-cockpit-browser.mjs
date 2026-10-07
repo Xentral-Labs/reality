@@ -657,6 +657,11 @@ try {
       "/scripts/fixtures/operations-cockpit-harness.html",
   );
   await page.getByRole("heading", { name: "Shipping by end of day" }).waitFor();
+  assert.match(
+    await page.locator(".cockpit-status").textContent(),
+    /12:30.*GMT/,
+    "general observation follows the UTC viewer instead of the Berlin shipping clock",
+  );
   const combinedSelector = page.getByRole("combobox", { name: "Analysis area", exact: true });
   assert.equal(await combinedSelector.inputValue(), "shipping", "shipping is the default analysis");
   assert.deepEqual(
@@ -1304,10 +1309,7 @@ try {
     const observation = page.locator(`${panel} time[data-observed-at]`);
     await observation.waitFor();
     assert.equal(await observation.getAttribute("datetime"), at("12:30"));
-    assert.match(
-      await observation.textContent(),
-      panel === "[data-agent-access]" ? /12:30.*GMT/ : /14:30.*GMT\+2/,
-    );
+    assert.match(await observation.textContent(), /12:30.*GMT/);
   }
   await showWorkspace("responsibility");
   await page
@@ -1334,7 +1336,7 @@ try {
   await page.getByText("Alex Operations", { exact: true }).waitFor();
   const controlTime = page.locator("[data-case-inspection] time[data-control-time]");
   assert.equal(await controlTime.getAttribute("datetime"), "2026-10-06T12:31:00Z");
-  assert.match(await controlTime.textContent(), /06 Oct 2026/);
+  assert.match(await controlTime.textContent(), /06 Oct 2026.*12:31.*GMT/);
   await page.getByRole("button", { name: "Manually taken over", exact: true }).click();
   await page.locator('[data-case-id="case_d"]').waitFor();
   await page
@@ -1717,7 +1719,46 @@ try {
     await page.locator("[data-agent-access] time[data-observed-at]").textContent(),
     /21:30.*GMT\+9/,
   );
-  assert.match(await page.locator(".cockpit-status").textContent(), /14:30/);
+  assert.match(
+    await page.locator(".cockpit-status").textContent(),
+    /21:30.*GMT\+9/,
+    "top observation respects the viewer timezone",
+  );
+  assert.match(
+    await page.locator("[data-case-register] time[data-observed-at]").textContent(),
+    /21:30.*GMT\+9/,
+    "case observation respects the viewer timezone",
+  );
+  assert.match(
+    await page.locator(".cockpit-shipping .cockpit-chart").textContent(),
+    /14:30/,
+    "shipping reference clock stays in the explicit business timezone",
+  );
+  assert.equal(
+    await page.locator("[data-shipping-business-day]").getAttribute("datetime"),
+    "2026-10-06",
+    "shipping keeps its explicit business calendar date",
+  );
+  assert.match(
+    await page.locator("[data-shipping-business-day]").textContent(),
+    /06.*Okt.*2026/,
+    "calendar date formatting does not shift with the viewer timezone",
+  );
+  await page.getByRole("button", { name: "Due today: 4", exact: true }).click();
+  const supportingTime = page.locator(
+    "[data-shipping-inspection] time[data-supporting-observed-at]",
+  );
+  await supportingTime.waitFor();
+  assert.equal(await supportingTime.getAttribute("datetime"), at("12:30"));
+  assert.match(
+    await supportingTime.textContent(),
+    /21:30.*GMT\+9/,
+    "supporting read observation respects the viewer timezone",
+  );
+  await page
+    .locator("[data-shipping-inspection]")
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
   await page
     .locator("[data-case-register]")
     .getByRole("button", { name: "Next cases", exact: true })
