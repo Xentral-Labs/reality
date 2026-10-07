@@ -1,3 +1,4 @@
+import { InstrumentTrend } from "./InstrumentTrend";
 import { ObservedMetric } from "./ObservedMetric";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AnalysisMetricGroup, AnalysisPlot } from "./AnalysisSections";
@@ -426,6 +427,12 @@ export function OperatingStatusPanel({
                 <span className="cockpit-status-indicator" aria-hidden="true" />
                 <strong>{t(signalLabels[signal])}</strong>
               </span>
+              <InstrumentTrend
+                area={area.key}
+                title={titles[area.key]}
+                value={value}
+                stale={stale}
+              />
             </>
           );
           return (
@@ -460,7 +467,7 @@ export function OperatingStatusPanel({
               <span className="cockpit-status-indicator" aria-hidden="true" />
               <strong>{t("Data incomplete")}</strong>
             </span>
-            <span className="cockpit-status-detail">{t("Open workspace")} →</span>
+            <InstrumentTrend area="finance" title="Finance" value={value} stale={stale} />
           </a>
         </li>
       </ul>

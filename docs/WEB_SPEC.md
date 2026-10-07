@@ -4,12 +4,12 @@
 
 **Simple on the surface. Fully explainable underneath.**
 
-Spec 378 FR-047–084 refines the optional Control Tower into a compact instrument
+Spec 378 FR-047–085 refines the optional Control Tower into a compact instrument
 console and a shared analysis selector with shipping first, followed by the five
 operational flow areas. Two adjacent monitoring cards show recent activity and registered Agent access together;
 confirmed case controls live in the upper business-case disclosure. The centered
 risk legend is one compact row with exact scope explanation behind a keyboard-accessible
-Info disclosure. A compact recorded-entity activity band and finite highlights for actual current count/new-event changes make live observation watchable without simulated activity; reduced motion is respected. Shipping blockers are disclosed inside the shipping view.
+Info disclosure. A compact recorded-entity activity band and finite highlights for actual current count/new-event changes make live observation watchable without simulated activity; reduced motion is respected. Six aligned instrument footers show light mini trends from the existing rolling 60-minute observations; missing evidence remains gaps and Finance explicitly has no trend. Shipping blockers are disclosed inside the shipping view.
 Message intake/first-reply and backlog diagrams
 remain separate; physical flows keep their measurement units, Finance is explicitly
 unavailable, and shipping/agent/manual-case controls retain their existing meaning.
