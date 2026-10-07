@@ -909,50 +909,78 @@
 }
 
 /* Primary-cohort risk partitions are derived by the shared observation service. */
+.cockpit-instruments {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
 .cockpit-instruments .cockpit-status-grid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-.cockpit-instruments .cockpit-status-link {
-  gap: 12px;
-  padding: 16px 14px;
+  gap: 10px;
 }
 .cockpit-instruments .cockpit-status-tile {
-  border-top-width: 1px;
+  display: grid;
+  grid-row: span 7;
+  grid-template-rows: subgrid;
+  border-top-width: 2px;
   border-top-color: var(--signal-color);
 }
+.cockpit-instruments .cockpit-status-link {
+  display: grid;
+  grid-row: span 7;
+  grid-template-rows: subgrid;
+  gap: 8px;
+  padding: 14px 12px;
+}
 .cockpit-instruments .cockpit-status-metric-row {
-  flex-direction: column-reverse;
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  gap: 4px;
   align-items: start;
-  justify-content: start;
-  gap: 5px;
+  justify-content: stretch;
+}
+.cockpit-instruments .cockpit-status-metric-row > .cockpit-metric-trigger,
+.cockpit-instruments .cockpit-status-metric-row > strong {
+  grid-row: 1;
+  justify-self: start;
 }
 .cockpit-instruments .cockpit-status-metric-row strong {
-  font-size: 32px;
+  font-size: 30px;
   line-height: 1.2;
 }
 .cockpit-instruments .cockpit-status-metric-row > span {
+  grid-row: 2;
   min-height: 34px;
   font-size: 12px;
 }
-.cockpit-instrument-strip {
-  display: flex;
-  gap: 3px;
-  height: 28px;
-}
-.cockpit-instrument-strip > i {
-  flex: 1;
-  background: var(--signal-color);
-  border-radius: 2px;
-}
 .cockpit-instruments .cockpit-status-condition {
   align-items: start;
-  min-height: 54px;
+  min-height: 36px;
   gap: 7px;
+  font-size: 11px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
 }
 .cockpit-instruments .cockpit-status-indicator {
   width: 16px;
   height: 16px;
   margin-top: 1px;
+}
+.cockpit-instrument-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.cockpit-instrument-footer .cockpit-footnote,
+.cockpit-instrument-footer .cockpit-risk-scope {
+  max-width: 90ch;
+  margin: 6px auto 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 .cockpit-analysis-selector {
   width: 100%;
@@ -1046,6 +1074,12 @@
   }
 }
 @container (max-width: 400px) {
+  .cockpit-instruments {
+    padding: 12px;
+  }
+  .cockpit-instruments .cockpit-status-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .cockpit-instruments .cockpit-status-condition {
     font-size: 11px;
   }
@@ -1262,9 +1296,10 @@ a.cockpit-status-link:focus-visible {
   color: var(--text-secondary);
 }
 .cockpit-instrument-strip {
+  display: flex;
   gap: 0;
   background: var(--surface-sunken);
-  height: 32px;
+  height: 12px;
   border-radius: 3px;
   overflow: hidden;
 }
@@ -1285,12 +1320,30 @@ a.cockpit-status-link:focus-visible {
   background: repeating-linear-gradient(135deg, var(--border) 0 3px, var(--surface-sunken) 3px 7px);
 }
 .cockpit-risk-counts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 9px;
+  display: grid;
+  grid-template-rows: repeat(4, minmax(18px, 1fr));
+  gap: 3px;
   font-size: 11px;
-  min-height: 36px;
   font-variant-numeric: tabular-nums;
+}
+.cockpit-risk-counts > button,
+.cockpit-risk-counts > span {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  line-height: 1.5;
+}
+.cockpit-risk-counts strong {
+  font-size: 12px;
+  flex: none;
+}
+.cockpit-risk-label,
+.cockpit-instruments .cockpit-status-condition strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .cockpit-risk-counts [data-risk-count="in_plan"] {
   color: #238460;
@@ -1308,7 +1361,8 @@ a.cockpit-status-link:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 18px;
-  margin: 16px 0 0;
+  justify-content: center;
+  margin: 0;
   font-size: 12px;
   color: var(--text-secondary);
 }
@@ -1358,13 +1412,6 @@ a.cockpit-status-link:focus-visible {
 }
 .cockpit-analysis-column .cockpit-chart text {
   font-size: 12px;
-}
-.cockpit-instruments .cockpit-status-link {
-  gap: 9px;
-}
-.cockpit-instruments .cockpit-status-condition {
-  min-height: 36px;
-  font-size: 11px;
 }
 
 .cockpit-flow-board {

@@ -131,7 +131,7 @@ function RiskMeter({
               <i key={key} data-risk-segment={key} style={{ width: `${(100 * count) / total}%` }} />
             ) : null;
           })
-        ) : (
+        ) : typeof total === "number" && total === 0 && !stale ? null : (
           <i data-risk-segment="unclassified" style={{ width: "100%" }} />
         )}
       </span>
@@ -148,12 +148,12 @@ function RiskMeter({
               aria-haspopup="dialog"
             >
               <strong>{typeof risk?.[key] === "number" ? formatNumber(risk[key]) : "—"}</strong>{" "}
-              {t(label)}
+              <span className="cockpit-risk-label">{t(label)}</span>
             </button>
           ) : (
             <span key={key} data-risk-count={key}>
               <strong>{typeof risk?.[key] === "number" ? formatNumber(risk[key]) : "—"}</strong>{" "}
-              {t(label)}
+              <span className="cockpit-risk-label">{t(label)}</span>
             </span>
           ),
         )}
@@ -167,11 +167,13 @@ function RiskMeter({
               aria-haspopup="dialog"
               onClick={() => inspect("unclassified")}
             >
-              <strong>{formatNumber(risk.unclassified)}</strong> {t("Not assessed")}
+              <strong>{formatNumber(risk.unclassified)}</strong>
+              <span className="cockpit-risk-label">{t("Not assessed")}</span>
             </button>
           ) : (
             <span data-risk-count="unclassified">
-              <strong>{formatNumber(risk.unclassified)}</strong> {t("Not assessed")}
+              <strong>{formatNumber(risk.unclassified)}</strong>
+              <span className="cockpit-risk-label">{t("Not assessed")}</span>
             </span>
           ))}
       </span>
@@ -468,20 +470,22 @@ export function OperatingStatusPanel({
           close={() => setInspection(null)}
         />
       )}
-      <div className="cockpit-risk-legend" data-risk-legend>
-        {riskCategories.map(({ key, label }) => (
-          <span key={key} data-risk-key={key}>
-            <i aria-hidden="true" />
-            {t(label)}
-          </span>
-        ))}
-        <span>{t("Segments: share of the displayed open work")}</span>
-      </div>
-      <p className="cockpit-footnote">
-        {t(
-          "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.",
-        )}
-      </p>
+      <footer className="cockpit-instrument-footer" data-instrument-legend-footer>
+        <div className="cockpit-risk-legend" data-risk-legend>
+          {riskCategories.map(({ key, label }) => (
+            <span key={key} data-risk-key={key}>
+              <i aria-hidden="true" />
+              {t(label)}
+            </span>
+          ))}
+        </div>
+        <p className="cockpit-risk-scope">{t("Segments: share of the displayed open work")}</p>
+        <p className="cockpit-footnote">
+          {t(
+            "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.",
+          )}
+        </p>
+      </footer>
     </section>
   );
 }

@@ -920,3 +920,43 @@ previously manual order without changing responsibility. Screenshots:
 The existing PR receives these presentation changes; primary checkout is untouched
 and simulator/operator runtimes are unchanged. Existing CI, enterprise performance
 and sustained-live gates remain open.
+
+
+FR-078 pre-implementation analysis: the single scoped requirement maps to T126
+(test first), T127 (presentation) and T128 (verification/review). 1/1 coverage,
+zero unmapped tasks, unresolved clarifications or critical findings. Constitution
+I–VIII PASS. Risk values and categories retain shared service authority; the
+empty-zero meter changes rendering only. Owner authorized this refinement;
+existing incomplete CI/enterprise/soak checklists retain their release gates.
+
+FR-078 test-first proof fails on the old unbounded overview (0px versus 1px).
+Implementation review: only presentation wrappers/classes and the explicit
+known-zero meter branch change. Counts, shared service partitions, percentages,
+button handlers/labels, Finance destination and polling stay intact. The retained
+prominent-status proof caught an initial smaller indicator; 16px is preserved.
+The meter keeps explicit flex rendering and a new proof checks actual segment
+geometry, in addition to existing exact percentages. No catalog/tool/schema change.
+
+FR-078 browser verification PASS: the complete retained cockpit matrix passes
+with the new bounded overview, same-row tile-slot geometry, compact rendered
+proportions, label/count alignment, centered four-key footer and known-zero versus
+unknown meter assertions. All four languages, both themes and 320/390/1440/1920px
+pass the existing no-overflow, whole-tile/category inspection, dialog focus, live
+state, shipping and manual-control proofs. An initial Dutch 320px text overflow
+was corrected with a single-column narrow layout and contained translated labels;
+no assertion was weakened. 478 frontend contracts, four 3048/3048 audits, scoped
+formatting, spec policy and whitespace checks pass. Final local image/inspection
+and PR update remain the completion step; earlier release gates stay open.
+
+FR-078 final local verification/review PASS: the final production web image
+builds and only web was recreated on port 8080. Actual company inspection shows
+494 open orders, 1,326 locally unanswered messages and 6 expected supply lines;
+all six meter tops equal 493.640625px and all six condition tops equal 602.640625px.
+The legend footer is centered and contains all four keys, exact scope and retained
+classification caveat. Zero stock/return work has no unclassified segment;
+unavailable Finance stays explicitly unknown. The manual case remains owned by
+the same human. Screenshot:
+/private/tmp/reality-instrument-panel/control-tower-instruments-refined.png.
+No business mutation was performed; the temporary fixture server was stopped,
+primary checkout and simulator/operator runtimes remain unchanged. The existing
+PR receives the refinement; CI/enterprise/soak release gates remain open.

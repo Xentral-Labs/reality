@@ -314,3 +314,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T123 [FR-076] Add AnalysisSections.tsx and share its groups/figures in OperatingFlowsPanel and ShippingDayPanel; align metrics and figure context in operationsCockpit.css, retaining exact shipping interactions/units and collapsed site evidence.
 - [x] T124 [FR-077] Group OperationalCaseDetail status/actions/technical disclosure and add directly imported operationalCases.css for it and OperationalCaseControls; preserve shared control service and explicit confirmation.
 - [x] T125 [FR-076 FR-077] Run browser/contracts/audit/build/format/spec checks, review semantic diff, activate only local web and inspect actual shipping/messages/object UI; update existing PR and durable contract with evidence.
+
+
+## Cohesive instrument overview
+
+- [x] T126 [FR-078] Add failing shared instrument boundary, aligned tile slots, risk label/count geometry, centered legend and known-zero versus unknown meter proofs in apps/web/scripts/operations-cockpit-browser.mjs.
+- [x] T127 [FR-078] Group the overview/legend and labelled risk rows in OperatingFlowsPanel.tsx; align responsive tile slots and simplify meter/spacing in operationsCockpit.css without changing inspection handlers.
+- [x] T128 [FR-078] Run cockpit browser/contracts/audit/build/format/spec checks, inspect actual local web, review unchanged authority and update existing PR/contract with evidence.
