@@ -516,3 +516,24 @@ analysis heading, bookmark/reload/company reset, existing state/curves and layou
 Run frontend contracts, four-language audit, formatting/build, cockpit browser matrix
 and controlled session; activate only web and inspect actual company. Rollback is
 the scoped frontend change.
+
+## Hierarchy and observation utilities (FR-059–061)
+
+Move the one existing OperationalCaseRegister to the first row beside shipping and
+move the existing activity/Agent column beside analysis in the second row. Retain
+keys, all readers, supporting shipping investigation, selected/disclosure/control
+state and lower deviations. Use align-items:start and remove register height:100%;
+apply the compact register layout in its new parent. Frame OperatingFlowsPanel itself
+as the card and strip only inner article padding/border class. Put the single area
+field in its header; move long scope/observation copy into a compact footer. Keep all
+area articles mounted and both message plots unchanged. Unify scoped card padding and
+heading rhythm using shared surface tokens; preserve phone container breakpoints.
+Reuse shell-icon-button and existing Lucide Info/Pause/Play/List/Minimize2/X icons,
+localized aria-label/title and aria-expanded/pressed controls. Observation closes stay
+read-only and all business/control/review text remains. No component library, schema,
+service, poller, dependency or routing change. Constitution Check PASS for every
+principle; owner-authorized frontend hierarchy refinement. Tests first: priorities
+and stack order, no nested analysis card, natural case height, consistent styles,
+labelled icon keyboard toggles and unchanged evidence/control/live state. Run frontend
+contracts, formatting/build/languages, full cockpit matrix and controlled lifecycle;
+activate frontend only and inspect the real company. Rollback is presentation-only.

@@ -1,5 +1,38 @@
 # Feature Specification: Enterprise operations cockpit — shipping and case control
 
+## Owner-requested hierarchy and quiet observation controls (2026-10-07)
+
+The owner explicitly requests a coherent box hierarchy, Responsibility ahead of Agent
+inventory, a contained analysis panel and compact icons for observation-only actions.
+This supersedes FR-052's row placement; FR-053–058 data/selection/control meaning stays.
+
+- **FR-059**: After the instrument overview, the first desktop row MUST contain shipping
+  on the left and whole-case Responsibility on the right. The second row MUST contain
+  selected analysis on the left and the event log with registered Agents beneath it on
+  the right. Responsibility MUST precede event/access monitoring on narrow screens and
+  in document order. Shipping remains adjacent to its supporting investigation. Keep
+  every risk/evidence/Agent/control view, the same four readers and tenant boundaries.
+- **FR-060**: Detailed analysis MUST be one complete card, containing its heading,
+  single labelled area selector, metrics, plots and evidence. Do not frame an extra card
+  inside it or leave a freestanding large header between regions. Main cards MUST use
+  consistent padding, heading size and section rhythm. Compact cards keep natural
+  height rather than stretching across a long diagram. Retain both mail plots, original
+  measurement units, wrapped-metric alignment and stable selection/viewport behavior.
+- **FR-061**: Read-only observation utilities (shipping basis, pause/resume event
+  following, expand/compact Agent list, close observation detail) MUST use quiet small
+  icon buttons in the related card header/detail, with localized accessible names,
+  explanatory hover titles, visible keyboard focus and applicable expanded/pressed
+  state. Supporting-work navigation remains descriptive quiet text. Business takeover,
+  handback, reasons, confirmation and lifecycle limits MUST remain explicit text controls;
+  iconization MUST NOT change a permission, review or mutation semantic.
+
+Acceptance: shipping/Responsibility share the first desktop row; analysis/log share
+second, Agents follow log; narrow order is shipping, Responsibility, analysis, log,
+Agents. Analysis has one border and one selector; matching main-card heading/padding;
+short case card is not stretched. Icon utilities retain keyboard activation, state,
+source explanation, paused list/inspection and exact reviewed control persistence.
+Both themes, four languages and narrow/docked layouts are required.
+
 ## Owner-requested stable analysis interaction (2026-10-07)
 
 The owner requests systematic removal of surprising viewport jumps and duplicated
@@ -29,7 +62,7 @@ resets selection. Both themes, four languages and narrow/docked layouts are requ
 The owner explicitly approved matching the supplied instrument-console preview,
 including mixed risk meters and its two-row layout. No unresolved clarification.
 
-- **FR-052**: After the instruments and legend, place shipping on the left and the
+- **FR-052** (row placement superseded by FR-059): After the instruments and legend, place shipping on the left and the
   recent business-event log with the single registered Agent/access inventory on the
   right. Below, place selected detailed analysis on the left and the existing whole-case
   responsibility register on the right. Stack these regions in the same reading order

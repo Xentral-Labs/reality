@@ -28,24 +28,40 @@ async function assertCaseEntry(label) {
       analysis: rect("[data-operating-flows]"),
       cases: rect("[data-case-register]"),
       console: rect(".operations-cockpit"),
+      responsibilityBeforeLog: Boolean(
+        document
+          .querySelector("[data-case-register]")
+          .compareDocumentPosition(document.querySelector(".cockpit-activity")) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
     };
   });
   assert(layout.cases.width <= 1120, `${label}: bounded responsibility`);
+  assert(
+    layout.responsibilityBeforeLog,
+    `${label}: responsibility precedes observation in reading order`,
+  );
+  if (label === "initial desktop") {
+    assert(
+      layout.cases.bottom < layout.shipping.bottom,
+      `${label}: compact responsibility keeps its natural height`,
+    );
+  }
   if (layout.console.width > 820) {
     assert(
-      Math.abs(layout.shipping.top - layout.log.top) < 2,
-      `${label}: shipping and log share the top row`,
+      Math.abs(layout.shipping.top - layout.cases.top) < 2,
+      `${label}: shipping and responsibility share the top row`,
     );
-    assert(layout.log.left >= layout.shipping.right, `${label}: log to the right of shipping`);
+    assert(layout.cases.left >= layout.shipping.right, `${label}: responsibility beside shipping`);
     assert(
-      Math.abs(layout.analysis.top - layout.cases.top) < 2,
-      `${label}: detail and responsibility share the second row`,
+      Math.abs(layout.analysis.top - layout.log.top) < 2,
+      `${label}: analysis and log share the second row`,
     );
-    assert(layout.cases.left >= layout.analysis.right, `${label}: responsibility right of detail`);
+    assert(layout.log.left >= layout.analysis.right, `${label}: log beside analysis`);
   } else {
-    assert(layout.log.top > layout.shipping.bottom, `${label}: log follows shipping`);
-    assert(layout.analysis.top > layout.agents.bottom, `${label}: detail follows Agent inventory`);
-    assert(layout.cases.top > layout.analysis.bottom, `${label}: responsibility follows analysis`);
+    assert(layout.cases.top > layout.shipping.bottom, `${label}: responsibility follows shipping`);
+    assert(layout.analysis.top > layout.cases.bottom, `${label}: analysis follows responsibility`);
+    assert(layout.log.top > layout.analysis.bottom, `${label}: log follows analysis`);
   }
   assert(
     layout.agents.top > layout.log.bottom,
@@ -185,8 +201,16 @@ async function assertFlowAlignment(label) {
     headingSize: getComputedStyle(element.querySelector("h2")).fontSize,
     sharedSize: getComputedStyle(document.querySelector(".cockpit-shipping h2")).fontSize,
     contentGap:
-      element.querySelector(".cockpit-analysis-selector").getBoundingClientRect().top -
+      element.querySelector("[data-flow-area]:not([hidden])").getBoundingClientRect().top -
       element.querySelector("header").getBoundingClientRect().bottom,
+    selectorInHeader: Boolean(element.querySelector("header .cockpit-analysis-selector")),
+    border: getComputedStyle(element).borderTopWidth,
+    nestedCards: element.querySelectorAll(".cockpit-card").length,
+    paddings: [
+      ...document.querySelectorAll(
+        ".cockpit-shipping, .cockpit-activity, [data-agent-access], [data-case-register], [data-operating-flows]",
+      ),
+    ].map((node) => getComputedStyle(node).paddingTop),
   }));
   assert(
     rhythm.headingHeight < 180,
@@ -204,8 +228,12 @@ async function assertFlowAlignment(label) {
   );
   assert(
     rhythm.contentGap >= 16 && rhythm.contentGap <= 24,
-    `${label}: heading is separated from cards`,
+    `${label}: heading is separated from analysis`,
   );
+  assert(rhythm.selectorInHeader, `${label}: one selection belongs to the analysis header`);
+  assert.equal(rhythm.border, "1px", `${label}: analysis has one outer frame`);
+  assert.equal(rhythm.nestedCards, 0, `${label}: no nested analysis card`);
+  assert(new Set(rhythm.paddings).size === 1, `${label}: equal card insets`);
 }
 
 const errors = [],
@@ -517,6 +545,16 @@ try {
   );
   await page.getByRole("heading", { name: "Shipping by end of day" }).waitFor();
   await assertCaseEntry("initial desktop");
+  const accessToggle = page.getByRole("button", { name: "View all accesses", exact: true });
+  assert.equal(await accessToggle.getAttribute("title"), "View all accesses");
+  assert.equal(await accessToggle.locator("svg").count(), 1);
+  assert.equal(await accessToggle.getAttribute("aria-expanded"), "false");
+  await accessToggle.focus();
+  await page.keyboard.press("Enter");
+  await page.getByRole("combobox", { name: /Access state/ }).waitFor();
+  const compactAccess = page.getByRole("button", { name: "Compact view", exact: true });
+  assert.equal(await compactAccess.getAttribute("aria-expanded"), "true");
+  await compactAccess.click();
   await page.locator("[data-risk-legend]").waitFor();
   for (const area of ["orders", "messages", "supply", "stock", "returns"]) {
     const tile = page.locator(`[data-status-area="${area}"]`);
@@ -918,7 +956,22 @@ try {
   await page.getByRole("heading", { name: "Recorded business activity" }).waitFor();
   await page.getByText("Shipping <Agent>", { exact: true }).waitFor();
   assert.equal(await page.locator("[data-agent-access] script").count(), 0);
-  await page.getByRole("button", { name: "Pause following" }).click();
+  const pause = page.getByRole("button", { name: "Pause following", exact: true });
+  assert.equal(await pause.getAttribute("title"), "Pause following");
+  assert.equal(await pause.locator("svg").count(), 1);
+  assert.equal(
+    await page
+      .locator(".cockpit-activity .cockpit-card-heading")
+      .getByRole("button", { name: "Pause following" })
+      .count(),
+    1,
+  );
+  await pause.focus();
+  await page.keyboard.press("Space");
+  assert.equal(
+    await page.getByRole("button", { name: "Resume following" }).getAttribute("aria-pressed"),
+    "true",
+  );
   eventIndex = 2;
   await page.getByText("New activity available", { exact: true }).waitFor({ timeout: 12000 });
   assert.equal(await page.locator('[data-activity-event="event_1"]').count(), 1);
@@ -936,7 +989,17 @@ try {
   const target = await page.getByRole("link", { name: "SO-104", exact: true }).getAttribute("href");
   assert(target.includes("entry=order_d") && target.includes("cockpit_origin="));
   assert(reads.some((url) => url.searchParams.get("measure") === "risk"));
-  await page.getByRole("button", { name: "Show calculation basis" }).click();
+  const basis = page.getByRole("button", { name: "Show calculation basis", exact: true });
+  assert.equal(await basis.getAttribute("title"), "Show calculation basis");
+  assert.equal(await basis.locator("svg").count(), 1);
+  await basis.focus();
+  await page.keyboard.press("Enter");
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Hide calculation basis" })
+      .getAttribute("aria-expanded"),
+    "true",
+  );
   await assertWorkspaceSurfaces("expanded calculation basis");
   await page.getByText("completion-slot-v1", { exact: true }).waitFor();
   const curve = page.locator('[data-shipping-series="plan"]');

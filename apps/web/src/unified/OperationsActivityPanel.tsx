@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Pause, Play, X } from "lucide-react";
 import {
   formatZonedDateTime as formatDateTime,
   formatNumber,
@@ -61,6 +62,18 @@ export function OperationsActivityPanel({
           <span className="cockpit-eyebrow">{t("Live event log")}</span>
           <h2 id="activity-title">{t("Recorded business activity")}</h2>
         </div>
+        {value && (
+          <button
+            className="shell-icon-button cockpit-icon-action"
+            aria-label={t(held ? "Resume following" : "Pause following")}
+            title={t(held ? "Resume following" : "Pause following")}
+            aria-pressed={held !== null}
+            aria-controls="cockpit-live-events"
+            onClick={() => setHeld(held ? null : value.events)}
+          >
+            {held ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
+          </button>
+        )}
       </div>
       {state.status === "stale" && (
         <p className="cockpit-note" role="status">
@@ -122,13 +135,12 @@ export function OperationsActivityPanel({
               )}
             </p>
           </details>
-          <div className="cockpit-actions">
-            <button className="br-btn" onClick={() => setHeld(held ? null : value.events)}>
-              {t(held ? "Resume following" : "Pause following")}
-            </button>
-            {changed && <span role="status">{t("New activity available")}</span>}
-          </div>
-          <ul className="cockpit-event-list">
+          {changed && (
+            <p className="cockpit-note" role="status">
+              {t("New activity available")}
+            </p>
+          )}
+          <ul className="cockpit-event-list" id="cockpit-live-events">
             {events.map((event) => (
               <li key={event.id} data-activity-event={event.id}>
                 <button
@@ -156,8 +168,13 @@ export function OperationsActivityPanel({
           )}
           {inspected && (
             <div className="cockpit-basis">
-              <button className="br-btn" onClick={() => setInspected(null)}>
-                {t("Close")}
+              <button
+                className="shell-icon-button cockpit-icon-action cockpit-detail-close"
+                aria-label={t("Close")}
+                title={t("Close")}
+                onClick={() => setInspected(null)}
+              >
+                <X size={16} aria-hidden="true" />
               </button>
               <p>{eventTitle(inspected)}</p>
               <details>

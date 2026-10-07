@@ -1,5 +1,11 @@
 # Tasks: Enterprise operations cockpit
 
+## Hierarchy and quiet observation controls (FR-059–061)
+
+- [x] T094 Add failing priority geometry, single analysis frame, shared rhythm/natural height and accessible icon-control browser regressions.
+- [x] T095 Move Responsibility before monitoring, unify card structure/styles and replace only observation utilities with shared labelled icons.
+- [x] T096 Run affected frontend/browser/lifecycle/spec checks, inspect and activate the real frontend, update PR and verification record.
+
 ## Stable analysis interaction (FR-057–058)
 
 - [x] T091 Add failing one-selector, read-only summary, focus/viewport stability and bookmark/refresh/company-reset browser proofs.

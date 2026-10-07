@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Info } from "lucide-react";
 import { formatDateTimeInZone, formatNumber, formatTimeInZone, t } from "../localization";
 import {
   cockpitOriginSelection,
@@ -73,11 +74,14 @@ export function ShippingDayPanel({
           </p>
         </div>
         <button
-          className="br-btn"
+          className="shell-icon-button cockpit-icon-action"
+          aria-label={t(basisOpen ? "Hide calculation basis" : "Show calculation basis")}
+          title={t(basisOpen ? "Hide calculation basis" : "Show calculation basis")}
+          aria-controls="cockpit-shipping-basis"
           onClick={() => setBasisOpen(!basisOpen)}
           aria-expanded={basisOpen}
         >
-          {t(basisOpen ? "Hide calculation basis" : "Show calculation basis")}
+          <Info size={16} aria-hidden="true" />
         </button>
       </div>
       <div className="cockpit-metrics">
@@ -95,7 +99,7 @@ export function ShippingDayPanel({
           </button>
         ))}
       </div>
-      <button className="br-btn" onClick={() => inspect("unplanned")}>
+      <button className="br-link cockpit-text-action" onClick={() => inspect("unplanned")}>
         {t("Work outside this day's plan")}
       </button>
       {value.coverage.cohort === "unavailable" ? (
@@ -318,7 +322,7 @@ export function ShippingDayPanel({
         </div>
       )}
       {basisOpen && (
-        <div className="cockpit-basis">
+        <div className="cockpit-basis" id="cockpit-shipping-basis">
           <h3>{t("Current calculation basis")}</h3>
           {(value.basis.disclosure as { sampled?: boolean } | undefined)?.sampled && (
             <p>

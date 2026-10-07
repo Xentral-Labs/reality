@@ -2,8 +2,8 @@
 
 | Owner point | Requirement | Implementation / proof | Result |
 | --- | --- | --- | --- |
-| Shipping left, log right | FR-052 | page grid / browser geometry | Verified: automated proof and actual company UI |
-| Dependent detail below, Responsibility right | FR-052, FR-056 | shared selection + register / browser geometry | Verified: automated proof and actual company UI |
+| Shipping left, Responsibility right | FR-059 (supersedes FR-052 placement) | page grid / browser geometry and reading order | Verified: final browser matrix and actual company UI |
+| Contained analysis below, log and Agents right | FR-059–060 | single frame/header selector, shared card geometry | Verified: final browser matrix and actual company UI |
 | Registered Agent names visible | FR-055 | existing access inventory in log column | Verified: automated proof and actual company UI |
 | Legend below instruments | FR-054 | semantic swatches, including unknown | Verified: automated proof and actual company UI |
 | In plan / At risk / Critical exact row | FR-053 | complete service partition / scalar + snapshot tests | Verified: automated proof and actual company UI |
@@ -17,12 +17,13 @@ superseded, not contradictory. No critical issue or unresolved clarification.
 Existing reviewer-owned checklists and rollout/performance gates remain open.
 
 
-Final visual refinement: align metric value tracks through shared subgrid rows when
-captions wrap, and scroll instrument selection to the analysis-board heading so the
-adjacent responsibility heading remains visible. All locale/theme/size browser proofs
-include wrapped-caption alignment; shipping and flow curve units remain unchanged.
+Latest owner refinement: FR-057–058 remove instrument navigation and retain one local
+analysis selector with stable viewport, focus and history. FR-059–061 prioritize
+Responsibility next to shipping, contain analysis in one card and use accessible header
+icons only for observation. Shared metric tracks still align wrapping captions; shipping
+and flow units and all evidence/control behavior remain unchanged.
 
-Actual company inspection on 2026-10-07: the first row has identical shipping/log top
+Earlier preview inspection on 2026-10-07 (placement superseded by FR-059): the first row has identical shipping/log top
 coordinates; the second has identical analysis/responsibility top coordinates. The
 named active access `Claude PR377 04c4a98f local test operator` and the existing single
 human-owned `LIVE-f1ad500666008054` are visible. Selecting Messages retains separate
@@ -39,3 +40,12 @@ The corrected actual-stack hold/takeover/return-register journey passed locally
 (1 test, 58.89 seconds) with no browser errors. The committed hold reached the
 display within the existing ten-second requirement; confirmation payload and
 persisted manual ownership remain asserted. CI is rerunning on the follow-up commit.
+
+
+Prioritized hierarchy (FR-059–061) verified on the real company: shipping/Responsibility
+share top 754px; analysis/log share top 1,731.703px; all main cards use 20px insets and
+Responsibility keeps natural height. Read-only Info/Pause/Play/List/Compact utilities
+retain accessible names and keyboard state. Manual controls, both mail plots, risk
+legend and the named access remain available. Controlled lifecycle and full frontend
+checks pass. The preceding CI enterprise p95 performance failure remains an open gate;
+see quickstart for its exact result.
