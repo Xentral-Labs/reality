@@ -553,3 +553,18 @@ not the separately required real-time pilot soak.
 Execution list: [preview-parity.md](preview-parity.md). No new schema, SQL read,
 scheduler, permission or business effect. Existing performance/pilot rollout gates
 remain separate; the PR stays a reviewable follow-up rather than an enablement claim.
+
+Final actual-company inspection verifies aligned shipping/log and analysis/responsibility
+rows, a named active Agent access, the retained human-owned case, separate message
+intake/reply and backlog plots, and aligned metric values beneath wrapping captions.
+The current UTC business day (2026-10-07) has no confirmed source-backed shipping
+plan/capacity, so its shipping curve remains explicitly unavailable. The delivered
+local view is pinned to the existing 2026-10-06 plan (853 due, 35 handovers, 818 at
+risk; no historical forecast). Company-wide operational flows continue observing
+the current company independently of that pinned shipping day. PR 383 is ready
+for review; prior enterprise-load and real-time pilot rollout gates remain open.
+
+The corrected actual-stack hold/takeover/return-register journey passed locally
+(1 test, 58.89 seconds) with no browser errors. The committed hold reached the
+display within the existing ten-second requirement; confirmation payload and
+persisted manual ownership remain asserted. CI is rerunning on the follow-up commit.

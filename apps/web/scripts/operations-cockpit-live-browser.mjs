@@ -58,7 +58,7 @@ try {
   assert.equal(actual.control.reason, "I will complete this customer appointment");
   await page.getByRole("link", { name: "Return to Control Tower", exact: true }).click();
   await page.getByRole("button", { name: "Manually taken over", exact: true }).click();
-  await page.getByText("LIVE-C", { exact: true }).first().waitFor();
+  await page.locator("[data-case-register]").getByText("LIVE-C", { exact: true }).first().waitFor();
   await page.screenshot({ path: `${process.env.SHOTS}/live-cockpit.png`, fullPage: true });
   assert.deepEqual(errors, []);
   console.log(
