@@ -559,3 +559,25 @@ locale/theme/viewport matrix, source/basis/shipping/missing/stale/manual-control
 and controlled lifecycle. Run contracts, language audit, formatting/build/spec checks,
 then update only local web, inspect actual company and update the existing PR. Rollback
 is the preceding web revision; no data or migration changes.
+
+
+## Compact Operations workspace (FR-065–067)
+
+Explicit owner scope covers hiding secondary right panels behind a switch and
+contextual shipping blockers. Requirements review has no unresolved clarification.
+Constitution Check PASS: presentation only, shared services/readers, tenant isolation,
+evidence and reviewed controls unchanged; no domain/schema/tool/polling changes.
+Add a small OperationsWorkspacePanel using local state, one native select and mounted
+hidden wrappers for the existing three components. Use shared card styles and scope
+embedded child framing/padding to this workspace only. Key workspace by company.
+Add a ShippingDayPanel child slot for the existing deviations component, embedded
+in a native counted details disclosure; keep its state mounted across analysis swaps.
+Keep supporting investigations in the same left column. No new dependency or reader.
+
+Tests first: two frames/default/options/keyboard/focus/viewport/history, hidden panels
+excluded from traversal, manual draft and pause/Agent inspection retained; counted
+shipping disclosure closed/default, locality and state restoration. Adapt previous
+geometry assertions to the explicitly superseded stack without deleting prior
+control/source coverage. Run contracts, full viewport/theme/language matrix, eight
+controlled hours, audit/format/build/spec/diff. Activate web only, inspect the real
+company and update PR 383. Rollback is frontend revision only.

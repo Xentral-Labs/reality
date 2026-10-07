@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cockpitApi } from "../api";
-import { t } from "../localization";
+import { formatNumber, t } from "../localization";
 import { useCockpitLiveRead } from "./useCockpitLiveRead";
 import { ReadState } from "./ReadState";
 import { ShippingDayPanel, cockpitTime } from "./ShippingDayPanel";
@@ -13,6 +13,7 @@ import {
   OperatingStatusPanel,
   type AnalysisAreaKey,
 } from "./OperatingFlowsPanel";
+import { OperationsWorkspacePanel } from "./OperationsWorkspacePanel";
 import { AgentAccessPanel } from "./AgentAccessPanel";
 import type { ShippingMeasure } from "./cockpitModel";
 import type { Selection } from "./routing";
@@ -188,12 +189,33 @@ export function OperationsCockpitPage({
                 selected={selectedArea}
                 select={selectArea}
                 shipping={
-                  <ShippingDayPanel
-                    value={value}
-                    inspect={inspect}
-                    selection={selection}
-                    embedded
-                  />
+                  <>
+                    <ShippingDayPanel
+                      value={value}
+                      inspect={inspect}
+                      selection={selection}
+                      embedded
+                    />
+                    {state.data && (
+                      <details className="cockpit-shipping-deviations" data-shipping-deviations>
+                        <summary>
+                          <strong>{t("What is holding up shipping")}</strong>
+                          <span>
+                            {t("Affected orders")}:{" "}
+                            {state.data.deviation_total === undefined
+                              ? "—"
+                              : formatNumber(state.data.deviation_total)}
+                          </span>
+                        </summary>
+                        <OperationsDeviationsPanel
+                          value={state.data}
+                          selection={selection}
+                          inspect={() => inspect("risk")}
+                          embedded
+                        />
+                      </details>
+                    )}
+                  </>
                 }
               />
               {inspection && (
@@ -216,27 +238,27 @@ export function OperationsCockpitPage({
               )}
             </div>
             <div className="cockpit-log-column">
-              <OperationalCaseRegister
+              <OperationsWorkspacePanel
                 key={selection.tenant}
-                selection={selection}
-                zone={value.time_zone}
+                responsibility={
+                  <OperationalCaseRegister
+                    key={selection.tenant}
+                    selection={selection}
+                    zone={value.time_zone}
+                  />
+                }
+                activity={
+                  <OperationsActivityPanel
+                    state={activityState}
+                    key={selection.tenant}
+                    selection={selection}
+                    navigate={navigate}
+                  />
+                }
+                agents={<AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />}
               />
-              <OperationsActivityPanel
-                state={activityState}
-                key={selection.tenant}
-                selection={selection}
-                navigate={navigate}
-              />
-              <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />
             </div>
           </div>
-          {state.data && (
-            <OperationsDeviationsPanel
-              value={state.data}
-              selection={selection}
-              inspect={() => inspect("risk")}
-            />
-          )}
         </>
       )}
     </div>

@@ -2,9 +2,9 @@
 
 | Owner point | Requirement | Implementation / proof | Result |
 | --- | --- | --- | --- |
-| Shared analysis left, Responsibility leads right column | FR-062–064 (supersedes FR-059 placement) | shared frame / browser geometry and reading order | Verified: full browser matrix and actual company UI |
+| Shared analysis left, compact workspace defaults to Responsibility | FR-062–067 (supersedes stacked visibility in FR-064) | two frames, mounted local workspace / geometry and state proof | Verified: full browser matrix and actual company UI |
 | Shipping is first/default in the one analysis selector | FR-062–063 | first option, bookmark/default/reset, evidence restoration | Verified: full browser matrix and actual company UI |
-| Registered Agent names visible | FR-055 | existing access inventory in log column | Verified: automated proof and actual company UI |
+| Registered Agent names visible | FR-055 | existing access inventory selected in Operations workspace | Verified: full browser matrix and actual company UI |
 | Legend below instruments | FR-054 | semantic swatches, including unknown | Verified: automated proof and actual company UI |
 | In plan / At risk / Critical exact row | FR-053 | complete service partition / scalar + snapshot tests | Verified: automated proof and actual company UI |
 | Mixed proportional meter | FR-054 | exact widths / browser assertions | Verified: automated proof and actual company UI |

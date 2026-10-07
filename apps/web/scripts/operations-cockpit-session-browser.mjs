@@ -192,9 +192,12 @@ try {
     .getByRole("button", { name: "Take over manually / stop automation", exact: true })
     .click();
   await page.getByLabel("Takeover reason").fill("Keep this exact review while the company runs");
+  const workspace = page.getByRole("combobox", { name: "Workspace view", exact: true });
+  await workspace.selectOption("activity");
   await page.getByRole("button", { name: "Pause following", exact: true }).click();
   await page.getByRole("button", { name: "At risk: 1", exact: true }).click();
   const analysis = page.getByRole("combobox", { name: "Analysis area", exact: true });
+  await workspace.selectOption("responsibility");
   await analysis.selectOption("messages");
   assert.equal(await page.locator("[data-shipping-investigation]").isVisible(), false);
   assert.equal(
@@ -203,9 +206,15 @@ try {
   );
   assert.equal(
     await page
-      .getByRole("button", { name: "Resume following", exact: true })
+      .getByRole("button", { name: "Resume following", exact: true, includeHidden: true })
       .getAttribute("aria-pressed"),
     "true",
+  );
+  await workspace.selectOption("agents");
+  await workspace.selectOption("responsibility");
+  assert.equal(
+    await page.getByLabel("Takeover reason").inputValue(),
+    "Keep this exact review while the company runs",
   );
   await analysis.selectOption("shipping");
   assert(await page.locator("[data-shipping-inspection]").isVisible());
@@ -229,7 +238,11 @@ try {
     }
     if (tick === 400) await page.getByRole("button", { name: "Refresh", exact: true }).click();
     await step();
-    if (tick === 6) await page.getByText("New activity available", { exact: true }).waitFor();
+    if (tick === 6) {
+      await workspace.selectOption("activity");
+      await page.getByText("New activity available", { exact: true }).waitFor();
+      await workspace.selectOption("responsibility");
+    }
     if (tick === 121)
       await page
         .getByText("Previous observation — refresh failed", { exact: true })
@@ -243,6 +256,8 @@ try {
       assert.equal(await page.locator('[data-activity-event="event_1"]').count(), 1);
     }
     if (tick % 720 === 719) {
+      await workspace.selectOption("agents");
+      await workspace.selectOption("responsibility");
       assert(await page.locator("[data-case-inspection]").isVisible());
       assert((await page.locator(".cockpit-event-list li").count()) <= 50);
       assert((await page.locator(".cockpit-activity-chart>div").count()) <= 61);
@@ -255,6 +270,7 @@ try {
     "Keep this exact review while the company runs",
   );
   assert.equal(await page.locator('[data-activity-event="event_1"]').count(), 1);
+  await workspace.selectOption("activity");
   await page.getByRole("button", { name: "Resume following", exact: true }).click();
   await page.locator('[data-activity-event="event_2"]').waitFor();
   assert(

@@ -1,18 +1,24 @@
 # Operations cockpit
 
-## Shared analysis and console hierarchy (FR-052–064)
+## Shared analysis and compact operations workspace (FR-052–067)
 
 FR-062–064 put shipping and all five flow areas in one contained analysis card below
 the instruments. Shipping performance is the first/default option on a fresh page or
-company change; existing area bookmarks are restored. The right column starts with
-whole-case Responsibility, followed by the live log and named Agents. Narrow layouts
-preserve that reading order. Main cards share padding/heading rhythm and natural height.
+company change; existing area bookmarks are restored. FR-065–067 give the right
+column one Operations workspace with a labelled selector: Responsibility
+(default), Live events, or Registered Agents. Only the chosen view occupies space;
+hidden components retain their manual review, paused log, Agent inspection and shared
+reader state. Company change resets the workspace. Narrow layouts show analysis then
+workspace. Main cards share padding/heading rhythm and natural height.
 
-The single selector switches locally without scrolling, transferring focus or adding
+The analysis selector switches locally without scrolling, transferring focus or adding
 history. Hidden views preserve their disclosures; shipping investigations stay in the
 same left column and return with shipping. Opening a shipping investigation from the
-deviations panel selects shipping. Its exact business day/site scope and source-backed
-plan/handovers/forecast remain distinct from the other areas' company-wide last-hour
+deviations panel selects shipping. Shipping blockers are a counted, initially
+collapsed disclosure within the
+shipping view; all preview/action/source links remain available when opened, and the
+disclosure survives chart switches. There is no detached full-width blocker card.
+Its exact business day/site scope and source-backed plan/handovers/forecast remain distinct from the other areas' company-wide last-hour
 scope. Both mail plots and the disclosed recording-rate plot remain available. The same
 four readers, existing source/control state and confirmation semantics are reused.
 
