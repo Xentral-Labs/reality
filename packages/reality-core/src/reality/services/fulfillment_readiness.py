@@ -938,20 +938,22 @@ def fulfillment_readiness_batch(
     if not ids:
         return {}
     narrow = bool(session.info.get("operations_snapshot_consistent"))
-    commitment_query = select(
-        *(
-            Commitment.id,
-            Commitment.tenant_id,
-            Commitment.type,
-            Commitment.document_id,
-            Commitment.item_id,
-            Commitment.location_id,
-            Commitment.to_party_id,
-            Commitment.currency,
-        )
-        if narrow
-        else (Commitment,)
-    ).where(Commitment.tenant_id == tenant_id, core._id_cohort(Commitment.id, ids))
+    commitment_query = None
+    if not (narrow and _commitments is not None):
+        commitment_query = select(
+            *(
+                Commitment.id,
+                Commitment.tenant_id,
+                Commitment.type,
+                Commitment.document_id,
+                Commitment.item_id,
+                Commitment.location_id,
+                Commitment.to_party_id,
+                Commitment.currency,
+            )
+            if narrow
+            else (Commitment,)
+        ).where(Commitment.tenant_id == tenant_id, core._id_cohort(Commitment.id, ids))
     commitments = (
         {
             identity: row
@@ -962,7 +964,7 @@ def fulfillment_readiness_batch(
         else {
             row.id: row
             for row in (
-                core._metadata_rows(session.execute(commitment_query))
+                core._metadata_rows(core._metadata_execute(session, commitment_query))
                 if narrow
                 else session.scalars(commitment_query)
             )
@@ -970,22 +972,26 @@ def fulfillment_readiness_batch(
     )
     if len(commitments) != len(ids):
         raise InvalidOperation(code="fulfillment_commitment_not_found")
-    order_query = select(
-        *(
-            Document.id,
-            Document.tenant_id,
-            Document.type,
-            Document.party_id,
-            Document.payment_term_id,
-            Document.gross_amount,
-            Document.currency,
+    order_query = None
+    if not (narrow and _orders is not None):
+        order_query = select(
+            *(
+                Document.id,
+                Document.tenant_id,
+                Document.type,
+                Document.party_id,
+                Document.payment_term_id,
+                Document.gross_amount,
+                Document.currency,
+            )
+            if narrow
+            else (Document,)
+        ).where(
+            Document.tenant_id == tenant_id,
+            core._id_cohort(
+                Document.id, {row.document_id for row in commitments.values()}
+            ),
         )
-        if narrow
-        else (Document,)
-    ).where(
-        Document.tenant_id == tenant_id,
-        core._id_cohort(Document.id, {row.document_id for row in commitments.values()}),
-    )
     document_ids = {row.document_id for row in commitments.values()}
     orders = (
         {
@@ -999,7 +1005,7 @@ def fulfillment_readiness_batch(
         else {
             row.id: row
             for row in (
-                core._metadata_rows(session.execute(order_query))
+                core._metadata_rows(core._metadata_execute(session, order_query))
                 if narrow
                 else session.scalars(order_query)
             )

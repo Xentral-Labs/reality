@@ -1539,3 +1539,90 @@ def test_plan_review_projection_retains_complete_large_bindings_and_legacy_shape
     finally:
         original.input = original_input
         session.flush()
+
+
+def test_preloaded_snapshot_does_not_build_unused_promise_or_order_filters(
+    session, business, planned_shipping, monkeypatch
+):
+    # BUSINESS PURPOSE: Complete preloaded canonical inputs avoid redundant enterprise allocation.
+    # BUSINESS RULE: Reusing exact inputs preserves scalar terms/readiness and never constructs unused promise/document reads.
+    from reality.db.core import Commitment, Document
+    from reality.services.fulfillment_readiness import fulfillment_readiness_batch
+
+    tenant = business.tenant.id
+    identity = planned_shipping.id
+    session.flush()
+    expected_terms = core.commitment_terms(session, tenant, [identity])
+    expected_readiness = fulfillment_readiness_batch(session, tenant, {identity: None})
+    commitment = session.get(Commitment, (tenant, identity))
+    order = session.get(Document, (tenant, commitment.document_id))
+    calls = []
+    original = core._id_cohort
+
+    def traced(column, identities):
+        calls.append(column)
+        return original(column, identities)
+
+    monkeypatch.setattr(core, "_id_cohort", traced)
+    session.info["operations_snapshot_consistent"] = True
+    try:
+        actual_terms = core.commitment_terms(
+            session, tenant, [identity], _commitments={identity: commitment}
+        )
+        actual = fulfillment_readiness_batch(
+            session,
+            tenant,
+            {identity: None},
+            _terms=actual_terms,
+            _commitments={identity: commitment},
+            _orders={order.id: order},
+        )
+    finally:
+        session.info.pop("operations_snapshot_consistent", None)
+    assert actual_terms == expected_terms
+    assert actual[identity].as_dict() == expected_readiness[identity].as_dict()
+    assert not any(column is Commitment.id or column is Document.id for column in calls)
+
+
+def test_clean_metadata_connection_preserves_types_transaction_and_dirty_autoflush(
+    session, business, monkeypatch
+):
+    # BUSINESS PURPOSE: A scalar allocation refinement retains the actual transaction and pending business state.
+    # BUSINESS RULE: Decimal scale, nulls and UTC values survive clean reads; dirty and ordinary sessions still autoflush through Session execution.
+    from sqlalchemy import literal
+
+    from reality.db.core import Item
+
+    session.flush()
+    statement = select(
+        literal(Decimal("1.2300")).label("quantity"),
+        literal(OBSERVED).label("instant"),
+        literal(None).label("absent"),
+    )
+    expected = session.execute(statement).one()
+    connection = session.connection()
+    session.info["operations_snapshot_consistent"] = True
+    original = session.execute
+    calls = []
+
+    def traced(*args, **kwargs):
+        calls.append(args[0])
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(session, "execute", traced)
+    try:
+        actual = core._metadata_execute(session, statement).one()
+        assert actual == expected
+        assert actual.quantity.as_tuple() == expected.quantity.as_tuple()
+        assert actual.instant == OBSERVED and actual.absent is None
+        assert session.connection() is connection and not calls
+        business.item.name = "Pending name must become visible"
+        query = select(Item.name).where(
+            Item.tenant_id == business.tenant.id, Item.id == business.item.id
+        )
+        assert core._metadata_execute(session, query).scalar_one() == business.item.name
+        assert len(calls) == 1 and not session.dirty
+    finally:
+        session.info.pop("operations_snapshot_consistent", None)
+    assert core._metadata_execute(session, statement).one() == expected
+    assert len(calls) == 2

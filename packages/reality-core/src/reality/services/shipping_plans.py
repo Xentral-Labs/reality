@@ -94,26 +94,28 @@ def _source_basis_inputs(
     )
     rows = []
     latest = {}
-    for combined in session.execute(
+    for combined in core._metadata_execute(
+        session,
         select(*columns, *latest_source.c)
         .outerjoin(latest_source, true())
         .where(
             SourceRecord.tenant_id == tenant_id,
             core._id_cohort(SourceRecord.id, source_ids),
-        )
+        ),
     ):
         original = tuple(combined[:6])
         current_row = original if combined[6] is None else tuple(combined[6:])
         rows.append(original)
         latest[original[1:4]] = current_row
     jobs = dict(
-        session.execute(
+        core._metadata_execute(
+            session,
             select(ImportJob.source_record_id, ImportJob.status).where(
                 ImportJob.tenant_id == tenant_id,
                 core._id_cohort(
                     ImportJob.source_record_id, {row[0] for row in latest.values()}
                 ),
-            )
+            ),
         ).all()
     )
     return {
@@ -215,7 +217,12 @@ def current_statements(
     if location_id is not None:
         query = query.where(ShippingPlanStatement.dispatch_location_id == location_id)
     selected = {}
-    for row in session.execute(query.order_by(SourceRecord.version)):
+    observed_rows = (
+        core._metadata_execute(session, query.order_by(SourceRecord.version))
+        if narrow
+        else session.execute(query.order_by(SourceRecord.version))
+    )
+    for row in observed_rows:
         statement, source = (
             (_StatementHeader(*row[:8]), _StatementSource(*row[8:])) if narrow else row
         )
