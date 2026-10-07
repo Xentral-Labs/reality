@@ -1,11 +1,11 @@
-"""Disposable indexed Business detail cohorts (spec 378)."""
+"""Disposable indexed Business detail cohorts (spec 380)."""
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision = "0146_business_performance"
-down_revision = "0145_default_operational_cases"
+revision = "0147_business_performance"
+down_revision = "0146_shipping_plan_inputs"
 branch_labels = None
 depends_on = None
 

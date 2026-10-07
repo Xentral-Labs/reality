@@ -38,3 +38,6 @@ At stable quiescent checkpoints compare the unchanged full reference with every 
 
 ## Known capacity/consistency limits
 A 200-order chunk bounds entities, not an order's line count, a message's entire reply history, or the canonical stock reader's item movement history. High-fan-out stock/partner changes and million-order rebuilds can require thousands of shared scheduler rounds and exceed ten seconds. Ancillary inventory/replenishment readers retain full existing semantics and can dominate worker time; other shared projections also compete for worker capacity. The API captures counters/details/metadata in one statement snapshot; live cohort membership can still change between separate page requests. Old generations are cleaned in bounded continuation work. These are explicit limits to validate and tune, not evidence of million-order sustained throughput.
+
+## Historical measurement provenance after rebase
+The raw JSON files are unchanged measurements from 2026-10-06. Their recorded output paths retain the original `378-business-performance-projections` directory; only the repository artifact directory was renumbered to 380 during conflict resolution. These results are not fresh measurements of the rebased main code. Capacity acceptance remains open.

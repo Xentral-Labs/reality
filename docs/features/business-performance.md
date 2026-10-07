@@ -1,4 +1,4 @@
-# Activities Business data supply (spec 378)
+# Activities Business data supply (spec 380)
 
 Reality remains the authority. `business_performance.overview` retains the original full calculation as the independent diagnostic/reconciliation reader. The owner-only Business HTTP route reads stored `business_projection` observations and never rebuilds/enqueues on reads.
 
@@ -12,6 +12,6 @@ A row's next transition includes every outstanding due date's risk entry/overdue
 
 `processing` exposes available/delayed/state, processed/target sequence, completion, next clock moment and rebuild phase/row progress. Cold UI metrics are unavailable, rather than complete zero observations. Pending/rebuilding/failed data is explicitly delayed, and network failures retain the last snapshot. Upstream provider freshness remains unknown. Read acknowledgement, recorded reply and completed work are separate: completion remains unknown without evidence; outgoing evidence is not verified recipient delivery.
 
-Migration `0146_business_performance` adds caches and source/detail indexes. Apply migration before new API/worker code. No startup migration, production deployment or actual company-data change is part of this feature. Drain unfinished Business projection jobs before downgrade; additive schema may be retained for code rollback.
+Migration `0147_business_performance` adds caches and source/detail indexes. Apply migration before new API/worker code. No startup migration, production deployment or actual company-data change is part of this feature. Drain unfinished Business projection jobs before downgrade; additive schema may be retained for code rollback.
 
-Ancillary inventory/replenishment/goods/document observations retain existing readers in the worker. Their builder costs and canonical stock-history aggregation remain potential bottlenecks for large item histories. Large fan-out and rebuilds are bounded per job but may require many shared scheduler rounds. See spec 378 benchmark and quickstart for measured evidence and remaining acceptance.
+Ancillary inventory/replenishment/goods/document observations retain existing readers in the worker. Their builder costs and canonical stock-history aggregation remain potential bottlenecks for large item histories. Large fan-out and rebuilds are bounded per job but may require many shared scheduler rounds. See spec 380 benchmark and quickstart for measured evidence and remaining acceptance.
