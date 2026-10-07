@@ -281,3 +281,8 @@ company, so it leaves the switcher. `restore_run` brings it back unless the tena
 archived or another active run already carries the same storyline. Both are owner-only,
 confirmed explicitly, and exposed as `POST /api/playground/runs/{id}/archive` and `/restore`.
 Deleting the data behind an archived run is not offered yet.
+
+
+## Control Tower inspection — Spec 378 FR-087
+
+Owners may observe a ready private Playground company through Control Tower without a feature flag. Practice and temporary companies use the canonical owned-run/account/readiness policy; existing readable archived runs and verified pending-owner API inspection remain supported. Exact cockpit/case GET routes are admitted through the temporary-company surface allowlist. A direct cockpit entry can include only its authorized selected Playground company in bootstrap; ordinary Home company discovery and account admission do not change. Existing practice-operation permissions, generic/lesson mutation constraints and credential/egress boundaries are unchanged. Dashboard observation never adopts work or starts Agents, and manual case control remains business-only.

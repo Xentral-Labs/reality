@@ -16,7 +16,7 @@ export function useCompanyContext() {
   useEffect(() => {
     let active = true;
     api
-      .bootstrap()
+      .bootstrap(selection.route === "cockpit" ? selection.tenant || undefined : undefined)
       .then((value) => {
         if (!active) return;
         setBootstrap(value);

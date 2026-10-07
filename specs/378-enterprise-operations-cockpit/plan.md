@@ -153,7 +153,7 @@ Extract shared current-revision/request-key/handback-digest behavior from existi
 
 ### UI availability and context
 
-New server capability `REALITY_OPERATIONS_COCKPIT_ENABLED`, default off, gates both nav and direct routes. A disabled URL returns to a permitted existing page. Capability changes presentation/read access only, not mandates or ownership.
+The initial server feature flag is removed by owner-approved FR-087. The permanent navigation and current-company capability endpoint remain; fresh existing company access authorizes operational reads without deployment configuration. Availability grants no mandates or ownership, and Home remains the landing page.
 
 Namespaced URL state retains company business day, site, measure/filter, case and origin snapshot basis across Sales/Delivery/Inspector transitions. Company switching clears it. Contextual chat resolves an existing order/commitment; never pass a case ID into a commitment-ID prop. Cockpit starts with chat closed at desktop width; explicit opening works and other routes retain their existing behavior.
 
@@ -737,3 +737,17 @@ Owner requests removal of the nested chart frame. Scope is only operationsCockpi
 ## Mini-trend observation time (FR-085 refinement)
 
 Use existing value.observed_at in InstrumentTrend.tsx beside the period; formatTime uses the user timezone, a semantic time datetime and localized full-date title/label expose exact meaning. Preserve stale wording and absent observation. Add matrix assertions before implementation for six exact timestamps and Berlin presentation, retain contained responsive footers. Constitution I–VIII PASS; owner explicitly requests this narrow presentation. No new clock, polling, data/schema or authority. Existing full cockpit/contracts/i18n/build and actual visual proof apply.
+
+
+## FR-087 implementation plan: universal company observation
+
+The owner requested a separate green PR on 2026-10-07, removed the deployment switch, and clarified that all companies including Playground are included: anyone already allowed to access the company may open Control Tower. No unresolved scope clarification. Existing sensitive owner-only inventory and all mutation authority remain protected.
+
+Constitution Check: PASS for all eight principles. Shared read services remain tenant-scoped, evidence-backed and read-only. Reuse the canonical Playground run/owner/account readiness check; do not weaken business-only operational-case controls or egress. No schema, derived authority, infrastructure or external effect. Explicit user scope approval is recorded; merge/deployment is separate.
+
+1. Tests first: absent/obsolete switch values; owner/member/admin business reads; ready practice/temporary Playground, verified pending owners and readable archived runs; private/unready/revoked/inactive/unverified refusal before/after observations. Preserve owner-only inventory, readonly/no-BusinessEvent proofs and generic Playground mutation denial. The real browser journey must use no feature flag.
+2. Remove the unused `os` import, `enabled()` helpers and snapshot flag refusal. Replace the cockpit-only business-case `_member` coupling with a fresh tenant/user/member read, including existing persisted platform-admin business observation. Resolve Playground through `require_playground_run`, active/archived readiness and canonical account eligibility. Keep before/after authorization and owner-only inventory, without changing operational-case mutation guards. Business snapshots retain one authorization query per boundary.
+3. Add only exact existing GET cockpit and case-inspection/status routes to the temporary Playground read allowlist in web/api.py. Keep ready-run/cookie/ownership checks ahead of the allowlist and leave POST/egress denied. No new endpoint, grant or browser poller. Direct cockpit URLs pass the selected tenant to the existing bootstrap reader, which validates shared cockpit access before adding only that owned quick/archived Playground company. Home keeps its practice-only list and pending-account admission is unchanged. Preserve the capability DTO/shell mount guard; update obsolete activation wording in four locales.
+4. Clean obsolete flag setup in tests; update durable cockpit/Web/Playground contracts and coverage. Compose/installer/deployment templates contain no switch and require no configuration. Inherited old false values are inert in the new image. Run affected PostgreSQL regression, actual browser journey, lint/spec/docs gates, final access-boundary review and all final-head PR CI checks.
+
+Rollback: revert this PR to restore the previous gate. No persisted setting or migration exists. Risks: broadened read availability must exactly preserve existing company privacy and Playground ownership; denied generic controls must stay denied. Missing data and incomplete rollout remain honest. Availability cannot start Agents or approve mutations.

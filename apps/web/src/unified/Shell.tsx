@@ -846,7 +846,7 @@ export function Shell({
                     <p className="text-sm text-fg-muted">{company.name}</p>
                     <p>
                       {t(
-                        "Use the company menu at the top left to choose a business company with Control Tower enabled.",
+                        "Use the company menu at the top left to choose a company you can access.",
                       )}
                     </p>
                     <button className="br-btn" onClick={() => navigate({ route: "home" })}>

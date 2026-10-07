@@ -1,4 +1,4 @@
-"""Optional operational entry with current company-member authorization."""
+"""Universal operational entry with current company inspection authorization."""
 
 from fastapi import APIRouter, Depends, Query, Request
 
@@ -16,11 +16,6 @@ router = APIRouter(
     tags=["operations-cockpit"],
     dependencies=[Depends(require_tenant_surface_access)],
 )
-
-
-def enabled() -> bool:
-    """Configuration exposes the surface; it never grants company authority."""
-    return operations_cockpit.enabled()
 
 
 @router.get("/capabilities")

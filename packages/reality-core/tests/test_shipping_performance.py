@@ -1015,7 +1015,6 @@ def test_overview_projection_keeps_every_deviation_before_the_display_limit(
         session, business.tenant.id, day="2026-10-06", observed_at=OBSERVED
     )
     assert full[0]["totals"] == {"due": 63, "handed_over": 0, "forecast": 2, "risk": 61}
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     session.info["operations_snapshot_consistent"] = True
     session.info["operations_snapshot_observed_at"] = OBSERVED
     try:

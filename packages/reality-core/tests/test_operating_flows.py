@@ -372,7 +372,6 @@ def test_company_activity_flows_share_authorized_read_and_never_adopt_work(
     from reality.services import operational_cases, operations_cockpit
     from reality.services.memberships import Principal
 
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     session.commit()
     models = (BusinessEvent, ChangeProposal, CaseAdoption, CaseRollout, OperationalCase)
     before = {
