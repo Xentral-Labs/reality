@@ -364,3 +364,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T145 [FR-085] Add failing apps/web/scripts/instrument-trend.test.mjs and operations-cockpit-browser.mjs proofs for held fields/time/gaps/zero, six aligned footers, explicit empty/stale states and retained tile/Finance interactions.
 - [x] T146 [FR-085] Add instrumentMiniTrend.ts/InstrumentTrend.tsx, shared footer SVG/caption CSS and four-language copy; integrate into OperatingFlowsPanel.tsx using existing observations without new readers or history.
 - [x] T147 [FR-085] Verify complete cockpit browser/contracts/audit/build/image/format/spec, inspect actual local mini trends and update durable contracts/review/existing PR.
+
+
+## Shared page header
+
+- [x] T148 [FR-086] Add failing integrated Shell single-title/standard-inset/header-controls and complete cockpit compact-toolbar/shared-filter/responsive proofs in operations-cockpit-shell-browser.mjs and operations-cockpit-browser.mjs.
+- [x] T149 [FR-086] Remove OperationsCockpitPage.tsx duplicate hero/nested padding and reuse FilterChip.tsx in a compact wrapping scope/status toolbar through operationsCockpit.css; preserve all reads/control semantics.
+- [x] T150 [FR-086] Verify both browser suites/contracts/audit/build/image/format/spec, inspect actual local header and update durable contracts/review/existing ready PR.

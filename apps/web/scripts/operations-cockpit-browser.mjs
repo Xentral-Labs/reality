@@ -153,6 +153,36 @@ async function assertTrafficPalette(label) {
   }
 }
 async function assertInstrumentGrouping(label) {
+  const toolbar = page.locator("[data-cockpit-toolbar]");
+  assert.equal(await toolbar.count(), 1, `${label}: one compact scope/status toolbar`);
+  assert.equal(
+    await toolbar.locator(".register-filter-chip").count(),
+    2,
+    `${label}: shared native day/site filters`,
+  );
+  assert.equal(
+    await page.locator(".operations-cockpit h1").count(),
+    0,
+    `${label}: title belongs to shared Shell only`,
+  );
+  assert.equal(
+    await toolbar.locator(".cockpit-status").count(),
+    1,
+    `${label}: original live status shares the scope toolbar`,
+  );
+  const layout = await page.locator(".operations-cockpit").evaluate((root) => {
+    const bar = root.querySelector("[data-cockpit-toolbar]");
+    const rect = bar.getBoundingClientRect();
+    return {
+      padding: getComputedStyle(root).padding,
+      width: root.clientWidth,
+      height: rect.height,
+      overflow: bar.scrollWidth > bar.clientWidth + 1,
+    };
+  });
+  assert.equal(layout.padding, "0px", `${label}: shared main owns page insets`);
+  assert(!layout.overflow, `${label}: all scope/status controls contained`);
+  if (layout.width >= 1300) assert(layout.height <= 40, `${label}: compact desktop toolbar`);
   const board = page.locator("[data-operating-status]");
   assert.equal(
     await board.evaluate((el) => getComputedStyle(el).borderTopWidth),

@@ -299,6 +299,34 @@ try {
   await nav.getByRole("link", { name: "Control Tower", exact: true }).click();
   await page.getByRole("heading", { name: "Shipping by end of day", exact: true }).waitFor();
   await chat.waitFor({ state: "hidden" });
+  assert.equal(
+    await page.getByRole("heading", { level: 1, name: "Control Tower", exact: true }).count(),
+    1,
+    "shared Shell owns the single Control Tower title",
+  );
+  assert.equal(await page.locator("main h1").count(), 0, "no duplicate body hero");
+  for (const name of ["About this page", "Show chat"])
+    assert(
+      await header.getByRole("button", { name, exact: true }).isVisible(),
+      `canonical header retains ${name}`,
+    );
+  const inset = await page.locator("main").evaluate((main) => {
+    const content = main.querySelector(".operations-cockpit");
+    const toolbar = main.querySelector("[data-cockpit-toolbar]");
+    return {
+      padding: getComputedStyle(content).padding,
+      x: toolbar.getBoundingClientRect().left - main.getBoundingClientRect().left,
+      expected: parseFloat(getComputedStyle(main).paddingLeft),
+      gap: toolbar.getBoundingClientRect().top - content.getBoundingClientRect().top,
+    };
+  });
+  assert.equal(
+    inset.padding,
+    "0px",
+    "standard Shell content inset without additional page padding",
+  );
+  assert(Math.abs(inset.x - inset.expected) < 1, "toolbar aligned to other workspace content");
+  assert.equal(inset.gap, 0, "no extra hero gap before scope toolbar");
   await page.getByRole("button", { name: "At risk: 1", exact: true }).click();
   await page.getByText("Dispatch paused by customer", { exact: true }).waitFor();
   await page.getByRole("link", { name: "SO-104", exact: true }).click();
