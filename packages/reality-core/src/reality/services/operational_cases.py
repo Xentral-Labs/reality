@@ -1394,12 +1394,14 @@ def register_cases(
         OperationalCase.kind == "order_fulfillment",
     )
     commitments = list(
-        session.execute(
-            select(Commitment.id, Commitment.document_id, Commitment.status).where(
-                Commitment.tenant_id == tenant_id,
-                Commitment.document_id.in_(order_ids),
-                Commitment.type == "customer_delivery",
-                Commitment.status == "open",
+        core._metadata_rows(
+            session.execute(
+                select(Commitment.id, Commitment.document_id, Commitment.status).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.document_id.in_(order_ids),
+                    Commitment.type == "customer_delivery",
+                    Commitment.status == "open",
+                )
             )
         )
     )

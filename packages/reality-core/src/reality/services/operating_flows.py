@@ -226,18 +226,22 @@ def observe(
         from reality.services.delivery_reads import _fulfillment_cohort
 
         cohort = _fulfillment_cohort(tenant_id).subquery()
-        commitments = session.execute(
-            select(cohort)
-            .where(
-                (cohort.c.open > 0)
-                | (
-                    (cohort.c.type == "supplier_delivery")
-                    & (cohort.c.open == 0)
-                    & (cohort.c.fulfilled > 0)
+        commitments = list(
+            core._metadata_rows(
+                session.execute(
+                    select(cohort)
+                    .where(
+                        (cohort.c.open > 0)
+                        | (
+                            (cohort.c.type == "supplier_delivery")
+                            & (cohort.c.open == 0)
+                            & (cohort.c.fulfilled > 0)
+                        )
+                    )
+                    .order_by(cohort.c.created_at, cohort.c.id)
                 )
             )
-            .order_by(cohort.c.created_at, cohort.c.id)
-        ).all()
+        )
         work = [r for r in commitments if r.open > 0]
         outgoing = [r for r in work if r.type == "customer_delivery"]
         incoming = [r for r in work if r.type == "supplier_delivery"]

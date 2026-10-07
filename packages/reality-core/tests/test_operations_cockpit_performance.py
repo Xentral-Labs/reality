@@ -547,6 +547,7 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
     assert commit_to_observation <= 10, commit_to_observation
 
     live_samples = []
+    live_by_kind = {kind: [] for kind in ("overview", "register", "activity", "agents")}
     cycle_samples = []
     write_samples = []
     live_queries = []
@@ -622,8 +623,11 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
                 for _ in range(10)
                 for kind in ("overview", "register", "activity", "agents")
             ]
-            for future in futures:
+            for index, future in enumerate(futures):
                 elapsed, queries, size = future.result()
+                live_by_kind[
+                    ("overview", "register", "activity", "agents")[index % 4]
+                ].append(elapsed)
                 live_samples.append(elapsed)
                 live_queries.append(queries)
                 live_payload_bytes.append(size)
@@ -664,6 +668,10 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
                 "live_seconds": 60,
                 "live_requests": len(live_samples),
                 "live_p95_seconds": live_p95,
+                "live_p95_by_kind_seconds": {
+                    kind: sorted(values)[math.ceil(len(values) * 0.95) - 1]
+                    for kind, values in live_by_kind.items()
+                },
                 "live_max_queries": max(live_queries),
                 "live_max_payload_bytes": max(live_payload_bytes),
                 "cycle_seconds": cycle_samples,

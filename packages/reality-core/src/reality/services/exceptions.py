@@ -613,7 +613,13 @@ def _commitment_exceptions(
         if defer_trace
         else (Commitment,)
     ).where(Commitment.tenant_id == tenant_id, Commitment.status == "open")
-    rows = session.execute(query) if defer_trace else session.scalars(query)
+    from reality.services.core import _metadata_rows
+
+    rows = (
+        _metadata_rows(session.execute(query))
+        if defer_trace
+        else session.scalars(query)
+    )
     from reality.services.drop_shipping import drop_ship_cover
 
     # Spec 337: what a supplier still ships straight to the customer is never
@@ -3659,7 +3665,11 @@ def _item_oversold_exceptions(
     never oversold.
     """
     from reality.db.core import Commitment, Document, DocumentLine, Item, Movement
-    from reality.services.delivery_reads import effective_value, fulfillment_expressions
+    from reality.services.delivery_reads import (
+        _latest_stated_value,
+        effective_value,
+        fulfillment_expressions,
+    )
 
     _, fulfilled, _ = fulfillment_expressions()
     promised = effective_value("quantity")
@@ -3668,6 +3678,8 @@ def _item_oversold_exceptions(
     def open_promises(commitment_type: str, item_ids=None):
         observed_fulfilled = fulfilled
         net = None
+        latest_quantity = None
+        observed_promised = promised
         if session.info.get("operations_snapshot_consistent"):
             from reality.services.core import _movement_quantity_query
 
@@ -3687,6 +3699,10 @@ def _item_oversold_exceptions(
                 grouped.selected_columns.type == movement_type,
             ).subquery()
             observed_fulfilled = func.coalesce(net.c.quantity, 0)
+            latest_quantity = _latest_stated_value(tenant_id, "quantity")
+            observed_promised = func.coalesce(
+                latest_quantity.c.quantity, Commitment.quantity
+            )
         query = (
             select(
                 Commitment.id,
@@ -3695,7 +3711,7 @@ def _item_oversold_exceptions(
                 Commitment.created_at,
                 Document.sales_channel,
                 unit.label("unit"),
-                promised.label("promised"),
+                observed_promised.label("promised"),
                 observed_fulfilled.label("fulfilled"),
                 Commitment.unit.label("held_unit"),
                 DocumentLine.quantity.label("line_quantity"),
@@ -3726,8 +3742,16 @@ def _item_oversold_exceptions(
         )
         if net is not None:
             query = query.outerjoin(net, net.c.commitment_id == Commitment.id)
+        if latest_quantity is not None:
+            query = query.outerjoin(
+                latest_quantity, latest_quantity.c.commitment_id == Commitment.id
+            )
         if item_ids is not None:
             query = query.where(Commitment.item_id.in_(item_ids))
+        if session.info.get("operations_snapshot_consistent"):
+            from reality.services.core import _metadata_rows
+
+            return list(_metadata_rows(session.execute(query)))
         return session.execute(query).all()
 
     def remaining(row) -> Decimal | None:
