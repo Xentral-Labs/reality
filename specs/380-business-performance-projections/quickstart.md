@@ -1,8 +1,8 @@
-# Verification (spec 378)
+# Verification (spec 380)
 
 Prerequisites: local disposable PostgreSQL on port 54329; repository Python virtualenv and Web dependencies. No real company data or deployment required.
 
-Run `make spec-check lint business-annotations-check`, then `cd packages/reality-core && ../../.venv/bin/pytest tests/test_business_projection.py tests/test_projection_jobs.py tests/test_clock_sensitivity.py tests/test_migrations.py tests/test_application_catalog.py`. Full required backend regression: `make test`. Migration tests upgrade head, inspect indexes, downgrade to 0145, re-upgrade and refuse cache removal with unfinished shared jobs.
+Run `make spec-check lint business-annotations-check`, then `cd packages/reality-core && ../../.venv/bin/pytest tests/test_business_projection.py tests/test_projection_jobs.py tests/test_clock_sensitivity.py tests/test_migrations.py tests/test_application_catalog.py`. Full required backend regression: `make test`. Migration tests upgrade head, inspect indexes, downgrade to 0146_shipping_plan_inputs, re-upgrade and refuse cache removal with unfinished shared jobs.
 
 Web gates: `make web-build`; generated catalog: `make docs-generate` and `make docs-catalog-check` after generated files are committed. Browser: run local Vite on 5177 and `PLAYWRIGHT_MODULE=<installed-playwright/index.mjs> PLAYWRIGHT_EXECUTABLE=/usr/bin/chromium UNIFIED_BASE_URL=http://127.0.0.1:5177 node apps/web/scripts/business-live-browser.mjs` from its script directory as appropriate.
 
@@ -18,3 +18,8 @@ Current evidence:
 - Synthetic read/rebuild/shared-role measurements, raw results and the million-order plan are in [benchmark.md](benchmark.md). Final 10,000-order read p95 is 186.92 ms; short shared-role booking lag remains above ten seconds. Sustained simultaneous bookings/viewers and million-order capacity are open acceptance items.
 
 No deployment or real company data was touched. SC-004 remains open; this is a draft follow-up for review. Do not mark completion/release gates green while required checks remain pending. Interrupted early full-suite attempts are not passing verification. A parallel migration-fixture run exhausted the disposable PostgreSQL default lock table; the final four-worker run uses max_locks_per_transaction=512 in the local test container only. Benchmark measurements used its earlier default 64. The final CI uses its existing disposable PostgreSQL lock setting (1024); consult the PR verification section for completed full-suite totals. The interrupted local run (2792 passed, one pre-repair downgrade expectation failure) is not a full-suite success.
+
+## Compatibility rebase — 2026-10-07
+Rebased onto `fcb1d0bb` following the repository linear-history workflow. Conflict resolution retains main intake/cockpit/shipping services, translations and reference coverage alongside Business. Spec 378 belongs to the cockpit on main, so this feature is now spec 380. Migration `0147_business_performance` follows `0146_shipping_plan_inputs`; downgrade retains its authoritative shipping statement table. Spec impact: no additional product behavior or schema beyond the already specified Business caches.
+
+Post-rebase local verification: 115 Business/shared projection/clock/migration/catalog/HTTP tests passed (359.47 s), plus the explicit shipping-table-preserving downgrade proof (54.67 s). Spec/Ruff/annotation checks pass (672 described functions, 115 described tests, no outstanding preparation); documentation has 145 passing tests, passing formatting and a passing VitePress build. Generated catalogs were regenerated from both feature families. Current-head CI and the final Web result are recorded in PR #380; historical full-suite and capacity results above remain dated evidence, not a claim about the new head.

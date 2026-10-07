@@ -15,7 +15,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 14       | 7         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 17       | 18        |
+| [Auftrag](#resource-order)                                     | 9      | 17       | 18        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 14       | 3         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -382,6 +382,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Versandvorrat](./views#projection-fulfillment_queue) (`fulfillment_queue`)
 - [Lieferhindernisse](./views#projection-fulfillment_blockers) (`fulfillment_blockers`)
 - [Verpflichtungsregister](./views#projection-commitment_register) (`commitment_register`)
+- [Geschäftskennzahlen](./views#projection-business_performance) (`business_performance`)
 
 **Aktionen**
 

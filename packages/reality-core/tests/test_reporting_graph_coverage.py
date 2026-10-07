@@ -74,7 +74,7 @@ INFRASTRUCTURE = {
     "business_event",
     "projection_row",
     "projection_checkpoint",
-    # Disposable Business cache rows, independently covered against Reality (spec 378).
+    # Disposable Business cache rows, independently covered against Reality (spec 380).
     "business_order_row",
     "business_mail_row",
     # How far a company's events have got, which is machinery for deciding what to

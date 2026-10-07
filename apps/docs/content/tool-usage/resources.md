@@ -15,7 +15,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 14      | 7                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 8     | 17      | 18                  |
+| [Order](#resource-order)                                         | 9     | 17      | 18                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 14      | 3                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
@@ -373,6 +373,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Fulfillment queue](./views#projection-fulfillment_queue) (`fulfillment_queue`)
 - [Fulfillment blockers](./views#projection-fulfillment_blockers) (`fulfillment_blockers`)
 - [Commitment register](./views#projection-commitment_register) (`commitment_register`)
+- [Business performance](./views#projection-business_performance) (`business_performance`)
 
 **Actions**
 

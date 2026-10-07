@@ -29510,7 +29510,7 @@ Object.assign(dictionaries.es, {
     "La vista previa muestra hasta 50 registros por sección. Consulte los pedidos relacionados para ver todas las pruebas.",
 });
 
-// Disposable Business read models (spec 378).
+// Disposable Business read models (spec 380).
 Object.assign(dictionaries.de, {
   "Business data is delayed.": "Geschäftsdaten sind verzögert.",
   "Business data has been processed.": "Geschäftsdaten wurden verarbeitet.",

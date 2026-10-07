@@ -284,5 +284,5 @@ other class. Retry timing, lease identity, attempt limits, definite refusals and
 authorization remain unchanged. This guarantees opportunities for both classes; it
 does not promise a fixed elapsed execution time.
 
-## Incremental Business observations (spec 378)
+## Incremental Business observations (spec 380)
 `business_performance` is maintained by the existing `projections.refresh` registration and shared scheduler/worker roles. One call publishes a bounded cache unit and durable rebuild/event traversal, with ordinary job fencing/retry. Expired per-order clock transitions and event backlog make it eligible; API reads never enqueue. A multi-run generation rebuild retains old published data and replays events from its starting sequence after publication. See [Business data supply](business-performance.md). No new role, queue, user schedule, transport effect or business action is introduced.

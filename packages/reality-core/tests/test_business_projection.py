@@ -483,8 +483,9 @@ def test_migration_roundtrip_indexes_and_unfinished_job_guard(
         assert {"ix_source_business_message_id", "ix_source_business_in_reply_to"} <= {
             i["name"] for i in inspect(engine).get_indexes("source_record")
         }
-        command.downgrade(config, "0145_default_operational_cases")
+        command.downgrade(config, "0146_shipping_plan_inputs")
         assert "business_order_row" not in inspect(engine).get_table_names()
+        assert "shipping_plan_statement" in inspect(engine).get_table_names()
         command.upgrade(config, "head")
         with Session(engine) as db:
             tenant = core.create_tenant(db, "Disposable migration guard")
@@ -495,7 +496,7 @@ def test_migration_roundtrip_indexes_and_unfinished_job_guard(
             )
             db.commit()
         with pytest.raises(RuntimeError, match="Drain Business"):
-            command.downgrade(config, "0145_default_operational_cases")
+            command.downgrade(config, "0146_shipping_plan_inputs")
     finally:
         engine.dispose()
 

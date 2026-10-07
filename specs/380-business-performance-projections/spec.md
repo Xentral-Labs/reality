@@ -92,3 +92,6 @@ PR #377 was merged at 2026-10-06T06:34:42Z, merge commit `4a4dec95a846180ee72df4
 | FR-007 | US3.2-3 | restart, bounded rebuild, concurrent commits |
 | FR-008 | US1/US2/US3 | independent full reference comparison |
 | FR-009 | SC-004 | synthetic benchmark and documented million-order plan |
+
+### Main compatibility reconciliation — 2026-10-07
+The feature is rebased onto `fcb1d0bb` without expanding product scope. Main already allocated spec 378 to the enterprise cockpit and migration 0146 to shipping inputs. This feature now owns spec 380 and migration `0147_business_performance`, directly following `0146_shipping_plan_inputs`. Business downgrade removes only its derived caches and retains source-backed shipping-plan tables. Both catalog/service families and all translations remain present.
