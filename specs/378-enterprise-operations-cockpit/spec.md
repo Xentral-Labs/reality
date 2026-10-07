@@ -570,3 +570,13 @@ workspace / Cases & takeover. Log and Agent views follow the same hierarchy.
 Both titles use the same shared typography and remain readable at phone/docked/
 desktop widths in all product languages and themes. There is one visible h2 per
 primary card, with no dangling accessible section labels.
+
+
+### Full instrument tile activation
+
+- **FR-074**: Clicking any non-secondary-control part of an available instrument tile MUST open its existing compact all-work inspection dialog, including title, primary count, meter, status and padding. A single native primary button provides the full hit area and keyboard Enter/Space behavior without nesting risk buttons. Known risk counts retain their specific group activation, unknown/unavailable data stays disabled, and Finance retains its existing workspace link. Closing/Escape restores the primary trigger focus, with visible full-tile hover/focus feedback; no chart/URL/history/reader/business mutation changes.
+
+Acceptance: padding/title/meter/status clicks open the matching all-work preview
+for all five supported areas, including an empty known cohort. Enter/Space do the
+same; a risk click opens only its own group. Escape preserves scroll and focus.
+Phone/docked/desktop geometry and both themes/four languages remain supported.

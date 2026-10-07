@@ -377,7 +377,7 @@ export function OperatingStatusPanel({
           <span className="cockpit-eyebrow">{t("Company-wide · live")}</span>
           <h2 id="operating-status-heading">{t("Company instruments")}</h2>
           <p>
-            {t("Select a count to inspect its records.")}{" "}
+            {t("Select a tile to inspect its records.")}{" "}
             {t("Live company-wide status. Choose a chart area in Detailed analysis.")}
           </p>
         </div>
