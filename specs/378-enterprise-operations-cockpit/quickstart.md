@@ -809,3 +809,5 @@ The first full CI found a retired refusal-catalog entry for the removed deployme
 
 
 After retiring the unused activation refusal, the strict refusal catalog plus all HTTP access/snapshot cases pass: **88 passed in 75.81 s** (`/private/tmp/control-tower-universal-refusal-final.log`). Frontend refusal-catalog contracts and all four 3070/3070 language audits pass again. Regenerated docs remain unchanged. Final PR CI must be green before T157 completion.
+
+FR-087 GitHub verification PASS: [Quality gates run 37659794894](https://github.com/Xentral-Labs/reality/actions/runs/37659794894) on implementation head `83e8a74949110259a35ff8a3ea2b3bb2ca65075a` completed all **26/26 checks successfully**. This includes every PostgreSQL shard, the unchanged isolated enterprise timing gate, all browser-script shards, all actual live browser journeys, frontend/docs quality and spec policy. PR #384 is ready for review and mergeable. T157 is complete for this verified implementation; the evidence-only follow-up is checked again on the final PR head before handoff. Separate historical rollout/soak acceptance gates remain unchanged. No merge or deployment was performed.
