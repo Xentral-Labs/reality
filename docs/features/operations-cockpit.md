@@ -315,3 +315,10 @@ Verified by the full operations-cockpit-browser.mjs locale/theme/viewport matrix
 ### Compact instrument legend (FR-083)
 
 The shared centered legend keeps the four original risk meanings visible in one desktop row. The exact share-of-open-work and evaluated-scope explanation lives in a native Info disclosure, closed initially and bounded within the section. Keyboard activation opens it; Escape closes it and returns focus without changing history, analysis, live readers or business state. Narrow views wrap the keys naturally. Theme tokens preserve readability. The complete cockpit browser matrix, 478 frontend contracts, four 3056-key audits, production build/image and format/spec checks pass; current-head release gates remain separate.
+
+
+### Observed live feedback (FR-084)
+
+The recent-activity card always shows the existing recorded-entity rate in a compact per-minute band, scoped to its selected period. This is newly recorded orders/documents, reservations and movements; it is not tool-call volume, reply throughput or proof of successful Agent execution. Exact source links and the detailed measurement explanation remain available.
+
+Primary instruments briefly highlight a changed current count in a neutral accent. The tooltip states the numeric observation difference without assigning success or causality. Newly displayed events with a later recorded sequence receive one finite entry/highlight. Initial history and repeated/older records remain quiet. Pause/inspection retains its event list; resume follows the current observation. Context changes and stale/suspended/denied reads reset the feedback baseline. Reduced-motion preference disables entry/flash and bar transitions. These signals introduce no recurring readers, business writes or synthetic activity.

@@ -1,3 +1,4 @@
+import { ObservedMetric } from "./ObservedMetric";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AnalysisMetricGroup, AnalysisPlot } from "./AnalysisSections";
 import { Info, X } from "lucide-react";
@@ -405,11 +406,13 @@ export function OperatingStatusPanel({
                   aria-label={`${t(titles[area.key])} · ${t(metric.label)} · ${typeof data?.[metric.key] === "number" ? formatNumber(data[metric.key] as number) : "—"}`}
                   onClick={() => setInspection({ area: area.key, group: "all" })}
                 >
-                  <strong data-status-metric>
-                    {typeof data?.[metric.key] === "number"
-                      ? formatNumber(data[metric.key] as number)
-                      : "—"}
-                  </strong>
+                  <ObservedMetric
+                    value={
+                      typeof data?.[metric.key] === "number" ? (data[metric.key] as number) : null
+                    }
+                    context={`${selection.tenant}:${selection.cockpitMinutes || 15}:${area.key}`}
+                    current={!stale}
+                  />
                 </button>
               </span>
               <RiskMeter

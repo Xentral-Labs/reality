@@ -2170,3 +2170,68 @@ a.cockpit-status-link:focus-visible {
 .cockpit-risk-explanation-content .cockpit-risk-scope {
   margin-top: 0;
 }
+
+/* Motion responds only to changed current observations; no continuous busy animation. */
+.cockpit-activity-signal {
+  padding: 10px 12px;
+  margin-top: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.cockpit-activity-signal .cockpit-activity-total {
+  margin: 0 0 8px;
+  gap: 8px;
+}
+.cockpit-activity-signal .cockpit-activity-total strong {
+  font-size: 16px;
+}
+.cockpit-activity-signal .cockpit-activity-chart {
+  height: 34px;
+}
+.cockpit-activity-signal .cockpit-activity-chart > div {
+  max-width: none;
+  transition: height 350ms ease-out;
+}
+.cockpit-live-metric-change {
+  border-radius: 4px;
+  animation: cockpit-observation-change 2.8s ease-out;
+}
+.cockpit-event-list [data-live-new-event] {
+  border-radius: 4px;
+  animation: cockpit-event-arrival 2.8s ease-out;
+}
+@keyframes cockpit-observation-change {
+  0%,
+  25% {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+@keyframes cockpit-event-arrival {
+  0% {
+    transform: translateY(-4px);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  25% {
+    transform: translateY(0);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  100% {
+    transform: translateY(0);
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cockpit-live-metric-change,
+  .cockpit-event-list [data-live-new-event] {
+    animation: none;
+  }
+  .cockpit-activity-signal .cockpit-activity-chart > div {
+    transition: none;
+  }
+}

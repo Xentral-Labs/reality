@@ -781,3 +781,6 @@ FR-082 stacked monitoring: open Control Tower on port 8080. Right column shows Z
 
 
 FR-083 compact legend: the four risk keys remain in a centered single desktop row. Activate the Info summary to read the original scope explanation; Escape closes it and returns focus. Actual port-8080 German footer measures 31px instead of 77px. Full cockpit browser matrix, 478 frontend contracts, four 3056-key audits, production build/image and format/spec checks pass. Existing release gates remain open.
+
+
+FR-084 live feedback: open Control Tower on port 8080 and leave it visible. The recorded-entity band is always shown beside analysis; expand Recording rate & period for its exact measurement scope/window controls. A later changed current instrument count highlights once, and a newly recorded event enters once. Pause retains the list; resume follows newer events. First history/equal/replayed/aged observations remain quiet; reduced motion clears cues and cannot replay them on re-enable. Zero activity shows no bars. Final full browser matrix, 480 frontend contracts, four 3057-key audits, production web build/image, format/spec and actual current-company visual proof pass. Existing release gates remain open.
