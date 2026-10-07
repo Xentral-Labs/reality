@@ -43,26 +43,23 @@ async function assertCaseEntry(label) {
   );
   if (label === "initial desktop") {
     assert(
-      layout.cases.bottom < layout.shipping.bottom,
+      layout.cases.bottom < layout.analysis.bottom,
       `${label}: compact responsibility keeps its natural height`,
     );
   }
   if (layout.console.width > 820) {
     assert(
-      Math.abs(layout.shipping.top - layout.cases.top) < 2,
-      `${label}: shipping and responsibility share the top row`,
+      Math.abs(layout.analysis.top - layout.cases.top) < 2,
+      `${label}: shared analysis and responsibility share the top row`,
     );
-    assert(layout.cases.left >= layout.shipping.right, `${label}: responsibility beside shipping`);
-    assert(
-      Math.abs(layout.analysis.top - layout.log.top) < 2,
-      `${label}: analysis and log share the second row`,
-    );
-    assert(layout.log.left >= layout.analysis.right, `${label}: log beside analysis`);
+    assert(layout.cases.left >= layout.analysis.right, `${label}: responsibility beside analysis`);
   } else {
-    assert(layout.cases.top > layout.shipping.bottom, `${label}: responsibility follows shipping`);
-    assert(layout.analysis.top > layout.cases.bottom, `${label}: analysis follows responsibility`);
-    assert(layout.log.top > layout.analysis.bottom, `${label}: log follows analysis`);
+    assert(
+      layout.cases.top > layout.analysis.bottom,
+      `${label}: responsibility follows shared analysis`,
+    );
   }
+  assert(layout.log.top > layout.cases.bottom, `${label}: live log follows responsibility`);
   assert(
     layout.agents.top > layout.log.bottom,
     `${label}: registered Agents immediately under the log`,
@@ -170,45 +167,51 @@ async function assertFlowAlignment(label) {
       }
     }
   }
-  const metricRows = await page.locator("[data-flow-area]:not([hidden]) dl").evaluate((element) => {
-    const columns = getComputedStyle(element).gridTemplateColumns.split(" ").length;
-    const positions = [...element.querySelectorAll("dd")].map(
-      (node) => node.getBoundingClientRect().top,
-    );
-    return { columns, positions };
-  });
-  for (let row = 0; row < metricRows.positions.length; row += metricRows.columns) {
-    const peers = metricRows.positions.slice(row, row + metricRows.columns);
-    assert(
-      Math.max(...peers) - Math.min(...peers) < 2,
-      `${label}: metric values align despite wrapping captions`,
+  if (await page.locator("[data-flow-area]:not([hidden]) dl").count()) {
+    const metricRows = await page
+      .locator("[data-flow-area]:not([hidden]) dl")
+      .evaluate((element) => {
+        const columns = getComputedStyle(element).gridTemplateColumns.split(" ").length;
+        const positions = [...element.querySelectorAll("dd")].map(
+          (node) => node.getBoundingClientRect().top,
+        );
+        return { columns, positions };
+      });
+    for (let row = 0; row < metricRows.positions.length; row += metricRows.columns) {
+      const peers = metricRows.positions.slice(row, row + metricRows.columns);
+      assert(
+        Math.max(...peers) - Math.min(...peers) < 2,
+        `${label}: metric values align despite wrapping captions`,
+      );
+    }
+    const metricSpacing = await page
+      .locator("[data-flow-area]:not([hidden]) dl")
+      .evaluate((element) => getComputedStyle(element).rowGap);
+    assert.equal(
+      metricSpacing,
+      "16px",
+      `${label}: selected analysis keeps explicit metric-row spacing`,
     );
   }
-  const metricSpacing = await page
-    .locator("[data-flow-area]:not([hidden]) dl")
-    .evaluate((element) => getComputedStyle(element).rowGap);
-  assert.equal(
-    metricSpacing,
-    "16px",
-    `${label}: selected analysis keeps explicit metric-row spacing`,
-  );
   const rhythm = await page.locator("[data-operating-flows]").evaluate((element) => ({
     margin: getComputedStyle(element).marginTop,
     headingHeight: element.querySelector("header").getBoundingClientRect().height,
     outerGap:
       element.getBoundingClientRect().top -
-      element.parentElement.previousElementSibling.getBoundingClientRect().bottom,
+      element.closest(".cockpit-console-row").previousElementSibling.getBoundingClientRect().bottom,
     headingSize: getComputedStyle(element.querySelector("h2")).fontSize,
     sharedSize: getComputedStyle(document.querySelector(".cockpit-shipping h2")).fontSize,
     contentGap:
-      element.querySelector("[data-flow-area]:not([hidden])").getBoundingClientRect().top -
+      element
+        .querySelector("[data-shipping-analysis]:not([hidden]), [data-flow-area]:not([hidden])")
+        .getBoundingClientRect().top -
       element.querySelector("header").getBoundingClientRect().bottom,
     selectorInHeader: Boolean(element.querySelector("header .cockpit-analysis-selector")),
     border: getComputedStyle(element).borderTopWidth,
     nestedCards: element.querySelectorAll(".cockpit-card").length,
     paddings: [
       ...document.querySelectorAll(
-        ".cockpit-shipping, .cockpit-activity, [data-agent-access], [data-case-register], [data-operating-flows]",
+        ".cockpit-activity, [data-agent-access], [data-case-register], [data-operating-flows]",
       ),
     ].map((node) => getComputedStyle(node).paddingTop),
   }));
@@ -544,6 +547,20 @@ try {
       "/scripts/fixtures/operations-cockpit-harness.html",
   );
   await page.getByRole("heading", { name: "Shipping by end of day" }).waitFor();
+  const combinedSelector = page.getByRole("combobox", { name: "Analysis area", exact: true });
+  assert.equal(await combinedSelector.inputValue(), "shipping", "shipping is the default analysis");
+  assert.deepEqual(
+    await combinedSelector
+      .locator("option")
+      .evaluateAll((options) => options.map((option) => option.value)),
+    ["shipping", "orders", "messages", "supply", "stock", "returns"],
+    "shipping is the first of six analysis options",
+  );
+  assert.equal(
+    await page.locator("[data-operating-flows] .cockpit-shipping").count(),
+    1,
+    "shipping occupies the shared analysis location",
+  );
   await assertCaseEntry("initial desktop");
   const accessToggle = page.getByRole("button", { name: "View all accesses", exact: true });
   assert.equal(await accessToggle.getAttribute("title"), "View all accesses");
@@ -692,9 +709,9 @@ try {
   await areaSelector.selectOption("messages");
   await page.evaluate(() => window.__cockpitNavigate({ tenant: "other-company" }));
   await page.waitForFunction(
-    () => document.querySelector(".cockpit-analysis-selector select")?.value === "orders",
+    () => document.querySelector(".cockpit-analysis-selector select")?.value === "shipping",
   );
-  assert.equal(await areaSelector.inputValue(), "orders", "company switch resets analysis");
+  assert.equal(await areaSelector.inputValue(), "shipping", "company switch resets analysis");
   summaryVariants = true;
   await page.goto(
     (process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177") +
@@ -731,6 +748,7 @@ try {
     });
   await timeSelection.getByRole("button").nth(1).click();
   await openCaseWorkspace();
+  await areaSelector.selectOption("orders");
   assert.equal(await page.locator("[data-case-register] .cockpit-selection").count(), 1);
   await page.locator(".operations-cockpit").evaluate((element) => {
     element.style.maxWidth = "720px";
@@ -823,6 +841,7 @@ try {
     .nth(2)
     .getByText("No linked operational case", { exact: true })
     .waitFor();
+  await areaSelector.selectOption("shipping");
   const cutoff = page.locator("[data-cutoff-details]");
   assert.equal(
     await cutoff.locator("[data-cutoff-entry]").count(),
@@ -843,7 +862,13 @@ try {
   await deviation.locator("summary").click();
   await page.getByRole("button", { name: "Show more deviations", exact: true }).click();
   assert.equal(await page.locator("[data-deviation-preview]").count(), 8);
+  await areaSelector.selectOption("messages");
   await page.getByRole("button", { name: "Inspect all affected orders", exact: true }).click();
+  assert.equal(
+    await areaSelector.inputValue(),
+    "shipping",
+    "global shipping investigation selects shipping",
+  );
   await page.locator("[data-shipping-inspection]").waitFor();
   assert.equal(
     await page
@@ -855,7 +880,13 @@ try {
   assert.equal(
     await page
       .locator(".cockpit-shipping")
-      .evaluate((el) => el.nextElementSibling.hasAttribute("data-shipping-inspection")),
+      .evaluate((el) =>
+        Boolean(
+          el
+            .closest("[data-operating-flows]")
+            .nextElementSibling?.querySelector("[data-shipping-inspection]"),
+        ),
+      ),
     true,
     "Inspection stays beside the originating shipping panel",
   );
@@ -978,6 +1009,7 @@ try {
   await page.getByRole("button", { name: "Resume following" }).click();
   await page.locator('[data-activity-event="event_2"]').waitFor();
   await page.screenshot({ path: "/private/tmp/reality-378-cockpit-1440.png", fullPage: true });
+  await areaSelector.selectOption("shipping");
   await page.getByRole("rowheader", { name: /^Venlo/ }).waitFor();
   await page.getByRole("rowheader", { name: /^Leipzig/ }).waitFor();
   await page.getByRole("button", { name: "At risk: 1", exact: true }).click();
@@ -1002,6 +1034,40 @@ try {
   );
   await assertWorkspaceSurfaces("expanded calculation basis");
   await page.getByText("completion-slot-v1", { exact: true }).waitFor();
+  await areaSelector.focus();
+  const beforeShippingSwitch = await stablePosition();
+  await areaSelector.selectOption("messages");
+  assert.equal(
+    await page.locator(".cockpit-shipping:visible").count(),
+    0,
+    "shipping hides in the same analysis location",
+  );
+  assert.equal(await mailbox.locator("svg").count(), 2, "both mail diagrams remain available");
+  assert.equal(
+    await page.locator("[data-shipping-investigation]").isVisible(),
+    false,
+    "supporting investigation follows shipping visibility",
+  );
+  await areaSelector.selectOption("shipping");
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Hide calculation basis" })
+      .getAttribute("aria-expanded"),
+    "true",
+    "switching retains the opened source basis",
+  );
+  await page.getByRole("link", { name: "SO-104", exact: true }).waitFor();
+  const afterShippingSwitch = await stablePosition();
+  assert(
+    Math.abs(afterShippingSwitch.top - beforeShippingSwitch.top) < 2,
+    "shipping switch remains stationary",
+  );
+  assert(afterShippingSwitch.focused, "shipping switch retains selector focus");
+  assert.equal(
+    afterShippingSwitch.historyLength,
+    beforeShippingSwitch.historyLength,
+    "shipping switch adds no history entry",
+  );
   const curve = page.locator('[data-shipping-series="plan"]');
   await curve.focus();
   await page.keyboard.press("Enter");
@@ -1076,10 +1142,18 @@ try {
     "mobile has no page overflow",
   );
   absentFlows = true;
+  missing = false;
   await page.goto(
     (process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177") +
       "/scripts/fixtures/operations-cockpit-harness.html",
   );
+  await page.locator('[data-shipping-series="plan"]').waitFor();
+  assert.equal(
+    await areaSelector.inputValue(),
+    "shipping",
+    "missing flow evidence does not remove shipping",
+  );
+  await areaSelector.selectOption("messages");
   await page.getByText("Operating flow evidence is unavailable", { exact: true }).waitFor();
   assert.equal(await summary.locator('[data-signal="unknown"]').count(), 5);
   assert.equal(
@@ -1119,7 +1193,10 @@ try {
       });
       for (const width of [320, 390, 1440, 1920]) {
         await page.setViewportSize({ width, height: 1050 });
-        await assertFlowAlignment(`${language}/${theme}/${width}`);
+        await page.locator(".cockpit-analysis-selector select").selectOption("shipping");
+        await assertFlowAlignment(`${language}/${theme}/${width}/shipping`);
+        await page.locator(".cockpit-analysis-selector select").selectOption("messages");
+        await assertFlowAlignment(`${language}/${theme}/${width}/messages`);
         assert(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           `${language}/${theme}/${width}: viewport remains bounded; ${JSON.stringify(

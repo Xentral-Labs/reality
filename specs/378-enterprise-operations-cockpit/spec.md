@@ -1,5 +1,32 @@
 # Feature Specification: Enterprise operations cockpit — shipping and case control
 
+## Owner-requested shared analysis including shipping (2026-10-07)
+
+The owner explicitly requests shipping performance in the same switchable analysis
+location as the operational diagrams, as its first option. This supersedes separate
+shipping/analysis placement in FR-059; Responsibility remains prioritized before logs.
+
+- **FR-062**: One shared analysis card MUST offer Shipping performance first, followed
+  by the existing five flow areas. Fresh/invalid area selection and company change
+  default to shipping; existing bookmarked flow areas remain supported. Switching
+  stays local, keeps selector focus/viewport/history and exposes one selected view.
+- **FR-063**: Shipping MUST retain its exact day/site scope, plan/confirmed/forecast
+  curves, all metrics, basis and supporting-order investigation within the common
+  analysis location. Live flow views retain their independent company-wide 60-minute
+  scope, every diagram and disclosures. Hidden view state/paused inspection survives
+  switching; do not duplicate frames, readers, business rules or calculations.
+- **FR-064**: After the instruments, analysis occupies the main left column and
+  Responsibility leads the right column, followed by the log and Agents. Narrow order
+  is analysis, Responsibility, log, Agents. There MUST be no second standalone shipping
+  or flow-analysis block. Scoped shipping investigations stay beside the selected
+  shipping view; opening a shipping investigation from the deviations panel selects
+  shipping in the shared card. No action or confirmation permissions change.
+
+Acceptance: a fresh page shows shipping inside the sole analysis card with six options;
+shipping → messages → shipping preserves both mail plots and the opened shipping basis
+and supporting investigation. Existing flow bookmarks work; company change resets to
+shipping. Both themes, four languages and narrow/docked layouts pass without overflow.
+
 ## Owner-requested hierarchy and quiet observation controls (2026-10-07)
 
 The owner explicitly requests a coherent box hierarchy, Responsibility ahead of Agent

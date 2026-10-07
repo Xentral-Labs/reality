@@ -4,8 +4,10 @@
 
 **Simple on the surface. Fully explainable underneath.**
 
-Spec 378 FR-047–051 refines the optional Control Tower into a compact instrument
-console and selected flow analysis. Message intake/first-reply and backlog diagrams
+Spec 378 FR-047–064 refines the optional Control Tower into a compact instrument
+console and a shared analysis selector with shipping first, followed by the five
+operational flow areas. Responsibility precedes log/Agent monitoring alongside it.
+Message intake/first-reply and backlog diagrams
 remain separate; physical flows keep their measurement units, Finance is explicitly
 unavailable, and shipping/agent/manual-case controls retain their existing meaning.
 See [the cockpit contract](features/operations-cockpit.md).

@@ -11,7 +11,7 @@ import { OperationsDeviationsPanel } from "./OperationsDeviationsPanel";
 import {
   OperatingFlowsPanel,
   OperatingStatusPanel,
-  type OperatingAreaKey,
+  type AnalysisAreaKey,
 } from "./OperatingFlowsPanel";
 import { AgentAccessPanel } from "./AgentAccessPanel";
 import type { ShippingMeasure } from "./cockpitModel";
@@ -28,15 +28,15 @@ export function OperationsCockpitPage({
   const inspectionTrigger = useRef<HTMLElement | SVGElement | null>(null);
   const [inspection, setInspection] = useState<{ at?: string; day: string } | null>(null);
   const [sites, setSites] = useState<{ location_id: string; name: string }[]>([]);
-  const bookmarkedArea = (): OperatingAreaKey => {
+  const bookmarkedArea = (): AnalysisAreaKey => {
     const area = window.location.hash.replace("#cockpit-flow-", "");
-    return ["orders", "messages", "supply", "stock", "returns"].includes(area)
-      ? (area as OperatingAreaKey)
-      : "orders";
+    return ["shipping", "orders", "messages", "supply", "stock", "returns"].includes(area)
+      ? (area as AnalysisAreaKey)
+      : "shipping";
   };
-  const [selectedArea, setSelectedArea] = useState<OperatingAreaKey>(bookmarkedArea);
+  const [selectedArea, setSelectedArea] = useState<AnalysisAreaKey>(bookmarkedArea);
   const previousCompany = useRef(selection.tenant);
-  const selectArea = (area: OperatingAreaKey) => {
+  const selectArea = (area: AnalysisAreaKey) => {
     setSelectedArea(area);
     history.replaceState(
       history.state,
@@ -52,7 +52,7 @@ export function OperationsCockpitPage({
   useEffect(() => {
     if (previousCompany.current !== selection.tenant) {
       previousCompany.current = selection.tenant;
-      setSelectedArea("orders");
+      setSelectedArea("shipping");
       if (window.location.hash.startsWith("#cockpit-flow-")) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
@@ -79,6 +79,7 @@ export function OperationsCockpitPage({
     if (state.status === "denied" || activityState.status === "denied") navigate({ route: "home" });
   }, [state.status, activityState.status, navigate]);
   const inspect = (measure: ShippingMeasure, at?: string) => {
+    selectArea("shipping");
     inspectionTrigger.current =
       document.activeElement instanceof HTMLElement || document.activeElement instanceof SVGElement
         ? document.activeElement
@@ -179,40 +180,47 @@ export function OperationsCockpitPage({
             selection={selection}
           />
           <div className="cockpit-console-row" data-console-primary>
-            <div className="cockpit-shipping-column">
-              <ShippingDayPanel value={value} inspect={inspect} selection={selection} />
+            <div className="cockpit-analysis-column">
+              <OperatingFlowsPanel
+                value={activityState.data?.flows}
+                selection={selection}
+                stale={activityState.status !== "current"}
+                selected={selectedArea}
+                select={selectArea}
+                shipping={
+                  <ShippingDayPanel
+                    value={value}
+                    inspect={inspect}
+                    selection={selection}
+                    embedded
+                  />
+                }
+              />
               {inspection && (
-                <ShippingSupportingOrders
-                  key={`${selection.tenant}:${day}:${location}:${selection.cockpitMeasure}:${inspection.at}`}
-                  selection={selection}
-                  at={inspection.at}
-                  resolvedDay={inspection.day}
-                  basis={selection.cockpitBasis || value.basis_key}
-                  zone={value.time_zone}
-                  close={() => {
-                    setInspection(null);
-                    requestAnimationFrame(() =>
-                      inspectionTrigger.current?.focus({ preventScroll: true }),
-                    );
-                  }}
-                />
+                <div hidden={selectedArea !== "shipping"} data-shipping-investigation>
+                  <ShippingSupportingOrders
+                    key={`${selection.tenant}:${day}:${location}:${selection.cockpitMeasure}:${inspection.at}`}
+                    selection={selection}
+                    at={inspection.at}
+                    resolvedDay={inspection.day}
+                    basis={selection.cockpitBasis || value.basis_key}
+                    zone={value.time_zone}
+                    close={() => {
+                      setInspection(null);
+                      requestAnimationFrame(() =>
+                        inspectionTrigger.current?.focus({ preventScroll: true }),
+                      );
+                    }}
+                  />
+                </div>
               )}
             </div>
-            <OperationalCaseRegister
-              key={selection.tenant}
-              selection={selection}
-              zone={value.time_zone}
-            />
-          </div>
-          <div className="cockpit-console-row cockpit-console-detail" data-console-secondary>
-            <OperatingFlowsPanel
-              value={activityState.data?.flows}
-              selection={selection}
-              stale={activityState.status !== "current"}
-              selected={selectedArea}
-              select={selectArea}
-            />
             <div className="cockpit-log-column">
+              <OperationalCaseRegister
+                key={selection.tenant}
+                selection={selection}
+                zone={value.time_zone}
+              />
               <OperationsActivityPanel
                 state={activityState}
                 key={selection.tenant}

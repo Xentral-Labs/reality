@@ -631,3 +631,41 @@ journey, but the enterprise backend load test exceeded its unchanged 3-second p9
 (3.251606216 seconds); 1,736 tests passed in that shard and the aggregate backend-quality
 check inherits that failure. This UI-only refinement does not resolve or waive that
 performance gate. New-head CI and the earlier enterprise/pilot rollout gates remain open.
+
+
+## Unified analysis and default shipping (FR-062–064)
+
+The pre-implementation default regression failed with Orders selected instead of
+Shipping. The final browser matrix passes with exactly six choices, Shipping first
+and default; valid older flow bookmarks remain supported. The one analysis frame
+contains shipping or the selected company flow. Responsibility, then live log and
+Agents lead the adjacent column; narrow layouts retain this reading order. Shipping
+keeps its selected company day/site, all four measures, plan/confirmed/forecast plot,
+basis and source investigation. Switching to Messages retains both incoming/reply
+and backlog plots. Switching back restores the open shipping basis and supporting
+orders without remounting or jumping the analysis selector. Global shipping
+investigation first selects Shipping, including when started from a flow area.
+Missing flow evidence leaves Shipping available.
+
+Frontend contracts: 478 passed. Final browser matrix passes at 320/390/1440/1920px
+for all four languages and both themes, testing Shipping and Messages as well as
+existing controls, evidence, stale/missing data and dense/private fixtures. Final
+four-language audit covers 3,022 phrases per language, no missing/invalid entries.
+Formatting, TypeScript/Vite build, spec policy and diff checks pass. Controlled
+eight-hour lifecycle has zero page errors; overview 5,744 reads, activity and Agents
+5,747 each and register 5,749, all below 5,800. The exact pending manual reason,
+paused log and shipping investigation survive the additional area switches. This
+is controlled browser time; real pilot/performance acceptance remains separate.
+
+Only the local web image was rebuilt/recreated for this increment. Actual company
+inspection on port 8080 confirmed the fresh Shipping default, six ordered choices
+and a single analysis frame. Analysis and Responsibility both start at 232px in
+the observed scrolled viewport. Shipping → Messages → Shipping keeps header top
+at 253px, retains both mail SVG plots and restores the opened shipping basis. The
+basis was closed after verification; Shipping remains selected. The existing human
+case and named Claude access remain present. Screenshot: shared-analysis-live.jpg
+in the temporary verification artifacts. The pinned day retains 853 due/35 confirmed/
+818 risk and explicitly has no retrospective forecast. Live flow/activity reads
+continue independently, including explicit transient stale/read-failure indicators;
+this presentation change does not repair backend read failures. API, database,
+simulator, scheduler, worker and operator were not restarted or modified.

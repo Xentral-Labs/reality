@@ -624,3 +624,22 @@ keyboard/state proof and controlled lifecycle pass; no domain, polling, schema o
 permission changes. Business control review and evidence remain explicit. The prior
 head's enterprise latency failure is recorded separately and is not waived by this
 presentation review; rollout and head-specific CI acceptance remain open.
+
+
+FR-062–064 owner scope/review and pre-implementation analysis: PASS. The latest explicit
+request supersedes separate shipping/flow placement in FR-059, not its responsibility
+priority or FR-060–061 clarity/accessibility. FR-062 maps to T097–099 selection/default/
+bookmark proof; FR-063 to retained source/basis/curve/lifecycle proof; FR-064 to geometry
+and real-view proof. No critical consistency/coverage or Constitution findings, no
+unresolved clarification, no authority/permission/schema/polling extension. Existing
+enterprise performance and reviewer-owned rollout acceptance remain open.
+
+
+Final FR-062–064 presentation review: PASS. Shipping is first/default in the sole
+analysis selector, all original curves/scope/evidence stay available, switches
+preserve disclosure/manual/following state, and the adjacent column prioritizes
+Responsibility then log/Agents. Required frontend contracts, full browser matrix,
+controlled eight-hour lifecycle, audit/format/build/spec checks and actual company
+inspection pass. Only the frontend was activated. PR 383 describes the final
+implementation and recorded limitations. Head-specific CI, enterprise performance
+and reviewer-owned rollout/pilot acceptance remain open; no threshold was waived.

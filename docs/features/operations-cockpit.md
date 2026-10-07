@@ -1,14 +1,24 @@
 # Operations cockpit
 
-## Console hierarchy and preview refinement (FR-052–061)
+## Shared analysis and console hierarchy (FR-052–064)
 
-FR-059–061 refine the original preview layout by operational importance: shipping and
-whole-case Responsibility occupy the first row; contained selected analysis and the
-recent event log occupy the second, with named Agents beneath the log. Narrow layouts
-preserve that order. Main cards share padding/heading rhythm and retain natural height.
-Analysis has one frame/selector; observation utilities use labelled keyboard-accessible
-icons, while reviewed business controls stay explicit text. Both mail plots, disclosed
-recording-rate plot, shipping explanation and controls use the existing four readers.
+FR-062–064 put shipping and all five flow areas in one contained analysis card below
+the instruments. Shipping performance is the first/default option on a fresh page or
+company change; existing area bookmarks are restored. The right column starts with
+whole-case Responsibility, followed by the live log and named Agents. Narrow layouts
+preserve that reading order. Main cards share padding/heading rhythm and natural height.
+
+The single selector switches locally without scrolling, transferring focus or adding
+history. Hidden views preserve their disclosures; shipping investigations stay in the
+same left column and return with shipping. Opening a shipping investigation from the
+deviations panel selects shipping. Its exact business day/site scope and source-backed
+plan/handovers/forecast remain distinct from the other areas' company-wide last-hour
+scope. Both mail plots and the disclosed recording-rate plot remain available. The same
+four readers, existing source/control state and confirmation semantics are reused.
+
+Observation utilities use labelled keyboard-accessible icons; reviewed business
+controls stay explicit text. Missing flow evidence does not hide shipping; missing
+shipping input does not invent curves or disable selecting another flow area.
 
 The shared flow reader partitions each displayed primary cohort before evidence limits.
 Orders count once at their worst line finding; supplier work counts open lines. Existing

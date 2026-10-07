@@ -194,6 +194,21 @@ try {
   await page.getByLabel("Takeover reason").fill("Keep this exact review while the company runs");
   await page.getByRole("button", { name: "Pause following", exact: true }).click();
   await page.getByRole("button", { name: "At risk: 1", exact: true }).click();
+  const analysis = page.getByRole("combobox", { name: "Analysis area", exact: true });
+  await analysis.selectOption("messages");
+  assert.equal(await page.locator("[data-shipping-investigation]").isVisible(), false);
+  assert.equal(
+    await page.getByLabel("Takeover reason").inputValue(),
+    "Keep this exact review while the company runs",
+  );
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Resume following", exact: true })
+      .getAttribute("aria-pressed"),
+    "true",
+  );
+  await analysis.selectOption("shipping");
+  assert(await page.locator("[data-shipping-inspection]").isVisible());
   for (let tick = 0; tick < 5760; tick++) {
     if (tick === 6) version = 2;
     if (tick === 120) fail = true;

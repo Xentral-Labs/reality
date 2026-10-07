@@ -1277,9 +1277,6 @@ a.cockpit-status-link:focus-visible {
 .cockpit-recording-rate .cockpit-selection {
   margin: 12px 0;
 }
-.cockpit-console-detail .cockpit-flow-board {
-  min-width: 0;
-}
 .cockpit-console-row .cockpit-case-register {
   max-width: none;
   align-self: start;
@@ -1294,7 +1291,7 @@ a.cockpit-status-link:focus-visible {
 .cockpit-console-row .cockpit-case-toggle {
   justify-self: start;
 }
-.cockpit-console-detail .cockpit-analysis-card .cockpit-flow-chart {
+.cockpit-console-row .cockpit-analysis-card .cockpit-flow-chart {
   grid-template-columns: minmax(0, 1fr);
 }
 .cockpit-manual-preview {
@@ -1404,23 +1401,23 @@ a.cockpit-status-link:focus-visible {
   }
 }
 
-.cockpit-shipping-column {
+.cockpit-analysis-column {
   display: flex;
   flex-direction: column;
   gap: 20px;
   min-width: 0;
   container-type: inline-size;
 }
-.cockpit-shipping-column .cockpit-shipping {
+.cockpit-analysis-column .cockpit-shipping {
   flex: 1;
 }
-.cockpit-shipping-column .cockpit-card-heading {
+.cockpit-analysis-column .cockpit-card-heading {
   flex-wrap: wrap;
 }
-.cockpit-shipping-column .cockpit-chart {
+.cockpit-analysis-column .cockpit-chart {
   height: 295px;
 }
-.cockpit-shipping-column .cockpit-chart text {
+.cockpit-analysis-column .cockpit-chart text {
   font-size: 12px;
 }
 .cockpit-instruments .cockpit-status-link {
@@ -1480,4 +1477,15 @@ a.cockpit-status-link:focus-visible {
   .cockpit-flow-board > .cockpit-card-heading {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+[data-shipping-analysis][hidden],
+[data-shipping-investigation][hidden] {
+  display: none !important;
+}
+[data-shipping-analysis] > .cockpit-shipping {
+  padding: 0;
+}
+[data-shipping-analysis] .cockpit-card-heading {
+  margin-bottom: 16px;
 }

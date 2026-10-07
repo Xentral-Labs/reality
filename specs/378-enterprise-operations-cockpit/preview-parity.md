@@ -2,8 +2,8 @@
 
 | Owner point | Requirement | Implementation / proof | Result |
 | --- | --- | --- | --- |
-| Shipping left, Responsibility right | FR-059 (supersedes FR-052 placement) | page grid / browser geometry and reading order | Verified: final browser matrix and actual company UI |
-| Contained analysis below, log and Agents right | FR-059–060 | single frame/header selector, shared card geometry | Verified: final browser matrix and actual company UI |
+| Shared analysis left, Responsibility leads right column | FR-062–064 (supersedes FR-059 placement) | shared frame / browser geometry and reading order | Verified: full browser matrix and actual company UI |
+| Shipping is first/default in the one analysis selector | FR-062–063 | first option, bookmark/default/reset, evidence restoration | Verified: full browser matrix and actual company UI |
 | Registered Agent names visible | FR-055 | existing access inventory in log column | Verified: automated proof and actual company UI |
 | Legend below instruments | FR-054 | semantic swatches, including unknown | Verified: automated proof and actual company UI |
 | In plan / At risk / Critical exact row | FR-053 | complete service partition / scalar + snapshot tests | Verified: automated proof and actual company UI |
