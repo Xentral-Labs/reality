@@ -414,3 +414,9 @@ Forecast allocation review: preserve completion-slot-v1 exactly while avoiding g
 ### Final live allocation refinement
 
 Spec impact: none. Preserve DR-005/SC-004 and canonical revision/correction rules while projecting private scalar rows to call-scoped immutable tuples and reusing tenant-scoped latest explicit revision relations in the full fulfillment cohort. No completed observation or authority is retained. Validate immutable typed metadata, original scalar parity (including equal-time identity ordering and null-only revision fallback), then the unchanged full enterprise workload and all required gates.
+
+### Final shipping-only allocation refinement
+
+Preserve complete DR-005/FR-046 inputs and exact standard v2 fingerprint bytes. A same-company source is necessarily at least its own stream version: retrieve only strictly newer metadata, otherwise retain every original field as the latest metadata. Keep all intake/current-required refusals. Avoid circular-container tracking only for the constructed acyclic typed basis; independently compare the full bytes with the standard encoder. Select exact deviation IDs and bounded preview keys after full calculations; never prune the calculation/hash/supporting cohort. Run full source, allocation, shipping and control regressions, then unchanged enterprise acceptance.
+
+The final shipping-only refinement may project owner-reviewed Action headers to all original source identities and all original quantity-revision bindings for clean observations only. Preserve missing/empty legacy review and binding semantics. All original Action payloads and ordinary/mutating validation remain unchanged, and every current source/readiness input stays in the full v2 fingerprint. Independent retained-input equality and complete scalar/snapshot proofs precede this allocation change.

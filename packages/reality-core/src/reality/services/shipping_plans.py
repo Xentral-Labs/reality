@@ -85,6 +85,7 @@ def _source_basis_inputs(
             current.source_system == SourceRecord.source_system,
             current.source_type == SourceRecord.source_type,
             current.external_id == SourceRecord.external_id,
+            current.version > SourceRecord.version,
         )
         .order_by(current.version.desc())
         .limit(1)
@@ -95,13 +96,14 @@ def _source_basis_inputs(
     latest = {}
     for combined in session.execute(
         select(*columns, *latest_source.c)
-        .join(latest_source, true())
+        .outerjoin(latest_source, true())
         .where(
             SourceRecord.tenant_id == tenant_id,
             core._id_cohort(SourceRecord.id, source_ids),
         )
     ):
-        original, current_row = tuple(combined[:6]), tuple(combined[6:])
+        original = tuple(combined[:6])
+        current_row = original if combined[6] is None else tuple(combined[6:])
         rows.append(original)
         latest[original[1:4]] = current_row
     jobs = dict(
