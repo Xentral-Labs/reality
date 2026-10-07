@@ -319,3 +319,116 @@ def test_opaque_id_cohort_preserves_postgresql_values_and_large_membership(sessi
         )
         == large[-1]
     )
+
+
+def test_viewer_reads_current_authority_once_without_retaining_private_user_state(
+    scheduled_database,
+):
+    # BUSINESS PURPOSE: Forty simultaneous observers must not repeat unused authority metadata reads.
+    # BUSINESS RULE: One fresh canonical access query checks exact company/user/member conditions without loading private user or company objects.
+    from sqlalchemy import event
+
+    from reality.db.core import AppUser, Tenant
+    from reality.services.operations_cockpit import _viewer
+
+    engine, factory, tenant, owner = scheduled_database
+    queries = []
+    loaded = []
+
+    def queried(conn, cursor, statement, params, context, many):
+        if statement.lstrip().upper().startswith("SELECT"):
+            queries.append(statement)
+
+    def retained(reader, row):
+        if isinstance(row, (AppUser, Tenant)):
+            loaded.append(type(row).__name__)
+
+    with factory() as reader:
+        event.listen(reader, "loaded_as_persistent", retained)
+        event.listen(engine, "before_cursor_execute", queried)
+        try:
+            member = _viewer(reader, tenant, Principal(owner))
+        finally:
+            event.remove(engine, "before_cursor_execute", queried)
+        assert (
+            member.tenant_id == tenant
+            and member.user_id == owner
+            and member.status == "active"
+        )
+    assert len(queries) == 1
+    assert loaded == []
+
+
+@pytest.mark.parametrize("change", ["inactive_user", "archived_company", "owner_role"])
+def test_snapshot_rechecks_committed_authority_with_stale_identity_maps(
+    scheduled_database, monkeypatch, change
+):
+    # BUSINESS PURPOSE: A fresh efficient access query must refuse revocations even when the caller retains old authority objects.
+    # BUSINESS RULE: No snapshot result escapes after a committed inactive user, archived company or lost owner role; both access phases stay independent.
+    from reality.db.core import AppUser, Tenant
+    from reality.services.operations_cockpit import _with_snapshot
+
+    _, factory, tenant, owner = scheduled_database
+    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
+    with factory() as reader:
+        old_user = reader.get(AppUser, owner)
+        old_company = reader.get(Tenant, tenant)
+        old_member = reader.scalar(
+            select(TenantMembership).where(
+                TenantMembership.tenant_id == tenant, TenantMembership.user_id == owner
+            )
+        )
+        assert (
+            old_user.status == old_member.status == "active"
+            and old_company.archived_at is None
+        )
+
+        def observation(snapshot):
+            with factory() as writer:
+                if change == "inactive_user":
+                    writer.get(AppUser, owner).status = "inactive"
+                elif change == "archived_company":
+                    writer.get(Tenant, tenant).archived_at = core.now()
+                else:
+                    membership = writer.scalar(
+                        select(TenantMembership).where(
+                            TenantMembership.tenant_id == tenant,
+                            TenantMembership.user_id == owner,
+                        )
+                    )
+                    membership.role = "member"
+                writer.commit()
+            return {"must_not_escape": "company data"}
+
+        with pytest.raises(core.NotFound):
+            _with_snapshot(
+                reader,
+                tenant,
+                Principal(owner),
+                observation,
+                owner_only=change == "owner_role",
+            )
+
+
+@pytest.mark.parametrize("missing", ["company", "user", "principal"])
+def test_fresh_member_read_preserves_exact_ordinary_refusal(
+    scheduled_database, missing
+):
+    # BUSINESS PURPOSE: Efficient access checks must retain the canonical public refusal contract.
+    # BUSINESS RULE: Missing company, user or principal returns the identical ordinary error code and values, without disclosing company data.
+    from reality.services.operational_cases import _member
+
+    _, factory, tenant, owner = scheduled_database
+    tenant = "ten_missing" if missing == "company" else tenant
+    principal = (
+        None
+        if missing == "principal"
+        else Principal("usr_missing" if missing == "user" else owner)
+    )
+    with factory() as reader:
+        with pytest.raises(core.NotFound) as ordinary:
+            _member(reader, tenant, principal)
+        with pytest.raises(core.NotFound) as fresh:
+            _member(reader, tenant, principal, _fresh=True)
+    assert fresh.value.code == ordinary.value.code
+    assert fresh.value.values == ordinary.value.values

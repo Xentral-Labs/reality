@@ -14,7 +14,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
-from reality.db.core import MCPAccessToken, Tenant, now
+from reality.db.core import MCPAccessToken, now
 from reality.db.mcp_authorization import MCPClientGrant
 from reality.services import (
     activity_volume,
@@ -80,16 +80,7 @@ def enabled() -> bool:
 
 def _viewer(session: Session, tenant_id: str, principal: Principal):
     with session.no_autoflush:
-        session.scalar(
-            select(Tenant)
-            .where(Tenant.id == tenant_id)
-            .execution_options(populate_existing=True)
-        )
-        member = operational_cases._member(session, tenant_id, principal)
-        session.refresh(member)
-        if member.status != "active":
-            raise core.NotFound(code="company_not_found")
-        return member
+        return operational_cases._member(session, tenant_id, principal, _fresh=True)
 
 
 def _with_snapshot[Result](

@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import cast, select
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Bundle, Session
 
 from reality.db.core import (
     ChangeProposal,
@@ -398,7 +398,26 @@ def _read_shipping(
     shipment_ids = set()
     rows = list(
         session.execute(
-            select(Movement, ShipmentPackage, Shipment)
+            select(
+                *(
+                    Bundle(
+                        "movement",
+                        Movement.id,
+                        Movement.commitment_id,
+                        Movement.item_id,
+                        Movement.from_location_id,
+                        Movement.quantity,
+                        Movement.occurred_at,
+                        Movement.source_record_id,
+                    ),
+                    Bundle("package", ShipmentPackage.id),
+                    Bundle(
+                        "shipment", Shipment.id, Shipment.direction, Shipment.purpose
+                    ),
+                )
+                if narrow
+                else (Movement, ShipmentPackage, Shipment)
+            )
             .outerjoin(
                 ShipmentPackage,
                 (ShipmentPackage.tenant_id == Movement.tenant_id)
@@ -417,6 +436,15 @@ def _read_shipping(
             )
         )
     )
+    if narrow:
+        rows = [
+            (
+                movement,
+                package if package.id is not None else None,
+                shipment if shipment.id is not None else None,
+            )
+            for movement, package, shipment in rows
+        ]
     for _, package, shipment in rows:
         if package and shipment:
             shipment_ids.add(shipment.id)

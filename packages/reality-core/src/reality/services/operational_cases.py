@@ -44,9 +44,29 @@ def _digest(value):
     ).hexdigest()
 
 
-def _member(session, tenant_id, principal):
+def _member(session, tenant_id, principal, *, _fresh=False):
     if principal is None:
         raise core.NotFound(code="company_not_found")
+    if _fresh:
+        member = session.scalar(
+            select(TenantMembership)
+            .join(core.Tenant, core.Tenant.id == TenantMembership.tenant_id)
+            .join(AppUser, AppUser.id == TenantMembership.user_id)
+            .where(
+                TenantMembership.tenant_id == tenant_id,
+                TenantMembership.user_id == principal.user_id,
+                TenantMembership.status == "active",
+                core.Tenant.purpose == "business",
+                core.Tenant.archived_at.is_(None),
+                AppUser.status == "active",
+            )
+            .execution_options(populate_existing=True)
+        )
+        if member is None:
+            # Preserve the original missing-company refusal on denied reads.
+            core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
+            raise core.NotFound(code="company_not_found")
+        return member
     tenant = core._tenant_record_read(session, core.Tenant, tenant_id, tenant_id)
     if tenant.archived_at is not None or tenant.purpose != "business":
         raise core.NotFound(code="company_not_found")
