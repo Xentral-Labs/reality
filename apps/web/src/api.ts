@@ -5257,6 +5257,10 @@ export const cockpitApi = {
     ),
 };
 
+export type OperationalCaseKindCounts = Record<
+  "total" | "automation" | "human" | "outstanding" | "completed" | "abandoned",
+  number
+>;
 export type OperationalCaseRegisterPage = {
   adopted: boolean;
   coordination?: {
@@ -5266,6 +5270,7 @@ export type OperationalCaseRegisterPage = {
   };
   observed_at?: string;
   counts: null | Record<string, number>;
+  kind_counts?: Record<string, OperationalCaseKindCounts>;
   total: number;
   items: OperationalCase[];
   has_more: boolean;

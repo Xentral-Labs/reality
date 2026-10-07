@@ -1944,3 +1944,187 @@ a.cockpit-status-link:focus-visible {
   color: var(--text-muted);
   margin-block: 16px;
 }
+
+/* Supported responsibility, recorded causes and exact evidence share the upper overview. */
+.cockpit-upper-disclosure {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.cockpit-upper-disclosure > summary {
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.cockpit-upper-disclosure > summary > strong {
+  margin-inline-end: 12px;
+}
+.cockpit-upper-disclosure > summary .cockpit-business-badge {
+  margin: 3px 6px 3px 0;
+}
+.cockpit-upper-disclosure > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.cockpit-business-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-default);
+  background: var(--surface-sunken);
+  overflow-wrap: anywhere;
+}
+.cockpit-business-badge.automatic {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+.cockpit-business-badge.manual {
+  color: var(--text-strong);
+  background: color-mix(in srgb, var(--accent) 17%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+.cockpit-business-badge.risk {
+  color: #c84936;
+  background: color-mix(in srgb, #c84936 10%, var(--surface));
+}
+.cockpit-business-badge.attention {
+  color: #d97706;
+  background: color-mix(in srgb, #d97706 10%, var(--surface));
+}
+.cockpit-business-badge.unavailable {
+  color: var(--text-muted);
+}
+.cockpit-case-table-wrap {
+  overflow-x: auto;
+  margin-top: 14px;
+}
+.cockpit-business-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.cockpit-business-table caption {
+  text-align: start;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.cockpit-business-table th,
+.cockpit-business-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.cockpit-business-table thead th {
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.cockpit-business-table th:first-child {
+  text-align: start;
+  min-width: 180px;
+}
+.cockpit-business-table th:not(:first-child),
+.cockpit-business-table td {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.cockpit-business-table tbody th {
+  font-weight: 500;
+}
+.cockpit-business-table small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.cockpit-business-table .cockpit-business-badge {
+  margin-top: 4px;
+}
+.cockpit-business-table button {
+  color: var(--accent);
+  min-width: 26px;
+}
+.cockpit-upper-disclosure .cockpit-footnote {
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.cockpit-case-preview-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.cockpit-case-preview-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+}
+.cockpit-case-preview-list a {
+  color: var(--accent);
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.cockpit-briefing {
+  padding-top: 12px;
+}
+.cockpit-briefing-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.cockpit-briefing-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-width: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.cockpit-briefing-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+.cockpit-briefing a {
+  color: var(--accent);
+}
+.cockpit-briefing-cause {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: start;
+  margin: 0;
+}
+.cockpit-briefing-action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.cockpit-briefing-action small {
+  color: var(--text-muted);
+}
+@container (max-width: 820px) {
+  .cockpit-briefing-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

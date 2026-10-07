@@ -1,5 +1,28 @@
 # Operations cockpit
 
+## Upper business-case overview and shipping briefing (FR-079–080)
+
+Two initially closed disclosures below the instrument legend provide a compact
+whole-company case register and selected-day/site shipping briefing. Six process
+families are visible, but only order fulfillment and announced returns have real
+controllable-case counts. Unsupported families remain explicitly unavailable.
+Registered cases, outstanding work and automation/human responsibility use the
+canonical register aggregate; completed manual cases remain visible. Responsibility
+does not certify a running Agent. Incomplete canonical rollout coverage remains
+explicit next to the table. Numeric cells open an on-demand six-row read-only
+preview with exact kind/ownership/outstanding filters and original object links.
+The existing live register publishes its observation to the overview; no additional
+periodic reader or business mutation is introduced.
+
+The shipping briefing retains at most three original affected orders, a held cause,
+responsibility and the first recorded case-linked action/status, or an explicit
+missing-response statement. It does not attribute an actor, establish that the
+action responds to that blocker, or claim an external outcome. Full evidence and
+all affected-order inspection remain in the shared shipping analysis. Native
+disclosures retain state through refresh and analysis changes; company changes
+reset them. Badges, contained table/preview and theme-aware cards share the existing
+instrument frame. German activity wording is “Zuletzt passiert”.
+
 ## Compact instrument inspection (FR-068–070)
 
 Available primary counts and known risk groups open a compact read-only modal,

@@ -960,3 +960,40 @@ the same human. Screenshot:
 No business mutation was performed; the temporary fixture server was stopped,
 primary checkout and simulator/operator runtimes remain unchanged. The existing
 PR receives the refinement; CI/enterprise/soak release gates remain open.
+
+FR-079/080 pre-implementation analysis: 2/2 scoped requirements map to T129 tests,
+T130 service observation, T131 adapter/presentation and T132 verification/review.
+Zero unmapped tasks, unresolved clarification or critical finding. Constitution
+PASS; no new case family, schema or claimed Agent execution state. Existing
+checklist/CI/enterprise gates remain open; owner authorized this bounded follow-up.
+
+
+FR-079/080 implementation verification PASS: the test-first backend proofs first
+failed on missing kind_counts; complete tenant-scoped grouped counts now pass 55
+affected PostgreSQL service/adapter/snapshot tests, including supported returns,
+completed human work, zero cohorts and independence from page filters. The browser
+first failed on missing overview, then the final complete cockpit matrix passed
+exact preview filters, no business writes, native Escape/focus, live disclosure
+retention and contained tables/briefing cards across four languages, both themes
+and 320/390/1440/1920 widths. Intermediate fixture assertions were corrected to
+match the held three-row briefing and avoid an ambiguous repeated dialog label;
+content-group assertions await the mounted area without weakening their checks.
+478 frontend contracts, four 3057-key audits, production build/images, scoped Ruff,
+business annotations, spec policy, formatting, catalog freshness and whitespace
+checks pass. Grouping reuses the existing aggregate and same register poll, and
+briefing never attributes actors/causal resolution/external outcomes. Earlier CI,
+enterprise performance and sustained-live release gates remain open.
+
+
+FR-079/080 final local inspection: API/web production images were recreated on
+port 8080 without migrations or restarting simulator/operator/scheduler/worker/MCP.
+Actual company observation shows 1,153 registered order cases, 48 outstanding,
+1,152 automation-owned and one human-owned; the exact human preview names the
+previously stopped LIVE-f1ad500666008054 and its original order link. The selected
+day still has 46 affected planned orders, separate from 700 shipment-booked orders
+and 56 confirmed packages. Messages decrease live (1,144 to 1,138 during inspection).
+Canonical rollout remains incomplete, so the upper table now repeats the existing
+readiness warning; the final complete browser matrix covers this condition and
+passes again. No business responsibility or external operation was changed.
+Unsupported families remain explicit. Primary checkout is untouched. The existing
+PR is updated; earlier release gates remain open.

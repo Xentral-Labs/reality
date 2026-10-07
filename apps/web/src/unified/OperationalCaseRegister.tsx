@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from "react";
-import { operationalCases, type OperationalCase } from "../api";
+import { operationalCases, type OperationalCase, type OperationalCaseRegisterPage } from "../api";
 import { formatZonedDateTime, formatNumber, t } from "../localization";
 import { ReadState } from "./ReadState";
 import { useCockpitLiveRead } from "./useCockpitLiveRead";
@@ -15,9 +15,15 @@ import {
 export function OperationalCaseRegister({
   selection,
   embedded = false,
+  onObservation,
 }: {
   selection: Selection;
   embedded?: boolean;
+  onObservation?: (value: {
+    tenant: string;
+    page?: OperationalCaseRegisterPage;
+    status: string;
+  }) => void;
 }) {
   const workspaceId = useId();
   const [expanded, setExpanded] = useState(Boolean(selection.cockpitCase));
@@ -50,6 +56,9 @@ export function OperationalCaseRegister({
       ),
   );
   const page = state.data;
+  useEffect(() => {
+    onObservation?.({ tenant: selection.tenant, page: page || undefined, status: state.status });
+  }, [selection.tenant, page, state.status, onObservation]);
   useEffect(() => {
     if (!selection.cockpitCase) return;
     setExpanded(true);

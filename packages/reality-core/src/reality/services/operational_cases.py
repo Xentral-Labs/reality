@@ -1457,9 +1457,11 @@ def register_cases(
         (OperationalCase.kind == "order_fulfillment") & ~outstanding_order
     ) | return_goal("completed")
     abandoned = return_goal("abandoned")
-    counts = dict(
+    grouped = (
         session.execute(
             select(
+                OperationalCase.kind,
+                func.count().label("total"),
                 func.count()
                 .filter(OperationalCase.control_mode == "automation")
                 .label("automation"),
@@ -1469,11 +1471,18 @@ def register_cases(
                 func.count().filter(outstanding).label("outstanding"),
                 func.count().filter(completed).label("completed"),
                 func.count().filter(abandoned).label("abandoned"),
-            ).where(OperationalCase.tenant_id == tenant_id)
+            )
+            .where(OperationalCase.tenant_id == tenant_id)
+            .group_by(OperationalCase.kind)
         )
-        .one()
-        ._mapping
+        .mappings()
+        .all()
     )
+    count_keys = ("automation", "human", "outstanding", "completed", "abandoned")
+    kind_counts = {kind: dict.fromkeys((*count_keys, "total"), 0) for kind in KINDS}
+    for row in grouped:
+        kind_counts[row["kind"]] = {key: row[key] for key in (*count_keys, "total")}
+    counts = {key: sum(row[key] for row in kind_counts.values()) for key in count_keys}
     selected = select(OperationalCase.id).where(OperationalCase.tenant_id == tenant_id)
     if kind is not None:
         selected = selected.where(OperationalCase.kind == kind)
@@ -1520,6 +1529,7 @@ def register_cases(
         "coordination": coordination,
         "kinds": list(KINDS),
         "counts": counts,
+        "kind_counts": kind_counts,
         "total": total,
         "items": [
             explain(

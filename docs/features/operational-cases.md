@@ -36,6 +36,15 @@ Web controls use observed authenticated membership. Shared application controls 
 
 ## Reads, worker and limits
 
+The register returns additive `kind_counts` for each supported case kind, including
+zero cohorts: total, automation, human, outstanding, completed and abandoned.
+The existing canonical goal clauses and tenant-scoped whole-register aggregate are
+grouped by kind; legacy totals sum these same observations. Page filters and cursors
+do not reduce the whole-register counts. Ownership includes completed work and is
+independent of currently outstanding goals. The Control Tower reuses that observation
+and the same filtered register for bounded read-only previews; it introduces no
+additional controllable family or inferred Agent execution state.
+
 `operational_case_list` pages at most 100 cases using `after`; `operational_case_object` discovers associations from a document, commitment, return announcement or proposal. Explanation includes root IDs, current work, ownership, related cases, source IDs, obsolescence reasons, executing actions, coverage gaps and consumer progress/last job status. Order explanation, document inspector, proposal reviews and execution-status reads expose additive `case_ids`; stored receipts are not rewritten.
 
 The shared scheduler discovers every non-archived company with missing/incomplete
