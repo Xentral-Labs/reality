@@ -498,3 +498,21 @@ none under DR-005/FR-046/SC-004. Constitution Check PASS; no authority, source,
 schema, field, cached observation, query workload, cadence or threshold change.
 
 The private scalar Connection result is fully buffered once within its current read call, preserving every row, label and value while avoiding one driver fetch call per row. The result is consumed only by its original caller; no shared/completed result is retained. Existing typed metadata, same-transaction and ordinary/dirty Session proofs cover this allocation boundary.
+
+## Stable analysis interaction (FR-057–058)
+
+Render the five operational instruments as non-interactive summaries; remove selected
+props, navigation text, links and selected border styling from OperatingStatusPanel.
+Keep the explicit Finance workspace link. Replace the repeated area button group
+with one shared native br-control select labelled Analysis area. Keep all existing
+area articles mounted/hidden so evidence disclosure state survives switching. Change
+selectArea to update state and replace the current hash through history.replaceState
+with history.state preserved, without focus transfer or requestAnimationFrame/scroll.
+Retain hashchange/bookmarked initialization and company reset. No new routing field,
+service, dependency, read, schema, scheduling or mutation. Constitution Check: PASS
+for every principle; presentation-only scope explicitly authorized by the owner.
+Tests first: exact one selector/no summary navigation, keyboard focus and stationary
+analysis heading, bookmark/reload/company reset, existing state/curves and layout.
+Run frontend contracts, four-language audit, formatting/build, cockpit browser matrix
+and controlled session; activate only web and inspect actual company. Rollback is
+the scoped frontend change.

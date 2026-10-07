@@ -568,3 +568,28 @@ The corrected actual-stack hold/takeover/return-register journey passed locally
 (1 test, 58.89 seconds) with no browser errors. The committed hold reached the
 display within the existing ten-second requirement; confirmation payload and
 persisted manual ownership remain asserted. CI is rerunning on the follow-up commit.
+
+## Stable analysis interaction verification (FR-057–058)
+
+The first new browser assertion failed because monitoring summaries still contained
+duplicate analysis links. Final full cockpit browser matrix passes: summaries are
+non-interactive, one labelled native analysis selector changes the diagram in place,
+retains focus/heading position/history length, restores a bookmarked area and resets
+a non-default selection after company change. Existing source/disclosure/live refresh,
+shipping and manual-control proofs remain green in both themes, four languages and
+320/390/1440/1920/docked layouts. No diagrams, measurements or service rules changed.
+
+Frontend contracts: 478 passed; four language audits: 3,023 covered each, no missing or
+invalid entries; full formatting and TypeScript/Vite build passed. Controlled eight-hour
+lifecycle passed with zero page errors and each existing shared refresh read below
+5,800 requests (overview 5,746; activity and Agents 5,749; register 5,748). Exact pending
+manual reason/revision, inspected evidence and paused following survived. This is
+controlled browser time, not the separate real-time pilot soak. Spec policy and diff
+checks pass; earlier enterprise rollout gates remain separate.
+
+Local activation updated only the frontend image. Actual company inspection verified
+Messages → Supply → Messages kept analysis-header top at 353.84375px and focus on the
+single selector; Messages retained both SVG diagrams. The existing human-owned case
+remained visible in Responsibility, and the existing Agent access/activity and pinned
+shipping plan stayed available. Final screenshot: stable-selection-live.jpg in the
+temporary verification artifacts. API, simulator, operator and database were untouched.

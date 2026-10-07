@@ -38,13 +38,11 @@ export function OperationsCockpitPage({
   const previousCompany = useRef(selection.tenant);
   const selectArea = (area: OperatingAreaKey) => {
     setSelectedArea(area);
-    if (window.location.hash !== `#cockpit-flow-${area}`)
-      window.location.hash = `cockpit-flow-${area}`;
-    requestAnimationFrame(() => {
-      const detail = document.getElementById(`cockpit-flow-${area}`);
-      detail?.focus({ preventScroll: true });
-      detail?.closest("[data-operating-flows]")?.scrollIntoView({ block: "start" });
-    });
+    history.replaceState(
+      history.state,
+      "",
+      `${window.location.pathname}${window.location.search}#cockpit-flow-${area}`,
+    );
   };
   useEffect(() => {
     const change = () => setSelectedArea(bookmarkedArea());
@@ -178,8 +176,6 @@ export function OperationsCockpitPage({
           <OperatingStatusPanel
             value={activityState.data?.flows}
             stale={activityState.status !== "current"}
-            selected={selectedArea}
-            select={selectArea}
             selection={selection}
           />
           <div className="cockpit-console-row" data-console-primary>

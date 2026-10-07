@@ -120,3 +120,11 @@ timeliness. Message urgency counters remain null without held deadlines, while
 the complete unanswered count is unclassified; missing mailbox coverage keeps all
 counts null. No financial risk observation is invented. Derive all partitions from
 already loaded tenant-scoped cohorts/findings; no stored status or additional SQL.
+
+### Stable analysis interaction (FR-057–058)
+
+Operational instruments have no selectable state or detail anchor action. The one
+labelled analysis selector controls the existing mounted area articles in place. Its
+state replaces the current area fragment, preserving history state and avoiding any
+scroll/focus transfer. Initial area fragments and live/company resets remain supported.
+Finance keeps its explicit navigation link. API and business-control contracts unchanged.

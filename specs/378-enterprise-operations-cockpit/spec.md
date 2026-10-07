@@ -1,5 +1,29 @@
 # Feature Specification: Enterprise operations cockpit — shipping and case control
 
+## Owner-requested stable analysis interaction (2026-10-07)
+
+The owner requests systematic removal of surprising viewport jumps and duplicated
+area selection. The smallest coherent interaction separates monitoring from analysis.
+This explicitly supersedes instrument navigation in FR-048; FR-052–056 remain intact.
+
+- **FR-057**: The top operational instruments MUST be read-only monitoring summaries,
+  retaining complete risk counts, proportional meters and legend. They MUST NOT show
+  selection styling, detail-navigation affordances or perform area selection. Finance
+  retains its explicit specialist-workspace link. Detailed analysis has exactly one
+  labelled, keyboard-accessible area selector beside its charts, using the existing
+  five areas. No repeated area button strip or second selection source is shown.
+- **FR-058**: Changing the analysis area MUST update only the selected diagrams and
+  evidence in place, preserve the viewport and focus on the selector, and never force
+  anchor scrolling. Retain bookmarked area support without adding a history entry for
+  each area change. Live refresh retains the chosen area/disclosures; changing company
+  resets area to Orders. Shipping/log/Agent/responsibility geometry and reviewed case
+  state are unaffected. No new reads, business rules or mutations are introduced.
+
+Acceptance: summary is non-interactive except explicit Finance navigation; one selector
+changes Messages to Supply and back without moving the analysis header or focus; both
+mail diagrams remain; a bookmarked area survives reload and refresh; another company
+resets selection. Both themes, four languages and narrow/docked layouts are required.
+
 ## Approved preview parity refinement (2026-10-07)
 
 The owner explicitly approved matching the supplied instrument-console preview,
@@ -317,9 +341,9 @@ five-card layout in FR-035 while retaining every metric, definition and evidence
   meter (FR-053 supersedes the original decorative strip). It MUST retain the five canonical areas. Finance MUST be explicitly unavailable
   in this observation, with a link to its existing workspace and no invented count.
   The meter uses only the complete, explicitly defined primary cohort and the canonical classifications described in FR-053.
-- **FR-048**: Selecting an instrument MUST reveal that area's detailed analysis while
-  retaining same-page anchors and keyboard navigation. A labelled area selector MUST
-  allow switching analysis without scrolling to the top. All existing evidence,
+- **FR-048**: Detailed analysis MUST support bookmarked areas and keyboard navigation.
+  FR-057–058 supersede the original instrument click/anchor behavior: one local area
+  selector changes analysis in place without scrolling or duplicate selection. All existing evidence,
   specialist links and supported case controls MUST remain accessible. Selection and
   evidence disclosures MUST survive live refresh, and company changes MUST reset selection.
 - **FR-049**: Message analysis MUST show two distinct diagrams: local incoming versus

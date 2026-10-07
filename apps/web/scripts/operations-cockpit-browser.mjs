@@ -605,11 +605,58 @@ try {
       await tile.locator("[data-status-metric]").textContent(),
       await page.locator(`[data-flow-area="${area}"] dd`).first().textContent(),
     );
-    assert.equal(await tile.getByRole("link").getAttribute("href"), `#cockpit-flow-${area}`);
+    assert.equal(
+      await tile.locator("a, button, select").count(),
+      0,
+      "monitoring summary has no duplicate selector",
+    );
   }
-  await summary.locator('[data-status-area="orders"] a').focus();
-  await summary.locator('[data-status-area="orders"] a').press("Enter");
-  assert.equal(await page.evaluate(() => location.hash), "#cockpit-flow-orders");
+  const areaSelector = page.getByRole("combobox", { name: "Analysis area", exact: true });
+  assert.equal(await areaSelector.count(), 1, "analysis owns exactly one selector");
+  assert.equal(await page.locator(".cockpit-analysis-selector button").count(), 0);
+  await areaSelector.focus();
+  const stablePosition = () =>
+    page.locator("[data-operating-flows]").evaluate((el) => ({
+      top: el.getBoundingClientRect().top,
+      focused: document.activeElement === el.querySelector("select"),
+      historyLength: history.length,
+    }));
+  const beforeSelection = await stablePosition();
+  await areaSelector.selectOption("messages");
+  const afterSelection = await stablePosition();
+  assert(
+    Math.abs(afterSelection.top - beforeSelection.top) < 2,
+    "selection does not scroll the analysis",
+  );
+  assert(afterSelection.focused, "selection retains keyboard focus");
+  assert.equal(
+    afterSelection.historyLength,
+    beforeSelection.historyLength,
+    "switching areas adds no history entry",
+  );
+  assert.equal(await page.evaluate(() => location.hash), "#cockpit-flow-messages");
+  const bookmarkedHash = await page.evaluate(() => location.hash);
+  await page.goto(
+    (process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177") +
+      "/scripts/fixtures/operations-cockpit-harness.html" +
+      bookmarkedHash,
+  );
+  await page.locator('[data-flow-area="messages"]:visible').waitFor();
+  assert.equal(await areaSelector.inputValue(), "messages", "bookmark reload restores area");
+  await areaSelector.focus();
+  await areaSelector.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  assert(
+    await areaSelector.evaluate((el) => document.activeElement === el),
+    "native selector stays in the keyboard tab order",
+  );
+  await areaSelector.selectOption("orders");
+  await areaSelector.selectOption("messages");
+  await page.evaluate(() => window.__cockpitNavigate({ tenant: "other-company" }));
+  await page.waitForFunction(
+    () => document.querySelector(".cockpit-analysis-selector select")?.value === "orders",
+  );
+  assert.equal(await areaSelector.inputValue(), "orders", "company switch resets analysis");
   summaryVariants = true;
   await page.goto(
     (process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177") +
@@ -675,7 +722,7 @@ try {
   await page.locator(".operations-cockpit").evaluate((element) => {
     element.style.maxWidth = "";
   });
-  await page.locator('[data-status-area="messages"] a').click();
+  await page.locator(".cockpit-analysis-selector select").selectOption("messages");
   const mailbox = page.locator('[data-flow-area="messages"]');
   assert.equal(await mailbox.locator('[data-analysis-kind="flow"] [data-flow-series]').count(), 2);
   assert.equal(
@@ -1040,7 +1087,7 @@ try {
             }),
         );
         assert.equal(layout.length, 1, "desktop retains one focused analysis");
-        await page.locator('[data-status-area="messages"] a').click();
+        await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         assert.equal(await page.locator('[data-flow-area="messages"] svg').count(), 2);
 
         await page.screenshot({

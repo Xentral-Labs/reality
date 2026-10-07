@@ -1,5 +1,11 @@
 # Tasks: Enterprise operations cockpit
 
+## Stable analysis interaction (FR-057–058)
+
+- [x] T091 Add failing one-selector, read-only summary, focus/viewport stability and bookmark/refresh/company-reset browser proofs.
+- [x] T092 Implement local analysis selector, remove duplicate instrument navigation and replace hash state without scrolling; update four-language copy and shared styling.
+- [x] T093 Run affected frontend/browser/lifecycle/spec checks, inspect the real local company, activate web only and update PR evidence.
+
 ## Preview parity follow-up (FR-052–056)
 
 - [x] T087 Add failing service proofs for complete risk partitions, deduplication, canonical due-soon and unknown urgency, and browser proofs for the requested two-row geometry, legend, Agent/manual visibility.
