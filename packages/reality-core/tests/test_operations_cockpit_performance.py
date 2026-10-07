@@ -77,7 +77,6 @@ def test_ten_reader_enterprise_profile_preserves_full_totals_and_refresh_latency
         record_property("enterprise_profile_measurement", value)
 
     engine, factory, tenant, owner = enterprise_database
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     observed = datetime.now(UTC)
     # Canonical setup takes minutes; late-day elapsed setup must not consume the
     # scenario's capacity. Pin only its explicit business observation instant.

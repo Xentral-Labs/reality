@@ -383,3 +383,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 
 - [x] T153 [FR-085] Add exact held observation/user timezone/browser containment proof, then show shared-formatted semantic observation time beside each mini-trend period without inventing missing/fresh data.
 - [x] T154 [FR-085] Verify full browser/contracts/audit/build/local screenshot; launch final PR CI tracked under T038 and repair obsolete live/session proof selectors and preserve all latency/controlled-session assertions.
+
+
+## Universal company availability
+
+- [x] T155 [FR-087] Add failing HTTP/service capability, empty/populated reads, legacy-value immunity, existing business-admin access, private/ready practice/temporary/pending/archived Playground and eligibility/refusal proofs in packages/reality-core/tests/test_operations_cockpit_adapters.py and snapshot authorization proofs; real browser setup must use no feature flag.
+- [x] T156 [FR-087] Remove the flag/service-web helpers, reuse canonical Playground ownership/readiness and existing business-company access, narrowly allow cockpit GETs and authorized selected-Playground bootstrap in web/api.py, use the hint only for direct cockpit entry through api.ts/useCompanyContext.ts and update unavailable translations, retain owner-only/write/egress guards, clean obsolete test setup, and update docs/features/operations-cockpit.md, docs/WEB_SPEC.md and docs/SPEC_COVERAGE_MATRIX.md.
+- [ ] T157 [FR-087] Run affected PostgreSQL tests, real browser journey, lint/spec/docs gates and final boundary review; create a separate ready PR and repair checks until every final-head required check passes. Record exact CI evidence before marking completion.

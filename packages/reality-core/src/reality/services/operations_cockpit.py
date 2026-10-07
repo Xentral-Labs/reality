@@ -5,16 +5,21 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-import os
 from collections.abc import Callable
 from concurrent.futures import Future
 from threading import Lock
 
-from sqlalchemy import func, select, text
+from sqlalchemy import func, or_, select, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
-from reality.db.core import MCPAccessToken, now
+from reality.db.core import (
+    AppUser,
+    MCPAccessToken,
+    PlaygroundRun,
+    TenantMembership,
+    now,
+)
 from reality.db.mcp_authorization import MCPClientGrant
 from reality.services import (
     activity_volume,
@@ -71,16 +76,59 @@ def _observation_key(operation: str, filters: dict) -> tuple[str, str]:
     return operation, json.dumps(filters, sort_keys=True)
 
 
-def enabled() -> bool:
-    return os.environ.get("REALITY_OPERATIONS_COCKPIT_ENABLED", "").lower() in {
-        "1",
-        "true",
-    }
-
-
 def _viewer(session: Session, tenant_id: str, principal: Principal):
+    """Resolve current company inspection access, never execution authority."""
+    if principal is None:
+        raise core.NotFound(code="company_not_found")
     with session.no_autoflush:
-        return operational_cases._member(session, tenant_id, principal, _fresh=True)
+        result = session.execute(
+            select(
+                TenantMembership,
+                core.Tenant.purpose,
+                core.Tenant.archived_at,
+                AppUser.status,
+            )
+            .select_from(core.Tenant)
+            .join(AppUser, AppUser.id == principal.user_id)
+            .outerjoin(
+                TenantMembership,
+                (TenantMembership.tenant_id == core.Tenant.id)
+                & (TenantMembership.user_id == AppUser.id)
+                & (TenantMembership.status == "active"),
+            )
+            .where(
+                core.Tenant.id == tenant_id,
+                or_(
+                    TenantMembership.id.is_not(None),
+                    AppUser.is_platform_admin.is_(True),
+                ),
+            )
+            .execution_options(populate_existing=True)
+        ).one_or_none()
+        if result is None:
+            raise core.NotFound(code="company_not_found")
+        member, purpose, archived_at, status = result
+        if purpose == "business":
+            if status != "active" or archived_at is not None:
+                raise core.NotFound(code="company_not_found")
+            return member
+        if purpose != "playground":
+            raise core.NotFound(code="company_not_found")
+        from reality.services.tenant_policy import (
+            PlaygroundOperationDenied,
+            require_playground_run,
+        )
+
+        run_id = session.scalar(
+            select(PlaygroundRun.id).where(
+                PlaygroundRun.tenant_id == tenant_id,
+                PlaygroundRun.owner_user_id == principal.user_id,
+            )
+        )
+        run = require_playground_run(session, run_id, principal.user_id)
+        if run.status not in {"active", "archived"}:
+            raise PlaygroundOperationDenied("This Playground run is not ready.")
+        return member
 
 
 def _with_snapshot[Result](
@@ -97,8 +145,8 @@ def _with_snapshot[Result](
     Observe a consistent company without retaining authority after access is revoked.
 
     BUSINESS RULE operations_cockpit.snapshot.access:
-    Require a clean caller, current active company member and enabled surface.
-    Configuration and a data snapshot grant no membership or business authority.
+    Require a clean caller and current company inspection access, including private ready Playground runs.
+    A data snapshot grants no membership or business authority.
 
     BUSINESS RULE operations_cockpit.snapshot.consistency:
     Production Engine-bound observations use a fresh read-only REPEATABLE READ session
@@ -117,10 +165,8 @@ def _with_snapshot[Result](
     if session.new or session.dirty or session.deleted:
         raise core.InvalidOperation(code="operations_cockpit_read_session_dirty")
     member = _viewer(session, tenant_id, principal)
-    if owner_only and member.role != "owner":
+    if owner_only and (member is None or member.role != "owner"):
         raise core.NotFound(code="company_not_found")
-    if not enabled():
-        raise core.NotFound(code="operations_cockpit_unavailable")
     # reality-rule: operations_cockpit.snapshot.consistency
     bind = session.get_bind()
     if isinstance(bind, Connection):
@@ -148,14 +194,14 @@ def _with_snapshot[Result](
         )
     # reality-rule: operations_cockpit.snapshot.return
     member = _viewer(session, tenant_id, principal)
-    if owner_only and member.role != "owner":
+    if owner_only and (member is None or member.role != "owner"):
         raise core.NotFound(code="company_not_found")
     return result
 
 
 def capabilities(session: Session, tenant_id: str, principal: Principal) -> dict:
     _viewer(session, tenant_id, principal)
-    return {"enabled": enabled()}
+    return {"enabled": True}
 
 
 def operations_cockpit(
@@ -288,7 +334,7 @@ def case_register(
     Observe exact supported case responsibility through the same current snapshot.
 
     BUSINESS RULE operations_cockpit.case_register.shared:
-    Membership and feature discovery never adopt work. Use the canonical complete
+    Company inspection access never adopts work. Use the canonical complete
     case register and preserve current post-read access checks. Return this read's
     own observation time even when no work is adopted; it is transient metadata.
     """

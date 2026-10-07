@@ -302,6 +302,15 @@ def require_tenant_surface_access(
         "/reservations",
         "/timeline",
         "/change-proposals",
+        "/operations-cockpit/capabilities",
+        "/operations-cockpit",
+        "/operations-cockpit/orders",
+        "/operations-cockpit/activity",
+        "/operations-cockpit/agents",
+        "/operational-cases/status",
+        "/operational-cases/register",
+        "/operational-cases/objects/{record_type}/{record_id}",
+        "/operational-cases/{case_id}",
     }
     inspector = route == "/inspector/{kind}/{record_id}" and request.path_params.get(
         "kind"
@@ -441,7 +450,11 @@ def require_company_owner(
     response_model=ApplicationBootstrap,
     response_model_exclude_none=True,
 )
-def application_bootstrap(request: Request, session: DatabaseSession):
+def application_bootstrap(
+    request: Request,
+    session: DatabaseSession,
+    cockpit_tenant: str | None = Query(None, min_length=1, max_length=100),
+):
     """Return only the identity data required to start an independent client."""
     allowed = visible_tenant_ids(request, session)
     from reality.services.tenant_policy import practice_company_runs
@@ -455,6 +468,25 @@ def application_bootstrap(request: Request, session: DatabaseSession):
         if (row.purpose == "business" or row.id in practice)
         and (allowed is None or row.id in allowed)
     ]
+    if cockpit_tenant and user:
+        from reality.services import operations_cockpit
+
+        try:
+            operations_cockpit.capabilities(session, cockpit_tenant, Principal(user.id))
+        except (NotFound, InvalidOperation) as error:
+            raise api_error(error) from error
+        requested = session.scalar(select(Tenant).where(Tenant.id == cockpit_tenant))
+        if requested.purpose == "playground":
+            # A direct Control Tower link may inspect its own quick/archived run.
+            # Other entry points keep their existing practice-only company list.
+            practice[requested.id] = session.scalar(
+                select(PlaygroundRun.id).where(
+                    PlaygroundRun.tenant_id == requested.id,
+                    PlaygroundRun.owner_user_id == user.id,
+                )
+            )
+            if all(row.id != requested.id for row in rows):
+                rows.append(requested)
     roles = (
         {
             membership.tenant_id: membership.role

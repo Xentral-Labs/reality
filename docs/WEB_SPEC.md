@@ -4,7 +4,7 @@
 
 **Simple on the surface. Fully explainable underneath.**
 
-Spec 378 FR-047–086 refines the optional Control Tower into a compact instrument
+Spec 378 FR-047–086 refines the Control Tower into a compact instrument
 console and a shared analysis selector with shipping first, followed by the five
 operational flow areas. Two adjacent monitoring cards show recent activity and registered Agent access together;
 confirmed case controls live in the upper business-case disclosure. The centered
@@ -144,7 +144,7 @@ The web application combines two modes without creating two products:
 
 The web UI must never create its own business logic. CLI, chat, demo and web all call the same application services/tools.
 
-The approved enterprise migration in spec 378 preserves shipping plan/handover/forecast curves, site cutoffs, exceptional case control, all-day observation and named Agent/access visibility. Its [implementation contract](features/operations-cockpit.md) records the implemented, optional, default-off cockpit route and its functional proofs. Home remains the default entry. Enterprise performance and a separate real-time soak remain pre-pilot acceptance gates.
+The approved enterprise migration in spec 378 preserves shipping plan/handover/forecast curves, site cutoffs, exceptional case control, all-day observation and named Agent/access visibility. Its [implementation contract](features/operations-cockpit.md) records the implemented cockpit route, universal existing-company-access availability under FR-087, and its functional proofs. Home remains the default entry. Enterprise performance and a separate real-time soak remain pre-pilot acceptance gates.
 
 ### Compact chat answer basis — Spec 272
 

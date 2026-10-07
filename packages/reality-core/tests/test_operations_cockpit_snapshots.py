@@ -14,7 +14,6 @@ def test_readonly_repeatable_snapshot_is_stable_during_a_committed_source_change
     from reality.services.operations_cockpit import _with_snapshot
 
     _, factory, tenant, owner = scheduled_database
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     with factory() as writer:
         core.store_source_record(
             writer, tenant, "carrier", "capacity", "concurrent", {"slots": 2}
@@ -63,7 +62,6 @@ def test_membership_removed_during_snapshot_prevents_the_response(
     from reality.services.operations_cockpit import _with_snapshot
 
     _, factory, tenant, owner = scheduled_database
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     with factory() as reader:
 
         def observation(snapshot):
@@ -82,21 +80,37 @@ def test_membership_removed_during_snapshot_prevents_the_response(
             _with_snapshot(reader, tenant, Principal(owner), observation)
 
 
-def test_snapshot_is_readonly_and_feature_off_never_opens_business_observation(
+def test_snapshot_is_readonly_and_removed_access_never_opens_business_observation(
     scheduled_database, monkeypatch
 ):
     from reality.services.operations_cockpit import _with_snapshot
 
     _, factory, tenant, owner = scheduled_database
-    monkeypatch.delenv("REALITY_OPERATIONS_COCKPIT_ENABLED", raising=False)
+    with factory() as writer:
+        membership = writer.scalar(
+            select(TenantMembership).where(
+                TenantMembership.tenant_id == tenant,
+                TenantMembership.user_id == owner,
+            )
+        )
+        membership.status = "removed"
+        writer.commit()
     with factory() as reader, pytest.raises(core.NotFound):
         _with_snapshot(
             reader,
             tenant,
             Principal(owner),
-            lambda snapshot: pytest.fail("Feature-off read ran."),
+            lambda snapshot: pytest.fail("Denied read ran."),
         )
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
+    with factory() as writer:
+        membership = writer.scalar(
+            select(TenantMembership).where(
+                TenantMembership.tenant_id == tenant,
+                TenantMembership.user_id == owner,
+            )
+        )
+        membership.status = "active"
+        writer.commit()
     with factory() as reader:
         from sqlalchemy import text
         from sqlalchemy.exc import DBAPIError
@@ -192,7 +206,6 @@ def test_joined_snapshot_rechecks_each_membership_after_committed_revocation(
     from reality.services import operations_cockpit
 
     _, factory, tenant, owner = scheduled_database
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     started, joined = Event(), Event()
     calculations = 0
 
@@ -369,7 +382,6 @@ def test_snapshot_rechecks_committed_authority_with_stale_identity_maps(
     from reality.services.operations_cockpit import _with_snapshot
 
     _, factory, tenant, owner = scheduled_database
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     with factory() as reader:
         old_user = reader.get(AppUser, owner)
         old_company = reader.get(Tenant, tenant)
@@ -462,3 +474,38 @@ def test_private_scalar_metadata_keeps_exact_immutable_recorded_values(session):
     assert record.occurred_at == instant and record.due_at is None
     with pytest.raises(AttributeError):
         record.quantity = Decimal(2)
+
+
+@pytest.mark.parametrize("revocation", ["membership", "account", "run"])
+def test_playground_access_revoked_during_snapshot_prevents_response(
+    scheduled_database, revocation
+):
+    from reality.db.core import AppUser, PlaygroundRun
+    from reality.services.operations_cockpit import _with_snapshot
+    from reality.services.playground import start_run
+
+    _, factory, _, owner = scheduled_database
+    with factory() as setup:
+        run = start_run(setup, owner, "cockpit-snapshot", confirmed=True)
+        tenant, run_id = run.tenant_id, run.id
+    with factory() as reader:
+
+        def observation(snapshot):
+            with factory() as writer:
+                if revocation == "membership":
+                    member = writer.scalar(
+                        select(TenantMembership).where(
+                            TenantMembership.tenant_id == tenant,
+                            TenantMembership.user_id == owner,
+                        )
+                    )
+                    member.status = "removed"
+                elif revocation == "account":
+                    writer.get(AppUser, owner).status = "inactive"
+                else:
+                    writer.get(PlaygroundRun, (tenant, run_id)).status = "initialization_failed"
+                writer.commit()
+            return {"must_not_escape": "private sandbox"}
+
+        with pytest.raises((core.NotFound, core.InvalidOperation)):
+            _with_snapshot(reader, tenant, Principal(owner), observation)

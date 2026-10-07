@@ -1,4 +1,4 @@
-"""Spec 378: real committed business changes reach the optional cockpit."""
+"""Spec 378: real committed business changes reach the universal cockpit."""
 
 import os
 from datetime import UTC, datetime, timedelta
@@ -14,6 +14,7 @@ from reality.mcp.auth import create_mcp_access_token
 from reality.services import core
 from reality.services.company_time_zone import set_company_time_zone
 from reality.services.memberships import Principal
+from reality.services.playground import start_run
 from reality.services.shipments import record_shipment_event, record_shipment_notice
 from reality.tools.application import (
     approve_and_execute_proposal,
@@ -31,9 +32,7 @@ def test_live_cockpit_shows_committed_hold_and_exact_case_takeover(
         Path(os.environ.get("JOURNEY_ARTIFACTS", str(tmp_path))) / "operations-cockpit"
     )
     artifacts.mkdir(parents=True, exist_ok=True)
-    env = dict(
-        migrate(postgres_database, artifacts), REALITY_OPERATIONS_COCKPIT_ENABLED="true"
-    )
+    env = migrate(postgres_database, artifacts)
     engine = build_engine(postgres_database)
     try:
         with sessionmaker(engine, expire_on_commit=False)() as db:
@@ -169,6 +168,25 @@ def test_live_cockpit_shows_committed_hold_and_exact_case_takeover(
                 )
             )
             tenant_id, commitment_id = tenant.id, commitments[2].id
+            practice = start_run(
+                db,
+                owner.id,
+                "cockpit-practice",
+                sandbox_kind="practice",
+                company_name="Cockpit practice proof",
+                confirmed=True,
+            )
+            temporary = start_run(db, owner.id, "cockpit-quick", confirmed=True)
+            other_owner = add_member(
+                db,
+                tenant.id,
+                "other-cockpit-owner@example.test",
+                "Other owner",
+                "member",
+            )
+            foreign = start_run(db, other_owner.id, "private-quick", confirmed=True)
+            playground_ids = [practice.tenant_id, temporary.tenant_id]
+            foreign_playground = foreign.tenant_id
     finally:
         engine.dispose()
     with live_stack(env, artifacts) as stack:
@@ -180,6 +198,17 @@ def test_live_cockpit_shows_committed_hold_and_exact_case_takeover(
                 TENANT=tenant_id,
                 COMMITMENT=commitment_id,
                 CASE=case_id,
+                SHOTS=str(artifacts),
+            ),
+            artifacts,
+        )
+        run_browser_script(
+            "operations-cockpit-playground-live-browser.mjs",
+            dict(
+                stack["env"],
+                UNIFIED_BASE_URL=stack["web"],
+                PLAYGROUND_TENANTS=",".join(playground_ids),
+                FOREIGN_PLAYGROUND=foreign_playground,
                 SHOTS=str(artifacts),
             ),
             artifacts,

@@ -22,7 +22,6 @@ def test_case_register_retains_its_own_snapshot_time_without_existing_work(
     # BUSINESS PURPOSE: Independently refreshed responsibility data needs its own truthful freshness time.
     # BUSINESS RULE: Return the read snapshot's time even during incomplete rollout; never create work or borrow another panel's clock.
     _, factory, tenant, owner = scheduled_database
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     with factory() as session:
         before = session.scalar(select(func.clock_timestamp()))
         events = list(session.scalars(select(BusinessEvent.id)))
@@ -122,7 +121,6 @@ def test_named_access_paging_is_complete_redacted_and_never_invents_runtime_iden
 ):
     # BUSINESS PURPOSE: An owner sees exactly which named accesses contribute to the company.
     # BUSINESS RULE: Duplicate names remain distinct; only exact credential attribution is evidence of action.
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     tokens = access_records(session, business, scheduled_owner)
     observed = datetime(2026, 10, 6, 12, 30, tzinfo=UTC)
     tokens[0].last_used_at = observed
@@ -177,7 +175,6 @@ def test_named_access_paging_is_complete_redacted_and_never_invents_runtime_iden
 def test_member_reads_business_activity_but_cannot_discover_access_names(
     session, business, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     access_records(session, business, scheduled_owner)
     member = session.scalar(
         select(TenantMembership).where(
@@ -209,7 +206,6 @@ def test_cockpit_deviation_preserves_causal_blockers_without_inventing_a_respons
         "customer_request",
         "Customer requested a pause",
     )
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     monkeypatch.setattr(
         operations_cockpit.shipping_performance, "now", lambda: OBSERVED
     )
@@ -275,7 +271,6 @@ def test_shipping_snapshot_does_not_repeat_independent_responsibility_register(
     # BUSINESS RULE: Keep full canonical register counts/evidence in its own observation and shipping totals/deviations in theirs.
     from reality.services import operational_cases
 
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     tenant = business.tenant.id
     principal = Principal(scheduled_owner.id)
     session.flush()
@@ -306,7 +301,6 @@ def test_missing_day_plan_does_not_claim_zero_shipping_deviations(
 ):
     # BUSINESS PURPOSE: Unknown daily coverage must not suggest every order is safe.
     # BUSINESS RULE: Missing plan leaves deviation count unknown while independently observed activity stays available.
-    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
     session.flush()
     value = operations_cockpit.operations_cockpit(
         session, business.tenant.id, Principal(scheduled_owner.id)

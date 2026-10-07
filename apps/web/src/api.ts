@@ -1773,7 +1773,12 @@ export const api = {
         confirmation_word: confirmationWord,
       }),
     }),
-  bootstrap: () => request<Bootstrap>("/api/v1/bootstrap"),
+  bootstrap: (cockpitTenant?: string) =>
+    request<Bootstrap>(
+      cockpitTenant
+        ? `/api/v1/bootstrap?cockpit_tenant=${encodeURIComponent(cockpitTenant)}`
+        : "/api/v1/bootstrap",
+    ),
   companyAccess: (tenant: string) =>
     request<CompanyAccess>(`/api/tenants/${tenant}/settings/members`),
   inviteMember: (tenant: string, email: string) =>

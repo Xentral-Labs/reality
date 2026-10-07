@@ -100,8 +100,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Return to Control Tower": "Zurück zum Control Tower",
     "Control Tower is unavailable for this company":
       "Control Tower ist für diese Firma nicht verfügbar",
-    "Use the company menu at the top left to choose a business company with Control Tower enabled.":
-      "Wähle über das Firmenmenü oben links eine Firma, für die Control Tower verfügbar ist.",
+    "Use the company menu at the top left to choose a company you can access.":
+      "Wähle über das Firmenmenü oben links eine Firma, auf die du Zugriff hast.",
     "Back to Inbox": "Zurück zur Inbox",
     "Company status": "Unternehmensstatus",
     "Order status": "Aufträge",
@@ -2649,8 +2649,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Return to Control Tower": "Terug naar Control Tower",
     "Control Tower is unavailable for this company":
       "Control Tower is niet beschikbaar voor dit bedrijf",
-    "Use the company menu at the top left to choose a business company with Control Tower enabled.":
-      "Kies via het bedrijfsmenu linksboven een bedrijf waarvoor Control Tower beschikbaar is.",
+    "Use the company menu at the top left to choose a company you can access.":
+      "Kies via het bedrijfsmenu linksboven een bedrijf waartoe je toegang hebt.",
     "Back to Inbox": "Terug naar Inbox",
     "Company status": "Bedrijfsstatus",
     "Order status": "Orders",
@@ -4892,8 +4892,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Return to Control Tower": "Volver a Control Tower",
     "Control Tower is unavailable for this company":
       "Control Tower no está disponible para esta empresa",
-    "Use the company menu at the top left to choose a business company with Control Tower enabled.":
-      "Selecciona en el menú de empresas de arriba a la izquierda una empresa con Control Tower disponible.",
+    "Use the company menu at the top left to choose a company you can access.":
+      "Selecciona en el menú de empresas de arriba a la izquierda una empresa a la que tengas acceso.",
     "Back to Inbox": "Volver a la bandeja de entrada",
     "Company status": "Estado de la empresa",
     "Order status": "Pedidos",
