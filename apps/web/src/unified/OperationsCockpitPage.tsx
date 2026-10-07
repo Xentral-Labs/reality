@@ -245,6 +245,7 @@ export function OperationsCockpitPage({
                     key={selection.tenant}
                     selection={selection}
                     zone={value.time_zone}
+                    embedded
                   />
                 }
                 activity={
@@ -253,9 +254,12 @@ export function OperationsCockpitPage({
                     key={selection.tenant}
                     selection={selection}
                     navigate={navigate}
+                    embedded
                   />
                 }
-                agents={<AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />}
+                agents={
+                  <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} embedded />
+                }
               />
             </div>
           </div>

@@ -6,7 +6,13 @@ import { useCockpitLiveRead } from "./useCockpitLiveRead";
 import { ReadState } from "./ReadState";
 import type { AgentAccess } from "./cockpitModel";
 
-export function AgentAccessPanel({ tenant }: { tenant: string }) {
+export function AgentAccessPanel({
+  tenant,
+  embedded = false,
+}: {
+  tenant: string;
+  embedded?: boolean;
+}) {
   const [expanded, setExpanded] = useState(false),
     [scope, setScope] = useState("active"),
     [after, setAfter] = useState("");
@@ -29,7 +35,7 @@ export function AgentAccessPanel({ tenant }: { tenant: string }) {
   if (state.status === "denied")
     return (
       <section className="cockpit-card cockpit-access-panel" data-agent-access>
-        <h2>{t("Agents & connections")}</h2>
+        {!embedded && <h2>{t("Agents & connections")}</h2>}
         <p className="cockpit-note">{t("Agent access overview is restricted to company owners")}</p>
       </section>
     );
@@ -37,13 +43,16 @@ export function AgentAccessPanel({ tenant }: { tenant: string }) {
     <section
       className="cockpit-card cockpit-access-panel"
       data-agent-access
-      aria-labelledby="agents-title"
+      aria-labelledby={embedded ? undefined : "agents-title"}
+      aria-label={embedded ? t("Agents & connections") : undefined}
     >
-      <div className="cockpit-card-heading">
-        <div>
-          <span className="cockpit-eyebrow">{t("Registered Agents")}</span>
-          <h2 id="agents-title">{t("Agents & connections")}</h2>
-        </div>
+      <div className={`cockpit-card-heading ${embedded ? "cockpit-context-actions" : ""}`}>
+        {!embedded && (
+          <div>
+            <span className="cockpit-eyebrow">{t("Registered Agents")}</span>
+            <h2 id="agents-title">{t("Agents & connections")}</h2>
+          </div>
+        )}
         <button
           className="shell-icon-button cockpit-icon-action"
           aria-label={t(expanded ? "Compact view" : "View all accesses")}

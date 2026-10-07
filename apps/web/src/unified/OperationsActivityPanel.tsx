@@ -21,8 +21,10 @@ export function OperationsActivityPanel({
   selection,
   navigate,
   state,
+  embedded = false,
 }: {
   selection: Selection;
+  embedded?: boolean;
   state: LiveReadState<CockpitActivity>;
   navigate: (changes: Partial<Selection>) => void;
 }) {
@@ -56,12 +58,18 @@ export function OperationsActivityPanel({
       }),
     );
   return (
-    <section className="cockpit-card cockpit-activity" aria-labelledby="activity-title">
-      <div className="cockpit-card-heading">
-        <div>
-          <span className="cockpit-eyebrow">{t("Live event log")}</span>
-          <h2 id="activity-title">{t("Recorded business activity")}</h2>
-        </div>
+    <section
+      className="cockpit-card cockpit-activity"
+      aria-labelledby={embedded ? undefined : "activity-title"}
+      aria-label={embedded ? t("Recorded business activity") : undefined}
+    >
+      <div className={`cockpit-card-heading ${embedded ? "cockpit-context-actions" : ""}`}>
+        {!embedded && (
+          <div>
+            <span className="cockpit-eyebrow">{t("Live event log")}</span>
+            <h2 id="activity-title">{t("Recorded business activity")}</h2>
+          </div>
+        )}
         {value && (
           <button
             className="shell-icon-button cockpit-icon-action"

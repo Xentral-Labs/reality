@@ -616,8 +616,14 @@ export function OperatingFlowsPanel({
     >
       <header className="cockpit-card-heading">
         <div>
-          <span className="cockpit-eyebrow">{t("Company operations")}</span>
-          <h2 id="flows-heading">{t("Flow analysis")}</h2>
+          <span className="cockpit-eyebrow">{t("Flow analysis")}</span>
+          <h2 id="flows-heading">
+            {t(
+              selected === "shipping"
+                ? "Shipping by end of day"
+                : areas.find((area) => area.key === selected)!.title,
+            )}
+          </h2>
         </div>
         <label className="br-field cockpit-analysis-selector">
           {t("Analysis area")}
@@ -669,7 +675,6 @@ export function OperatingFlowsPanel({
                 key={area.key}
                 hidden={selected !== area.key}
               >
-                <h3>{t(area.title)}</h3>
                 <p className={`cockpit-flow-signal ${signal}`}>
                   <span aria-hidden="true" />
                   {t(signalLabels[signal])}

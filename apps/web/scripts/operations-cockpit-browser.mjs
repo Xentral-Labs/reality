@@ -202,7 +202,8 @@ async function assertFlowAlignment(label) {
       element.getBoundingClientRect().top -
       element.closest(".cockpit-console-row").previousElementSibling.getBoundingClientRect().bottom,
     headingSize: getComputedStyle(element.querySelector("h2")).fontSize,
-    sharedSize: getComputedStyle(document.querySelector(".cockpit-shipping h2")).fontSize,
+    sharedSize: getComputedStyle(document.querySelector("[data-operations-workspace] > header h2"))
+      .fontSize,
     contentGap:
       element
         .querySelector("[data-shipping-analysis]:not([hidden]), [data-flow-area]:not([hidden])")
@@ -594,6 +595,49 @@ try {
     el.style.maxWidth = "";
   });
   const workspaceSelector = page.getByRole("combobox", { name: "Workspace view", exact: true });
+  for (const [area, title] of [
+    ["shipping", "Shipping by end of day"],
+    ["orders", "Customer orders"],
+    ["messages", "Messages & responses"],
+    ["supply", "Expected goods & receipts"],
+    ["stock", "Stock risks"],
+    ["returns", "Returns & disposition"],
+  ]) {
+    await combinedSelector.selectOption(area);
+    assert.deepEqual(
+      await page.locator("[data-operating-flows] h2:visible").allTextContents(),
+      [title],
+      "analysis has one selected-topic heading",
+    );
+    assert.equal(
+      await page.locator("[data-operating-flows] > header .cockpit-eyebrow").textContent(),
+      "Flow analysis",
+    );
+    assert.equal(
+      await page.locator("[data-flow-area]:not([hidden]) > h3").count(),
+      0,
+      "flow topic is not repeated below the header",
+    );
+  }
+  await combinedSelector.selectOption("shipping");
+  for (const [view, title] of [
+    ["responsibility", "Cases & takeover"],
+    ["activity", "Recorded business activity"],
+    ["agents", "Agents & connections"],
+  ]) {
+    await workspaceSelector.selectOption(view);
+    assert.deepEqual(
+      await page.locator("[data-operations-workspace] h2:visible").allTextContents(),
+      [title],
+      "workspace has one selected-topic heading",
+    );
+    assert.equal(
+      await page.locator("[data-operations-workspace] > header .cockpit-eyebrow").textContent(),
+      "Operations workspace",
+    );
+  }
+  await workspaceSelector.selectOption("responsibility");
+
   assert.match(
     await page.locator("[data-shipping-deviations] > summary").textContent(),
     new RegExp(`Affected orders: ${denseEvidence ? 321 : 0}`),

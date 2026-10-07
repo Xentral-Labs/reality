@@ -558,3 +558,15 @@ Acceptance: extend the existing populated/all-signals/stale browser proof before
 - **FR-072**: Without a usable daily cohort, affected shipping orders MUST remain unknown rather than zero and the UI MUST explain that only plan comparison/forecast are unavailable. Existing actual activity remains live through the existing snapshot lifecycle; no additional polling or business mutations.
 
 Acceptance: yesterday-only planning plus today's physical booking/handover remains visible; partial/duplicate/future/superseded events, company-day boundary, site and tenant isolation preserve exact units and counts; no-plan blocker total is unknown; existing plan calculations and supporting orders retain parity. Tests precede implementation. Local simulator planning recovery is specified in spec 376 and does not authorize production plan acceptance.
+
+
+### Unified console heading hierarchy
+
+- **FR-073**: The shared analysis and Operations workspace cards MUST each expose one consistent primary heading for the currently selected content. Use the stable card category (Flow analysis / Operations workspace) as a small eyebrow and the selected topic as the sole h2. Switching the six analysis areas or three workspace views updates this heading without duplicate inner topic headings, new navigation or resetting retained review/live state. Embedded child views retain contextual descriptions, status, evidence and controls, including shipping basis and owner-only Agent feedback; standalone child use retains its own heading.
+
+Acceptance: shipping defaults to Flow analysis / Shipping by end of day; returns
+uses Flow analysis / Returns & disposition; the right default uses Operations
+workspace / Cases & takeover. Log and Agent views follow the same hierarchy.
+Both titles use the same shared typography and remain readable at phone/docked/
+desktop widths in all product languages and themes. There is one visible h2 per
+primary card, with no dangling accessible section labels.
