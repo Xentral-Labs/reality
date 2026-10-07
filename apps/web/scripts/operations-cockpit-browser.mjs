@@ -137,6 +137,73 @@ async function assertTrafficPalette(label) {
     assert.equal(tile.detail, expected, `${label}: the detail status uses the same color`);
   }
 }
+async function assertInstrumentGrouping(label) {
+  const board = page.locator("[data-operating-status]");
+  assert.equal(
+    await board.evaluate((el) => getComputedStyle(el).borderTopWidth),
+    "1px",
+    `${label}: one bounded instrument section`,
+  );
+  const footer = board.locator("[data-instrument-legend-footer]");
+  assert.equal(await footer.count(), 1, `${label}: one shared legend footer`);
+  assert.equal(await footer.evaluate((el) => getComputedStyle(el).textAlign), "center");
+  assert.equal(await footer.locator("[data-risk-key]").count(), 4);
+  assert.equal(await footer.locator(".cockpit-footnote").count(), 1);
+  const slots = await board.locator(".cockpit-status-tile").evaluateAll((tiles) =>
+    tiles.map((tile) => {
+      const rect = tile.getBoundingClientRect();
+      const top = (selector) => tile.querySelector(selector).getBoundingClientRect().top;
+      return {
+        top: rect.top,
+        title: top(".cockpit-status-area-title"),
+        metric: top(".cockpit-status-metric-row"),
+        meter: top("[data-instrument-strip]"),
+        counts: top(".cockpit-risk-counts"),
+        condition: top(".cockpit-status-condition"),
+      };
+    }),
+  );
+  for (const slot of slots) {
+    for (const peer of slots.filter((other) => Math.abs(other.top - slot.top) < 2)) {
+      for (const key of ["title", "metric", "meter", "counts", "condition"])
+        assert(Math.abs(slot[key] - peer[key]) < 2, `${label}: same-row ${key} aligned`);
+    }
+  }
+  const meter = board.locator('[data-status-area="orders"] [data-instrument-strip]');
+  assert.equal(
+    await meter.evaluate((el) => el.getBoundingClientRect().height),
+    12,
+    `${label}: compact meter`,
+  );
+  const renderedShares = await meter.evaluate((el) => {
+    const width = el.getBoundingClientRect().width;
+    return [...el.querySelectorAll("[data-risk-segment]")].map((part) => ({
+      actual: (100 * part.getBoundingClientRect().width) / width,
+      expected: Number.parseFloat(part.style.width),
+    }));
+  });
+  assert(
+    renderedShares.every(({ actual, expected }) => Math.abs(actual - expected) < 0.05),
+    `${label}: rendered segments retain exact proportions`,
+  );
+  for (const category of ["in_plan", "at_risk", "critical"]) {
+    const row = board.locator('[data-status-area="orders"] [data-risk-count="' + category + '"]');
+    assert.equal(
+      await row.locator(".cockpit-risk-label").count(),
+      1,
+      `${label}: labelled risk row`,
+    );
+    assert(
+      await row.evaluate(
+        (el) =>
+          el.querySelector("strong").getBoundingClientRect().left >
+          el.querySelector(".cockpit-risk-label").getBoundingClientRect().left,
+      ),
+      `${label}: risk count aligned at end`,
+    );
+  }
+}
+
 async function assertShippingGrouping(label) {
   const shipping = page.locator(".cockpit-shipping");
   assert.equal(
@@ -280,7 +347,7 @@ async function assertFlowAlignment(label) {
   assert.equal(statusTiles.length, 5, `${label}: summary retains all five areas`);
   assert(
     statusTiles.every((tile) => !tile.overflow && tile.indicator >= 16),
-    `${label}: prominent status indicators do not clip`,
+    `${label}: prominent status indicators do not clip: ${JSON.stringify(statusTiles)}`,
   );
   const cards = await page.locator("[data-flow-area]").evaluateAll((elements) =>
     elements
@@ -504,7 +571,19 @@ await page.route("**/api/**", (route) => {
           ? {
               ...flows,
               orders: { ...flows.orders, signal: "attention" },
-              returns: { ...flows.returns, signal: "clear" },
+              returns: {
+                ...flows.returns,
+                signal: "clear",
+                risk: {
+                  ...flows.returns.risk,
+                  total: 0,
+                  in_plan: 0,
+                  at_risk: 0,
+                  critical: 0,
+                  unclassified: 0,
+                  coverage: "complete",
+                },
+              },
             }
           : missing
             ? {
@@ -722,6 +801,7 @@ try {
     /12:30.*GMT/,
     "general observation follows the UTC viewer instead of the Berlin shipping clock",
   );
+  await assertInstrumentGrouping("initial instruments");
   await assertShippingGrouping("initial unified shipping");
   await page.locator("[data-shipping-sites] > summary").click();
   await page.waitForTimeout(5500);
@@ -1109,6 +1189,19 @@ try {
     );
   }
   await assertTrafficPalette("all five canonical signals");
+  assert.equal(
+    await page.locator('[data-status-area="returns"] [data-risk-segment]').count(),
+    0,
+    "known zero work has an empty meter",
+  );
+  assert.equal(
+    await page
+      .locator('[data-instrument-area="finance"] [data-risk-segment="unclassified"]')
+      .count(),
+    1,
+    "unknown observation retains the hatch",
+  );
+  await assertInstrumentGrouping("docked instrument width");
   summaryVariants = false;
   await page.goto(
     (process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177") +
@@ -1700,6 +1793,7 @@ try {
         await page.locator(".cockpit-analysis-selector select").selectOption("shipping");
         await assertFlowAlignment(`${language}/${theme}/${width}/shipping`);
         await assertShippingGrouping(`${language}/${theme}/${width}/shipping`);
+        await assertInstrumentGrouping(`${language}/${theme}/${width}/instruments`);
         await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         await assertFlowAlignment(`${language}/${theme}/${width}/messages`);
         for (const area of ["orders", "messages", "supply", "stock", "returns"]) {

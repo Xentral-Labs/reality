@@ -260,3 +260,10 @@ precedes the separate recorded physical-activity group; package handovers retain
 their own unit and do not become completed plan orders. Legends/assumptions live
 below their own curves. Site tables start collapsed; their exact dated cutoffs and
 all existing inspection/live controls remain available.
+
+The instrument overview is one themed section with aligned title/value/description,
+compact proportional meter, labelled right-aligned risk-count rows and condition
+slots. Its four-key legend, scope and classification caveat share a separated
+centered footer. Known zero work has an empty neutral meter; unavailable or stale
+evidence remains hatched. Tile/category inspection and Finance navigation retain
+their existing exact record scope and keyboard behavior (spec 378 FR-078).
