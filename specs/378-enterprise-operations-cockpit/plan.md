@@ -581,3 +581,27 @@ geometry assertions to the explicitly superseded stack without deleting prior
 control/source coverage. Run contracts, full viewport/theme/language matrix, eight
 controlled hours, audit/format/build/spec/diff. Activate web only, inspect the real
 company and update PR 383. Rollback is frontend revision only.
+
+## Compact instrument inspection (FR-068–070)
+
+Owner scope accepted by explicit request; no open clarification. Constitution Check:
+all PASS. Extend the existing read-time partition helper to retain per-unit group
+membership internally; expose only bounded previews (eight per group and eight for
+all) in operating_flows.observe. Batch labels for preview document/item IDs only,
+using tenant scope and the same snapshot. Existing count DTO stays unchanged.
+Local-mail previews reuse the original oldest unanswered cohort. Stock shortfall
+copies existing causal_values; no quantity recomputation. No new endpoint/tool,
+schema, dependency, poller or permission. Shared snapshot and ordinary paths remain
+identical. Existing Inspector paths provide evidence beneath each row.
+
+Use one native compact modal, state local to OperatingStatusPanel, per-count
+buttons and one group selector inside the modal. Render current snapshot previews;
+stale retained rows carry a warning. Unknown counts stay unavailable and absent
+flows disable triggers. Eight-row shown/total caption plus workspace access is the
+explicit preview contract; no pretending the preview is the complete register.
+Tests first: service complete membership/deduplication/parity and source/stock
+labels, browser activation/empty/group/Escape/focus/no-scroll/URL/no extra reads,
+phone/theme/language coverage. Verify relevant backend suites, frontend contracts,
+audit/build/format/spec policy and full cockpit browser matrix; review and activate
+API + web only, preserving simulator/MCP workers. Rollback is prior API/web image;
+no data migration. Existing enterprise and real-soak release gates remain open.

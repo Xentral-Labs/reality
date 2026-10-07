@@ -1544,3 +1544,128 @@ a.cockpit-status-link:focus-visible {
   margin-top: 20px;
   padding: 0;
 }
+
+/* Exact record previews never change the chart selection or viewport. */
+.cockpit-metric-trigger,
+.cockpit-risk-trigger {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.cockpit-metric-trigger:hover,
+.cockpit-risk-trigger:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cockpit-metric-trigger:focus-visible,
+.cockpit-risk-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+.cockpit-metric-trigger:disabled,
+.cockpit-risk-trigger:disabled {
+  cursor: default;
+  text-decoration: none;
+}
+.cockpit-instrument-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 32px));
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  background: var(--surface);
+  overflow-y: auto;
+}
+.cockpit-instrument-dialog::backdrop {
+  background: rgb(0 0 0 / 25%);
+}
+.cockpit-instrument-dialog .cockpit-card-heading {
+  margin-bottom: 16px;
+  align-items: start;
+}
+.cockpit-instrument-dialog h2 {
+  margin: 4px 0;
+  font-size: 18px;
+}
+.cockpit-instrument-dialog p {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.cockpit-instrument-dialog > .br-field {
+  max-width: 280px;
+  margin-bottom: 16px;
+}
+.cockpit-inspection-table-wrap {
+  overflow-x: auto;
+}
+.cockpit-inspection-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+.cockpit-inspection-table th {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+.cockpit-inspection-table th,
+.cockpit-inspection-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+.cockpit-inspection-table th:first-child,
+.cockpit-inspection-table td:first-child {
+  padding-left: 0;
+  width: 35%;
+}
+.cockpit-inspection-table td:last-child {
+  width: 22%;
+}
+.cockpit-inspection-table small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 10px;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.cockpit-inspection-group[data-risk-count="in_plan"] {
+  color: #238460;
+}
+.cockpit-inspection-group[data-risk-count="at_risk"] {
+  color: #d97706;
+}
+.cockpit-inspection-group[data-risk-count="critical"] {
+  color: #c84936;
+}
+.cockpit-inspection-group[data-risk-count="unclassified"] {
+  color: var(--text-muted);
+}
+.cockpit-inspection-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.cockpit-inspection-empty {
+  padding: 24px 0;
+}
+@media (max-width: 600px) {
+  .cockpit-instrument-dialog {
+    padding: 16px;
+  }
+  .cockpit-inspection-table {
+    min-width: 430px;
+  }
+}

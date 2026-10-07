@@ -662,3 +662,31 @@ checks pass. Actual company view confirms all three right views and contextual
 blocker restoration. Existing database_error in case reconciliation and enterprise
 performance/real pilot gates remain explicit; no business rule or threshold changed.
 PR 383 remains the existing review destination; current-head CI acceptance is separate.
+
+## Compact instrument inspection review (2026-10-07)
+
+Scope: explicit owner request for compact member inspection behind primary and
+risk counts. FR-068–070 explicitly supersede only FR-057's non-interactive summary;
+chart selection stays independent. Pre-implementation analysis: three requirements,
+four mapped tasks, 100% new-scope coverage, no clarification/critical finding;
+Constitution PASS. Six expected failing ordinary/snapshot service proofs reproduced
+missing inspection output before implementation.
+
+Verification: 65 affected flow/HTTP/snapshot tests passed; 8 tightened inspection,
+company-isolation and partial/completed-return proofs passed. Frontend contracts
+478/478, production build, four-language audit 3038/3038 each, formatting, spec
+policy, business annotations, scoped Ruff and generated-reference freshness passed.
+Full cockpit matrix passed, including new stock/order/empty-group modal activation,
+Escape/focus, URL/viewport preservation, exact record membership, and dialog geometry
+at 320/390/1440/1920 in four languages and both themes. Service ordinary/clean
+snapshot parity and existing read-only authority proofs remain unchanged.
+
+No schema, new endpoint/tool, business rule, approval change or browser reader.
+Existing enterprise final-head CI/real-time pilot qualification remains open;
+these focused checks do not establish production performance. Local activation and
+actual company preview verification are recorded separately after completion.
+
+Actual activation and stock/order/mail/zero-group proof passed on the retained
+company; see quickstart. Final full browser matrix also proves an open aged preview
+shows the warning and retains actual rows. T106 remains open for final-head CI and
+existing enterprise qualification, not because local inspection is unavailable.

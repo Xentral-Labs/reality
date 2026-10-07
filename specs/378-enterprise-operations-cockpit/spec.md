@@ -1,5 +1,35 @@
 # Feature Specification: Enterprise operations cockpit — shipping and case control
 
+## Owner-requested compact instrument inspection (2026-10-07)
+
+This explicitly supersedes FR-057's non-interactive summaries only for read-only
+record inspection. Instruments still never select charts, change hashes or scroll.
+
+- **FR-068**: Each available primary instrument count and each known risk count,
+  including zero and unclassified, MUST open one compact accessible inspection
+  dialog in place. It shows the selected area/group, exact full-cohort total,
+  observation timestamp and up to eight actual member rows with record label,
+  recorded condition and relevant date. Empty, unavailable and stale observations
+  remain explicit. Unknown risk counts never imply zero. Finance retains its
+  unavailable explanation and existing workspace link.
+- **FR-069**: Rows MUST come from the same shared observation and worst-condition
+  identity partition as the displayed count, before preview limits. Orders count
+  once across lines; supply counts promise lines; stock covers uncovered items;
+  returns cover pending physical positions; local unanswered messages stay
+  unclassified. Include shortest true Inspector links, item shortfall only from
+  the existing evaluator, an explicit shown/total limit and workspace access.
+  No new business rule, schema, authority, polling loop or inferred urgency.
+- **FR-070**: Opening/closing or changing the dialog group MUST preserve analysis,
+  URL/history, viewport, manual drafts and live readers. Escape and Close restore
+  trigger focus. Dialog is bounded and scrolls internally on phones, supports
+  keyboard and four languages/light and dark themes; company changes close it.
+
+Acceptance: inspect both uncovered items; inspect a preview of 504 critical orders
+without navigating; switch to an empty in-plan group; inspect unclassified mail;
+Escape restores the selected trigger and analysis stays unchanged. Backend proofs
+cover complete totals beyond eight, deduplication, actual pending membership,
+worst severity, tenant scope and optimized/ordinary observation parity.
+
 ## Owner-requested compact operations workspace (2026-10-07)
 
 The owner requests a coherent, quieter arrangement instead of three permanently

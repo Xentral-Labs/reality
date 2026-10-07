@@ -232,6 +232,8 @@ def test_supplier_work_and_returns_keep_partial_and_corrected_positions(
     assert value["returns"]["arrived_positions"] == 1
     assert value["returns"]["resolved_positions"] == 0
     assert value["returns"]["pending_positions"] == 1
+    preview = value["returns"]["inspection"]["unclassified"]
+    assert preview["total"] == 1 and preview["items"][0]["id"] == returned.id
     record_return_disposition(
         session,
         business.tenant.id,
@@ -240,7 +242,9 @@ def test_supplier_work_and_returns_keep_partial_and_corrected_positions(
         "3",
         destination_location_id=business.location.id,
     )
-    assert observe(session, business, now())["returns"]["resolved_positions"] == 1
+    completed = observe(session, business, now())["returns"]
+    assert completed["resolved_positions"] == 1
+    assert completed["inspection"]["all"] == {"total": 0, "items": []}
     core.correct_movement(
         session, business.tenant.id, receipt.id, reason="Receipt recorded in error"
     )
@@ -792,3 +796,140 @@ def test_message_pending_count_does_not_invent_urgency(session, business):
         "coverage": "unavailable",
         "scope": "unanswered_local_messages",
     }
+
+
+def test_instrument_inspection_membership_precedes_preview_limit(session, business):
+    # BUSINESS PURPOSE: Quickly inspect the exact objects behind a risk count.
+    # BUSINESS RULE: Full cohorts partition once before bounded previews; unknown dates stay unclassified.
+    at = now()
+    ids = {"in_plan": [], "critical": [], "unclassified": []}
+    for category, due, count in [
+        ("in_plan", at + timedelta(days=2), 10),
+        ("critical", at - timedelta(days=2), 3),
+        ("unclassified", None, 2),
+    ]:
+        for _ in range(count):
+            row = core.create_commitment(
+                session,
+                business.tenant.id,
+                "supplier_delivery",
+                business.supplier.id,
+                business.company.id,
+                business.item.id,
+                business.location.id,
+                "3",
+                due,
+            )
+            ids[category].append(row.id)
+    value = observe(session, business, at)["supply"]
+    details = value["inspection"]
+    assert details["all"]["total"] == 15
+    assert len(details["all"]["items"]) == 8
+    for category, members in ids.items():
+        page = details[category]
+        assert page["total"] == len(members) == value["risk"][category]
+        assert len(page["items"]) == min(8, len(members))
+        assert {r["id"] for r in page["items"]} <= set(members)
+        assert all(
+            r["category"] == category and r["kind"] == "commitment"
+            for r in page["items"]
+        )
+    assert details["at_risk"] == {"total": 0, "items": []}
+
+
+def test_instrument_inspection_uses_order_identity_and_actual_stock_item(
+    session, business
+):
+    # BUSINESS PURPOSE: Multi-line orders and uncovered items remain understandable from the summary.
+    # BUSINESS RULE: The preview uses the same worst condition and evaluator shortfall, never newest unrelated documents.
+    at = now()
+    doc = core.create_document(
+        session,
+        business.tenant.id,
+        "sales_order",
+        "SO-INSPECT",
+        business.customer.id,
+        "10",
+    )
+    for due in [None, at - timedelta(days=2)]:
+        core.create_commitment(
+            session,
+            business.tenant.id,
+            "customer_delivery",
+            business.company.id,
+            business.customer.id,
+            business.item.id,
+            business.location.id,
+            "3",
+            due,
+            document_id=doc.id,
+        )
+    value = observe(session, business, at)
+    order = value["orders"]["inspection"]["critical"]
+    assert order["total"] == 1 and len(order["items"]) == 1
+    assert order["items"][0]["id"] == doc.id
+    assert order["items"][0]["label"] == "SO-INSPECT"
+    assert order["items"][0]["kind"] == "document"
+    stock = value["stock"]["inspection"]["critical"]["items"][0]
+    assert stock["id"] == business.item.id and stock["label"] == business.item.name
+    assert stock["shortfall"] == "6"
+    assert stock["conditions"] == ["Item oversold"]
+
+
+def test_instrument_inspection_mail_is_oldest_unanswered_not_unread(session, business):
+    # BUSINESS PURPOSE: Quick mail inspection explains the unanswered count without inventing SLA risk.
+    # BUSINESS RULE: Actual reply lineage removes a row; acknowledgements alone do not. Payload text stays data.
+    at = now()
+    oldest = source(
+        session,
+        business,
+        "company_simulator:inspect",
+        "incoming",
+        "old",
+        {"message_id": "old", "subject": "<script>not executable</script>"},
+        at - timedelta(minutes=30),
+    )
+    answered = source(
+        session,
+        business,
+        "company_simulator:inspect",
+        "incoming",
+        "done",
+        {"message_id": "done", "subject": "Done"},
+        at - timedelta(minutes=20),
+    )
+    source(
+        session,
+        business,
+        "company_simulator:inspect",
+        "outgoing",
+        "reply",
+        {"in_reply_to": "done"},
+        at - timedelta(minutes=10),
+    )
+    source(
+        session,
+        business,
+        "company_simulator:inspect",
+        "ack",
+        oldest.id,
+        {},
+        at - timedelta(minutes=5),
+    )
+    other = core.create_tenant(session, "Unrelated inspection company")
+    core.store_source_record(
+        session,
+        other.id,
+        "company_simulator:inspect",
+        "incoming",
+        "foreign",
+        {"message_id": "foreign", "subject": "Cross-company secret"},
+    )
+    value = observe(session, business, at)["messages"]
+    assert value["inspection"]["all"]["total"] == 1
+    rows = value["inspection"]["unclassified"]["items"]
+    assert [r["id"] for r in rows] == [oldest.id]
+    assert rows[0]["label"] == "<script>not executable</script>"
+    assert rows[0]["at"] == oldest.received_at.isoformat()
+    assert value["inspection"]["critical"] == {"total": None, "items": []}
+    assert answered.id not in [r["id"] for r in rows]

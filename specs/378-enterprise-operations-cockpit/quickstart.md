@@ -719,3 +719,29 @@ fits its full 329px content width; its selector is below the title at the actual
 card, and Responsibility/Shipping are restored after verification. Screenshots:
 compact-workspace-live.jpg and compact-live-events.jpg in temporary artifacts.
 Final frontend image and all required presentation checks pass.
+
+## Compact instrument inspection local proof (2026-10-07)
+
+API/web images were rebuilt and those two services activated on localhost:8080;
+the existing simulator, MCP, scheduler, workers and Claude operator were retained.
+The original company showed 532 open orders, two uncovered items and 1,961
+unanswered local messages at observation 07:04 UTC. The stock preview named
+Everyday mug (475 piece uncovered) and Everyday bowl (697 piece), exact item
+Inspector identities, critical held finding and 2/2 display count. The critical
+order preview contained eight original LIVE order documents with due dates and
+canonical customer-delay findings, labelled 8/532. Changing to In plan showed
+an explicit empty group. Local-mail preview retained oldest actual source subjects,
+source identities and unclassified urgency, labelled 8/1,961. A real refresh
+failure displayed the retained-snapshot warning inside the open modal; subsequent
+successful reads recovered without discarding inspection. No business mutation was
+performed by these UI checks. Existing shipping data and manual-owned case stayed
+available. Native modal Escape/focus and final actual stock screenshot were checked.
+
+Artifacts in /private/tmp/reality-instrument-panel: inspection-backend-red.log
+(six expected missing-output failures), inspection-backend-final.log (65 passed),
+inspection-additional.log (8 passed), inspection-contracts.log (478 passed),
+inspection-browser-complete.log (full matrix and stale modal passed),
+inspection-audit-final.log (3038/3038 in each language), inspection-build-final.log,
+inspection-format.log, inspection-spec.log, inspection-docs.log, inspection-images.log,
+inspection-activation.log, instrument-stock-preview-live.png.
+Existing final-head enterprise/CI and separate real-time soak gates remain open.

@@ -142,7 +142,24 @@ export type FlowRisk = {
   unclassified: number | null;
   coverage: "complete" | "partial" | "unavailable";
 };
+export type InstrumentGroup = "all" | "in_plan" | "at_risk" | "critical" | "unclassified";
+export type InstrumentRecord = {
+  kind: string;
+  id: string;
+  label: string;
+  item_label?: string | null;
+  category: Exclude<InstrumentGroup, "all">;
+  conditions: string[];
+  at: string | null;
+  shortfall: string | null;
+  unit?: string | null;
+};
+export type InstrumentInspection = Record<
+  InstrumentGroup,
+  { total: number | null; items: InstrumentRecord[] }
+>;
 export type FlowArea = {
+  inspection?: InstrumentInspection;
   risk?: FlowRisk;
   signal: "critical" | "attention" | "progress" | "clear" | "unknown";
   evidence: FlowEvidence[];
