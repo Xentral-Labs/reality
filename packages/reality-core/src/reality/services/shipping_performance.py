@@ -12,8 +12,8 @@ from decimal import Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import cast, select
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import case, cast, func, literal, select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Bundle, Session
 
 from reality.db.core import (
@@ -109,7 +109,9 @@ def _basis_preview(basis: dict[str, Any]) -> dict[str, Any]:
             preview["sources"][identity].update((key, rows[key]) for key in selected)
             remaining -= len(selected)
     for key in ("quantity_revision_ids", "readiness", "physical_contents"):
-        preview[key] = dict(sorted(basis[key].items())[:limit])
+        preview[key] = {
+            identity: basis[key][identity] for identity in sorted(basis[key])[:limit]
+        }
     preview["disclosure"] = {
         "sample_limit": limit,
         "sampled": any(size > limit for size in counts.values()),
@@ -128,6 +130,86 @@ def _watermark(session: Session, tenant_id: str) -> int:
         )
         or 0
     )
+
+
+def _reviewed_shipping_inputs(
+    session: Session, tenant_id: str, identities: set[str | None]
+) -> dict:
+    """Read all original plan-review identity/version bindings without unused values.
+
+    This private clean-read allocation never substitutes for original review or
+    execution. Project every source key and commitment binding, retaining empty
+    bindings and fallback shapes; parse each selected immutable input only once.
+    """
+    headers = (
+        select(
+            ChangeProposal.id,
+            cast(ChangeProposal.input, JSONB)["reviewed"].label("reviewed"),
+        )
+        .where(
+            ChangeProposal.tenant_id == tenant_id,
+            core._id_cohort(ChangeProposal.id, identities),
+        )
+        .cte()
+        .prefix_with("MATERIALIZED", dialect="postgresql")
+    )
+    reviewed = headers.c.reviewed
+    projected = (
+        (func.jsonb_typeof(reviewed) == "object")
+        & (func.jsonb_typeof(reviewed["sources"]) == "object")
+        & (func.jsonb_typeof(reviewed["commitments"]) == "object")
+    )
+    empty = cast(literal("{}"), JSONB)
+    safe = case((projected, reviewed), else_=empty)
+    source_keys = (
+        func.jsonb_object_keys(safe.op("->")("sources"))
+        .table_valued("source_id")
+        .render_derived()
+    )
+    sources = (
+        select(func.jsonb_agg(source_keys.c.source_id))
+        .select_from(source_keys)
+        .correlate(headers)
+        .scalar_subquery()
+    )
+    bindings = func.jsonb_each(safe.op("->")("commitments")).table_valued(
+        "key", "value"
+    )
+    value = cast(bindings.c.value, JSONB)
+    binding = case(
+        (
+            (func.jsonb_typeof(value) == "object") & (value != empty),
+            func.jsonb_build_object(
+                "quantity_revision_id", value["quantity_revision_id"]
+            ),
+        ),
+        else_=value,
+    )
+    commitments = (
+        select(func.jsonb_object_agg(bindings.c.key, binding))
+        .select_from(bindings)
+        .correlate(headers)
+        .scalar_subquery()
+    )
+    fallback = case((projected, None), else_=reviewed)
+    rows = session.execute(
+        select(
+            headers.c.id,
+            projected.label("projected"),
+            sources.label("sources"),
+            commitments.label("commitments"),
+            fallback.label("fallback"),
+        )
+    )
+    return {
+        row.id: {
+            "sources": dict.fromkeys(row.sources or []),
+            "commitments": row.commitments or {},
+        }
+        if row.projected
+        else row.fallback
+        for row in rows
+    }
 
 
 def _read_shipping(
@@ -301,27 +383,20 @@ def _read_shipping(
     ):
         revisions[row.commitment_id] = row.id
         revision_sources[row.commitment_id] = row.source_record_id
-    proposal_query = select(
-        *(
-            ChangeProposal.id,
-            cast(ChangeProposal.input, JSON)["reviewed"].label("reviewed"),
-        )
+    proposal_ids = {shipping_plans.statement_action_id(source) for _, source in active}
+    proposals = (
+        _reviewed_shipping_inputs(session, tenant_id, proposal_ids)
         if narrow
-        else (ChangeProposal,)
-    ).where(
-        ChangeProposal.tenant_id == tenant_id,
-        ChangeProposal.id.in_(
-            {shipping_plans.statement_action_id(source) for _, source in active}
-        ),
+        else {
+            row.id: row
+            for row in session.scalars(
+                select(ChangeProposal).where(
+                    ChangeProposal.tenant_id == tenant_id,
+                    ChangeProposal.id.in_(proposal_ids),
+                )
+            )
+        }
     )
-    proposals = {
-        row.id: row
-        for row in (
-            session.execute(proposal_query)
-            if narrow
-            else session.scalars(proposal_query)
-        )
-    }
     locations = {
         row.id: row
         for row in session.scalars(
@@ -352,11 +427,9 @@ def _read_shipping(
             statement_gaps[statement.id].add("shipping_plan_calendar_changed")
         proposal = proposals.get(shipping_plans.statement_action_id(source))
         basis = (
-            (
-                proposal.reviewed
-                if narrow
-                else json.loads(proposal.input).get("reviewed")
-            )
+            proposal
+            if narrow
+            else json.loads(proposal.input).get("reviewed")
             if proposal
             else None
         )
@@ -699,7 +772,9 @@ def _read_shipping(
         "physical_contents": physical_basis,
     }
     basis_key = hashlib.sha256(
-        json.dumps(basis, default=str, sort_keys=True).encode()
+        # The full basis contains only constructed acyclic typed inputs. Keep
+        # identical v2 bytes without tracking every container during encoding.
+        json.dumps(basis, default=str, sort_keys=True, check_circular=False).encode()
     ).hexdigest()
     preview = _basis_preview(basis)
     readable_readiness = {
@@ -804,15 +879,18 @@ def _read_shipping(
     for row in work:
         grouped[row.order_id].append(row)
     risk_order_ids = set(result["risk_order_ids"])
-    selected_groups = [
-        (identity, units)
-        for identity, units in sorted(grouped.items())
-        # Projection follows the complete calculation and full fingerprint. The
-        # overview never consumes healthy order details; supporting reads do.
-        if not (narrow and _deviations_only)
-        or identity in risk_order_ids
-        or any(row.coverage_gaps for row in units)
-    ]
+    # Select detail identities only after complete calculations and fingerprints.
+    # Supporting reads still include every order; no input cohort is sampled.
+    selected_groups = (
+        [
+            (identity, grouped[identity])
+            for identity in sorted(
+                risk_order_ids | {row.order_id for row in work if row.coverage_gaps}
+            )
+        ]
+        if narrow and _deviations_only
+        else sorted(grouped.items())
+    )
     for _, units in selected_groups:
         for row in units:
             if row.commitment_id not in readable_readiness:

@@ -1353,3 +1353,189 @@ def test_snapshot_physical_projection_preserves_handover_without_orm_materializa
     assert actual[0]["totals"]["due"] == 1
     assert actual[0]["totals"]["handed_over"] == (0 if missing_package else 1)
     assert loaded == []
+
+
+def test_shipping_fingerprint_retains_standard_v2_json_bytes(
+    session, business, planned_shipping, monkeypatch
+):
+    # BUSINESS PURPOSE: Faster live allocation must retain every byte of the full declared fingerprint input.
+    # BUSINESS RULE: The complete typed basis hashes identically to the standard v2 JSON encoder, including Decimal scale and UTC time.
+    import hashlib
+    import json
+
+    standard = json.dumps
+    fingerprints = []
+
+    def compare(value, *args, **kwargs):
+        encoded = standard(value, *args, **kwargs)
+        if (
+            isinstance(value, dict)
+            and value.get("fingerprint_format") == "shipping-inputs-v2"
+        ):
+            reference_options = {**kwargs, "check_circular": True}
+            expected = standard(value, *args, **reference_options)
+            assert encoded == expected
+            fingerprints.append(hashlib.sha256(expected.encode()).hexdigest())
+        return encoded
+
+    monkeypatch.setattr(json, "dumps", compare)
+    result = read(session, business)
+    assert fingerprints == [result["basis_key"]]
+
+
+def test_full_source_metadata_keeps_latest_version_for_every_original(
+    session, business
+):
+    # BUSINESS PURPOSE: Original order evidence remains exact when its stream receives newer versions.
+    # BUSINESS RULE: Preserve all six original/current metadata fields per exact opaque stream, including up-to-date originals and distinct sibling streams.
+    from reality.services import shipping_plans
+
+    tenant = business.tenant.id
+    versions = [
+        core.store_source_record(
+            session,
+            tenant,
+            "source-profile",
+            "orders",
+            "opaque,{NULL}",
+            {"stated_version": i},
+        )[0]
+        for i in range(3)
+    ]
+    sibling = core.store_source_record(
+        session,
+        tenant,
+        "source-profile",
+        "orders",
+        "other-stream",
+        {"stated_version": 8},
+    )[0]
+    session.flush()
+    records = [*versions, sibling]
+    inputs = shipping_plans._source_basis_inputs(
+        session, tenant, {r.id for r in records}
+    )
+
+    def metadata(row):
+        return (
+            row.id,
+            row.source_system,
+            row.source_type,
+            row.external_id,
+            row.version,
+            row.payload_hash,
+        )
+
+    assert inputs["rows"] == {r.id: metadata(r) for r in records}
+    assert inputs["latest"] == {
+        ("source-profile", "orders", "opaque,{NULL}"): metadata(versions[-1]),
+        ("source-profile", "orders", "other-stream"): metadata(sibling),
+    }
+
+
+def test_readonly_plan_review_headers_keep_every_original_binding(
+    session, business, planned_shipping
+):
+    # BUSINESS PURPOSE: Live observations need full original identity/version bindings without transporting unused review values.
+    # BUSINESS RULE: Project every same-company source and commitment binding while retaining the immutable original Action for execution and evidence.
+    import json
+
+    from reality.db.core import ChangeProposal
+    from reality.services import shipping_performance as shipping
+    from reality.services import shipping_plans
+
+    _, source = shipping_plans.current_statements(session, business.tenant.id)[0]
+    identity = shipping_plans.statement_action_id(source)
+    original = session.scalar(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == business.tenant.id,
+            ChangeProposal.id == identity,
+        )
+    )
+    before = original.input
+    review = json.loads(before)["reviewed"]
+    projected = shipping._reviewed_shipping_inputs(
+        session, business.tenant.id, {identity}
+    )[identity]
+    assert set(projected["sources"]) == set(review["sources"])
+    assert projected["commitments"] == {
+        key: {"quantity_revision_id": value.get("quantity_revision_id")}
+        if value
+        else value
+        for key, value in review["commitments"].items()
+    }
+    assert original.input == before
+    assert (
+        shipping._reviewed_shipping_inputs(session, "foreign-company", {identity}) == {}
+    )
+
+
+def test_plan_review_projection_retains_complete_large_bindings_and_legacy_shapes(
+    session, business, planned_shipping
+):
+    # BUSINESS PURPOSE: Enterprise observation carries every needed original binding while leaving large unused review payloads at their evidence boundary.
+    # BUSINESS RULE: No source/commitment key is sampled, empty/null bindings keep their truth, fallback reviews retain their original values and immutable input remains untouched.
+    import json
+
+    from sqlalchemy.orm import Session
+
+    from reality.db.core import ChangeProposal
+    from reality.services import shipping_performance as shipping
+    from reality.services import shipping_plans
+
+    _, source = shipping_plans.current_statements(session, business.tenant.id)[0]
+    identity = shipping_plans.statement_action_id(source)
+    original = session.scalar(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == business.tenant.id,
+            ChangeProposal.id == identity,
+        )
+    )
+    original_input = original.input
+    review = {
+        "sources": {
+            f"source-{i}": {"unused_original_values": "x" * 1024} for i in range(205)
+        },
+        "commitments": {
+            f"promise-{i}": {
+                "quantity_revision_id": f"revision-{i}",
+                "unused_original_values": "x" * 1024,
+            }
+            for i in range(205)
+        },
+        "unused_review_values": "x" * 65536,
+    }
+    review["commitments"].update({"empty-binding": {}, "null-binding": None})
+    try:
+        original.input = json.dumps({"reviewed": review})
+        session.flush()
+        with Session(session.connection()) as reader:
+            projected = shipping._reviewed_shipping_inputs(
+                reader, business.tenant.id, {identity}
+            )[identity]
+            assert not any(
+                isinstance(value, ChangeProposal)
+                for value in reader.identity_map.values()
+            )
+            assert not reader.new and not reader.dirty and not reader.deleted
+        assert set(projected["sources"]) == set(review["sources"])
+        assert projected["commitments"] == {
+            key: {"quantity_revision_id": value.get("quantity_revision_id")}
+            if value
+            else value
+            for key, value in review["commitments"].items()
+        }
+        assert len(json.dumps(projected)) < len(original.input) // 8
+        assert json.loads(original.input)["reviewed"] == review
+        for legacy in (None, {}, "opaque-review", {"sources": [], "commitments": {}}):
+            original.input = json.dumps({"reviewed": legacy})
+            session.flush()
+            assert (
+                shipping._reviewed_shipping_inputs(
+                    session, business.tenant.id, {identity}
+                )[identity]
+                == legacy
+            )
+    finally:
+        original.input = original_input
+        session.flush()

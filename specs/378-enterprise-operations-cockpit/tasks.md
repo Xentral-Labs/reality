@@ -218,3 +218,5 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T078 [FR-018/DR-005/SC-004] First reproduce redundant viewer queries; add a fresh joined canonical member read preserving all original checks/callers. Prove stale-cache and committed user/company/member/role revocations plus independent coalesced waiter authority; run unchanged enterprise/full CI.
 
 - [ ] T079 Preserve exact immutable scalar metadata and latest-stated revision/correction parity while removing repeated row dispatch and correlated revision work; rerun unchanged complete enterprise CI before readiness.
+
+- [ ] T080 Preserve exact current-source metadata and standard v2 fingerprint bytes while reducing shipping-only transfer/allocation; verify complete source/refusal/supporting parity and unchanged full CI before readiness.
