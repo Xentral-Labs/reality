@@ -2235,3 +2235,54 @@ a.cockpit-status-link:focus-visible {
     transition: none;
   }
 }
+
+/* Held, rolling-hour movement/backlog trends share the last instrument subgrid row. */
+.cockpit-instruments .cockpit-mini-trend {
+  display: grid;
+  grid-template-rows: 32px auto auto;
+  gap: 3px;
+  align-content: start;
+  min-width: 0;
+  margin-top: 2px;
+  color: var(--text-muted);
+  text-align: left;
+}
+.cockpit-mini-trend svg,
+.cockpit-mini-empty-plot {
+  display: block;
+  width: 100%;
+  height: 32px;
+}
+.cockpit-mini-axis {
+  fill: none;
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+.cockpit-mini-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+}
+.cockpit-mini-line.line-1 {
+  stroke: var(--text-muted);
+  stroke-dasharray: 2.5 3;
+  opacity: 0.65;
+}
+.cockpit-mini-empty-plot {
+  border-bottom: 1px dashed var(--border-subtle);
+}
+.cockpit-mini-caption {
+  font-size: 10px;
+  line-height: 1.4;
+}
+.cockpit-mini-period {
+  font-size: 9px;
+  line-height: 1.3;
+  color: var(--text-quiet);
+}
+.cockpit-mini-trend[data-trend-stale] svg {
+  opacity: 0.45;
+}

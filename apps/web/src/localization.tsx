@@ -13,6 +13,13 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Previous observation": "Vorheriger Datenstand",
+    "Intake / dispatch": "Eingang / Versand",
+    "Goods receipts": "Wareneingänge",
+    "Receipts / dispatch": "Wareneingang / Versand",
+    "Arrivals / processing": "Eingang / Bearbeitung",
+    "Unanswered messages": "Antwort-Rückstand",
+    "No trend available": "Kein Verlauf verfügbar",
     "Change since previous observation": "Änderung seit dem letzten Datenstand",
     "Recorded entities": "Erfasste Geschäftseinträge",
     "Recorded cause": "Belegte Ursache",
@@ -2553,6 +2560,13 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Previous observation": "Vorige waarneming",
+    "Intake / dispatch": "Ontvangst / verzending",
+    "Goods receipts": "Goederenontvangsten",
+    "Receipts / dispatch": "Ontvangst / verzending",
+    "Arrivals / processing": "Ontvangst / verwerking",
+    "Unanswered messages": "Onbeantwoorde berichten",
+    "No trend available": "Geen verloop beschikbaar",
     "Change since previous observation": "Verandering sinds de vorige waarneming",
     "Recorded entities": "Vastgelegde bedrijfsgegevens",
     "Recorded cause": "Vastgelegde oorzaak",
@@ -4790,6 +4804,13 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Previous observation": "Observación anterior",
+    "Intake / dispatch": "Entrada / envío",
+    "Goods receipts": "Recepciones de mercancía",
+    "Receipts / dispatch": "Recepción / envío",
+    "Arrivals / processing": "Entrada / procesamiento",
+    "Unanswered messages": "Mensajes sin respuesta",
+    "No trend available": "Sin historial disponible",
     "Change since previous observation": "Cambio desde la observación anterior",
     "Recorded entities": "Registros de negocio registrados",
     "Recorded cause": "Causa registrada",

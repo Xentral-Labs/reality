@@ -159,6 +159,30 @@ async function assertInstrumentGrouping(label) {
     "1px",
     `${label}: one bounded instrument section`,
   );
+  assert.equal(
+    await board.locator("[data-instrument-trend]").count(),
+    6,
+    `${label}: all six instruments have a mini-trend footer`,
+  );
+  assert.equal(
+    await board.locator("[data-instrument-trend] svg").count(),
+    5,
+    `${label}: five genuine histories and no invented Finance plot`,
+  );
+  const finance = board.locator('[data-instrument-area="finance"]');
+  assert.equal(
+    await finance.locator(".cockpit-status-detail").count(),
+    0,
+    `${label}: redundant Finance text removed`,
+  );
+  assert(
+    (await finance.locator("a").getAttribute("href")).includes("finance"),
+    `${label}: whole Finance tile retains workspace access`,
+  );
+  assert(
+    await finance.locator("[data-trend-unavailable]").isVisible(),
+    `${label}: missing Finance history is explicit`,
+  );
   const footer = board.locator("[data-instrument-legend-footer]");
   assert.equal(await footer.count(), 1, `${label}: one shared legend footer`);
   assert.equal(await footer.evaluate((el) => getComputedStyle(el).textAlign), "center");
@@ -215,12 +239,13 @@ async function assertInstrumentGrouping(label) {
         meter: top("[data-instrument-strip]"),
         counts: top(".cockpit-risk-counts"),
         condition: top(".cockpit-status-condition"),
+        trend: top("[data-instrument-trend]"),
       };
     }),
   );
   for (const slot of slots) {
     for (const peer of slots.filter((other) => Math.abs(other.top - slot.top) < 2)) {
-      for (const key of ["title", "metric", "meter", "counts", "condition"])
+      for (const key of ["title", "metric", "meter", "counts", "condition", "trend"])
         assert(Math.abs(slot[key] - peer[key]) < 2, `${label}: same-row ${key} aligned`);
     }
   }
@@ -1918,6 +1943,11 @@ try {
     await page.locator("[data-live-new-event], [data-live-change]").count(),
     0,
     "stale observations suppress live feedback",
+  );
+  assert.equal(
+    await page.locator('[data-instrument-trend][data-trend-stale="true"]').count(),
+    6,
+    "retained mini trends are explicitly stale",
   );
   assert.equal(
     await page.locator("[data-flow-area] .cockpit-flow-signal.unknown").count(),

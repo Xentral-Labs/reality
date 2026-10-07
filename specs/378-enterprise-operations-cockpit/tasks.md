@@ -357,3 +357,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T142 [FR-084] Add failing observation-baseline unit tests in apps/web/scripts/cockpit-live-signals.test.mjs and visible activity/new-event/count/reduced-motion proofs in operations-cockpit-browser.mjs.
 - [x] T143 [FR-084] Add scoped cockpitLiveSignals.ts/ObservedMetric.tsx/useCockpitMotion.ts, finite neutral count/event feedback and always-visible compact recorded-entity chart in OperationsActivityPanel.tsx/operationsCockpit.css; retain reader and pause/control semantics.
 - [x] T144 [FR-084] Verify browser/contracts/audit/build/format/spec checks, review truthful scope and reset behavior, inspect actual local web and update durable contract/existing PR.
+
+
+## Instrument mini trends
+
+- [x] T145 [FR-085] Add failing apps/web/scripts/instrument-trend.test.mjs and operations-cockpit-browser.mjs proofs for held fields/time/gaps/zero, six aligned footers, explicit empty/stale states and retained tile/Finance interactions.
+- [x] T146 [FR-085] Add instrumentMiniTrend.ts/InstrumentTrend.tsx, shared footer SVG/caption CSS and four-language copy; integrate into OperatingFlowsPanel.tsx using existing observations without new readers or history.
+- [x] T147 [FR-085] Verify complete cockpit browser/contracts/audit/build/image/format/spec, inspect actual local mini trends and update durable contracts/review/existing PR.

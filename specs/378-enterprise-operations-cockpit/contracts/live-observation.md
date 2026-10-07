@@ -78,3 +78,10 @@ The native inspection dialog uses the existing activity snapshot, retaining live
 updates and explicit stale labeling with no additional requests. Preview size is
 not the complete count. Specialist workspace and exact Inspector links retain
 company/Control Tower context. Presentation never confirms or changes business work.
+
+
+## Instrument mini trends (FR-085)
+
+All six instrument tiles reserve the same compact footer for a labelled recent trend. The rolling 60-minute window reuses the existing OperatingFlows observation without another reader or retained client history. Orders show held intake/physical dispatch records, messages show the unanswered-mail backlog, supply shows goods receipt records, stock shows receipt/dispatch movement records and returns show receipt/disposition records. Stock movement curves are not quantity or historical risk curves. Each graph has its own scale and original-series accessible labels; different areas are not compared as a shared numeric scale.
+
+Null or uncovered observations break the line; known zero activity stays a flat line. Aged observations are dimmed and labelled Previous observation. Finance has an explicit No trend available footer; its unchanged native whole-tile link opens Finance, while redundant footer link text is removed. The same aligned footer slot, thin token-based strokes, accessible titles and original tile/risk preview interactions apply in both themes and narrow/docked layouts. No synthetic activity, business write, reader, timer, schema or scheduling change.
