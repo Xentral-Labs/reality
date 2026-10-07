@@ -199,6 +199,13 @@ async function assertInstrumentGrouping(label) {
     5,
     `${label}: five genuine histories and no invented Finance plot`,
   );
+  const observationTimes = board.locator("[data-instrument-trend] time");
+  assert.equal(await observationTimes.count(), 6, `${label}: each footer shows observation time`);
+  assert.deepEqual(
+    await observationTimes.evaluateAll((els) => els.map((el) => el.getAttribute("datetime"))),
+    Array(6).fill(flows.observed_at),
+    `${label}: held observation timestamp is used instead of wall clock`,
+  );
   const finance = board.locator('[data-instrument-area="finance"]');
   assert.equal(
     await finance.locator(".cockpit-status-detail").count(),
@@ -2233,6 +2240,11 @@ try {
     await page.locator(".cockpit-event-list time").first().textContent(),
     "21:29:00",
     "Activity respects the independently chosen display timezone and locale",
+  );
+  assert.deepEqual(
+    await page.locator("[data-instrument-trend] time").allTextContents(),
+    Array(6).fill("21:30"),
+    "Mini-trend observation times respect the independently chosen user timezone",
   );
   assert.match(
     await page.locator("[data-agent-access] time[data-observed-at]").textContent(),

@@ -22,7 +22,7 @@ try {
   await page.getByRole("button", { name: "Due today: 3", exact: true }).waitFor();
   await page.getByRole("button", { name: "Handed over: 1", exact: true }).waitFor();
   await page.getByRole("button", { name: "Forecast by day end: 3", exact: true }).waitFor();
-  await page.getByText("Dispatch Agent", { exact: true }).waitFor();
+  await page.locator("[data-agent-access]").getByText("Dispatch Agent", { exact: true }).waitFor();
   const began = Date.now();
   const hold = await context.request.post(
     `${base}/api/tenants/${tenant}/commitments/${process.env.COMMITMENT}/holds`,
@@ -57,7 +57,17 @@ try {
   assert.equal(actual.control_mode, "human");
   assert.equal(actual.control.reason, "I will complete this customer appointment");
   await page.getByRole("link", { name: "Return to Control Tower", exact: true }).click();
-  await page.getByRole("button", { name: "Manually taken over", exact: true }).click();
+  for (const selector of ["[data-business-case-overview]", "[data-case-management]"]) {
+    const disclosure = page.locator(selector);
+    if (!(await disclosure.evaluate((el) => el.open)))
+      await disclosure.locator(":scope > summary").click();
+  }
+  const selectCase = page.getByRole("button", { name: "Select a case", exact: true });
+  if (await selectCase.count()) await selectCase.click();
+  await page
+    .locator("[data-case-register]")
+    .getByRole("button", { name: "Manually taken over", exact: true })
+    .click();
   await page.locator("[data-case-register]").getByText("LIVE-C", { exact: true }).first().waitFor();
   await page.screenshot({ path: `${process.env.SHOTS}/live-cockpit.png`, fullPage: true });
   assert.deepEqual(errors, []);

@@ -183,6 +183,9 @@ try {
       "/scripts/fixtures/operations-cockpit-harness.html",
   );
   await page.getByText("Live observation", { exact: true }).waitFor();
+  for (const selector of ["[data-business-case-overview]", "[data-case-management]"]) {
+    await page.locator(`${selector} > summary`).click();
+  }
   await page.getByRole("button", { name: "Select a case", exact: true }).click();
   await page
     .locator('[data-case-id="case_stable"]')
@@ -192,7 +195,21 @@ try {
     .getByRole("button", { name: "Take over manually / stop automation", exact: true })
     .click();
   await page.getByLabel("Takeover reason").fill("Keep this exact review while the company runs");
-  const workspace = page.getByRole("combobox", { name: "Workspace view", exact: true });
+  const workspace = {
+    async selectOption(view) {
+      assert(
+        await page
+          .locator(
+            view === "activity"
+              ? ".cockpit-activity"
+              : view === "agents"
+                ? "[data-agent-access]"
+                : "[data-case-inspection]",
+          )
+          .isVisible(),
+      );
+    },
+  };
   await workspace.selectOption("activity");
   await page.getByRole("button", { name: "Pause following", exact: true }).click();
   await page.getByRole("button", { name: "At risk: 1", exact: true }).click();
@@ -264,7 +281,14 @@ try {
       console.log(`Controlled hour ${(tick + 1) / 720}: bounded charts, stable inspection/review`);
     }
   }
-  await page.getByText("2026-10-07", { exact: false }).first().waitFor();
+  assert.equal(
+    await page
+      .locator("[data-cockpit-toolbar] time")
+      .getAttribute("datetime")
+      .then((value) => value.slice(0, 10)),
+    "2026-10-07",
+    "Automatic business day crosses midnight during the controlled session",
+  );
   assert.equal(
     await page.getByLabel("Takeover reason").inputValue(),
     "Keep this exact review while the company runs",
