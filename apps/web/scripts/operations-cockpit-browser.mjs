@@ -503,11 +503,35 @@ await page.route("**/api/**", (route) => {
             })),
           }))
         : [],
-      deviation_total: denseEvidence ? 321 : 0,
+      deviation_total: missing ? null : denseEvidence ? 321 : 0,
       deviations_has_more: denseEvidence,
       shipping: missing
         ? {
             ...shipping,
+            daily_activity: {
+              booked_orders: 8,
+              handed_over_packages: 6,
+              coverage: "complete",
+              series: {
+                booked_orders: [{ at: at("12:00"), count: 8 }],
+                handed_over_packages: [{ at: at("12:05"), count: 6 }],
+              },
+              evidence: [
+                {
+                  movement_id: "mov_actual",
+                  source_record_id: "src_actual",
+                  occurred_at: at("12:00"),
+                },
+                {
+                  package_id: "pkg_actual",
+                  event_ids: ["sev_actual"],
+                  source_ids: ["src_carrier_actual"],
+                  occurred_at: at("12:05"),
+                },
+              ],
+              evidence_total: 2,
+              evidence_has_more: false,
+            },
             totals: { due: null, handed_over: null, forecast: null, risk: null },
             series: { plan: null, handover: null, forecast: null },
             sites: [],
@@ -1296,6 +1320,37 @@ try {
   missing = true;
   restrictedAgents = true;
   await page.getByText("Shipping plan unavailable", { exact: true }).waitFor({ timeout: 15000 });
+  await page.locator("[data-shipping-actuals]").waitFor();
+  assert.equal(
+    await page.locator("[data-daily-shipping-series]").count(),
+    2,
+    "Actual evidence remains visible without a plan",
+  );
+  assert.match(await page.locator("[data-shipping-actuals]").textContent(), /8/);
+  const showActualBasis = page.getByRole("button", { name: "Show calculation basis", exact: true });
+  if (await showActualBasis.isVisible()) await showActualBasis.click();
+  assert.ok(
+    (
+      await page
+        .getByRole("link", { name: "Movement · mov_actual", exact: true })
+        .getAttribute("href")
+    ).includes("inspector_target_id=mov_actual"),
+    "Physical activity has a direct record trace without a plan",
+  );
+  assert.ok(
+    (
+      await page
+        .getByRole("link", { name: "Source record · src_carrier_actual", exact: true })
+        .getAttribute("href")
+    ).includes("inspector_target_id=src_carrier_actual"),
+    "Actual carrier evidence remains directly inspectable",
+  );
+  await page.getByRole("button", { name: "Hide calculation basis", exact: true }).click();
+  assert.match(
+    await page.locator("[data-shipping-deviations] summary").textContent(),
+    /—/,
+    "Missing cohort cannot imply zero affected orders",
+  );
   assert.equal(
     await mailbox.locator("dd").first().textContent(),
     "—",

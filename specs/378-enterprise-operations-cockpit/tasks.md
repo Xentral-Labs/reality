@@ -272,3 +272,9 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T104 [FR-069] Extend shared operating_flows.py partitions with bounded exact-member previews, batched tenant labels and evaluator shortfall, preserving existing counts and read-only authority.
 - [x] T105 [FR-068/070] Implement compact count/group inspection dialog in OperatingFlowsPanel.tsx, cockpitModel.ts, operationsCockpit.css and four-language localization, preserving all reader/analysis/control state.
 - [ ] T106 [FR-068–070] Run backend/frontend/browser/audit/build/spec/review checks, activate scoped API/web locally and inspect actual stock/order/message membership. Record evidence and update PR without closing remaining rollout gates.
+
+## Missing daily plan recovery
+
+- [x] T107 [FR-071/072] Add failing shipping physical-activity, no-plan overview and frontend no-plan browser proofs before implementation.
+- [x] T108 [FR-071/072] Implement independent tenant/day/site physical activity, bounded source trace and unknown deviations in existing services; render honest actual units without extra readers.
+- [x] T109 [FR-071/072] Verify affected backend/frontend/browser/spec/build/localization checks, inspect real current-day activity and record review; preserve open enterprise/CI gates.

@@ -37,10 +37,13 @@ export function OperationsDeviationsPanel({
             )}
           </p>
         </div>
-        <strong>
-          {value.deviation_total === undefined ? "—" : formatNumber(value.deviation_total)}
-        </strong>
+        <strong>{value.deviation_total == null ? "—" : formatNumber(value.deviation_total)}</strong>
       </div>
+      {value.deviation_total == null && (
+        <p className="cockpit-note">
+          {t("Shipping deviations cannot be evaluated without a complete daily plan.")}
+        </p>
+      )}
       {value.deviation_total === 0 && (
         <p className="cockpit-note">{t("No deviations in the current shipping observation")}</p>
       )}
@@ -144,7 +147,7 @@ export function OperationsDeviationsPanel({
         <div className="cockpit-pagination cockpit-preview-navigation">
           <span className="cockpit-note">
             {formatNumber(shown.length)} {t("shown of")}{" "}
-            {value.deviation_total === undefined ? "—" : formatNumber(value.deviation_total)}{" "}
+            {value.deviation_total == null ? "—" : formatNumber(value.deviation_total)}{" "}
             {t("affected orders")}
           </span>
           <div className="cockpit-actions">

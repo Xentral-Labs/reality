@@ -1626,3 +1626,276 @@ def test_clean_metadata_connection_preserves_types_transaction_and_dirty_autoflu
         session.info.pop("operations_snapshot_consistent", None)
     assert core._metadata_execute(session, statement).one() == expected
     assert len(calls) == 2
+
+
+def test_daily_physical_activity_survives_absent_plan_and_partial_order(
+    session, business
+):
+    # BUSINESS PURPOSE: Yesterday's plan must not erase today's real shipping work.
+    # BUSINESS RULE: Booked orders and observed packages are distinct units, deduplicated from effective evidence.
+    _, _, commitment = staged_plan(session, business)
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    source, _, _ = core.store_source_record(
+        session,
+        business.tenant.id,
+        "carrier",
+        "observation",
+        "daily-actual",
+        {"state": "handed_over"},
+    )
+    shipment, package, _ = record_shipment_notice(
+        session,
+        business.tenant.id,
+        direction="outbound",
+        purpose="customer_delivery",
+        counterparty_id=business.customer.id,
+    )
+    movement = core.record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        "1",
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+        shipment_package_id=package.id,
+        occurred_at=OBSERVED.replace(minute=0),
+        source_record_id=source.id,
+    )
+    for _ in range(2):
+        record_shipment_event(
+            session,
+            business.tenant.id,
+            shipment.id,
+            event_type="handed_over",
+            reporter_type="carrier",
+            occurred_at=OBSERVED.replace(minute=10),
+            source_record_id=source.id,
+        )
+    result = read(session, business)
+    assert result["totals"] == dict.fromkeys(("due", "handed_over", "forecast", "risk"))
+    actual = result["daily_activity"]
+    assert actual["booked_orders"] == 1 and actual["handed_over_packages"] == 1
+    assert actual["series"]["booked_orders"][-1]["count"] == 1
+    assert actual["series"]["handed_over_packages"][-1]["count"] == 1
+    assert movement.id in str(actual["evidence"])
+    assert source.id in str(actual["evidence"])
+    from reality.services.shipping_performance import shipping_performance
+
+    tomorrow = shipping_performance(
+        session,
+        business.tenant.id,
+        day="2026-10-07",
+        observed_at=OBSERVED.replace(day=7),
+    )
+    assert tomorrow["daily_activity"]["booked_orders"] == 0
+    assert tomorrow["daily_activity"]["handed_over_packages"] == 0
+    other = core.create_location(session, business.tenant.id, "Other dispatch")
+    assert (
+        read(session, business, location_id=other.id)["daily_activity"]["booked_orders"]
+        == 0
+    )
+    core.correct_movement(
+        session, business.tenant.id, movement.id, reason="Erroneous booking"
+    )
+    corrected = read(session, business)["daily_activity"]
+    assert corrected["booked_orders"] == corrected["handed_over_packages"] == 0
+
+
+def test_daily_physical_handover_never_uses_ingestion_future_or_superseded_time(
+    session, business
+):
+    # BUSINESS PURPOSE: Activity remains honest when carrier evidence is incomplete or corrected.
+    # BUSINESS RULE: Only effective source-backed occurred times after physical booking count; later duplicates do not move a first handover into today.
+    _, _, commitment = staged_plan(session, business)
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    source, _, _ = core.store_source_record(
+        session, business.tenant.id, "carrier", "observation", "daily-correction", {}
+    )
+    shipment, package, _ = record_shipment_notice(
+        session,
+        business.tenant.id,
+        direction="outbound",
+        purpose="customer_delivery",
+        counterparty_id=business.customer.id,
+    )
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        "1",
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+        shipment_package_id=package.id,
+        occurred_at=OBSERVED.replace(minute=0),
+    )
+    record_shipment_event(
+        session,
+        business.tenant.id,
+        shipment.id,
+        event_type="handed_over",
+        reporter_type="carrier",
+        source_record_id=source.id,
+    )
+    future = record_shipment_event(
+        session,
+        business.tenant.id,
+        shipment.id,
+        event_type="handed_over",
+        reporter_type="carrier",
+        occurred_at=OBSERVED.replace(hour=13),
+        source_record_id=source.id,
+    )
+    assert read(session, business)["daily_activity"]["handed_over_packages"] == 0
+    replacement = record_shipment_event(
+        session,
+        business.tenant.id,
+        shipment.id,
+        event_type="handed_over",
+        reporter_type="carrier",
+        occurred_at=OBSERVED.replace(minute=15),
+        source_record_id=source.id,
+    )
+    assert read(session, business)["daily_activity"]["handed_over_packages"] == 1
+    supersede_shipment_event(
+        session,
+        business.tenant.id,
+        replacement.id,
+        replacement_event_id=future.id,
+        reason="Carrier correction",
+    )
+    assert read(session, business)["daily_activity"]["handed_over_packages"] == 0
+
+
+def test_daily_handover_reconciles_previous_first_event_for_today_candidate(
+    session, business
+):
+    # BUSINESS PURPOSE: A retried carrier observation must not move a historic package into today's activity.
+    # BUSINESS RULE: Restrict work to today's candidates, then reconcile their full effective first-handover history.
+    _, _, commitment = staged_plan(session, business)
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    source, _, _ = core.store_source_record(
+        session, business.tenant.id, "carrier", "observation", "daily-prior", {}
+    )
+    shipment, package, _ = record_shipment_notice(
+        session,
+        business.tenant.id,
+        direction="outbound",
+        purpose="customer_delivery",
+        counterparty_id=business.customer.id,
+    )
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        "1",
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+        shipment_package_id=package.id,
+        occurred_at=OBSERVED.replace(day=5, minute=0),
+    )
+    for at in [OBSERVED.replace(day=5, minute=10), OBSERVED.replace(minute=10)]:
+        record_shipment_event(
+            session,
+            business.tenant.id,
+            shipment.id,
+            event_type="handed_over",
+            reporter_type="carrier",
+            occurred_at=at,
+            source_record_id=source.id,
+        )
+    actual = read(session, business)["daily_activity"]
+    assert actual["handed_over_packages"] == 0 and actual["booked_orders"] == 0
+    foreign = core.create_tenant(session, "Unrelated company")
+    from reality.services.shipping_performance import shipping_performance
+
+    assert (
+        shipping_performance(
+            session, foreign.id, day="2026-10-06", observed_at=OBSERVED
+        )["daily_activity"]["booked_orders"]
+        == 0
+    )
+
+
+def test_daily_activity_preview_keeps_both_units_when_booking_evidence_is_dense():
+    # BUSINESS PURPOSE: Dense booking activity must not hide carrier proofs from the bounded member preview.
+    # BUSINESS RULE: Preview both measured units while retaining all evidence in the calculation basis.
+    from collections import namedtuple
+    from datetime import timedelta
+
+    from reality.services.shipping_performance import _daily_activity
+
+    Booking = namedtuple(
+        "Booking",
+        "movement_id commitment_id shipment_package_id occurred_at source_record_id document_id",
+    )
+    Handover = namedtuple(
+        "Handover", "package_id shipment_id occurred_at event_ids source_ids"
+    )
+    Booking._mapping = property(Booking._asdict)
+    Handover._mapping = property(Handover._asdict)
+    bookings = [
+        Booking(
+            f"mov_{index}",
+            f"com_{index}",
+            None,
+            OBSERVED.replace(hour=8),
+            f"src_{index}",
+            f"doc_{index}",
+        )
+        for index in range(80)
+    ]
+    handovers = [
+        Handover(
+            f"pkg_{index}",
+            f"shp_{index}",
+            OBSERVED,
+            [f"evt_{index}"],
+            [f"carrier_{index}"],
+        )
+        for index in range(4)
+    ]
+
+    class ReadSession:
+        def __init__(self):
+            self.results = iter((bookings, handovers))
+
+        def execute(self, statement):
+            return next(self.results)
+
+    actual, basis = _daily_activity(
+        ReadSession(),
+        "tenant",
+        OBSERVED.replace(hour=0, minute=0),
+        OBSERVED.replace(hour=0, minute=0) + timedelta(days=1),
+        OBSERVED,
+        None,
+    )
+    assert actual["booked_orders"] == 80 and actual["handed_over_packages"] == 4
+    assert len(actual["evidence"]) <= 50 and actual["evidence_has_more"] is True
+    assert any("movement_id" in row for row in actual["evidence"])
+    assert any("package_id" in row for row in actual["evidence"])
+    assert actual["evidence_total"] == len(basis["evidence"]) == 84

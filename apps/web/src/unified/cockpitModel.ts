@@ -31,6 +31,15 @@ export type ShippingObservation = {
   opening_baseline: { handover: number; plan: number };
   forecast_horizon: string;
   series: Record<"plan" | "handover" | "forecast", ShippingPoint[] | null>;
+  daily_activity?: {
+    coverage: string;
+    booked_orders: number | null;
+    handed_over_packages: number | null;
+    series: Record<"booked_orders" | "handed_over_packages", ShippingPoint[] | null>;
+    evidence: Record<string, unknown>[];
+    evidence_total: number;
+    evidence_has_more: boolean;
+  };
   series_resolution_seconds?: Record<"plan" | "handover" | "forecast", number>;
 };
 export type ShippingOrder = {
@@ -65,7 +74,7 @@ export type ShippingOrderPage = {
 export type CockpitObservation = {
   observed_at: string;
   shipping: ShippingObservation;
-  deviation_total?: number;
+  deviation_total?: number | null;
   deviations_has_more?: boolean;
   deviations?: (ShippingOrder & {
     case_id: string | null;

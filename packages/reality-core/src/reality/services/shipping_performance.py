@@ -75,6 +75,206 @@ def _series(times: dict, start: datetime, end: datetime) -> list[dict]:
     return result
 
 
+def _daily_activity(
+    session: Session,
+    tenant_id: str,
+    start: datetime,
+    end: datetime,
+    instant: datetime,
+    location_id: str | None,
+) -> tuple[dict, dict]:
+    """Read physical activity independently of accepted planning evidence.
+
+    BUSINESS PURPOSE:
+    Keep actual shipping visible when today's planning authority is absent.
+
+    BUSINESS RULE shipping_performance.daily_activity.evidence:
+    Count distinct booked customer orders and first source-backed effective package
+    handovers in the selected company day/site. Never equate a partial package with
+    completed planned work, or ingestion time with a physical observation.
+    """
+    # reality-rule: shipping_performance.daily_activity.evidence
+    effective = (
+        ~select(MovementCorrection.id)
+        .where(
+            MovementCorrection.tenant_id == tenant_id,
+            MovementCorrection.original_movement_id == Movement.id,
+        )
+        .exists()
+    )
+    physical = (
+        select(
+            Movement.id.label("movement_id"),
+            Movement.commitment_id,
+            Movement.shipment_package_id,
+            Movement.occurred_at,
+            Movement.source_record_id,
+            Commitment.document_id,
+        )
+        .join(
+            Commitment,
+            (Commitment.tenant_id == Movement.tenant_id)
+            & (Commitment.id == Movement.commitment_id),
+        )
+        .join(
+            Document,
+            (Document.tenant_id == Commitment.tenant_id)
+            & (Document.id == Commitment.document_id),
+        )
+        .where(
+            Movement.tenant_id == tenant_id,
+            Commitment.tenant_id == tenant_id,
+            Document.tenant_id == tenant_id,
+            Movement.type == "shipment",
+            Movement.quantity > 0,
+            Commitment.type == "customer_delivery",
+            Document.type == "sales_order",
+            effective,
+            Movement.occurred_at <= instant,
+            *([Movement.from_location_id == location_id] if location_id else []),
+        )
+    )
+    bookings = list(
+        session.execute(
+            physical.where(Movement.occurred_at >= start, Movement.occurred_at < end)
+        )
+    )
+    booked_times = {}
+    for row in bookings:
+        booked_times[row.document_id] = min(
+            row.occurred_at, booked_times.get(row.document_id, row.occurred_at)
+        )
+    effective_event = (
+        ~select(ShipmentEventSupersession.id)
+        .where(
+            ShipmentEventSupersession.tenant_id == tenant_id,
+            ShipmentEventSupersession.superseded_event_id == ShipmentEvent.id,
+        )
+        .exists()
+    )
+    candidate_shipments = (
+        select(ShipmentEvent.shipment_id)
+        .where(
+            ShipmentEvent.tenant_id == tenant_id,
+            ShipmentEvent.event_type == "handed_over",
+            ShipmentEvent.source_record_id.is_not(None),
+            effective_event,
+            ShipmentEvent.occurred_at >= start,
+            ShipmentEvent.occurred_at < end,
+            ShipmentEvent.occurred_at <= instant,
+        )
+        .correlate(None)
+    )
+    candidate_packages = (
+        select(ShipmentPackage.id)
+        .where(
+            ShipmentPackage.tenant_id == tenant_id,
+            ShipmentPackage.shipment_id.in_(candidate_shipments),
+        )
+        .correlate(None)
+    )
+    # Limit historical first-handover reconciliation to this day's candidate
+    # packages, rather than scanning every completed shipment on every live read.
+    physical_packages = physical.where(
+        Movement.shipment_package_id.in_(candidate_packages)
+    ).subquery()
+    packages = (
+        select(
+            physical_packages.c.shipment_package_id.label("package_id"),
+            func.min(physical_packages.c.occurred_at).label("dispatched_at"),
+        )
+        .group_by(physical_packages.c.shipment_package_id)
+        .subquery()
+    )
+    handovers = list(
+        session.execute(
+            select(
+                ShipmentPackage.id.label("package_id"),
+                ShipmentPackage.shipment_id,
+                func.min(ShipmentEvent.occurred_at).label("occurred_at"),
+                func.array_agg(func.distinct(ShipmentEvent.id)).label("event_ids"),
+                func.array_agg(func.distinct(ShipmentEvent.source_record_id)).label(
+                    "source_ids"
+                ),
+            )
+            .join(packages, packages.c.package_id == ShipmentPackage.id)
+            .join(
+                Shipment,
+                (Shipment.tenant_id == ShipmentPackage.tenant_id)
+                & (Shipment.id == ShipmentPackage.shipment_id),
+            )
+            .join(
+                ShipmentEvent,
+                (ShipmentEvent.tenant_id == ShipmentPackage.tenant_id)
+                & (ShipmentEvent.shipment_id == ShipmentPackage.shipment_id)
+                & (
+                    ShipmentEvent.shipment_package_id.is_(None)
+                    | (ShipmentEvent.shipment_package_id == ShipmentPackage.id)
+                ),
+            )
+            .where(
+                ShipmentPackage.tenant_id == tenant_id,
+                Shipment.tenant_id == tenant_id,
+                ShipmentEvent.tenant_id == tenant_id,
+                Shipment.direction == "outbound",
+                Shipment.purpose == "customer_delivery",
+                ShipmentEvent.event_type == "handed_over",
+                ShipmentEvent.source_record_id.is_not(None),
+                effective_event,
+                ShipmentEvent.occurred_at >= packages.c.dispatched_at,
+                ShipmentEvent.occurred_at <= instant,
+            )
+            .group_by(ShipmentPackage.id, ShipmentPackage.shipment_id)
+            .having(
+                func.min(ShipmentEvent.occurred_at) >= start,
+                func.min(ShipmentEvent.occurred_at) < end,
+            )
+        )
+    )
+    handed_times = {row.package_id: row.occurred_at for row in handovers}
+    evidence = [dict(row._mapping) for row in bookings] + [
+        dict(row._mapping) for row in handovers
+    ]
+    for item in evidence:
+        for key in ("event_ids", "source_ids"):
+            if key in item:
+                item[key] = sorted(item[key])
+    evidence.sort(
+        key=lambda row: (
+            row["occurred_at"],
+            row.get("movement_id", row.get("package_id", "")),
+        )
+    )
+    # Balance the bounded trace between both independently measured units.
+    # Full calculation/fingerprint evidence remains complete and chronological.
+    booking_evidence = [row for row in evidence if "movement_id" in row]
+    handover_evidence = [row for row in evidence if "package_id" in row]
+    preview = []
+    for index in range(max(len(booking_evidence), len(handover_evidence))):
+        for group in (booking_evidence, handover_evidence):
+            if index < len(group) and len(preview) < 50:
+                preview.append(group[index])
+        if len(preview) == 50:
+            break
+    value = {
+        "coverage": "complete",
+        "booked_orders": len(booked_times),
+        "handed_over_packages": len(handed_times),
+        "series": {
+            "booked_orders": _series(booked_times, start, min(instant, end)),
+            "handed_over_packages": _series(handed_times, start, min(instant, end)),
+        },
+        "evidence": preview,
+        "evidence_total": len(evidence),
+        "evidence_has_more": len(evidence) > 50,
+    }
+    return value, {
+        "evidence": evidence,
+        "booked_times": booked_times,
+        "handed_times": handed_times,
+    }
+
+
 def _basis_preview(basis: dict[str, Any]) -> dict[str, Any]:
     """Disclose a bounded evidence preview while retaining the full fingerprint.
 
@@ -720,6 +920,9 @@ def _read_shipping(
             sources_changed |= current != original
         except (core.NotFound, core.InvalidOperation):
             sources_changed = True
+    daily_activity, daily_basis = _daily_activity(
+        session, tenant_id, start, end, instant, location_id
+    )
     changed = sources_changed or (
         not session.info.get("operations_snapshot_consistent")
         and watermark != _watermark(session, tenant_id)
@@ -748,7 +951,15 @@ def _read_shipping(
     }
     if changed:
         totals = dict.fromkeys(totals)
+    if changed:
+        daily_activity.update(
+            coverage="unavailable",
+            booked_orders=None,
+            handed_over_packages=None,
+            series={"booked_orders": None, "handed_over_packages": None},
+        )
     basis = {
+        "daily_activity": daily_basis,
         "fingerprint_format": "shipping-inputs-v2",
         "context": {
             "tenant_id": tenant_id,
@@ -782,6 +993,7 @@ def _read_shipping(
         json.dumps(basis, default=str, sort_keys=True, check_circular=False).encode()
     ).hexdigest()
     preview = _basis_preview(basis)
+    preview["daily_activity"] = daily_activity
     readable_readiness = {
         identity: readiness_results[identity].as_dict(include_interpretation=False)
         for identity in preview["readiness"]
@@ -833,6 +1045,7 @@ def _read_shipping(
             "forecast": "complete" if totals["forecast"] is not None else "unavailable",
         },
         "totals": totals,
+        "daily_activity": daily_activity,
         "sites": sites if not changed else [],
         "gaps": gaps,
         "excluded": excluded,

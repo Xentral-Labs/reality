@@ -240,7 +240,9 @@ def operations_cockpit(
             "observed_at": shipping["observed_at"],
             "shipping": shipping,
             "deviations": deviations,
-            "deviation_total": len(affected),
+            "deviation_total": len(affected)
+            if shipping["coverage"]["cohort"] == "complete"
+            else None,
             "deviations_has_more": len(affected) > 50,
         }
 

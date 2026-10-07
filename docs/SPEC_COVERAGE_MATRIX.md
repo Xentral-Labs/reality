@@ -2799,3 +2799,7 @@ Spec 378 FR-039–040: `operations-cockpit-shell-browser.mjs` verifies permanent
 - `packages/reality-core/tests/test_business_projection.py`: FR-001–FR-008 and DR-001–DR-003; unchanged full-reader reconciliation, cohort pagination, acknowledgement versus reply, cancellation/corrections/revisions/holds/reservations, clock-only transitions, durable rebuild/restart, tenant/cursor isolation, shared dispatch and read-only behavior.
 - `scripts/benchmark_business_projection.py` and spec380 `benchmark.md`: FR-009; synthetic measured API/viewer cost and documented million-order multi-tenant load plan.
 - Catalog tables `business_order_row` and `business_mail_row`: disposable tenant/generation cache schema, indexed cohorts/clocks, migration roundtrip, generation/cursor isolation and independent authoritative reconciliation in `tests/test_business_projection.py`.
+
+| `packages/reality-core/tests/scenarios/test_daily_shipping.py` | 376 trusted-local daily shipping fixture recovery; 378 FR-071–072 dependency | Current/next company day, DST, exact demo Source/work mix, owner/confirmation/run bounds, replay and existing plan preservation; no agent/worker approval mandate |
+
+Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_performance.py`, `packages/reality-core/tests/test_operations_cockpit.py` and `apps/web/scripts/operations-cockpit-browser.mjs`: independent physical booking/package-handover evidence, absent-plan unknown deviations and visible actual curves.

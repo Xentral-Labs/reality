@@ -299,3 +299,17 @@ def test_shipping_snapshot_does_not_repeat_independent_responsibility_register(
     assert after["items"] == before["items"]
     assert calls == [True]
     assert overview["shipping"]["totals"]["due"] == 1
+
+
+def test_missing_day_plan_does_not_claim_zero_shipping_deviations(
+    session, business, scheduled_owner, monkeypatch
+):
+    # BUSINESS PURPOSE: Unknown daily coverage must not suggest every order is safe.
+    # BUSINESS RULE: Missing plan leaves deviation count unknown while independently observed activity stays available.
+    monkeypatch.setenv("REALITY_OPERATIONS_COCKPIT_ENABLED", "true")
+    session.flush()
+    value = operations_cockpit.operations_cockpit(
+        session, business.tenant.id, Principal(scheduled_owner.id)
+    )
+    assert value["deviation_total"] is None
+    assert value["shipping"]["daily_activity"]["booked_orders"] == 0

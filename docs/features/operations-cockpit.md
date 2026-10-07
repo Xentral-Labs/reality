@@ -224,3 +224,7 @@ Instruments are monitoring summaries. Detailed analysis owns the single labelled
 selector, which switches charts in place without a scroll/focus transfer or new history
 entry. Bookmarked area, live/disclosure state and company reset are retained. Shipping,
 Agent observations and whole-case responsibility keep their existing read/control scope.
+
+### Missing daily shipping plan
+
+Spec 378 FR-071–072 separates observed physical shipping from daily planning. Orders with actual shipment bookings and source-backed confirmed package handovers remain visible for the selected company day/site even without a plan. These counts retain their distinct units; a package or partial booking never implies a completed plan order. Plan comparison/forecast and affected-order coverage remain unknown without the required accepted inputs. The scenario-only trusted local daily fixture is documented in Company Simulator LIVE.md; it does not grant agent, worker or production planning approval.

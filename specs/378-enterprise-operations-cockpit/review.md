@@ -690,3 +690,59 @@ Actual activation and stock/order/mail/zero-group proof passed on the retained
 company; see quickstart. Final full browser matrix also proves an open aged preview
 shows the warning and retains actual rows. T106 remains open for final-head CI and
 existing enterprise qualification, not because local inspection is unavailable.
+
+
+## Daily plan absence recovery review (2026-10-07)
+
+Owner scope: repair the retained local simulator's missing day plan and keep actual
+shipping observable independently of planning authority. FR-071–072 map to T107–109;
+the shared local fixture is separately specified in spec 376. Pre-implementation
+analysis and Constitution Check passed: no unresolved clarification or critical
+finding, no new schema, endpoint, agent permission, business timer or alternate
+fulfillment rule. Global commitment ownership by current plans is preserved.
+
+Verification: the affected shipping/cockpit/planning/live/scenario run passed 141
+tests with one conditional browser skip; two new fixture assertions initially used
+string intake quantities and failed. After correcting those fixtures, all five
+scenario tests passed. The final ten-test daily regression passed (55 deselected),
+including partial bookings, absent plans, correction/supersession, prior-day first
+handover with a current-day retry, tenant/site isolation, balanced bounded evidence,
+unknown deviations, replay, active-owner confirmation and both DST transitions.
+Frontend contracts passed 478/478, the complete cockpit browser matrix passed
+(including actual no-plan curves, native record/source links and existing viewport/
+keyboard/theme/language coverage), production build and four-language audits passed
+(3044/3044 each). Scoped Ruff/format, business annotations, generated catalog
+freshness, specification policy and whitespace checks passed.
+
+The physical-activity reader performs two scoped SQL reads in the existing snapshot.
+First-handover history is reconciled only for selected-day candidate packages; the
+full evidence remains in the calculation fingerprint while the member preview is
+bounded and includes both independently measured units. No package count is used
+as fulfilled plan-order evidence. A missing/incomplete cohort reports unknown
+deviations, not a safe zero. Final review found no new authority or source loss.
+
+Local evidence: day 2026-10-07 was accepted via normal owner-confirmed tooling,
+statement sps_a0b21f39e4, proposal act_66243ee8ff, synthetic capacity source
+src_2cf014a65f: 46 otherwise unassigned open run commitments, 500 explicitly
+synthetic completion slots and collection hour 22 in the company's UTC calendar.
+Earlier current statements are unchanged. Independent actual activity read 700
+orders with shipment bookings and 56 source-backed package handovers, including
+work outside today's cohort; these are different units from completed plan orders.
+Only API/web were rebuilt for this change. The existing sole operator resumed
+round 137 and successfully checked the existing daily fixture before its next round;
+workers, agent credentials and the business routine were preserved.
+
+Limits: this focused verification does not qualify enterprise performance, a
+multi-day real operator/capacity soak or current-head CI. The prior measured p95
+3.252 seconds remains above the unchanged 3-second gate; no threshold is waived.
+Production carrier capacity and planning approval are separate from this explicitly
+authorized local synthetic fixture. Prior-plan backlog is not silently rescheduled.
+
+Final local activation: API startup initially exceeded its healthcheck during host
+resource pressure; it subsequently became healthy without changing thresholds.
+The rebuilt web started and the actual member UI showed Live observation on
+2026-10-07, plan 46/0/0/46 and independent bookings/package handovers 700/56.
+The mail backlog decreased from 1,924 to 1,923 during inspection. Native movement,
+package and Source links are present in the basis disclosure. Screenshot evidence:
+/private/tmp/reality-instrument-panel/daily-plan-current-live.png. The temporary
+frontend test server was stopped; the sole operator and existing simulator remain.

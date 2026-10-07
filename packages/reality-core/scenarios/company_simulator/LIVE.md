@@ -365,3 +365,11 @@ For a retained demo, inspect unplanned work, current plan/calendar/cutoffs, olde
 unread mail, missing case coverage and manual responsibility before diagnosing a
 static daily curve. Report these separate causes and actual before/after effects;
 do not claim that a live browser or connected credential proves a working agent.
+
+### Optional trusted-local daily shipping fixture
+
+The local multi-day Control Tower trial may call `scenarios.company_simulator.daily_shipping.ensure_daily_plan` from the already authorized host operator supervisor before each finite agent round. Its caller supplies the observed owner Principal, explicit confirmation, exact retained run, synthetic completion slots, company-calendar collection hour and site zone. This is a scenario-only fixture, not an MCP tool, scheduled handler, real carrier confirmation or production planning mandate. No new timer/queue is installed. Errors must be recorded without silently stopping normal agent work.
+
+The helper leaves any existing same-day plan/withdrawal untouched, and selects only open run-linked customer work not already assigned to another current plan. Earlier plan ownership is never silently moved to today. New daily source payloads state the exact selected work mix and explicit synthetic dispatch/capacity choices; customer delivery promises stay unchanged. Late intake stays outside a fixed plan. An empty cohort, ended collection or inactive run remains visibly unavailable rather than inventing a plan. Actual bookings and effective source-backed package handovers remain visible independently of daily planning in the Control Tower (spec 378 FR-071–072).
+
+For this local fixture the host may explicitly choose 500 synthetic order-completion slots, collection hour 22 in the company calendar, and site zone Europe/Berlin. Retain those choices in the fixture Source; do not treat them as observed real-world logistics capacity. Reusing an existing approved plan is idempotent, and a new company day creates its own exact statement for eligible work. Tests: `tests/scenarios/test_daily_shipping.py`.
