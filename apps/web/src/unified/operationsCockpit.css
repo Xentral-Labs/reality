@@ -116,7 +116,7 @@
 }
 .operations-cockpit {
   container-type: inline-size;
-  padding: 28px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -126,21 +126,12 @@
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
-.cockpit-header,
 .cockpit-card-heading {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
 }
-.cockpit-header h1 {
-  font-size: 27px;
-  letter-spacing: -0.6px;
-  font-weight: 650;
-  color: var(--text-strong);
-  margin: 4px 0 7px;
-}
-.cockpit-header p,
 .cockpit-card-heading p {
   color: var(--text-muted);
   margin: 4px 0 0;
@@ -152,27 +143,10 @@
   font-weight: 650;
   color: var(--text-muted);
 }
-.cockpit-filters,
 .cockpit-actions {
   display: flex;
   gap: 10px;
   align-items: center;
-}
-.cockpit-filters label {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-.cockpit-filters select,
-.cockpit-filters input {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 9px 12px;
-  color: var(--text-default);
-  min-width: 150px;
 }
 .cockpit-status {
   display: flex;
@@ -388,15 +362,6 @@
   color: var(--caution-text);
 }
 @media (max-width: 850px) {
-  .cockpit-header {
-    flex-direction: column;
-  }
-  .cockpit-filters {
-    flex-wrap: wrap;
-  }
-  .operations-cockpit {
-    padding: 16px;
-  }
   .cockpit-card {
     padding: 16px;
   }
@@ -408,11 +373,6 @@
   }
   .cockpit-legend {
     gap: 12px;
-  }
-  .cockpit-filters select,
-  .cockpit-filters input {
-    min-width: 135px;
-    max-width: 100%;
   }
 }
 
@@ -885,7 +845,6 @@
 .cockpit-flow-details[open] li {
   margin-block: 6px;
 }
-.cockpit-header .br-control,
 .cockpit-card-heading > .br-btn {
   min-height: 44px;
 }
@@ -2285,4 +2244,28 @@ a.cockpit-status-link:focus-visible {
 }
 .cockpit-mini-trend[data-trend-stale] svg {
   opacity: 0.45;
+}
+
+/* Shell supplies the sole page title and inset, as on other workspaces. */
+.cockpit-page-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  min-width: 0;
+}
+.cockpit-page-toolbar .cockpit-page-filters {
+  margin: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+.cockpit-page-toolbar .cockpit-status {
+  margin-left: auto;
+}
+@container (max-width: 700px) {
+  .cockpit-page-toolbar .cockpit-status {
+    width: 100%;
+    margin-left: 0;
+  }
 }

@@ -4,7 +4,7 @@
 
 **Simple on the surface. Fully explainable underneath.**
 
-Spec 378 FR-047–085 refines the optional Control Tower into a compact instrument
+Spec 378 FR-047–086 refines the optional Control Tower into a compact instrument
 console and a shared analysis selector with shipping first, followed by the five
 operational flow areas. Two adjacent monitoring cards show recent activity and registered Agent access together;
 confirmed case controls live in the upper business-case disclosure. The centered
@@ -13,6 +13,7 @@ Info disclosure. A compact recorded-entity activity band and finite highlights f
 Message intake/first-reply and backlog diagrams
 remain separate; physical flows keep their measurement units, Finance is explicitly
 unavailable, and shipping/agent/manual-case controls retain their existing meaning.
+Control Tower uses the shared Shell as its single page header; a compact native scope/filter and live-status toolbar starts at the same main-content inset as other workspaces.
 See [the cockpit contract](features/operations-cockpit.md).
 
 ## Company Settings Access — Spec 326

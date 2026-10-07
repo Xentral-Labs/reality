@@ -128,3 +128,8 @@ labelled analysis selector controls the existing mounted area articles in place.
 state replaces the current area fragment, preserving history state and avoiding any
 scroll/focus transfer. Initial area fragments and live/company resets remain supported.
 Finance keeps its explicit navigation link. API and business-control contracts unchanged.
+
+
+## Shared page header (FR-086)
+
+Control Tower uses the unchanged application Shell title, About popup, live-monitor and chat controls as its sole page header. The duplicate body hero and nested page padding are removed. A compact wrapping scope toolbar starts at the standard Shell main-content inset: the existing business-day/site selects reuse the shared FilterChip presentation and labelled native keyboard controls; the optional pinned-date input remains. The same viewer-local live/stale/suspended/error status and exact observation timestamp sit alongside them, wrapping on narrow/docked views. Other headers and global filter styling remain untouched. All scope, inspection, takeover/handback, recorded events, mini trends, analysis and source-evidence semantics retain their original readers and authority. No new tab, timer, data or service rule.

@@ -18,6 +18,7 @@ import { AgentAccessPanel } from "./AgentAccessPanel";
 import type { ShippingMeasure } from "./cockpitModel";
 import type { Selection } from "./routing";
 import { BusinessCaseOverview, type BusinessCaseSnapshot } from "./BusinessCaseOverview";
+import { filterChips } from "./FilterChip";
 import "./operationsCockpit.css";
 
 export function OperationsCockpitPage({
@@ -92,84 +93,83 @@ export function OperationsCockpitPage({
   };
   return (
     <div className="operations-cockpit">
-      <header className="cockpit-header">
-        <div>
-          <span className="cockpit-eyebrow">{t("Company operations")}</span>
-          <h1>{t("Control Tower")}</h1>
-          <p>{t("Observe results. Take over a case only when you need to.")}</p>
-        </div>
-        <div className="cockpit-filters">
-          <label className="br-field">
-            {t("Business day")}
-            <select
-              className="br-control"
-              value={day === "today" ? "today" : "pinned"}
-              onChange={(event) =>
-                navigate({
-                  cockpitDay:
-                    event.target.value === "today" ? "today" : value?.business_day || "today",
-                })
-              }
-            >
-              <option value="today">{t("Today · follows company day")}</option>
-              <option value="pinned" disabled={!value}>
-                {t("Pinned date")}
-              </option>
-            </select>
-          </label>
-          {day !== "today" && (
-            <label className="br-field">
-              {t("Date")}
-              <input
-                className="br-control"
-                type="date"
-                value={day}
-                onChange={(event) => {
-                  if (event.target.value) navigate({ cockpitDay: event.target.value });
-                }}
-              />
-            </label>
+      <div className="cockpit-page-toolbar" data-cockpit-toolbar>
+        <div className="register-filter-row cockpit-page-filters">
+          {filterChips(
+            <>
+              <label className="br-field">
+                {t("Business day")}
+                <select
+                  className="br-control"
+                  value={day === "today" ? "today" : "pinned"}
+                  onChange={(event) =>
+                    navigate({
+                      cockpitDay:
+                        event.target.value === "today" ? "today" : value?.business_day || "today",
+                    })
+                  }
+                >
+                  <option value="today">{t("Today · follows company day")}</option>
+                  <option value="pinned" disabled={!value}>
+                    {t("Pinned date")}
+                  </option>
+                </select>
+              </label>
+              {day !== "today" && (
+                <label className="br-field">
+                  {t("Date")}
+                  <input
+                    className="br-control"
+                    type="date"
+                    value={day}
+                    onChange={(event) => {
+                      if (event.target.value) navigate({ cockpitDay: event.target.value });
+                    }}
+                  />
+                </label>
+              )}
+              <label className="br-field">
+                {t("Dispatch site")}
+                <select
+                  className="br-control"
+                  value={location}
+                  onChange={(event) => navigate({ cockpitLocation: event.target.value })}
+                >
+                  <option value="">{t("All dispatch sites")}</option>
+                  {(sites.length ? sites : value?.sites || []).map((site) => (
+                    <option key={site.location_id} value={site.location_id}>
+                      {site.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>,
           )}
-          <label className="br-field">
-            {t("Dispatch site")}
-            <select
-              className="br-control"
-              value={location}
-              onChange={(event) => navigate({ cockpitLocation: event.target.value })}
-            >
-              <option value="">{t("All dispatch sites")}</option>
-              {(sites.length ? sites : value?.sites || []).map((site) => (
-                <option key={site.location_id} value={site.location_id}>
-                  {site.name}
-                </option>
-              ))}
-            </select>
-          </label>
         </div>
-      </header>
-      <div className={`cockpit-status ${state.status}`} role="status">
-        <span className="cockpit-status-dot" />
-        <strong>
-          {t(
-            state.status === "current"
-              ? "Live observation"
-              : state.status === "stale"
-                ? "Previous observation — refresh failed"
-                : state.status === "suspended"
-                  ? "Live updates suspended while hidden"
-                  : state.status === "denied"
-                    ? "Access unavailable"
-                    : "Loading…",
+        <div className={`cockpit-status ${state.status}`} role="status">
+          <span className="cockpit-status-dot" />
+          <strong>
+            {t(
+              state.status === "current"
+                ? "Live observation"
+                : state.status === "stale"
+                  ? "Previous observation — refresh failed"
+                  : state.status === "suspended"
+                    ? "Live updates suspended while hidden"
+                    : state.status === "denied"
+                      ? "Access unavailable"
+                      : "Loading…",
+            )}
+          </strong>
+          {value && (
+            <span>
+              {t("Data observed at")}{" "}
+              <time data-cockpit-observed-at dateTime={value.observed_at}>
+                {formatZonedDateTime(value.observed_at)}
+              </time>
+            </span>
           )}
-        </strong>
-        {value && (
-          <span>
-            {t("Data observed at")}{" "}
-            <time data-cockpit-observed-at dateTime={value.observed_at}>
-              {formatZonedDateTime(value.observed_at)}
-            </time>
-          </span>
-        )}
+        </div>
       </div>
       {!value && Boolean(state.error) && (
         <ReadState
