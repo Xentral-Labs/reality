@@ -731,10 +731,11 @@ try {
       await page.locator(`[data-flow-area="${area}"] dd`).first().textContent(),
     );
     assert.equal(
-      await tile.locator("a, button, select").count(),
+      await tile.locator("select").count(),
       0,
-      "monitoring summary has no duplicate selector",
+      "summary does not duplicate the chart selector",
     );
+    assert((await tile.locator("button").count()) >= 4, "counts open compact inspection");
   }
   const areaSelector = page.getByRole("combobox", { name: "Analysis area", exact: true });
   assert.equal(await areaSelector.count(), 1, "analysis owns exactly one selector");
@@ -746,6 +747,36 @@ try {
       focused: document.activeElement === el.querySelector("select"),
       historyLength: history.length,
     }));
+  const beforeInspectionUrl = page.url();
+  const stockTrigger = summary.locator('[data-status-area="stock"] [data-risk-count="critical"]');
+  await stockTrigger.focus();
+  const beforeInspection = await stablePosition();
+  await stockTrigger.click();
+  const inspection = page.getByRole("dialog", { name: "Quick inspection", exact: true });
+  await inspection.waitFor();
+  assert.equal(await inspection.locator("tbody tr").count(), 2, "both uncovered items appear");
+  assert.match(await inspection.textContent(), /Inspection mug/);
+  assert.match(await inspection.textContent(), /Inspection bowl/);
+  assert.equal(page.url(), beforeInspectionUrl, "inspection preserves URL");
+  assert(
+    Math.abs((await stablePosition()).top - beforeInspection.top) < 2,
+    "inspection does not scroll",
+  );
+  await inspection
+    .getByRole("combobox", { name: "Risk group", exact: true })
+    .selectOption("in_plan");
+  await inspection.getByText("No records in this group", { exact: true }).waitFor();
+  await inspection.press("Escape");
+  assert.equal(
+    await stockTrigger.evaluate((el) => document.activeElement === el),
+    true,
+    "Escape restores risk trigger focus",
+  );
+  await summary.locator('[data-status-area="orders"] [data-status-metric]').click();
+  await inspection.waitFor();
+  assert.equal(await inspection.locator("tbody tr").count(), 8, "order preview stays bounded");
+  await inspection.getByRole("button", { name: "Close", exact: true }).click();
+  await areaSelector.focus();
   const beforeSelection = await stablePosition();
   await areaSelector.selectOption("messages");
   const afterSelection = await stablePosition();
@@ -1249,6 +1280,17 @@ try {
     5,
     "stale summary is entirely unknown",
   );
+  await summary.locator('[data-status-area="stock"] [data-risk-count="critical"]').click();
+  await page
+    .locator(".cockpit-instrument-dialog")
+    .getByText("Previous observation — refresh failed", { exact: true })
+    .waitFor();
+  assert.equal(
+    await page.locator(".cockpit-instrument-dialog tbody tr").count(),
+    2,
+    "stale preview retains explicitly aged members",
+  );
+  await page.locator(".cockpit-instrument-dialog").press("Escape");
   await assertTrafficPalette("stale evidence remains orange");
   failure = false;
   missing = true;
@@ -1332,6 +1374,23 @@ try {
         await assertFlowAlignment(`${language}/${theme}/${width}/shipping`);
         await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         await assertFlowAlignment(`${language}/${theme}/${width}/messages`);
+        const riskTrigger = page.locator('[data-status-area="stock"] [data-risk-count="critical"]');
+        await riskTrigger.click();
+        const preview = page.locator(".cockpit-instrument-dialog");
+        await preview.waitFor();
+        assert.equal(
+          await preview.locator("tbody tr").count(),
+          2,
+          `${language}/${theme}/${width}: exact stock preview`,
+        );
+        assert(
+          await preview.evaluate((el) => {
+            const r = el.getBoundingClientRect();
+            return r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight;
+          }),
+          `${language}/${theme}/${width}: dialog stays within viewport`,
+        );
+        await preview.press("Escape");
         for (const view of ["responsibility", "activity", "agents"]) {
           await showWorkspace(view);
           await assertCaseEntry(`${language}/${theme}/${width}/${view}`);

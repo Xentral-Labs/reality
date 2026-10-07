@@ -265,3 +265,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [ ] T080 Preserve exact current-source metadata and standard v2 fingerprint bytes while reducing shipping-only transfer/allocation; verify complete source/refusal/supporting parity and unchanged full CI before readiness.
 
 - [ ] T081 Avoid unused preloaded cohort construction and fresh scalar ORM allocation while preserving typed metadata, the same transaction, dirty-reader/autoflush behavior, exact canonical parity and all unchanged enterprise/CI gates.
+
+## Compact instrument inspection
+
+- [x] T103 [FR-068–070] Add failing service membership/limit/parity tests in packages/reality-core/tests/test_operating_flows.py and product modal/focus/empty/stale/viewport proofs in apps/web/scripts/operations-cockpit-browser.mjs; update preview fixtures.
+- [x] T104 [FR-069] Extend shared operating_flows.py partitions with bounded exact-member previews, batched tenant labels and evaluator shortfall, preserving existing counts and read-only authority.
+- [x] T105 [FR-068/070] Implement compact count/group inspection dialog in OperatingFlowsPanel.tsx, cockpitModel.ts, operationsCockpit.css and four-language localization, preserving all reader/analysis/control state.
+- [ ] T106 [FR-068–070] Run backend/frontend/browser/audit/build/spec/review checks, activate scoped API/web locally and inspect actual stock/order/message membership. Record evidence and update PR without closing remaining rollout gates.

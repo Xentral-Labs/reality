@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 import { formatNumber, formatZonedDateTime, t } from "../localization";
-import type { FlowArea, FlowRisk, OperatingFlows } from "./cockpitModel";
+import type { FlowArea, FlowRisk, InstrumentGroup, OperatingFlows } from "./cockpitModel";
 import {
   cockpitOriginSelection,
   navigationSelection,
@@ -109,7 +110,15 @@ const riskCategories = [
   { key: "critical", label: "Critical" },
   { key: "unclassified", label: "Not assessed" },
 ] as const;
-function RiskMeter({ risk, stale }: { risk?: FlowRisk; stale: boolean }) {
+function RiskMeter({
+  risk,
+  stale,
+  inspect,
+}: {
+  risk?: FlowRisk;
+  stale: boolean;
+  inspect?: (group: InstrumentGroup) => void;
+}) {
   const total = risk?.total;
   return (
     <>
@@ -126,19 +135,213 @@ function RiskMeter({ risk, stale }: { risk?: FlowRisk; stale: boolean }) {
         )}
       </span>
       <span className="cockpit-risk-counts">
-        {riskCategories.slice(0, 3).map(({ key, label }) => (
-          <span key={key} data-risk-count={key}>
-            <strong>{typeof risk?.[key] === "number" ? formatNumber(risk[key]) : "—"}</strong>{" "}
-            {t(label)}
-          </span>
-        ))}
-        {typeof risk?.unclassified === "number" && risk.unclassified > 0 && (
-          <span data-risk-count="unclassified">
-            <strong>{formatNumber(risk.unclassified)}</strong> {t("Not assessed")}
-          </span>
+        {riskCategories.slice(0, 3).map(({ key, label }) =>
+          inspect ? (
+            <button
+              type="button"
+              key={key}
+              data-risk-count={key}
+              className="cockpit-risk-trigger"
+              disabled={typeof risk?.[key] !== "number"}
+              onClick={() => inspect(key)}
+              aria-haspopup="dialog"
+            >
+              <strong>{typeof risk?.[key] === "number" ? formatNumber(risk[key]) : "—"}</strong>{" "}
+              {t(label)}
+            </button>
+          ) : (
+            <span key={key} data-risk-count={key}>
+              <strong>{typeof risk?.[key] === "number" ? formatNumber(risk[key]) : "—"}</strong>{" "}
+              {t(label)}
+            </span>
+          ),
         )}
+        {typeof risk?.unclassified === "number" &&
+          risk.unclassified > 0 &&
+          (inspect ? (
+            <button
+              type="button"
+              data-risk-count="unclassified"
+              className="cockpit-risk-trigger"
+              aria-haspopup="dialog"
+              onClick={() => inspect("unclassified")}
+            >
+              <strong>{formatNumber(risk.unclassified)}</strong> {t("Not assessed")}
+            </button>
+          ) : (
+            <span data-risk-count="unclassified">
+              <strong>{formatNumber(risk.unclassified)}</strong> {t("Not assessed")}
+            </span>
+          ))}
       </span>
     </>
+  );
+}
+
+function InstrumentDialog({
+  area,
+  group,
+  setGroup,
+  value,
+  selection,
+  stale,
+  close,
+}: {
+  area: (typeof areas)[number];
+  group: InstrumentGroup;
+  setGroup: (group: InstrumentGroup) => void;
+  value: OperatingFlows;
+  selection: Selection;
+  stale: boolean;
+  close: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const previous = useRef(document.activeElement as HTMLElement);
+  useLayoutEffect(() => {
+    const node = dialog.current;
+    node?.showModal();
+    return () => {
+      node?.close();
+      previous.current?.focus({ preventScroll: true });
+    };
+  }, []);
+  const data = value[area.key];
+  const page = data.inspection?.[group];
+  const total = page?.total;
+  return (
+    <dialog
+      ref={dialog}
+      className="cockpit-instrument-dialog"
+      aria-labelledby="instrument-inspection-heading"
+      onCancel={(event) => {
+        event.preventDefault();
+        close();
+      }}
+    >
+      <header className="cockpit-card-heading">
+        <div>
+          <span className="cockpit-eyebrow">{t(area.title)}</span>
+          <h2 id="instrument-inspection-heading">{t("Quick inspection")}</h2>
+          <p>
+            {t(area.metrics[0].label)} · {typeof total === "number" ? formatNumber(total) : "—"}
+          </p>
+        </div>
+        <button type="button" className="shell-icon-button" aria-label={t("Close")} onClick={close}>
+          <X size={18} />
+        </button>
+      </header>
+      <label className="br-field">
+        {t("Risk group")}
+        <select
+          className="br-control"
+          value={group}
+          onChange={(event) => setGroup(event.target.value as InstrumentGroup)}
+        >
+          <option value="all">{t("All open work")}</option>
+          {riskCategories.map(({ key, label }) => (
+            <option value={key} key={key} disabled={data.inspection?.[key]?.total == null}>
+              {t(label)} ·{" "}
+              {data.inspection?.[key]?.total == null
+                ? "—"
+                : formatNumber(data.inspection[key].total!)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {stale && (
+        <p role="status" className="cockpit-note">
+          {t("Previous observation — refresh failed")}
+        </p>
+      )}
+      {typeof total !== "number" ? (
+        <p role="status">{t("Inspection evidence is unavailable")}</p>
+      ) : total === 0 ? (
+        <p role="status" className="cockpit-inspection-empty">
+          {t("No records in this group")}
+        </p>
+      ) : (
+        <>
+          <div className="cockpit-inspection-table-wrap">
+            <table className="cockpit-inspection-table">
+              <thead>
+                <tr>
+                  <th>{t("Record")}</th>
+                  <th>{t("Recorded condition")}</th>
+                  <th>{t("Due / recorded at")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {page?.items.map((row) => (
+                  <tr key={`${row.kind}:${row.id}`}>
+                    <td>
+                      <a
+                        className="br-link"
+                        href={selectionUrl(
+                          navigationSelection(selection, {
+                            route: "inspector",
+                            inspectorView: "records",
+                            inspectorTargetKind: row.kind,
+                            inspectorTargetId: row.id,
+                            cockpitOrigin: cockpitOriginSelection(selection),
+                          }),
+                        )}
+                      >
+                        {row.label}
+                      </a>
+                      {row.item_label && row.item_label !== row.label && (
+                        <small>{row.item_label}</small>
+                      )}
+                      <small>{row.id}</small>
+                    </td>
+                    <td>
+                      <span className="cockpit-inspection-group" data-risk-count={row.category}>
+                        {t(riskCategories.find((r) => r.key === row.category)!.label)}
+                      </span>
+                      <small>
+                        {row.conditions.length
+                          ? row.conditions.map((condition) => t(condition)).join(" · ")
+                          : t(
+                              row.category === "in_plan"
+                                ? "No finding in the evaluated scope"
+                                : "No recorded assessment",
+                            )}
+                      </small>
+                      {row.shortfall !== null && (
+                        <small>
+                          {t("Uncovered quantity")}: {formatNumber(Number(row.shortfall))}{" "}
+                          {row.unit || ""}
+                        </small>
+                      )}
+                    </td>
+                    <td>{row.at ? formatZonedDateTime(row.at) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="cockpit-note">
+            {t("Shown")}: {formatNumber(page?.items.length || 0)} / {formatNumber(total)} ·{" "}
+            {t("Preview only; open the workspace for the complete register.")}
+          </p>
+        </>
+      )}
+      <footer className="cockpit-inspection-footer">
+        <span>
+          {t("Data observed at")} {formatZonedDateTime(value.observed_at)}
+        </span>
+        <a
+          className="br-link"
+          href={selectionUrl(
+            navigationSelection(selection, {
+              ...area.destination,
+              cockpitOrigin: cockpitOriginSelection(selection),
+            }),
+          )}
+        >
+          {t("Open workspace")} →
+        </a>
+      </footer>
+    </dialog>
   );
 }
 
@@ -151,6 +354,11 @@ export function OperatingStatusPanel({
   stale: boolean;
   selection: Selection;
 }) {
+  const [inspection, setInspection] = useState<{
+    area: OperatingAreaKey;
+    group: InstrumentGroup;
+  } | null>(null);
+  useEffect(() => setInspection(null), [selection.tenant]);
   const titles = {
     orders: "Order status",
     messages: "Message status",
@@ -168,7 +376,10 @@ export function OperatingStatusPanel({
         <div>
           <span className="cockpit-eyebrow">{t("Company-wide · live")}</span>
           <h2 id="operating-status-heading">{t("Company instruments")}</h2>
-          <p>{t("Live company-wide status. Choose a chart area in Detailed analysis.")}</p>
+          <p>
+            {t("Select a count to inspect its records.")}{" "}
+            {t("Live company-wide status. Choose a chart area in Detailed analysis.")}
+          </p>
         </div>
       </header>
       <ul className="cockpit-status-grid">
@@ -181,13 +392,28 @@ export function OperatingStatusPanel({
               <span className="cockpit-status-area-title">{t(titles[area.key])}</span>
               <span className="cockpit-status-metric-row">
                 <span>{t(metric.label)}</span>
-                <strong data-status-metric>
-                  {typeof data?.[metric.key] === "number"
-                    ? formatNumber(data[metric.key] as number)
-                    : "—"}
-                </strong>
+                <button
+                  type="button"
+                  className="cockpit-metric-trigger"
+                  aria-haspopup="dialog"
+                  disabled={typeof data?.[metric.key] !== "number" || !data?.inspection}
+                  aria-label={`${t(titles[area.key])} · ${t(metric.label)} · ${typeof data?.[metric.key] === "number" ? formatNumber(data[metric.key] as number) : "—"}`}
+                  onClick={() => setInspection({ area: area.key, group: "all" })}
+                >
+                  <strong data-status-metric>
+                    {typeof data?.[metric.key] === "number"
+                      ? formatNumber(data[metric.key] as number)
+                      : "—"}
+                  </strong>
+                </button>
               </span>
-              <RiskMeter risk={data?.risk} stale={stale} />
+              <RiskMeter
+                risk={data?.risk}
+                stale={stale}
+                inspect={
+                  data?.inspection ? (group) => setInspection({ area: area.key, group }) : undefined
+                }
+              />
               <span className="cockpit-status-condition">
                 <span className="cockpit-status-indicator" aria-hidden="true" />
                 <strong>{t(signalLabels[signal])}</strong>
@@ -230,6 +456,17 @@ export function OperatingStatusPanel({
           </a>
         </li>
       </ul>
+      {inspection && value && (
+        <InstrumentDialog
+          area={areas.find((area) => area.key === inspection.area)!}
+          group={inspection.group}
+          setGroup={(group) => setInspection({ ...inspection, group })}
+          value={value}
+          selection={selection}
+          stale={stale}
+          close={() => setInspection(null)}
+        />
+      )}
       <div className="cockpit-risk-legend" data-risk-legend>
         {riskCategories.map(({ key, label }) => (
           <span key={key} data-risk-key={key}>

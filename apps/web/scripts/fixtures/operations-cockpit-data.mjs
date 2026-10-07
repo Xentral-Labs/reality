@@ -205,3 +205,38 @@ Object.assign(flows.returns, {
     scope: "pending_return_positions",
   },
 });
+
+// Bounded, server-partitioned member rows for inspection presentation proof.
+for (const area of ["orders", "messages", "supply", "stock", "returns"]) {
+  const data = flows[area];
+  const records = ["in_plan", "at_risk", "critical", "unclassified"].flatMap((category) =>
+    Array.from({ length: Math.min(8, data.risk[category] || 0) }, (_, index) => ({
+      kind: {
+        orders: "document",
+        messages: "source_record",
+        supply: "commitment",
+        stock: "item",
+        returns: "movement",
+      }[area],
+      id: `inspect_${area}_${category}_${index}`,
+      label:
+        area === "stock"
+          ? ["Inspection mug", "Inspection bowl"][index]
+          : `Inspection ${area} ${category} ${index + 1}`,
+      category,
+      conditions: category === "critical" ? ["Item oversold"] : [],
+      at: area === "stock" ? null : at("12:20"),
+      shortfall: area === "stock" ? "12" : null,
+      unit: "pcs",
+    })),
+  );
+  data.inspection = Object.fromEntries(
+    ["all", "in_plan", "at_risk", "critical", "unclassified"].map((group) => [
+      group,
+      {
+        total: group === "all" ? data.risk.total : data.risk[group],
+        items: records.filter((row) => group === "all" || row.category === group).slice(0, 8),
+      },
+    ]),
+  );
+}

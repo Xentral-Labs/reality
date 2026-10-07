@@ -60,3 +60,21 @@ URL state distinguishes `cockpit_day=today` from a specific ISO date. Resolve To
 Failing service tests prove classification/deduplication, recording-time meaning, complete totals, coverage and tenant isolation without writes. Fake-clock browser proof covers real fixture changes, advancing quiet windows, failed/recovered reads, hidden-tab resume, rapid company switches, historic versus Today dates, DST/day rollover, stable scroll/chat/reviews and bounded eight-hour operation. Confirm no confirmation/control endpoint is called by refreshing or presentation-only following.
 
 Measure ten observers refreshing at this cadence against SC-004's full workload, with concurrent actual fixture changes. Report display latency, query budget, requests and sustained response timing; satisfy the ten-second healthy-display target without reducing the cohort. Before a pilot, record a separate eight-hour real-time soak including retained state and bounded memory/DOM/request behavior. Neither deterministic elapsed time nor a short preview is evidence of that soak.
+
+## Compact instrument member previews (FR-068–070)
+
+Each flow area carries optional `inspection` pages keyed by `all`, `in_plan`,
+`at_risk`, `critical`, `unclassified`. Each page has the full `total` (nullable
+when unavailable) and at most eight `items`. Membership is derived from the same
+canonical complete identity partition as risk counts. Rows carry exact `kind/id`,
+plain-text `label`, category, at most three held condition titles, nullable ISO
+`at`, optional item label and source-evaluator `shortfall` string with recorded
+item unit. No monetary or mixed-unit total is inferred. Metadata is read only for
+retained preview identities with tenant scope. Unknown mail urgency pages have
+null totals and no members; All/unclassified use oldest actual unanswered local
+sources. Zero means an evaluated empty cohort; absence means unavailable.
+
+The native inspection dialog uses the existing activity snapshot, retaining live
+updates and explicit stale labeling with no additional requests. Preview size is
+not the complete count. Specialist workspace and exact Inspector links retain
+company/Control Tower context. Presentation never confirms or changes business work.

@@ -11,6 +11,7 @@ from reality.db.core import (
     BusinessEvent,
     Commitment,
     Document,
+    Item,
     Movement,
     MovementCorrection,
     PartyRole,
@@ -45,9 +46,7 @@ def _evidence(kind: str, identity: str, label: str) -> dict:
     return {"kind": kind, "id": identity, "label": label}
 
 
-def _risk_partition(
-    scope: str, members: list[tuple[str, str, bool]], findings: list
-) -> dict:
+def _risk_units(members: list[tuple[str, str, bool]], findings: list) -> dict[str, str]:
     """Partition the complete primary cohort; worst held condition wins per identity."""
     rank = {"in_plan": 0, "unclassified": 1, "at_risk": 2, "critical": 3}
     units: dict[str, str] = {}
@@ -64,15 +63,60 @@ def _risk_partition(
         category = "critical" if finding.severity in {"high", "critical"} else "at_risk"
         if rank[category] > rank[units[unit]]:
             units[unit] = category
+    return units
+
+
+def _risk_partition(
+    scope: str, members: list[tuple[str, str, bool]], findings: list
+) -> dict:
+    units = _risk_units(members, findings)
     counts = {
         category: sum(value == category for value in units.values())
-        for category in rank
+        for category in ("in_plan", "at_risk", "critical", "unclassified")
     }
     return {
         "scope": scope,
         "total": len(units),
         **counts,
         "coverage": "partial" if counts["unclassified"] else "complete",
+    }
+
+
+def _inspection(
+    members: list[tuple[str, str, bool]], findings: list, records: list[dict]
+) -> dict:
+    """Bound exact primary member previews only after canonical identity partitioning."""
+    units = _risk_units(members, findings)
+    member_units = {record: unit for record, unit, _ in members}
+    conditions: dict[str, list[str]] = {}
+    for finding in findings:
+        unit = member_units.get(finding.record_id)
+        if unit is not None:
+            conditions.setdefault(unit, []).append(finding.title)
+    unique: dict[str, dict] = {}
+    for row in records:
+        identity = row["id"]
+        if identity not in units:
+            continue
+        if identity not in unique:
+            unique[identity] = {
+                **row,
+                "category": units[identity],
+                "conditions": list(dict.fromkeys(conditions.get(identity, [])))[:3],
+            }
+        elif row.get("at") and (
+            not unique[identity].get("at") or row["at"] < unique[identity]["at"]
+        ):
+            unique[identity]["at"] = row["at"]
+    ordered = sorted(
+        unique.values(), key=lambda row: (row.get("at") or "9999", row["id"])
+    )
+    return {
+        group: {"total": len(cohort), "items": cohort[:8]}
+        for group in ("all", "in_plan", "at_risk", "critical", "unclassified")
+        for cohort in [
+            [row for row in ordered if group == "all" or row["category"] == group]
+        ]
     }
 
 
@@ -216,6 +260,28 @@ def _mail(
             sum(contains(row.answered) for row in rows) if covered else None
         )
     return {
+        "inspection": {
+            group: {
+                "total": len(waiting)
+                if scope_present and group in {"all", "unclassified"}
+                else None,
+                "items": [
+                    {
+                        "kind": "source_record",
+                        "id": r.id,
+                        "label": r.subject or r.id,
+                        "category": "unclassified",
+                        "conditions": ["Without a recorded reply"],
+                        "at": r.received_at.isoformat(),
+                        "shortfall": None,
+                    }
+                    for r in waiting[:8]
+                ]
+                if group in {"all", "unclassified"} and scope_present
+                else [],
+            }
+            for group in ("all", "in_plan", "at_risk", "critical", "unclassified")
+        },
         "coverage": coverage,
         "provider_reply_coverage": "unavailable",
         "unanswered": len(waiting) if scope_present else None,
@@ -282,7 +348,9 @@ def observe(
     if session.info.get("operations_snapshot_consistent"):
         from reality.services.delivery_reads import _fulfillment_cohort
 
-        cohort = _fulfillment_cohort(tenant_id).subquery()
+        cohort = (
+            _fulfillment_cohort(tenant_id).add_columns(Commitment.item_id).subquery()
+        )
         commitments = list(
             core._metadata_rows(
                 session.execute(
@@ -333,6 +401,7 @@ def observe(
                 type=c.type,
                 document_id=c.document_id,
                 due_at=terms[c.id].due_at,
+                item_id=c.item_id,
             )
             for c in commitments
             if terms[c.id].open > 0
@@ -533,6 +602,114 @@ def observe(
         [(row.id, row.id, False) for row in pending],
         grouped["returns"],
     )
+    cohorts = {
+        "orders": (
+            [
+                (r.id, r.document_id, r.due_at is not None)
+                for r in outgoing
+                if r.document_id
+            ],
+            [
+                {
+                    "id": r.document_id,
+                    "kind": "document",
+                    "document_id": r.document_id,
+                    "at": r.due_at.isoformat() if r.due_at else None,
+                    "shortfall": None,
+                }
+                for r in outgoing
+                if r.document_id
+            ],
+        ),
+        "supply": (
+            [(r.id, r.id, r.due_at is not None) for r in incoming],
+            [
+                {
+                    "id": r.id,
+                    "kind": "commitment",
+                    "document_id": r.document_id,
+                    "item_id": r.item_id,
+                    "at": r.due_at.isoformat() if r.due_at else None,
+                    "shortfall": None,
+                }
+                for r in incoming
+            ],
+        ),
+        "stock": (
+            [(r.record_id, r.record_id, True) for r in grouped["stock"]],
+            [
+                {
+                    "id": r.record_id,
+                    "kind": "item",
+                    "item_id": r.record_id,
+                    "at": None,
+                    "shortfall": format(
+                        r.causal_values["shortfall_quantity"].normalize(), "f"
+                    ),
+                }
+                for r in grouped["stock"]
+            ],
+        ),
+        "returns": (
+            [(r.id, r.id, False) for r in pending],
+            [
+                {
+                    "id": r.id,
+                    "kind": "movement",
+                    "item_id": r.item_id,
+                    "at": r.occurred_at.isoformat(),
+                    "shortfall": None,
+                }
+                for r in pending
+            ],
+        ),
+    }
+    for key, (members, records) in cohorts.items():
+        values[key]["inspection"] = _inspection(members, grouped[key], records)
+    previews = [
+        row
+        for value in values.values()
+        for page in value["inspection"].values()
+        for row in page["items"]
+    ]
+    documents = (
+        dict(
+            session.execute(
+                select(Document.id, Document.number).where(
+                    Document.tenant_id == tenant_id,
+                    Document.id.in_(
+                        {r["document_id"] for r in previews if r.get("document_id")}
+                    ),
+                )
+            ).all()
+        )
+        if any(r.get("document_id") for r in previews)
+        else {}
+    )
+    items = (
+        {
+            row.id: (row.name, row.unit)
+            for row in session.execute(
+                select(Item.id, Item.name, Item.unit).where(
+                    Item.tenant_id == tenant_id,
+                    Item.id.in_({r["item_id"] for r in previews if r.get("item_id")}),
+                )
+            )
+        }
+        if any(r.get("item_id") for r in previews)
+        else {}
+    )
+    for row in {id(row): row for row in previews}.values():
+        item = items.get(row.get("item_id"))
+        row["label"] = (
+            documents.get(row.get("document_id"))
+            or (item[0] if item else None)
+            or row["id"]
+        )
+        row["item_label"] = item[0] if item else None
+        row["unit"] = item[1] if item else None
+        row.pop("document_id", None)
+        row.pop("item_id", None)
     mail["risk"] = {
         "scope": "unanswered_local_messages",
         "total": mail["unanswered"],

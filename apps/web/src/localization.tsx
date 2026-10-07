@@ -13,6 +13,20 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Select a count to inspect its records.":
+      "Klicke auf eine Zahl, um die zugehörigen Einträge zu sehen.",
+    "Quick inspection": "Kurzüberblick",
+    "Risk group": "Ampelgruppe",
+    "All open work": "Gesamte offene Arbeit",
+    "Inspection evidence is unavailable": "Keine belegten Detaildaten verfügbar",
+    "No records in this group": "Keine Einträge in dieser Gruppe",
+    "Recorded condition": "Erfasster Befund",
+    "Due / recorded at": "Fällig / erfasst am",
+    "No recorded assessment": "Keine Bewertung erfasst",
+    "Uncovered quantity": "Ungedeckte Menge",
+    "Preview only; open the workspace for the complete register.":
+      "Vorschau; die vollständige Liste findest du im Fachbereich.",
+    Shown: "Angezeigt",
     "Affected orders": "Betroffene Aufträge",
     "Operations workspace": "Betriebssteuerung",
     "Workspace view": "Ansicht",
@@ -2514,6 +2528,20 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Select a count to inspect its records.":
+      "Klik op een aantal om de bijbehorende records te bekijken.",
+    "Quick inspection": "Kort overzicht",
+    "Risk group": "Risicogroep",
+    "All open work": "Al het open werk",
+    "Inspection evidence is unavailable": "Geen onderbouwde detailgegevens beschikbaar",
+    "No records in this group": "Geen records in deze groep",
+    "Recorded condition": "Vastgestelde bevinding",
+    "Due / recorded at": "Vervalt / vastgelegd op",
+    "No recorded assessment": "Geen beoordeling vastgelegd",
+    "Uncovered quantity": "Ongedekte hoeveelheid",
+    "Preview only; open the workspace for the complete register.":
+      "Voorbeeld; open het werkgebied voor de volledige lijst.",
+    Shown: "Getoond",
     "Affected orders": "Betrokken orders",
     "Operations workspace": "Bedrijfssturing",
     "Workspace view": "Weergave",
@@ -4711,6 +4739,19 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Select a count to inspect its records.": "Pulsa una cifra para ver sus registros.",
+    "Quick inspection": "Vista rápida",
+    "Risk group": "Grupo de riesgo",
+    "All open work": "Todo el trabajo pendiente",
+    "Inspection evidence is unavailable": "No hay detalles respaldados disponibles",
+    "No records in this group": "No hay registros en este grupo",
+    "Recorded condition": "Hallazgo registrado",
+    "Due / recorded at": "Vence / registrado el",
+    "No recorded assessment": "Sin evaluación registrada",
+    "Uncovered quantity": "Cantidad sin cubrir",
+    "Preview only; open the workspace for the complete register.":
+      "Vista previa; abre el área de trabajo para ver la lista completa.",
+    Shown: "Mostrados",
     "Affected orders": "Pedidos afectados",
     "Operations workspace": "Gestión operativa",
     "Workspace view": "Vista",

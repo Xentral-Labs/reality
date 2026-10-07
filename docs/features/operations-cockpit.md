@@ -1,5 +1,27 @@
 # Operations cockpit
 
+## Compact instrument inspection (FR-068–070)
+
+Available primary counts and known risk groups open a compact read-only modal,
+without selecting a chart, changing URL/history or scrolling the page. One local
+group field selects All, In plan, At risk, Critical or Not assessed. Zero groups
+have an explicit empty state; unknown counters remain unavailable. Escape/Close
+restore trigger focus, and company changes close the modal. Finance retains its
+existing unavailable explanation and workspace access.
+
+The existing activity snapshot exposes up to eight exact members per category and
+for the complete primary cohort, after full totals and worst-condition deduplication.
+Rows name the original object, held condition and due/recorded date; stock shortfall
+copies the canonical evaluator with the item's recorded unit. Source text stays
+plain text. The preview explicitly states shown/total and links the exact Inspector
+record plus the existing full specialist workspace. Two bounded, tenant-scoped
+metadata reads label only retained document/item previews; no new endpoint, business
+rule, schema, permission, persisted observation or browser reader is introduced.
+Retained stale rows remain inspectable with an explicit warning.
+
+This supersedes FR-057's non-interactive summary behavior for record inspection only;
+analysis still has one independent selector.
+
 ## Shared analysis and compact operations workspace (FR-052–067)
 
 FR-062–064 put shipping and all five flow areas in one contained analysis card below
@@ -34,7 +56,7 @@ is held. The canonical due-soon class is included because it supersedes unreserv
 Stock covers only oversold items. Returns without a held finding remain unclassified,
 as a missing learned threshold cannot establish timeliness. Message urgency counters
 remain null without recorded response deadlines; the known unanswered count remains
-visible. Finance stays unavailable. Nothing is persisted and no extra query is added.
+visible. Finance stays unavailable. Nothing is persisted. The partition itself adds no query; compact inspection labels use the bounded metadata reads described above.
 
 The single case register initially reads human-owned work for a visible manual preview;
 choosing an automatic case switches its existing filter. Ownership counts remain full
