@@ -381,5 +381,5 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 
 ## Mini-trend observation time (FR-085 refinement)
 
-- [ ] T153 [FR-085] Add exact held observation/user timezone/browser containment proof, then show shared-formatted semantic observation time beside each mini-trend period without inventing missing/fresh data.
-- [ ] T154 [FR-085] Verify full browser/contracts/audit/build/local screenshot and exact PR head CI; repair obsolete live/session proof selectors and preserve all latency/controlled-session assertions.
+- [x] T153 [FR-085] Add exact held observation/user timezone/browser containment proof, then show shared-formatted semantic observation time beside each mini-trend period without inventing missing/fresh data.
+- [x] T154 [FR-085] Verify full browser/contracts/audit/build/local screenshot; launch final PR CI tracked under T038 and repair obsolete live/session proof selectors and preserve all latency/controlled-session assertions.
