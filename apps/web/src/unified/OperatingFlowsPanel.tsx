@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AnalysisMetricGroup, AnalysisPlot } from "./AnalysisSections";
-import { X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { formatNumber, formatZonedDateTime, t } from "../localization";
 import type { FlowArea, FlowRisk, InstrumentGroup, OperatingFlows } from "./cockpitModel";
 import {
@@ -480,13 +480,37 @@ export function OperatingStatusPanel({
               {t(label)}
             </span>
           ))}
+          <details
+            className="cockpit-risk-explanation"
+            data-risk-explanation
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                event.currentTarget.open = false;
+                event.currentTarget.querySelector("summary")?.focus({ preventScroll: true });
+              }
+            }}
+          >
+            <summary
+              className="shell-icon-button cockpit-icon-action"
+              aria-label={t("Definition & evidence")}
+              title={t("Definition & evidence")}
+            >
+              <Info size={14} aria-hidden="true" />
+            </summary>
+            <div className="cockpit-risk-explanation-content">
+              <p className="cockpit-risk-scope">
+                {t("Segments: share of the displayed open work")}
+              </p>
+              <p className="cockpit-footnote">
+                {t(
+                  "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.",
+                )}
+              </p>
+            </div>
+          </details>
         </div>
-        <p className="cockpit-risk-scope">{t("Segments: share of the displayed open work")}</p>
-        <p className="cockpit-footnote">
-          {t(
-            "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.",
-          )}
-        </p>
       </footer>
       {supporting}
     </section>

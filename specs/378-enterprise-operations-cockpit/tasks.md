@@ -343,3 +343,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T136 [FR-082] Add failing stacked monitoring/upper-only controls and bookmark proofs in operations-cockpit-browser.mjs, adapting obsolete view-selector checks without dropping review/authority/state tests.
 - [x] T137 [FR-082] Stack standalone event/Agent cards, move the single mounted register into upper disclosures, omit duplicate totals and update German Agent heading and scoped CSS.
 - [x] T138 [FR-082] Run browser/contracts/audit/build/format/spec checks, review preserved business controls, activate only web and inspect actual company; update durable contract and existing PR.
+
+
+## Compact risk legend
+
+- [x] T139 [FR-083] Add failing compact footer height, closed explanation and keyboard/Escape/containment proofs to operations-cockpit-browser.mjs.
+- [x] T140 [FR-083] Place exact legend explanation behind a native labelled Info disclosure and reduce scoped footer spacing without changing risk data or inspection.
+- [x] T141 [FR-083] Verify browser/contracts/audit/build/format/spec, inspect actual local web and update durable contract/existing PR; retain release gates.

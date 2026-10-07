@@ -164,6 +164,46 @@ async function assertInstrumentGrouping(label) {
   assert.equal(await footer.evaluate((el) => getComputedStyle(el).textAlign), "center");
   assert.equal(await footer.locator("[data-risk-key]").count(), 4);
   assert.equal(await footer.locator(".cockpit-footnote").count(), 1);
+  if (await board.evaluate((el) => el.clientWidth > 820))
+    assert(
+      await footer.evaluate((el) => el.getBoundingClientRect().height <= 38),
+      `${label}: closed legend uses one compact row`,
+    );
+  const explanation = footer.locator("[data-risk-explanation]");
+  assert.equal(
+    await explanation.evaluate((el) => el.open),
+    false,
+    `${label}: explanation does not consume initial space`,
+  );
+  const info = explanation.locator(":scope > summary");
+  assert.equal(await info.locator("svg").count(), 1);
+  assert(await info.getAttribute("aria-label"));
+  const historyBefore = await page.evaluate(() => history.length);
+  await info.focus();
+  const topBefore = await footer.evaluate((el) => el.getBoundingClientRect().top);
+  await info.press("Enter");
+  assert(
+    await footer.locator(".cockpit-footnote").isVisible(),
+    `${label}: full explanation remains accessible`,
+  );
+  assert(await explanation.evaluate((el) => el.open));
+  const explanationFits = await explanation
+    .locator(".cockpit-risk-explanation-content")
+    .evaluate((el) => {
+      const panel = el.getBoundingClientRect();
+      const owner = el.closest("[data-instrument-legend-footer]").getBoundingClientRect();
+      return panel.left >= owner.left - 1 && panel.right <= owner.right + 1;
+    });
+  assert(explanationFits, `${label}: explanation stays within instruments`);
+  await info.press("Escape");
+  assert.equal(await explanation.evaluate((el) => el.open), false);
+  assert(await info.evaluate((el) => document.activeElement === el));
+  assert.equal(await page.evaluate(() => history.length), historyBefore);
+  assert(
+    Math.abs((await footer.evaluate((el) => el.getBoundingClientRect().top)) - topBefore) < 2,
+    `${label}: info does not move analysis or scroll`,
+  );
+
   const slots = await board.locator(".cockpit-status-tile").evaluateAll((tiles) =>
     tiles.map((tile) => {
       const rect = tile.getBoundingClientRect();
