@@ -213,37 +213,9 @@
   color: var(--text-strong);
   margin: 4px 0;
 }
-.cockpit-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 22px 0 10px;
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.cockpit-metric {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  padding: 16px 18px;
-  border-right: 1px solid var(--border-subtle);
-  gap: 5px;
-  cursor: pointer;
-  min-width: 0;
-}
-.cockpit-metric:first-child {
-  padding-left: 0;
-}
-.cockpit-metric:last-child {
-  border-right: 0;
-}
 .cockpit-metric span {
   color: var(--text-muted);
   font-size: 12px;
-}
-.cockpit-metric strong {
-  color: var(--text-strong);
-  font-size: 30px;
-  font-weight: 600;
 }
 .cockpit-metric small {
   font-size: 10px;
@@ -428,26 +400,11 @@
   .cockpit-card {
     padding: 16px;
   }
-  .cockpit-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .cockpit-metric {
-    padding: 14px;
-  }
-  .cockpit-metric:nth-child(3) {
-    padding-left: 0;
-  }
-  .cockpit-metric:nth-child(2) {
-    border-right: 0;
-  }
   .cockpit-card-heading {
     flex-wrap: wrap;
   }
   .cockpit-chart text {
     font-size: 13px;
-  }
-  .cockpit-metric strong {
-    font-size: 27px;
   }
   .cockpit-legend {
     gap: 12px;
@@ -551,24 +508,6 @@
   color: var(--text-muted);
   overflow-wrap: anywhere;
   margin-top: 4px;
-}
-.cockpit-case-controls {
-  margin-top: 14px;
-}
-.cockpit-case-controls label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.cockpit-case-controls textarea {
-  background: var(--surface);
-  color: var(--text-default);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px;
-  min-height: 80px;
-  margin-bottom: 14px;
-  width: 100%;
 }
 .cockpit-deviation-list {
   display: grid;
@@ -1670,11 +1609,6 @@ a.cockpit-status-link:focus-visible {
   }
 }
 
-.cockpit-daily-actuals {
-  margin: 1.25rem 0;
-  padding: 1rem 0;
-  border-top: 1px solid var(--border);
-}
 .cockpit-daily-actuals h3 {
   margin: 0 0 0.4rem;
   font-size: 0.95rem;
@@ -1776,8 +1710,7 @@ a.cockpit-status-link:focus-visible {
   font-size: 26px;
   color: var(--text-strong);
 }
-.cockpit-analysis-plot,
-.cockpit-shipping-plot {
+.cockpit-analysis-plot {
   margin: 0;
   padding: 16px;
   border: 1px solid var(--border);
@@ -1815,26 +1748,6 @@ a.cockpit-status-link:focus-visible {
   margin: 20px 0 0;
   padding: 12px 0;
   border-top: 1px solid var(--border-subtle);
-}
-.cockpit-shipping-plot {
-  margin-top: 20px;
-}
-.cockpit-shipping-plot .cockpit-legend {
-  margin-top: 0;
-}
-.cockpit-shipping .cockpit-metrics {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-sunken);
-}
-.cockpit-shipping .cockpit-metric:first-child {
-  padding-left: 16px;
-}
-.cockpit-daily-actuals {
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-sunken);
 }
 .cockpit-workspace-pane .cockpit-case-introduction {
   padding-bottom: 16px;
@@ -1903,4 +1816,84 @@ a.cockpit-status-link:focus-visible {
     gap: 12px;
     padding-bottom: 12px;
   }
+}
+
+/* Every analysis uses the same metric group and bounded figure primitives. */
+.cockpit-shipping > .cockpit-metric-group {
+  margin-block: 16px 20px;
+}
+.cockpit-shipping .cockpit-metric-group .cockpit-metrics {
+  display: grid;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.cockpit-shipping .cockpit-metric-group .cockpit-metric {
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+  gap: 6px;
+  align-items: start;
+  justify-items: start;
+}
+.cockpit-shipping .cockpit-metric-group .cockpit-metric strong {
+  font-size: 26px;
+  font-weight: 600;
+}
+.cockpit-shipping .cockpit-metric-group .cockpit-metric:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.cockpit-shipping .cockpit-metric-group .cockpit-metric:not(:disabled):hover strong {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.cockpit-daily-actuals .cockpit-daily-counts {
+  margin: 12px 0 0;
+}
+.cockpit-daily-actuals .cockpit-daily-counts dd {
+  font-size: 26px;
+}
+.cockpit-shipping > .cockpit-flow-details {
+  margin-top: 20px;
+  padding-block: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.cockpit-shipping > .cockpit-flow-details > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+@container (max-width: 400px) {
+  .cockpit-shipping .cockpit-metric-group .cockpit-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cockpit-daily-actuals {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  margin: 20px 0;
+}
+.cockpit-shipping-plot {
+  margin-block: 20px;
+}
+.cockpit-shipping-plot .cockpit-legend {
+  margin: 0 0 12px;
+}
+
+.cockpit-analysis-context {
+  color: var(--text-muted);
+  margin-block: 16px;
 }

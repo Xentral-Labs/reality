@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { AnalysisMetricGroup, AnalysisPlot } from "./AnalysisSections";
 import { X } from "lucide-react";
 import { formatNumber, formatZonedDateTime, t } from "../localization";
 import type { FlowArea, FlowRisk, InstrumentGroup, OperatingFlows } from "./cockpitModel";
@@ -516,14 +517,7 @@ function Curve({
     bottom = 143;
   const y = (value: number) => bottom - ((value - minimum) * (bottom - top)) / range;
   return (
-    <figure
-      className="cockpit-analysis-plot"
-      ref={container}
-      data-analysis-kind={level ? "backlog" : "flow"}
-    >
-      <figcaption>
-        <h4>{t(title)}</h4>
-      </figcaption>
+    <AnalysisPlot title={t(title)} kind={level ? "backlog" : "flow"} plotRef={container}>
       <svg
         viewBox={`0 0 ${width} 190`}
         role="img"
@@ -598,7 +592,7 @@ function Curve({
         )}
         {context}
       </div>
-    </figure>
+    </AnalysisPlot>
   );
 }
 
@@ -651,6 +645,11 @@ export function OperatingFlowsPanel({
           </select>
         </label>
       </header>
+      {selected !== "shipping" && (
+        <p className="cockpit-analysis-context cockpit-note">
+          {t("Current queues and the last 60 minutes. Independent of the shipping day and site.")}
+        </p>
+      )}
       {selected !== "shipping" && stale && (
         <p role="status" className="cockpit-note">
           {t("Live status is not confirmed")}
@@ -694,15 +693,12 @@ export function OperatingFlowsPanel({
                       (metric) => Boolean(metric.recent) === recent,
                     );
                     if (!metrics.length) return null;
-                    const headingId = `cockpit-${area.key}-${recent ? "recent" : "current"}`;
                     return (
-                      <section
-                        className="cockpit-metric-group"
-                        data-metric-period={recent ? "recent" : "current"}
-                        key={headingId}
-                        aria-labelledby={headingId}
+                      <AnalysisMetricGroup
+                        key={recent ? "recent" : "current"}
+                        period={recent ? "recent" : "current"}
+                        title={t(recent ? "Last 60 minutes" : "Current status")}
                       >
-                        <h3 id={headingId}>{t(recent ? "Last 60 minutes" : "Current status")}</h3>
                         <dl data-metric-count={metrics.length}>
                           {metrics.map((metric) => (
                             <div key={metric.key}>
@@ -715,7 +711,7 @@ export function OperatingFlowsPanel({
                             </div>
                           ))}
                         </dl>
-                      </section>
+                      </AnalysisMetricGroup>
                     );
                   })}
                 </div>
@@ -867,8 +863,6 @@ export function OperatingFlowsPanel({
       {value && selected !== "shipping" && (
         <>
           <p className="cockpit-note cockpit-analysis-scope">
-            {t("Current queues and the last 60 minutes. Independent of the shipping day and site.")}
-            <br />
             {t("Data observed at")} {formatZonedDateTime(value.observed_at)}
           </p>
           <p className="cockpit-note">

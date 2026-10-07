@@ -876,3 +876,47 @@ The final semantic review confirms display-only changes: business calendars,
 shipping/site deadlines, retained stale instants, tenant scope and control
 authority remain intact. Existing PR receives this repair; earlier CI, enterprise
 performance and sustained-live gates remain open. Temporary fixture server stopped.
+
+FR-076/077 pre-implementation analysis: both scoped requirements have test-first
+coverage in T122, implementation in T123/T124 and verification/review in T125.
+No duplicated authority, schema expansion, unresolved clarification or critical
+finding; 2/2 scoped requirements covered, 0 unmapped tasks, Constitution PASS.
+Existing incomplete enterprise/shipping release checklists retain their gates;
+the owner explicitly authorized these presentation repairs. The standalone
+case harness currently does not load production CSS and the component uses an
+undefined br-card class. Its first bounded-card regression fails (0px versus
+1px). Shipping's initial named-plan-group regression fails (0 versus 1).
+Existing domain/services and control contracts are unchanged.
+
+FR-076/077 implementation review: AnalysisSections wraps presentation only;
+existing SVG path generation, provider values, UTC clocks and inspect handlers
+remain unchanged. Original shipping plan/actual units and no-plan actual curve
+are retained. Native site disclosure preserves all exact cutoffs, with product
+proof updated to open it explicitly. Object-case warnings remain outside the
+technical disclosure and control services are untouched. The standalone case
+browser passes all four languages/both themes at 320/390/1440/1920px and the
+original confirmation, retry, provenance and exact-handback proofs. All 478
+frontend contracts and four-language 3048/3048 audits pass. A removed grouped
+figure rule was detected by the existing bounded-metadata proof during CSS
+consolidation and restored; final full cockpit matrix and local proof pending.
+
+
+FR-076/077 final verification and semantic review PASS: final-head full cockpit
+browser matrix passes, including shipping group geometry, shared metric/figure
+typography, missing-plan actual activity, live updates, exact site disclosures,
+retained order links and all locale/theme/viewport variants. The independently
+styled object-case matrix also passes, including confirmation, takeover retry,
+provenance, exact handback and visible stable IDs in the company-wide case list.
+All 478 frontend contracts, four-language 3048/3048 audits, formatting, production
+web image, spec policy and whitespace checks pass. No service, recorded value,
+clock, business reader or authority changed; warnings remain visible outside the
+technical disclosure. Only web was recreated on port 8080. Actual inspection
+retains 46 due plan orders, 700 physically booked orders and 56 confirmed packages
+in separate groups, both message plots and decreasing backlog, and the styled
+previously manual order without changing responsibility. Screenshots:
+/private/tmp/reality-instrument-panel/control-tower-unified-analysis.png,
+/private/tmp/reality-instrument-panel/control-tower-unified-messages.png and
+/private/tmp/reality-instrument-panel/control-tower-object-case-layout.png.
+The existing PR receives these presentation changes; primary checkout is untouched
+and simulator/operator runtimes are unchanged. Existing CI, enterprise performance
+and sustained-live gates remain open.

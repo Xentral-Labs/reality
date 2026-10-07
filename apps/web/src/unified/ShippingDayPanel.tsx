@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AnalysisMetricGroup, AnalysisPlot } from "./AnalysisSections";
 import { Info } from "lucide-react";
 import {
   formatCalendarDate,
@@ -120,157 +121,36 @@ export function ShippingDayPanel({
           <Info size={16} aria-hidden="true" />
         </button>
       </div>
-      <div className="cockpit-metrics">
-        {measures.map((measure) => (
-          <button
-            key={measure.key}
-            className={`cockpit-metric ${measure.key === "risk" ? "cockpit-risk" : ""}`}
-            disabled={measure.value === null}
-            onClick={() => inspect(measure.key)}
-            aria-label={`${t(measure.label)}: ${measure.value === null ? t("Unavailable") : measure.value}`}
-          >
-            <span>{t(measure.label)}</span>
-            <strong>{measure.value === null ? "—" : formatNumber(measure.value)}</strong>
-            <small>{t("View supporting orders")}</small>
-          </button>
-        ))}
-      </div>
+      <AnalysisMetricGroup title={t("Shipping plan")} period="plan">
+        <div className="cockpit-metrics" data-metric-count="4">
+          {measures.map((measure) => (
+            <button
+              key={measure.key}
+              className={`cockpit-metric ${measure.key === "risk" ? "cockpit-risk" : ""}`}
+              disabled={measure.value === null}
+              onClick={() => inspect(measure.key)}
+              aria-label={`${t(measure.label)}: ${measure.value === null ? t("Unavailable") : measure.value}`}
+            >
+              <span>{t(measure.label)}</span>
+              <strong>{measure.value === null ? "—" : formatNumber(measure.value)}</strong>
+              <small>{t("View supporting orders")}</small>
+            </button>
+          ))}
+        </div>
+      </AnalysisMetricGroup>
       <button className="br-link cockpit-text-action" onClick={() => inspect("unplanned")}>
         {t("Work outside this day's plan")}
       </button>
-      {daily && (
-        <section
-          className="cockpit-daily-actuals"
-          data-shipping-actuals
-          aria-label={t("Observed shipping activity")}
-        >
-          <h3>{t("Observed shipping activity")}</h3>
-          <p className="cockpit-note">
-            {t("Selected business day · independent of the shipping plan")}
-          </p>
-          <dl className="cockpit-daily-counts">
-            <div>
-              <dt>{t("Orders with a shipment booking")}</dt>
-              <dd>{daily.booked_orders === null ? "—" : formatNumber(daily.booked_orders)}</dd>
-            </div>
-            <div>
-              <dt>{t("Confirmed package handovers")}</dt>
-              <dd>
-                {daily.handed_over_packages === null
-                  ? "—"
-                  : formatNumber(daily.handed_over_packages)}
-              </dd>
-            </div>
-          </dl>
-          {value.coverage.cohort === "unavailable" && (
+      {value.coverage.cohort === "unavailable" ? null : (
+        <AnalysisPlot
+          title={
             <>
-              <div className="cockpit-legend">
-                <span className="cockpit-series-label plan">
-                  <i />
-                  {t("Orders with a shipment booking")}
-                </span>
-                <span className="cockpit-series-label handover">
-                  <i />
-                  {t("Confirmed package handovers")}
-                </span>
-              </div>
-              <svg
-                className="cockpit-chart"
-                ref={plot}
-                viewBox={`0 0 ${plotWidth} 200`}
-                role="img"
-                aria-label={t("Observed shipping activity")}
-              >
-                {[0, 0.5, 1].map((fraction) => (
-                  <g key={fraction}>
-                    <line
-                      x1={plotLeft}
-                      x2={plotRight}
-                      y1={160 - fraction * 120}
-                      y2={160 - fraction * 120}
-                      className="cockpit-grid-line"
-                    />
-                    <text x={plotLeft - 10} y={164 - fraction * 120} textAnchor="end">
-                      {formatNumber(Math.round(dailyCeiling * fraction))}
-                    </text>
-                  </g>
-                ))}
-                {timeTicks.map((fraction) => (
-                  <text
-                    key={fraction}
-                    x={plotLeft + fraction * (plotRight - plotLeft)}
-                    y="185"
-                    textAnchor={fraction === 0 ? "start" : fraction === 1 ? "end" : "middle"}
-                  >
-                    {cockpitTime(
-                      new Date(start + fraction * (end - start)).toISOString(),
-                      value.time_zone,
-                    )}
-                  </text>
-                ))}
-                {Object.entries(dailySeries).map(([key, points]) =>
-                  points?.length ? (
-                    <path
-                      key={key}
-                      data-daily-shipping-series={key}
-                      className={`cockpit-series ${key === "booked_orders" ? "plan" : "handover"}`}
-                      d={points
-                        .map(
-                          (point, index) =>
-                            `${index ? "H" : "M"}${x(point.at)}${index ? "V" : ","}${160 - (point.count / dailyCeiling) * 120}`,
-                        )
-                        .join(" ")}
-                    >
-                      <title>
-                        {t(
-                          key === "booked_orders"
-                            ? "Orders with a shipment booking"
-                            : "Confirmed package handovers",
-                        )}
-                      </title>
-                    </path>
-                  ) : null,
-                )}
-              </svg>
+              {t("Shipping plan")} · {t("Confirmed handovers")} · {t("Future forecast")}
             </>
-          )}
-          <p className="cockpit-note">
-            {t("Bookings may be partial. Package handovers are not completed plan orders.")}
-          </p>
-        </section>
-      )}
-      {value.coverage.cohort === "unavailable" ? (
-        <div className="cockpit-unavailable" role="status">
-          <strong>{t("Shipping plan unavailable")}</strong>
-          <p>
-            {t(
-              "Only plan comparison and forecast require an accepted daily plan and confirmed capacity. Observed shipping remains visible above.",
-            )}
-          </p>
-        </div>
-      ) : (
-        <div className="cockpit-shipping-plot" data-shipping-plot>
-          <div className="cockpit-legend">
-            {Object.entries(seriesLabels).map(([key, label]) => (
-              <button
-                key={key}
-                className={`cockpit-series-label ${key}`}
-                disabled={value.series[key as keyof typeof value.series] === null}
-                onClick={() => inspect(key as ShippingMeasure)}
-              >
-                <i />
-                {t(label)}
-                {value.series[key as keyof typeof value.series] === null
-                  ? ` · ${t("Unavailable")}`
-                  : ""}
-              </button>
-            ))}
-          </div>
-          {Object.values(value.series_resolution_seconds || {}).some((seconds) => seconds > 0) && (
-            <p className="cockpit-note" data-shipping-resolution>
-              {t("Five-minute chart intervals · every order included")}
-            </p>
-          )}
+          }
+          kind="shipping"
+          className="cockpit-shipping-plot"
+        >
           <svg
             className="cockpit-chart"
             ref={plot}
@@ -374,16 +254,158 @@ export function ShippingDayPanel({
               ) : null,
             )}
           </svg>
-          <p className="cockpit-footnote">
+          <div className="cockpit-plot-context">
+            <div className="cockpit-legend">
+              {Object.entries(seriesLabels).map(([key, label]) => (
+                <button
+                  key={key}
+                  className={`cockpit-series-label ${key}`}
+                  disabled={value.series[key as keyof typeof value.series] === null}
+                  onClick={() => inspect(key as ShippingMeasure)}
+                >
+                  <i />
+                  {t(label)}
+                  {value.series[key as keyof typeof value.series] === null
+                    ? ` · ${t("Unavailable")}`
+                    : ""}
+                </button>
+              ))}
+            </div>
+            {Object.values(value.series_resolution_seconds || {}).some(
+              (seconds) => seconds > 0,
+            ) && (
+              <p className="cockpit-note" data-shipping-resolution>
+                {t("Five-minute chart intervals · every order included")}
+              </p>
+            )}
+            <p className="cockpit-footnote">
+              {t(
+                "Forecast uses confirmed completion slots and current readiness. Requested collections do not add capacity.",
+              )}
+            </p>
+            {value.forecast_horizon === "selected_day_ended" && (
+              <p className="cockpit-note">
+                {t("Selected day has ended — no historical forecast is reconstructed.")}
+              </p>
+            )}
+          </div>
+        </AnalysisPlot>
+      )}
+      {daily && (
+        <section
+          className="cockpit-daily-actuals"
+          data-shipping-actuals
+          aria-label={t("Observed shipping activity")}
+        >
+          <AnalysisMetricGroup title={t("Observed shipping activity")} period="actual">
+            <p className="cockpit-note">
+              {t("Selected business day · independent of the shipping plan")}
+            </p>
+            <dl className="cockpit-daily-counts">
+              <div>
+                <dt>{t("Orders with a shipment booking")}</dt>
+                <dd>{daily.booked_orders === null ? "—" : formatNumber(daily.booked_orders)}</dd>
+              </div>
+              <div>
+                <dt>{t("Confirmed package handovers")}</dt>
+                <dd>
+                  {daily.handed_over_packages === null
+                    ? "—"
+                    : formatNumber(daily.handed_over_packages)}
+                </dd>
+              </div>
+            </dl>
+          </AnalysisMetricGroup>
+          {value.coverage.cohort === "unavailable" && (
+            <>
+              <AnalysisPlot title={t("Recorded movements")} kind="shipping-actual">
+                <svg
+                  className="cockpit-chart"
+                  ref={plot}
+                  viewBox={`0 0 ${plotWidth} 200`}
+                  role="img"
+                  aria-label={t("Observed shipping activity")}
+                >
+                  {[0, 0.5, 1].map((fraction) => (
+                    <g key={fraction}>
+                      <line
+                        x1={plotLeft}
+                        x2={plotRight}
+                        y1={160 - fraction * 120}
+                        y2={160 - fraction * 120}
+                        className="cockpit-grid-line"
+                      />
+                      <text x={plotLeft - 10} y={164 - fraction * 120} textAnchor="end">
+                        {formatNumber(Math.round(dailyCeiling * fraction))}
+                      </text>
+                    </g>
+                  ))}
+                  {timeTicks.map((fraction) => (
+                    <text
+                      key={fraction}
+                      x={plotLeft + fraction * (plotRight - plotLeft)}
+                      y="185"
+                      textAnchor={fraction === 0 ? "start" : fraction === 1 ? "end" : "middle"}
+                    >
+                      {cockpitTime(
+                        new Date(start + fraction * (end - start)).toISOString(),
+                        value.time_zone,
+                      )}
+                    </text>
+                  ))}
+                  {Object.entries(dailySeries).map(([key, points]) =>
+                    points?.length ? (
+                      <path
+                        key={key}
+                        data-daily-shipping-series={key}
+                        className={`cockpit-series ${key === "booked_orders" ? "plan" : "handover"}`}
+                        d={points
+                          .map(
+                            (point, index) =>
+                              `${index ? "H" : "M"}${x(point.at)}${index ? "V" : ","}${160 - (point.count / dailyCeiling) * 120}`,
+                          )
+                          .join(" ")}
+                      >
+                        <title>
+                          {t(
+                            key === "booked_orders"
+                              ? "Orders with a shipment booking"
+                              : "Confirmed package handovers",
+                          )}
+                        </title>
+                      </path>
+                    ) : null,
+                  )}
+                </svg>
+                <div className="cockpit-plot-context">
+                  {" "}
+                  <div className="cockpit-legend">
+                    <span className="cockpit-series-label plan">
+                      <i />
+                      {t("Orders with a shipment booking")}
+                    </span>
+                    <span className="cockpit-series-label handover">
+                      <i />
+                      {t("Confirmed package handovers")}
+                    </span>
+                  </div>
+                </div>
+              </AnalysisPlot>
+            </>
+          )}
+          <p className="cockpit-note">
+            {t("Bookings may be partial. Package handovers are not completed plan orders.")}
+          </p>
+        </section>
+      )}
+      {value.coverage.cohort === "unavailable" && (
+        <div className="cockpit-unavailable" role="status">
+          <strong>{t("Shipping plan unavailable")}</strong>
+          <p>
             {t(
-              "Forecast uses confirmed completion slots and current readiness. Requested collections do not add capacity.",
+              "Only plan comparison and forecast require an accepted daily plan and confirmed capacity. Observed shipping remains visible above.",
             )}
           </p>
-          {value.forecast_horizon === "selected_day_ended" && (
-            <p className="cockpit-note">
-              {t("Selected day has ended — no historical forecast is reconstructed.")}
-            </p>
-          )}
         </div>
       )}
       {value.gaps.length > 0 && (
@@ -399,64 +421,71 @@ export function ShippingDayPanel({
         </details>
       )}
       {value.sites.length > 0 && (
-        <div className="cockpit-table-scroll">
-          <table className="cockpit-table">
-            <caption>{t("Dispatch sites · split orders may appear at more than one site")}</caption>
-            <thead>
-              <tr>
-                <th>{t("Site")}</th>
-                <th>{t(dueLabel)}</th>
-                <th>{t("Handed over")}</th>
-                <th>{t("Forecast")}</th>
-                <th>{t("At risk")}</th>
-                <th>{t("Collection cut-offs")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {value.sites.map((site) => (
-                <tr key={site.location_id}>
-                  <th>
-                    {site.name}
-                    <small>{site.time_zone}</small>
-                  </th>
-                  <td>{formatNumber(site.due)}</td>
-                  <td>{formatNumber(site.handed_over)}</td>
-                  <td>{site.forecast === null ? "—" : formatNumber(site.forecast)}</td>
-                  <td>{site.risk === null ? "—" : formatNumber(site.risk)}</td>
-                  <td>
-                    <div data-cutoff-preview>
-                      {site.cutoffs.slice(0, 2).map((cutoff, index) => (
-                        <div key={index}>
-                          {formatDateTimeInZone(cutoff.at, site.time_zone)} ·{" "}
-                          {t(cutoff.confirmation_state === "confirmed" ? "Confirmed" : "Requested")}
-                        </div>
-                      ))}
-                    </div>
-                    {site.cutoffs.length > 2 && (
-                      <details data-cutoff-details className="cockpit-collection-details">
-                        <summary>
-                          {t("All collection times")} ({formatNumber(site.cutoffs.length)})
-                        </summary>
-                        <div className="cockpit-collection-list">
-                          {site.cutoffs.map((cutoff, index) => (
-                            <div key={index} data-cutoff-entry>
-                              {formatDateTimeInZone(cutoff.at, site.time_zone)} ·{" "}
-                              {t(
-                                cutoff.confirmation_state === "confirmed"
-                                  ? "Confirmed"
-                                  : "Requested",
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
-                  </td>
+        <details className="cockpit-flow-details" data-shipping-sites>
+          <summary>{t("Dispatch sites · split orders may appear at more than one site")}</summary>
+          <div className="cockpit-table-scroll">
+            <table className="cockpit-table">
+              <caption>
+                {t("Dispatch sites · split orders may appear at more than one site")}
+              </caption>
+              <thead>
+                <tr>
+                  <th>{t("Site")}</th>
+                  <th>{t(dueLabel)}</th>
+                  <th>{t("Handed over")}</th>
+                  <th>{t("Forecast")}</th>
+                  <th>{t("At risk")}</th>
+                  <th>{t("Collection cut-offs")}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {value.sites.map((site) => (
+                  <tr key={site.location_id}>
+                    <th>
+                      {site.name}
+                      <small>{site.time_zone}</small>
+                    </th>
+                    <td>{formatNumber(site.due)}</td>
+                    <td>{formatNumber(site.handed_over)}</td>
+                    <td>{site.forecast === null ? "—" : formatNumber(site.forecast)}</td>
+                    <td>{site.risk === null ? "—" : formatNumber(site.risk)}</td>
+                    <td>
+                      <div data-cutoff-preview>
+                        {site.cutoffs.slice(0, 2).map((cutoff, index) => (
+                          <div key={index}>
+                            {formatDateTimeInZone(cutoff.at, site.time_zone)} ·{" "}
+                            {t(
+                              cutoff.confirmation_state === "confirmed" ? "Confirmed" : "Requested",
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {site.cutoffs.length > 2 && (
+                        <details data-cutoff-details className="cockpit-collection-details">
+                          <summary>
+                            {t("All collection times")} ({formatNumber(site.cutoffs.length)})
+                          </summary>
+                          <div className="cockpit-collection-list">
+                            {site.cutoffs.map((cutoff, index) => (
+                              <div key={index} data-cutoff-entry>
+                                {formatDateTimeInZone(cutoff.at, site.time_zone)} ·{" "}
+                                {t(
+                                  cutoff.confirmation_state === "confirmed"
+                                    ? "Confirmed"
+                                    : "Requested",
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       )}
       {basisOpen && (
         <div className="cockpit-basis" id="cockpit-shipping-basis">

@@ -1,3 +1,4 @@
+import "./operationalCases.css";
 import type { OperationalCase } from "../api";
 import { t } from "../localization";
 import type { useOperationalCaseControls } from "./useOperationalCaseControls";
@@ -15,7 +16,7 @@ export function OperationalCaseControls({
   const { busy, confirm, review } = controls;
   if (!canControl) return null;
   return (
-    <div className="cockpit-case-controls">
+    <div className="operational-case-controls">
       {row.control_mode === "automation" ? (
         <button className="br-btn" disabled={busy} onClick={() => controls.beginTakeover(row)}>
           {t("Take over manually / stop automation")}
@@ -26,7 +27,11 @@ export function OperationalCaseControls({
         </button>
       )}
       {confirm !== "adopt" && confirm?.case_id === row.case_id && (
-        <div role="group" aria-label={t("Confirm manual takeover")} className="cockpit-basis">
+        <div
+          role="group"
+          aria-label={t("Confirm manual takeover")}
+          className="operational-case-review"
+        >
           <p>
             {t("Stop new automated actions for this case? Already started actions remain visible.")}
           </p>
@@ -41,7 +46,7 @@ export function OperationalCaseControls({
               onChange={(e) => controls.setReason(e.target.value)}
             />
           </label>
-          <div className="cockpit-actions">
+          <div className="operational-case-actions">
             <button className="br-btn" disabled={busy} onClick={() => controls.takeover()}>
               {t("Confirm manual takeover")}
             </button>
@@ -52,7 +57,11 @@ export function OperationalCaseControls({
         </div>
       )}
       {review?.case_id === row.case_id && (
-        <div className="cockpit-basis" role="group" aria-label={t("Return to automation")}>
+        <div
+          className="operational-case-review"
+          role="group"
+          aria-label={t("Return to automation")}
+        >
           <p>
             {t(
               "The current state will be checked again when you confirm. Old plans will not be resumed.",
@@ -75,7 +84,7 @@ export function OperationalCaseControls({
           {review.coverage_gaps.length > 0 && (
             <p>{t("Relevant source changes still need reconciliation.")}</p>
           )}
-          <div className="cockpit-actions">
+          <div className="operational-case-actions">
             <button
               className="br-btn"
               disabled={

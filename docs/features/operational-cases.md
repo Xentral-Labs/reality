@@ -70,3 +70,13 @@ This feature does **not** supply live Shopify authentication/webhooks/API retrie
 Implementation and verification evidence: [quickstart](../../specs/371-operational-cases/quickstart.md).
 
 Default rollout verification: [spec 377 quickstart](../../specs/377-default-operational-cases/quickstart.md).
+
+## Shared object presentation
+
+Spec 378 FR-077 styles the existing case disclosure in Orders and the document
+Inspector independently of the Control Tower. Readiness/refresh, each case's
+kind/responsibility/work state and the control action row have bounded grouping.
+Technical IDs, work/source links and ID copying are initially collapsed. Shared
+manual takeover and exact handback reviews load their own confirmation styles.
+Disclosure and navigation perform reads only; membership, revision, retry and
+unresolved-execution guards remain in the shared application services.
