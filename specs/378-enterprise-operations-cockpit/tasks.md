@@ -292,3 +292,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T113 [FR-074] Add failing browser proofs for whole-tile pointer hits, native keyboard all-work activation and focus restoration; retain direct risk filtering.
 - [x] T114 [FR-074] Expand the native primary trigger across the tile with separate risk controls and full-tile feedback; update localized instruction in OperatingFlowsPanel/localization/operationsCockpit.css.
 - [x] T115 [FR-074] Run frontend/browser/build/audit/format/spec checks, activate only web locally, inspect actual tile/dialog behavior and update existing PR with review evidence; retain enterprise/CI gates.
+
+
+## Readable content grouping
+
+- [x] T116 [FR-075] Add product browser proofs for current/recent metric grouping, exact preserved message values, plot boundaries and note ownership across the existing locale/theme/viewport matrix.
+- [x] T117 [FR-075] Group metrics/plot metadata in OperatingFlowsPanel, bound shipping comparison in ShippingDayPanel, and apply shared themed panel/section/list rhythm in operationsCockpit.css with localized group captions.
+- [x] T118 [FR-075] Run frontend/browser/build/audit/format/spec checks, activate only local web, inspect actual content grouping and update existing PR with review evidence; retain enterprise/CI gates.

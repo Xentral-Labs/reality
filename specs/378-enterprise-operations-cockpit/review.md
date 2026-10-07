@@ -812,3 +812,38 @@ control-tower-tile-inspection.png. Final scoped diff review passed; no business
 reader, automatic agent action or runtime fixture was changed. Existing ready
 PR 383 receives this verified presentation change; enterprise qualification
 and current-head CI remain independent gates.
+
+FR-075 pre-implementation analysis: explicit owner visual-grouping request maps
+to T116–118 with exact-value/group/plot-boundary and responsive proof. Constitution
+PASS, no unresolved clarification, conflict with FR-073/074 or critical finding.
+Before implementation the product proof failed because message current/recent
+groups were absent. Existing enterprise/release gates remain independent.
+
+FR-075 verification: the full cockpit browser matrix passed with explicit metric
+period/count groups for all five flow areas in four languages, both themes and
+320/390/1440/1920 layouts. Exact message counts remain 8/5/3 (current) and 2/34
+(recent), with -36 change owned by the backlog plot. Each plot visibly bounds its
+title/series/legend/range/context. Initial Dutch 320px header height proof failed;
+compact phone typography/gap restored the unchanged height gate and the complete
+matrix passed on rerun. Existing full-tile/risk previews, chart selection, live
+refresh, source links, manual review and stale/missing evidence proofs remain green.
+All 478 frontend contracts, four-language 3045/3045 audits, formatting, native build,
+final production web image, spec policy and diff whitespace checks passed. Manual
+visual review of the generated light desktop product screenshot confirms distinct
+metric periods and separately bounded flow/backlog plots with retained data.
+
+Final FR-075 alignment pass: responsibility count buttons share label/value
+subgrid rows with left-aligned text. The complete cockpit browser matrix passes
+again including the new wrapped-label ownership-value alignment proof; final
+production web build passes. Only web was recreated on port 8080. Actual current
+company inspection confirms messages retain current counts and separate incoming/
+first-reply and declining backlog plots, each with owned metadata. Shipping retains
+46 due plan orders, 700 physically booked orders and 56 confirmed packages as
+separate units; no fixture or operator was changed. Actual responsibility value
+tops both equal 1124.75px. Screenshot:
+/private/tmp/reality-instrument-panel/control-tower-content-grouping.png.
+Final semantic/diff review PASS: explicit period metadata only classifies existing
+metrics for presentation; source values, read/action handlers, live lifecycle and
+case authority remain unchanged. Temporary fixture server stopped; primary dirty
+checkout untouched. Existing PR receives the repair; CI/enterprise/soak gates are
+not certified or weakened.

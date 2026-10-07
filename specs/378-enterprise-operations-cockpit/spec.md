@@ -580,3 +580,19 @@ Acceptance: padding/title/meter/status clicks open the matching all-work preview
 for all five supported areas, including an empty known cohort. Enter/Space do the
 same; a risk click opens only its own group. Escape preserves scroll and focus.
 Phone/docked/desktop geometry and both themes/four languages remain supported.
+
+
+### Readable content grouping
+
+- **FR-075**: The console MUST distinguish its primary panels, present-state metrics, recent activity metrics and individual plots through a consistent visible hierarchy. Keep one selected-topic h2 per panel. In each flow analysis, explicitly group current metrics under Current status and interval metrics under Last 60 minutes, without changing returned values, definitions or units. Each plot MUST contain its own title, series, range, legend and related coverage/change notes inside a visibly bounded plot surface. Current stock observations remain distinct from unavailable history. Shipping metrics, actual activity and plan/forecast plot remain separate and labelled. Use shared theme surfaces/borders, consistent section spacing and responsive label/value alignment; do not add navigation, duplicate selection or business readers.
+
+Acceptance: messages show three present-state metrics and two recent activity
+metrics with their existing values; the two message plots have distinct boundaries
+and reply coverage/backlog change belongs to the backlog plot. Orders, supply,
+stock and returns use the same grouping with explicit interval membership. Shipping
+keeps its counts, interactive series, evidence and unknown-plan actual activity.
+Responsibility instructions, counts/actions and manually stopped cases remain
+visually separated; log and Agent rows use the same bounded-list treatment.
+All four languages and both themes retain readable boundaries, aligned values and
+no horizontal page overflow at 320/390/1440/1920 pixels. Full-tile and risk inspection,
+manual review, retained selectors, live state and record links remain unchanged.

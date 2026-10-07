@@ -13,6 +13,7 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Current status": "Aktueller Stand",
     "Select a tile to inspect its records.":
       "Klicke auf eine Kachel, um die zugehörigen Einträge zu sehen.",
     "Quick inspection": "Kurzüberblick",
@@ -2528,6 +2529,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Current status": "Huidige stand",
     "Select a tile to inspect its records.":
       "Klik op een tegel om de bijbehorende records te bekijken.",
     "Quick inspection": "Kort overzicht",
@@ -4739,6 +4741,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Current status": "Estado actual",
     "Select a tile to inspect its records.": "Pulsa una tarjeta para ver sus registros.",
     "Quick inspection": "Vista rápida",
     "Risk group": "Grupo de riesgo",

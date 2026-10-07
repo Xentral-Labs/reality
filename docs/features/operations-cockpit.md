@@ -239,3 +239,11 @@ whole primary hit area (spec 378 FR-074). The native primary trigger supports
 Enter/Space and full-tile focus feedback; sibling risk controls retain their exact
 filtered group. Unavailable counts do not acquire an inspection action, and Finance
 retains its workspace link. No extra request, navigation or business action.
+
+Console content grouping (spec 378 FR-075) separates current snapshot metrics from
+explicit last-hour activity metrics without changing their units or meaning. Each
+plot contains its own title, series/range legend and relevant scope/change notes.
+Shipping comparison, physical actual activity, responsibility actions, stopped
+cases and observed Agent/event lists follow the shared theme-aware section rhythm.
+The selected topic, read lifecycle, exact record inspection and authority remain
+unchanged; no extra business reader or navigation is added.
