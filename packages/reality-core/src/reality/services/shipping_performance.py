@@ -200,10 +200,12 @@ def _read_shipping(
     ]
     statement_ids = {statement.id for statement, _ in active}
     requirements = list(
-        session.execute(
-            select(*ShippingDispatchRequirement.__table__.columns).where(
-                ShippingDispatchRequirement.tenant_id == tenant_id,
-                ShippingDispatchRequirement.statement_id.in_(statement_ids),
+        core._metadata_rows(
+            session.execute(
+                select(*ShippingDispatchRequirement.__table__.columns).where(
+                    ShippingDispatchRequirement.tenant_id == tenant_id,
+                    ShippingDispatchRequirement.statement_id.in_(statement_ids),
+                )
             )
         )
     )
@@ -242,32 +244,37 @@ def _read_shipping(
     )
     commitments = {
         row.id: row
-        for row in session.execute(
-            select(*commitment_columns).where(
-                Commitment.tenant_id == tenant_id,
-                core._id_cohort(Commitment.id, ids),
+        for row in core._metadata_rows(
+            session.execute(
+                select(*commitment_columns).where(
+                    Commitment.tenant_id == tenant_id,
+                    core._id_cohort(Commitment.id, ids),
+                )
             )
         )
     }
     documents = (
         {
             row.id: row
-            for row in session.execute(
-                select(
-                    Document.id,
-                    Document.tenant_id,
-                    Document.type,
-                    Document.party_id,
-                    Document.payment_term_id,
-                    Document.gross_amount,
-                    Document.currency,
-                    Document.number,
-                    Document.source_record_id,
-                ).where(
-                    Document.tenant_id == tenant_id,
-                    core._id_cohort(
-                        Document.id, {row.document_id for row in commitments.values()}
-                    ),
+            for row in core._metadata_rows(
+                session.execute(
+                    select(
+                        Document.id,
+                        Document.tenant_id,
+                        Document.type,
+                        Document.party_id,
+                        Document.payment_term_id,
+                        Document.gross_amount,
+                        Document.currency,
+                        Document.number,
+                        Document.source_record_id,
+                    ).where(
+                        Document.tenant_id == tenant_id,
+                        core._id_cohort(
+                            Document.id,
+                            {row.document_id for row in commitments.values()},
+                        ),
+                    )
                 )
             )
         }

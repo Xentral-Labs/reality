@@ -432,3 +432,33 @@ def test_fresh_member_read_preserves_exact_ordinary_refusal(
             _member(reader, tenant, principal, _fresh=True)
     assert fresh.value.code == ordinary.value.code
     assert fresh.value.values == ordinary.value.values
+
+
+def test_private_scalar_metadata_keeps_exact_immutable_recorded_values(session):
+    # BUSINESS PURPOSE: Read-only company metadata must retain recorded types and exact opaque identities.
+    # BUSINESS RULE: Allocation cannot round quantities, normalize identities, alter UTC instants or admit mutation.
+    from datetime import UTC, datetime
+    from decimal import Decimal
+
+    from sqlalchemy import literal, select
+
+    from reality.services import core
+
+    instant = datetime(2026, 10, 7, 13, 1, 2, 345678, tzinfo=UTC)
+    record = next(
+        core._metadata_rows(
+            session.execute(
+                select(
+                    literal('opaque,"{NULL}\\').label("id"),
+                    literal(Decimal("1.2300")).label("quantity"),
+                    literal(instant).label("occurred_at"),
+                    literal(None).label("due_at"),
+                )
+            )
+        )
+    )
+    assert record.id == 'opaque,"{NULL}\\'
+    assert record.quantity.as_tuple() == Decimal("1.2300").as_tuple()
+    assert record.occurred_at == instant and record.due_at is None
+    with pytest.raises(AttributeError):
+        record.quantity = Decimal(2)

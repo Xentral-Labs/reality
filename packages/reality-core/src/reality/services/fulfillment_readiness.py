@@ -962,7 +962,7 @@ def fulfillment_readiness_batch(
         else {
             row.id: row
             for row in (
-                session.execute(commitment_query)
+                core._metadata_rows(session.execute(commitment_query))
                 if narrow
                 else session.scalars(commitment_query)
             )
@@ -999,7 +999,9 @@ def fulfillment_readiness_batch(
         else {
             row.id: row
             for row in (
-                session.execute(order_query) if narrow else session.scalars(order_query)
+                core._metadata_rows(session.execute(order_query))
+                if narrow
+                else session.scalars(order_query)
             )
         }
     )

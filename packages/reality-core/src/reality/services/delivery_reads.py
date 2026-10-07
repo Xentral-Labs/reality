@@ -153,6 +153,27 @@ def fulfillment_expressions():
     return reserved, fulfilled, open_quantity
 
 
+def _latest_stated_value(tenant_id: str, field: str):
+    """Project each company's latest non-null revision of one promise field.
+
+    The ordering and fallback match effective_value; separate field relations
+    keep a due-date-only statement from replacing the latest quantity statement.
+    No derived value or revision is persisted.
+    """
+    column = getattr(CommitmentRevision, field)
+    return (
+        select(CommitmentRevision.commitment_id, column.label(field))
+        .where(CommitmentRevision.tenant_id == tenant_id, column.is_not(None))
+        .distinct(CommitmentRevision.commitment_id)
+        .order_by(
+            CommitmentRevision.commitment_id,
+            CommitmentRevision.stated_at.desc(),
+            CommitmentRevision.id.desc(),
+        )
+        .subquery()
+    )
+
+
 def _fulfillment_cohort(tenant_id: str):
     """Project complete original delivery inputs with canonical effective terms.
 
@@ -168,7 +189,11 @@ def _fulfillment_cohort(tenant_id: str):
 
     net = _movement_quantity_query(tenant_id).subquery()
     fulfilled = func.coalesce(net.c.quantity, 0)
-    remaining = func.greatest(effective_value("quantity") - fulfilled, 0)
+    quantity = _latest_stated_value(tenant_id, "quantity")
+    due_at = _latest_stated_value(tenant_id, "due_at")
+    remaining = func.greatest(
+        func.coalesce(quantity.c.quantity, Commitment.quantity) - fulfilled, 0
+    )
     # reality-rule: services.delivery_reads.fulfillment_cohort.shared
     return (
         select(
@@ -176,10 +201,12 @@ def _fulfillment_cohort(tenant_id: str):
             Commitment.type,
             Commitment.document_id,
             Commitment.created_at,
-            effective_value("due_at").label("due_at"),
+            func.coalesce(due_at.c.due_at, Commitment.due_at).label("due_at"),
             fulfilled.label("fulfilled"),
             remaining.label("open"),
         )
+        .outerjoin(quantity, quantity.c.commitment_id == Commitment.id)
+        .outerjoin(due_at, due_at.c.commitment_id == Commitment.id)
         .outerjoin(
             net,
             (net.c.commitment_id == Commitment.id)

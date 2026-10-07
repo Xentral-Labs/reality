@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import time
+from collections import namedtuple
 from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -30,7 +31,7 @@ from sqlalchemy import (
 )
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.engine import Row
+from sqlalchemy.engine import Result, Row
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -4018,6 +4019,17 @@ def movement_quantity(
     )
 
 
+def _metadata_rows(result: Result[Any]) -> Iterator[Any]:
+    """Keep exact selected metadata in call-scoped immutable tuple records.
+
+    Column labels and original values are retained without normalization. This
+    changes allocation only; no queries, ORM state, source payloads or observations
+    are added, persisted or retained after the caller releases its records.
+    """
+    row_type = namedtuple("ObservationMetadata", tuple(result.keys()))
+    return (row_type._make(row) for row in result)
+
+
 def _id_cohort(column: Any, identities: Iterable[str | None]) -> ColumnElement[bool]:
     """Represent exact opaque-ID membership with one PostgreSQL array parameter.
 
@@ -4396,7 +4408,9 @@ def commitment_terms(
         )
     revisions: dict[str, list[CommitmentRevision | Row]] = {}
     for revision in (
-        session.execute(revisions_query) if narrow else session.scalars(revisions_query)
+        _metadata_rows(session.execute(revisions_query))
+        if narrow
+        else session.scalars(revisions_query)
     ):
         revisions.setdefault(revision.commitment_id, []).append(revision)
     movements = _movement_quantities(session, tenant_id, commitment_ids=ids)
@@ -4414,7 +4428,7 @@ def commitment_terms(
             and (ids is None or identity in ids)
         )
         if narrow and _commitments is not None and ids is not None
-        else session.execute(rows)
+        else _metadata_rows(session.execute(rows))
         if narrow
         else session.scalars(rows)
     )

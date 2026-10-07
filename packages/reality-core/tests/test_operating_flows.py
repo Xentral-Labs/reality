@@ -558,3 +558,79 @@ def test_snapshot_current_risk_keeps_original_trace_without_historical_payloads(
     assert loaded_history == []
     assert source_payloads == [False] * current_count
     assert query_count <= 25, query_count
+
+
+def test_full_delivery_cohort_preserves_independent_revision_fields_and_corrections(
+    session, business
+):
+    # BUSINESS PURPOSE: Full live delivery totals retain explicit revisions and physical correction evidence.
+    # BUSINESS RULE: Resolve each latest non-null field independently with the same time/identity ordering, then subtract corrected fulfillment.
+    from decimal import Decimal
+
+    from reality.services.delivery_reads import _fulfillment_cohort
+
+    tenant = business.tenant.id
+    instant = now()
+    original_due = instant + timedelta(days=1)
+    promise = core.create_commitment(
+        session,
+        tenant,
+        "supplier_delivery",
+        business.supplier.id,
+        business.company.id,
+        business.item.id,
+        business.location.id,
+        "5",
+        original_due,
+    )
+    first = core.revise_commitment(
+        session, tenant, promise.id, quantity="6", stated_at=instant
+    )
+    second = core.revise_commitment(
+        session, tenant, promise.id, quantity="7", stated_at=instant
+    )
+    receipt = core.record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "2",
+        to_location_id=business.location.id,
+        commitment_id=promise.id,
+    )
+    expected_quantity = Decimal(6) if first.id > second.id else Decimal(7)
+
+    def observed():
+        session.flush()
+        return next(
+            r
+            for r in session.execute(_fulfillment_cohort(tenant))
+            if r.id == promise.id
+        )
+
+    row = observed()
+    assert row.due_at == original_due
+    assert row.fulfilled == Decimal(2) and row.open == expected_quantity - Decimal(2)
+    revised_due = instant + timedelta(days=3)
+    core.revise_commitment(
+        session,
+        tenant,
+        promise.id,
+        due_at=revised_due,
+        stated_at=instant + timedelta(seconds=1),
+    )
+    core.revise_commitment(
+        session,
+        tenant,
+        promise.id,
+        quantity="8",
+        stated_at=instant + timedelta(seconds=2),
+    )
+    core.correct_movement(
+        session, tenant, receipt.id, reason="Incorrect received quantity"
+    )
+    row = observed()
+    terms = core.commitment_terms(session, tenant, [promise.id])[promise.id]
+    assert row.due_at == revised_due == terms.due_at
+    assert row.fulfilled == Decimal(0) == terms.fulfilled
+    assert row.open == Decimal(8) == terms.open
