@@ -376,39 +376,37 @@ export function OperatingFlowsPanel({
       </section>
     );
   return (
-    <section className="cockpit-flow-board" aria-labelledby="flows-heading" data-operating-flows>
+    <section
+      className="cockpit-card cockpit-flow-board"
+      aria-labelledby="flows-heading"
+      data-operating-flows
+    >
       <header className="cockpit-card-heading">
         <div>
           <span className="cockpit-eyebrow">{t("Company-wide · live")}</span>
           <h2 id="flows-heading">{t("Flow analysis")}</h2>
-          <p>
-            {t("Current queues and the last 60 minutes. Independent of the shipping day and site.")}
-          </p>
         </div>
-        <small>
-          {t("Data observed at")} {formatZonedDateTime(value.observed_at)}
-        </small>
+        <label className="br-field cockpit-analysis-selector">
+          {t("Analysis area")}
+          <select
+            className="br-control"
+            value={selected}
+            onChange={(event) => select(event.target.value as OperatingAreaKey)}
+            aria-controls={`cockpit-flow-${selected}`}
+          >
+            {areas.map((area) => (
+              <option key={area.key} value={area.key}>
+                {t(area.title)}
+              </option>
+            ))}
+          </select>
+        </label>
       </header>
       {stale && (
         <p role="status" className="cockpit-note">
           {t("Live status is not confirmed")}
         </p>
       )}
-      <label className="br-field cockpit-analysis-selector">
-        {t("Analysis area")}
-        <select
-          className="br-control"
-          value={selected}
-          onChange={(event) => select(event.target.value as OperatingAreaKey)}
-          aria-controls={`cockpit-flow-${selected}`}
-        >
-          {areas.map((area) => (
-            <option key={area.key} value={area.key}>
-              {t(area.title)}
-            </option>
-          ))}
-        </select>
-      </label>
       <div className="cockpit-flow-grid cockpit-analysis-grid">
         {areas.map((area) => {
           const data: FlowArea = value[area.key];
@@ -425,7 +423,7 @@ export function OperatingFlowsPanel({
           }));
           return (
             <article
-              className="cockpit-card cockpit-flow-card cockpit-analysis-card"
+              className="cockpit-flow-card cockpit-analysis-card"
               data-flow-area={area.key}
               id={`cockpit-flow-${area.key}`}
               tabIndex={-1}
@@ -594,6 +592,11 @@ export function OperatingFlowsPanel({
           );
         })}
       </div>
+      <p className="cockpit-note cockpit-analysis-scope">
+        {t("Current queues and the last 60 minutes. Independent of the shipping day and site.")}
+        <br />
+        {t("Data observed at")} {formatZonedDateTime(value.observed_at)}
+      </p>
       <p className="cockpit-note">
         {t(
           "Status describes the recorded condition, not agent quality. Pending work is not automatically a failure.",

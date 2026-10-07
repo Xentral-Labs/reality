@@ -604,3 +604,23 @@ preserves history without scrolling/focus transfer. All evidence/area articles r
 mounted; tenant reset and reviewed case behavior are unchanged. Executed proof and
 actual company observation are in quickstart. PR review/merge and earlier enterprise
 acceptance gates remain separate.
+
+## Hierarchy refinement review (FR-059–061)
+
+Owner authorization explicitly covers rethinking box priority/order and replacing
+observation buttons with icons. Requirements review PASS: first row shipping/control,
+second analysis/monitoring, contained analysis, consistent surfaces, read-only icons,
+retained explicit business actions. Plan Constitution Check PASS, frontend only.
+Pre-implementation analysis PASS: FR-059/060/061 map to T094–096 and geometry/frame/
+style/accessibility/state regressions in the existing matrix and lifecycle proof.
+FR-052 is explicitly superseded for placement; FR-057–058 selection remains intact.
+No unresolved clarification or CRITICAL issue. Reviewer-owned and enterprise rollout
+gates remain untouched, outside this explicitly authorized presentation increment.
+
+
+Final FR-059–061 presentation review: approved hierarchy, reading order, shared card
+rhythm and quiet observation controls match the owner request. Browser matrices,
+keyboard/state proof and controlled lifecycle pass; no domain, polling, schema or
+permission changes. Business control review and evidence remain explicit. The prior
+head's enterprise latency failure is recorded separately and is not waived by this
+presentation review; rollout and head-specific CI acceptance remain open.

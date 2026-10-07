@@ -593,3 +593,41 @@ single selector; Messages retained both SVG diagrams. The existing human-owned c
 remained visible in Responsibility, and the existing Agent access/activity and pinned
 shipping plan stayed available. Final screenshot: stable-selection-live.jpg in the
 temporary verification artifacts. API, simulator, operator and database were untouched.
+
+
+## Prioritized console and quiet observation controls (FR-059–061)
+
+The added pre-implementation geometry regression failed on the previous row placement.
+The final cockpit browser matrix passes with shipping/Responsibility in the first row,
+analysis/log in the second and Agents below the log. Narrow layouts and document order
+prioritize Responsibility before observation. Analysis has a single frame, its only
+labelled selector belongs to the header, all main cards share their insets/headings,
+and the collapsed case entry retains natural height. Keyboard activation and localized
+names/titles/pressed/expanded state are proved for shipping Info, following Pause/Play
+and Agent List/Compact icons. Explicit reviewed business controls are unchanged.
+
+Frontend contracts: 478 passed. Four-language audit: 3,023 covered phrases each, no
+missing/invalid entries. Full formatting, TypeScript/Vite build, spec policy and diff
+checks pass. Controlled eight-hour lifecycle: zero page errors; overview 5,742 reads,
+activity 5,745, Agents and register 5,746 each (all below 5,800). Paused events, selected
+sources and the exact pending manual reason/revision survive. This is controlled
+browser time, not the separately required real-time pilot soak.
+
+Only the local web image was rebuilt/recreated. Actual company inspection confirms
+shipping and Responsibility share top 754px, analysis and log top 1,731.703px, and all
+five main cards have 20px insets. The case card keeps its natural 603.906px height next
+to the 957.703px shipping card. The existing manual case remains visible, the named
+Claude access remains available, and Messages retains both SVG diagrams. Info expands
+and closes the original source basis; Pause/Play changes only following and was restored
+to following. Screenshot: priority-console-live.jpg in temporary verification artifacts.
+The existing pinned shipping day retains 853 due/35 confirmed/818 risk, without a
+reconstructed forecast. API, database, simulator, worker and operator were untouched. Live observation
+advanced from 06:03 to 06:05 UTC without reload; both mail diagrams and the existing
+manual case remained available. A brief failed activity refresh retained aged data
+with its explicit stale indicator, then recovered automatically.
+
+CI on the preceding head b890740f passed frontend, browser and the actual-stack cockpit
+journey, but the enterprise backend load test exceeded its unchanged 3-second p95 limit
+(3.251606216 seconds); 1,736 tests passed in that shard and the aggregate backend-quality
+check inherits that failure. This UI-only refinement does not resolve or waive that
+performance gate. New-head CI and the earlier enterprise/pilot rollout gates remain open.

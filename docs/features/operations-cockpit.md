@@ -1,12 +1,14 @@
 # Operations cockpit
 
-## Preview parity refinement (FR-052–056)
+## Console hierarchy and preview refinement (FR-052–061)
 
-Shipping and the recent recorded-business-event log occupy the first row, with the
-existing named Agent/access roster beneath the log. Selected detail analysis and
-whole-case responsibility occupy the second row. Narrow content stacks these regions
-in reading order; both mail plots, the disclosed recording-rate plot, shipping evidence
-and reviewed controls remain available through the existing four live reads.
+FR-059–061 refine the original preview layout by operational importance: shipping and
+whole-case Responsibility occupy the first row; contained selected analysis and the
+recent event log occupy the second, with named Agents beneath the log. Narrow layouts
+preserve that order. Main cards share padding/heading rhythm and retain natural height.
+Analysis has one frame/selector; observation utilities use labelled keyboard-accessible
+icons, while reviewed business controls stay explicit text. Both mail plots, disclosed
+recording-rate plot, shipping explanation and controls use the existing four readers.
 
 The shared flow reader partitions each displayed primary cohort before evidence limits.
 Orders count once at their worst line finding; supplier work counts open lines. Existing

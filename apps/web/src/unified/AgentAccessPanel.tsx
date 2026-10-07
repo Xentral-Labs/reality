@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { List, Minimize2, X } from "lucide-react";
 import { cockpitApi } from "../api";
 import { formatZonedDateTime as formatDateTime, formatNumber, t } from "../localization";
 import { useCockpitLiveRead } from "./useCockpitLiveRead";
@@ -44,13 +45,20 @@ export function AgentAccessPanel({ tenant }: { tenant: string }) {
           <h2 id="agents-title">{t("Agents & connections")}</h2>
         </div>
         <button
-          className="br-btn"
+          className="shell-icon-button cockpit-icon-action"
+          aria-label={t(expanded ? "Compact view" : "View all accesses")}
+          title={t(expanded ? "Compact view" : "View all accesses")}
+          aria-expanded={expanded}
           onClick={() => {
             setExpanded(!expanded);
             setAfter("");
           }}
         >
-          {t(expanded ? "Compact view" : "View all accesses")}
+          {expanded ? (
+            <Minimize2 size={16} aria-hidden="true" />
+          ) : (
+            <List size={16} aria-hidden="true" />
+          )}
         </button>
       </div>
       {expanded && (
@@ -148,8 +156,13 @@ export function AgentAccessPanel({ tenant }: { tenant: string }) {
           </p>
           {selected && (
             <div className="cockpit-basis">
-              <button className="br-btn" onClick={() => setSelected(null)}>
-                {t("Close")}
+              <button
+                className="shell-icon-button cockpit-icon-action cockpit-detail-close"
+                aria-label={t("Close")}
+                title={t("Close")}
+                onClick={() => setSelected(null)}
+              >
+                <X size={16} aria-hidden="true" />
               </button>
               <h3>{selected.name}</h3>
               <p>{t("External runtime state is unknown")}</p>

@@ -198,15 +198,11 @@ export function OperationsCockpitPage({
                 />
               )}
             </div>
-            <div className="cockpit-log-column">
-              <OperationsActivityPanel
-                state={activityState}
-                key={selection.tenant}
-                selection={selection}
-                navigate={navigate}
-              />
-              <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />
-            </div>
+            <OperationalCaseRegister
+              key={selection.tenant}
+              selection={selection}
+              zone={value.time_zone}
+            />
           </div>
           <div className="cockpit-console-row cockpit-console-detail" data-console-secondary>
             <OperatingFlowsPanel
@@ -216,11 +212,15 @@ export function OperationsCockpitPage({
               selected={selectedArea}
               select={selectArea}
             />
-            <OperationalCaseRegister
-              key={selection.tenant}
-              selection={selection}
-              zone={value.time_zone}
-            />
+            <div className="cockpit-log-column">
+              <OperationsActivityPanel
+                state={activityState}
+                key={selection.tenant}
+                selection={selection}
+                navigate={navigate}
+              />
+              <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />
+            </div>
           </div>
           {state.data && (
             <OperationsDeviationsPanel
