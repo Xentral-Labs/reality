@@ -4,9 +4,10 @@
 
 **Simple on the surface. Fully explainable underneath.**
 
-Spec 378 FR-047–064 refines the optional Control Tower into a compact instrument
+Spec 378 FR-047–067 refines the optional Control Tower into a compact instrument
 console and a shared analysis selector with shipping first, followed by the five
-operational flow areas. Responsibility precedes log/Agent monitoring alongside it.
+operational flow areas. One adjacent Operations workspace defaults to Responsibility and switches locally
+to log/Agent monitoring; shipping blockers are disclosed inside the shipping view.
 Message intake/first-reply and backlog diagrams
 remain separate; physical flows keep their measurement units, Finance is explicitly
 unavailable, and shipping/agent/manual-case controls retain their existing meaning.

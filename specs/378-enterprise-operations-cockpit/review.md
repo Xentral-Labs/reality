@@ -643,3 +643,22 @@ controlled eight-hour lifecycle, audit/format/build/spec checks and actual compa
 inspection pass. Only the frontend was activated. PR 383 describes the final
 implementation and recorded limitations. Head-specific CI, enterprise performance
 and reviewer-owned rollout/pilot acceptance remain open; no threshold was waived.
+
+
+FR-065–067 requirements/plan/pre-implementation analysis: PASS. Owner explicitly
+requests the compact switchable grouping and logical shipping placement. T100–102
+map defaults/frame/switch/state/disclosure and full matrix/lifecycle/actual-view
+proof. Superseded FR-064 right-stack visibility is explicit; original control priority
+and service/evidence semantics remain. No unresolved clarification, critical finding
+or Constitution exception. Existing performance/pilot and human review gates remain.
+
+
+Final FR-065–067 presentation review: PASS. Two primary outer frames, one native
+workspace selector with Responsibility default, retained hidden state/readers and
+counted shipping disclosure match the owner scope. Existing source/action/control
+coverage remains tested, including native keyboard and all viewport/theme/language
+views. Contracts, matrix, controlled eight-hour lifecycle, audits and build/spec
+checks pass. Actual company view confirms all three right views and contextual
+blocker restoration. Existing database_error in case reconciliation and enterprise
+performance/real pilot gates remain explicit; no business rule or threshold changed.
+PR 383 remains the existing review destination; current-head CI acceptance is separate.

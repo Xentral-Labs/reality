@@ -12,7 +12,9 @@ export function OperationsDeviationsPanel({
   value,
   selection,
   inspect,
+  embedded = false,
 }: {
+  embedded?: boolean;
   value: CockpitObservation;
   selection: Selection;
   inspect: () => void;
@@ -21,7 +23,10 @@ export function OperationsDeviationsPanel({
   const rows = value.deviations || [];
   const shown = expanded ? rows : rows.slice(0, 4);
   return (
-    <section className="cockpit-card" data-operational-deviations>
+    <section
+      className={`cockpit-deviations ${embedded ? "" : "cockpit-card"}`}
+      data-operational-deviations
+    >
       <div className="cockpit-card-heading">
         <div>
           <span className="cockpit-eyebrow">{t("Shipping risks")}</span>

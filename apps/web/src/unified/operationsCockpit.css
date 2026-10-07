@@ -1489,3 +1489,58 @@ a.cockpit-status-link:focus-visible {
 [data-shipping-analysis] .cockpit-card-heading {
   margin-bottom: 16px;
 }
+
+/* Keep secondary operational views local without resetting live or review state. */
+.cockpit-workspace-pane[hidden] {
+  display: none !important;
+}
+.cockpit-workspace-pane > .cockpit-card {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cockpit-operations-workspace > .cockpit-card-heading {
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.cockpit-operations-workspace > .cockpit-card-heading > div:first-child {
+  flex: 1 0 200px;
+  min-width: 0;
+  max-width: 100%;
+}
+.cockpit-workspace-selector {
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 240px;
+}
+.cockpit-workspace-pane .cockpit-eyebrow {
+  display: none;
+}
+.cockpit-shipping-deviations {
+  margin-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+}
+.cockpit-shipping-deviations > summary {
+  cursor: pointer;
+  color: var(--text-strong);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.cockpit-shipping-deviations > summary > span {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.cockpit-shipping-deviations > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.cockpit-shipping-deviations > .cockpit-deviations {
+  margin-top: 20px;
+  padding: 0;
+}

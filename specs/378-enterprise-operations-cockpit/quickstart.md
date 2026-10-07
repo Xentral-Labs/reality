@@ -669,3 +669,53 @@ in the temporary verification artifacts. The pinned day retains 853 due/35 confi
 continue independently, including explicit transient stale/read-failure indicators;
 this presentation change does not repair backend read failures. API, database,
 simulator, scheduler, worker and operator were not restarted or modified.
+
+
+## Compact Operations workspace and scoped blockers (FR-065–067)
+
+The pre-implementation browser regression failed because the compact workspace did
+not exist. Final browser matrix passes with exactly three native choices, default
+Responsibility, one visible right panel and no nested panel framing. Native keyboard
+type-ahead retains selector focus, viewport and history. Company changes reset the
+workspace; hidden views are excluded from accessibility traversal. Exact manual
+reason, paused events, Agent expansion and selected Agent inspection survive switches.
+The counted shipping disclosure starts closed inside shipping, opens without losing
+source/action preview or supporting investigation, and retains its state across chart
+switches. Existing dense/missing/stale/private controls and four language/two theme
+Shipping/Messages plus all three workspace views pass at 320/390/1440/1920px.
+
+Frontend contracts: 478 passed. Four-language audit: 3,025 phrases each, no missing or
+invalid entries. Formatting and TypeScript/Vite build pass, as do spec policy/diff
+checks. No business service, schema, confirmation, permission or polling changes.
+
+Controlled eight-hour lifecycle: zero page errors; overview 5,748 reads, activity
+5,750, Agents 5,752 and register 5,753, each below 5,800. The hidden log remained
+paused, exact manual reason/revision survived switches and hourly Agent selection,
+and company change/access revocation removed previous-company work. Final copy
+polish only changes the shipping disclosure's localized count caption.
+
+Actual company inspection confirms one workspace defaulting to Responsibility,
+with analysis/workspace top both 754px in the observed viewport. Switching to Live
+events shows the bounded event list; switching to Agents shows the named Claude
+access and observed use, then returning preserves the existing manual case. Shipping
+blockers start closed, reveal four preview rows, hide with Messages and restore
+open on returning to Shipping. The disclosure was closed after verification. The
+pinned source-backed shipping day retains 853 due/35 confirmed/818 risk; no historical
+forecast was fabricated. Existing case reconciliation still reports database_error
+while the scoped register remains available; that backend condition is not repaired
+by this presentation change. Only web was rebuilt/recreated, leaving the actual
+API/database/simulator/operator/scheduler/worker running.
+
+The actual 1280px app window exposed a title collision in the docked right column:
+the shared first-child flex rule squeezed its heading. A new 980px content-width
+regression failed with that CSS. The final scoped first-child rule keeps a 200px
+basis and wraps the selector; the final full matrix includes heading containment
+in every workspace view and the docked geometry proof. Caption/header CSS changes
+after the eight-hour run do not alter component state, readers or services.
+
+Final local reinspection of the corrected image confirms the workspace heading
+fits its full 329px content width; its selector is below the title at the actual
+1280px app window. Exactly one workspace pane is visible, Live events uses the same
+card, and Responsibility/Shipping are restored after verification. Screenshots:
+compact-workspace-live.jpg and compact-live-events.jpg in temporary artifacts.
+Final frontend image and all required presentation checks pass.

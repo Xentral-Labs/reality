@@ -1,5 +1,33 @@
 # Feature Specification: Enterprise operations cockpit — shipping and case control
 
+## Owner-requested compact operations workspace (2026-10-07)
+
+The owner requests a coherent, quieter arrangement instead of three permanently
+expanded right-column boxes and detached shipping blockers. This supersedes the
+continuously visible right-column stack in FR-064, preserving its control priority.
+
+- **FR-065**: One adjacent Operations workspace card MUST present exactly one of
+  Responsibility (default), Live events, or Registered Agents, using one labelled
+  native selector. Switching is local with stable header/focus/history, all existing
+  content and reviewed business controls accessible. Company changes reset to
+  Responsibility. Hidden panels stay mounted and keep their exact manual draft,
+  inspection, paused log, selected Agent and live-reader lifecycle.
+- **FR-066**: Shipping blockers MUST be a collapsed, counted disclosure inside the
+  shipping analysis, available only with shipping. Opening it retains every original
+  source/action link, bounded preview, expansion and full supporting investigation.
+  Switching away/back retains its open state. No detached full-width blocker card.
+- **FR-067**: Analysis and Operations workspace MUST use consistent outer frames,
+  header/select spacing and responsive reading order (analysis then workspace).
+  Only the selected right panel occupies layout or keyboard/accessibility traversal;
+  no nested card frames, arbitrary empty fixed heights, business-rule changes, new
+  readers or timers. All diagrams, actual dates/scopes and unknown indicators remain.
+
+Acceptance: fresh view has Shipping/Responsibility, exactly two primary card frames;
+keyboard area switches do not reset a prepared takeover or paused log; hidden Agent
+access continues its original reader without extra requests. Shipping blockers start
+closed, expand in-place and restore across area switches. Both themes, all four
+languages and narrow/docked widths remain readable without overflow.
+
 ## Owner-requested shared analysis including shipping (2026-10-07)
 
 The owner explicitly requests shipping performance in the same switchable analysis

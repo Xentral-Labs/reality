@@ -1,5 +1,11 @@
 # Tasks: Enterprise operations cockpit
 
+## Compact Operations workspace (FR-065–067)
+
+- [x] T100 Add failing compact frame/default/selection and scoped shipping disclosure proof; preserve control/evidence coverage and extend lifecycle switch-state assertions.
+- [x] T101 Add the mounted three-view workspace and contextual counted shipping blockers; localize and unify the two card surfaces without reader/business changes.
+- [x] T102 Run required presentation checks, activate only web, inspect actual company, record evidence and update PR 383.
+
 ## Shared analysis including shipping (FR-062–064)
 
 - [x] T097 Add failing default/six-option/shared-location and shipping-state restoration browser proof; adapt approved hierarchy assertions without dropping existing flow/source/control coverage.

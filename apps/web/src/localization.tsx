@@ -13,6 +13,9 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Affected orders": "Betroffene Aufträge",
+    "Operations workspace": "Betriebssteuerung",
+    "Workspace view": "Ansicht",
     "Not assessed": "Nicht eingestuft",
     "In plan": "Im Plan",
     "Segments: share of the displayed open work": "Segmente: Anteil der angezeigten offenen Arbeit",
@@ -2511,6 +2514,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Affected orders": "Betrokken orders",
+    "Operations workspace": "Bedrijfssturing",
+    "Workspace view": "Weergave",
     "Not assessed": "Niet beoordeeld",
     "In plan": "Volgens plan",
     "At risk": "Risico",
@@ -4705,6 +4711,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Affected orders": "Pedidos afectados",
+    "Operations workspace": "Gestión operativa",
+    "Workspace view": "Vista",
     "Not assessed": "Sin evaluar",
     "In plan": "Según lo previsto",
     "At risk": "En riesgo",

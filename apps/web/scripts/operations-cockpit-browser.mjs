@@ -9,7 +9,11 @@ const browser = await chromium.launch({
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
 page.setDefaultTimeout(10000);
+async function showWorkspace(view) {
+  await page.locator(".cockpit-workspace-selector select").selectOption(view);
+}
 async function openCaseWorkspace() {
+  await showWorkspace("responsibility");
   const toggle = page.getByRole("button", { name: "Select a case", exact: true });
   if (await toggle.count()) await toggle.click();
 }
@@ -22,48 +26,46 @@ async function assertCaseEntry(label) {
       return { top, bottom, left, right, width };
     };
     return {
-      shipping: rect(".cockpit-shipping"),
-      log: rect(".cockpit-activity"),
-      agents: rect("[data-agent-access]"),
+      workspace: rect("[data-operations-workspace]"),
       analysis: rect("[data-operating-flows]"),
-      cases: rect("[data-case-register]"),
       console: rect(".operations-cockpit"),
-      responsibilityBeforeLog: Boolean(
-        document
-          .querySelector("[data-case-register]")
-          .compareDocumentPosition(document.querySelector(".cockpit-activity")) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
+      visible: document.querySelectorAll(".cockpit-workspace-pane:not([hidden])").length,
+      headingFits: (() => {
+        const h = document.querySelector("[data-operations-workspace] > header h2");
+        return h.scrollWidth <= h.clientWidth;
+      })(),
+      nested: [...document.querySelectorAll(".cockpit-workspace-pane > .cockpit-card")].map(
+        (el) => ({
+          border: getComputedStyle(el).borderTopWidth,
+          padding: getComputedStyle(el).paddingTop,
+        }),
       ),
     };
   });
-  assert(layout.cases.width <= 1120, `${label}: bounded responsibility`);
+  assert(layout.headingFits, `${label}: workspace heading is not squeezed under its selector`);
+  assert.equal(layout.visible, 1, `${label}: exactly one right view occupies layout`);
   assert(
-    layout.responsibilityBeforeLog,
-    `${label}: responsibility precedes observation in reading order`,
+    layout.nested.every((x) => x.border === "0px" && x.padding === "0px"),
+    `${label}: secondary views have no nested frames or padding`,
   );
-  if (label === "initial desktop") {
+  assert(layout.workspace.width <= 1120, `${label}: bounded operations workspace`);
+  if (label === "initial desktop")
     assert(
-      layout.cases.bottom < layout.analysis.bottom,
-      `${label}: compact responsibility keeps its natural height`,
+      layout.workspace.bottom < layout.analysis.bottom,
+      `${label}: compact workspace keeps natural height`,
     );
-  }
   if (layout.console.width > 820) {
     assert(
-      Math.abs(layout.analysis.top - layout.cases.top) < 2,
-      `${label}: shared analysis and responsibility share the top row`,
+      Math.abs(layout.analysis.top - layout.workspace.top) < 2,
+      `${label}: analysis and operations workspace share the top row`,
     );
-    assert(layout.cases.left >= layout.analysis.right, `${label}: responsibility beside analysis`);
+    assert(layout.workspace.left >= layout.analysis.right, `${label}: workspace beside analysis`);
   } else {
     assert(
-      layout.cases.top > layout.analysis.bottom,
-      `${label}: responsibility follows shared analysis`,
+      layout.workspace.top > layout.analysis.bottom,
+      `${label}: workspace follows shared analysis`,
     );
   }
-  assert(layout.log.top > layout.cases.bottom, `${label}: live log follows responsibility`);
-  assert(
-    layout.agents.top > layout.log.bottom,
-    `${label}: registered Agents immediately under the log`,
-  );
 }
 async function assertWorkspaceSurfaces(label) {
   const surfaces = await page.evaluate(() => {
@@ -210,9 +212,7 @@ async function assertFlowAlignment(label) {
     border: getComputedStyle(element).borderTopWidth,
     nestedCards: element.querySelectorAll(".cockpit-card").length,
     paddings: [
-      ...document.querySelectorAll(
-        ".cockpit-activity, [data-agent-access], [data-case-register], [data-operating-flows]",
-      ),
+      ...document.querySelectorAll("[data-operations-workspace], [data-operating-flows]"),
     ].map((node) => getComputedStyle(node).paddingTop),
   }));
   assert(
@@ -562,6 +562,68 @@ try {
     "shipping occupies the shared analysis location",
   );
   await assertCaseEntry("initial desktop");
+  await page.locator(".operations-cockpit").evaluate((el) => {
+    el.style.maxWidth = "980px";
+  });
+  await assertCaseEntry("docked workspace");
+  await page.locator(".operations-cockpit").evaluate((el) => {
+    el.style.maxWidth = "";
+  });
+  const workspaceSelector = page.getByRole("combobox", { name: "Workspace view", exact: true });
+  assert.match(
+    await page.locator("[data-shipping-deviations] > summary").textContent(),
+    new RegExp(`Affected orders: ${denseEvidence ? 321 : 0}`),
+    "collapsed disclosure retains the actual cohort count",
+  );
+  assert.equal(await workspaceSelector.inputValue(), "responsibility");
+  assert.deepEqual(
+    await workspaceSelector.locator("option").evaluateAll((opts) => opts.map((x) => x.value)),
+    ["responsibility", "activity", "agents"],
+  );
+  assert.equal(
+    await page.getByRole("button", { name: "Pause following", exact: true }).count(),
+    0,
+    "hidden log is excluded from accessibility",
+  );
+  assert.equal(
+    await page.getByRole("heading", { name: "Agents & connections", exact: true }).count(),
+    0,
+    "hidden Agent view is excluded from accessibility",
+  );
+  assert.equal(
+    await page.locator("[data-shipping-deviations]").evaluate((el) => el.open),
+    false,
+    "shipping blockers start collapsed",
+  );
+  assert.equal(
+    await page.locator("[data-shipping-analysis] [data-operational-deviations]").count(),
+    1,
+    "shipping blockers belong to shipping analysis",
+  );
+  await workspaceSelector.focus();
+  const beforeWorkspace = await workspaceSelector.evaluate((el) => ({
+    top: el.closest("[data-operations-workspace]").getBoundingClientRect().top,
+    history: history.length,
+  }));
+  await workspaceSelector.press("l");
+  assert.equal(
+    await workspaceSelector.inputValue(),
+    "activity",
+    "native keyboard changes workspace view",
+  );
+  assert.equal(await page.locator("[data-case-register]").isVisible(), false);
+  const afterWorkspace = await workspaceSelector.evaluate((el) => ({
+    top: el.closest("[data-operations-workspace]").getBoundingClientRect().top,
+    history: history.length,
+    focus: document.activeElement === el,
+  }));
+  assert(
+    Math.abs(beforeWorkspace.top - afterWorkspace.top) < 2 &&
+      beforeWorkspace.history === afterWorkspace.history &&
+      afterWorkspace.focus,
+    "workspace switch retains viewport, history and focus",
+  );
+  await showWorkspace("agents");
   const accessToggle = page.getByRole("button", { name: "View all accesses", exact: true });
   assert.equal(await accessToggle.getAttribute("title"), "View all accesses");
   assert.equal(await accessToggle.locator("svg").count(), 1);
@@ -571,7 +633,15 @@ try {
   await page.getByRole("combobox", { name: /Access state/ }).waitFor();
   const compactAccess = page.getByRole("button", { name: "Compact view", exact: true });
   assert.equal(await compactAccess.getAttribute("aria-expanded"), "true");
+  await showWorkspace("responsibility");
+  await showWorkspace("agents");
+  assert.equal(
+    await compactAccess.getAttribute("aria-expanded"),
+    "true",
+    "Agent expansion survives view switches",
+  );
   await compactAccess.click();
+  await showWorkspace("responsibility");
   await page.locator("[data-risk-legend]").waitFor();
   for (const area of ["orders", "messages", "supply", "stock", "returns"]) {
     const tile = page.locator(`[data-status-area="${area}"]`);
@@ -707,7 +777,13 @@ try {
   );
   await areaSelector.selectOption("orders");
   await areaSelector.selectOption("messages");
+  await showWorkspace("agents");
   await page.evaluate(() => window.__cockpitNavigate({ tenant: "other-company" }));
+  assert.equal(
+    await workspaceSelector.inputValue(),
+    "responsibility",
+    "company change resets the operations workspace",
+  );
   await page.waitForFunction(
     () => document.querySelector(".cockpit-analysis-selector select")?.value === "shipping",
   );
@@ -732,7 +808,13 @@ try {
       "/scripts/fixtures/operations-cockpit-harness.html",
   );
   await page.locator('[data-status-area="orders"][data-signal="progress"]').waitFor();
+  assert.equal(
+    await page.locator("[data-operations-workspace]").count(),
+    1,
+    "one compact operations workspace",
+  );
   await assertFlowAlignment("initial desktop");
+  await showWorkspace("activity");
   await page.getByText("Recording rate & period", { exact: true }).click();
   const timeSelection = page.getByRole("group", { name: "Activity period", exact: true });
   assert.equal(await timeSelection.locator(".br-btn").count(), 3);
@@ -818,7 +900,11 @@ try {
     1,
   );
   assert.equal(await page.locator('[data-flow-area="returns"] dd').first().textContent(), "2");
+  await showWorkspace("activity");
   await page.getByText("Business document recorded", { exact: true }).waitFor();
+  await areaSelector.selectOption("shipping");
+  const shippingDeviations = page.locator("[data-shipping-deviations]");
+  await shippingDeviations.locator(":scope > summary").click();
   assert.equal(await page.locator("[data-shipping-series]").count(), 3);
   assert.equal(
     await page.locator("[data-cutoff-preview]").first().locator(":scope > div").count(),
@@ -852,6 +938,7 @@ try {
   await cutoff.locator("summary").click();
   assert.equal(await cutoff.locator("[data-cutoff-entry]").last().isVisible(), true);
   await cutoff.locator("summary").click();
+  assert(await shippingDeviations.evaluate((el) => el.open));
   const deviation = page.locator("[data-deviation-preview]").first();
   assert.equal(
     await deviation.getByRole("link", { name: "Recorded action 39", exact: true }).isVisible(),
@@ -863,11 +950,21 @@ try {
   await page.getByRole("button", { name: "Show more deviations", exact: true }).click();
   assert.equal(await page.locator("[data-deviation-preview]").count(), 8);
   await areaSelector.selectOption("messages");
+  assert.equal(
+    await shippingDeviations.isVisible(),
+    false,
+    "shipping blockers are scoped to the selected shipping view",
+  );
+  await areaSelector.selectOption("shipping");
+  assert(
+    await shippingDeviations.evaluate((el) => el.open),
+    "blocker disclosure survives chart switches",
+  );
   await page.getByRole("button", { name: "Inspect all affected orders", exact: true }).click();
   assert.equal(
     await areaSelector.inputValue(),
     "shipping",
-    "global shipping investigation selects shipping",
+    "shipping investigation retains shipping",
   );
   await page.locator("[data-shipping-inspection]").waitFor();
   assert.equal(
@@ -906,6 +1003,7 @@ try {
     true,
     "Closing restores the triggering control",
   );
+  await showWorkspace("responsibility");
   assert.equal(
     await page
       .locator("[data-case-register]")
@@ -950,6 +1048,7 @@ try {
   await page.getByRole("heading", { name: "Cases & takeover" }).waitFor();
   await openCaseWorkspace();
   for (const panel of ["[data-agent-access]", "[data-case-register]"]) {
+    await showWorkspace(panel === "[data-agent-access]" ? "agents" : "responsibility");
     const observation = page.locator(`${panel} time[data-observed-at]`);
     await observation.waitFor();
     assert.equal(await observation.getAttribute("datetime"), at("12:30"));
@@ -958,6 +1057,7 @@ try {
       panel === "[data-agent-access]" ? /12:30.*GMT/ : /14:30.*GMT\+2/,
     );
   }
+  await showWorkspace("responsibility");
   await page
     .locator('[data-case-id="case_d"]')
     .getByRole("button", { name: "Case details", exact: true })
@@ -969,6 +1069,14 @@ try {
   await page.getByRole("button", { name: "Hide case list", exact: true }).click();
   await openCaseWorkspace();
   assert.equal(await page.getByLabel("Takeover reason").inputValue(), "Customer appointment");
+  await showWorkspace("activity");
+  await showWorkspace("agents");
+  await showWorkspace("responsibility");
+  assert.equal(
+    await page.getByLabel("Takeover reason").inputValue(),
+    "Customer appointment",
+    "exact manual review survives workspace switches",
+  );
   assert.equal(writes.length, 0, "Observation and review preparation never mutate business work");
   await page.getByRole("button", { name: "Confirm manual takeover", exact: true }).click();
   await page.getByText("Alex Operations", { exact: true }).waitFor();
@@ -984,8 +1092,25 @@ try {
   await page.getByText("Automation owns this work", { exact: true }).first().waitFor();
   assert.equal(controlRevision, 3);
   assert.equal(writes.length, 2);
-  await page.getByRole("heading", { name: "Recorded business activity" }).waitFor();
+  await showWorkspace("agents");
   await page.getByText("Shipping <Agent>", { exact: true }).waitFor();
+  await page.locator("[data-agent-access] .cockpit-agent-list button").first().click();
+  await showWorkspace("responsibility");
+  await showWorkspace("activity");
+  await showWorkspace("agents");
+  assert(
+    await page
+      .locator("[data-agent-access]")
+      .getByRole("heading", { name: "Shipping <Agent>", exact: true })
+      .isVisible(),
+    "selected Agent inspection survives switches",
+  );
+  await page
+    .locator("[data-agent-access]")
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
+  await showWorkspace("activity");
+  await page.getByRole("heading", { name: "Recorded business activity" }).waitFor();
   assert.equal(await page.locator("[data-agent-access] script").count(), 0);
   const pause = page.getByRole("button", { name: "Pause following", exact: true });
   assert.equal(await pause.getAttribute("title"), "Pause following");
@@ -1002,6 +1127,14 @@ try {
   assert.equal(
     await page.getByRole("button", { name: "Resume following" }).getAttribute("aria-pressed"),
     "true",
+  );
+  await showWorkspace("responsibility");
+  await showWorkspace("agents");
+  await showWorkspace("activity");
+  assert.equal(
+    await page.getByRole("button", { name: "Resume following" }).getAttribute("aria-pressed"),
+    "true",
+    "paused log survives workspace switches",
   );
   eventIndex = 2;
   await page.getByText("New activity available", { exact: true }).waitFor({ timeout: 12000 });
@@ -1086,6 +1219,7 @@ try {
     "Populated mobile has no page overflow",
   );
   await page.setViewportSize({ width: 1440, height: 1050 });
+  await showWorkspace("activity");
   failure = true;
   await page
     .locator(".cockpit-status")
@@ -1132,6 +1266,7 @@ try {
   );
   assert.equal(writes.length, 2, "only the two explicit reviewed controls mutate work");
   assert.deepEqual(errors, []);
+  await showWorkspace("agents");
   await page
     .getByText("Agent access overview is restricted to company owners", { exact: true })
     .waitFor({ timeout: 12000 });
@@ -1197,6 +1332,10 @@ try {
         await assertFlowAlignment(`${language}/${theme}/${width}/shipping`);
         await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         await assertFlowAlignment(`${language}/${theme}/${width}/messages`);
+        for (const view of ["responsibility", "activity", "agents"]) {
+          await showWorkspace(view);
+          await assertCaseEntry(`${language}/${theme}/${width}/${view}`);
+        }
         assert(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           `${language}/${theme}/${width}: viewport remains bounded; ${JSON.stringify(
@@ -1292,6 +1431,7 @@ try {
   await page.getByText("Manually taken over: 0", { exact: true }).waitFor();
   staleAccess = staleCases = true;
   for (const panel of ["[data-agent-access]", "[data-case-register]"]) {
+    await showWorkspace(panel === "[data-agent-access]" ? "agents" : "responsibility");
     await page
       .locator(panel)
       .getByText("Previous observation — refresh failed", { exact: true })
