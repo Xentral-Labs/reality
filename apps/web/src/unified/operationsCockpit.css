@@ -1733,3 +1733,174 @@ a.cockpit-status-link:focus-visible {
   position: relative;
   z-index: 2;
 }
+
+/* Shared console hierarchy: panel, metric period, plot and supporting context. */
+.cockpit-console-row > .cockpit-card > .cockpit-card-heading,
+.cockpit-analysis-column > .cockpit-card > .cockpit-card-heading {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.cockpit-metric-groups {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.cockpit-metric-group {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+}
+.cockpit-metric-group h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.cockpit-flow-card.cockpit-analysis-card .cockpit-metric-group dl {
+  margin: 0;
+}
+.cockpit-flow-card.cockpit-analysis-card dl[data-metric-count="1"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.cockpit-flow-card.cockpit-analysis-card dl[data-metric-count="2"],
+.cockpit-flow-card.cockpit-analysis-card dl[data-metric-count="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.cockpit-metric-group dl > div {
+  padding-block: 0;
+}
+.cockpit-metric-group dd,
+.cockpit-flow-card .cockpit-metric-group dl > div:first-child dd {
+  font-size: 26px;
+  color: var(--text-strong);
+}
+.cockpit-analysis-plot,
+.cockpit-shipping-plot {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.cockpit-analysis-plot figcaption {
+  margin-bottom: 12px;
+}
+.cockpit-analysis-plot h4 {
+  margin: 0;
+  color: var(--text-strong);
+}
+.cockpit-plot-context {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.cockpit-plot-context .cockpit-flow-axis-labels {
+  margin: 0;
+}
+.cockpit-plot-context .cockpit-note {
+  margin: 10px 0 0;
+}
+.cockpit-analysis-card .cockpit-flow-chart > .cockpit-note {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.cockpit-analysis-card .cockpit-flow-notes:empty {
+  display: none;
+}
+.cockpit-analysis-card .cockpit-flow-details {
+  margin: 20px 0 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+.cockpit-shipping-plot {
+  margin-top: 20px;
+}
+.cockpit-shipping-plot .cockpit-legend {
+  margin-top: 0;
+}
+.cockpit-shipping .cockpit-metrics {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+}
+.cockpit-shipping .cockpit-metric:first-child {
+  padding-left: 16px;
+}
+.cockpit-daily-actuals {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+}
+.cockpit-workspace-pane .cockpit-case-introduction {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cockpit-console-row .cockpit-case-counts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+  gap: 12px;
+}
+.cockpit-workspace-pane .cockpit-case-count.br-btn {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  text-align: left;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  white-space: normal;
+  padding: 12px;
+  gap: 8px;
+  background: var(--surface-sunken);
+}
+.cockpit-workspace-pane .cockpit-case-count strong {
+  font-size: 26px;
+}
+.cockpit-workspace-pane .cockpit-manual-preview {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--surface-sunken);
+}
+.cockpit-workspace-pane .cockpit-event-list,
+.cockpit-workspace-pane .cockpit-agent-list {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.cockpit-workspace-pane .cockpit-event-list li,
+.cockpit-workspace-pane .cockpit-agent-list li {
+  padding: 12px;
+}
+.cockpit-workspace-pane .cockpit-event-list li:last-child,
+.cockpit-workspace-pane .cockpit-agent-list li:last-child {
+  border-bottom: 0;
+}
+@container (max-width: 400px) {
+  .cockpit-flow-card.cockpit-analysis-card .cockpit-metric-group dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cockpit-metric-group,
+  .cockpit-analysis-plot,
+  .cockpit-shipping-plot,
+  .cockpit-daily-actuals {
+    padding: 12px;
+  }
+}
+
+@container (max-width: 400px) {
+  .cockpit-console-row .cockpit-card-heading h2 {
+    font-size: 16px;
+    line-height: 1.35;
+  }
+  .cockpit-flow-board > .cockpit-card-heading,
+  .cockpit-operations-workspace > .cockpit-card-heading {
+    gap: 12px;
+    padding-bottom: 12px;
+  }
+}

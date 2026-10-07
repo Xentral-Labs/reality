@@ -239,7 +239,7 @@ export function ShippingDayPanel({
           </p>
         </div>
       ) : (
-        <>
+        <div className="cockpit-shipping-plot" data-shipping-plot>
           <div className="cockpit-legend">
             {Object.entries(seriesLabels).map(([key, label]) => (
               <button
@@ -374,7 +374,7 @@ export function ShippingDayPanel({
               {t("Selected day has ended — no historical forecast is reconstructed.")}
             </p>
           )}
-        </>
+        </div>
       )}
       {value.gaps.length > 0 && (
         <details className="cockpit-gaps">

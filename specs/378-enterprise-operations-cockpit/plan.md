@@ -637,3 +637,21 @@ modal/full-matrix proofs. Verify frontend contracts, audit/format/build/spec pol
 then activate only the web locally and update existing PR. Constitution PASS; no
 service/schema/business/authority/polling change. Rollback removes the additive hit
 area styling and restores the existing count instruction.
+
+
+## Readable content grouping
+
+FR-075: Extend explicit Metric presentation metadata with interval membership,
+render current/recent definition-list groups in OperatingFlowsPanel, and keep
+message coverage/change notes with its backlog Curve through an optional footer.
+Use semantic section/figure boundaries, shared border/surface tokens and aligned
+label/value rows. Bound shipping plan plots in ShippingDayPanel and use the same
+CSS rhythm for shipping counts, workspace introduction/actions, manual preview,
+event/Agent lists and panel headers. No new domain/service/tool/schema/polling
+changes or copied business rules. Product browser proof first validates group
+counts, boundaries/containment and scope-note ownership; retain complete matrix
+for locale/theme/responsive/selection/action evidence. Frontend contracts, build,
+localization, format and spec policy follow; activate only web and inspect actual
+company. Constitution PASS for all eight principles, explicit owner presentation
+request has no unresolved clarification. Rollback restores the prior grouping
+markup/styles without affecting data. Existing performance/CI/release gates remain.

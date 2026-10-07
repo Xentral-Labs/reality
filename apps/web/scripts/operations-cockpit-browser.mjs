@@ -42,6 +42,19 @@ async function assertCaseEntry(label) {
       ),
     };
   });
+  const counts = await page
+    .locator(".cockpit-workspace-pane:not([hidden]) .cockpit-case-count")
+    .evaluateAll((elements) =>
+      elements.map((element) => ({
+        top: element.getBoundingClientRect().top,
+        valueTop: element.querySelector("strong").getBoundingClientRect().top,
+      })),
+    );
+  if (counts.length === 2 && Math.abs(counts[0].top - counts[1].top) < 2)
+    assert(
+      Math.abs(counts[0].valueTop - counts[1].valueTop) < 2,
+      `${label}: responsibility values align despite wrapping ownership labels`,
+    );
   assert(layout.headingFits, `${label}: workspace heading is not squeezed under its selector`);
   assert.equal(layout.visible, 1, `${label}: exactly one right view occupies layout`);
   assert(
@@ -124,6 +137,77 @@ async function assertTrafficPalette(label) {
     assert.equal(tile.detail, expected, `${label}: the detail status uses the same color`);
   }
 }
+async function assertContentGrouping(label) {
+  const groups = await page
+    .locator("[data-flow-area]:not([hidden]) [data-metric-period]")
+    .evaluateAll((elements) =>
+      elements.map((element) => ({
+        period: element.dataset.metricPeriod,
+        metrics: element.querySelectorAll("dd").length,
+        caption: element.querySelector("h3")?.textContent,
+        border: getComputedStyle(element).borderTopWidth,
+      })),
+    );
+  const area = await page.locator("[data-flow-area]:not([hidden])").getAttribute("data-flow-area");
+  const counts = {
+    orders: [1, 2],
+    messages: [3, 2],
+    supply: [3, 1],
+    stock: [1, 0],
+    returns: [4, 1],
+  }[area];
+  assert.deepEqual(
+    groups.map((group) => [group.period, group.metrics]),
+    counts[1]
+      ? [
+          ["current", counts[0]],
+          ["recent", counts[1]],
+        ]
+      : [["current", counts[0]]],
+    `${label}: present state and interval activity have explicit separate groups`,
+  );
+  assert(
+    groups.every((group) => group.caption && group.border === "1px"),
+    `${label}: metric groups have visible captions and boundaries`,
+  );
+  const plots = await page
+    .locator("[data-flow-area]:not([hidden]) [data-analysis-kind]")
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          border: getComputedStyle(element).borderTopWidth,
+          radius: getComputedStyle(element).borderRadius,
+          metadataContained: [
+            ...element.querySelectorAll(
+              "svg, h4, .cockpit-flow-legend, .cockpit-flow-axis-labels, p",
+            ),
+          ].every((child) => {
+            const r = child.getBoundingClientRect();
+            return (
+              r.left >= rect.left &&
+              r.right <= rect.right + 1 &&
+              r.top >= rect.top &&
+              r.bottom <= rect.bottom + 1
+            );
+          }),
+        };
+      }),
+    );
+  assert(
+    plots.every((plot) => plot.border === "1px" && plot.radius !== "0px" && plot.metadataContained),
+    `${label}: each diagram bounds its title, series and metadata`,
+  );
+  if (area === "messages") {
+    const backlog = page.locator('[data-flow-area="messages"] [data-analysis-kind="backlog"]');
+    assert.equal(
+      await backlog.locator("[data-backlog-context]").count(),
+      1,
+      `${label}: reply scope and backlog change belong to the backlog diagram`,
+    );
+  }
+}
+
 async function assertFlowAlignment(label) {
   await assertTrafficPalette(label);
   await assertWorkspaceSurfaces(label);
@@ -170,30 +254,31 @@ async function assertFlowAlignment(label) {
     }
   }
   if (await page.locator("[data-flow-area]:not([hidden]) dl").count()) {
-    const metricRows = await page
+    const metricGroups = await page
       .locator("[data-flow-area]:not([hidden]) dl")
-      .evaluate((element) => {
-        const columns = getComputedStyle(element).gridTemplateColumns.split(" ").length;
-        const positions = [...element.querySelectorAll("dd")].map(
-          (node) => node.getBoundingClientRect().top,
+      .evaluateAll((elements) =>
+        elements.map((element) => ({
+          columns: getComputedStyle(element).gridTemplateColumns.split(" ").length,
+          positions: [...element.querySelectorAll("dd")].map(
+            (node) => node.getBoundingClientRect().top,
+          ),
+          spacing: getComputedStyle(element).rowGap,
+        })),
+      );
+    for (const group of metricGroups) {
+      for (let row = 0; row < group.positions.length; row += group.columns) {
+        const peers = group.positions.slice(row, row + group.columns);
+        assert(
+          Math.max(...peers) - Math.min(...peers) < 2,
+          `${label}: metric values align despite wrapping captions`,
         );
-        return { columns, positions };
-      });
-    for (let row = 0; row < metricRows.positions.length; row += metricRows.columns) {
-      const peers = metricRows.positions.slice(row, row + metricRows.columns);
-      assert(
-        Math.max(...peers) - Math.min(...peers) < 2,
-        `${label}: metric values align despite wrapping captions`,
+      }
+      assert.equal(
+        group.spacing,
+        "16px",
+        `${label}: selected analysis keeps explicit metric-row spacing`,
       );
     }
-    const metricSpacing = await page
-      .locator("[data-flow-area]:not([hidden]) dl")
-      .evaluate((element) => getComputedStyle(element).rowGap);
-    assert.equal(
-      metricSpacing,
-      "16px",
-      `${label}: selected analysis keeps explicit metric-row spacing`,
-    );
   }
   const rhythm = await page.locator("[data-operating-flows]").evaluate((element) => ({
     margin: getComputedStyle(element).marginTop,
@@ -1011,6 +1096,24 @@ try {
   });
   await page.locator(".cockpit-analysis-selector select").selectOption("messages");
   const mailbox = page.locator('[data-flow-area="messages"]');
+  await assertContentGrouping("message grouping before live refresh");
+  assert.deepEqual(
+    await mailbox.locator('[data-metric-period="current"] dd').allTextContents(),
+    ["8", "5", "3"],
+    "present-state values retain their exact snapshot meaning",
+  );
+  assert.deepEqual(
+    await mailbox.locator('[data-metric-period="recent"] dd').allTextContents(),
+    ["2", "34"],
+    "interval values retain their exact snapshot meaning",
+  );
+  assert.equal(
+    await mailbox
+      .locator("[data-backlog-context]")
+      .getByText("Backlog change · 60 min: -36", { exact: true })
+      .count(),
+    1,
+  );
   assert.equal(await mailbox.locator('[data-analysis-kind="flow"] [data-flow-series]').count(), 2);
   assert.equal(
     await mailbox.locator('[data-analysis-kind="backlog"] [data-flow-series]').count(),
@@ -1523,6 +1626,11 @@ try {
         await assertFlowAlignment(`${language}/${theme}/${width}/shipping`);
         await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         await assertFlowAlignment(`${language}/${theme}/${width}/messages`);
+        for (const area of ["orders", "messages", "supply", "stock", "returns"]) {
+          await page.locator(".cockpit-analysis-selector select").selectOption(area);
+          await assertContentGrouping(`${language}/${theme}/${width}/${area}`);
+        }
+        await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         const riskTrigger = page.locator('[data-status-area="stock"] [data-risk-count="critical"]');
         await riskTrigger.click();
         const preview = page.locator(".cockpit-instrument-dialog");

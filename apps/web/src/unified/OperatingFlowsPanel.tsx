@@ -9,7 +9,7 @@ import {
   type Selection,
 } from "./routing";
 
-type Metric = { key: string; label: string };
+type Metric = { key: string; label: string; recent?: boolean };
 export type OperatingAreaKey = "orders" | "messages" | "supply" | "stock" | "returns";
 export type AnalysisAreaKey = "shipping" | OperatingAreaKey;
 const areas: {
@@ -25,8 +25,8 @@ const areas: {
     title: "Customer orders",
     metrics: [
       { key: "open_orders", label: "Orders still to dispatch" },
-      { key: "received_last_hour", label: "New orders · 60 min" },
-      { key: "dispatch_movements_last_hour", label: "Dispatch records · 60 min" },
+      { key: "received_last_hour", label: "New orders · 60 min", recent: true },
+      { key: "dispatch_movements_last_hour", label: "Dispatch records · 60 min", recent: true },
     ],
     lines: [
       { key: "orders_received", label: "New orders" },
@@ -43,8 +43,8 @@ const areas: {
       { key: "unanswered", label: "Without a recorded reply" },
       { key: "customer_requests", label: "Customer requests awaiting reply" },
       { key: "unread", label: "Not yet acknowledged" },
-      { key: "incoming_last_hour", label: "Incoming messages · 60 min" },
-      { key: "first_replies_last_hour", label: "First replies · 60 min" },
+      { key: "incoming_last_hour", label: "Incoming messages · 60 min", recent: true },
+      { key: "first_replies_last_hour", label: "First replies · 60 min", recent: true },
     ],
     lines: [
       { key: "messages_incoming", label: "Incoming messages" },
@@ -60,7 +60,7 @@ const areas: {
     metrics: [
       { key: "open_lines", label: "Supplier lines still expected" },
       { key: "fully_received_lines", label: "Fully received supplier lines" },
-      { key: "receipts_last_hour", label: "Receipt records · 60 min" },
+      { key: "receipts_last_hour", label: "Receipt records · 60 min", recent: true },
       { key: "unknown_due_lines", label: "Expected lines without a date" },
     ],
     lines: [{ key: "receipts", label: "Goods receipt records" }],
@@ -85,7 +85,7 @@ const areas: {
       { key: "resolved_positions", label: "Physically processed positions" },
       { key: "arrived_positions", label: "Recorded return arrivals · total" },
       { key: "expected_announcements", label: "Announced returns still expected" },
-      { key: "arrivals_last_hour", label: "Return arrivals · 60 min" },
+      { key: "arrivals_last_hour", label: "Return arrivals · 60 min", recent: true },
     ],
     lines: [
       { key: "return_arrivals", label: "Return receipt records" },
@@ -489,12 +489,14 @@ function Curve({
   lines,
   level = false,
   title,
+  context,
 }: {
+  context?: ReactNode;
   lines: { label: string; values: (number | null)[] }[];
   level?: boolean;
   title: string;
 }) {
-  const container = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLElement>(null);
   const [width, setWidth] = useState(360);
   useEffect(() => {
     if (!container.current) return;
@@ -514,12 +516,14 @@ function Curve({
     bottom = 143;
   const y = (value: number) => bottom - ((value - minimum) * (bottom - top)) / range;
   return (
-    <div
+    <figure
       className="cockpit-analysis-plot"
       ref={container}
       data-analysis-kind={level ? "backlog" : "flow"}
     >
-      <h4>{t(title)}</h4>
+      <figcaption>
+        <h4>{t(title)}</h4>
+      </figcaption>
       <svg
         viewBox={`0 0 ${width} 190`}
         role="img"
@@ -572,24 +576,29 @@ function Curve({
           {t("Last 60 minutes")}
         </text>
       </svg>
-      <div className="cockpit-flow-axis-labels">
-        <span>
-          {t("Displayed range")}:{" "}
-          {known.length ? `${formatNumber(minimum)}–${formatNumber(maximum)}` : "—"}
-        </span>
-        {!known.length && <span>{t("Data incomplete")}</span>}
-      </div>
-      <div className="cockpit-flow-legend">
-        {lines.map((line, i) => (
-          <span key={line.label} className={`line-${i}`}>
-            {t(line.label)}
+      <div className="cockpit-plot-context">
+        <div className="cockpit-flow-axis-labels">
+          <span>
+            {t("Displayed range")}:{" "}
+            {known.length ? `${formatNumber(minimum)}–${formatNumber(maximum)}` : "—"}
           </span>
-        ))}
+          {!known.length && <span>{t("Data incomplete")}</span>}
+        </div>
+        <div className="cockpit-flow-legend">
+          {lines.map((line, i) => (
+            <span key={line.label} className={`line-${i}`}>
+              {t(line.label)}
+            </span>
+          ))}
+        </div>
+        {!level && (
+          <p className="cockpit-note">
+            {t("Five-minute intervals; edge intervals may be shorter.")}
+          </p>
+        )}
+        {context}
       </div>
-      {!level && (
-        <p className="cockpit-note">{t("Five-minute intervals; edge intervals may be shorter.")}</p>
-      )}
-    </div>
+    </figure>
   );
 }
 
@@ -679,18 +688,37 @@ export function OperatingFlowsPanel({
                   <span aria-hidden="true" />
                   {t(signalLabels[signal])}
                 </p>
-                <dl>
-                  {area.metrics.map((metric) => (
-                    <div key={metric.key}>
-                      <dt>{t(metric.label)}</dt>
-                      <dd>
-                        {typeof data[metric.key] === "number"
-                          ? formatNumber(data[metric.key] as number)
-                          : "—"}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
+                <div className="cockpit-metric-groups">
+                  {([false, true] as const).map((recent) => {
+                    const metrics = area.metrics.filter(
+                      (metric) => Boolean(metric.recent) === recent,
+                    );
+                    if (!metrics.length) return null;
+                    const headingId = `cockpit-${area.key}-${recent ? "recent" : "current"}`;
+                    return (
+                      <section
+                        className="cockpit-metric-group"
+                        data-metric-period={recent ? "recent" : "current"}
+                        key={headingId}
+                        aria-labelledby={headingId}
+                      >
+                        <h3 id={headingId}>{t(recent ? "Last 60 minutes" : "Current status")}</h3>
+                        <dl data-metric-count={metrics.length}>
+                          {metrics.map((metric) => (
+                            <div key={metric.key}>
+                              <dt>{t(metric.label)}</dt>
+                              <dd>
+                                {typeof data[metric.key] === "number"
+                                  ? formatNumber(data[metric.key] as number)
+                                  : "—"}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </section>
+                    );
+                  })}
+                </div>
                 <div className="cockpit-flow-chart" data-flow-chart>
                   {lines.length > 0 && (
                     <Curve
@@ -703,6 +731,19 @@ export function OperatingFlowsPanel({
                   {area.key === "messages" && (
                     <Curve
                       title="Unanswered backlog"
+                      context={
+                        <div data-backlog-context>
+                          <p className="cockpit-note">
+                            {t("Local mailbox · provider response status unknown")}
+                          </p>
+                          <p className="cockpit-note">
+                            {t("Backlog change · 60 min")}:{" "}
+                            {typeof data.backlog_change_last_hour === "number"
+                              ? `${data.backlog_change_last_hour > 0 ? "+" : ""}${formatNumber(data.backlog_change_last_hour)}`
+                              : "—"}
+                          </p>
+                        </div>
+                      }
                       lines={[
                         {
                           label: "Messages awaiting reply",
@@ -719,11 +760,6 @@ export function OperatingFlowsPanel({
                   )}
                 </div>
                 <div className="cockpit-flow-notes">
-                  {area.key === "messages" && (
-                    <p className="cockpit-note">
-                      {t("Local mailbox · provider response status unknown")}
-                    </p>
-                  )}
                   {typeof data.exception_total === "number" && data.exception_total > 0 && (
                     <p className="cockpit-note">
                       {formatNumber(data.exception_total)} {t("recorded exceptions")}
@@ -733,14 +769,6 @@ export function OperatingFlowsPanel({
                     <p className="cockpit-note">
                       {formatNumber(Number(data.unknown_positions))}{" "}
                       {t("positions with unknown disposition")}
-                    </p>
-                  )}
-                  {area.key === "messages" && (
-                    <p className="cockpit-note">
-                      {t("Backlog change · 60 min")}:{" "}
-                      {typeof data.backlog_change_last_hour === "number"
-                        ? `${data.backlog_change_last_hour > 0 ? "+" : ""}${formatNumber(data.backlog_change_last_hour)}`
-                        : "—"}
                     </p>
                   )}
                 </div>
