@@ -98,10 +98,38 @@ try {
     0,
   );
   assert.equal(writes.length, 0);
+  const card = page.locator('[data-case-id="case_order"]');
+  assert.equal(
+    await card.locator("[data-case-identity]").textContent(),
+    "case_order",
+    "company-wide cards retain a visible stable case identity before takeover",
+  );
+  assert.equal(
+    await card.evaluate((el) => getComputedStyle(el).borderTopWidth),
+    "1px",
+    "object cases have independent bounded card styling",
+  );
+  assert.equal(
+    await card.locator("[data-case-technical]").evaluate((el) => el.open),
+    false,
+    "technical details start collapsed",
+  );
+  assert.equal(await card.locator("[data-case-technical] a").first().isVisible(), false);
+  await card.locator("[data-case-technical] > summary").click();
+  assert.equal(await card.locator('a[href*="src_order"]').isVisible(), true);
+  await card.locator("[data-case-technical] > summary").click();
+  assert.equal(writes.length, 0, "disclosures never take over a case");
   await page
     .getByRole("button", { name: "Take over manually / stop automation", exact: true })
     .click();
   assert.equal(writes.length, 0);
+  assert.equal(
+    await page
+      .getByRole("group", { name: "Confirm manual takeover", exact: true })
+      .evaluate((el) => getComputedStyle(el).padding),
+    "16px",
+    "standalone confirmation is styled without cockpit CSS",
+  );
   await page.getByRole("button", { name: "Confirm manual takeover", exact: true }).click();
   await page.getByRole("alert").waitFor();
   await page.getByRole("button", { name: "Confirm manual takeover", exact: true }).click();
@@ -131,9 +159,36 @@ try {
   const readBoundary = reads.length;
   await page.goto(base + "/scripts/fixtures/operational-case-harness.html?document=doc_order");
   await page.getByText("Operational cases", { exact: true }).click();
+  await page.locator("[data-case-technical] > summary").click();
   await page.getByRole("button", { name: "Copy case ID", exact: true }).waitFor();
   assert(reads.slice(readBoundary).some((path) => path.endsWith("/objects/document/doc_order")));
   assert(!reads.slice(readBoundary).some((path) => path.endsWith("/operational-cases")));
+  for (const language of ["en", "de", "nl", "es"]) {
+    for (const theme of ["light", "dark"]) {
+      for (const width of [320, 390, 1440, 1920]) {
+        await page.setViewportSize({ width, height: 1050 });
+        await page.goto(
+          base +
+            "/scripts/fixtures/operational-case-harness.html?document=doc_order&theme=" +
+            theme +
+            "&language=" +
+            language,
+        );
+        await page.locator("[data-operational-cases] > summary").click();
+        await page.locator(".operational-case-controls > button").waitFor();
+        assert.equal(
+          await page
+            .locator("[data-case-id]")
+            .evaluate((el) => getComputedStyle(el).borderTopWidth),
+          "1px",
+        );
+        assert(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          `${theme}/${width}: case panel stays bounded`,
+        );
+      }
+    }
+  }
   assert.deepEqual(errors, []);
   console.log(
     "Operational cases browser: confirmation, takeover retry, provenance, exact handback and direct object discovery passed",

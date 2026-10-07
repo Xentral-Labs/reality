@@ -253,3 +253,10 @@ show their actual date/UTC offset in the global status, case read/control histor
 and supporting-order read. Shipping reference clocks, business-day evaluation
 and stated site deadlines retain their own explicit zones. This is display only;
 stored UTC instants and shipment calculations remain unchanged.
+
+Shared analysis presentation (spec 378 FR-076) uses the same labelled metric-group
+and titled bounded figure wrappers for shipping and company flows. Plan comparison
+precedes the separate recorded physical-activity group; package handovers retain
+their own unit and do not become completed plan orders. Legends/assumptions live
+below their own curves. Site tables start collapsed; their exact dated cutoffs and
+all existing inspection/live controls remain available.

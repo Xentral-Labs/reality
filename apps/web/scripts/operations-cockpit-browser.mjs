@@ -137,6 +137,64 @@ async function assertTrafficPalette(label) {
     assert.equal(tile.detail, expected, `${label}: the detail status uses the same color`);
   }
 }
+async function assertShippingGrouping(label) {
+  const shipping = page.locator(".cockpit-shipping");
+  assert.equal(
+    await shipping.locator('[data-metric-period="plan"]').count(),
+    1,
+    `${label}: named plan group`,
+  );
+  const groups = await shipping.locator("[data-metric-period]").evaluateAll((elements) =>
+    elements.map((el) => ({
+      padding: getComputedStyle(el).padding,
+      border: getComputedStyle(el).borderTopWidth,
+      caption: el.querySelector("h3")?.textContent,
+    })),
+  );
+  assert(
+    groups.every(
+      (group) =>
+        ["12px", "16px"].includes(group.padding) && group.border === "1px" && group.caption,
+    ),
+    `${label}: shared group surface`,
+  );
+  const plot = shipping.locator('[data-analysis-kind="shipping"]');
+  assert.equal(await plot.count(), 1, `${label}: shared titled shipping figure`);
+  assert.equal(
+    await plot.evaluate((el) => getComputedStyle(el).borderTopWidth),
+    "1px",
+    `${label}: shared bounded figure surface`,
+  );
+  assert(
+    await plot.evaluate(
+      (el) =>
+        el.tagName === "FIGURE" &&
+        !!el.querySelector("figcaption h4") &&
+        !!el.querySelector(".cockpit-plot-context .cockpit-legend"),
+    ),
+    `${label}: figure owns title and legend below curve`,
+  );
+  assert.equal(
+    await shipping.locator("[data-shipping-sites]").evaluate((el) => el.open),
+    false,
+    `${label}: site details start collapsed`,
+  );
+  const size = await shipping
+    .locator(".cockpit-metric strong")
+    .first()
+    .evaluate((el) => getComputedStyle(el).fontSize);
+  await page.locator(".cockpit-analysis-selector select").selectOption("messages");
+  assert.equal(
+    size,
+    await page
+      .locator('[data-flow-area="messages"] dd')
+      .first()
+      .evaluate((el) => getComputedStyle(el).fontSize),
+    `${label}: shared value typography`,
+  );
+  await page.locator(".cockpit-analysis-selector select").selectOption("shipping");
+}
+
 async function assertContentGrouping(label) {
   const groups = await page
     .locator("[data-flow-area]:not([hidden]) [data-metric-period]")
@@ -291,7 +349,9 @@ async function assertFlowAlignment(label) {
       .fontSize,
     contentGap:
       element
-        .querySelector("[data-shipping-analysis]:not([hidden]), [data-flow-area]:not([hidden])")
+        .querySelector(
+          ".cockpit-analysis-context, [data-shipping-analysis]:not([hidden]), [data-flow-area]:not([hidden])",
+        )
         .getBoundingClientRect().top -
       element.querySelector("header").getBoundingClientRect().bottom,
     selectorInHeader: Boolean(element.querySelector("header .cockpit-analysis-selector")),
@@ -662,6 +722,14 @@ try {
     /12:30.*GMT/,
     "general observation follows the UTC viewer instead of the Berlin shipping clock",
   );
+  await assertShippingGrouping("initial unified shipping");
+  await page.locator("[data-shipping-sites] > summary").click();
+  await page.waitForTimeout(5500);
+  assert(
+    await page.locator("[data-shipping-sites]").evaluate((el) => el.open),
+    "live refresh retains site disclosure",
+  );
+  await page.locator("[data-shipping-sites] > summary").click();
   const combinedSelector = page.getByRole("combobox", { name: "Analysis area", exact: true });
   assert.equal(await combinedSelector.inputValue(), "shipping", "shipping is the default analysis");
   assert.deepEqual(
@@ -1185,6 +1253,7 @@ try {
     .getByText("No linked operational case", { exact: true })
     .waitFor();
   await areaSelector.selectOption("shipping");
+  await page.locator("[data-shipping-sites] > summary").click();
   const cutoff = page.locator("[data-cutoff-details]");
   assert.equal(
     await cutoff.locator("[data-cutoff-entry]").count(),
@@ -1299,6 +1368,7 @@ try {
   await page.getByRole("heading", { name: "Shipping by end of day" }).waitFor();
   await page.evaluate(() => window.__cockpitNavigate({ cockpitDay: "2026-10-06" }));
   await page.getByRole("button", { name: "Due on selected day: 4", exact: true }).waitFor();
+  await page.locator("[data-shipping-sites] > summary").click();
   await page.getByRole("columnheader", { name: "Due on selected day", exact: true }).waitFor();
   await page.evaluate(() => window.__cockpitNavigate({ cockpitDay: "today" }));
   await page.getByRole("button", { name: "Due today: 4", exact: true }).waitFor();
@@ -1397,6 +1467,9 @@ try {
   await page.locator('[data-activity-event="event_2"]').waitFor();
   await page.screenshot({ path: "/private/tmp/reality-378-cockpit-1440.png", fullPage: true });
   await areaSelector.selectOption("shipping");
+  if (!(await page.locator("[data-shipping-sites]").evaluate((el) => el.open))) {
+    await page.locator("[data-shipping-sites] > summary").click();
+  }
   await page.getByRole("rowheader", { name: /^Venlo/ }).waitFor();
   await page.getByRole("rowheader", { name: /^Leipzig/ }).waitFor();
   await page.getByRole("button", { name: "At risk: 1", exact: true }).click();
@@ -1626,6 +1699,7 @@ try {
         await page.setViewportSize({ width, height: 1050 });
         await page.locator(".cockpit-analysis-selector select").selectOption("shipping");
         await assertFlowAlignment(`${language}/${theme}/${width}/shipping`);
+        await assertShippingGrouping(`${language}/${theme}/${width}/shipping`);
         await page.locator(".cockpit-analysis-selector select").selectOption("messages");
         await assertFlowAlignment(`${language}/${theme}/${width}/messages`);
         for (const area of ["orders", "messages", "supply", "stock", "returns"]) {

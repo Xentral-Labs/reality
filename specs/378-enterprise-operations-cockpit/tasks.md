@@ -306,3 +306,11 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T119 [FR-019] Add failing UTC-header and independent Tokyo observation/case/supporting-read proofs alongside explicit shipping/site clocks and retained stale instants in operations-cockpit-browser.mjs.
 - [x] T120 [FR-019] Restore viewer-zone general metadata using existing localization in OperationsCockpitPage, OperationalCaseRegister and ShippingSupportingOrders; retain stated business clocks/calendar date in ShippingDayPanel.
 - [x] T121 [FR-019] Verify browser/frontend/audit/build/format/spec checks, activate only web, inspect actual Berlin metadata and update existing PR with review evidence.
+
+
+## Unified analysis and object-case presentation
+
+- [x] T122 [FR-076 FR-077] Add failing browser geometry/disclosure proofs in operations-cockpit-browser.mjs and operational-cases-browser.mjs with production theme CSS in OperationalCaseHarness.tsx; preserve takeover/handback confirmation proof.
+- [x] T123 [FR-076] Add AnalysisSections.tsx and share its groups/figures in OperatingFlowsPanel and ShippingDayPanel; align metrics and figure context in operationsCockpit.css, retaining exact shipping interactions/units and collapsed site evidence.
+- [x] T124 [FR-077] Group OperationalCaseDetail status/actions/technical disclosure and add directly imported operationalCases.css for it and OperationalCaseControls; preserve shared control service and explicit confirmation.
+- [x] T125 [FR-076 FR-077] Run browser/contracts/audit/build/format/spec checks, review semantic diff, activate only local web and inspect actual shipping/messages/object UI; update existing PR and durable contract with evidence.

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { operationalCases, type OperationalCase } from "../api";
 import { useOperationalCaseControls } from "./useOperationalCaseControls";
 import { OperationalCaseControls } from "./OperationalCaseControls";
+import "./operationalCases.css";
 import { t } from "../localization";
 import { navigationSelection, selectionUrl, type Selection } from "./routing";
 
@@ -101,126 +102,148 @@ export function OperationalCaseDetail({
     : rows;
   return (
     <details
-      className="br-card"
+      className="operational-case-panel"
       data-operational-cases
       open={expanded}
       onToggle={(event) => setExpanded(event.currentTarget.open)}
     >
       <summary>{t("Operational cases")}</summary>
-      <button className="br-btn" disabled={busy} onClick={() => setRefresh((value) => value + 1)}>
-        {t("Refresh")}
-      </button>
-      {hasMore && (
-        <button
-          className="br-btn"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            try {
-              const next = await operationalCases.list(tenant, rows.at(-1)?.case_id);
-              if (!Array.isArray(next)) throw new Error(t("Could not load this view"));
-              setRows((previous) => [...previous, ...next]);
-              setHasMore(next.length === 100);
-            } catch (failure: unknown) {
-              setError(String(failure));
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          {t("Load more")}
-        </button>
-      )}
-      {error && <p role="alert">{error}</p>}
-      {status && !status.migration_ready && (
-        <p role="alert">{t("Operational case upgrade requires the database migration.")}</p>
-      )}
-      {status?.migration_ready && !status.coverage_ready && (
-        <p role="status">{t("Operational case upgrade is still reconciling existing work.")}</p>
-      )}
-      {status?.last_error_code && <p role="alert">{status.last_error_code}</p>}
-      {status?.migration_ready && visible.length === 0 && <p>{t("No cases in this view.")}</p>}
-      {visible.map((row) => (
-        <section key={row.case_id} className="br-card" data-case-id={row.case_id}>
-          <strong>
-            {row.kind === "order_fulfillment" ? t("Order fulfillment") : t("Announced return")}
-          </strong>
-          <p>
-            {row.control_mode === "human"
-              ? t("Manually owned — automation stopped")
-              : t("Automation owns this work")}
-          </p>
-          <p>
-            {row.goal_state === "outstanding"
-              ? t("Work remains")
-              : row.goal_state === "abandoned"
-                ? t("Work withdrawn")
-                : t("Work completed")}
-          </p>
-          <code>{row.case_id}</code>{" "}
+      <div className="operational-case-body">
+        <div className="operational-case-toolbar">
           <button
             className="br-btn"
-            onClick={() =>
-              navigator.clipboard
-                .writeText(row.case_id)
-                .catch((failure) => setError(String(failure)))
-            }
+            disabled={busy}
+            onClick={() => setRefresh((value) => value + 1)}
           >
-            {t("Copy case ID")}
+            {t("Refresh")}
           </button>
-          <p>
-            <a
-              href={inspectorLink(
-                row.order_document_id ? "document" : "commitment",
-                row.order_document_id || row.work[0]?.commitment_id || "",
-              )}
+          {hasMore && (
+            <button
+              className="br-btn"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  const next = await operationalCases.list(tenant, rows.at(-1)?.case_id);
+                  if (!Array.isArray(next)) throw new Error(t("Could not load this view"));
+                  setRows((previous) => [...previous, ...next]);
+                  setHasMore(next.length === 100);
+                } catch (failure: unknown) {
+                  setError(String(failure));
+                } finally {
+                  setBusy(false);
+                }
+              }}
             >
-              {t("Show details")}
-            </a>
-          </p>
-          <ul>
-            {row.work.map((work) => (
-              <li key={work.commitment_id}>
-                <a href={inspectorLink("commitment", work.commitment_id)}>{work.commitment_id}</a>
-                {" · "}
-                {t("Open quantity")}: {work.open_quantity}
-              </li>
-            ))}
-            {row.source_record_ids.map((id) => (
-              <li key={id}>
-                <a href={inspectorLink("source_record", id)}>
-                  {t("Source record")}: {id}
-                </a>
-              </li>
-            ))}
-          </ul>
-          {row.unsettled_actions.length > 0 && (
-            <p role="status">
-              {t(
-                "An execution is unresolved. Stopping automation does not cancel an action already started.",
-              )}{" "}
-              {row.unsettled_actions.join(", ")}
-            </p>
+              {t("Load more")}
+            </button>
           )}
-          {row.coverage_gaps.length > 0 && (
-            <p>{t("Relevant source changes still need reconciliation.")}</p>
-          )}
-          {row.actions.some((action) => action.obsolete) && (
-            <p>{t("Older plans are obsolete and require a fresh review.")}</p>
-          )}
-          {row.related_case_ids.length > 0 && (
+        </div>
+        {error && <p role="alert">{error}</p>}
+        {status && !status.migration_ready && (
+          <p role="alert">{t("Operational case upgrade requires the database migration.")}</p>
+        )}
+        {status?.migration_ready && !status.coverage_ready && (
+          <p role="status">{t("Operational case upgrade is still reconciling existing work.")}</p>
+        )}
+        {status?.last_error_code && <p role="alert">{status.last_error_code}</p>}
+        {status?.migration_ready && visible.length === 0 && <p>{t("No cases in this view.")}</p>}
+        {visible.map((row) => (
+          <section key={row.case_id} className="operational-case-card" data-case-id={row.case_id}>
+            <header className="operational-case-status">
+              <h3>
+                {row.kind === "order_fulfillment" ? t("Order fulfillment") : t("Announced return")}
+              </h3>
+              {!documentId && (
+                <code className="operational-case-list-identity" data-case-identity>
+                  {row.case_id}
+                </code>
+              )}
+              <p>
+                {row.control_mode === "human"
+                  ? t("Manually owned — automation stopped")
+                  : t("Automation owns this work")}
+              </p>
+              <p>
+                {row.goal_state === "outstanding"
+                  ? t("Work remains")
+                  : row.goal_state === "abandoned"
+                    ? t("Work withdrawn")
+                    : t("Work completed")}
+              </p>
+            </header>
             <p>
-              {t("Related cases are not automatically taken over.")}{" "}
-              {row.related_case_ids.join(", ")}
+              <a
+                href={inspectorLink(
+                  row.order_document_id ? "document" : "commitment",
+                  row.order_document_id || row.work[0]?.commitment_id || "",
+                )}
+              >
+                {t("Show details")}
+              </a>
             </p>
-          )}
-          <OperationalCaseControls
-            row={row}
-            controls={controls}
-            canControl={Boolean(status?.can_control)}
-          />
-        </section>
-      ))}
+            <details className="operational-case-technical" data-case-technical>
+              <summary>{t("Technical evidence details")}</summary>
+              <div className="operational-case-identity">
+                <code>{row.case_id}</code>{" "}
+                <button
+                  className="br-btn"
+                  onClick={() =>
+                    navigator.clipboard
+                      .writeText(row.case_id)
+                      .catch((failure) => setError(String(failure)))
+                  }
+                >
+                  {t("Copy case ID")}
+                </button>
+              </div>
+              <ul>
+                {row.work.map((work) => (
+                  <li key={work.commitment_id}>
+                    <a href={inspectorLink("commitment", work.commitment_id)}>
+                      {work.commitment_id}
+                    </a>
+                    {" · "}
+                    {t("Open quantity")}: {work.open_quantity}
+                  </li>
+                ))}
+                {row.source_record_ids.map((id) => (
+                  <li key={id}>
+                    <a href={inspectorLink("source_record", id)}>
+                      {t("Source record")}: {id}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+            {row.unsettled_actions.length > 0 && (
+              <p role="status">
+                {t(
+                  "An execution is unresolved. Stopping automation does not cancel an action already started.",
+                )}{" "}
+                {row.unsettled_actions.join(", ")}
+              </p>
+            )}
+            {row.coverage_gaps.length > 0 && (
+              <p>{t("Relevant source changes still need reconciliation.")}</p>
+            )}
+            {row.actions.some((action) => action.obsolete) && (
+              <p>{t("Older plans are obsolete and require a fresh review.")}</p>
+            )}
+            {row.related_case_ids.length > 0 && (
+              <p>
+                {t("Related cases are not automatically taken over.")}{" "}
+                {row.related_case_ids.join(", ")}
+              </p>
+            )}
+            <OperationalCaseControls
+              row={row}
+              controls={controls}
+              canControl={Boolean(status?.can_control)}
+            />
+          </section>
+        ))}
+      </div>
     </details>
   );
 }

@@ -1,0 +1,130 @@
+/* Shared object-case and confirmation presentation, independent of cockpit routing. */
+.operational-case-panel {
+  min-width: 0;
+  margin: 0 0 20px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-default);
+  font-size: 13px;
+}
+.operational-case-panel > summary {
+  padding: 14px 16px;
+  cursor: pointer;
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.operational-case-panel[open] > summary {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.operational-case-body {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  min-width: 0;
+}
+.operational-case-toolbar,
+.operational-case-identity,
+.operational-case-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.operational-case-card {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+.operational-case-status {
+  display: grid;
+  gap: 4px;
+}
+.operational-case-status h3 {
+  color: var(--text-strong);
+  font-weight: 600;
+  font-size: 14px;
+}
+.operational-case-status p {
+  color: var(--text-muted);
+}
+.operational-case-card a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.operational-case-technical {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+}
+.operational-case-technical > summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.operational-case-identity {
+  margin: 12px 0;
+}
+.operational-case-technical ul,
+.operational-case-review ul {
+  display: grid;
+  gap: 6px;
+}
+.operational-case-controls {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.operational-case-controls > .br-btn {
+  justify-self: start;
+}
+.operational-case-card > .operational-case-controls {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+}
+.operational-case-review {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+  overflow-wrap: anywhere;
+}
+.operational-case-review .br-field {
+  display: grid;
+  gap: 6px;
+}
+.operational-case-review textarea {
+  width: 100%;
+  min-height: 80px;
+}
+.operational-case-panel .br-btn,
+.operational-case-controls .br-btn {
+  max-width: 100%;
+  white-space: normal;
+}
+.operational-case-panel summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+@media (max-width: 480px) {
+  .operational-case-body,
+  .operational-case-card {
+    padding: 12px;
+  }
+}
+
+.operational-case-list-identity {
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

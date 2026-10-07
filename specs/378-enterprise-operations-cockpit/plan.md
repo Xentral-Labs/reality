@@ -670,3 +670,9 @@ Run full cockpit browser, frontend contracts/audit/build/format/spec checks,
 activate only web and inspect the actual Berlin preference. Constitution PASS;
 no unresolved clarification, schema, preference mutation, service or authority
 change. Rollback restores the prior formatter call. Earlier release gates remain.
+
+
+## Unified analysis and object-case presentation
+
+FR-076/077 use two small presentation-only wrappers in AnalysisSections.tsx for metric groups and figure titles, shared by ShippingDayPanel and OperatingFlowsPanel. Keep each existing SVG renderer, counts, formatter, reader and inspect handler. Align shipping's clickable metric cells to the shared metric grid; place plan plot before actual activity and disclose site tables. Shared OperationalCaseDetail receives explicit named groups and dedicated operationalCases.css; OperationalCaseControls imports that CSS so standalone object pages and cockpit reviews share control geometry. No generic br-card rule is introduced. Existing translations are reused.
+Constitution Check: all eight principles PASS; browser-only presentation retains services, tenant scope, UTC values and original evidence. Owner explicitly authorized the proposed layout and preceding case CSS repair. No unresolved clarification, new schema, service, dependency or authority. Test first: browser assertions fail on old shipping wrappers and unstyled case cards. Verify existing takeover retry/handback and cockpit locale/theme/viewport matrix, frontend contracts/audits, production image/build, format/spec policy; activate only web and inspect actual shipping/messages/object panel. Rollback restores prior presentation files. Existing CI/enterprise/soak gates remain open.
