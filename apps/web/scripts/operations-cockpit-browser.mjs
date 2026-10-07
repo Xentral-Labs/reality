@@ -14,19 +14,43 @@ async function openCaseWorkspace() {
   if (await toggle.count()) await toggle.click();
 }
 async function assertCaseEntry(label) {
-  const layout = await page.locator("[data-case-register]").evaluate((element) => ({
-    top: element.getBoundingClientRect().top,
-    bottom: element.getBoundingClientRect().bottom,
-    width: element.getBoundingClientRect().width,
-    hidden: element.querySelector("[data-case-workspace]")?.hidden,
-    statusBottom: document.querySelector("[data-operating-status]").getBoundingClientRect().bottom,
-    shippingTop: document.querySelector(".cockpit-shipping").getBoundingClientRect().top,
-  }));
-  assert(layout.top > layout.statusBottom, `${label}: takeover follows status`);
-  assert(layout.bottom < layout.shippingTop, `${label}: takeover precedes shipping`);
-  assert(layout.width <= 1120, `${label}: responsibility entry stays bounded`);
-  if (layout.hidden && layout.width >= 900)
-    assert(layout.bottom - layout.top <= 300, `${label}: routine entry stays compact`);
+  const layout = await page.evaluate(() => {
+    const rect = (selector) => {
+      const { top, bottom, left, right, width } = document
+        .querySelector(selector)
+        .getBoundingClientRect();
+      return { top, bottom, left, right, width };
+    };
+    return {
+      shipping: rect(".cockpit-shipping"),
+      log: rect(".cockpit-activity"),
+      agents: rect("[data-agent-access]"),
+      analysis: rect("[data-operating-flows]"),
+      cases: rect("[data-case-register]"),
+      console: rect(".operations-cockpit"),
+    };
+  });
+  assert(layout.cases.width <= 1120, `${label}: bounded responsibility`);
+  if (layout.console.width > 820) {
+    assert(
+      Math.abs(layout.shipping.top - layout.log.top) < 2,
+      `${label}: shipping and log share the top row`,
+    );
+    assert(layout.log.left >= layout.shipping.right, `${label}: log to the right of shipping`);
+    assert(
+      Math.abs(layout.analysis.top - layout.cases.top) < 2,
+      `${label}: detail and responsibility share the second row`,
+    );
+    assert(layout.cases.left >= layout.analysis.right, `${label}: responsibility right of detail`);
+  } else {
+    assert(layout.log.top > layout.shipping.bottom, `${label}: log follows shipping`);
+    assert(layout.analysis.top > layout.agents.bottom, `${label}: detail follows Agent inventory`);
+    assert(layout.cases.top > layout.analysis.bottom, `${label}: responsibility follows analysis`);
+  }
+  assert(
+    layout.agents.top > layout.log.bottom,
+    `${label}: registered Agents immediately under the log`,
+  );
 }
 async function assertWorkspaceSurfaces(label) {
   const surfaces = await page.evaluate(() => {
@@ -130,6 +154,20 @@ async function assertFlowAlignment(label) {
       }
     }
   }
+  const metricRows = await page.locator("[data-flow-area]:not([hidden]) dl").evaluate((element) => {
+    const columns = getComputedStyle(element).gridTemplateColumns.split(" ").length;
+    const positions = [...element.querySelectorAll("dd")].map(
+      (node) => node.getBoundingClientRect().top,
+    );
+    return { columns, positions };
+  });
+  for (let row = 0; row < metricRows.positions.length; row += metricRows.columns) {
+    const peers = metricRows.positions.slice(row, row + metricRows.columns);
+    assert(
+      Math.max(...peers) - Math.min(...peers) < 2,
+      `${label}: metric values align despite wrapping captions`,
+    );
+  }
   const metricSpacing = await page
     .locator("[data-flow-area]:not([hidden]) dl")
     .evaluate((element) => getComputedStyle(element).rowGap);
@@ -140,15 +178,20 @@ async function assertFlowAlignment(label) {
   );
   const rhythm = await page.locator("[data-operating-flows]").evaluate((element) => ({
     margin: getComputedStyle(element).marginTop,
+    headingHeight: element.querySelector("header").getBoundingClientRect().height,
     outerGap:
       element.getBoundingClientRect().top -
-      element.previousElementSibling.getBoundingClientRect().bottom,
+      element.parentElement.previousElementSibling.getBoundingClientRect().bottom,
     headingSize: getComputedStyle(element.querySelector("h2")).fontSize,
     sharedSize: getComputedStyle(document.querySelector(".cockpit-shipping h2")).fontSize,
     contentGap:
       element.querySelector(".cockpit-analysis-selector").getBoundingClientRect().top -
       element.querySelector("header").getBoundingClientRect().bottom,
   }));
+  assert(
+    rhythm.headingHeight < 180,
+    `${label}: analysis heading has no artificial vertical spacer`,
+  );
   assert.equal(rhythm.margin, "0px", `${label}: section does not stack outer margins`);
   assert.equal(
     rhythm.headingSize,
@@ -474,6 +517,40 @@ try {
   );
   await page.getByRole("heading", { name: "Shipping by end of day" }).waitFor();
   await assertCaseEntry("initial desktop");
+  await page.locator("[data-risk-legend]").waitFor();
+  for (const area of ["orders", "messages", "supply", "stock", "returns"]) {
+    const tile = page.locator(`[data-status-area="${area}"]`);
+    for (const category of ["in_plan", "at_risk", "critical"]) {
+      const count = flows[area].risk[category];
+      assert.equal(
+        await tile.locator(`[data-risk-count="${category}"] strong`).textContent(),
+        count === null ? "—" : String(count),
+      );
+    }
+    const total = flows[area].risk.total;
+    if (total > 0) {
+      for (const category of ["in_plan", "at_risk", "critical", "unclassified"]) {
+        const count = flows[area].risk[category];
+        if (typeof count === "number" && count > 0) {
+          const width = await tile
+            .locator(`[data-risk-segment="${category}"]`)
+            .evaluate((node) => Number.parseFloat(node.style.width));
+          assert(
+            Math.abs(width - (100 * count) / total) < 0.001,
+            `${area}/${category}: meter preserves the exact share, including small categories`,
+          );
+        }
+      }
+      const widths = await tile
+        .locator("[data-risk-segment]")
+        .evaluateAll((nodes) => nodes.map((node) => Number.parseFloat(node.style.width)));
+      assert(
+        Math.abs(widths.reduce((a, b) => a + b, 0) - 100) < 0.001,
+        `${area}: exact proportional meter`,
+      );
+    }
+  }
+  assert.equal(await page.locator("[data-risk-legend] [data-risk-key]").count(), 4);
   assert.equal(await page.locator("[data-case-workspace]").isVisible(), false);
   const selectCase = page.getByRole("button", { name: "Select a case", exact: true });
   await selectCase.focus();
@@ -554,6 +631,7 @@ try {
   );
   await page.locator('[data-status-area="orders"][data-signal="progress"]').waitFor();
   await assertFlowAlignment("initial desktop");
+  await page.getByText("Recording rate & period", { exact: true }).click();
   const timeSelection = page.getByRole("group", { name: "Activity period", exact: true });
   assert.equal(await timeSelection.locator(".br-btn").count(), 3);
   assert.equal(await timeSelection.getByRole("button").nth(1).getAttribute("aria-pressed"), "true");
@@ -850,6 +928,11 @@ try {
     await page.locator("[data-flow-area] .cockpit-flow-signal.unknown").count(),
     5,
     "Stale observations cannot retain positive status",
+  );
+  assert.equal(
+    await summary.locator('[data-risk-segment="in_plan"]').count(),
+    0,
+    "stale instruments cannot retain a green assessment",
   );
   assert.equal(
     await summary.locator('[data-signal="unknown"]').count(),

@@ -527,3 +527,29 @@ business events also advanced. The manually owned case stayed visible as automat
 stopped. Both HTTP health and web returned 200; the existing simulator/MCP containers
 kept their uptime. Existing platform rollout coverage remains incomplete and is
 shown explicitly, rather than represented as complete autonomy verification.
+
+
+## Preview parity verification — 2026-10-07 (FR-052–056)
+
+The new tests first reproduced absent service partitions (six failures) and the
+shipping/log layout mismatch. Final affected PostgreSQL proofs pass: 30 operating-flow
+cases in scalar/snapshot modes and 29 cockpit adapter/snapshot cases. Frontend contracts
+pass (478); all four language audits pass (3,024 covered phrases each); format, build,
+feature policy, business annotations and generated-catalog freshness pass.
+
+The full cockpit browser matrix passes at 320/390/1440/1920 and the docked narrow
+container, both themes and all four languages. It checks two-row/stacked geometry,
+exact category counts and proportional widths (including small positive categories),
+the swatch legend, no artificial analysis-header spacer, no green stale assessment,
+shipping inspection beside its originating chart, selected intake/reply plus backlog
+plots, named owner-access inventory, and existing reviewed case-control races/retries.
+
+Controlled eight-hour proof passes with no page errors and bounded four-read budgets:
+overview 5,746, activity/flows 5,750, Agent inventory 5,752, case register 5,753. Hidden
+suspension/recovery, day changes, inspected event/source state, paused following and
+exact pending takeover reason/revision survive. This remains controlled browser time,
+not the separately required real-time pilot soak.
+
+Execution list: [preview-parity.md](preview-parity.md). No new schema, SQL read,
+scheduler, permission or business effect. Existing performance/pilot rollout gates
+remain separate; the PR stays a reviewable follow-up rather than an enablement claim.

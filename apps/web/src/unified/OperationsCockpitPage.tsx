@@ -43,7 +43,7 @@ export function OperationsCockpitPage({
     requestAnimationFrame(() => {
       const detail = document.getElementById(`cockpit-flow-${area}`);
       detail?.focus({ preventScroll: true });
-      detail?.scrollIntoView({ block: "start" });
+      detail?.closest("[data-operating-flows]")?.scrollIntoView({ block: "start" });
     });
   };
   useEffect(() => {
@@ -182,43 +182,49 @@ export function OperationsCockpitPage({
             select={selectArea}
             selection={selection}
           />
-          <OperationalCaseRegister
-            key={selection.tenant}
-            selection={selection}
-            zone={value.time_zone}
-          />
-          <ShippingDayPanel value={value} inspect={inspect} selection={selection} />
-          {inspection && (
-            <ShippingSupportingOrders
-              key={`${selection.tenant}:${day}:${location}:${selection.cockpitMeasure}:${inspection.at}`}
+          <div className="cockpit-console-row" data-console-primary>
+            <div className="cockpit-shipping-column">
+              <ShippingDayPanel value={value} inspect={inspect} selection={selection} />
+              {inspection && (
+                <ShippingSupportingOrders
+                  key={`${selection.tenant}:${day}:${location}:${selection.cockpitMeasure}:${inspection.at}`}
+                  selection={selection}
+                  at={inspection.at}
+                  resolvedDay={inspection.day}
+                  basis={selection.cockpitBasis || value.basis_key}
+                  zone={value.time_zone}
+                  close={() => {
+                    setInspection(null);
+                    requestAnimationFrame(() =>
+                      inspectionTrigger.current?.focus({ preventScroll: true }),
+                    );
+                  }}
+                />
+              )}
+            </div>
+            <div className="cockpit-log-column">
+              <OperationsActivityPanel
+                state={activityState}
+                key={selection.tenant}
+                selection={selection}
+                navigate={navigate}
+              />
+              <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />
+            </div>
+          </div>
+          <div className="cockpit-console-row cockpit-console-detail" data-console-secondary>
+            <OperatingFlowsPanel
+              value={activityState.data?.flows}
               selection={selection}
-              at={inspection.at}
-              resolvedDay={inspection.day}
-              basis={selection.cockpitBasis || value.basis_key}
-              zone={value.time_zone}
-              close={() => {
-                setInspection(null);
-                requestAnimationFrame(() =>
-                  inspectionTrigger.current?.focus({ preventScroll: true }),
-                );
-              }}
+              stale={activityState.status !== "current"}
+              selected={selectedArea}
+              select={selectArea}
             />
-          )}
-          <OperatingFlowsPanel
-            value={activityState.data?.flows}
-            selection={selection}
-            stale={activityState.status !== "current"}
-            selected={selectedArea}
-            select={selectArea}
-          />
-          <div className="cockpit-live-grid">
-            <OperationsActivityPanel
-              state={activityState}
+            <OperationalCaseRegister
               key={selection.tenant}
               selection={selection}
-              navigate={navigate}
+              zone={value.time_zone}
             />
-            <AgentAccessPanel key={selection.tenant} tenant={selection.tenant} />
           </div>
           {state.data && (
             <OperationsDeviationsPanel

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatDateTimeInZone, formatNumber, formatTimeInZone, t } from "../localization";
 import {
   cockpitOriginSelection,
@@ -27,11 +27,25 @@ export function ShippingDayPanel({
   inspect: (measure: ShippingMeasure, at?: string) => void;
 }) {
   const [basisOpen, setBasisOpen] = useState(false);
+  const plot = useRef<SVGSVGElement>(null);
+  const [plotWidth, setPlotWidth] = useState(600);
+  useEffect(() => {
+    if (!plot.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0) setPlotWidth(Math.max(220, entry.contentRect.width));
+    });
+    observer.observe(plot.current);
+    return () => observer.disconnect();
+  }, [value.coverage.cohort]);
+  const plotLeft = 50,
+    plotRight = plotWidth - 16;
+  const timeTicks = plotWidth < 420 ? [0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1];
   const start = Date.parse(value.day_start),
     end = Date.parse(value.day_end);
   const all = Object.values(value.series).flatMap((points) => points || []);
   const ceiling = Math.max(1, value.totals.due || 0, ...all.map((point) => point.count));
-  const x = (at: string) => 55 + ((Date.parse(at) - start) / (end - start)) * 855;
+  const x = (at: string) =>
+    plotLeft + ((Date.parse(at) - start) / (end - start)) * (plotRight - plotLeft);
   const y = (count: number) => 250 - (count / ceiling) * 205;
   const path = (points: ShippingPoint[]) =>
     points
@@ -118,28 +132,29 @@ export function ShippingDayPanel({
           )}
           <svg
             className="cockpit-chart"
-            viewBox="0 0 960 295"
+            ref={plot}
+            viewBox={`0 0 ${plotWidth} 295`}
             role="group"
             aria-label={t("Cumulative shipping plan, confirmed handovers and future forecast")}
           >
             {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
               <g key={fraction}>
                 <line
-                  x1="55"
-                  x2="910"
+                  x1={plotLeft}
+                  x2={plotRight}
                   y1={y(ceiling * fraction)}
                   y2={y(ceiling * fraction)}
                   className="cockpit-grid-line"
                 />
-                <text x="43" y={y(ceiling * fraction) + 4} textAnchor="end">
+                <text x={plotLeft - 10} y={y(ceiling * fraction) + 4} textAnchor="end">
                   {formatNumber(Math.round(ceiling * fraction))}
                 </text>
               </g>
             ))}
-            {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
+            {timeTicks.map((fraction) => (
               <text
                 key={fraction}
-                x={55 + 855 * fraction}
+                x={plotLeft + (plotRight - plotLeft) * fraction}
                 y="278"
                 textAnchor={fraction === 0 ? "start" : fraction === 1 ? "end" : "middle"}
               >
@@ -177,7 +192,13 @@ export function ShippingDayPanel({
               y2="250"
               className="cockpit-now"
             />
-            <text x={Math.min(865, x(new Date(observed).toISOString()) + 6)} y="25">
+            <text
+              x={Math.max(
+                plotLeft,
+                Math.min(plotRight - 100, x(new Date(observed).toISOString()) + 6),
+              )}
+              y="25"
+            >
               {t("Observed")} {cockpitTime(value.observed_at, value.time_zone)}
             </text>
             {Object.entries(value.series).map(([key, points]) =>
@@ -192,7 +213,7 @@ export function ShippingDayPanel({
                   aria-label={`${t(seriesLabels[key as keyof typeof seriesLabels])} · ${t("View supporting orders")}`}
                   onClick={(event) => {
                     const box = event.currentTarget.ownerSVGElement!.getBoundingClientRect();
-                    const position = ((event.clientX - box.left) / box.width) * 960;
+                    const position = ((event.clientX - box.left) / box.width) * plotWidth;
                     const nearest = points.reduce((best, point) =>
                       Math.abs(x(point.at) - position) < Math.abs(x(best.at) - position)
                         ? point

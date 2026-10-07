@@ -565,3 +565,23 @@ and stock history are explicit limitations. A legacy CSS rule's metric-row spaci
 was corrected with stronger component scoping and a responsive regression assertion.
 The local obsolete migration-chain repair is deployment compatibility only, recorded
 with backup and exact frozen-DDL parity in quickstart; no source migration was added.
+
+
+## Preview parity refinement review — 2026-10-07
+
+FR-052–056 explicitly supersede the earlier register placement and decorative uniform
+meter. Every new requirement maps to T087–090 and executable service/browser proof;
+no critical artifact conflict or unresolved clarification remains. The service uses
+already loaded tenant-scoped identities/findings before evidence sampling; line-to-order
+collapse and severity priority are read-time observations. Due-soon is an existing
+canonical class whose supersession previously hid imminent customer work in this read.
+No new deadline threshold, authority, stored status or statement is introduced.
+
+The web remains a thin observer. Unknown message urgency, unknown return timeliness,
+only-risk-item stock scope, unavailable Finance and external-Agent runtime limitations
+are explicit. The existing four reads own all refreshes. The initial manual preview
+reuses the register's human scope; reviewed control services, revision checks, exact
+reason, request identity and already-started/related-case limits are unchanged.
+
+Verification is recorded in quickstart; original reviewer-owned quality markers and
+prior enterprise/performance/real-time-soak gates are not closed by this increment.

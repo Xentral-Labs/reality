@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { formatNumber, formatZonedDateTime, t } from "../localization";
-import type { FlowArea, OperatingFlows } from "./cockpitModel";
+import type { FlowArea, FlowRisk, OperatingFlows } from "./cockpitModel";
 import {
   cockpitOriginSelection,
   navigationSelection,
@@ -102,6 +102,45 @@ const signalLabels = {
   unknown: "Data incomplete",
 };
 
+const riskCategories = [
+  { key: "in_plan", label: "In plan" },
+  { key: "at_risk", label: "At risk" },
+  { key: "critical", label: "Critical" },
+  { key: "unclassified", label: "Not assessed" },
+] as const;
+function RiskMeter({ risk, stale }: { risk?: FlowRisk; stale: boolean }) {
+  const total = risk?.total;
+  return (
+    <>
+      <span className="cockpit-instrument-strip" data-instrument-strip aria-hidden="true">
+        {typeof total === "number" && total > 0 && !stale ? (
+          riskCategories.map(({ key }) => {
+            const count = risk?.[key];
+            return typeof count === "number" && count > 0 ? (
+              <i key={key} data-risk-segment={key} style={{ width: `${(100 * count) / total}%` }} />
+            ) : null;
+          })
+        ) : (
+          <i data-risk-segment="unclassified" style={{ width: "100%" }} />
+        )}
+      </span>
+      <span className="cockpit-risk-counts">
+        {riskCategories.slice(0, 3).map(({ key, label }) => (
+          <span key={key} data-risk-count={key}>
+            <strong>{typeof risk?.[key] === "number" ? formatNumber(risk[key]) : "—"}</strong>{" "}
+            {t(label)}
+          </span>
+        ))}
+        {typeof risk?.unclassified === "number" && risk.unclassified > 0 && (
+          <span data-risk-count="unclassified">
+            <strong>{formatNumber(risk.unclassified)}</strong> {t("Not assessed")}
+          </span>
+        )}
+      </span>
+    </>
+  );
+}
+
 export function OperatingStatusPanel({
   value,
   stale,
@@ -153,11 +192,7 @@ export function OperatingStatusPanel({
                     : "—"}
                 </strong>
               </span>
-              <span className="cockpit-instrument-strip" data-instrument-strip aria-hidden="true">
-                {Array.from({ length: 18 }, (_, index) => (
-                  <i key={index} />
-                ))}
-              </span>
+              <RiskMeter risk={data?.risk} stale={stale} />
               <span className="cockpit-status-condition">
                 <span className="cockpit-status-indicator" aria-hidden="true" />
                 <strong>{t(signalLabels[signal])}</strong>
@@ -208,11 +243,7 @@ export function OperatingStatusPanel({
               <span>{t("Not available in this observation")}</span>
               <strong>—</strong>
             </span>
-            <span className="cockpit-instrument-strip" data-instrument-strip aria-hidden="true">
-              {Array.from({ length: 18 }, (_, index) => (
-                <i key={index} />
-              ))}
-            </span>
+            <RiskMeter stale={stale} />
             <span className="cockpit-status-condition">
               <span className="cockpit-status-indicator" aria-hidden="true" />
               <strong>{t("Data incomplete")}</strong>
@@ -221,9 +252,18 @@ export function OperatingStatusPanel({
           </a>
         </li>
       </ul>
-      <p className="cockpit-note">
+      <div className="cockpit-risk-legend" data-risk-legend>
+        {riskCategories.map(({ key, label }) => (
+          <span key={key} data-risk-key={key}>
+            <i aria-hidden="true" />
+            {t(label)}
+          </span>
+        ))}
+        <span>{t("Segments: share of the displayed open work")}</span>
+      </div>
+      <p className="cockpit-footnote">
         {t(
-          "Red: critical · Orange: pending work, attention or incomplete evidence · Green: no recorded deviation",
+          "In plan: no finding in the evaluated scope. Missing deadlines or assessments remain unclassified.",
         )}
       </p>
     </section>
@@ -490,6 +530,28 @@ export function OperatingFlowsPanel({
               <details className="cockpit-flow-details">
                 <summary>{t("Definition & evidence")}</summary>
                 <p>{t(area.explanation)}</p>
+                <p>
+                  {t(
+                    "Risk counts use the complete displayed cohort, with each identity counted once at its worst recorded condition. High or critical findings are red; other findings are orange.",
+                  )}
+                </p>
+                {area.key === "messages" && (
+                  <p>{t("Message deadlines are not recorded; urgency cannot be assessed.")}</p>
+                )}
+                {area.key === "returns" && (
+                  <p>
+                    {t(
+                      "Pending returns without a recorded finding remain unclassified; a missing learned threshold does not prove timeliness.",
+                    )}
+                  </p>
+                )}
+                {area.key === "stock" && (
+                  <p>
+                    {t(
+                      "Stock segments cover only items with uncovered demand, not all stocked items.",
+                    )}
+                  </p>
+                )}
                 {area.key === "messages" && Number(data.external_incoming) > 0 && (
                   <p>
                     {formatNumber(Number(data.external_incoming))}{" "}

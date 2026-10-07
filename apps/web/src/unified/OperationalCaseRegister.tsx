@@ -21,7 +21,7 @@ export function OperationalCaseRegister({
 }) {
   const workspaceId = useId();
   const [expanded, setExpanded] = useState(Boolean(selection.cockpitCase));
-  const [mode, setMode] = useState<"outstanding" | "human" | "all">("outstanding");
+  const [mode, setMode] = useState<"outstanding" | "human" | "all">("human");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState("");
@@ -233,7 +233,13 @@ export function OperationalCaseRegister({
             aria-expanded={expanded}
             aria-controls={workspaceId}
             disabled={controls.busy}
-            onClick={() => setExpanded((value) => !value)}
+            onClick={() => {
+              if (!expanded) {
+                setMode("outstanding");
+                setCursor("");
+              }
+              setExpanded((value) => !value);
+            }}
           >
             {t(expanded ? "Hide case list" : "Select a case")}
           </button>
@@ -268,6 +274,38 @@ export function OperationalCaseRegister({
       )}
       {page?.coordination?.last_error_code && (
         <p role="alert">{page.coordination.last_error_code}</p>
+      )}
+      {!expanded && mode === "human" && page && state.status !== "denied" && (
+        <div className="cockpit-manual-preview" data-manual-preview>
+          <h3>{t("Manually taken over")}</h3>
+          {page.items.length === 0 ? (
+            <p className="cockpit-note">{t("No manually owned cases")}</p>
+          ) : (
+            <ul>
+              {page.items.slice(0, 3).map((row) => (
+                <li key={row.case_id}>
+                  <button
+                    className="br-link"
+                    onClick={() => {
+                      setSelected(row);
+                      setExpanded(true);
+                    }}
+                  >
+                    <strong>
+                      {row.business_reference ||
+                        row.order_document_id ||
+                        row.return_announcement_id}
+                    </strong>
+                    <small>{t("Manually owned — automation stopped")}</small>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {page.total > 3 && (
+            <p className="cockpit-note">{t("More cases are available in the manual register.")}</p>
+          )}
+        </div>
       )}
       <div
         id={workspaceId}

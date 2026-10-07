@@ -133,7 +133,17 @@ export type AgentAccessPage = {
 };
 
 export type FlowEvidence = { kind: string; id: string; label: string };
+export type FlowRisk = {
+  scope: string;
+  total: number | null;
+  in_plan: number | null;
+  at_risk: number | null;
+  critical: number | null;
+  unclassified: number | null;
+  coverage: "complete" | "partial" | "unavailable";
+};
 export type FlowArea = {
+  risk?: FlowRisk;
   signal: "critical" | "attention" | "progress" | "clear" | "unknown";
   evidence: FlowEvidence[];
   exceptions?: { id: string; title: string; severity: string; kind: string; record_id: string }[];

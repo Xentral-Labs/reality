@@ -27,16 +27,20 @@ export function AgentAccessPanel({ tenant }: { tenant: string }) {
   }, [tenant]);
   if (state.status === "denied")
     return (
-      <section className="cockpit-card" data-agent-access>
+      <section className="cockpit-card cockpit-access-panel" data-agent-access>
         <h2>{t("Agents & connections")}</h2>
         <p className="cockpit-note">{t("Agent access overview is restricted to company owners")}</p>
       </section>
     );
   return (
-    <section className="cockpit-card" data-agent-access aria-labelledby="agents-title">
+    <section
+      className="cockpit-card cockpit-access-panel"
+      data-agent-access
+      aria-labelledby="agents-title"
+    >
       <div className="cockpit-card-heading">
         <div>
-          <span className="cockpit-eyebrow">{t("Registered access")}</span>
+          <span className="cockpit-eyebrow">{t("Registered Agents")}</span>
           <h2 id="agents-title">{t("Agents & connections")}</h2>
         </div>
         <button
