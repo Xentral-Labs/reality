@@ -905,6 +905,18 @@ try {
   const briefing = page.locator("[data-shipping-briefing]");
   await briefing.locator("summary").click();
   assert.equal(await briefing.locator("[data-briefing-order]").count(), 3);
+  assert.equal(
+    await briefing.locator("table[data-deviation-table]").count(),
+    1,
+    "briefing uses the compact shared table",
+  );
+  assert.deepEqual(await briefing.locator("thead th").allTextContents(), [
+    "Order",
+    "Recorded cause",
+    "Responsibility",
+    "Recorded case action",
+  ]);
+  assert.equal(await briefing.locator("[data-deviation-summary]").count(), 3);
   assert(
     await briefing
       .getByText("No recorded response on this case", { exact: true })
@@ -1464,10 +1476,16 @@ try {
     4,
     "Deviation preview remains bounded",
   );
+  assert.equal(
+    await shippingDeviations.locator("table[data-deviation-table]").count(),
+    1,
+    "detailed deviations use the same compact table",
+  );
+  assert.equal(await shippingDeviations.locator("[data-deviation-summary]").count(), 4);
   await page
     .locator("[data-deviation-preview]")
     .nth(1)
-    .locator(":scope > .cockpit-blocker")
+    .locator("[data-deviation-summary] .cockpit-blocker")
     .getByText("Required evidence is incomplete", { exact: true })
     .waitFor();
   await page
@@ -1899,6 +1917,7 @@ try {
   missing = false;
   restrictedAgents = false;
   summaryVariants = true;
+  denseEvidence = true;
   for (const language of ["en", "de", "nl", "es"]) {
     for (const theme of ["light", "dark"]) {
       await page.goto(
@@ -1933,6 +1952,14 @@ try {
         await page.locator("[data-business-case-overview] > summary").click();
         await page.locator("[data-shipping-briefing] > summary").click();
         assert(await page.locator("[data-deviation-briefing]").isVisible());
+        assert.equal(await page.locator("[data-deviation-briefing] table thead th").count(), 4);
+        await page.locator("[data-shipping-deviations] > summary").click();
+        assert.equal(await page.locator("[data-operational-deviations] table thead th").count(), 4);
+        assert(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+          `${language}/${theme}/${width}: detailed shipping table is contained`,
+        );
+        await page.locator("[data-shipping-deviations] > summary").click();
         assert(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           `${language}/${theme}/${width}: briefing is contained`,
@@ -2007,6 +2034,7 @@ try {
       }
     }
   }
+  denseEvidence = false;
   nextDayCollection = true;
   largeCaseCounts = true;
   await page.goto(

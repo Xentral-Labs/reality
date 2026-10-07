@@ -290,3 +290,16 @@ slots. Its four-key legend, scope and classification caveat share a separated
 centered footer. Known zero work has an empty neutral meter; unavailable or stale
 evidence remains hatched. Tile/category inspection and Finance navigation retain
 their existing exact record scope and keyboard behavior (spec 378 FR-078).
+
+
+### Compact shipping deviation rows (FR-081)
+
+Both the upper briefing and detailed shipping disclosure use one compact semantic
+table: order, recorded cause, responsibility and first recorded case action/status.
+Their original three/four-order preview limits, complete affected total, unknown/
+empty messages, original links and causal/outcome caveats remain unchanged. In the
+detailed table, all held causes and case-linked actions expand beneath their exact
+order across the table width; additional previews and full supporting-order
+inspection retain their existing scope. Tables scroll horizontally within their
+own labelled keyboard-focusable region on narrow screens. No business read, rule,
+DTO, timer, control or confirmation changes.

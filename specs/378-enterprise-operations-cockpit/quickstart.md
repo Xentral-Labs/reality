@@ -765,3 +765,13 @@ four 3057-key audits, production API/web images, formatting, scoped Ruff/annotat
 spec policy and catalog freshness pass. Read-only actual-company preview confirms
 one existing manual case. Current-head CI/enterprise performance/pilot-soak remain
 open release gates.
+
+
+FR-081 compact shipping table follow-up: upper briefing and detailed shipping now
+share Order / Recorded cause / Responsibility / Recorded case action columns.
+Detailed evidence expands beneath the original order. Full browser matrix (four
+languages, both themes, 320/390/1440/1920 widths, dense 40-action evidence, next-day
+cutoff and existing focus/control/live checks), 478 frontend contracts, four
+3058-key localization audits, production web build/image, formatting, spec policy
+and whitespace pass. Actual port 8080 tables and original proposal links are
+verified. Domain/services/DTOs remain unchanged; previous release gates stay open.

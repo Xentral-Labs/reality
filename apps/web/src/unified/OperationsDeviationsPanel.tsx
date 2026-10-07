@@ -8,6 +8,168 @@ import {
   type Selection,
 } from "./routing";
 
+type Deviation = NonNullable<CockpitObservation["deviations"]>[number];
+
+function DeviationTable({
+  rows,
+  selection,
+  compact = false,
+}: {
+  rows: Deviation[];
+  selection: Selection;
+  compact?: boolean;
+}) {
+  if (!rows.length) return null;
+  const proposalUrl = (id: string) =>
+    selectionUrl(
+      navigationSelection(selection, {
+        route: "inspector",
+        inspectorView: "records",
+        inspectorTargetKind: "change_proposal",
+        inspectorTargetId: id,
+        cockpitOrigin: cockpitOriginSelection(selection),
+      }),
+    );
+  const causeText = (blocker: Record<string, unknown>) =>
+    typeof blocker.detail === "string"
+      ? t(blocker.detail)
+      : typeof blocker.explanation === "string"
+        ? t(blocker.explanation)
+        : typeof blocker.code === "string"
+          ? t(blocker.code)
+          : "—";
+  return (
+    <div
+      className="cockpit-deviation-table-wrap"
+      role="region"
+      tabIndex={0}
+      aria-label={t("Shipping deviations & recorded actions")}
+    >
+      <table className="cockpit-deviation-table" data-deviation-table>
+        <thead>
+          <tr>
+            <th scope="col">{t("Order")}</th>
+            <th scope="col">{t("Recorded cause")}</th>
+            <th scope="col">{t("Responsibility")}</th>
+            <th scope="col">{t("Recorded case action")}</th>
+          </tr>
+        </thead>
+        {rows.map((row) => {
+          const blockers = Object.values(row.blockers).flat();
+          const blocker = blockers[0];
+          const action = row.recorded_case_actions[0];
+          return (
+            <tbody
+              key={row.order_id}
+              data-deviation-preview={compact ? undefined : ""}
+              data-briefing-order={compact ? row.order_id : undefined}
+            >
+              <tr data-deviation-summary>
+                <th scope="row">
+                  <a
+                    href={selectionUrl(
+                      navigationSelection(selection, {
+                        route: "orders-deliveries",
+                        ordersView: "customer-orders",
+                        entry: row.order_id,
+                        cockpitCase: row.case_id || undefined,
+                        cockpitOrigin: cockpitOriginSelection({
+                          ...selection,
+                          cockpitCase: row.case_id || undefined,
+                        }),
+                      }),
+                    )}
+                  >
+                    {row.number || row.order_id}
+                  </a>
+                </th>
+                <td>
+                  <span className={`cockpit-business-badge ${row.at_risk ? "risk" : "attention"}`}>
+                    {t(row.at_risk ? "At risk" : "Data incomplete")}
+                  </span>
+                  <p className="cockpit-blocker">
+                    {blocker
+                      ? causeText(blocker)
+                      : t(
+                          row.coverage_gaps.length > 0
+                            ? "Required evidence is incomplete"
+                            : "No blocker recorded",
+                        )}
+                  </p>
+                </td>
+                <td>
+                  <span
+                    className={`cockpit-business-badge ${row.responsibility === "human" ? "manual" : row.responsibility === "automation" ? "automatic" : "unavailable"}`}
+                  >
+                    {t(
+                      row.responsibility === "human"
+                        ? "Manually taken over"
+                        : row.responsibility === "automation"
+                          ? "With automation"
+                          : "No linked operational case",
+                    )}
+                  </span>
+                </td>
+                <td>
+                  {action ? (
+                    <a href={proposalUrl(action.proposal_id)}>
+                      {action.type || t("Recorded action")} ·{" "}
+                      <span className="cockpit-business-badge automatic">{t(action.status)}</span>
+                    </a>
+                  ) : (
+                    <span className="cockpit-note">{t("No recorded response on this case")}</span>
+                  )}
+                </td>
+              </tr>
+              {!compact && (
+                <tr className="cockpit-deviation-detail-row">
+                  <td colSpan={4}>
+                    <details className="cockpit-deviation-evidence">
+                      <summary>
+                        {t("Causes and recorded actions")} ·{" "}
+                        {formatNumber(row.recorded_case_actions.length)} {t("actions")}
+                      </summary>
+                      {blockers.map((held, index) => (
+                        <p className="cockpit-blocker" key={index}>
+                          {causeText(held)}
+                        </p>
+                      ))}
+                      {row.coverage_gaps.length > 0 && (
+                        <p>{t("Required evidence is incomplete")}</p>
+                      )}
+                      {row.recorded_case_actions.length === 0 ? (
+                        <p>{t("No recorded response on this case")}</p>
+                      ) : (
+                        <>
+                          <ul className="cockpit-deviation-actions">
+                            {row.recorded_case_actions.map((held) => (
+                              <li key={held.proposal_id}>
+                                <a href={proposalUrl(held.proposal_id)}>
+                                  {held.type || t("Recorded action")}
+                                </a>{" "}
+                                · {t(held.status)}
+                              </li>
+                            ))}
+                          </ul>
+                          <p className="cockpit-note">
+                            {t(
+                              "Case-linked actions do not establish a response to this blocker or an external delivery outcome.",
+                            )}
+                          </p>
+                        </>
+                      )}
+                    </details>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          );
+        })}
+      </table>
+    </div>
+  );
+}
+
 export function OperationsDeviationsPanel({
   value,
   selection,
@@ -39,81 +201,7 @@ export function OperationsDeviationsPanel({
         {value.deviation_total === 0 && (
           <p className="cockpit-note">{t("No deviations in the current shipping observation")}</p>
         )}
-        <ul className="cockpit-briefing-list">
-          {rows.slice(0, 3).map((row) => {
-            const blocker = Object.values(row.blockers).flat()[0];
-            const action = row.recorded_case_actions[0];
-            return (
-              <li key={row.order_id} data-briefing-order={row.order_id}>
-                <div className="cockpit-briefing-heading">
-                  <a
-                    href={selectionUrl(
-                      navigationSelection(selection, {
-                        route: "orders-deliveries",
-                        ordersView: "customer-orders",
-                        entry: row.order_id,
-                        cockpitCase: row.case_id || undefined,
-                        cockpitOrigin: cockpitOriginSelection(selection),
-                      }),
-                    )}
-                  >
-                    {row.number || row.order_id}
-                  </a>
-                  <span
-                    className={`cockpit-business-badge ${row.responsibility === "human" ? "manual" : row.responsibility === "automation" ? "automatic" : "unavailable"}`}
-                  >
-                    {t(
-                      row.responsibility === "human"
-                        ? "Manually taken over"
-                        : row.responsibility === "automation"
-                          ? "With automation"
-                          : "No linked operational case",
-                    )}
-                  </span>
-                </div>
-                <p className="cockpit-briefing-cause">
-                  <span className={`cockpit-business-badge ${row.at_risk ? "risk" : "attention"}`}>
-                    {t(row.at_risk ? "At risk" : "Data incomplete")}
-                  </span>
-                  {blocker
-                    ? t(
-                        typeof blocker.detail === "string"
-                          ? blocker.detail
-                          : typeof blocker.explanation === "string"
-                            ? blocker.explanation
-                            : blocker.code,
-                      )
-                    : t(
-                        row.coverage_gaps.length > 0
-                          ? "Required evidence is incomplete"
-                          : "No blocker recorded",
-                      )}
-                </p>
-                <div className="cockpit-briefing-action">
-                  <small>{t("Recorded case action")}</small>
-                  {action ? (
-                    <a
-                      href={selectionUrl(
-                        navigationSelection(selection, {
-                          route: "inspector",
-                          inspectorView: "records",
-                          inspectorTargetKind: "change_proposal",
-                          inspectorTargetId: action.proposal_id,
-                          cockpitOrigin: cockpitOriginSelection(selection),
-                        }),
-                      )}
-                    >
-                      {action.type || t("Recorded action")} ·{" "}
-                      <span className="cockpit-business-badge automatic">{t(action.status)}</span>
-                    </a>
-                  ) : (
-                    <span>{t("No recorded response on this case")}</span>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <DeviationTable rows={rows.slice(0, 3)} selection={selection} compact />
         <p className="cockpit-footnote">
           {t(
             "Case-linked actions do not establish a response to this blocker or an external delivery outcome.",
@@ -154,102 +242,7 @@ export function OperationsDeviationsPanel({
       {value.deviation_total === 0 && (
         <p className="cockpit-note">{t("No deviations in the current shipping observation")}</p>
       )}
-      <ul className="cockpit-deviation-list">
-        {shown.map((row) => (
-          <li key={row.order_id} data-deviation-preview>
-            <a
-              href={selectionUrl(
-                navigationSelection(selection, {
-                  route: "orders-deliveries",
-                  ordersView: "customer-orders",
-                  entry: row.order_id,
-                  cockpitCase: row.case_id || undefined,
-                  cockpitOrigin: cockpitOriginSelection({
-                    ...selection,
-                    cockpitCase: row.case_id || undefined,
-                  }),
-                }),
-              )}
-            >
-              {row.number || row.order_id}
-            </a>
-            <p>
-              {t(
-                row.responsibility === "human"
-                  ? "Manually owned — automation stopped"
-                  : row.responsibility === "automation"
-                    ? "Automation owns this work"
-                    : "No linked operational case",
-              )}
-            </p>
-            <p className="cockpit-blocker">
-              {(() => {
-                const blocker = Object.values(row.blockers).flat()[0];
-                return blocker
-                  ? t(
-                      typeof blocker.detail === "string"
-                        ? blocker.detail
-                        : typeof blocker.explanation === "string"
-                          ? blocker.explanation
-                          : blocker.code,
-                    )
-                  : row.coverage_gaps.length > 0
-                    ? t("Required evidence is incomplete")
-                    : t("No blocker recorded");
-              })()}
-            </p>
-            <details className="cockpit-deviation-evidence">
-              <summary>
-                {t("Causes and recorded actions")} ·{" "}
-                {formatNumber(row.recorded_case_actions.length)} {t("actions")}
-              </summary>
-              {Object.values(row.blockers)
-                .flat()
-                .map((blocker, index) => (
-                  <p className="cockpit-blocker" key={index}>
-                    {typeof blocker.detail === "string"
-                      ? t(blocker.detail)
-                      : typeof blocker.explanation === "string"
-                        ? t(blocker.explanation)
-                        : blocker.code}
-                  </p>
-                ))}
-              {row.coverage_gaps.length > 0 && <p>{t("Required evidence is incomplete")}</p>}
-              {row.recorded_case_actions.length === 0 ? (
-                <p>{t("No recorded response on this case")}</p>
-              ) : (
-                <>
-                  <ul className="cockpit-deviation-actions">
-                    {row.recorded_case_actions.map((action) => (
-                      <li key={action.proposal_id}>
-                        <a
-                          href={selectionUrl(
-                            navigationSelection(selection, {
-                              route: "inspector",
-                              inspectorView: "records",
-                              inspectorTargetKind: "change_proposal",
-                              inspectorTargetId: action.proposal_id,
-                              cockpitOrigin: cockpitOriginSelection(selection),
-                            }),
-                          )}
-                        >
-                          {action.type || t("Recorded action")}
-                        </a>{" "}
-                        · {t(action.status)}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="cockpit-note">
-                    {t(
-                      "Case-linked actions do not establish a response to this blocker or an external delivery outcome.",
-                    )}
-                  </p>
-                </>
-              )}
-            </details>
-          </li>
-        ))}
-      </ul>
+      <DeviationTable rows={shown} selection={selection} />
       {rows.length > 0 && (
         <div className="cockpit-pagination cockpit-preview-navigation">
           <span className="cockpit-note">

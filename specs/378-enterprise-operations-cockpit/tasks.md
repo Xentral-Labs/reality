@@ -329,3 +329,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T130 [FR-079] Group the existing canonical register aggregate in services/operational_cases.py without new evaluators/queries; add API response typing and same-live-page publication in OperationalCaseRegister/OperationsCockpitPage.
 - [x] T131 [FR-079 FR-080] Add BusinessCaseOverview.tsx read-only previews, compact deviation briefing/supporting disclosures, contained theme/table/badge CSS and all four translations; retain original services/control and full shipping evidence.
 - [x] T132 [FR-079 FR-080] Run PostgreSQL/frontend/browser/build/audit/lint/spec/catalog checks, review semantics, activate only API/web and inspect actual live overview; update existing PR/contracts/evidence.
+
+
+## Compact shipping deviation tables
+
+- [x] T133 [FR-081] Add failing shared-table/column/summary-row and narrow containment assertions in apps/web/scripts/operations-cockpit-browser.mjs, retaining evidence 39, preview expansion, scope/focus and live proofs.
+- [x] T134 [FR-081] Share DeviationTable rendering in OperationsDeviationsPanel.tsx, replace card-grid styles in operationsCockpit.css and localize the cause column, preserving exact DTO/control semantics.
+- [x] T135 [FR-081] Verify browser/contracts/audit/build/format/spec checks, inspect actual local web, review unchanged evidence/authority and update durable contract and PR.

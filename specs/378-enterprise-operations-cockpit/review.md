@@ -997,3 +997,37 @@ readiness warning; the final complete browser matrix covers this condition and
 passes again. No business responsibility or external operation was changed.
 Unsupported families remain explicit. Primary checkout is untouched. The existing
 PR is updated; earlier release gates remain open.
+
+
+FR-081 pre-implementation analysis: one requirement maps to T133 tests, T134
+presentation and T135 verification/review. Zero unmapped tasks, ambiguities or
+critical findings; Constitution I–VIII PASS. Owner-approved compact table scope
+preserves all original evidence, observation limits and authority. Test-first
+browser fails exactly because the upper briefing has no semantic table.
+
+
+FR-081 verification/review PASS: the upper table assertion first reproduced the
+missing semantic table. The shared renderer now passes the complete cockpit browser
+matrix: four columns and aligned summary rows in both presentations, original
+bounded previews and full-order inspection, original 40-action evidence/disclosure,
+all four languages, light/dark themes and 320/390/1440/1920 widths with contained
+horizontal table scrolling. The first full run exposed dense fixture state leaking
+into the later next-day-cutoff scenario; resetting that test fixture restores the
+original next-day proof without weakening its assertions. Final full matrix passes.
+478 frontend contracts, four 3058-key audits, production build/image, formatting,
+spec policy and whitespace checks pass. Diff review confirms unchanged service
+DTOs, business meaning, source/proposal links, readers, controls and authority.
+Backend/catalog checks need no rerun for this presentation-only follow-up. Earlier
+current-head CI/enterprise/soak release gates remain separate.
+
+
+FR-081 final local proof: only web was recreated on port 8080. Actual company
+briefing shows three aligned original order rows of 46 affected orders; the detailed
+shipping table shows four rows, the same held reservation cause and original
+shipping_plan_state proposal/status links. Native per-order disclosure exposes
+all original causes/action and collapses again. Screenshot records both tables.
+Recorded shipment counts (700 orders/56 packages), selected plan (46 due/0 handed
+over), manual case ownership and continuously decreasing local reply queue remain
+unchanged in meaning. No business action, Agent/simulator/runtime restart or
+migration was performed. The temporary fixture server is stopped; existing PR is
+updated and earlier release gates remain open.
