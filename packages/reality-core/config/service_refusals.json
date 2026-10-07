@@ -2916,9 +2916,6 @@
     "shipping_plan_requirement_conflict": {
       "message": "A commitment already belongs to another current dispatch plan. Withdraw or revise that exact plan first."
     },
-    "operations_cockpit_unavailable": {
-      "message": "Operations cockpit is not enabled for this company."
-    },
     "operations_cockpit_read_session_dirty": {
       "message": "Complete pending changes before reading the operations cockpit."
     },

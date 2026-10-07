@@ -1096,3 +1096,6 @@ Owner requested a separate green PR for universal availability, explicitly remov
 
 
 FR-087 analysis: one new requirement, three mapped tasks (T155–157), 100% refinement coverage, no unresolved clarification or CRITICAL/HIGH finding. Selected-company bootstrap has an exact authorized-request regression and is used only on direct cockpit entry; no Home discovery change. Business access retains one query per boundary without loading private user/company entities; Playground reuses canonical persisted owner/account/run policy. Existing platform-admin visibility is read-only and does not satisfy owner-only inventory or operational-case control. Legacy default-off statements describe superseded history, not current behavior.
+
+
+Final local review: 842 affected PostgreSQL tests pass (one existing skip), all 483 frontend contracts and four locales pass, and actual business/practice/temporary browser pages pass. Before/after checks include revoked persisted administration and private Playground ownership even for an administrator. The initial CI correctly found the old unraised deployment-refusal catalog entry; remove the obsolete entry, preserve the parity gate and regenerate docs. No service mutation guard, grant, schema, Home discovery or confirmation is loosened.

@@ -326,7 +326,16 @@ def test_owned_ready_playground_has_control_tower_without_egress_or_mutation(
 
 @pytest.mark.parametrize(
     "refusal",
-    ["foreign", "revoked", "unverified", "inactive", "rejected", "unready", "failed"],
+    [
+        "foreign",
+        "foreign_admin",
+        "revoked",
+        "unverified",
+        "inactive",
+        "rejected",
+        "unready",
+        "failed",
+    ],
 )
 def test_playground_control_tower_preserves_private_run_access(
     session, playground_http, monkeypatch, refusal
@@ -335,7 +344,9 @@ def test_playground_control_tower_preserves_private_run_access(
 
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
     client, tenant, owner, run, login = playground_http
-    if refusal == "foreign":
+    if refusal in {"foreign", "foreign_admin"}:
+        if refusal == "foreign_admin":
+            owner.is_platform_admin = True
         from reality.db.core import AppUser, now, uid
 
         foreign = AppUser(
