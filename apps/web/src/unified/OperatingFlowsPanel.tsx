@@ -144,14 +144,10 @@ function RiskMeter({ risk, stale }: { risk?: FlowRisk; stale: boolean }) {
 export function OperatingStatusPanel({
   value,
   stale,
-  selected,
-  select,
   selection,
 }: {
   value?: OperatingFlows;
   stale: boolean;
-  selected: OperatingAreaKey;
-  select: (area: OperatingAreaKey) => void;
   selection: Selection;
 }) {
   const titles = {
@@ -171,9 +167,7 @@ export function OperatingStatusPanel({
         <div>
           <span className="cockpit-eyebrow">{t("Company-wide · live")}</span>
           <h2 id="operating-status-heading">{t("Company instruments")}</h2>
-          <p>
-            {t("Company-wide recorded conditions. Select an area for its details and evidence.")}
-          </p>
+          <p>{t("Live company-wide status. Choose a chart area in Detailed analysis.")}</p>
         </div>
       </header>
       <ul className="cockpit-status-grid">
@@ -197,11 +191,6 @@ export function OperatingStatusPanel({
                 <span className="cockpit-status-indicator" aria-hidden="true" />
                 <strong>{t(signalLabels[signal])}</strong>
               </span>
-              {data && (
-                <span className="cockpit-status-detail">
-                  {t("Status details")} <span aria-hidden="true">↓</span>
-                </span>
-              )}
             </>
           );
           return (
@@ -210,20 +199,8 @@ export function OperatingStatusPanel({
               key={area.key}
               data-status-area={area.key}
               data-signal={signal}
-              data-selected={selected === area.key}
             >
-              {data ? (
-                <a
-                  className="br-link cockpit-status-link"
-                  href={`#cockpit-flow-${area.key}`}
-                  onClick={() => select(area.key)}
-                  aria-current={selected === area.key ? "true" : undefined}
-                >
-                  {contents}
-                </a>
-              ) : (
-                <div className="cockpit-status-link">{contents}</div>
-              )}
+              <div className="cockpit-status-link">{contents}</div>
             </li>
           );
         })}
@@ -417,23 +394,21 @@ export function OperatingFlowsPanel({
           {t("Live status is not confirmed")}
         </p>
       )}
-      <div
-        className="cockpit-selection cockpit-analysis-selector"
-        role="group"
-        aria-label={t("Analysis area")}
-      >
-        {areas.map((area) => (
-          <button
-            className="br-btn"
-            type="button"
-            key={area.key}
-            aria-pressed={selected === area.key}
-            onClick={() => select(area.key)}
-          >
-            {t(area.title)}
-          </button>
-        ))}
-      </div>
+      <label className="br-field cockpit-analysis-selector">
+        {t("Analysis area")}
+        <select
+          className="br-control"
+          value={selected}
+          onChange={(event) => select(event.target.value as OperatingAreaKey)}
+          aria-controls={`cockpit-flow-${selected}`}
+        >
+          {areas.map((area) => (
+            <option key={area.key} value={area.key}>
+              {t(area.title)}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="cockpit-flow-grid cockpit-analysis-grid">
         {areas.map((area) => {
           const data: FlowArea = value[area.key];

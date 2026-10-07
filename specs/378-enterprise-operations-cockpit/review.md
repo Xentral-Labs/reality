@@ -585,3 +585,22 @@ reason, request identity and already-started/related-case limits are unchanged.
 
 Verification is recorded in quickstart; original reviewer-owned quality markers and
 prior enterprise/performance/real-time-soak gates are not closed by this increment.
+
+## Stable interaction review (FR-057–058)
+
+Owner authorization: explicitly rethink and implement the most intuitive interaction.
+Requirements review PASS: one area selector in analysis, read-only monitoring above,
+no automatic scroll, retained bookmarks/refresh/company boundaries. Plan Constitution
+Check PASS; no schema/business/mandate changes. Pre-implementation analysis PASS:
+FR-057 maps T091/T092/T093 (non-interactive summary and single labelled selector);
+FR-058 maps the same tasks (focus/viewport/bookmark/reset regression). Earlier FR-048
+is explicitly superseded. No unresolved clarification or CRITICAL finding. Existing
+reviewer-owned and enterprise rollout checklists remain untouched and outside this
+owner-authorized presentation increment.
+
+Final scope review PASS: top summary affordances are removed consistently, the single
+labelled native select controls only existing area state, and fragment replacement
+preserves history without scrolling/focus transfer. All evidence/area articles remain
+mounted; tenant reset and reviewed case behavior are unchanged. Executed proof and
+actual company observation are in quickstart. PR review/merge and earlier enterprise
+acceptance gates remain separate.

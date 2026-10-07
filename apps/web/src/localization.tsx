@@ -61,8 +61,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Stock status": "Bestand",
     "Return status": "Retouren",
     "Status details": "Status im Detail",
-    "Company-wide recorded conditions. Select an area for its details and evidence.":
-      "Firmenweiter Überblick. Bereich auswählen, um Details und Nachweise zu sehen.",
+    "Live company-wide status. Choose a chart area in Detailed analysis.":
+      "Firmenweiter Live-Überblick. Den Diagrammbereich wählst du in der Detailanalyse.",
     "Red: critical · Orange: pending work, attention or incomplete evidence · Green: no recorded deviation":
       "Rot: kritisch · Orange: offene Arbeit, Abweichung oder unvollständige Daten · Grün: keine erfasste Abweichung",
     "Activity period": "Zeitraum der Aktivität",
@@ -2560,8 +2560,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Stock status": "Voorraad",
     "Return status": "Retouren",
     "Status details": "Statusdetails",
-    "Company-wide recorded conditions. Select an area for its details and evidence.":
-      "Bedrijfsbreed overzicht. Selecteer een gebied voor details en bewijs.",
+    "Live company-wide status. Choose a chart area in Detailed analysis.":
+      "Live bedrijfsstatus. Kies het diagramgebied in de detailanalyse.",
     "Red: critical · Orange: pending work, attention or incomplete evidence · Green: no recorded deviation":
       "Rood: kritiek · Oranje: open werk, aandacht of onvolledig bewijs · Groen: geen geregistreerde afwijking",
     "Activity period": "Activiteitsperiode",
@@ -4754,8 +4754,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Stock status": "Existencias",
     "Return status": "Devoluciones",
     "Status details": "Detalles del estado",
-    "Company-wide recorded conditions. Select an area for its details and evidence.":
-      "Vista de toda la empresa. Selecciona un área para ver detalles y evidencias.",
+    "Live company-wide status. Choose a chart area in Detailed analysis.":
+      "Estado de la empresa en directo. Elige el área de gráficos en el análisis detallado.",
     "Red: critical · Orange: pending work, attention or incomplete evidence · Green: no recorded deviation":
       "Rojo: crítico · Naranja: trabajo pendiente, atención o evidencia incompleta · Verde: sin desviación registrada",
     "Activity period": "Periodo de actividad",

@@ -28,9 +28,11 @@ The owner-approved console presents the five canonical areas as compact instrume
 with complete primary counts and labelled three-color conditions. The FR-052–056
 preview parity refinement replaces decorative strips with exact complete-cohort
 risk partitions and proportional meters, including explicit unclassified coverage. Finance is an explicitly
-unavailable observation with a normal workspace link. Selecting an instrument or local
-area control opens one detailed analysis; bookmarked anchors and live-refresh selection
-are retained, inactive evidence panels stay mounted, and company changes reset context.
+unavailable observation with a normal workspace link. FR-057–058 make the operational
+instruments read-only and give detailed analysis one labelled local area selector.
+Switching preserves viewport/focus and replaces the bookmarked area without growing
+browser history. Live selection is retained, inactive evidence panels stay mounted,
+and company changes reset context.
 
 Local correspondence adds incoming/first-recorded-reply counters to the existing
 five-minute operating buckets, derived from the already scoped full mail cohort with
@@ -150,7 +152,13 @@ One page gap owns section separation; standalone and card section headings share
 
 ## Central recorded-condition overview
 
-FR-037–038 add a prominently labelled five-area overview before shipping, using the identical canonical signals and primary metrics shown in the detailed operating cards. Red denotes critical recorded findings, orange other recorded findings, green no finding within evaluated classes, blue ordinary pending work, and grey incomplete/stale/unavailable evidence. Color is accompanied by text. Same-page keyboard links lead to each exact card and its existing definition/evidence; missing flows show unknown and unavailable metrics without dead links. Company-wide scope is independent of the shipping day/site selectors. No aggregate health score, agent-quality judgement, new threshold, read request, timer, business mutation or schema is introduced.
+FR-037–038 introduced the five-area overview before shipping, using the identical
+canonical signals and primary metrics as the operating cards. FR-045 groups visual
+conditions into red/orange/green, while FR-053–054 show exact disjoint risk counts,
+proportional segments and explicit unknown coverage. FR-057–058 supersede the former
+same-page instrument links: monitoring is read-only and analysis has one local selector.
+Scope stays company-wide, independently of shipping day/site. No aggregate health
+score, agent-quality judgement, threshold, new read/timer, mutation or schema is added.
 
 
 ## Permanent Control Tower discovery
@@ -169,3 +177,10 @@ The single case register appears after company status and before shipping as a c
 
 
 Company-status tiles and operating-flow status dots use a classic three-color palette. Critical evidence is red; a clear evaluated scope is green; recorded attention, ordinary pending work and incomplete/stale/missing evidence are orange. The canonical five service signals retain their separate textual conditions and evidence links. Orange does not introduce an exception, service-level target or agent-quality score, and missing evidence never becomes green. The localized legend explains the shared orange category. This presentation-only refinement adds no reads, controls or business rules (spec 378 FR-045).
+
+### Stable area selection (spec 378 FR-057–058)
+
+Instruments are monitoring summaries. Detailed analysis owns the single labelled area
+selector, which switches charts in place without a scroll/focus transfer or new history
+entry. Bookmarked area, live/disclosure state and company reset are retained. Shipping,
+Agent observations and whole-case responsibility keep their existing read/control scope.
