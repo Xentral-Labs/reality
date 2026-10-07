@@ -537,3 +537,25 @@ and stack order, no nested analysis card, natural case height, consistent styles
 labelled icon keyboard toggles and unchanged evidence/control/live state. Run frontend
 contracts, formatting/build/languages, full cockpit matrix and controlled lifecycle;
 activate frontend only and inspect the real company. Rollback is presentation-only.
+
+
+## Shared shipping/flow analysis refinement (FR-062–064)
+
+Owner scope review: explicit request for the same location and shipping as first option;
+no clarification outstanding. Presentation only; Constitution Check PASS for shared
+services, tenant scope, lossless evidence, no schema/writer/poller or business-rule change.
+Extend selection with shipping while retaining the existing flow keys. The common
+OperatingFlowsPanel frame renders the existing ShippingDayPanel in embedded mode and
+keeps all views mounted/hidden; it owns one selector. Put the supporting-order component
+below that frame in the same left column, hidden with shipping but still mounted. The
+right column contains the sole register, then log/Agents. Preserve component keys,
+source/control state and all reader lifecycles. A global shipping investigation selects
+shipping before revealing its existing focusable supporting panel. Missing flow evidence must not remove
+the shipping option. Business-day/site filters still affect shipping only.
+
+Tests first: default/first option, single frame, stable switch/bookmark/reset, basis and
+supporting-investigation restoration; revised desktop/narrow hierarchy; retain the full
+locale/theme/viewport matrix, source/basis/shipping/missing/stale/manual-control tests
+and controlled lifecycle. Run contracts, language audit, formatting/build/spec checks,
+then update only local web, inspect actual company and update the existing PR. Rollback
+is the preceding web revision; no data or migration changes.

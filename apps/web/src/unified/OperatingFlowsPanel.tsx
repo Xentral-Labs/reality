@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatNumber, formatZonedDateTime, t } from "../localization";
 import type { FlowArea, FlowRisk, OperatingFlows } from "./cockpitModel";
 import {
@@ -10,6 +10,7 @@ import {
 
 type Metric = { key: string; label: string };
 export type OperatingAreaKey = "orders" | "messages" | "supply" | "stock" | "returns";
+export type AnalysisAreaKey = "shipping" | OperatingAreaKey;
 const areas: {
   key: OperatingAreaKey;
   title: string;
@@ -361,20 +362,15 @@ export function OperatingFlowsPanel({
   stale,
   selected,
   select,
+  shipping,
 }: {
   value?: OperatingFlows;
   selection: Selection;
   stale: boolean;
-  selected: OperatingAreaKey;
-  select: (area: OperatingAreaKey) => void;
+  selected: AnalysisAreaKey;
+  select: (area: AnalysisAreaKey) => void;
+  shipping: ReactNode;
 }) {
-  if (!value)
-    return (
-      <section className="cockpit-card">
-        <h2>{t("Company in motion")}</h2>
-        <p>{t("Operating flow evidence is unavailable")}</p>
-      </section>
-    );
   return (
     <section
       className="cockpit-card cockpit-flow-board"
@@ -383,7 +379,7 @@ export function OperatingFlowsPanel({
     >
       <header className="cockpit-card-heading">
         <div>
-          <span className="cockpit-eyebrow">{t("Company-wide · live")}</span>
+          <span className="cockpit-eyebrow">{t("Company operations")}</span>
           <h2 id="flows-heading">{t("Flow analysis")}</h2>
         </div>
         <label className="br-field cockpit-analysis-selector">
@@ -391,9 +387,10 @@ export function OperatingFlowsPanel({
           <select
             className="br-control"
             value={selected}
-            onChange={(event) => select(event.target.value as OperatingAreaKey)}
+            onChange={(event) => select(event.target.value as AnalysisAreaKey)}
             aria-controls={`cockpit-flow-${selected}`}
           >
+            <option value="shipping">{t("Shipping performance")}</option>
             {areas.map((area) => (
               <option key={area.key} value={area.key}>
                 {t(area.title)}
@@ -402,206 +399,215 @@ export function OperatingFlowsPanel({
           </select>
         </label>
       </header>
-      {stale && (
+      {selected !== "shipping" && stale && (
         <p role="status" className="cockpit-note">
           {t("Live status is not confirmed")}
         </p>
       )}
+      <div id="cockpit-flow-shipping" hidden={selected !== "shipping"} data-shipping-analysis>
+        {shipping}
+      </div>
+      {!value && selected !== "shipping" && <p>{t("Operating flow evidence is unavailable")}</p>}
       <div className="cockpit-flow-grid cockpit-analysis-grid">
-        {areas.map((area) => {
-          const data: FlowArea = value[area.key];
-          const signal = stale ? "unknown" : data.signal;
-          const lines = area.lines.map((line) => ({
-            label: line.label,
-            values: value.buckets.map((bucket) =>
-              bucket.known &&
-              (area.key !== "messages" || value.messages.coverage !== "unavailable") &&
-              typeof bucket[line.key] === "number"
-                ? (bucket[line.key] as number)
-                : null,
-            ),
-          }));
-          return (
-            <article
-              className="cockpit-flow-card cockpit-analysis-card"
-              data-flow-area={area.key}
-              id={`cockpit-flow-${area.key}`}
-              tabIndex={-1}
-              key={area.key}
-              hidden={selected !== area.key}
-            >
-              <h3>{t(area.title)}</h3>
-              <p className={`cockpit-flow-signal ${signal}`}>
-                <span aria-hidden="true" />
-                {t(signalLabels[signal])}
-              </p>
-              <dl>
-                {area.metrics.map((metric) => (
-                  <div key={metric.key}>
-                    <dt>{t(metric.label)}</dt>
-                    <dd>
-                      {typeof data[metric.key] === "number"
-                        ? formatNumber(data[metric.key] as number)
-                        : "—"}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="cockpit-flow-chart" data-flow-chart>
-                {lines.length > 0 && (
-                  <Curve
-                    lines={lines}
-                    title={
-                      area.key === "messages" ? "Incoming & first replies" : "Recorded movements"
-                    }
-                  />
-                )}
-                {area.key === "messages" && (
-                  <Curve
-                    title="Unanswered backlog"
-                    lines={[
-                      {
-                        label: "Messages awaiting reply",
-                        values: value.messages.series.map((point) => point.unanswered),
-                      },
-                    ]}
-                    level
-                  />
-                )}
-                {area.key === "stock" && (
-                  <p className="cockpit-note">
-                    {t("Current observation · risk history unavailable")}
-                  </p>
-                )}
-              </div>
-              <div className="cockpit-flow-notes">
-                {area.key === "messages" && (
-                  <p className="cockpit-note">
-                    {t("Local mailbox · provider response status unknown")}
-                  </p>
-                )}
-                {typeof data.exception_total === "number" && data.exception_total > 0 && (
-                  <p className="cockpit-note">
-                    {formatNumber(data.exception_total)} {t("recorded exceptions")}
-                  </p>
-                )}
-                {area.key === "returns" && Number(data.unknown_positions) > 0 && (
-                  <p className="cockpit-note">
-                    {formatNumber(Number(data.unknown_positions))}{" "}
-                    {t("positions with unknown disposition")}
-                  </p>
-                )}
-                {area.key === "messages" && (
-                  <p className="cockpit-note">
-                    {t("Backlog change · 60 min")}:{" "}
-                    {typeof data.backlog_change_last_hour === "number"
-                      ? `${data.backlog_change_last_hour > 0 ? "+" : ""}${formatNumber(data.backlog_change_last_hour)}`
-                      : "—"}
-                  </p>
-                )}
-              </div>
-              <details className="cockpit-flow-details">
-                <summary>{t("Definition & evidence")}</summary>
-                <p>{t(area.explanation)}</p>
-                <p>
-                  {t(
-                    "Risk counts use the complete displayed cohort, with each identity counted once at its worst recorded condition. High or critical findings are red; other findings are orange.",
-                  )}
+        {value &&
+          areas.map((area) => {
+            const data: FlowArea = value[area.key];
+            const signal = stale ? "unknown" : data.signal;
+            const lines = area.lines.map((line) => ({
+              label: line.label,
+              values: value.buckets.map((bucket) =>
+                bucket.known &&
+                (area.key !== "messages" || value.messages.coverage !== "unavailable") &&
+                typeof bucket[line.key] === "number"
+                  ? (bucket[line.key] as number)
+                  : null,
+              ),
+            }));
+            return (
+              <article
+                className="cockpit-flow-card cockpit-analysis-card"
+                data-flow-area={area.key}
+                id={`cockpit-flow-${area.key}`}
+                tabIndex={-1}
+                key={area.key}
+                hidden={selected !== area.key}
+              >
+                <h3>{t(area.title)}</h3>
+                <p className={`cockpit-flow-signal ${signal}`}>
+                  <span aria-hidden="true" />
+                  {t(signalLabels[signal])}
                 </p>
-                {area.key === "messages" && (
-                  <p>{t("Message deadlines are not recorded; urgency cannot be assessed.")}</p>
-                )}
-                {area.key === "returns" && (
+                <dl>
+                  {area.metrics.map((metric) => (
+                    <div key={metric.key}>
+                      <dt>{t(metric.label)}</dt>
+                      <dd>
+                        {typeof data[metric.key] === "number"
+                          ? formatNumber(data[metric.key] as number)
+                          : "—"}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="cockpit-flow-chart" data-flow-chart>
+                  {lines.length > 0 && (
+                    <Curve
+                      lines={lines}
+                      title={
+                        area.key === "messages" ? "Incoming & first replies" : "Recorded movements"
+                      }
+                    />
+                  )}
+                  {area.key === "messages" && (
+                    <Curve
+                      title="Unanswered backlog"
+                      lines={[
+                        {
+                          label: "Messages awaiting reply",
+                          values: value.messages.series.map((point) => point.unanswered),
+                        },
+                      ]}
+                      level
+                    />
+                  )}
+                  {area.key === "stock" && (
+                    <p className="cockpit-note">
+                      {t("Current observation · risk history unavailable")}
+                    </p>
+                  )}
+                </div>
+                <div className="cockpit-flow-notes">
+                  {area.key === "messages" && (
+                    <p className="cockpit-note">
+                      {t("Local mailbox · provider response status unknown")}
+                    </p>
+                  )}
+                  {typeof data.exception_total === "number" && data.exception_total > 0 && (
+                    <p className="cockpit-note">
+                      {formatNumber(data.exception_total)} {t("recorded exceptions")}
+                    </p>
+                  )}
+                  {area.key === "returns" && Number(data.unknown_positions) > 0 && (
+                    <p className="cockpit-note">
+                      {formatNumber(Number(data.unknown_positions))}{" "}
+                      {t("positions with unknown disposition")}
+                    </p>
+                  )}
+                  {area.key === "messages" && (
+                    <p className="cockpit-note">
+                      {t("Backlog change · 60 min")}:{" "}
+                      {typeof data.backlog_change_last_hour === "number"
+                        ? `${data.backlog_change_last_hour > 0 ? "+" : ""}${formatNumber(data.backlog_change_last_hour)}`
+                        : "—"}
+                    </p>
+                  )}
+                </div>
+                <details className="cockpit-flow-details">
+                  <summary>{t("Definition & evidence")}</summary>
+                  <p>{t(area.explanation)}</p>
                   <p>
                     {t(
-                      "Pending returns without a recorded finding remain unclassified; a missing learned threshold does not prove timeliness.",
+                      "Risk counts use the complete displayed cohort, with each identity counted once at its worst recorded condition. High or critical findings are red; other findings are orange.",
                     )}
                   </p>
-                )}
-                {area.key === "stock" && (
-                  <p>
-                    {t(
-                      "Stock segments cover only items with uncovered demand, not all stocked items.",
-                    )}
-                  </p>
-                )}
-                {area.key === "messages" && Number(data.external_incoming) > 0 && (
-                  <p>
-                    {formatNumber(Number(data.external_incoming))}{" "}
-                    {t("provider messages with unknown reply state")}
-                  </p>
-                )}
-                {area.key === "orders" && Number(data.unlinked_open_lines) > 0 && (
-                  <p>
-                    {formatNumber(Number(data.unlinked_open_lines))}{" "}
-                    {t("open delivery lines without an order link")}
-                  </p>
-                )}
-                <ul>
-                  {data.evidence.map((row) => (
-                    <li key={`${row.kind}:${row.id}`}>
+                  {area.key === "messages" && (
+                    <p>{t("Message deadlines are not recorded; urgency cannot be assessed.")}</p>
+                  )}
+                  {area.key === "returns" && (
+                    <p>
+                      {t(
+                        "Pending returns without a recorded finding remain unclassified; a missing learned threshold does not prove timeliness.",
+                      )}
+                    </p>
+                  )}
+                  {area.key === "stock" && (
+                    <p>
+                      {t(
+                        "Stock segments cover only items with uncovered demand, not all stocked items.",
+                      )}
+                    </p>
+                  )}
+                  {area.key === "messages" && Number(data.external_incoming) > 0 && (
+                    <p>
+                      {formatNumber(Number(data.external_incoming))}{" "}
+                      {t("provider messages with unknown reply state")}
+                    </p>
+                  )}
+                  {area.key === "orders" && Number(data.unlinked_open_lines) > 0 && (
+                    <p>
+                      {formatNumber(Number(data.unlinked_open_lines))}{" "}
+                      {t("open delivery lines without an order link")}
+                    </p>
+                  )}
+                  <ul>
+                    {data.evidence.map((row) => (
+                      <li key={`${row.kind}:${row.id}`}>
+                        <a
+                          href={selectionUrl(
+                            navigationSelection(selection, {
+                              route: "inspector",
+                              inspectorView: "records",
+                              inspectorTargetKind: row.kind,
+                              inspectorTargetId: row.id,
+                              cockpitOrigin: cockpitOriginSelection(selection),
+                            }),
+                          )}
+                        >
+                          {row.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  {(data.exceptions || []).map((row) => (
+                    <p key={row.id}>
                       <a
                         href={selectionUrl(
                           navigationSelection(selection, {
                             route: "inspector",
                             inspectorView: "records",
                             inspectorTargetKind: row.kind,
-                            inspectorTargetId: row.id,
+                            inspectorTargetId: row.record_id,
                             cockpitOrigin: cockpitOriginSelection(selection),
                           }),
                         )}
                       >
-                        {row.label}
+                        {t(row.title)}
                       </a>
-                    </li>
+                    </p>
                   ))}
-                </ul>
-                {(data.exceptions || []).map((row) => (
-                  <p key={row.id}>
-                    <a
-                      href={selectionUrl(
-                        navigationSelection(selection, {
-                          route: "inspector",
-                          inspectorView: "records",
-                          inspectorTargetKind: row.kind,
-                          inspectorTargetId: row.record_id,
-                          cockpitOrigin: cockpitOriginSelection(selection),
-                        }),
-                      )}
-                    >
-                      {t(row.title)}
-                    </a>
+                  <p className="cockpit-note">
+                    {t("Complete company totals; up to four evidence records shown.")}
                   </p>
-                ))}
-                <p className="cockpit-note">
-                  {t("Complete company totals; up to four evidence records shown.")}
-                </p>
-              </details>
-              <a
-                className="cockpit-flow-workspace"
-                href={selectionUrl(
-                  navigationSelection(selection, {
-                    ...area.destination,
-                    cockpitOrigin: cockpitOriginSelection(selection),
-                  }),
-                )}
-              >
-                {t("Open workspace")} <span aria-hidden="true">→</span>
-              </a>
-            </article>
-          );
-        })}
+                </details>
+                <a
+                  className="cockpit-flow-workspace"
+                  href={selectionUrl(
+                    navigationSelection(selection, {
+                      ...area.destination,
+                      cockpitOrigin: cockpitOriginSelection(selection),
+                    }),
+                  )}
+                >
+                  {t("Open workspace")} <span aria-hidden="true">→</span>
+                </a>
+              </article>
+            );
+          })}
       </div>
-      <p className="cockpit-note cockpit-analysis-scope">
-        {t("Current queues and the last 60 minutes. Independent of the shipping day and site.")}
-        <br />
-        {t("Data observed at")} {formatZonedDateTime(value.observed_at)}
-      </p>
-      <p className="cockpit-note">
-        {t(
-          "Status describes the recorded condition, not agent quality. Pending work is not automatically a failure.",
-        )}
-      </p>
+      {value && selected !== "shipping" && (
+        <>
+          <p className="cockpit-note cockpit-analysis-scope">
+            {t("Current queues and the last 60 minutes. Independent of the shipping day and site.")}
+            <br />
+            {t("Data observed at")} {formatZonedDateTime(value.observed_at)}
+          </p>
+          <p className="cockpit-note">
+            {t(
+              "Status describes the recorded condition, not agent quality. Pending work is not automatically a failure.",
+            )}
+          </p>
+        </>
+      )}
     </section>
   );
 }

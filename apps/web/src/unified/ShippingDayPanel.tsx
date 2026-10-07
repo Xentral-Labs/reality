@@ -22,7 +22,9 @@ export function ShippingDayPanel({
   value,
   inspect,
   selection,
+  embedded = false,
 }: {
+  embedded?: boolean;
   value: ShippingObservation;
   selection: Selection;
   inspect: (measure: ShippingMeasure, at?: string) => void;
@@ -64,7 +66,10 @@ export function ShippingDayPanel({
     { key: "risk", label: "At risk", value: value.totals.risk },
   ] as const;
   return (
-    <section className="cockpit-card cockpit-shipping" aria-labelledby="shipping-title">
+    <section
+      className={`cockpit-shipping ${embedded ? "" : "cockpit-card"}`}
+      aria-labelledby="shipping-title"
+    >
       <div className="cockpit-card-heading">
         <div>
           <span className="cockpit-eyebrow">{t("Shipping performance")}</span>

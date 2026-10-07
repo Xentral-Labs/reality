@@ -1,5 +1,11 @@
 # Tasks: Enterprise operations cockpit
 
+## Shared analysis including shipping (FR-062–064)
+
+- [x] T097 Add failing default/six-option/shared-location and shipping-state restoration browser proof; adapt approved hierarchy assertions without dropping existing flow/source/control coverage.
+- [x] T098 Reuse shipping in the sole analysis frame, keep all panels/state and day-versus-company scope, and stack Responsibility/log/Agents beside it.
+- [x] T099 Run frontend/matrix/lifecycle/spec checks, inspect and activate web only, record evidence and update the existing PR.
+
 ## Hierarchy and quiet observation controls (FR-059–061)
 
 - [x] T094 Add failing priority geometry, single analysis frame, shared rhythm/natural height and accessible icon-control browser regressions.
