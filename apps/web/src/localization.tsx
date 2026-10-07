@@ -13,6 +13,8 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Change since previous observation": "Änderung seit dem letzten Datenstand",
+    "Recorded entities": "Erfasste Geschäftseinträge",
     "Recorded cause": "Belegte Ursache",
     "Business cases in operation": "Geschäftsvorgänge im Betrieb",
     "Business case inspection": "Geschäftsvorgänge ansehen",
@@ -2551,6 +2553,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Change since previous observation": "Verandering sinds de vorige waarneming",
+    "Recorded entities": "Vastgelegde bedrijfsgegevens",
     "Recorded cause": "Vastgelegde oorzaak",
     "Business cases in operation": "Bedrijfsdossiers in uitvoering",
     "Business case inspection": "Bedrijfsdossiers bekijken",
@@ -4786,6 +4790,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Change since previous observation": "Cambio desde la observación anterior",
+    "Recorded entities": "Registros de negocio registrados",
     "Recorded cause": "Causa registrada",
     "Business cases in operation": "Casos de negocio en operación",
     "Business case inspection": "Consultar casos de negocio",

@@ -675,7 +675,18 @@ await page.route("**/api/**", (route) => {
                   series: flows.messages.series.map((point) => ({ ...point, unanswered: null })),
                 },
               }
-            : flows,
+            : {
+                ...flows,
+                messages: {
+                  ...flows.messages,
+                  unanswered: flows.messages.unanswered - eventIndex + 1,
+                  risk: {
+                    ...flows.messages.risk,
+                    total: flows.messages.risk.total - eventIndex + 1,
+                    unclassified: flows.messages.risk.unclassified - eventIndex + 1,
+                  },
+                },
+              },
       observed_at: at("12:30"),
       start: at("12:15"),
       coverage_start: at("12:15"),
@@ -1730,6 +1741,20 @@ try {
   await showWorkspace("activity");
   await page.getByRole("heading", { name: "Recorded business activity" }).waitFor();
   assert.equal(await page.locator("[data-agent-access] script").count(), 0);
+  assert(
+    await page.getByRole("img", { name: "Recorded business entities per minute" }).isVisible(),
+    "recording chart is visible without opening settings",
+  );
+  assert.equal(
+    await page.locator("[data-live-new-event]").count(),
+    0,
+    "initial observation does not animate history",
+  );
+  assert.equal(
+    await page.locator("[data-live-change]").count(),
+    0,
+    "equal observations stay quiet",
+  );
   const pause = page.getByRole("button", { name: "Pause following", exact: true });
   assert.equal(await pause.getAttribute("title"), "Pause following");
   assert.equal(await pause.locator("svg").count(), 1);
@@ -1758,7 +1783,41 @@ try {
   await page.getByText("New activity available", { exact: true }).waitFor({ timeout: 12000 });
   assert.equal(await page.locator('[data-activity-event="event_1"]').count(), 1);
   await page.getByRole("button", { name: "Resume following" }).click();
-  await page.locator('[data-activity-event="event_2"]').waitFor();
+  await page.locator('[data-activity-event="event_2"][data-live-new-event]').waitFor();
+  const changedMetric = page.locator('[data-status-area="messages"] [data-live-change]');
+  assert.equal(await changedMetric.getAttribute("data-live-change"), "-1");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(
+    await page
+      .locator('[data-activity-event="event_2"]')
+      .evaluate((el) => getComputedStyle(el).animationName),
+    "none",
+  );
+  assert.equal(
+    await page
+      .locator('[data-status-area="messages"] [data-status-metric]')
+      .evaluate((el) => getComputedStyle(el).animationName),
+    "none",
+  );
+  assert.equal(
+    await page.locator("[data-live-new-event], [data-live-change]").count(),
+    0,
+    "reduced motion clears pending highlights",
+  );
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  assert.equal(
+    await page.locator("[data-live-new-event], [data-live-change]").count(),
+    0,
+    "enabling motion does not replay old changes",
+  );
+  // A later current update still gets one bounded animation.
+  eventIndex = 3;
+  await page
+    .locator('[data-activity-event="event_3"][data-live-new-event]')
+    .waitFor({ timeout: 12000 });
+  await page.waitForFunction(
+    () => !document.querySelector("[data-live-new-event], [data-live-change]"),
+  );
   await page.screenshot({ path: "/private/tmp/reality-378-cockpit-1440.png", fullPage: true });
   await areaSelector.selectOption("shipping");
   if (!(await page.locator("[data-shipping-sites]").evaluate((el) => el.open))) {
@@ -1854,6 +1913,11 @@ try {
     await page.locator("[data-shipping-series]").count(),
     3,
     "refresh failure retains aged values",
+  );
+  assert.equal(
+    await page.locator("[data-live-new-event], [data-live-change]").count(),
+    0,
+    "stale observations suppress live feedback",
   );
   assert.equal(
     await page.locator("[data-flow-area] .cockpit-flow-signal.unknown").count(),

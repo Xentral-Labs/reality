@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCockpitMotion } from "./useCockpitMotion";
+import { newEventIds, type EventObservation } from "./cockpitLiveSignals";
+import { useEffect, useRef, useState } from "react";
 import { Pause, Play, X } from "lucide-react";
 import {
   formatZonedDateTime as formatDateTime,
@@ -46,6 +48,25 @@ export function OperationsActivityPanel({
   const changed =
     held !== null && value?.events.some((event) => !held.some((old) => old.id === event.id));
   const events = held || value?.events || [];
+  const context = `${selection.tenant}:${minutes}`;
+  const motion = useCockpitMotion();
+  const previous = useRef<EventObservation | null>(null);
+  const [newEvents, setNewEvents] = useState<{ context: string; ids: string[] } | null>(null);
+  useEffect(() => {
+    if (state.status !== "current" || previous.current?.context !== context) {
+      previous.current = null;
+      setNewEvents(null);
+    }
+    if (state.status !== "current" || held !== null || !value) return;
+    const next = { context, events: value.events };
+    const ids = motion ? newEventIds(previous.current, next) : [];
+    const sequenceFloor = Math.max(
+      previous.current?.sequenceFloor || 0,
+      ...value.events.map((event) => event.sequence),
+    );
+    previous.current = { ...next, sequenceFloor };
+    setNewEvents({ context, ids });
+  }, [context, held, state.status, value, motion]);
   const maximum = Math.max(1, ...(value?.buckets.map((row) => row.total) || []));
   const reference = (event: CockpitActivityEvent) =>
     selectionUrl(
@@ -96,6 +117,37 @@ export function OperationsActivityPanel({
       )}
       {value && (
         <>
+          <div className="cockpit-activity-signal" data-live-activity-signal>
+            <div className="cockpit-activity-total">
+              <strong>{formatNumber(value.total)}</strong>
+              <span>
+                {t("Recorded entities")} · {minutes} {t("Min.")}
+              </span>
+            </div>
+            <div
+              className="cockpit-activity-chart"
+              role="img"
+              aria-label={t("Recorded business entities per minute")}
+            >
+              {value.buckets.map((bucket) => (
+                <div
+                  key={bucket.start}
+                  className={bucket.partial ? "partial" : ""}
+                  data-recorded-total={bucket.total}
+                  title={`${formatDateTime(bucket.start)} · ${formatNumber(bucket.total)}${bucket.partial ? ` · ${t("Partial coverage")}` : ""}`}
+                  style={{
+                    height: `${bucket.total === 0 ? 0 : Math.max(2, (bucket.total / maximum) * 100)}%`,
+                  }}
+                >
+                  <span>{formatNumber(bucket.total)}</span>
+                  <title>
+                    {formatDateTime(bucket.start)} · {formatNumber(bucket.total)}
+                    {bucket.partial ? ` · ${t("Partial coverage")}` : ""}
+                  </title>
+                </div>
+              ))}
+            </div>
+          </div>
           <details
             className="cockpit-recording-rate"
             open={rateExpanded}
@@ -114,29 +166,6 @@ export function OperationsActivityPanel({
                 </button>
               ))}
             </div>
-            <div className="cockpit-activity-total">
-              <strong>{formatNumber(value.total)}</strong>
-              <span>{t("Newly recorded entities in this window")}</span>
-            </div>
-            <div
-              className="cockpit-activity-chart"
-              role="img"
-              aria-label={t("Recorded business entities per minute")}
-            >
-              {value.buckets.map((bucket) => (
-                <div
-                  key={bucket.start}
-                  className={bucket.partial ? "partial" : ""}
-                  style={{ height: `${Math.max(2, (bucket.total / maximum) * 100)}%` }}
-                >
-                  <span>{formatNumber(bucket.total)}</span>
-                  <title>
-                    {formatDateTime(bucket.start)} · {formatNumber(bucket.total)}
-                    {bucket.partial ? ` · ${t("Partial coverage")}` : ""}
-                  </title>
-                </div>
-              ))}
-            </div>
             <p className="cockpit-footnote">
               {t(
                 "Recording time determines this graph. It does not count completed shipments or successful Agent actions.",
@@ -150,7 +179,24 @@ export function OperationsActivityPanel({
           )}
           <ul className="cockpit-event-list" id="cockpit-live-events">
             {events.map((event) => (
-              <li key={event.id} data-activity-event={event.id}>
+              <li
+                key={event.id}
+                data-activity-event={event.id}
+                data-live-new-event={
+                  motion &&
+                  state.status === "current" &&
+                  held === null &&
+                  newEvents?.context === context &&
+                  newEvents.ids.includes(event.id)
+                    ? "true"
+                    : undefined
+                }
+                onAnimationEnd={() =>
+                  setNewEvents((old) =>
+                    old ? { ...old, ids: old.ids.filter((id) => id !== event.id) } : null,
+                  )
+                }
+              >
                 <button
                   onClick={() => {
                     setInspected(event);

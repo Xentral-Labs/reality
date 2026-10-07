@@ -350,3 +350,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T139 [FR-083] Add failing compact footer height, closed explanation and keyboard/Escape/containment proofs to operations-cockpit-browser.mjs.
 - [x] T140 [FR-083] Place exact legend explanation behind a native labelled Info disclosure and reduce scoped footer spacing without changing risk data or inspection.
 - [x] T141 [FR-083] Verify browser/contracts/audit/build/format/spec, inspect actual local web and update durable contract/existing PR; retain release gates.
+
+
+## Observed live feedback
+
+- [x] T142 [FR-084] Add failing observation-baseline unit tests in apps/web/scripts/cockpit-live-signals.test.mjs and visible activity/new-event/count/reduced-motion proofs in operations-cockpit-browser.mjs.
+- [x] T143 [FR-084] Add scoped cockpitLiveSignals.ts/ObservedMetric.tsx/useCockpitMotion.ts, finite neutral count/event feedback and always-visible compact recorded-entity chart in OperationsActivityPanel.tsx/operationsCockpit.css; retain reader and pause/control semantics.
+- [x] T144 [FR-084] Verify browser/contracts/audit/build/format/spec checks, review truthful scope and reset behavior, inspect actual local web and update durable contract/existing PR.

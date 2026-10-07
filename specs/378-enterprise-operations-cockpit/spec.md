@@ -654,3 +654,10 @@ Acceptance: each displayed order occupies one aligned summary row; original full
 ### Compact risk legend
 
 - **FR-083**: The instrument legend MUST occupy one compact centered row on desktop, retaining all four risk labels/swatches including Unclassified. Move the existing share-of-open-work and evaluated-scope explanation behind a labelled Info disclosure, closed initially and keyboard operable. Preserve exact copy; missing assessment must never imply green. The closed footer is at most 38px high on desktop, and may wrap on narrow screens. Explanation is bounded within the instrument section, readable in four languages/both themes, closes with Escape restoring its summary focus, and changes no analysis selection, URL/history, viewport or business state. No data/read/control change.
+
+
+### Observed live feedback
+
+- **FR-084**: The Control Tower MUST expose a compact, always-visible per-minute recorded-entity chart in its recent-activity card using the existing activity observation. Actual changes to primary instrument counts receive one finite neutral highlight; genuinely newer displayed event IDs receive a finite entry/highlight. First load, identical values, earlier/replayed events, context changes and stale/suspended/denied observations MUST NOT trigger motion. A change is an observation difference, never an inferred successful Agent action. Pausing/inspecting freezes the event list and preserves its selection; resuming may highlight newly recorded events. Respect reduced-motion preference, keep chart scope explicit and retain record links, exact counts, risk semantics, focus, geometry and existing live-reader cadence. No polling, simulation, persistent business state or schema changes.
+
+Acceptance: initial current observation is quiet; a later changed count and newer event are visibly marked once; equal/replayed responses are quiet; pause retains old rows until resume; stale/recovery and company/window changes start a fresh quiet baseline; reduced motion disables entry/flash animation; the chart remains visible without expanding rate settings in four languages and both themes at existing supported widths.
