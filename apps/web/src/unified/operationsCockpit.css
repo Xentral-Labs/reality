@@ -1695,3 +1695,9 @@ a.cockpit-status-link:focus-visible {
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
+
+/* Embedded views share their selected-topic heading with the outer card. */
+.cockpit-context-actions {
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}

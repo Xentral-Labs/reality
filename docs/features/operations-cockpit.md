@@ -228,3 +228,8 @@ Agent observations and whole-case responsibility keep their existing read/contro
 ### Missing daily shipping plan
 
 Spec 378 FR-071–072 separates observed physical shipping from daily planning. Orders with actual shipment bookings and source-backed confirmed package handovers remain visible for the selected company day/site even without a plan. These counts retain their distinct units; a package or partial booking never implies a completed plan order. Plan comparison/forecast and affected-order coverage remain unknown without the required accepted inputs. The scenario-only trusted local daily fixture is documented in Company Simulator LIVE.md; it does not grant agent, worker or production planning approval.
+
+The two primary console cards use one selected-topic heading (spec 378 FR-073):
+Flow analysis and Operations workspace are category eyebrows; the current shipping/
+flow or responsibility/log/Agent topic is the sole primary h2. Embedded views retain
+context, accessible region names, icon actions and state without repeated headings.

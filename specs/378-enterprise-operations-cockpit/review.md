@@ -746,3 +746,35 @@ The mail backlog decreased from 1,924 to 1,923 during inspection. Native movemen
 package and Source links are present in the basis disclosure. Screenshot evidence:
 /private/tmp/reality-instrument-panel/daily-plan-current-live.png. The temporary
 frontend test server was stopped; the sole operator and existing simulator remain.
+
+
+FR-073 pre-implementation review: explicit owner requests removal of duplicated
+category/topic headers and inconsistent typography. One requirement maps to
+T110–112 and executable browser selection/heading/geometry proof. Constitution
+PASS; no unresolved clarification or critical consistency/coverage finding.
+Existing enterprise and reviewer-owned rollout checklists remain open and are
+outside this explicitly authorized presentation repair.
+
+
+FR-073 verification: the new product browser assertion first failed on the two
+visible shipping headings (Flow analysis and Shipping by end of day), establishing
+the reported duplication. After implementation the full cockpit browser matrix
+passed, including one selected-topic h2 across six analysis/three workspace views,
+category labels, matched shared typography, retained source/manual/log/Agent state,
+native keyboard/focus and 320/390/1440/1920 viewport checks in four languages and
+both themes. All 478 frontend contracts passed; localization audits remain
+3044/3044 for all four languages. Native production build, frontend image build,
+scoped formatting, spec policy and whitespace checks passed. No new translation,
+business reader, data change or polling change. Only the web was recreated locally;
+the API, operator and simulator were preserved. Existing current-head CI, enterprise
+performance and real pilot acceptance remain open.
+
+Actual local member inspection after web activation passed: the return view shows
+Flow analysis / Returns & disposition beside Operations workspace / Cases & takeover,
+with one primary heading per card. Log and Agent selections show the single current
+topic (Recorded business activity / Agents & connections); normal contextual
+descriptions/actions remain available. Screenshot:
+/private/tmp/reality-instrument-panel/control-tower-unified-headings.png.
+The retained current-day observations and operator remain live. Final diff review
+passed; no dangling embedded heading references, duplicate topic headings or
+changes to control/state semantics.

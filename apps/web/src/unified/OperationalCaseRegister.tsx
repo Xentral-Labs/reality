@@ -15,9 +15,11 @@ import {
 export function OperationalCaseRegister({
   selection,
   zone,
+  embedded = false,
 }: {
   selection: Selection;
   zone: string;
+  embedded?: boolean;
 }) {
   const workspaceId = useId();
   const [expanded, setExpanded] = useState(Boolean(selection.cockpitCase));
@@ -198,8 +200,12 @@ export function OperationalCaseRegister({
     <section className="cockpit-card cockpit-case-register" data-case-register>
       <div className="cockpit-case-entry">
         <div className="cockpit-case-introduction">
-          <span className="cockpit-eyebrow">{t("Responsibility")}</span>
-          <h2>{t("Cases & takeover")}</h2>
+          {!embedded && (
+            <>
+              <span className="cockpit-eyebrow">{t("Responsibility")}</span>
+              <h2>{t("Cases & takeover")}</h2>
+            </>
+          )}
           <p>{t("The system automatically handles order fulfillment and announced returns.")}</p>
           <p className="cockpit-note">
             {t(

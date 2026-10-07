@@ -84,12 +84,17 @@ export function ShippingDayPanel({
   return (
     <section
       className={`cockpit-shipping ${embedded ? "" : "cockpit-card"}`}
-      aria-labelledby="shipping-title"
+      aria-labelledby={embedded ? undefined : "shipping-title"}
+      aria-label={embedded ? t("Shipping by end of day") : undefined}
     >
       <div className="cockpit-card-heading">
         <div>
-          <span className="cockpit-eyebrow">{t("Shipping performance")}</span>
-          <h2 id="shipping-title">{t("Shipping by end of day")}</h2>
+          {!embedded && (
+            <>
+              <span className="cockpit-eyebrow">{t("Shipping performance")}</span>
+              <h2 id="shipping-title">{t("Shipping by end of day")}</h2>
+            </>
+          )}
           <p>
             {t("Cumulative orders · company business day")} · {value.time_zone}
           </p>

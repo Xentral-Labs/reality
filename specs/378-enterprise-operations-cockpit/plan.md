@@ -609,3 +609,17 @@ no data migration. Existing enterprise and real-soak release gates remain open.
 ## Daily plan absence recovery
 
 FR-071–072: Add a read-only physical activity projection in shipping_performance.py using effective Movement and ShipmentEvent/Package relationships, scoped to tenant, dispatch location and company-day interval. Return distinct booked orders and effective first-handed-over packages, cumulative points and a bounded original-record/source preview within the existing fingerprint/snapshot. Keep canonical cohort totals unchanged. Render a compact actual-activity strip/plot independently of missing-plan feedback; unknown deviation total remains unknown. No schema, endpoint, tool, timer or business authority changes. Tests cover deduplication, correction/supersession, boundaries and isolation before implementation, then frontend contracts, browser fixture proof, formatting/localization/build and actual local inspection. Constitution Check: PASS on all eight principles; observations are read-time only, recorded timestamps are preserved. Existing enterprise release gates remain open. Rollback: remove additive DTO/UI projection without changing stored business data.
+
+
+## Single selected-topic heading
+
+FR-073: Let OperatingFlowsPanel and OperationsWorkspacePanel own the selected-topic
+h2 and stable category eyebrow. Remove the repeated flow article heading; use
+explicit embedded presentation props on shipping/case/log/Agent children, preserving
+standalone defaults and stable accessible region labels. Retain descriptions and
+existing icon controls in compact context rows. No business/service/schema/polling
+change. Test the existing product browser matrix first for one main heading in
+each card, selected-topic changes, matched typography and retained state. Run
+frontend contracts, localization/format/build/spec checks and actual local browser
+inspection. Constitution Check: PASS, presentation only with no authority changes.
+Rollback: restore prior component headers; no stored data changes.

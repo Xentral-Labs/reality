@@ -2,9 +2,9 @@ import { useState, type ReactNode } from "react";
 import { t } from "../localization";
 
 const views = [
-  { key: "responsibility", label: "Responsibility" },
-  { key: "activity", label: "Live event log" },
-  { key: "agents", label: "Registered Agents" },
+  { key: "responsibility", label: "Responsibility", title: "Cases & takeover" },
+  { key: "activity", label: "Live event log", title: "Recorded business activity" },
+  { key: "agents", label: "Registered Agents", title: "Agents & connections" },
 ] as const;
 type WorkspaceView = (typeof views)[number]["key"];
 
@@ -27,8 +27,8 @@ export function OperationsWorkspacePanel({
     >
       <header className="cockpit-card-heading">
         <div>
-          <span className="cockpit-eyebrow">{t("Company operations")}</span>
-          <h2 id="workspace-heading">{t("Operations workspace")}</h2>
+          <span className="cockpit-eyebrow">{t("Operations workspace")}</span>
+          <h2 id="workspace-heading">{t(views.find((view) => view.key === selected)!.title)}</h2>
         </div>
         <label className="br-field cockpit-workspace-selector">
           {t("Workspace view")}

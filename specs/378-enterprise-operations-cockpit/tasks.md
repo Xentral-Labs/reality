@@ -278,3 +278,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T107 [FR-071/072] Add failing shipping physical-activity, no-plan overview and frontend no-plan browser proofs before implementation.
 - [x] T108 [FR-071/072] Implement independent tenant/day/site physical activity, bounded source trace and unknown deviations in existing services; render honest actual units without extra readers.
 - [x] T109 [FR-071/072] Verify affected backend/frontend/browser/spec/build/localization checks, inspect real current-day activity and record review; preserve open enterprise/CI gates.
+
+
+## Single selected-topic heading
+
+- [x] T110 [FR-073] Add failing product browser proof of one selected-topic h2 per primary card and shared typography across six analysis/three workspace views.
+- [x] T111 [FR-073] Centralize visible topic headings in OperatingFlowsPanel/OperationsWorkspacePanel with explicit embedded child presentation and stable accessible region names; retain context, controls and state.
+- [x] T112 [FR-073] Run required frontend/browser/build/audit/policy checks, inspect and activate the local web, review the diff and update existing PR while retaining enterprise/CI gates.
