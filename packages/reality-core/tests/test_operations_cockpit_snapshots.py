@@ -503,9 +503,42 @@ def test_playground_access_revoked_during_snapshot_prevents_response(
                 elif revocation == "account":
                     writer.get(AppUser, owner).status = "inactive"
                 else:
-                    writer.get(PlaygroundRun, (tenant, run_id)).status = "initialization_failed"
+                    writer.get(
+                        PlaygroundRun, (tenant, run_id)
+                    ).status = "initialization_failed"
                 writer.commit()
             return {"must_not_escape": "private sandbox"}
 
         with pytest.raises((core.NotFound, core.InvalidOperation)):
             _with_snapshot(reader, tenant, Principal(owner), observation)
+
+
+def test_business_admin_revoked_during_observation_does_not_keep_company_access(
+    scheduled_database,
+):
+    from reality.db.core import AppUser
+    from reality.services.operations_cockpit import _with_snapshot
+
+    _, factory, tenant, owner = scheduled_database
+    with factory() as setup:
+        setup.get(AppUser, owner).is_platform_admin = True
+        member = setup.scalar(
+            select(TenantMembership).where(
+                TenantMembership.tenant_id == tenant,
+                TenantMembership.user_id == owner,
+            )
+        )
+        member.status = "removed"
+        setup.commit()
+    with factory() as reader:
+        cached = reader.get(AppUser, owner)
+        assert cached.is_platform_admin
+
+        def observation(snapshot):
+            with factory() as writer:
+                writer.get(AppUser, owner).is_platform_admin = False
+                writer.commit()
+            return {"must_not_escape": "company data"}
+
+        with pytest.raises(core.NotFound):
+            _with_snapshot(reader, tenant, Principal(owner, True), observation)
