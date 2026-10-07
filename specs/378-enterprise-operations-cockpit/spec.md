@@ -596,3 +596,21 @@ visually separated; log and Agent rows use the same bounded-list treatment.
 All four languages and both themes retain readable boundaries, aligned values and
 no horizontal page overflow at 320/390/1440/1920 pixels. Full-tile and risk inspection,
 manual review, retained selectors, live state and record links remain unchanged.
+
+
+### Viewer observation timezone regression (FR-019)
+
+Restore the existing independent display-timezone requirement: general observation
+metadata in the top status, case register/control history and supporting-order
+read timestamp uses the viewer's chosen timezone/locale with its date and UTC
+offset. Company business-day selection, shipping curve axes/reference clock, due/
+handover/forecast instants and site collection deadlines retain their explicit
+business/site zones. Never pair a viewer observation clock with a company-day date
+as though they describe one instant. Disclose the unchanged business calendar date next to the shipping context (FR-003).
+No change to stored UTC values or calculations.
+Acceptance: a UTC viewer of Berlin shipping sees 12:30 GMT rather than 14:30;
+a Tokyo viewer sees 21:30 GMT+9 in observation metadata while Berlin shipping
+remains 14:30 and site cutoffs retain their date/offset. The actual Berlin user
+sees the same UTC observation two hours later in October. Stale retained metadata
+keeps its original instant. Existing user formatting, keyboard/live/action proof
+and business-day/date boundaries remain intact.

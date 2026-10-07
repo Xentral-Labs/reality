@@ -247,3 +247,9 @@ Shipping comparison, physical actual activity, responsibility actions, stopped
 cases and observed Agent/event lists follow the shared theme-aware section rhythm.
 The selected topic, read lifecycle, exact record inspection and authority remain
 unchanged; no extra business reader or navigation is added.
+
+Viewer observation timestamps (spec 378 FR-019) use personal timezone/locale and
+show their actual date/UTC offset in the global status, case read/control history
+and supporting-order read. Shipping reference clocks, business-day evaluation
+and stated site deadlines retain their own explicit zones. This is display only;
+stored UTC instants and shipment calculations remain unchanged.

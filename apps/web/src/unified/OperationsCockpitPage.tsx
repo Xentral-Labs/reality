@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { cockpitApi } from "../api";
-import { formatNumber, t } from "../localization";
+import { formatNumber, formatZonedDateTime, t } from "../localization";
 import { useCockpitLiveRead } from "./useCockpitLiveRead";
 import { ReadState } from "./ReadState";
-import { ShippingDayPanel, cockpitTime } from "./ShippingDayPanel";
+import { ShippingDayPanel } from "./ShippingDayPanel";
 import { ShippingSupportingOrders } from "./ShippingSupportingOrders";
 import { OperationsActivityPanel } from "./OperationsActivityPanel";
 import { OperationalCaseRegister } from "./OperationalCaseRegister";
@@ -162,8 +162,10 @@ export function OperationsCockpitPage({
         </strong>
         {value && (
           <span>
-            {t("Data observed at")} {cockpitTime(value.observed_at, value.time_zone)} ·{" "}
-            {value.business_day}
+            {t("Data observed at")}{" "}
+            <time data-cockpit-observed-at dateTime={value.observed_at}>
+              {formatZonedDateTime(value.observed_at)}
+            </time>
           </span>
         )}
       </div>
@@ -241,12 +243,7 @@ export function OperationsCockpitPage({
               <OperationsWorkspacePanel
                 key={selection.tenant}
                 responsibility={
-                  <OperationalCaseRegister
-                    key={selection.tenant}
-                    selection={selection}
-                    zone={value.time_zone}
-                    embedded
-                  />
+                  <OperationalCaseRegister key={selection.tenant} selection={selection} embedded />
                 }
                 activity={
                   <OperationsActivityPanel

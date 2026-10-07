@@ -299,3 +299,10 @@ real-time soak in T041 is unrun. No open criterion is represented as complete.
 - [x] T116 [FR-075] Add product browser proofs for current/recent metric grouping, exact preserved message values, plot boundaries and note ownership across the existing locale/theme/viewport matrix.
 - [x] T117 [FR-075] Group metrics/plot metadata in OperatingFlowsPanel, bound shipping comparison in ShippingDayPanel, and apply shared themed panel/section/list rhythm in operationsCockpit.css with localized group captions.
 - [x] T118 [FR-075] Run frontend/browser/build/audit/format/spec checks, activate only local web, inspect actual content grouping and update existing PR with review evidence; retain enterprise/CI gates.
+
+
+## Viewer observation timezone regression
+
+- [x] T119 [FR-019] Add failing UTC-header and independent Tokyo observation/case/supporting-read proofs alongside explicit shipping/site clocks and retained stale instants in operations-cockpit-browser.mjs.
+- [x] T120 [FR-019] Restore viewer-zone general metadata using existing localization in OperationsCockpitPage, OperationalCaseRegister and ShippingSupportingOrders; retain stated business clocks/calendar date in ShippingDayPanel.
+- [x] T121 [FR-019] Verify browser/frontend/audit/build/format/spec checks, activate only web, inspect actual Berlin metadata and update existing PR with review evidence.

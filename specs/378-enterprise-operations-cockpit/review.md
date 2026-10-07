@@ -847,3 +847,32 @@ metrics for presentation; source values, read/action handlers, live lifecycle an
 case authority remain unchanged. Temporary fixture server stopped; primary dirty
 checkout untouched. Existing PR receives the repair; CI/enterprise/soak gates are
 not certified or weakened.
+
+FR-019 timezone regression review: T119–121 map UTC/Tokyo/actual Berlin display
+proof to existing formatting authority. Constitution PASS; no unresolved issue or
+critical finding. Before repair the initial UTC header proof fails: 14:30 company
+clock instead of 12:30 viewer observation. Case/general supporting timestamps use
+the same wrong override; explicit shipping clocks are intentionally retained.
+
+FR-019 initial verification: full cockpit browser proof passes UTC header/case/
+control timestamps and Tokyo header/case/supporting-read timestamps while retaining
+Berlin shipping/reference clocks and Amsterdam cutoff date/offset. The existing
+478 frontend contracts pass; four-language audits remain 3045/3045. No preference
+is mutated and no recorded UTC instant, business-day evaluation or agent action
+is changed. The explicit business calendar date is retained in shipping context
+using the existing formatCalendarDate helper (FR-003). Final head browser/image
+verification and actual Berlin inspection follow this additional calendar proof.
+
+FR-019 final verification/review PASS: final-head full cockpit browser matrix
+passes including the explicit business calendar date and independent UTC/Tokyo
+observation clocks. All 478 frontend contracts, four-language 3045/3045 audits,
+formatting, production web image, spec policy and whitespace checks pass. Only
+web was recreated locally; the simulator and operator were not restarted or
+changed. Actual Berlin inspection on port 8080 reads the original UTC instant
+2026-10-07T08:50:45.191254+00:00 as 07. Okt. 2026, 10:50 GMT+2, exactly matching
+the personal Europe/Berlin formatter. Case read observation also shows 10:50
+GMT+2. Screenshot: /private/tmp/reality-instrument-panel/control-tower-viewer-timezone.png.
+The final semantic review confirms display-only changes: business calendars,
+shipping/site deadlines, retained stale instants, tenant scope and control
+authority remain intact. Existing PR receives this repair; earlier CI, enterprise
+performance and sustained-live gates remain open. Temporary fixture server stopped.
