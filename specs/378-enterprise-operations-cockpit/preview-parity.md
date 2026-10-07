@@ -29,3 +29,13 @@ human-owned `LIVE-f1ad500666008054` are visible. Selecting Messages retains sepa
 intake/reply and backlog plots; unanswered count advanced from 1,935 to 1,931 while
 observing. The pinned 2026-10-06 shipping plan retains 853 due and 35 confirmed handovers;
 no historical forecast is reconstructed. Platform case reconciliation remains explicit.
+
+CI follow-up: the real-stack takeover proof located the first `LIVE-C` occurrence
+in a closed shipping-evidence disclosure after returning to the Control Tower.
+Scope the final assertion to the visible case register; retain the real hold, exact
+manual-control payload, persistence, shipping read and ten-second refresh assertions.
+
+The corrected actual-stack hold/takeover/return-register journey passed locally
+(1 test, 58.89 seconds) with no browser errors. The committed hold reached the
+display within the existing ten-second requirement; confirmation payload and
+persisted manual ownership remain asserted. CI is rerunning on the follow-up commit.
