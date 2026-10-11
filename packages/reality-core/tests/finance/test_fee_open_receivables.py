@@ -198,6 +198,8 @@ def test_fee_payment_is_reviewed_partial_replayable_and_reversible(
     core.post_customer_payment(session, tenant, invoice.id, "100")
     assert settlement_context(session, tenant, fee.id)["side"] == "customer"
     assert settlement_context(session, tenant, fee.id)["reduction_allowed"] is False
+    # Spec 384: no fee source states maturity, so none is inherited.
+    assert settlement_context(session, tenant, fee.id)["due_date"] is None
     proposal = create_change_proposal(
         session,
         tenant,

@@ -92,6 +92,72 @@ def _credit(
     return entry, entry.amount - used
 
 
+def _invoice_settlement(
+    session: Session, tenant_id: str, invoice_id: str, control_entry_id: str
+) -> dict[str, Any]:
+    """Due date from the aging rule and the active allocations behind `open` (spec 384).
+
+    The same readers as the aging register and `open_invoice_amount`, so the dates,
+    the allocations and the open amount cannot disagree. `allocated_at` is when the
+    link was recorded; `effective_at` is when the crediting entry took effect.
+    """
+    aging = core.aging_register(session, tenant_id, document_ids={invoice_id})
+    due_date = aging[0]["due_date"] if aging else None
+    allocations = core.active_settlement_allocations(
+        session, tenant_id, entry_ids={control_entry_id}
+    )
+    counterpart_ids = {
+        a.payment_ledger_entry_id
+        if a.invoice_ledger_entry_id == control_entry_id
+        else a.invoice_ledger_entry_id
+        for a in allocations
+    }
+    entries = {
+        entry.id: entry
+        for entry in session.scalars(
+            select(LedgerEntry).where(
+                LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.id.in_(counterpart_ids),
+            )
+        )
+    }
+    documents = {
+        document.id: document
+        for document in session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant_id,
+                Document.id.in_(
+                    {e.document_id for e in entries.values() if e.document_id}
+                ),
+            )
+        )
+    }
+    rows = []
+    for allocation in allocations:
+        entry = entries[
+            allocation.payment_ledger_entry_id
+            if allocation.invoice_ledger_entry_id == control_entry_id
+            else allocation.invoice_ledger_entry_id
+        ]
+        document = documents.get(entry.document_id or "")
+        rows.append(
+            {
+                "allocation_id": allocation.id,
+                "document_id": entry.document_id,
+                "document_number": document.number if document else None,
+                "document_type": document.type if document else None,
+                "amount": str(allocation.amount),
+                "allocated_at": allocation.allocated_at.isoformat(),
+                "effective_at": entry.effective_at.isoformat(),
+            }
+        )
+    rows.sort(key=lambda r: (r["effective_at"], r["allocated_at"], r["allocation_id"]))
+    return {
+        "due_date": due_date.isoformat() if due_date else None,
+        "allocations": rows,
+    }
+
+
 def settlement_context(
     session: Session, tenant_id: str, document_id: str, query: str = ""
 ) -> dict[str, Any]:
@@ -103,6 +169,7 @@ def settlement_context(
 
     BUSINESS RULE services.finance.settlement_flows.settlement_context.result:
     Return the current result with document_id, number, kind, side, party_id, party, currency, available, control_entry_id, control_account_id, control_account_code, source_record_id, revision, invoices, more_invoices, candidates.
+    An invoice additionally carries its due date from the shared aging rule and its active allocations with recorded and effective times (spec 384).
     """
     document = core._tenant_record(session, Document, tenant_id, document_id)
     accounts = list_accounts(session, tenant_id)
@@ -117,6 +184,9 @@ def settlement_context(
         ).name
         return {
             **context,
+            **_invoice_settlement(
+                session, tenant_id, document.id, context["control_entry_id"]
+            ),
             "document_id": document.id,
             "kind": "invoice",
             "reduction_allowed": document.type not in FEE_RECEIVABLE_TYPES,
