@@ -370,6 +370,37 @@ def test_production_runtime_discovery_advertises_canonical_api_issuer():
     assert metadata["resource"] == "https://mcp.example.test/"
 
 
+def test_resource_metadata_publishes_every_scope_the_authorization_server_grants(
+    monkeypatch,
+):
+    """Spec 382 FR-001: an SDK client requests exactly the resource's scopes_supported."""
+    from reality.web.app import app as web_app
+
+    monkeypatch.setenv("API_URL", "https://api.example.test")
+    monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
+    settings = MCPRuntimeSettings.from_environ(
+        {
+            "REALITY_ENV": "production",
+            "MCP_URL": "https://mcp.example.test/",
+            "API_URL": "https://api.example.test",
+        }
+    )
+    with TestClient(create_mcp_app(settings=settings)) as client:
+        resource = client.get("/.well-known/oauth-protected-resource").json()
+        unauthenticated = client.post("/", json={})
+    with TestClient(web_app) as client:
+        authorization = client.get("/.well-known/oauth-authorization-server").json()
+
+    assert resource["scopes_supported"] == [
+        "reality:confirm",
+        "reality:propose",
+        "reality:read",
+    ]
+    assert resource["scopes_supported"] == authorization["scopes_supported"]
+    assert resource["resource"] == "https://mcp.example.test/"
+    assert unauthenticated.status_code == 401
+
+
 def test_http_read_returns_deterministic_evidence_summary(
     session, business, monkeypatch
 ):
