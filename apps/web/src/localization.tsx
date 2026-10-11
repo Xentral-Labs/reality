@@ -13428,6 +13428,7 @@ Object.assign(dictionaries.de, {
   "Search tools": "Werkzeuge suchen",
   "Select full access": "Vollzugriff auswählen",
   "Select read tools": "Lesewerkzeuge auswählen",
+  "Select read and prepare tools": "Lese- und Vorbereitungswerkzeuge auswählen",
   "selected tools": "ausgewählte Werkzeuge",
   "The result needs checking. No change will be sent again automatically.":
     "Das Ergebnis muss geprüft werden. Keine Änderung wird automatisch erneut gesendet.",
@@ -13494,6 +13495,7 @@ Object.assign(dictionaries.nl, {
   "Search tools": "Tools zoeken",
   "Select full access": "Volledige toegang selecteren",
   "Select read tools": "Leestools selecteren",
+  "Select read and prepare tools": "Lees- en voorbereidingstools selecteren",
   "selected tools": "geselecteerde tools",
   "The result needs checking. No change will be sent again automatically.":
     "Het resultaat moet worden gecontroleerd. Geen wijziging wordt automatisch opnieuw verzonden.",
@@ -13561,6 +13563,7 @@ Object.assign(dictionaries.es, {
   "Search tools": "Buscar herramientas",
   "Select full access": "Seleccionar acceso completo",
   "Select read tools": "Seleccionar herramientas de lectura",
+  "Select read and prepare tools": "Seleccionar herramientas de lectura y preparación",
   "selected tools": "herramientas seleccionadas",
   "The result needs checking. No change will be sent again automatically.":
     "Hay que comprobar el resultado. Ningún cambio se volverá a enviar automáticamente.",
