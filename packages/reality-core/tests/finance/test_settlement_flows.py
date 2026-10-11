@@ -730,3 +730,122 @@ def test_payment_credit_context_carries_candidate_reasons(session, business):
     )
     assert execute(session, tenant, proposal)["allocation_id"]
     assert settlement_context(session, tenant, payment.id)["candidates"] == []
+
+
+def test_invoice_context_states_due_date_and_dated_allocations(session, business):
+    """
+    BUSINESS TEST:
+    A paid invoice explains its own settlement in one read (spec 384).
+    GIVEN:
+    Customer invoice 100 dated 2026-09-01 with a 14-day term, paid 60 effective 2026-09-10 and 40 effective 2026-09-20.
+    WHEN:
+    Read the invoice settlement context through the service and the MCP tool, then reverse the first payment and read again.
+    THEN:
+    Due date 2026-09-15, open 0 and both dated allocations with their payment documents; the MCP answer is identical; after the reversal only the second allocation remains and allocations plus open equal gross.
+    """
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+    tenant = business.tenant.id
+    core.create_payment_term(session, tenant, "NET14", "Net 14", 14)
+    invoice = core.create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        core.uid("inv"),
+        business.customer.id,
+        "100",
+        document_date="2026-09-01",
+        payment_term_code="NET14",
+    )
+    core.post_sales_invoice(session, tenant, invoice.id)
+    first = execute(
+        session,
+        tenant,
+        propose(
+            session,
+            tenant,
+            invoice.id,
+            amount="60",
+            allocation_amount="60",
+            effective_at="2026-09-10T08:00:00Z",
+        ),
+    )
+    second = execute(
+        session,
+        tenant,
+        propose(
+            session,
+            tenant,
+            invoice.id,
+            amount="40",
+            allocation_amount="40",
+            reference="Bank statement line 2",
+            effective_at="2026-09-20T08:00:00Z",
+        ),
+    )
+
+    context = settlement_context(session, tenant, invoice.id)
+    assert context["due_date"] == "2026-09-15"
+    assert Decimal(context["open"]) == 0
+    allocations = context["allocations"]
+    assert [a["document_id"] for a in allocations] == [
+        first["payment"]["document_id"],
+        second["payment"]["document_id"],
+    ]
+    assert [a["allocation_id"] for a in allocations] == [
+        first["allocation_id"],
+        second["allocation_id"],
+    ]
+    assert [Decimal(a["amount"]) for a in allocations] == [60, 40]
+    assert [a["effective_at"][:10] for a in allocations] == [
+        "2026-09-10",
+        "2026-09-20",
+    ]
+    assert {a["document_type"] for a in allocations} == {"customer_payment"}
+    assert all(a["allocated_at"] and a["document_number"] for a in allocations)
+    mcp = MCP_TOOL_REGISTRY["finance_settlement_context"].handler(
+        session, tenant, {"document_id": invoice.id}
+    )
+    assert json.loads(json.dumps(mcp, default=str)) == json.loads(
+        json.dumps(context, default=str)
+    )
+
+    core.reverse_ledger_posting_group(
+        session, tenant, first["payment"]["posting_group_id"], reason="Bounced"
+    )
+    context = settlement_context(session, tenant, invoice.id)
+    assert [a["allocation_id"] for a in context["allocations"]] == [
+        second["allocation_id"]
+    ]
+    assert Decimal(context["open"]) == 60
+    assert Decimal(context["open"]) + sum(
+        Decimal(a["amount"]) for a in context["allocations"]
+    ) == Decimal(invoice.gross_amount)
+
+
+def test_unsettled_invoice_without_term_is_due_on_its_date(session, business):
+    """
+    BUSINESS TEST:
+    An unsettled invoice without a payment term is due on its own date (spec 384).
+    GIVEN:
+    Customer invoice 100 dated 2026-09-01 with no invoice or party term and no payment.
+    WHEN:
+    Read the invoice settlement context.
+    THEN:
+    Due date is the document date and the allocation list is empty.
+    """
+    tenant = business.tenant.id
+    invoice = core.create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        core.uid("inv"),
+        business.customer.id,
+        "100",
+        document_date="2026-09-01",
+    )
+    core.post_sales_invoice(session, tenant, invoice.id)
+    context = settlement_context(session, tenant, invoice.id)
+    assert context["due_date"] == "2026-09-01"
+    assert context["allocations"] == []
+    assert Decimal(context["open"]) == 100

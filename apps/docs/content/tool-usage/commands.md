@@ -3302,11 +3302,14 @@ finance_settlement_context document_id [query]
 [How this query runs](./views#read-execution)
 
 Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an
-unallocated customer payment each choice carries the reasons it is a candidate.
+unallocated customer payment each choice carries the reasons it is a candidate. An invoice also
+states its due date and the active allocations that settled it, each with the crediting document,
+amount, allocated_at (when recorded) and effective_at (when the payment or credit took effect).
 
 **Use when**
 
 - Prepare actual payment, credit allocation or refund.
+- Check when one invoice was due and which payments or credits settled it, and when.
 
 **Do not use when**
 

@@ -2803,3 +2803,11 @@ Spec 378 FR-039–040: `operations-cockpit-shell-browser.mjs` verifies permanent
 | `packages/reality-core/tests/scenarios/test_daily_shipping.py` | 376 trusted-local daily shipping fixture recovery; 378 FR-071–072 dependency | Current/next company day, DST, exact demo Source/work mix, owner/confirmation/run bounds, replay and existing plan preservation; no agent/worker approval mandate |
 
 Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_performance.py`, `packages/reality-core/tests/test_operations_cockpit.py` and `apps/web/scripts/operations-cockpit-browser.mjs`: independent physical booking/package-handover evidence, absent-plan unknown deviations and visible actual curves.
+
+### Spec 384 Invoice settlement dates
+
+One invoice read states its due date and the dated allocations behind its open amount.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| A paid invoice states its due date, open amount and each active allocation with crediting document, amount, recorded and effective time; the MCP answer is identical; a reversed payment's allocation disappears so allocations plus open equal gross; an untermed invoice is due on its date and a fee claim states no due date | 384 FR-001–FR-005 | `packages/reality-core/tests/finance/test_settlement_flows.py`, `packages/reality-core/tests/finance/test_fee_open_receivables.py` |

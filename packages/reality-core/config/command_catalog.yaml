@@ -4431,9 +4431,12 @@ capability_guidance:
     kind: read
     application_tool: finance.settlement.context
     purpose: Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an
-      unallocated customer payment each choice carries the reasons it is a candidate.
+      unallocated customer payment each choice carries the reasons it is a candidate. An invoice also
+      states its due date and the active allocations that settled it, each with the crediting document,
+      amount, allocated_at (when recorded) and effective_at (when the payment or credit took effect).
     use_when:
     - Prepare actual payment, credit allocation or refund.
+    - Check when one invoice was due and which payments or credits settled it, and when.
     do_not_use_when:
     - Determine tax or calculate a discount.
     required_context:
@@ -4457,6 +4460,7 @@ capability_guidance:
       proves:
       - Current selected invoice claim or original credit availability and matching
         invoice choices, with read-time candidate reasons for unallocated payments.
+      - For an invoice, its due date and the unreversed allocations behind its open amount.
       does_not_prove:
       - Bank execution, unrecorded cash, that a candidate is the right invoice, or
         authorization to accept a reduction.
