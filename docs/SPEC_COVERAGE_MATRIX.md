@@ -1731,6 +1731,12 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | Server processes queue rows to one writer and batch them; a full queue drops a row instead of waiting; the call's own duration is kept | 266 FR-012/SC-003 | `packages/reality-core/tests/test_engine_room_recording.py` |
 | Against a live stack (API, Vite, worker, scheduler and the MCP runtime): a member's web writes appear live and name the member, route template and written stage; an MCP read through the real runtime names its token and issuer; links to changes and events, trend curves, channel filter across reload, owner-only access and the token entry point | 266 FR-001/FR-002/FR-005–FR-009/FR-013/FR-014/FR-016/FR-017 | `packages/reality-core/tests/browser/unified_engine_room.py` with `apps/web/scripts/engine-room-live-browser.mjs` (`tests/browser/live_stack.py`, `tests/browser/mcp_call.py`) |
 
+### Spec 383 read-and-prepare token preset
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| The read-and-prepare preset selects every read and propose tool and no confirm tool, and review shows no approval warning | 383 FR-001/FR-002 | `apps/web/scripts/unified-ai-access-browser.mjs` |
+
 ### Spec 269 history table
 
 | Behaviour | Requirement | Evidence |

@@ -229,6 +229,30 @@ try {
     await page.getByRole("checkbox", { name: "Prepare order", exact: true }).isChecked(),
     false,
   );
+  await button("Select full access").click();
+  await button("Select read and prepare tools").click();
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Read orders", exact: true }).isChecked(),
+    true,
+  );
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Prepare order", exact: true }).isChecked(),
+    true,
+  );
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Approve proposal", exact: true }).isChecked(),
+    false,
+  );
+  await button("Review token").click();
+  assert.equal(
+    await page
+      .getByText("This token may approve and execute changes through its selected tools.", {
+        exact: true,
+      })
+      .count(),
+    0,
+  );
+  await button("Cancel").click();
   await button("Clear selection").click();
   assert.equal(await button("Review token").isDisabled(), true);
   await button("Select full access").click();
