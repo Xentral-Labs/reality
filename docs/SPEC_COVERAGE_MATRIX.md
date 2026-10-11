@@ -1737,6 +1737,15 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | --- | --- | --- |
 | Against a live stack: rows name records by business name and SKU, never raw ids; event type as tooltip, area chip, no badge on completed rows, no decision line; no filler column beside the dock and spare width to the grow columns; preview with ids and actions; no overflow at 390 px | 269 FR-001–FR-003/DR-001 | `packages/reality-core/tests/browser/unified_history_table.py` with `apps/web/scripts/history-table-browser.mjs` |
 
+### Spec 382 resource metadata lists every supported scope
+
+A client learns every scope it may request from the resource it connects to.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| The protected-resource metadata lists every supported scope, equal to the authorization server's, and the transport still challenges an unauthenticated call | 382 FR-001 | `packages/reality-core/tests/test_mcp_http_runtime.py` |
+| Every interactive grant holds `reality:read`, which permits no tool outside its selection | 382 FR-002/FR-003 | `packages/reality-core/tests/test_mcp_oauth_service.py` |
+
 ### Spec 270 capability discovery
 
 `capability_catalog` answers what the company's Reality can do and what the calling credential may

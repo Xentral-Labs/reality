@@ -23,7 +23,7 @@ def test_exact_received_precision_and_utc_canonicalization():
 
 
 # Intentionally invalid naive timestamp exercises refusal.
-NAIVE = datetime(2026, 9, 1)  # noqa: DTZ001
+NAIVE = datetime(2026, 9, 1)
 
 
 @pytest.mark.parametrize("value", [1.25, Decimal("NaN"), NAIVE, {1: "bad"}, object()])
