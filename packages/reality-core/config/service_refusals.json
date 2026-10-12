@@ -1377,6 +1377,47 @@
     "payment_exceeds_open_receivable": {
       "message": "Payment exceeds the open customer receivable."
     },
+    "payment_run_currency_mismatch": {
+      "message": "A payment run pays in one currency: {invoice_currency} does not match {run_currency}.",
+      "values": {
+        "invoice_currency": "text",
+        "run_currency": "text"
+      }
+    },
+    "payment_run_currency_required": {
+      "message": "A payment run needs the currency it is paid in."
+    },
+    "payment_run_invoice_not_payable": {
+      "message": "A payment run pays open supplier invoices of this tenant only."
+    },
+    "payment_run_invoice_number_duplicate": {
+      "message": "This invoice carries a number its supplier already used."
+    },
+    "payment_run_invoice_repeated": {
+      "message": "A payment run names each invoice once."
+    },
+    "payment_run_invoice_reversed": {
+      "message": "The posting behind this invoice has been reversed."
+    },
+    "payment_run_invoice_settled": {
+      "message": "This invoice has nothing open."
+    },
+    "payment_run_pay_by_required": {
+      "message": "A payment run preview needs a day to pay by."
+    },
+    "payment_run_payment_required": {
+      "message": "A payment run needs at least one payment."
+    },
+    "payment_run_reason_required": {
+      "message": "A payment run requires a reason."
+    },
+    "payment_run_total_mismatch": {
+      "message": "The payment run no longer matches the confirmed total: {stated} stated, {confirmed} confirmed.",
+      "values": {
+        "stated": "amount",
+        "confirmed": "amount"
+      }
+    },
     "payment_execution_unresolved": {
       "message": "A financial execution for this record is unresolved. Check its outcome first."
     },
