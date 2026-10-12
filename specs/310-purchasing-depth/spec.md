@@ -149,3 +149,23 @@ None; see Clarifications.
 | FR-002 | US4 | Story I01 and match-read tests (planned) |
 | FR-003, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
 | FR-004, SC-001, SC-002 | All | Catalog tests and Guide questions (planned) |
+
+## Amendment 2026-10-12: the match names its amounts
+
+The match named each difference as a code with the quantities and prices as text, so a reader who
+wanted to know how much money a difference is worth multiplied them itself. The amendment adds,
+per line, the order's currency, the amount of each difference and the billable amount. They are
+read-time observations (DR-002, Constitution VIII): exact products of stated quantities and stated
+prices, never rounded, never stored. They are additive: no field is renamed or removed, and neither
+the difference codes nor `matched` change. Matching tolerances remain a non-goal.
+
+- **FR-007**: Each line of the three-way match MUST state the order's currency, the amount of each
+  difference (actual minus expected; quantity differences at the agreed price; a price difference
+  as billed price minus agreed price times each invoice line's quantity) and the billable amount
+  (received quantity at the invoiced price). Where quantity and price are in different units, an
+  invoice is in another currency, or more than one price was invoiced (billable amount only), the
+  amount is null rather than converted.
+
+| Requirement | Scenario(s) | Test/evidence |
+|---|---|---|
+| FR-007 | US4 1, 2 | `test_each_difference_names_its_amount_and_what_is_billable`, `test_a_price_variance_is_the_price_difference_on_what_was_billed`, `test_a_return_leaves_billed_over_at_the_agreed_price`, `test_no_amount_is_given_across_currencies` |

@@ -9,6 +9,11 @@ so the two never disagree.
 
 A cancelled line expects nothing received and nothing billed; the supplier's
 cancellation charge is shown beside it and is not its goods.
+
+Each difference also names its amount in the order's currency, and the line names
+what is billable: received quantity at the invoiced price. Both are products of
+stated quantities and prices, never rounded, and are only given where quantity
+and price are in the same unit and currency; a price is never converted.
 """
 
 from __future__ import annotations
@@ -56,6 +61,40 @@ def _billed_in_promise_unit(
     )
 
 
+def _variance_amounts(
+    differences: list[str],
+    *,
+    agreed: Decimal | None,
+    priced: bool,
+    expected: Decimal,
+    received: Decimal,
+    billed: Decimal | None,
+    price_variance: Decimal | None,
+) -> dict[str, str | None]:
+    """Each difference as an amount, actual minus expected; None where it cannot be said.
+
+    Quantity differences are valued at the agreed price, a price difference on the
+    quantity billed at it.
+    """
+    at_agreed = agreed if priced else None
+    amounts: dict[str, str | None] = {}
+    for difference in differences:
+        if difference in {"received_short", "received_over"}:
+            value = None if at_agreed is None else (received - expected) * at_agreed
+        elif difference in {"billed_short", "billed_over"}:
+            value = (
+                None
+                if at_agreed is None or billed is None
+                else (billed - received) * at_agreed
+            )
+        elif difference == "price_differs":
+            value = price_variance
+        else:
+            value = None
+        amounts[difference] = _text(value)
+    return amounts
+
+
 def purchase_match(
     session: Session, tenant_id: str, document_id: str
 ) -> dict[str, Any]:
@@ -71,6 +110,9 @@ def purchase_match(
 
     BUSINESS RULE services.purchase_match.purchase_match.result:
     Return the current result with document_id, number, party_id, currency, matched, lines.
+
+    BUSINESS RULE services.purchase_match.purchase_match.amounts:
+    Value each line difference in the order currency (quantity differences at the agreed price, a price difference on the billed quantity) and the received quantity at the single invoiced price, without rounding; give no amount across units or currencies.
     """
     from reality.services.exceptions import (
         _billing_lines,
@@ -217,6 +259,40 @@ def purchase_match(
         )
         if price is not None and any(value != price for value in billed_prices):
             differences.append("price_differs")
+        # reality-rule: services.purchase_match.purchase_match.amounts
+        priced_rows = [
+            row
+            for row in invoices
+            if row.unit_price is not None and _prices_comparable(row, line)
+        ]
+        same_currency = not priced_rows or all(
+            currency == order.currency
+            for currency in session.scalars(
+                select(Document.currency).where(
+                    Document.tenant_id == tenant_id,
+                    Document.id.in_({row.document_id for row in priced_rows}),
+                )
+            )
+        )
+        # A quantity is only valued when it is in the unit the price is per.
+        priced = (held[0].unit or line.unit) == line.unit
+        price_variance = (
+            sum(
+                (
+                    (decimal(row.unit_price) - price) * decimal(row.quantity)
+                    for row in priced_rows
+                    if decimal(row.unit_price) != price
+                ),
+                ZERO,
+            )
+            if price is not None and same_currency
+            else None
+        )
+        billable = (
+            received * billed_prices[0]
+            if priced and same_currency and len(billed_prices) == 1
+            else None
+        )
         item = items.get(line.item_id)
         rows.append(
             {
@@ -247,6 +323,17 @@ def purchase_match(
                 ],
                 "matched": not differences,
                 "differences": differences,
+                "currency": order.currency,
+                "variance_amounts": _variance_amounts(
+                    differences,
+                    agreed=price,
+                    priced=priced,
+                    expected=expected,
+                    received=received,
+                    billed=billed,
+                    price_variance=price_variance,
+                ),
+                "billable_amount": _text(billable),
                 "in_transit": _text(
                     sum((in_transit.get(c.id, ZERO) for c in held), ZERO)
                 ),

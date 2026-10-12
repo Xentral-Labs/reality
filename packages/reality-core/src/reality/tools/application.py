@@ -5180,7 +5180,7 @@ TOOLS = {
     ),
     "purchase_match": Tool(
         "purchase_match",
-        "Read whether each line of a purchase order is ordered = received = billed at the agreed price, or what differs.",
+        "Read whether each line of a purchase order is ordered = received = billed at the agreed price, or what differs, with the amount of each difference and what is billable.",
         False,
         _purchase_match,
     ),

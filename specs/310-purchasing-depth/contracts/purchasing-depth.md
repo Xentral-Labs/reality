@@ -36,5 +36,8 @@ A free supplier invoice line with `line_type: "charge"` and `billed_document_lin
   - `charges`;
   - `matched`;
   - `differences`, a list of codes: `received_short`, `received_over`, `billed_short`, `billed_over`, `price_differs`, `cancelled_unbilled`.
+  - `currency`, the order's currency (amendment 2026-10-12);
+  - `variance_amounts`, one entry per code in `differences`: a decimal string, actual minus expected, or `null` where units or currencies differ. `received_short`/`received_over` are (received − expected) × agreed price, `billed_short`/`billed_over` are (billed − received) × agreed price, and `price_differs` is the sum over the billing invoice lines of (billed price − agreed price) × that line's quantity;
+  - `billable_amount`, received × the invoiced price as a decimal string, or `null` when no price or more than one price was invoiced, or units or currencies differ.
 
 Interfaces: tool `purchase_match`, MCP `purchase_match`, Web `GET /purchase-orders/{document_id}/match`, CLI `purchase match DOCUMENT_ID`.

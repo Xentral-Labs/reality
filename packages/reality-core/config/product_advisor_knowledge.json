@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:5077ab31a369c19012a10dbcb5f7b8a16e75a4e9812e01df56af435546b1e056",
+  "knowledge_version": "advisor-v1:sha256:527dbc3c48d55fee56cf2881e80534c5c93e3c6df71d85a8c1971acc835f29d6",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "4df73b68ee9e49650440a512337a539289702ed637700cbe6be8f7b67fc0aa14"
+      "fingerprint": "960874b5389362effce778912de5fad8a9a4a1717eaea9c907608647cf7edc4a"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7942,15 +7942,15 @@
       "source_id": "source_executable_commands",
       "subject": "Read the three-way match of a purchase order",
       "title": "Read the three-way match of a purchase order",
-      "search_text": "purchase_match Read the three-way match of a purchase order Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference. query",
-      "claim_text": "purchase_match is a governed query command for Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference..",
+      "search_text": "purchase_match Read the three-way match of a purchase order Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference with its amount, and what is billable. query",
+      "claim_text": "purchase_match is a governed query command for Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference with its amount, and what is billable..",
       "support": "vocabulary_only",
       "limitations": [],
       "references": [
         "purchase_match"
       ],
       "language": "en",
-      "fingerprint": "e71a58e186706d15e3b7c665e077af3f9352303a21ff0db3db3dda1e9cd89505"
+      "fingerprint": "bb95421759c2163f80b5f31d2c7e21e8d33f67a86fb0dd0b2134aa76deba9db2"
     },
     {
       "id": "evidence_command_set_customer_item_number",

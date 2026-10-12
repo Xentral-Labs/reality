@@ -431,6 +431,117 @@ def test_returns_and_credits_count_on_both_sides(session, business):
     assert invoice
 
 
+def _amounts(row):
+    return row["currency"], row["variance_amounts"], row["billable_amount"]
+
+
+def test_each_difference_names_its_amount_and_what_is_billable(session, business):
+    tenant = business.tenant.id
+    document, line, promise = _purchase(session, business, "PO-310-A")
+    _receive(session, business, promise, "95")
+    # Short against the order and nothing billed: both at the agreed price.
+    row = purchase_match(session, tenant, document.id)["lines"][0]
+    assert _amounts(row) == (
+        "EUR",
+        {"received_short": "-50", "billed_short": "-950"},
+        None,
+    )
+
+    _invoice(session, business, line, "95", "950", "INV-310-A")
+    row = purchase_match(session, tenant, document.id)["lines"][0]
+    assert _amounts(row) == ("EUR", {"received_short": "-50"}, "950")
+
+    # Positive control: a matched line names no variance, and stays billable.
+    core.revise_commitment(session, tenant, promise.id, quantity="95")
+    row = purchase_match(session, tenant, document.id)["lines"][0]
+    assert row["matched"] is True
+    assert _amounts(row) == ("EUR", {}, "950")
+
+
+def test_a_price_variance_is_the_price_difference_on_what_was_billed(
+    session, business
+):
+    tenant = business.tenant.id
+    document, line, promise = _purchase(session, business, "PO-310-V")
+    core.revise_commitment(session, tenant, promise.id, unit_price="10.50")
+    _receive(session, business, promise, "100")
+    record_free_supplier_invoice(
+        session,
+        tenant,
+        supplier_id=business.supplier.id,
+        number="INV-310-V",
+        currency="EUR",
+        gross_amount="1100",
+        lines=[
+            {
+                "item_id": business.item.id,
+                "quantity": "100",
+                "unit_price": "11",
+                "gross_amount": "1100",
+                "billed_document_line_id": line.id,
+            }
+        ],
+    )
+
+    match = purchase_match(session, tenant, document.id)
+    row = match["lines"][0]
+    # Against the confirmed price, which is the one the difference names.
+    assert row["differences"] == ["price_differs"]
+    assert _amounts(row) == ("EUR", {"price_differs": "50"}, "1100")
+    assert match["matched"] is False
+
+
+def test_no_amount_is_given_across_currencies(session, business):
+    tenant = business.tenant.id
+    document, line, promise = _purchase(session, business, "PO-310-C", "10")
+    _receive(session, business, promise, "10")
+    record_free_supplier_invoice(
+        session,
+        tenant,
+        supplier_id=business.supplier.id,
+        number="INV-310-C",
+        currency="USD",
+        exchange_rate="0.9",
+        gross_amount="110",
+        lines=[
+            {
+                "item_id": business.item.id,
+                "quantity": "10",
+                "unit_price": "11",
+                "gross_amount": "110",
+                "billed_document_line_id": line.id,
+            }
+        ],
+    )
+    row = purchase_match(session, tenant, document.id)["lines"][0]
+    assert row["differences"] == ["price_differs"]
+    assert _amounts(row) == ("EUR", {"price_differs": None}, None)
+
+
+def test_a_return_leaves_billed_over_at_the_agreed_price(session, business):
+    tenant = business.tenant.id
+    document, line, promise = _purchase(session, business, "PO-310-B", "10")
+    _receive(session, business, promise, "10")
+    _invoice(session, business, line, "10", "100", "INV-310-B")
+    core.record_movement(
+        session,
+        tenant,
+        "supplier_return",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=promise.id,
+        reason="Damaged",
+    )
+    row = purchase_match(session, tenant, document.id)["lines"][0]
+    assert row["differences"] == ["received_short", "billed_over"]
+    assert _amounts(row) == (
+        "EUR",
+        {"received_short": "-20", "billed_over": "20"},
+        "80",
+    )
+
+
 def test_the_match_is_read_for_purchase_orders_only(session, business):
     tenant = business.tenant.id
     _, _, _, _ = core.create_manual_order(

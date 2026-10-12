@@ -12323,7 +12323,7 @@
       "key": "purchase_match",
       "label": "Three-way match of a purchase order",
       "area": "cross_functional",
-      "summary": "Read per line of one purchase order (document_id) whether it is matched: the quantity in force (ordered, or confirmed by the supplier) received net of returns and billed net of credits at the price agreed last. Otherwise each difference is named (received_short, received_over, billed_short, billed_over, price_differs, units_not_comparable). A cancelled line expects nothing and shows its cancellation charges.",
+      "summary": "Read per line of one purchase order (document_id) whether it is matched: the quantity in force (ordered, or confirmed by the supplier) received net of returns and billed net of credits at the price agreed last. Otherwise each difference is named (received_short, received_over, billed_short, billed_over, price_differs, units_not_comparable). Each line also states its currency (the order's), variance_amounts (per difference, actual minus expected: quantity differences at the agreed price, price_differs as the price difference times each invoice line's billed quantity; null where units or currencies differ) and billable_amount (received quantity at the single invoiced price; null when nothing or more than one price was invoiced). Amounts are decimal strings, never rounded, and do not change whether a line is matched. A cancelled line expects nothing and shows its cancellation charges.",
       "access": "read",
       "group": "Purchasing",
       "synopsis": "purchase_match document_id",
@@ -12347,7 +12347,8 @@
         "limitations": [
           "Exact match only",
           "without tolerances; lines in units that cannot be compared are named",
-          "not judged."
+          "not judged.",
+          "Variance and billable amounts are given only where quantity and price share a unit and the invoice shares the order's currency; a price is never converted."
         ],
         "empty_result": "The order has no lines that promised goods.",
         "freshness": "Derived from promises, movements and invoice lines at request time."
@@ -29601,7 +29602,7 @@
       "key": "purchase_match",
       "label": "Read the three-way match of a purchase order",
       "area": "cross_functional",
-      "summary": "Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference.",
+      "summary": "Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference with its amount, and what is billable.",
       "mode": "query",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "reads": [
@@ -29633,7 +29634,8 @@
         "limitations": [
           "Exact match only",
           "without tolerances; lines in units that cannot be compared are named",
-          "not judged."
+          "not judged.",
+          "Variance and billable amounts are given only where quantity and price share a unit and the invoice shares the order's currency; a price is never converted."
         ],
         "empty_result": "The order has no lines that promised goods.",
         "freshness": "Derived from promises, movements and invoice lines at request time."

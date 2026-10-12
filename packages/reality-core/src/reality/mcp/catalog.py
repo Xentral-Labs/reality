@@ -3411,7 +3411,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "purchase_match",
         "Three-way match of a purchase order",
-        "Read per line of one purchase order (document_id) whether it is matched: the quantity in force (ordered, or confirmed by the supplier) received net of returns and billed net of credits at the price agreed last. Otherwise each difference is named (received_short, received_over, billed_short, billed_over, price_differs, units_not_comparable). A cancelled line expects nothing and shows its cancellation charges.",
+        "Read per line of one purchase order (document_id) whether it is matched: the quantity in force (ordered, or confirmed by the supplier) received net of returns and billed net of credits at the price agreed last. Otherwise each difference is named (received_short, received_over, billed_short, billed_over, price_differs, units_not_comparable). Each line also states its currency (the order's), variance_amounts (per difference, actual minus expected: quantity differences at the agreed price, price_differs as the price difference times each invoice line's billed quantity; null where units or currencies differ) and billable_amount (received quantity at the single invoiced price; null when nothing or more than one price was invoiced). Amounts are decimal strings, never rounded, and do not change whether a line is matched. A cancelled line expects nothing and shows its cancellation charges.",
         "read",
         "Purchasing",
         _object_schema({"document_id": STRING}, required=("document_id",)),
