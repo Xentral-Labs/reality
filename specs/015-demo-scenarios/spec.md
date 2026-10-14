@@ -230,3 +230,16 @@ Product Web onboarding; the product owner approved its final review on 2026-09-0
 | FR-007–FR-009 | US3 | Normal-month and bootstrap tests |
 | FR-005–FR-006, FR-010 | US4 | Shared entry-path and complete-state equivalence tests |
 | DR-001–DR-004 | All | Cross-domain service/trace review |
+
+## Amendment 2026-10-14: seeded partners carry an email address
+
+The normal month seeded its three customers and two suppliers without an email address, so party
+discovery (spec 258 FR-005) returned an empty `emails` list for every one of them, and an agent
+could not exercise address-based lookup against the demo. Each seeded customer and supplier now
+carries one address, stored through the same `create_party` email list as any other party, on the
+reserved `example.test` domain (RFC 2606) so no message can reach a real mailbox. The company party
+is unchanged. Reference data stays deterministic (FR-008); nothing else in the month changes.
+
+| Requirement | Scenario(s) | Planned test/evidence |
+|---|---|---|
+| FR-008 (amended) | US3 | `tests/scenarios/test_normal_month.py::test_seeded_partners_can_be_found_by_their_email_address` |

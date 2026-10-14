@@ -6,7 +6,12 @@ from intake_review_support import accept_normal_month as run_normal_month
 from sqlalchemy import func, select
 
 from reality.db.core import ChangeProposal, Commitment, Item, Movement, Party
-from reality.demo.normal_month import SCENARIO_ACTION
+from reality.demo.normal_month import (
+    DEMO_CUSTOMERS,
+    DEMO_SUPPLIERS,
+    SCENARIO_ACTION,
+)
+from reality.mcp.catalog import dispatch_tool
 from reality.services import company_setup
 from reality.services.core import (
     InvalidOperation,
@@ -122,6 +127,36 @@ def test_normal_month_is_complete_deterministic_and_safe_to_rerun(session):
         )
         == 1
     )
+
+
+def test_seeded_partners_can_be_found_by_their_email_address(session):
+    tenant = create_tenant(session, "September 2026 Addresses")
+    run_normal_month(session, tenant.id)
+
+    result = dispatch_tool(
+        session, tenant.id, "business_records_discover", {"family": "party", "limit": 25}
+    )
+    emails = {
+        record["name"]: [address["email"] for address in record["emails"]]
+        for record in result["records"]
+        if record["type"] in {"customer", "supplier"}
+    }
+
+    assert emails == {
+        name: [email] for name, email in (*DEMO_CUSTOMERS, *DEMO_SUPPLIERS)
+    }
+    assert all(
+        email.endswith("@example.test")
+        for addresses in emails.values()
+        for email in addresses
+    )
+    (supplier,) = dispatch_tool(
+        session,
+        tenant.id,
+        "business_records_discover",
+        {"family": "party", "query": "sales.bikeparts@example.test"},
+    )["records"]
+    assert supplier["name"] == "Bike Parts GmbH"
 
 
 def test_the_month_ends_with_exactly_these_exceptions(session):
