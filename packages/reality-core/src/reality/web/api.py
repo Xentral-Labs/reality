@@ -5842,7 +5842,10 @@ def revise_commitment_web(
     )
 
     try:
-        values = body.model_dump(exclude={"request_id"}, exclude_none=True)
+        # JSON mode: dates reach the stored proposal as ISO strings, as from MCP.
+        values = body.model_dump(
+            mode="json", exclude={"request_id"}, exclude_none=True
+        )
         principal = optional_request_principal(request)
         proposal = prepare_delivery_action(
             session,

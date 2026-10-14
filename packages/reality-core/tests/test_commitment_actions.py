@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -7,10 +8,11 @@ from sqlalchemy.orm import sessionmaker
 from typer.testing import CliRunner
 
 from reality.cli import app as cli_module
-from reality.db.core import BusinessEvent, uid
+from reality.db.core import BusinessEvent, ChangeProposal, uid
 from reality.services.core import (
     InvalidOperation,
     active_commitment_hold,
+    commitment_due_at,
     create_document,
     hold_commitment,
     record_movement,
@@ -271,6 +273,52 @@ def test_web_api_prepares_cancellation_without_bypassing_confirmation(
     assert confirmed.status_code == 200, confirmed.text
     session.refresh(commitment)
     assert commitment.status == "cancelled"
+
+
+def test_web_api_revises_a_due_date_and_replays_the_same_request(
+    session, business, monkeypatch
+):
+    tenant_id = business.tenant.id
+    commitment = create_commitment(
+        session,
+        tenant_id,
+        "supplier_delivery",
+        business.supplier.id,
+        business.company.id,
+        business.item.id,
+        business.location.id,
+        4,
+        "2026-12-01",
+    )
+    monkeypatch.setattr(
+        api_module, "Session", sessionmaker(session.bind, expire_on_commit=False)
+    )
+    client = TestClient(web_module.app)
+    base = f"/api/tenants/{tenant_id}"
+    body = {
+        "request_id": "web-revise-due-date",
+        "due_at": "2026-12-14T00:00:00.000Z",
+        "note": "Supplier confirmed a later date",
+    }
+
+    prepared = client.post(f"{base}/commitments/{commitment.id}/revisions", json=body)
+    assert prepared.status_code == 201, prepared.text
+    review = prepared.json()
+    stored = json.loads(session.get(ChangeProposal, (tenant_id, review["id"])).input)
+    assert isinstance(stored["due_at"], str)
+    revised = datetime(2026, 12, 14, tzinfo=UTC)
+    assert datetime.fromisoformat(stored["due_at"]) == revised
+
+    replayed = client.post(f"{base}/commitments/{commitment.id}/revisions", json=body)
+    assert replayed.status_code == 201, replayed.text
+    assert replayed.json()["id"] == review["id"]
+
+    confirmed = client.post(
+        f"{base}/change-proposals/{review['id']}/approve",
+        json={"confirmed": True, "review_token": review["review"]["token"]},
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    assert commitment_due_at(session, tenant_id, commitment.id) == revised
 
 
 def test_cli_cancellation_previews_and_confirms_shared_action(
