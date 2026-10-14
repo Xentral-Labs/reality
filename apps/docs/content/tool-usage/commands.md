@@ -1539,6 +1539,49 @@ payment_run_propose payments currency expected_total reason
 
 **Access:** `propose`
 
+Pay the supplier invoices and amounts a person confirmed, all of them or none, as one recorded run.
+
+**Use when**
+
+- A person has reviewed a payment run preview and states
+- per invoice
+- the amount to pay
+- the currency and the total they approve.
+
+**Do not use when**
+
+- The amounts have not been decided yet; read payment_run_preview first.
+- A discount amount would have to be worked out; the run pays only stated amounts and never applies
+  a rate.
+- The money is not leaving the company; a run records that a company paid, it does not transfer
+  money.
+
+**Preconditions**
+
+- Every invoice is a payable supplier invoice of this company - not reversed, not reported as a
+  duplicate number, with something open - and each is named once.
+- All invoices are in the run's currency, no amount exceeds what is open on its invoice, and the
+  amounts add up exactly to expected_total.
+- Accounts-payable and cash default accounts are configured; Playground companies cannot run
+  payments.
+
+**Refused when**
+
+- `payment_run_reason_required` — The reason is blank.
+- `payment_run_payment_required` — The payment list is empty.
+- `payment_run_currency_required` — The currency is blank.
+- `payment_run_invoice_repeated` — An invoice is named more than once.
+- `payment_run_total_mismatch` — The stated amounts do not add up to expected_total; the stated and
+  confirmed totals are named.
+- `payment_run_invoice_reversed` — The posting behind an invoice has been reversed.
+- `payment_run_invoice_number_duplicate` — The invoice carries a number its supplier already used.
+- `payment_run_invoice_settled` — The invoice has nothing open.
+- `payment_run_invoice_not_payable` — The invoice is not an open supplier invoice of this company.
+- `payment_run_currency_mismatch` — An invoice is in another currency than the run.
+- `payment_exceeds_open_payable` — An amount exceeds what is open on its invoice.
+- `master_data_field_not_positive` — An amount is zero or negative.
+- `playground_operation_unsupported` — The company is a Playground company.
+
 **Parameters**
 
 | Name                        | Type     | Required | Description                                                                                                                       | Default |
@@ -1550,6 +1593,10 @@ payment_run_propose payments currency expected_total reason
 | `currency`                  | `string` | yes      | ISO 4217 currency code for monetary values.                                                                                       | —       |
 | `expected_total`            | `string` | yes      | The sum of money the caller confirmed; a run is refused unless the stated amounts still add up to it.                             | —       |
 | `reason`                    | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change.                                                           | —       |
+
+**Verify with:** `proposal_execution_status` — The run executed once and its receipt names every
+payment document.; `payment_run_preview` — Fully paid invoices no longer appear as payable.;
+`finance.payments.list` — Each payment is recorded and allocated to its invoice.
 
 **See also:** Command [`execute_payment_run`](./commands#command-execute_payment_run)
 
@@ -4051,6 +4098,54 @@ supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount 
 
 **Access:** `propose`
 
+Record a supplier invoice as stated against purchase order lines and post its payable.
+
+**Use when**
+
+- A supplier invoice arrived that bills one or more purchase order lines with stated quantities
+- gross amounts and an invoice number.
+
+**Do not use when**
+
+- The invoice bills nothing on a purchase order, such as a free charge or a cancellation cost;
+  record a free supplier invoice instead.
+- The goal is to pay the invoice; propose a payment run once it is recorded.
+- The amounts would have to be calculated; the invoice records what the supplier stated.
+
+**Preconditions**
+
+- Each order line is a purchase order line of this company; with lines, all belong to one supplier
+  and one currency.
+- The quantity is at most what is ordered and not yet invoiced on the line; goods do not have to be
+  received first.
+- Inventory and accounts-payable default accounts are configured. The invoice line carries the price
+  agreed last (spec 310); the order line needs no stated price.
+- The proposal carries a delivery review; confirmation passes its review token, and the order line
+  must not have changed since the review.
+
+**Refused when**
+
+- `invoice_requires_purchase_order_line` — An order line is not a purchase order line.
+- `invoice_quantity_exceeds_billable` — The quantity exceeds what is ordered and not yet invoiced on
+  the line.
+- `invoice_lines_or_order_line_exclusive` — lines was sent together with order_line_id or quantity.
+- `invoice_positions_not_distinct` — An order line appears twice in lines.
+- `invoice_positions_party_mixed` — The lines belong to more than one supplier.
+- `invoice_positions_currency_mixed` — The lines belong to orders in more than one currency.
+- `invoice_positions_limit_exceeded` — More than 200 lines.
+- `invoice_values_precision_exceeded` — A quantity or amount has more than four decimals or is too
+  large.
+- `master_data_field_not_positive` — A quantity or gross amount is zero or negative.
+- `manual_document_header_required` — The invoice number is blank.
+- `exchange_rate_required` — A foreign-currency invoice states no exchange rate.
+- `exchange_rate_not_applicable` — An exchange rate was stated for an invoice in the company
+  currency.
+- `stated_invoice_gross_mismatch` — Stated net and tax detail does not match the gross amount.
+- `review_delivery_changed` — The order line changed after the proposal was reviewed.
+- `invoice_execution_unresolved` — Another invoice proposal for the same order line is still
+  executing.
+- `finance_account_default_missing` — A required default account is not configured.
+
 **Parameters**
 
 | Name                                  | Type      | Required | Description                                                                                                                            | Default |
@@ -4081,6 +4176,10 @@ supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount 
 | `number`                              | `string`  | yes      | Human-facing document or transaction number; it is not internal identity.                                                              | —       |
 | `effective_at`                        | `string`  | no       | UTC instant from which the observation or rule takes effect.                                                                           | —       |
 | `exchange_rate`                       | `string`  | no       | The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated. | —       |
+
+**Verify with:** `proposal_execution_status` — The invoice was recorded once and its receipt names
+the document and ledger entries.; `purchase_match` — The order line now shows the billed quantity
+and price.; `finance.party_balances.list` — The supplier's payable includes the invoice.
 
 **See also:** Command [`record_supplier_invoice`](./commands#command-record_supplier_invoice)
 

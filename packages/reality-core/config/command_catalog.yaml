@@ -6250,6 +6250,45 @@ capability_guidance:
     unknown_when: [An invoice nobody has posted yet does not appear, because nothing is open on it.]
     next_steps: [State an amount per invoice and confirm the total to execute the run, or narrow the day and preview again.]
     examples: {use: [{scenario: Decide what goes out on Friday., reason: The proposal and its totals are what a run is confirmed against.}], do_not_use: [{scenario: Work out what a 2% discount is worth., reason: Reality never states an amount nobody agreed to.}]}
+  payment_run_propose:
+    application_tool: payment_run
+    purpose: Pay the supplier invoices and amounts a person confirmed, all of them or none, as one recorded run.
+    use_when: [A person has reviewed a payment run preview and states, per invoice, the amount to pay, the currency and the total they approve.]
+    do_not_use_when:
+      - The amounts have not been decided yet; read payment_run_preview first.
+      - A discount amount would have to be worked out; the run pays only stated amounts and never applies a rate.
+      - The money is not leaving the company; a run records that a company paid, it does not transfer money.
+    required_context: [payments (invoice_id and amount each; payment_number optional), currency, expected_total, reason]
+    preconditions:
+      - Every invoice is a payable supplier invoice of this company - not reversed, not reported as a duplicate number, with something open - and each is named once.
+      - All invoices are in the run's currency, no amount exceeds what is open on its invoice, and the amounts add up exactly to expected_total.
+      - Accounts-payable and cash default accounts are configured; Playground companies cannot run payments.
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; a confirmed replay returns the stored receipt. A second proposal for the same invoices is a second run and pays again up to what is still open.}
+    refusals:
+      - {code: payment_run_reason_required, description: The reason is blank.}
+      - {code: payment_run_payment_required, description: The payment list is empty.}
+      - {code: payment_run_currency_required, description: The currency is blank.}
+      - {code: payment_run_invoice_repeated, description: An invoice is named more than once.}
+      - {code: payment_run_total_mismatch, description: The stated amounts do not add up to expected_total; the stated and confirmed totals are named.}
+      - {code: payment_run_invoice_reversed, description: The posting behind an invoice has been reversed.}
+      - {code: payment_run_invoice_number_duplicate, description: The invoice carries a number its supplier already used.}
+      - {code: payment_run_invoice_settled, description: The invoice has nothing open.}
+      - {code: payment_run_invoice_not_payable, description: The invoice is not an open supplier invoice of this company.}
+      - {code: payment_run_currency_mismatch, description: An invoice is in another currency than the run.}
+      - {code: payment_exceeds_open_payable, description: An amount exceeds what is open on its invoice.}
+      - {code: master_data_field_not_positive, description: An amount is zero or negative.}
+      - {code: playground_operation_unsupported, description: The company is a Playground company.}
+    events: [document.recorded, ledger.posted, settlement.allocated, payments.run]
+    verification_reads:
+      - {name: proposal_execution_status, proves: The run executed once and its receipt names every payment document.}
+      - {name: payment_run_preview, proves: Fully paid invoices no longer appear as payable.}
+      - {name: finance.payments.list, proves: Each payment is recorded and allocated to its invoice.}
+    examples:
+      use:
+        - {scenario: Pay the forty invoices reviewed for Friday at the amounts the controller approved., reason: Every payment is posted in one transaction against one confirmed total.}
+      do_not_use:
+        - {scenario: Pay an invoice less its 2% early-payment discount without a stated amount., reason: The run pays stated amounts only; the person states the discounted amount.}
   stale_closure_preview:
     kind: read
     application_tool: stale_closure_preview
@@ -6358,6 +6397,49 @@ capability_guidance:
     unknown_when: [Deliveries, invoices or reversals change concurrently.]
     next_steps: [Prepare sales_invoice_record_propose or supplier_invoice_record_propose with the returned order line identities.]
     examples: {use: [{scenario: Bill a customer's deliveries of the month on one invoice., reason: The read lists every delivered and unbilled position by order.}], do_not_use: [{scenario: Decide what a customer owes., reason: Open receivables derive from postings and allocations.}]}
+  supplier_invoice_record_propose:
+    application_tool: supplier_invoice_record
+    purpose: Record a supplier invoice as stated against purchase order lines and post its payable.
+    use_when: [A supplier invoice arrived that bills one or more purchase order lines with stated quantities, gross amounts and an invoice number.]
+    do_not_use_when:
+      - The invoice bills nothing on a purchase order, such as a free charge or a cancellation cost; record a free supplier invoice instead.
+      - The goal is to pay the invoice; propose a payment run once it is recorded.
+      - The amounts would have to be calculated; the invoice records what the supplier stated.
+    required_context: [gross_amount, number, and either order_line_id with quantity or lines (order_line_id, quantity, gross_amount each, at most 200, each order line once); exchange_rate when the invoice is in a foreign currency]
+    preconditions:
+      - Each order line is a purchase order line of this company; with lines, all belong to one supplier and one currency.
+      - The quantity is at most what is ordered and not yet invoiced on the line; goods do not have to be received first.
+      - Inventory and accounts-payable default accounts are configured. The invoice line carries the price agreed last (spec 310); the order line needs no stated price.
+      - The proposal carries a delivery review; confirmation passes its review token, and the order line must not have changed since the review.
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; a confirmed replay returns the stored receipt. A second proposal for the same invoice records a second invoice; the number is not refused and shows up as duplicate_supplier_invoice, which a payment run then withholds.}
+    refusals:
+      - {code: invoice_requires_purchase_order_line, description: An order line is not a purchase order line.}
+      - {code: invoice_quantity_exceeds_billable, description: The quantity exceeds what is ordered and not yet invoiced on the line.}
+      - {code: invoice_lines_or_order_line_exclusive, description: lines was sent together with order_line_id or quantity.}
+      - {code: invoice_positions_not_distinct, description: An order line appears twice in lines.}
+      - {code: invoice_positions_party_mixed, description: The lines belong to more than one supplier.}
+      - {code: invoice_positions_currency_mixed, description: The lines belong to orders in more than one currency.}
+      - {code: invoice_positions_limit_exceeded, description: More than 200 lines.}
+      - {code: invoice_values_precision_exceeded, description: A quantity or amount has more than four decimals or is too large.}
+      - {code: master_data_field_not_positive, description: A quantity or gross amount is zero or negative.}
+      - {code: manual_document_header_required, description: The invoice number is blank.}
+      - {code: exchange_rate_required, description: A foreign-currency invoice states no exchange rate.}
+      - {code: exchange_rate_not_applicable, description: An exchange rate was stated for an invoice in the company currency.}
+      - {code: stated_invoice_gross_mismatch, description: Stated net and tax detail does not match the gross amount.}
+      - {code: review_delivery_changed, description: The order line changed after the proposal was reviewed.}
+      - {code: invoice_execution_unresolved, description: Another invoice proposal for the same order line is still executing.}
+      - {code: finance_account_default_missing, description: A required default account is not configured.}
+    events: [source_record.stored, document.recorded, ledger.posted, invoice.recorded]
+    verification_reads:
+      - {name: proposal_execution_status, proves: The invoice was recorded once and its receipt names the document and ledger entries.}
+      - {name: purchase_match, proves: The order line now shows the billed quantity and price.}
+      - {name: finance.party_balances.list, proves: The supplier's payable includes the invoice.}
+    examples:
+      use:
+        - {scenario: Record supplier invoice RE-4711 billing 100 of 100 ordered pieces at 1190.00 gross., reason: The stated invoice becomes evidence linked to its order line and posts the payable.}
+      do_not_use:
+        - {scenario: Record a supplier's cancellation charge for a cancelled purchase line., reason: A charge bills no goods; it is a free supplier invoice with a charge line.}
   finance_dunning_context:
     kind: read
     application_tool: finance.dunning.context

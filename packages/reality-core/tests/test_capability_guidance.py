@@ -148,6 +148,39 @@ def test_commitment_action_guidance_distinguishes_revision_from_cancellation():
     assert "reason" in " ".join(guidance["commitment_cancel_propose"]["preconditions"])
 
 
+def test_payment_run_and_supplier_invoice_guidance_name_their_refusals():
+    guidance = load_application_catalog()["capability_guidance"]
+
+    for tool_name, application_tool in (
+        ("payment_run_propose", "payment_run"),
+        ("supplier_invoice_record_propose", "supplier_invoice_record"),
+    ):
+        entry = guidance[tool_name]
+        assert entry["application_tool"] == application_tool
+        assert entry["confirmation"] == "required"
+        assert entry["preconditions"] and entry["events"]
+        assert entry["verification_reads"]
+
+    def codes(tool_name):
+        return {row["code"] for row in guidance[tool_name]["refusals"]}
+
+    assert {
+        "payment_run_total_mismatch",
+        "payment_run_currency_mismatch",
+        "payment_exceeds_open_payable",
+    } <= codes("payment_run_propose")
+    assert "payments.run" in guidance["payment_run_propose"]["events"]
+    assert {
+        "invoice_requires_purchase_order_line",
+        "invoice_quantity_exceeds_billable",
+        "exchange_rate_required",
+    } <= codes("supplier_invoice_record_propose")
+    # A repeated supplier invoice number is not refused; the guidance says so.
+    assert "duplicate_supplier_invoice" in (
+        guidance["supplier_invoice_record_propose"]["idempotency"]["guidance"]
+    )
+
+
 def test_all_public_business_read_capabilities_are_complete_and_distinct():
     guidance = load_application_catalog()["capability_guidance"]
 

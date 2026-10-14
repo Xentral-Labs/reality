@@ -259,3 +259,23 @@ shape and read interface consistent with these requirements.
 | DR-001–DR-003 | US1 and US2 | Source/identity examples, tenant isolation, and adapter parity tests |
 | DR-004–DR-005 | US2 and US3 | Schema-diff review and service-authority rejection tests |
 | SC-001–SC-006 | All stories | Acceptance suite, command-selection evaluation, and reviewer walkthrough |
+
+## Amendment 2026-10-12: payment runs and supplier invoices are described
+
+`payment_run_propose` and `supplier_invoice_record_propose` had no capability description, so
+`capability_describe` could not answer for them and a proposal's next step carried no
+verification reads. The amendment describes both from their implementations and makes them
+required, so they cannot silently drop out. Nothing they do changes. The descriptions state the
+existing behaviour plainly: the run's confirmation carries no review token, a supplier invoice may
+bill goods not yet received up to the ordered quantity, and a repeated supplier invoice number is
+recorded and reported as `duplicate_supplier_invoice` rather than refused. The payment-run refusal
+codes are those of spec 098 FR-016.
+
+- **FR-014**: `payment_run_propose` and `supplier_invoice_record_propose` MUST carry complete
+  capability guidance (purpose, use and non-use, required context, preconditions, idempotency,
+  refusal codes, events and verification reads) that states only what their implementations
+  require and refuse, and both MUST be in the required guidance set.
+
+| Requirement | Scenario(s) | Test/evidence |
+|---|---|---|
+| FR-014 | US1 scenarios 1–2 | `tests/test_capability_guidance.py::test_payment_run_and_supplier_invoice_guidance_name_their_refusals`; catalog validation of the required set |

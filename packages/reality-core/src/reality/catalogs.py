@@ -208,9 +208,11 @@ CAPABILITY_GUIDANCE_REQUIRED_TOOLS = {
     "movement_create_propose",
     "order_explain",
     "order_create_propose",
+    "payment_run_propose",
     "proposal_approve_and_execute",
     "proposal_execution_status",
     "reservation_propose",
+    "supplier_invoice_record_propose",
 }
 TENANT_ISOLATION_CLASSIFICATIONS = {
     "record_read",
