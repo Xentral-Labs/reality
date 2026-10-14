@@ -29862,3 +29862,67 @@ Object.assign(dictionaries.es, {
   "Shipping deviations cannot be evaluated without a complete daily plan.":
     "No se pueden evaluar desviaciones de envío sin un plan diario completo.",
 });
+
+// Spec 098: payment-run refusals.
+Object.assign(dictionaries.de, {
+  "A payment run preview needs a day to pay by.":
+    "Die Vorschau eines Zahlungslaufs braucht einen Tag, bis zu dem gezahlt wird.",
+  "A payment run requires a reason.": "Ein Zahlungslauf braucht einen Grund.",
+  "A payment run needs at least one payment.": "Ein Zahlungslauf braucht mindestens eine Zahlung.",
+  "A payment run needs the currency it is paid in.":
+    "Ein Zahlungslauf braucht die Währung, in der er zahlt.",
+  "A payment run names each invoice once.": "Ein Zahlungslauf nennt jede Rechnung nur einmal.",
+  "The payment run no longer matches the confirmed total: {stated} stated, {confirmed} confirmed.":
+    "Der Zahlungslauf passt nicht mehr zur bestätigten Summe: {stated} angegeben, {confirmed} bestätigt.",
+  "The posting behind this invoice has been reversed.":
+    "Die Buchung dieser Rechnung wurde storniert.",
+  "This invoice carries a number its supplier already used.":
+    "Diese Rechnung trägt eine Nummer, die ihr Lieferant bereits verwendet hat.",
+  "This invoice has nothing open.": "Bei dieser Rechnung ist nichts offen.",
+  "A payment run pays open supplier invoices of this tenant only.":
+    "Ein Zahlungslauf zahlt nur offene Lieferantenrechnungen dieses Unternehmens.",
+  "A payment run pays in one currency: {invoice_currency} does not match {run_currency}.":
+    "Ein Zahlungslauf zahlt in einer Währung: {invoice_currency} passt nicht zu {run_currency}.",
+});
+
+Object.assign(dictionaries.nl, {
+  "A payment run preview needs a day to pay by.":
+    "Een voorbeeld van een betalingsrun heeft een dag nodig waarop uiterlijk betaald wordt.",
+  "A payment run requires a reason.": "Een betalingsrun heeft een reden nodig.",
+  "A payment run needs at least one payment.":
+    "Een betalingsrun heeft minstens één betaling nodig.",
+  "A payment run needs the currency it is paid in.":
+    "Een betalingsrun heeft de valuta nodig waarin wordt betaald.",
+  "A payment run names each invoice once.": "Een betalingsrun noemt elke factuur maar één keer.",
+  "The payment run no longer matches the confirmed total: {stated} stated, {confirmed} confirmed.":
+    "De betalingsrun komt niet meer overeen met het bevestigde totaal: {stated} opgegeven, {confirmed} bevestigd.",
+  "The posting behind this invoice has been reversed.":
+    "De boeking van deze factuur is teruggedraaid.",
+  "This invoice carries a number its supplier already used.":
+    "Deze factuur heeft een nummer dat de leverancier al heeft gebruikt.",
+  "This invoice has nothing open.": "Op deze factuur staat niets meer open.",
+  "A payment run pays open supplier invoices of this tenant only.":
+    "Een betalingsrun betaalt alleen openstaande leveranciersfacturen van dit bedrijf.",
+  "A payment run pays in one currency: {invoice_currency} does not match {run_currency}.":
+    "Een betalingsrun betaalt in één valuta: {invoice_currency} komt niet overeen met {run_currency}.",
+});
+
+Object.assign(dictionaries.es, {
+  "A payment run preview needs a day to pay by.":
+    "La vista previa de una remesa de pagos necesita un día límite de pago.",
+  "A payment run requires a reason.": "Una remesa de pagos necesita un motivo.",
+  "A payment run needs at least one payment.": "Una remesa de pagos necesita al menos un pago.",
+  "A payment run needs the currency it is paid in.":
+    "Una remesa de pagos necesita la moneda en la que se paga.",
+  "A payment run names each invoice once.": "Una remesa de pagos nombra cada factura una sola vez.",
+  "The payment run no longer matches the confirmed total: {stated} stated, {confirmed} confirmed.":
+    "La remesa de pagos ya no coincide con el total confirmado: {stated} indicado, {confirmed} confirmado.",
+  "The posting behind this invoice has been reversed.": "El asiento de esta factura se ha anulado.",
+  "This invoice carries a number its supplier already used.":
+    "Esta factura lleva un número que su proveedor ya utilizó.",
+  "This invoice has nothing open.": "Esta factura no tiene nada pendiente.",
+  "A payment run pays open supplier invoices of this tenant only.":
+    "Una remesa de pagos solo paga facturas de proveedor pendientes de esta empresa.",
+  "A payment run pays in one currency: {invoice_currency} does not match {run_currency}.":
+    "Una remesa de pagos paga en una sola moneda: {invoice_currency} no coincide con {run_currency}.",
+});

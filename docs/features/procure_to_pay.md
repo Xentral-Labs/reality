@@ -105,7 +105,9 @@ duplicate" is how a proposal and the operation that executes it start disagreein
 
 The run refuses everything before it writes anything: an empty list, a missing reason, an invoice
 named twice, an invoice that is not payable, an amount above what is open, a currency that does
-not match, and a set of amounts that does not sum to the confirmed total. The confirmation figure
+not match, and a set of amounts that does not sum to the confirmed total. Each of these refusals,
+and the preview's missing day, carries a stable code from the service refusal catalog (spec 098
+FR-016), so a client tells them apart without reading the sentence. The confirmation figure
 is a **total** rather than a count — Spec 085 confirmed a count because a count was what the
 person had looked at, and here a person approves an amount of money while the list is usually
 assembled by a client from the proposal, where every line can be right and the sum still wrong.

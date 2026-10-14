@@ -263,3 +263,26 @@ the preview, and read it.
 | DR-005 | — | the closed registry expectation, unchanged |
 | DR-006 | US3 scenarios 1, 2 | recorded-amounts-only test |
 | DR-007 | — | the command reachability gate |
+
+## Amendment 2026-10-12: payment-run refusals carry codes
+
+The preview and the run refused in English prose only, so an MCP client or the web could tell the
+refusals apart only by comparing sentences, and the web could not translate them. They were left
+in the refusal ratchet as `later` when spec 286 introduced coded refusals. The amendment gives each
+one a stable code through the spec 286 catalog, with the stated and confirmed totals and the two
+currencies as values. When, whether and why a run is refused is unchanged, and so is the English
+sentence. No schema change.
+
+- **FR-016**: Every refusal of the preview and the run MUST carry a stable code from the service
+  refusal catalog (spec 286 FR-001), with German, Dutch and Spanish wording:
+  `payment_run_pay_by_required`, `payment_run_reason_required`, `payment_run_payment_required`,
+  `payment_run_currency_required`, `payment_run_invoice_repeated`, `payment_run_total_mismatch`
+  (`stated`, `confirmed`), `payment_run_invoice_reversed`, `payment_run_invoice_number_duplicate`,
+  `payment_run_invoice_settled`, `payment_run_invoice_not_payable`,
+  `payment_run_currency_mismatch` (`invoice_currency`, `run_currency`), and the existing
+  `payment_exceeds_open_payable`. The preview's withheld explanation stays the English sentence
+  of the code the run refuses with.
+
+| Requirement | Scenario(s) | Test/evidence |
+|---|---|---|
+| FR-016 | US1 scenario 5; US2 scenarios 2, 3; Edge cases | refusal code assertions in `test_payment_runs.py`; the refusal gate with the payment-run ratchet entries removed; the web refusal localization test |

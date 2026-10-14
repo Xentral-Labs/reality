@@ -52,7 +52,11 @@
     "reality/tools/application.py",
     "reality/tools/finance.py"
   ],
-  "indirect_codes": [],
+  "indirect_codes": [
+    "payment_run_invoice_number_duplicate",
+    "payment_run_invoice_reversed",
+    "payment_run_invoice_settled"
+  ],
   "entries": [
     {
       "path": "reality/security/secrets.py",
@@ -796,60 +800,6 @@
       "path": "reality/services/core.py",
       "function": "ingest_shopify_order",
       "message": "Stale source version was stored without interpretation.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "preview_payment_run",
-      "message": "A payment run preview needs a day to pay by.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "A payment run requires a reason.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "A payment run needs at least one payment.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "A payment run needs the currency it is paid in.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "A payment run names each invoice once.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "\"The payment run no longer matches the confirmed total: \" f\"{total} stated, {confirmed_total} confirmed.\"",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "PAYMENT_RUN_WITHHELD_REASONS[withheld_because] if withheld_because else \"A payment run pays open supplier invoices of this tenant only.\"",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "\"A payment run pays in one currency: \" f\"{row['document'].currency} does not match {run_currency}.\"",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "execute_payment_run",
-      "message": "Payment exceeds the open supplier payable.",
       "scope": "later"
     },
     {

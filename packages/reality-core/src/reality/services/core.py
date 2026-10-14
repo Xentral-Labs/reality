@@ -92,6 +92,7 @@ from reality.db.core import (
 )
 from reality.domain.calendar import InvalidDay, as_day
 from reality.domain.refusals import RefusalMixin
+from reality.domain.refusals import render as render_refusal
 from reality.domain.stock_scope import movement_at
 from reality.integrations.catalog import connector_catalog, connector_shell
 from reality.services.interaction_recorder import note_event as note_interaction_event
@@ -17289,10 +17290,14 @@ def aging_register(
 # Why a supplier invoice a payment run may not pay was left out. Reported rather
 # than silently dropped, because an operator who cannot see what was withheld
 # cannot tell a short run from a wrong one.
+PAYMENT_RUN_WITHHELD_REFUSALS = {
+    "reversed": "payment_run_invoice_reversed",
+    "duplicate": "payment_run_invoice_number_duplicate",
+    "settled": "payment_run_invoice_settled",
+}
 PAYMENT_RUN_WITHHELD_REASONS = {
-    "reversed": "The posting behind this invoice has been reversed.",
-    "duplicate": "This invoice carries a number its supplier already used.",
-    "settled": "This invoice has nothing open.",
+    reason: render_refusal(code, None)[0]
+    for reason, code in PAYMENT_RUN_WITHHELD_REFUSALS.items()
 }
 
 
@@ -17424,7 +17429,7 @@ def preview_payment_run(
     today = _company_day(session, tenant_id, moment)
     cutoff_moment = utc_datetime(pay_by)
     if cutoff_moment is None:
-        raise InvalidOperation("A payment run preview needs a day to pay by.")
+        raise InvalidOperation(code="payment_run_pay_by_required")
     cutoff = cutoff_moment.date()
     payable, withheld = payable_supplier_invoices(session, tenant_id, as_of=moment)
     proposed = []
@@ -17547,12 +17552,12 @@ def execute_payment_run(
     get_tenant(session, tenant_id)
     stated_reason = (reason or "").strip()
     if not stated_reason:
-        raise InvalidOperation("A payment run requires a reason.")
+        raise InvalidOperation(code="payment_run_reason_required")
     if not payments:
-        raise InvalidOperation("A payment run needs at least one payment.")
+        raise InvalidOperation(code="payment_run_payment_required")
     run_currency = (currency or "").strip()
     if not run_currency:
-        raise InvalidOperation("A payment run needs the currency it is paid in.")
+        raise InvalidOperation(code="payment_run_currency_required")
     confirmed_total = decimal(expected_total)
     stated: list[tuple[str, Decimal, str | None]] = []
     seen: set[str] = set()
@@ -17560,7 +17565,7 @@ def execute_payment_run(
     for item in payments:
         invoice_id = item["invoice_id"]
         if invoice_id in seen:
-            raise InvalidOperation("A payment run names each invoice once.")
+            raise InvalidOperation(code="payment_run_invoice_repeated")
         seen.add(invoice_id)
         stated.append(
             (invoice_id, positive(item["amount"], "amount"), item.get("payment_number"))
@@ -17569,8 +17574,8 @@ def execute_payment_run(
     # reality-rule: core.execute_payment_run.2
     if total != confirmed_total:
         raise InvalidOperation(
-            "The payment run no longer matches the confirmed total: "
-            f"{total} stated, {confirmed_total} confirmed."
+            code="payment_run_total_mismatch",
+            values={"stated": total, "confirmed": confirmed_total},
         )
     payable, withheld = payable_supplier_invoices(session, tenant_id)
     rows = {row["document"].id: row for row in payable}
@@ -17580,18 +17585,21 @@ def execute_payment_run(
         row = rows.get(invoice_id)
         if row is None:
             withheld_because = refusals.get(invoice_id)
-            raise InvalidOperation(
-                PAYMENT_RUN_WITHHELD_REASONS[withheld_because]
-                if withheld_because
-                else "A payment run pays open supplier invoices of this tenant only."
-            )
+            if withheld_because:
+                raise InvalidOperation(
+                    code=PAYMENT_RUN_WITHHELD_REFUSALS[withheld_because]
+                )
+            raise InvalidOperation(code="payment_run_invoice_not_payable")
         if row["document"].currency.strip().upper() != run_currency.upper():
             raise InvalidOperation(
-                "A payment run pays in one currency: "
-                f"{row['document'].currency} does not match {run_currency}."
+                code="payment_run_currency_mismatch",
+                values={
+                    "invoice_currency": row["document"].currency,
+                    "run_currency": run_currency,
+                },
             )
         if amount > decimal(row["open"]):
-            raise InvalidOperation("Payment exceeds the open supplier payable.")
+            raise InvalidOperation(code="payment_exceeds_open_payable")
     paid: list[dict[str, Any]] = []
     # reality-rule: core.execute_payment_run.4
     try:

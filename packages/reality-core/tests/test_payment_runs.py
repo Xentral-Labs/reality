@@ -11,6 +11,7 @@ import pytest
 
 from reality.services.core import (
     PAYMENT_RUN_WITHHELD_REASONS,
+    PAYMENT_RUN_WITHHELD_REFUSALS,
     InvalidOperation,
     NotFound,
     aging_register,
@@ -245,6 +246,7 @@ def test_what_is_not_payable_and_why(session, business):
             )
         # The refusal says the same thing the preview said, from the same place.
         assert str(refused.value) == PAYMENT_RUN_WITHHELD_REASONS[reason]
+        assert refused.value.code == PAYMENT_RUN_WITHHELD_REFUSALS[reason]
 
     # Positive control: the payable one goes through with the same shape of call.
     assert (
@@ -282,6 +284,12 @@ def test_the_preview_writes_nothing(session, business):
     # ordered answer.
     assert proposed_ids(first) == proposed_ids(second)
     assert first["totals"] == second["totals"]
+
+
+def test_a_preview_needs_a_day_to_pay_by(session, business):
+    with pytest.raises(InvalidOperation, match="day to pay by") as refused:
+        preview_payment_run(session, business.tenant.id, pay_by="", as_of=AS_OF)
+    assert refused.value.code == "payment_run_pay_by_required"
 
 
 def test_the_preview_proposes_what_is_due_and_what_is_discountable(session, business):
@@ -443,7 +451,7 @@ def test_a_run_refuses(session, business):
     tenant_id = business.tenant.id
     line = [{"invoice_id": invoice.id, "amount": "100.00"}]
 
-    with pytest.raises(InvalidOperation, match="reason"):
+    with pytest.raises(InvalidOperation, match="reason") as refused:
         execute_payment_run(
             session,
             tenant_id,
@@ -452,7 +460,8 @@ def test_a_run_refuses(session, business):
             expected_total="100.00",
             reason="   ",
         )
-    with pytest.raises(InvalidOperation, match="at least one payment"):
+    assert refused.value.code == "payment_run_reason_required"
+    with pytest.raises(InvalidOperation, match="at least one payment") as refused:
         execute_payment_run(
             session,
             tenant_id,
@@ -461,7 +470,8 @@ def test_a_run_refuses(session, business):
             expected_total="0.00",
             reason="Friday",
         )
-    with pytest.raises(InvalidOperation, match="each invoice once"):
+    assert refused.value.code == "payment_run_payment_required"
+    with pytest.raises(InvalidOperation, match="each invoice once") as refused:
         execute_payment_run(
             session,
             tenant_id,
@@ -470,7 +480,8 @@ def test_a_run_refuses(session, business):
             expected_total="150.00",
             reason="Friday",
         )
-    with pytest.raises(InvalidOperation, match="confirmed total"):
+    assert refused.value.code == "payment_run_invoice_repeated"
+    with pytest.raises(InvalidOperation, match="confirmed total") as refused:
         execute_payment_run(
             session,
             tenant_id,
@@ -479,6 +490,8 @@ def test_a_run_refuses(session, business):
             expected_total="120.00",
             reason="Friday",
         )
+    assert refused.value.code == "payment_run_total_mismatch"
+    assert refused.value.values == {"stated": "100.00", "confirmed": "120.00"}
     with pytest.raises(InvalidOperation, match="greater than zero"):
         execute_payment_run(
             session,
@@ -488,7 +501,7 @@ def test_a_run_refuses(session, business):
             expected_total="0",
             reason="Friday",
         )
-    with pytest.raises(InvalidOperation, match="exceeds the open"):
+    with pytest.raises(InvalidOperation, match="exceeds the open") as refused:
         execute_payment_run(
             session,
             tenant_id,
@@ -497,7 +510,8 @@ def test_a_run_refuses(session, business):
             expected_total="1000.01",
             reason="Friday",
         )
-    with pytest.raises(InvalidOperation, match="currency it is paid in"):
+    assert refused.value.code == "payment_exceeds_open_payable"
+    with pytest.raises(InvalidOperation, match="currency it is paid in") as refused:
         execute_payment_run(
             session,
             tenant_id,
@@ -506,6 +520,7 @@ def test_a_run_refuses(session, business):
             expected_total="100.00",
             reason="Friday",
         )
+    assert refused.value.code == "payment_run_currency_required"
 
     # Every refusal above rejected the call and wrote nothing.
     assert open_invoice_amount(session, tenant_id, invoice.id) == Decimal(1000)
@@ -531,7 +546,7 @@ def test_a_run_is_one_currency(session, business):
         session, business, "ER-098-USD", "2026-08-01", currency="USD"
     )
 
-    with pytest.raises(InvalidOperation, match="one currency"):
+    with pytest.raises(InvalidOperation, match="one currency") as refused:
         execute_payment_run(
             session,
             business.tenant.id,
@@ -543,6 +558,8 @@ def test_a_run_is_one_currency(session, business):
             expected_total="20.00",
             reason="Mixed",
         )
+    assert refused.value.code == "payment_run_currency_mismatch"
+    assert refused.value.values == {"invoice_currency": "USD", "run_currency": "EUR"}
     assert open_invoice_amount(session, business.tenant.id, euros.id) == Decimal(1000)
 
     # Positive control: two runs, one currency each, both go through.
@@ -700,7 +717,7 @@ def test_a_run_is_tenant_scoped(session, business):
         preview_payment_run(session, other.id, pay_by=PAY_BY, as_of=AS_OF)["proposed"]
         == []
     )
-    with pytest.raises(InvalidOperation, match="this tenant only"):
+    with pytest.raises(InvalidOperation, match="this tenant only") as refused:
         execute_payment_run(
             session,
             other.id,
@@ -709,6 +726,7 @@ def test_a_run_is_tenant_scoped(session, business):
             expected_total="10.00",
             reason="Foreign run",
         )
+    assert refused.value.code == "payment_run_invoice_not_payable"
     with pytest.raises(NotFound):
         preview_payment_run(session, "ten_missing", pay_by=PAY_BY, as_of=AS_OF)
 
