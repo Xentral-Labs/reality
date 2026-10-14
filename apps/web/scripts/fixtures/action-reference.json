@@ -912,7 +912,7 @@
       "service": "purchase_match",
       "mode": "query",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference."
+      "effect": "Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference with its amount, and what is billable."
     },
     {
       "name": "State a customer item number",

@@ -1726,7 +1726,7 @@ commands:
     adapters: [CLI, Web, API, MCP, Chat]
     reads: [document, document_line, commitment, commitment_revision, movement, item, commitment_substitute, shipment_advice_line, shipment_package]
     writes: []
-    effect: Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference.
+    effect: Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference with its amount, and what is billable.
   - name: State a customer item number
     service: set_customer_item_number
     related_services: [review_customer_item_number, resolve_customer_item]
@@ -6732,7 +6732,7 @@ capability_guidance:
     do_not_use_when: [The question is about open payables; read the open items.]
     required_context: [tenant, document_id]
     data_basis: [document_line, commitment, commitment_revision, movement]
-    limitations: [Exact match only, without tolerances; lines in units that cannot be compared are named, not judged.]
+    limitations: [Exact match only, without tolerances; lines in units that cannot be compared are named, not judged., "Variance and billable amounts are given only where quantity and price share a unit and the invoice shares the order's currency; a price is never converted."]
     freshness: Derived from promises, movements and invoice lines at request time.
     empty_result: The order has no lines that promised goods.
     refusal_behavior: Only the company's own purchase orders are read.

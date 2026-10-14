@@ -138,5 +138,8 @@ money; a run records that the company paid.
   and the price comparison.
 - `purchase_match` answers per purchase line whether the quantity in force was received
   (net of returns) and billed (net of credits) at the agreed price, or names each
-  difference. It is derived at read time.
+  difference. It is derived at read time. Each difference also names its amount in the
+  order's currency, and each line names what is billable (received quantity at the
+  invoiced price). The amounts are exact products of stated quantities and prices, given
+  only where unit and currency agree, and do not decide `matched`.
 
