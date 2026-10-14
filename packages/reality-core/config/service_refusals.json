@@ -1898,6 +1898,12 @@
     "supplier_invoice_document_type_invalid": {
       "message": "Document is not a supplier invoice."
     },
+    "supplier_invoice_number_duplicate": {
+      "message": "This supplier already has invoice {number} recorded. Reverse that invoice before recording the number again.",
+      "values": {
+        "number": "text"
+      }
+    },
     "supply_assignment_customer_commitment_count": {
       "message": "Customer demand requires one customer commitment; stock replenishment requires none."
     },

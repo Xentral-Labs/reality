@@ -268,3 +268,28 @@ later one is reported and names the earlier.
 | DR-005 | Edge cases | tenant isolation test |
 | DR-006 | US1 scenario 1 | existing cause-vocabulary drift gate |
 | DR-007 | — | no migration added |
+
+## Amendment 2026-10-14: a repeated supplier invoice number is refused when recorded
+
+The duplicate class reported a second supplier invoice under a number its supplier already used,
+and spec 098 withholds such an invoice from a payment run. Both act after the second payable
+exists. Recording a supplier invoice through `record_supplier_invoice` (single order line or
+positions) or `record_free_supplier_invoice` now refuses with `supplier_invoice_number_duplicate`
+when a supplier invoice of the same supplier in the same company already carries that number,
+compared exactly as FR-007 compares (trimmed, case-insensitive), unless that invoice is reversed
+(FR-008a): a reversed invoice releases its number, so a corrected reissue can be recorded. A
+different supplier may use the same number. Concurrent recordings of the same supplier and number
+are serialized by a transaction-scoped advisory lock.
+
+This reverses the non-goal "Any change to the write path" for these recording operations only.
+Evidence is not discarded: a source-stated invoice keeps its retained Source record, and only the
+second payable is not created. Documents created by other paths (for example `create_document`
+followed by `post_supplier_invoice`) are unchanged and still reported by the duplicate class.
+
+The repository has no company setting for switching a recording check on or off, so the refusal
+is unconditional. Whether it stays on by default, or becomes a company setting, is the
+maintainer's decision.
+
+| Requirement | Scenario(s) | Planned test/evidence |
+|---|---|---|
+| FR-006 (amended) | US2 scenario 1 | `tests/test_supplier_invoice_number_refusal.py` |
