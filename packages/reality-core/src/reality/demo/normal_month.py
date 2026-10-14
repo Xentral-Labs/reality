@@ -37,6 +37,17 @@ from reality.services.core import (
 
 FIXTURE = Path(__file__).parents[3] / "fixtures" / "shopify" / "order_10473.json"
 SCENARIO_ACTION = "scenario:normal_month:completed"
+# Reserved, non-routable addresses (RFC 2606), so the seeded parties can be
+# found by address without any message ever reaching a real mailbox.
+DEMO_CUSTOMERS = (
+    ("Müller GmbH", "purchasing.mueller@example.test"),
+    ("Huber Handel GmbH", "purchasing.huber@example.test"),
+    ("Velo Store GmbH", "purchasing.velostore@example.test"),
+)
+DEMO_SUPPLIERS = (
+    ("Bike Parts GmbH", "sales.bikeparts@example.test"),
+    ("LightWorks AG", "sales.lightworks@example.test"),
+)
 
 
 def at(day: int, hour: int = 9) -> datetime:
@@ -95,15 +106,28 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         company = create_party(
             session, tenant_id, "Acme Bikes GmbH", "company", _commit=False
         )
-    customer = create_party(
-        session, tenant_id, "Müller GmbH", "customer", _commit=False
-    )
-    create_party(session, tenant_id, "Huber Handel GmbH", "customer", _commit=False)
-    create_party(session, tenant_id, "Velo Store GmbH", "customer", _commit=False)
-    supplier = create_party(
-        session, tenant_id, "Bike Parts GmbH", "supplier", _commit=False
-    )
-    create_party(session, tenant_id, "LightWorks AG", "supplier", _commit=False)
+    customer, *_ = [
+        create_party(
+            session,
+            tenant_id,
+            name,
+            "customer",
+            emails=[{"email": email, "label": "Purchasing"}],
+            _commit=False,
+        )
+        for name, email in DEMO_CUSTOMERS
+    ]
+    supplier, *_ = [
+        create_party(
+            session,
+            tenant_id,
+            name,
+            "supplier",
+            emails=[{"email": email, "label": "Sales"}],
+            _commit=False,
+        )
+        for name, email in DEMO_SUPPLIERS
+    ]
     warehouse = create_location(session, tenant_id, "Augsburg Warehouse", _commit=False)
     returns = create_location(session, tenant_id, "Returns Area", _commit=False)
     item = create_item(session, tenant_id, "BIKE-LIGHT", "Bike Light", _commit=False)
