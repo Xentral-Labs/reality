@@ -1517,8 +1517,9 @@ MCP_TOOL_CATALOG = (
         "payment_run_preview",
         "Preview a payment run",
         "Show which supplier invoices are worth paying now, what each supplier is owed and "
-        "what was withheld, without paying anything. Names an early-payment rate and its "
-        "deadline; never states what a discount is worth.",
+        "what was withheld, without paying anything. Names an early-payment rate, its "
+        "deadline and, while it is open, what the discount is worth on the open amount; "
+        "never pays less on its own.",
         "read",
         "Exceptions & proposals",
         _object_schema({"pay_by": STRING}, required=("pay_by",)),

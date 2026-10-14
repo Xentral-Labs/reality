@@ -176,7 +176,8 @@ discounts routinely there is one for every invoice it issues.
   resolves: the invoice's own, else its party's, else none.
 - **FR-006**: No discount amount MUST be computed, reported or stored. A rate MUST be used only
   as one side of a comparison, and every money figure reported MUST be one the ledger already
-  holds.
+  holds. *Amended 2026-10-14 by spec 098:* the payment-run preview states a read-time
+  `discount_amount` per open-window line; it is never stored, and this class is unchanged.
 - **FR-007**: The system MUST report one entry per unpaid supplier invoice whose discount window
   is still open, stating the rate, the deadline and the amount outstanding.
 - **FR-008**: That entry MUST disappear when the invoice is settled, and MUST stop appearing

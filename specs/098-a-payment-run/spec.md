@@ -179,6 +179,8 @@ the preview, and read it.
   then by identity.
 - **FR-005**: The preview MUST name, per invoice, what is open, the day it is due, and — where a
   term states one — the rate and the day the window closes. It MUST NOT name a discounted amount.
+  *Amended 2026-10-14:* while the window is open it MUST also state `discount_amount`, the open
+  amount times the rate, rounded to the cent; it still names no amount to pay.
 - **FR-006**: The preview MUST say what it withheld and why.
 - **FR-007**: The preview MUST report what each supplier is owed as well as the run's total.
 - **FR-008**: The run MUST pay exactly the invoices and amounts it was given; it MUST derive no
@@ -263,3 +265,27 @@ the preview, and read it.
 | DR-005 | — | the closed registry expectation, unchanged |
 | DR-006 | US3 scenarios 1, 2 | recorded-amounts-only test |
 | DR-007 | — | the command reachability gate |
+
+## Amendment 2026-10-14: the preview states what a discount is worth
+
+An agent or calling application preparing a run had the rate and the deadline but not the money
+at stake, so each caller multiplied the open amount by the rate itself and rounded it its own way.
+The preview now states that figure once, per line, as `discount_amount`: the open amount times the
+rate divided by 100, rounded to the cent with the existing half-up money rounding
+(`_round_cents`). It is present only while the discount date is today or later and the term
+states a rate; otherwise it is null, as are the rate and the date.
+
+What does not change: the figure is derived at read time and never stored; supplier and currency
+totals remain open amounts; the run still pays exactly the amounts it is given (FR-008), so the
+residue of a discount taken stays open as before. The repository has no per-currency minor-unit
+table, so the figure is rounded to the cent for every currency. Taking the discount inside a run
+is out of scope and tracked separately (issue #403).
+
+This reverses the "Computing what to pay" non-goal only for the preview's informational figure,
+and amends FR-006 of spec 088 for this one field. US3 scenario 1 is read accordingly: the preview
+names 100 open, 2%, the deadline and a discount worth 2, and still states no discounted amount to
+pay.
+
+| Requirement | Scenario(s) | Planned test/evidence |
+|---|---|---|
+| FR-005 (amended) | US3 scenario 1 | discount stated never applied, rounding, open-amount and window tests |
