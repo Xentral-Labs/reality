@@ -2769,8 +2769,8 @@ Writes: —
 #### `payment_run_preview` — Preview a payment run {#tool-payment_run_preview}
 
 Show which supplier invoices are worth paying now, what each supplier is owed and what was withheld,
-without paying anything. Names an early-payment rate and its deadline; never states what a discount
-is worth.
+without paying anything. Names an early-payment rate, its deadline and, while it is open, what the
+discount is worth on the open amount; never pays less on its own.
 
 **Synopsis**
 

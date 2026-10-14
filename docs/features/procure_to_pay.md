@@ -86,12 +86,15 @@ of two is not a total. It orders by the day the money is needed — an open disc
 there is one, the due date otherwise — and then by identity, so two identical reads return an
 identical answer.
 
-**It computes nothing.** This is the whole shape of the feature. An ERP payment run is
+**It computes no amount to pay.** This is the whole shape of the feature. An ERP payment run is
 mechanically a discount calculator: it walks the open payables and pays gross minus a rate. That
 multiplication is the largest source of money nobody agreed to in an ERP — 2% of 1,234.56 is
 24.6912, somebody rounds it, and the rounded figure becomes what a supplier is told they were
 paid. So the preview names the rate the company negotiated and the day it expires, and a person
-states the amount. Paying 980 of 1,000 leaves 20 open, which is reported as an overdue payable
+states the amount. While the window is open it also states `discount_amount`, the open amount
+times the rate rounded to the cent, so every caller reads one figure instead of rounding its own;
+it is informational, never stored, never subtracted from a total and never paid on its own
+(spec 098, amendment 2026-10-14). Paying 980 of 1,000 leaves 20 open, which is reported as an overdue payable
 with the early-payment-discount reason exactly as it is after a single payment. Spec 088 decided
 that and this does not revisit it.
 

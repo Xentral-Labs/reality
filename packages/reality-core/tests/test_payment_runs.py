@@ -1,7 +1,7 @@
 """A payment run: what is worth paying, and paying it all at once or not at all.
 
-Every amount in these tests is stated. Nothing here multiplies a gross amount by
-a discount rate, and one test exists purely to prove the product does not either.
+Every amount a run pays is stated. The preview states what an open discount is
+worth, rounded to the cent, but the run never applies it on its own.
 """
 
 from datetime import UTC, datetime
@@ -318,8 +318,8 @@ def test_the_preview_proposes_what_is_due_and_what_is_discountable(session, busi
     assert preview["count"] == 2
 
 
-def test_the_discount_is_named_never_applied(session, business):
-    """The rate and the deadline are stated; what the discount is worth is not."""
+def test_the_discount_is_stated_never_applied(session, business):
+    """The preview states what the discount is worth; the run pays what it is told."""
     skonto(session, business)
     invoice = supplier_invoice(session, business, "ER-098-RATE", "2026-08-25", "SK2_10")
 
@@ -331,13 +331,11 @@ def test_the_discount_is_named_never_applied(session, business):
     assert entry["open_amount"] == Decimal(1000)
     assert entry["discount_percent"] == Decimal("2.000")
     assert entry["discount_date"].isoformat() == "2026-09-04"
-    # Nothing anywhere in the answer is 980, or 20, or any other figure derived
-    # from applying that rate to that amount. A rate times a gross amount is a
-    # division producing money nobody agreed to.
-    assert "discount_amount" not in entry
+    assert entry["discount_amount"] == Decimal("20.00")
+    # No discounted amount to pay is named; that remains a person's statement.
     assert "net_amount" not in entry
-    assert Decimal(980) not in set(entry.values())
-    assert Decimal(20) not in set(entry.values())
+    # Supplier and currency totals stay what the ledger holds open.
+    assert preview["totals"][0]["open_amount"] == Decimal(1000)
 
     # The operator states 980, and 20 stays open on the invoice — exactly what a
     # single payment does. Spec 088 decided the residue is reported, not cleared.
@@ -351,6 +349,70 @@ def test_the_discount_is_named_never_applied(session, business):
         effective_at=datetime(2026, 8, 31, 12, tzinfo=UTC),
     )
     assert open_invoice_amount(session, business.tenant.id, invoice.id) == Decimal(20)
+
+
+@pytest.mark.parametrize(
+    ("amount", "expected"),
+    [
+        # 2% of 1000.13 is 20.0026.
+        ("1000.13", Decimal("20.00")),
+        # 2% of 1000.25 is 20.005: half a cent rounds away from zero.
+        ("1000.25", Decimal("20.01")),
+    ],
+)
+def test_the_discount_amount_is_rounded_to_the_cent(session, business, amount, expected):
+    skonto(session, business)
+    supplier_invoice(
+        session, business, "ER-098-ROUND", "2026-08-25", "SK2_10", amount=amount
+    )
+
+    preview = preview_payment_run(
+        session, business.tenant.id, pay_by=PAY_BY, as_of=AS_OF
+    )
+    (entry,) = preview["proposed"]
+
+    assert entry["discount_amount"] == expected
+    assert entry["discount_amount"].as_tuple().exponent == -2
+
+
+def test_the_discount_amount_follows_what_is_still_open(session, business):
+    skonto(session, business)
+    invoice = supplier_invoice(
+        session, business, "ER-098-PART", "2026-08-25", "SK2_10"
+    )
+    post_supplier_payment(session, business.tenant.id, invoice.id, "400.00")
+
+    preview = preview_payment_run(
+        session, business.tenant.id, pay_by=PAY_BY, as_of=AS_OF
+    )
+    (entry,) = preview["proposed"]
+
+    assert entry["open_amount"] == Decimal(600)
+    assert entry["discount_amount"] == Decimal("12.00")
+
+
+def test_the_discount_amount_ends_with_its_window(session, business):
+    skonto(session, business)
+    net(session, business)
+    # The window closes today (2026-08-31): still open.
+    last_day = supplier_invoice(
+        session, business, "ER-098-LASTDAY", "2026-08-21", "SK2_10"
+    )
+    # The window closed on 2026-08-11; the invoice is due 2026-08-31.
+    lost = supplier_invoice(session, business, "ER-098-LOST", "2026-08-01", "SK2_10")
+    # No discount was ever agreed.
+    plain = supplier_invoice(session, business, "ER-098-NET", "2026-08-01")
+
+    preview = preview_payment_run(
+        session, business.tenant.id, pay_by=PAY_BY, as_of=AS_OF
+    )
+    entries = {entry["invoice_id"]: entry for entry in preview["proposed"]}
+
+    assert entries[last_day.id]["discount_amount"] == Decimal("20.00")
+    for closed in (lost.id, plain.id):
+        assert entries[closed]["discount_percent"] is None
+        assert entries[closed]["discount_date"] is None
+        assert entries[closed]["discount_amount"] is None
 
 
 def test_the_preview_totals_per_supplier_and_overall(session, business):

@@ -17362,31 +17362,43 @@ def payable_supplier_invoices(
 def _payment_run_entry(row: dict[str, Any], today: date) -> dict[str, Any]:
     """One line of a proposal.
 
-    The rate and the day the window closes are named; what the discount is worth
-    is not. A rate applied to a gross amount is a division producing money nobody
-    agreed to, with a remainder somebody has to round, and the rounded figure
-    would become what a supplier is told they were paid.
+    The rate and the day the window closes are named, and, while the window is
+    open, what the rate is worth on the amount still open. That figure is derived
+    at read time, rounded to the cent and never stored or paid on its own: the run
+    still pays only the amount a person states (spec 098, amendment 2026-10-14).
+
+    BUSINESS PURPOSE:
+    Describe one proposed payment, including the early-payment discount still available on it.
+
+    BUSINESS RULE core._payment_run_entry.1:
+    While the discount date is today or later and the term states a rate, discount_amount is the open amount times the rate divided by 100, rounded to the cent with ROUND_HALF_UP; otherwise rate, date and amount are all null.
     """
     document = row["document"]
     term = row["payment_term"]
     deadline = row["discount_date"]
     discount_open = deadline is not None and deadline >= today
+    open_amount = decimal(row["open"])
+    # reality-rule: core._payment_run_entry.1
+    rate = (
+        decimal(term.discount_percent)
+        if discount_open and term is not None and term.discount_percent is not None
+        else None
+    )
     return {
         "invoice_id": document.id,
         "number": document.number,
         "party_id": document.party_id,
         "supplier": row["party"],
         "currency": document.currency,
-        "open_amount": decimal(row["open"]),
+        "open_amount": open_amount,
         "due_date": row["due_date"],
         "days_overdue": row["days_overdue"],
         "needed_on": _payment_run_needed_on(row, today),
-        "discount_percent": (
-            decimal(term.discount_percent)
-            if discount_open and term is not None and term.discount_percent is not None
-            else None
+        "discount_percent": rate,
+        "discount_date": deadline if rate is not None else None,
+        "discount_amount": (
+            _round_cents(open_amount * rate / Decimal(100)) if rate is not None else None
         ),
-        "discount_date": deadline if discount_open else None,
     }
 
 
@@ -17417,7 +17429,7 @@ def preview_payment_run(
     Include a payable invoice when its due date is on or before the cutoff OR its discount deadline is today or later.
 
     BUSINESS RULE core.preview_payment_run.2:
-    Aggregate invoice count and stated open amounts separately by supplier/currency and by currency; do not mix currencies or calculate a discount amount.
+    Aggregate invoice count and stated open amounts separately by supplier/currency and by currency; do not mix currencies or total discount amounts.
     """
     get_tenant(session, tenant_id)
     moment = as_of or now()
