@@ -23204,6 +23204,8 @@ Object.assign(dictionaries.de, {
   "Invoice {number} can go to collection only after a dunning notice at level 3.":
     "Rechnung {number} kann erst nach einer Mahnung der Stufe 3 an das Inkasso gehen.",
   "Invoice {number} has nothing open.": "Rechnung {number} hat keinen offenen Betrag.",
+  "This supplier already has invoice {number} recorded. Reverse that invoice before recording the number again.":
+    "Für diesen Lieferanten ist Rechnung {number} bereits erfasst. Stornieren Sie diese Rechnung, bevor Sie die Nummer erneut erfassen.",
   "State why the invoices go to collection.": "Gib an, warum die Rechnungen an das Inkasso gehen.",
   "A dunning schedule states exactly levels 1, 2 and 3.":
     "Ein Mahnschema legt genau die Stufen 1, 2 und 3 fest.",
@@ -24164,6 +24166,8 @@ Object.assign(dictionaries.nl, {
   "Invoice {number} can go to collection only after a dunning notice at level 3.":
     "Factuur {number} kan pas na een aanmaning van niveau 3 naar incasso.",
   "Invoice {number} has nothing open.": "Factuur {number} heeft niets openstaand.",
+  "This supplier already has invoice {number} recorded. Reverse that invoice before recording the number again.":
+    "Voor deze leverancier is factuur {number} al vastgelegd. Draai die factuur terug voordat u het nummer opnieuw vastlegt.",
   "State why the invoices go to collection.": "Geef aan waarom de facturen naar incasso gaan.",
   "A dunning schedule states exactly levels 1, 2 and 3.":
     "Een aanmaningsschema bevat precies de niveaus 1, 2 en 3.",
@@ -25115,6 +25119,8 @@ Object.assign(dictionaries.es, {
   "Invoice {number} can go to collection only after a dunning notice at level 3.":
     "La factura {number} solo puede ir a recobro tras una reclamación de nivel 3.",
   "Invoice {number} has nothing open.": "La factura {number} no tiene nada pendiente.",
+  "This supplier already has invoice {number} recorded. Reverse that invoice before recording the number again.":
+    "Este proveedor ya tiene registrada la factura {number}. Anule esa factura antes de registrar el número de nuevo.",
   "State why the invoices go to collection.": "Indica por qué las facturas van a recobro.",
   "A dunning schedule states exactly levels 1, 2 and 3.":
     "Un esquema de reclamaciones indica exactamente los niveles 1, 2 y 3.",

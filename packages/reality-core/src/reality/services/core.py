@@ -12419,6 +12419,10 @@ def _preview_order_invoice(
         direction,
         {key: value for key, value in arguments.items() if key != "exchange_rate"},
     )
+    if direction == "purchase":
+        _refuse_repeated_supplier_invoice_number(
+            session, tenant_id, creation["party_id"], creation["number"]
+        )
     stated = _invoice_exchange_rate(
         session, tenant_id, direction, creation["currency"], rate
     )
@@ -15052,6 +15056,60 @@ def _financial_open_items(
             }
         )
     return rows
+
+
+def _refuse_repeated_supplier_invoice_number(
+    session: OrmSession, tenant_id: str, party_id: str | None, number: str
+) -> None:
+    """
+    Refuse recording a supplier invoice under a number its supplier already used.
+
+    The same comparison as duplicate_supplier_invoices, asked before the invoice
+    exists instead of after: a duplicate refused here is one no payment run ever
+    has to withhold. A reversed invoice no longer holds its number, so a supplier
+    reissuing a corrected invoice under the original number can be recorded.
+
+    BUSINESS PURPOSE:
+    Stop a supplier invoice number from being recorded twice for the same supplier.
+
+    BUSINESS RULE core._refuse_repeated_supplier_invoice_number.1:
+    IF a supplier invoice of the same supplier in this company carries the same nonblank trimmed, case-insensitive number and its open-item status is not reversed, refuse with supplier_invoice_number_duplicate.
+    """
+    normalized = (number or "").strip().casefold()
+    if not normalized or not party_id:
+        return
+    if session.get_bind().dialect.name == "postgresql":
+        # Two recordings of the same number would otherwise both find nothing.
+        identity = f"supplier_invoice_number\x1f{tenant_id}\x1f{party_id}\x1f{normalized}"
+        lock_key = int.from_bytes(
+            hashlib.sha256(identity.encode()).digest()[:8], "big", signed=True
+        )
+        session.execute(
+            text("SELECT pg_advisory_xact_lock(:lock_key)"), {"lock_key": lock_key}
+        )
+    same_number = {
+        document_id
+        for document_id, existing in session.execute(
+            select(Document.id, Document.number).where(
+                Document.tenant_id == tenant_id,
+                Document.type == "supplier_invoice",
+                Document.party_id == party_id,
+            )
+        )
+        if (existing or "").strip().casefold() == normalized
+    }
+    if not same_number:
+        return
+    withdrawn = {
+        row["document"].id
+        for row in financial_open_items(session, tenant_id, document_ids=same_number)
+        if row["status"] == "reversed"
+    }
+    # reality-rule: core._refuse_repeated_supplier_invoice_number.1
+    if same_number - withdrawn:
+        raise InvalidOperation(
+            code="supplier_invoice_number_duplicate", values={"number": number.strip()}
+        )
 
 
 def duplicate_supplier_invoices(

@@ -70,6 +70,9 @@ def preview_free_supplier_invoice(
         currency=arguments["currency"],
         document_date=document_date,
     )
+    core._refuse_repeated_supplier_invoice_number(
+        session, tenant_id, supplier.id, values["number"]
+    )
     # Spec 309: an invoice in another currency states the rate it is posted at.
     rate = core._invoice_exchange_rate(
         session,
