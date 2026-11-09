@@ -731,6 +731,10 @@ labels:
       review_intake: Quellinterpretation prüfen
       apply_prepared_intake: Geprüfte Quellinterpretation übernehmen
       capture_shopify_graphql_source: Originalen Shopify-Auftrag als Quelle erfassen
+      buyer_candidates: Vorhandene Kunden für die Quellzuordnung suchen
+      prepare_buyer_mapping: Kundenzuordnung zur Prüfung vorbereiten
+      commit_buyer_mapping: Menschlich geprüfte Kundenzuordnung speichern
+      buyer_mapping_status: Beleg der Kundenzuordnung anzeigen
       enqueue_source: Quelldaten importieren
       correct_manual_document: Manuellen Beleg korrigieren
       record_corrected_document_source: Korrigierten Quellbeleg erfassen

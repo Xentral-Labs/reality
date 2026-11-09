@@ -29882,3 +29882,41 @@ Object.assign(dictionaries.es, {
   "The retained Shopify source job has different or missing frozen mappings. Resolve its mapping through a separate reviewed path; capture replay does not replace it.":
     "El trabajo de importación de Shopify conservado tiene asignaciones fijadas distintas o incompletas. Resuelve su asignación mediante un proceso de revisión independiente; repetir la captura no la sustituye.",
 });
+
+// Spec 389: shared buyer-mapping refusal presentation.
+Object.assign(dictionaries.de, {
+  "This retained source is not available for buyer mapping under the current authority.":
+    "Diese gespeicherte Quelle ist mit der aktuellen Berechtigung nicht für eine Kundenzuordnung verfügbar.",
+  "The source or existing customer changed. Search again and review the current buyer mapping.":
+    "Die Quelle oder der vorhandene Kunde wurde geändert. Suche erneut und prüfe die aktuelle Kundenzuordnung.",
+  "This exact buyer mapping needs a current verified human approval from the trusted Main issuer.":
+    "Diese genaue Kundenzuordnung benötigt eine aktuelle, geprüfte menschliche Freigabe aus dem vertrauenswürdigen Hauptchat.",
+  "A buyer mapping is already recorded for this source. Read the existing receipt; replacement needs a separate review.":
+    "Für diese Quelle ist bereits eine Kundenzuordnung gespeichert. Lies den vorhandenen Beleg; eine Änderung benötigt eine separate Prüfung.",
+  "This buyer-mapping request was already used for different review terms.":
+    "Diese Anfrage zur Kundenzuordnung wurde bereits mit anderen Prüfbedingungen verwendet.",
+});
+Object.assign(dictionaries.nl, {
+  "This retained source is not available for buyer mapping under the current authority.":
+    "Deze opgeslagen bron is met de huidige bevoegdheid niet beschikbaar voor een klantkoppeling.",
+  "The source or existing customer changed. Search again and review the current buyer mapping.":
+    "De bron of bestaande klant is gewijzigd. Zoek opnieuw en beoordeel de huidige klantkoppeling.",
+  "This exact buyer mapping needs a current verified human approval from the trusted Main issuer.":
+    "Deze exacte klantkoppeling vereist een actuele, geverifieerde menselijke goedkeuring van de vertrouwde hoofdchat.",
+  "A buyer mapping is already recorded for this source. Read the existing receipt; replacement needs a separate review.":
+    "Voor deze bron is al een klantkoppeling vastgelegd. Lees het bestaande bewijs; vervanging vereist een afzonderlijke beoordeling.",
+  "This buyer-mapping request was already used for different review terms.":
+    "Dit verzoek voor klantkoppeling is al gebruikt met andere beoordelingsvoorwaarden.",
+});
+Object.assign(dictionaries.es, {
+  "This retained source is not available for buyer mapping under the current authority.":
+    "Esta fuente conservada no está disponible para asignar un cliente con la autorización actual.",
+  "The source or existing customer changed. Search again and review the current buyer mapping.":
+    "La fuente o el cliente existente ha cambiado. Busca de nuevo y revisa la asignación actual.",
+  "This exact buyer mapping needs a current verified human approval from the trusted Main issuer.":
+    "Esta asignación exacta requiere una aprobación humana vigente y verificada del chat principal de confianza.",
+  "A buyer mapping is already recorded for this source. Read the existing receipt; replacement needs a separate review.":
+    "Ya hay una asignación de cliente registrada para esta fuente. Lee el comprobante existente; sustituirla requiere otra revisión.",
+  "This buyer-mapping request was already used for different review terms.":
+    "Esta solicitud de asignación de cliente ya se utilizó con otras condiciones de revisión.",
+});

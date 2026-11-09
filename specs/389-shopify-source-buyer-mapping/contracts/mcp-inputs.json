@@ -1,0 +1,119 @@
+{
+  "shopify_source_buyer_candidates": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "source_record_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "import_job_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "query": {
+        "type": "string",
+        "minLength": 0,
+        "maxLength": 120,
+        "default": ""
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "default": 20
+      }
+    },
+    "required": [
+      "source_record_id",
+      "import_job_id"
+    ]
+  },
+  "shopify_source_buyer_mapping_prepare": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "source_record_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "import_job_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "source_hash": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "source_version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "customer_party_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "customer_digest": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "required": [
+      "request_id",
+      "source_record_id",
+      "import_job_id",
+      "source_hash",
+      "source_version",
+      "customer_party_id",
+      "customer_digest"
+    ]
+  },
+  "shopify_source_buyer_mapping_commit": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "review_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "review_digest": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "approval_proof": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 16384
+      }
+    },
+    "required": [
+      "review_id",
+      "review_digest",
+      "approval_proof"
+    ]
+  },
+  "shopify_source_buyer_mapping_status": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "review_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "required": [
+      "review_id"
+    ]
+  }
+}

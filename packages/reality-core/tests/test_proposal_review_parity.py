@@ -19,9 +19,11 @@ def test_every_mcp_proposal_has_one_web_review_class():
     bindings = proposal_bindings()
     assert len(definitions) >= 102
     assert set(bindings) == {definition.name for definition in definitions} - {
-        "shopify_order_graphql_capture"
+        "shopify_order_graphql_capture",
+        "shopify_source_buyer_mapping_prepare",
     }
     assert "shopify_order_graphql_capture" not in bindings
+    assert "shopify_source_buyer_mapping_prepare" not in bindings
     assert {classify_proposal(name, {}) for name in bindings.values()} <= {
         "import",
         "reference",

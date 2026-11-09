@@ -20,7 +20,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 12       | 5         |
-| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
+| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 18       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 19       | 2         |
@@ -160,6 +160,8 @@ Kreditor, Adresse, Dublette, Zusammenführen
 
 **Nachschlagen**
 
+- [Vorhandene Kunden für die Quellzuordnung suchen](./commands#command-buyer_candidates)
+  (`buyer_candidates`)
 - [Lieferantenkonditionen anzeigen](./commands#command-supplier_item_terms) (`supplier_item_terms`)
 - [Zusammengeführte Geschäftspartner anzeigen](./commands#command-party_merges) (`party_merges`)
 - [Kundenartikelnummern anzeigen](./commands#command-customer_item_numbers)
@@ -806,6 +808,10 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Operatives Konto anlegen](./commands#command-create_account) (`create_account`)
 - [Operatives Konto ändern](./commands#command-update_account) (`update_account`)
 - [Standardkonto festlegen](./commands#command-set_default_account) (`set_default_account`)
+- [Kundenzuordnung zur Prüfung vorbereiten](./commands#command-prepare_buyer_mapping)
+  (`prepare_buyer_mapping`)
+- [Menschlich geprüfte Kundenzuordnung speichern](./commands#command-commit_buyer_mapping)
+  (`commit_buyer_mapping`)
 - [Buchung stornieren](./commands#command-reverse_ledger_posting_group)
   (`reverse_ledger_posting_group`)
 - [Firmenwährung festlegen](./commands#command-set_company_currency) (`set_company_currency`)
@@ -840,6 +846,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Verlauf der Finanzreferenz](./commands#command-reference_history) (`reference_history`)
 - [Buchungsmatrix anzeigen](./commands#command-transaction_matrix) (`transaction_matrix`)
 - [Operative Konten anzeigen](./commands#command-list_accounts) (`list_accounts`)
+- [Beleg der Kundenzuordnung anzeigen](./commands#command-buyer_mapping_status)
+  (`buyer_mapping_status`)
 - [Firmenwährung anzeigen](./commands#command-company_currency_state) (`company_currency_state`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)

@@ -337,7 +337,11 @@
     "operations_cockpit_activity": "tracking",
     "operations_cockpit_agents": "tracking",
     "operational_case_register": "orders",
-    "capture_shopify_graphql_source": "intake"
+    "capture_shopify_graphql_source": "intake",
+    "buyer_candidates": "intake",
+    "prepare_buyer_mapping": "intake",
+    "commit_buyer_mapping": "intake",
+    "buyer_mapping_status": "intake"
   },
   "entries": [
     {

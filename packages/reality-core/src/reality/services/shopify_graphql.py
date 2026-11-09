@@ -25,6 +25,11 @@ class ShopifyGraphQLMappingRequired(core.InterpretationNeedsReview):
     reason_code = "shopify_graphql_mapping_required"
 
 
+class ShopifyBuyerMappingRecorded(core.InterpretationNeedsReview):
+    summary = "The reviewed existing buyer mapping is recorded for this original source. Full intake remains held for separate company/location and business-effect review; no order was created."
+    reason_code = "buyer_mapping_recorded_intake_pending"
+
+
 class Acquisition(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     shop: str = Field(
@@ -124,6 +129,12 @@ def prepare_graphql_order(
     except GraphQLOrderNeedsReview as error:
         raise ShopifyGraphQLNeedsReview() from error
     mapping = json.loads(job.input)
+    if not mapping.get("customer_party_id"):
+        from reality.services.shopify_buyer_mapping import get_verified_buyer_mapping
+
+        reviewed = get_verified_buyer_mapping(session, tenant_id, source.id, job.id)
+        if reviewed is not None:
+            raise ShopifyBuyerMappingRecorded()
     if any(
         not mapping.get(key)
         for key in ("company_party_id", "customer_party_id", "location_id")

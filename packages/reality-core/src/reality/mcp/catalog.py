@@ -9,6 +9,12 @@ from typing import Any, Literal
 
 from sqlalchemy.orm import Session
 
+from reality.domain.shopify_buyer_mapping import (
+    CandidateInput,
+    CommitInput,
+    PrepareInput,
+    StatusInput,
+)
 from reality.mcp.principal import (
     MCPPrincipal,
     current_mcp_principal,
@@ -22,6 +28,7 @@ from reality.services.core import (
     NotFound,
 )
 from reality.services.delivery_actions import PUBLIC_MOVEMENT_TYPES
+from reality.tools import shopify_buyer_mapping as _buyer_mapping
 from reality.tools.application import (
     _intake_agent_batch_review_submit,
     approve_and_execute_proposal,
@@ -756,6 +763,42 @@ PAGE_PROPERTIES = {
 from reality.services.shopify_graphql import CaptureInput as ShopifyGraphQLCaptureInput
 
 MCP_TOOL_CATALOG = (
+    MCPToolDefinition(
+        "shopify_source_buyer_candidates",
+        "Existing customers for retained Shopify source",
+        "Search bounded active existing customer identities for the exact host-pinned retained source. No customer creation or order effects.",
+        "read",
+        "Sources",
+        CandidateInput.model_json_schema(),
+        _buyer_mapping.candidates,
+    ),
+    MCPToolDefinition(
+        "shopify_source_buyer_mapping_prepare",
+        "Review existing buyer mapping",
+        "Freeze source/job/hash/integer version and fresh existing customer digest for human Main review. No business acceptance.",
+        "propose",
+        "Sources",
+        PrepareInput.model_json_schema(),
+        _buyer_mapping.prepare,
+    ),
+    MCPToolDefinition(
+        "shopify_source_buyer_mapping_commit",
+        "Record human-reviewed buyer mapping",
+        "Record only the exact mapping after trusted issuer-signed Main human approval. Model cannot approve. No generic proposal approval, order creation, payment or fulfillment. Preserve original source/job input; intake remains held.",
+        "confirm",
+        "Sources",
+        CommitInput.model_json_schema(),
+        _buyer_mapping.commit,
+    ),
+    MCPToolDefinition(
+        "shopify_source_buyer_mapping_status",
+        "Read retained buyer mapping receipt",
+        "Read the exact retained review/receipt including original human proof identity and current basis. Never retries dispatch or creates an order.",
+        "read",
+        "Sources",
+        StatusInput.model_json_schema(),
+        _buyer_mapping.status,
+    ),
     MCPToolDefinition(
         "shopify_order_graphql_capture",
         "Capture original Shopify order evidence",
@@ -5146,15 +5189,16 @@ def tool_definitions(
 
 
 def proposal_bindings() -> dict[str, str]:
-    """Return generic Action factories, excluding the exact source-capture contract.
+    """Return generic Action factories, excluding exact retained-only contracts.
 
-    Capture persists evidence directly and does not create an approvable Action.
+    Capture and signed buyer review have dedicated services, not generic approval.
     Every other propose handler must still declare its application binding.
     """
     return {
         definition.name: str(definition.handler.application_name)  # type: ignore[attr-defined]
         for definition in tool_definitions(access=("propose",))
-        if definition.name != "shopify_order_graphql_capture"
+        if definition.name
+        not in {"shopify_order_graphql_capture", "shopify_source_buyer_mapping_prepare"}
     }
 
 

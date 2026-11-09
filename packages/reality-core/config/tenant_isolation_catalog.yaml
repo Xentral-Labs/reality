@@ -11,6 +11,11 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.shopify_buyer_mapping:buyer_candidates
+  - reality.services.shopify_buyer_mapping:prepare_buyer_mapping
+  - reality.services.shopify_buyer_mapping:commit_buyer_mapping
+  - reality.services.shopify_buyer_mapping:buyer_mapping_status
+  - reality.services.shopify_buyer_mapping:get_verified_buyer_mapping
   - reality.services.shopify_graphql:capture_shopify_graphql_source
   - reality.services.shopify_graphql:prepare_graphql_order
   - reality.services.intake:review_intake_original_source
@@ -1497,3 +1502,20 @@ families:
       - id: tests/test_shopify_graphql_intake.py::test_foreign_mapping_never_prepares_or_exposes_foreign_records
         assertion: mutation_relationship
         operations: *shopify_graphql_operations
+
+  - key: shopify_source_buyer_mapping
+    description: Exact retained source and existing customer mapping is tenant scoped and grants no business effects.
+    classification: mutation_relationship
+    authority: 389/FR-001, 389/FR-004, 389/FR-007
+    operations: &shopify_buyer_mapping_operations
+      - tool:shopify_source_buyer_candidates
+      - tool:shopify_source_buyer_mapping_status
+      - reality.services.shopify_buyer_mapping:buyer_candidates
+      - reality.services.shopify_buyer_mapping:prepare_buyer_mapping
+      - reality.services.shopify_buyer_mapping:commit_buyer_mapping
+      - reality.services.shopify_buyer_mapping:buyer_mapping_status
+      - reality.services.shopify_buyer_mapping:get_verified_buyer_mapping
+    evidence:
+      - id: tests/test_shopify_buyer_mapping.py::test_foreign_mapping_reads_and_writes_never_expose_or_change_receipt
+        assertion: mutation_relationship
+        operations: *shopify_buyer_mapping_operations
