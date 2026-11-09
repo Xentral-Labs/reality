@@ -43,10 +43,12 @@ selection, human approval, preparation, accepted order, payment or fulfillment w
 performed in this increment. Parent review cleared final source before commit;
 Tuesday owns its separately tested optional consumer and future rollout.
 
-Additional rollout check found an inherited schema99 discovery gap: normal
-capability_catalog requires exact metadata for the two added spec389 reads and
-this read. Direct authenticated preflight is proven, but the private v4 overlay
-must also pass normal discovery before it is frozen/deployment-ready. The native
-current-code registry already includes complete validated metadata. This is a
-separate compatibility prerequisite, not a waived native guard or live readiness
-claim.
+Additional rollout check found and resolved an inherited schema99 discovery gap:
+normal capability_catalog required exact metadata for the two spec389 reads and
+this read. The private v4 normal config override adds only those three read
+guidance/application registrations and topics for six already reviewed overlay
+methods; all other parsed metadata is unchanged. Original code/metadata and exact
+mounted overrides are hash pinned. Authenticated capability_catalog now returns200,
+while a new unknown read still fails the unchanged normal guidance guard. No grant
+or actual pilot deployment follows from this offline proof. Frozen private manifest
+SHA256: 78f93559818d850cef4bbd3c80dd154acddb46119f5a7ab3090e4549abe44359.
