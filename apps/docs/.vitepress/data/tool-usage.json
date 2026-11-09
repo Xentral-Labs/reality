@@ -668,6 +668,7 @@
       ],
       "actions": [
         "command:create_manual_order",
+        "command:prepare_shopify_order",
         "command:reserve",
         "command:release_reservation",
         "command:revise_commitment",
@@ -687,6 +688,7 @@
       ],
       "reads": [
         "command:shipping_supporting_orders",
+        "command:review_shopify_order",
         "command:available_to_promise",
         "command:purchase_match",
         "command:delivery_rules",
@@ -2042,6 +2044,194 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:shopify_source_order_prepare",
+      "kind": "tool",
+      "key": "shopify_source_order_prepare",
+      "label": "Prepare explicit Shopify order interpretation",
+      "area": "orders",
+      "summary": "Retain exact existing-reference and same-unit selections plus source-linked prospective order meaning for later human/policy review. No amount overrides, default units, original/job input rewrite, business application or generic approval. Caller choices remain proposed; original price evidence is not assumed final. Returns held non-executable proposal.",
+      "access": "propose",
+      "group": "Sources",
+      "synopsis": "shopify_source_order_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines",
+      "parameters": [
+        {
+          "name": "source_record_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable source record supporting this typed record.",
+          "depth": 0
+        },
+        {
+          "name": "import_job_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_hash",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_version",
+          "type": "integer",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "request_id",
+          "type": "string",
+          "required": true,
+          "description": "Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused.",
+          "depth": 0
+        },
+        {
+          "name": "buyer_review_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "buyer_review_digest",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "company_party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the tenant's company Party in an order flow.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "expected_company_digest",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "expected_location_digest",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": true,
+          "description": "Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].source_line_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].stock_unit",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].quantity_semantics",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].expected_item_digest",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "prepare_shopify_order",
+      "projections": [],
+      "links": ["command:prepare_shopify_order"],
+      "label_de": "Prepare explicit Shopify order interpretation",
+      "resources": ["order"]
+    },
+    {
+      "id": "tool:shopify_source_order_review",
+      "kind": "tool",
+      "key": "shopify_source_order_review",
+      "label": "Review retained Shopify order interpretation",
+      "area": "orders",
+      "summary": "Read exact immutable proposal digest, all prospective business arguments and original source links. Current changes mark stale, never silently refresh. No application/approval permission.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "shopify_source_order_review proposal_id",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read exact proposed mapping and prospective order meaning without acceptance.",
+        "use_when": [
+          "An Operator or human needs exact retained proposal evidence and currentness."
+        ],
+        "do_not_use_when": [
+          "Applying orders or treating proposed mappings and original prices as approved commercial meaning."
+        ],
+        "limitations": [
+          "Application is unavailable and financial/date/credit uncertainties remain held."
+        ],
+        "empty_result": "Missing or foreign proposal is unavailable without disclosure.",
+        "freshness": "Compares exact current source/buyer/reference evidence twice; changed meaning stays historical and stale."
+      },
+      "read_modes": [
+        {
+          "query": "MCP shopify_source_order_review",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "review_shopify_order",
+      "projections": [],
+      "links": ["command:review_shopify_order"],
+      "label_de": "Review retained Shopify order interpretation",
+      "resources": ["order"]
+    },
     {
       "id": "tool:shopify_source_intake_preflight",
       "kind": "tool",
@@ -28330,6 +28520,85 @@
       ],
       "label_de": "Quellfähigkeit festlegen",
       "resources": ["source"]
+    },
+    {
+      "id": "command:prepare_shopify_order",
+      "kind": "command",
+      "key": "prepare_shopify_order",
+      "label": "Prepare explicit Shopify order interpretation",
+      "area": "orders",
+      "summary": "Retains exact explicit proposed mapping and closed prospective order meaning, never business acceptance.",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "reads": [
+        "source_record",
+        "source_stream",
+        "import_job",
+        "action",
+        "party",
+        "party_role",
+        "location",
+        "item",
+        "document"
+      ],
+      "writes": ["action"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_order_prepare"],
+      "synopses": [
+        "shopify_source_order_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:shopify_source_order_prepare"],
+      "label_de": "Explizite Shopify-Auftragsinterpretation vorbereiten",
+      "resources": ["order"]
+    },
+    {
+      "id": "command:review_shopify_order",
+      "kind": "command",
+      "key": "review_shopify_order",
+      "label": "Review retained Shopify order interpretation",
+      "area": "orders",
+      "summary": "Restores immutable order proposal and marks changed evidence stale without application or refresh.",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "reads": [
+        "source_record",
+        "source_stream",
+        "import_job",
+        "action",
+        "party",
+        "party_role",
+        "location",
+        "item",
+        "document"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_order_review"],
+      "synopses": ["shopify_source_order_review proposal_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read exact proposed mapping and prospective order meaning without acceptance.",
+        "use_when": [
+          "An Operator or human needs exact retained proposal evidence and currentness."
+        ],
+        "do_not_use_when": [
+          "Applying orders or treating proposed mappings and original prices as approved commercial meaning."
+        ],
+        "limitations": [
+          "Application is unavailable and financial/date/credit uncertainties remain held."
+        ],
+        "empty_result": "Missing or foreign proposal is unavailable without disclosure.",
+        "freshness": "Compares exact current source/buyer/reference evidence twice; changed meaning stays historical and stale."
+      },
+      "links": ["tool:shopify_source_order_review"],
+      "label_de": "Gespeicherte Shopify-Auftragsinterpretation prüfen",
+      "resources": ["order"]
     },
     {
       "id": "command:shopify_source_intake_preflight",

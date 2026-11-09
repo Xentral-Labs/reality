@@ -504,6 +504,20 @@
       "effect": "Declares which upstream type a source may provide and the operational target it is intended to produce."
     },
     {
+      "name": "Prepare explicit Shopify order interpretation",
+      "service": "prepare_shopify_order",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "effect": "Retains exact explicit proposed mapping and closed prospective order meaning, never business acceptance."
+    },
+    {
+      "name": "Review retained Shopify order interpretation",
+      "service": "review_shopify_order",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "effect": "Restores immutable order proposal and marks changed evidence stale without application or refresh."
+    },
+    {
       "name": "Explain retained Shopify intake requirements",
       "service": "shopify_source_intake_preflight",
       "mode": "read",

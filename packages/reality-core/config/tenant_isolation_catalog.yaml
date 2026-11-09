@@ -11,6 +11,8 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.shopify_order_proposal:prepare_shopify_order
+  - reality.services.shopify_order_proposal:review_shopify_order
   - reality.services.shopify_source_reads:accepted_order_exists
   - reality.services.shopify_intake_preflight:shopify_source_intake_preflight
   - reality.services.shopify_buyer_mapping:buyer_candidates
@@ -1534,3 +1536,16 @@ families:
       - id: tests/test_shopify_intake_preflight.py::test_stale_latest_source_and_foreign_tenant_are_unavailable
         assertion: record_read
         operations: *shopify_preflight_operations
+
+  - key: shopify_source_order_proposal
+    description: Explicit source order proposals remain tenant scoped and cannot accept business effects.
+    classification: mutation_relationship
+    authority: 391/FR-001, 391/FR-005, 391/FR-007
+    operations: &shopify_order_proposal_operations
+      - tool:shopify_source_order_review
+      - reality.services.shopify_order_proposal:prepare_shopify_order
+      - reality.services.shopify_order_proposal:review_shopify_order
+    evidence:
+      - id: tests/test_shopify_order_proposal.py::test_foreign_proposal_reads_and_preparation_are_non_disclosing
+        assertion: mutation_relationship
+        operations: *shopify_order_proposal_operations

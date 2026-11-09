@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from inspect import Parameter, signature
 from typing import Any
 
-from sqlalchemy import Numeric, event, inspect, select
+from sqlalchemy import event, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
@@ -422,17 +422,9 @@ def _stock_state(session, tenant_id, item_id, location_id):
 
 
 def _state(record: Any) -> str:
-    return content_digest(
-        {
-            column.key: (
-                core.decimal(getattr(record, column.key))
-                if isinstance(column.type, Numeric)
-                and getattr(record, column.key) is not None
-                else getattr(record, column.key)
-            )
-            for column in inspect(type(record)).columns
-        }
-    )
+    from reality.services.intake_reference_state import mapped_state
+
+    return mapped_state(record)
 
 
 def _reference(

@@ -90,32 +90,25 @@ def test_unsupported_projection_requires_review(change):
         project_order(raw, "1004")
 
 
-def test_original_entity_prepares_one_real_proposal_without_business_effects(
+def test_original_entity_without_explicit_unit_bundle_stays_review_required(
     session, business
 ):
     raw = order()
     source, job = capture_shopify_graphql_source(
         session, business.tenant.id, order=raw, **mapping(business)
     )
-    proposal = prepare_intake(session, business.tenant.id, job.id)
-    review = review_intake(session, business.tenant.id, proposal.id)
-    assert proposal.status == "proposed"
-    assert review["plan"]["source_record_id"] == source.id
-    assert review["plan"]["source_hash"] == source.payload_hash
-    assert review["plan"]["effects"][0]["arguments"]["lines"][0]["gross_amount"] is None
+    original_input = job.input
+    with pytest.raises(InterpretationNeedsReview):
+        prepare_intake(session, business.tenant.id, job.id)
+    session.refresh(job)
     assert (
-        review["plan"]["effects"][0]["arguments"]["_source_line_payloads"]
-        == raw["lineItems"]["nodes"]
+        json.loads(job.error)["reason_code"]
+        == "shopify_graphql_explicit_mapping_required"
     )
-    assert json.loads(source.payload) == raw
-    again, replay = capture_shopify_graphql_source(
-        session, business.tenant.id, order=raw, **mapping(business)
-    )
-    assert (again.id, replay.id) == (source.id, job.id)
-    assert prepare_intake(session, business.tenant.id, job.id).id == proposal.id
+    assert job.input == original_input and json.loads(source.payload) == raw
+    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == 0
     for model in (Document, Commitment, Movement):
         assert session.scalar(select(func.count()).select_from(model)) == 0
-    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == 1
 
 
 def test_missing_buyer_is_retained_review_not_fabricated_proposal(session, business):

@@ -209,6 +209,7 @@ angegeben.
 | [`returns`](#command-returns)                                                     | List returned payments                        | Aufträge & Erfüllung    | `finance_payment_returns`                                                                                                                                                                    | Web · MCP · Chat · CLI                  |
 | [`pick_outbound_delivery`](#command-pick_outbound_delivery)                       | Pick a planned delivery                       | Aufträge & Erfüllung    | `outbound_delivery_pick_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`plan_outbound_delivery`](#command-plan_outbound_delivery)                       | Plan an outbound delivery                     | Aufträge & Erfüllung    | `outbound_delivery_plan_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`prepare_shopify_order`](#command-prepare_shopify_order)                         | Prepare explicit Shopify order interpretation | Aufträge & Erfüllung    | `shopify_source_order_prepare`                                                                                                                                                               | MCP                                     |
 | [`preview_stale_promise_closure`](#command-preview_stale_promise_closure)         | Preview stale promise closure                 | Aufträge & Erfüllung    | `stale_closure_preview`                                                                                                                                                                      | Web · MCP · Chat                        |
 | [`put_back_outbound_delivery`](#command-put_back_outbound_delivery)               | Put back picked goods                         | Aufträge & Erfüllung    | `outbound_delivery_put_back_propose`                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`outbound_delivery_detail`](#command-outbound_delivery_detail)                   | Read a planned delivery                       | Aufträge & Erfüllung    | `outbound_delivery_detail`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
@@ -224,6 +225,7 @@ angegeben.
 | [`remove_reorder_point`](#command-remove_reorder_point)                           | Remove a reorder point                        | Aufträge & Erfüllung    | `reorder_point_remove_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`reserve`](#command-reserve)                                                     | Reserve stock                                 | Aufträge & Erfüllung    | `reservation_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_return_disposition`](#command-record_return_disposition)                 | Resolve arrived customer-return goods         | Aufträge & Erfüllung    | `return_disposition_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
+| [`review_shopify_order`](#command-review_shopify_order)                           | Review retained Shopify order interpretation  | Aufträge & Erfüllung    | `shopify_source_order_review`                                                                                                                                                                | MCP                                     |
 | [`revise_outbound_delivery`](#command-revise_outbound_delivery)                   | Revise a planned delivery                     | Aufträge & Erfüllung    | `outbound_delivery_revise_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`revise_commitment`](#command-revise_commitment)                                 | Revise commitment                             | Aufträge & Erfüllung    | `commitment_revise_propose`                                                                                                                                                                  | Web · MCP · Chat                        |
 | [`serve_backorders`](#command-serve_backorders)                                   | Serve backorders                              | Aufträge & Erfüllung    | `backorders_serve_propose`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
@@ -5120,6 +5122,64 @@ outbound_delivery_plan_propose [recipient_party_id] [address] [slot] [staging_lo
 
 **Siehe auch:** Command [`plan_outbound_delivery`](./commands#command-plan_outbound_delivery)
 
+### `prepare_shopify_order` — Prepare explicit Shopify order interpretation {#command-prepare_shopify_order}
+
+Retains exact explicit proposed mapping and closed prospective order meaning, never business
+acceptance.
+
+**Aufruf**
+
+```text
+shopify_source_order_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines
+```
+
+**Erreichbar über:** MCP
+
+**Wirkung:** Liest: `source_record`, `source_stream`, `import_job`, `action`, `party`, `party_role`,
+`location`, `item`, `document` · Schreibt: `action`
+
+**Siehe auch:** Agent Tool
+[`shopify_source_order_prepare`](./commands#tool-shopify_source_order_prepare)
+
+#### `shopify_source_order_prepare` — Prepare explicit Shopify order interpretation {#tool-shopify_source_order_prepare}
+
+Retain exact existing-reference and same-unit selections plus source-linked prospective order
+meaning for later human/policy review. No amount overrides, default units, original/job input
+rewrite, business application or generic approval. Caller choices remain proposed; original price
+evidence is not assumed final. Returns held non-executable proposal.
+
+**Aufruf**
+
+```text
+shopify_source_order_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                           | Typ       | Pflicht | Beschreibung                                                                                                                           | Standard |
+| ------------------------------ | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `source_record_id`             | `string`  | ja      | Opaque identity of the immutable source record supporting this typed record.                                                           | —        |
+| `import_job_id`                | `string`  | ja      | —                                                                                                                                      | —        |
+| `source_hash`                  | `string`  | ja      | —                                                                                                                                      | —        |
+| `source_version`               | `integer` | ja      | —                                                                                                                                      | —        |
+| `request_id`                   | `string`  | ja      | Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused. | —        |
+| `buyer_review_id`              | `string`  | ja      | —                                                                                                                                      | —        |
+| `buyer_review_digest`          | `string`  | ja      | —                                                                                                                                      | —        |
+| `company_party_id`             | `string`  | ja      | Opaque identity of the tenant's company Party in an order flow.                                                                        | —        |
+| `location_id`                  | `string`  | ja      | Opaque identity of the operational or physical location.                                                                               | —        |
+| `expected_company_digest`      | `string`  | nein    | —                                                                                                                                      | `None`   |
+| `expected_location_digest`     | `string`  | nein    | —                                                                                                                                      | `None`   |
+| `lines`                        | `array`   | ja      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                           | —        |
+| `lines[].source_line_id`       | `string`  | ja      | —                                                                                                                                      | —        |
+| `lines[].item_id`              | `string`  | ja      | Opaque identity of the operational item reference.                                                                                     | —        |
+| `lines[].stock_unit`           | `string`  | ja      | —                                                                                                                                      | —        |
+| `lines[].quantity_semantics`   | `string`  | ja      | —                                                                                                                                      | —        |
+| `lines[].expected_item_digest` | `string`  | nein    | —                                                                                                                                      | `None`   |
+
+**Siehe auch:** Command [`prepare_shopify_order`](./commands#command-prepare_shopify_order)
+
 ### `preview_stale_promise_closure` — Preview stale promise closure {#command-preview_stale_promise_closure}
 
 Shows how many stale promises match, what would be released, and a bounded sample, without changing
@@ -5991,6 +6051,63 @@ effect is visible independently.
 
 **Siehe auch:** Command [`record_return_disposition`](./commands#command-record_return_disposition),
 Projection [`inventory`](./views#projection-inventory)
+
+### `review_shopify_order` — Review retained Shopify order interpretation {#command-review_shopify_order}
+
+Restores immutable order proposal and marks changed evidence stale without application or refresh.
+
+**Aufruf**
+
+```text
+shopify_source_order_review proposal_id
+```
+
+**Erreichbar über:** MCP
+
+**Wirkung:** Liest: `source_record`, `source_stream`, `import_job`, `action`, `party`, `party_role`,
+`location`, `item`, `document` · Schreibt: —
+
+**Siehe auch:** Agent Tool
+[`shopify_source_order_review`](./commands#tool-shopify_source_order_review)
+
+#### `shopify_source_order_review` — Review retained Shopify order interpretation {#tool-shopify_source_order_review}
+
+Read exact immutable proposal digest, all prospective business arguments and original source links.
+Current changes mark stale, never silently refresh. No application/approval permission.
+
+**Aufruf**
+
+```text
+shopify_source_order_review proposal_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage                  | Art                        | Standard |
+| --------------------------------- | -------------------------- | -------- |
+| `MCP shopify_source_order_review` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read exact proposed mapping and prospective order meaning without acceptance.
+
+**Verwenden, wenn**
+
+- An Operator or human needs exact retained proposal evidence and currentness.
+
+**Nicht verwenden, wenn**
+
+- Applying orders or treating proposed mappings and original prices as approved commercial meaning.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                   | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------- | -------- |
+| `proposal_id` | `string` | ja      | Opaque same-tenant identity of the retained decision proposal. | —        |
+
+**Siehe auch:** Command [`review_shopify_order`](./commands#command-review_shopify_order)
 
 ### `revise_outbound_delivery` — Revise a planned delivery {#command-revise_outbound_delivery}
 

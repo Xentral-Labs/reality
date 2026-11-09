@@ -147,3 +147,23 @@ no normalization, excluding observation time and the digest itself.
 The read issues no persistent write, preparation, proposal, interpretation outcome
 or accepted business effect. Existing schema99 requires a separately hash-pinned
 read-only overlay and proof; a current-code PR alone is not deployment evidence.
+
+## Combined explicit order proposal (Spec391)
+
+shopify_source_order_prepare retains existing company/location/item and explicit
+same-unit selections together with source-linked prospective order meaning. Buyer
+must match its separately verified mapping. Choices remain proposed, never approved
+by a manual token or a buyer-only proof. No amount overrides or default units.
+
+Stated source total/quantities are preserved; original unit price is evidence only,
+not assumed final. Missing final/line/date/calendar/credit interpretation stays held.
+Item type defines product kind; requiresShipping is not accounting classification.
+Review exposes all prospective business arguments and source links; original line
+evidence remains intact in retained meaning. Dedicated Action is not generically
+executable; source and job.input remain unchanged and no business record is created.
+
+Legacy GraphQL without explicit unit semantics now has a named review hold instead
+of using the REST unit/price defaults. REST behavior stays unchanged. Exact issuer/
+standing-mandate acceptance and preparation-origin adoption are successor work; no
+fake Principal or broad confirmation grant. Old99 proposal proof is not full intake
+application readiness.

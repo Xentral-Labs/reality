@@ -2818,3 +2818,8 @@ Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_per
 
 - `specs/390-shopify-intake-preflight/spec.md`: exact source pins, canonical buyer, retained references, bounded item/unit/financial interpretation diagnosis; no readiness authority or writes.
 - `packages/reality-core/tests/test_shopify_intake_preflight.py`: FR-001..008/DR-001 source/tenant/master changes, native schemas, Unicode digest, explicit limits and SQL/full-snapshot immutability.
+
+## Spec391 - Explicit Shopify order proposal
+
+- `specs/391-shopify-order-proposal/spec.md`: source/buyer/mapping/closed-plan review with no application permission or original/input rewrite.
+- `packages/reality-core/tests/test_shopify_order_proposal.py`: FR-001..008/DR-001 explicit units/item kind, source-value unknowns, immutable/idempotent retention, stale/foreign/revoked requests, generic-confirm refusal and actual two-session races.

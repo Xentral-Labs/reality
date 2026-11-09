@@ -29934,3 +29934,17 @@ Object.assign(dictionaries.es, {
   "This exact retained Shopify source cannot provide a current bounded intake preflight. Read the source and existing mappings again; this read does not prepare or accept business effects.":
     "Esta fuente exacta de Shopify conservada no permite una revisión previa actual y acotada. Lee de nuevo la fuente y las asignaciones existentes; esta consulta no prepara ni acepta efectos empresariales.",
 });
+
+// Spec391: proposal-only refusal uses shared translated presentation.
+Object.assign(dictionaries.de, {
+  "This exact Shopify order proposal is unavailable or needs changed selections. No business effects are accepted by preparation.":
+    "Dieser genaue Shopify-Auftragsentwurf ist nicht verfügbar oder benötigt geänderte Zuordnungen. Die Vorbereitung übernimmt keine Geschäftsvorgänge.",
+});
+Object.assign(dictionaries.nl, {
+  "This exact Shopify order proposal is unavailable or needs changed selections. No business effects are accepted by preparation.":
+    "Dit exacte Shopify-ordervoorstel is niet beschikbaar of vereist gewijzigde selecties. Voorbereiding accepteert geen bedrijfseffecten.",
+});
+Object.assign(dictionaries.es, {
+  "This exact Shopify order proposal is unavailable or needs changed selections. No business effects are accepted by preparation.":
+    "Esta propuesta exacta de pedido de Shopify no está disponible o requiere otras selecciones. La preparación no acepta efectos empresariales.",
+});

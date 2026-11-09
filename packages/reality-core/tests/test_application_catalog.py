@@ -18,7 +18,7 @@ from reality.services.projections import (
 def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
-    assert catalog["command_count"] == 220
+    assert catalog["command_count"] == 222
     assert catalog["event_count"] == 103
     assert (
         catalog["projection_count"]
@@ -165,6 +165,8 @@ def test_split_catalog_is_complete_and_composed():
     # These exact source-bound MCP contracts have no separate Reality Web form.
     assert web_missing == {
         "capture_shopify_graphql_source",
+        "prepare_shopify_order",
+        "review_shopify_order",
         "shopify_source_intake_preflight",
         "buyer_candidates",
         "prepare_buyer_mapping",
@@ -492,17 +494,17 @@ def test_tenant_operation_discovery_detects_registry_drift():
 def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
-    assert len(catalog.families) == 47
+    assert len(catalog.families) == 48
     assert {"business_logic_generic", "business_logic_case_comparison"} <= {
         family["key"] for family in catalog.families
     }
-    assert len(catalog.discovered_operations) == 740
+    assert len(catalog.discovered_operations) == 743
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 740
+    assert sum(len(family["operations"]) for family in catalog.families) == 743
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

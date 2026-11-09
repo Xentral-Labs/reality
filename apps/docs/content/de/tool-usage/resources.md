@@ -15,7 +15,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 14       | 7         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 9      | 17       | 18        |
+| [Auftrag](#resource-order)                                     | 9      | 18       | 18        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 14       | 3         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -390,6 +390,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Kundenauftrag oder Bestellung anlegen](./commands#command-create_manual_order)
   (`create_manual_order`)
+- [Explizite Shopify-Auftragsinterpretation vorbereiten](./commands#command-prepare_shopify_order)
+  (`prepare_shopify_order`)
 - [Bestand reservieren](./commands#command-reserve) (`reserve`)
 - [Reservierung aufheben](./commands#command-release_reservation) (`release_reservation`)
 - [Verpflichtung ändern](./commands#command-revise_commitment) (`revise_commitment`)
@@ -414,6 +416,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Zugehörige Versandaufträge anzeigen](./commands#command-shipping_supporting_orders)
   (`shipping_supporting_orders`)
+- [Gespeicherte Shopify-Auftragsinterpretation prüfen](./commands#command-review_shopify_order)
+  (`review_shopify_order`)
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)
 - [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Lieferregel anzeigen](./commands#command-delivery_rules) (`delivery_rules`)

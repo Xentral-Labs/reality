@@ -15,7 +15,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 14      | 7                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 9     | 17      | 18                  |
+| [Order](#resource-order)                                         | 9     | 18      | 18                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 14      | 3                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
@@ -380,6 +380,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Create manual sales or purchase order](./commands#command-create_manual_order)
   (`create_manual_order`)
+- [Prepare explicit Shopify order interpretation](./commands#command-prepare_shopify_order)
+  (`prepare_shopify_order`)
 - [Reserve stock](./commands#command-reserve) (`reserve`)
 - [Release reservation](./commands#command-release_reservation) (`release_reservation`)
 - [Revise commitment](./commands#command-revise_commitment) (`revise_commitment`)
@@ -403,6 +405,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Read supporting shipping orders](./commands#command-shipping_supporting_orders)
   (`shipping_supporting_orders`)
+- [Review retained Shopify order interpretation](./commands#command-review_shopify_order)
+  (`review_shopify_order`)
 - [Read available to promise](./commands#command-available_to_promise) (`available_to_promise`)
 - [Read the three-way match of a purchase order](./commands#command-purchase_match)
   (`purchase_match`)

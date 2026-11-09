@@ -4540,8 +4540,15 @@ def _intake_batch_status(session, tenant_id, arguments):
 
 from reality.tools import shopify_buyer_mapping as _buyer_mapping_tools
 from reality.tools.shopify_intake_preflight import read as _shopify_intake_preflight
+from reality.tools.shopify_order_proposal import review as _shopify_order_review
 
 TOOLS = {
+    "shopify_source_order_review": Tool(
+        "shopify_source_order_review",
+        "Read exact retained explicit Shopify order proposal without accepting it.",
+        False,
+        _shopify_order_review,
+    ),
     "shopify_source_intake_preflight": Tool(
         "shopify_source_intake_preflight",
         "Read exact retained Shopify intake blockers without preparing or accepting effects.",

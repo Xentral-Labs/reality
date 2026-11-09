@@ -1303,6 +1303,20 @@ commands:
     reads: [tenant, source_system, source_capability]
     writes: [source_capability]
     effect: Declares which upstream type a source may provide and the operational target it is intended to produce.
+  - name: Prepare explicit Shopify order interpretation
+    service: prepare_shopify_order
+    mode: mutation
+    adapters: [MCP]
+    reads: [source_record, source_stream, import_job, action, party, party_role, location, item, document]
+    writes: [action]
+    effect: Retains exact explicit proposed mapping and closed prospective order meaning, never business acceptance.
+  - name: Review retained Shopify order interpretation
+    service: review_shopify_order
+    mode: read
+    adapters: [MCP]
+    reads: [source_record, source_stream, import_job, action, party, party_role, location, item, document]
+    writes: []
+    effect: Restores immutable order proposal and marks changed evidence stale without application or refresh.
   - name: Explain retained Shopify intake requirements
     service: shopify_source_intake_preflight
     mode: read
@@ -2504,6 +2518,24 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  shopify_source_order_review:
+    kind: read
+    application_tool: shopify_source_order_review
+    purpose: Read exact proposed mapping and prospective order meaning without acceptance.
+    use_when: [An Operator or human needs exact retained proposal evidence and currentness.]
+    do_not_use_when: [Applying orders or treating proposed mappings and original prices as approved commercial meaning.]
+    required_context: [Same-tenant dedicated proposal identity.]
+    data_basis: [source_record, source_stream, import_job, action, party, party_role, item, location, document]
+    limitations: [Application is unavailable and financial/date/credit uncertainties remain held.]
+    freshness: Compares exact current source/buyer/reference evidence twice; changed meaning stays historical and stale.
+    empty_result: Missing or foreign proposal is unavailable without disclosure.
+    refusal_behavior: Wrong dedicated type, modified retained digest and oversized review refuse.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which exact mapping and business arguments were proposed.], does_not_prove: [Human approval, standing mandate or business acceptance.]}
+    unknown_when: [Selected financial or calendar meaning is not interpreted.]
+    next_steps: [Resolve meaningful decisions in Now; later use a separately authorized canonical acceptance path.]
+    examples: {use: [{scenario: Inspect explicit unit mapping before approval., reason: Proposed interpretation is distinct from received evidence and acceptance.}], do_not_use: [{scenario: Execute with a buyer-only proof., reason: Buyer mapping proof grants no order acceptance.}]}
   shopify_source_intake_preflight:
     kind: read
     application_tool: shopify_source_intake_preflight
@@ -7410,6 +7442,8 @@ agent_command_coverage:
   prepare_intake: {classification: eligible, tools: [intake_prepare_propose, intake_reprepare_propose]}
   review_intake: {classification: eligible, tools: [intake_review, intake_agent_review_material, intake_agent_review_source_page]}
   apply_prepared_intake: {classification: eligible, tools: [proposal_approve_and_execute, intake_agent_review_and_execute, intake_agent_batch_review_and_queue]}
+  prepare_shopify_order: {classification: eligible, tools: [shopify_source_order_prepare]}
+  review_shopify_order: {classification: eligible, tools: [shopify_source_order_review]}
   shopify_source_intake_preflight: {classification: eligible, tools: [shopify_source_intake_preflight]}
   capture_shopify_graphql_source: {classification: eligible, tools: [shopify_order_graphql_capture]}
   buyer_candidates: {classification: eligible, tools: [shopify_source_buyer_candidates]}
