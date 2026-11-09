@@ -53,7 +53,7 @@ Vendor authentication or transport, recurring jobs, new master data, arbitrary G
 Existing SourceRecord, ImportJob and ChangeProposal only. Original Shopify GIDs and received source versions identify upstream records; human order numbers are labels.
 
 ## Assumptions and Dependencies
-Tobias has authorized this bounded test source/proposal write. The caller must independently own valid Shopify read consent and Reality enqueue/prepare authority. Existing company/customer/location references are supplied explicitly. Acquisition must request the supported complete field selection and supply source update time. Unknown line totals remain unknown. No live-provider execution is performed by this implementation lane. Customerless order #1004 retains an existing named needs-review refusal until a real buyer mapping is explicitly supplied; no zero-effect fake proposal is generated.
+Tobias has authorized this bounded test source/proposal write. The caller must independently own valid Shopify read consent and Reality enqueue/prepare authority. Existing company/customer/location references are supplied explicitly. Acquisition must request the supported complete field selection and supply source update time. Unknown line totals remain unknown. No live-provider execution is performed by this implementation lane. Order #1004 has no explicitly reviewed Reality buyer mapping and retains an existing named needs-review refusal until one is supplied. Its upstream Shopify buyer is unknown because that field was not authorized in the selected acquisition; no zero-effect fake proposal is generated.
 
 ## Success Criteria
 - **SC-001** Original payload round-trips unchanged, replay yields one source/job/proposal, and preparation creates zero operational effects.
