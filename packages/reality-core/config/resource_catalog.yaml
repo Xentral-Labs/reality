@@ -346,7 +346,7 @@ resources:
         verstummte Quellen erscheinen als Klärfälle.
     synonyms: [ERP, shop, import, connector, interface, evidence, Schnittstelle, Import, Beleg, Nachweis, Quelle]
     tables: [source_system, source_capability, intake_review_mandate, document, document_line, fact]
-    match: "source|connector|document|fact|interpretation|ingest|intake|commercial_match|^(prepare_batch|review_batch|batch_status)$"
+    match: "shopify_order_graphql_capture|source|connector|document|fact|interpretation|ingest|intake|commercial_match|^(prepare_batch|review_batch|batch_status)$"
     views: [documents, sources_imports]
     projections: [document_register]
     exceptions: [silent_source, source_interpretation_failure]
@@ -730,6 +730,7 @@ labels:
       prepare_intake: Quellinterpretation vorbereiten
       review_intake: Quellinterpretation prüfen
       apply_prepared_intake: Geprüfte Quellinterpretation übernehmen
+      capture_shopify_graphql_source: Originalen Shopify-Auftrag als Quelle erfassen
       enqueue_source: Quelldaten importieren
       correct_manual_document: Manuellen Beleg korrigieren
       record_corrected_document_source: Korrigierten Quellbeleg erfassen

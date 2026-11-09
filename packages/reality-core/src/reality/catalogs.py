@@ -62,6 +62,7 @@ from reality.services import reviewed_item_imports as item_import_service_module
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
 from reality.services import shipping_plans as shipping_plan_service_module
+from reality.services import shopify_graphql as shopify_graphql_service_module
 from reality.services import stock_blocks as stock_block_service_module
 from reality.services import stock_counts as stock_count_service_module
 from reality.services import supplier_item_numbers as supplier_item_service_module
@@ -223,6 +224,7 @@ TENANT_ISOLATION_CLASSIFICATIONS = {
 from reality.services import costing as costing_service_module
 
 TENANT_SERVICE_MODULES = {
+    "reality.services.shopify_graphql": shopify_graphql_service_module,
     "reality.services.intake": intake_service_module,
     "reality.services.intake_batches": intake_batch_service_module,
     "reality.services.intake_review": intake_review_service_module,
@@ -1198,6 +1200,7 @@ def _service(name: str) -> Any:
         return getattr(payment_return_service_module, name)
     # Spec 299: only what these modules define, never a name they import.
     for module in (
+        shopify_graphql_service_module,
         intake_service_module,
         intake_batch_service_module,
         intake_review_service_module,

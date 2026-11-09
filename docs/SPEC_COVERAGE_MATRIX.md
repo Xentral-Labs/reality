@@ -2803,3 +2803,8 @@ Spec 378 FR-039–040: `operations-cockpit-shell-browser.mjs` verifies permanent
 | `packages/reality-core/tests/scenarios/test_daily_shipping.py` | 376 trusted-local daily shipping fixture recovery; 378 FR-071–072 dependency | Current/next company day, DST, exact demo Source/work mix, owner/confirmation/run bounds, replay and existing plan preservation; no agent/worker approval mandate |
 
 Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_performance.py`, `packages/reality-core/tests/test_operations_cockpit.py` and `apps/web/scripts/operations-cockpit-browser.mjs`: independent physical booking/package-handover evidence, absent-plan unknown deviations and visible actual curves.
+
+## Spec 388 - Reviewed Shopify GraphQL intake
+
+- `specs/388-shopify-graphql-intake/spec.md` and `docs/features/shopify_ingestion.md`: original selected entity, separate capture/preparation authority, named missing-mapping refusal and no automatic acceptance.
+- `packages/reality-core/tests/test_shopify_graphql_intake.py`: FR-001..006/DR-001 original entity/hash/line traceability, exact received values, complete identity/currency/pagination bounds, same-source replay, real reviewed proposal without business effects, missing/foreign mappings, accepted legacy identity and MCP tool allowlist.

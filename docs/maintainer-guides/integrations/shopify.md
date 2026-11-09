@@ -59,12 +59,17 @@ which raw GraphQL/webhook shapes you actually receive. Read the
 
 The `shopify` shell in `packages/reality-core/config/connector_catalog.yaml` advertises
 order/product/customer/fulfillment/refund. `SOURCE_INTERPRETERS` in `services/core.py` registers
-only `("shopify", "order")` and `("shopify", "refund")`. Order handling supports specified quantity
+`("shopify", "order")`, `("shopify", "refund")` and the bounded
+`("shopify", "order_graphql")` selected-entity preparation contract (spec 388). Order handling supports specified quantity
 reductions/cancellations through `shop_order_changes.py`; unsupported changes remain reviewable.
 `shop_refunds.py` interprets supported refunds; it does not prove full payment, warehouse or
 accounting coverage. Vendor authentication, live retrieval and webhook transport are not supplied by
-the shell. The existing order interpreter consumes the fixture’s `line_items` shape, not an
-arbitrary GraphQL response.
+the shell. The legacy order interpreter consumes the fixture’s `line_items` shape, not an
+arbitrary GraphQL response. The separately permissioned `shopify_order_graphql_capture`
+tool preserves an original complete selected `data.order` entity and queues preparation.
+Its explicit adapter supports the documented first-order field selection only; missing
+buyer mapping retains a named review refusal rather than inventing a customer or
+accepting effects. See `docs/features/shopify_ingestion.md`.
 
 ## Coverage matrix
 

@@ -23,7 +23,7 @@ the technical key stands beside each one.
 | [Ledger and accounts](#resource-accounting)                      | 2     | 16      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
-| [Document and source system](#resource-source)                   | 3     | 18      | 2                   |
+| [Document and source system](#resource-source)                   | 3     | 19      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 5       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
@@ -1012,6 +1012,8 @@ Nachweis, Quelle
 - [Define source system](./commands#command-create_source_system) (`create_source_system`)
 - [Define source capability](./commands#command-create_source_capability)
   (`create_source_capability`)
+- [Capture original Shopify GraphQL order source](./commands#command-capture_shopify_graphql_source)
+  (`capture_shopify_graphql_source`)
 - [Ingest arbitrary source](./commands#command-enqueue_source) (`enqueue_source`)
 - [Correct manual document evidence](./commands#command-correct_manual_document)
   (`correct_manual_document`)

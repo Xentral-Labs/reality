@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:5077ab31a369c19012a10dbcb5f7b8a16e75a4e9812e01df56af435546b1e056",
+  "knowledge_version": "advisor-v1:sha256:b9c8b6af7a7090d48136d1ae34caaf9468bef6baace111542920a2fa1a511fff",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "4df73b68ee9e49650440a512337a539289702ed637700cbe6be8f7b67fc0aa14"
+      "fingerprint": "a3e19afc690e9e46fd8d745dd56a6da3b2b9b7f9bccb9b88c9677beebdd53b92"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7141,6 +7141,21 @@
       ],
       "language": "en",
       "fingerprint": "b092fd620637858fe6cdb8bdc005c700289e74d8926bd3ddf1e83a8ba713d010"
+    },
+    {
+      "id": "evidence_command_capture_shopify_graphql_source",
+      "source_id": "source_executable_commands",
+      "subject": "Capture original Shopify GraphQL order source",
+      "title": "Capture original Shopify GraphQL order source",
+      "search_text": "capture_shopify_graphql_source Capture original Shopify GraphQL order source Retains one unmodified selected Shopify order entity and its interpretation job without accepting business effects or granting general proposal approval. mutation",
+      "claim_text": "capture_shopify_graphql_source is a governed mutation command for Retains one unmodified selected Shopify order entity and its interpretation job without accepting business effects or granting general proposal approval..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "capture_shopify_graphql_source"
+      ],
+      "language": "en",
+      "fingerprint": "ec9b308440ecbc19b60554053f239f2496078e4c5c622a78677bd4450a36962e"
     },
     {
       "id": "evidence_command_enqueue_source",

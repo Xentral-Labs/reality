@@ -16,7 +16,13 @@ from reality.services import core
 
 
 def prepare_order(
-    session: Session, tenant_id: str, source: SourceRecord, job: ImportJob
+    session: Session,
+    tenant_id: str,
+    source: SourceRecord,
+    job: ImportJob,
+    *,
+    _payload: dict | None = None,
+    _line_payloads: list | None = None,
 ) -> PreparedIntake:
     if session.scalar(
         select(Document.id).where(
@@ -31,7 +37,7 @@ def prepare_order(
         return prepare_change(session, tenant_id, source, job, existing)
     from reality.services.intake import _reference
 
-    payload = json.loads(source.payload)
+    payload = json.loads(source.payload) if _payload is None else _payload
     currency = core._required_source_field(payload.get("currency"), "currency")
     if not 1 <= len(payload.get("line_items", [])) <= 500:
         raise core.InvalidOperation(code="intake_package_too_large")
@@ -152,7 +158,9 @@ def prepare_order(
     from reality.domain.intake_completeness import order_issues
 
     issues.extend(order_issues(document, lines))
-    document["_source_line_payloads"] = payload["line_items"]
+    document["_source_line_payloads"] = (
+        payload["line_items"] if _line_payloads is None else _line_payloads
+    )
     observations = []
     holds = []
     if customer.credit_limit > 0 and promises:
