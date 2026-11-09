@@ -1,0 +1,514 @@
+{
+  "$defs": {
+    "BuyerMappingBasis": {
+      "additionalProperties": false,
+      "properties": {
+        "mapping_state": {
+          "const": "applied_to_source",
+          "title": "Mapping State",
+          "type": "string"
+        },
+        "customer": {
+          "additionalProperties": true,
+          "title": "Customer",
+          "type": "object"
+        },
+        "approval_source_record_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Approval Source Record Id",
+          "type": "string"
+        },
+        "review_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Review Id",
+          "type": "string"
+        },
+        "review_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Review Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mapping_state",
+        "customer",
+        "approval_source_record_id",
+        "review_id",
+        "review_digest"
+      ],
+      "title": "BuyerMappingBasis",
+      "type": "object"
+    },
+    "CalendarState": {
+      "additionalProperties": false,
+      "properties": {
+        "time_zone": {
+          "title": "Time Zone",
+          "type": "string"
+        },
+        "source_record_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Record Id"
+        }
+      },
+      "required": [
+        "time_zone"
+      ],
+      "title": "CalendarState",
+      "type": "object"
+    },
+    "Effect": {
+      "additionalProperties": false,
+      "description": "A closed operation vocabulary; never a caller-selected Python callable.",
+      "properties": {
+        "operation": {
+          "enum": [
+            "item_package",
+            "master_item",
+            "master_party",
+            "master_location",
+            "inventory_adjustment",
+            "external_stock_statement",
+            "document",
+            "commitment",
+            "customer_payment",
+            "supplier_payment",
+            "payment_allocation",
+            "invoice_post",
+            "source_document",
+            "return_announcement",
+            "credit_hold",
+            "commitment_revision",
+            "commitment_cancellation"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": true,
+          "title": "Arguments",
+          "type": "object"
+        }
+      },
+      "required": [
+        "operation",
+        "arguments"
+      ],
+      "title": "Effect",
+      "type": "object"
+    },
+    "ObservationState": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "credit_exposure",
+            "shop_order_state",
+            "payment_state",
+            "stock_state",
+            "customer_item_resolution"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "arguments": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Arguments",
+          "type": "object"
+        },
+        "digest": {
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "arguments",
+        "digest"
+      ],
+      "title": "ObservationState",
+      "type": "object"
+    },
+    "PreparedIntake": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "tenant_id": {
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "source_record_id": {
+          "title": "Source Record Id",
+          "type": "string"
+        },
+        "source_hash": {
+          "title": "Source Hash",
+          "type": "string"
+        },
+        "source_version": {
+          "title": "Source Version",
+          "type": "integer"
+        },
+        "import_job_id": {
+          "title": "Import Job Id",
+          "type": "string"
+        },
+        "profile": {
+          "title": "Profile",
+          "type": "string"
+        },
+        "finance_revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finance Revision"
+        },
+        "calendar": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CalendarState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "interpreter_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Interpreter Version",
+          "type": "string"
+        },
+        "mapping": {
+          "additionalProperties": true,
+          "title": "Mapping",
+          "type": "object"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ReferenceState"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "observations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObservationState"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "effects": {
+          "items": {
+            "$ref": "#/$defs/Effect"
+          },
+          "title": "Effects",
+          "type": "array"
+        },
+        "issues": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "row_count": {
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Row Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "source_record_id",
+        "source_hash",
+        "source_version",
+        "import_job_id",
+        "profile",
+        "mapping",
+        "effects",
+        "row_count"
+      ],
+      "title": "PreparedIntake",
+      "type": "object"
+    },
+    "ReferenceState": {
+      "additionalProperties": false,
+      "properties": {
+        "record_type": {
+          "enum": [
+            "party",
+            "item",
+            "location",
+            "document",
+            "document_line",
+            "payment_term",
+            "ledger_entry",
+            "account",
+            "source_artifact",
+            "customer_item_number"
+          ],
+          "title": "Record Type",
+          "type": "string"
+        },
+        "record_id": {
+          "title": "Record Id",
+          "type": "string"
+        },
+        "digest": {
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_type",
+        "record_id",
+        "digest"
+      ],
+      "title": "ReferenceState",
+      "type": "object"
+    },
+    "SourceBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "source_record_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Source Record Id",
+          "type": "string"
+        },
+        "import_job_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Import Job Id",
+          "type": "string"
+        },
+        "source_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Hash",
+          "type": "string"
+        },
+        "source_version": {
+          "exclusiveMinimum": 0,
+          "title": "Source Version",
+          "type": "integer"
+        },
+        "tenant_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "external_id": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "External Id",
+          "type": "string"
+        },
+        "order_id": {
+          "pattern": "^gid://shopify/Order/[0-9]{1,32}$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "order_label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Order Label",
+          "type": "string"
+        },
+        "shop": {
+          "pattern": "^[a-z0-9][a-z0-9-]{0,62}\\.myshopify\\.com$",
+          "title": "Shop",
+          "type": "string"
+        },
+        "query_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Query Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_id",
+        "import_job_id",
+        "source_hash",
+        "source_version",
+        "tenant_id",
+        "external_id",
+        "order_id",
+        "order_label",
+        "shop",
+        "query_digest"
+      ],
+      "title": "SourceBinding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "purpose": {
+      "const": "shopify_source_order_acceptance/1",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "proposal_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Proposal Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "stale",
+        "rejected",
+        "executed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 36,
+      "minLength": 36,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "review_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Review Digest",
+      "type": "string"
+    },
+    "source_binding": {
+      "$ref": "#/$defs/SourceBinding"
+    },
+    "buyer_mapping": {
+      "$ref": "#/$defs/BuyerMappingBasis"
+    },
+    "buyer_mapping_scope": {
+      "const": "existing_buyer_mapping_evidence_at_order_review",
+      "title": "Buyer Mapping Scope",
+      "type": "string"
+    },
+    "evidence_observed_at": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Evidence Observed At",
+      "type": "string"
+    },
+    "readiness_evidence_scope": {
+      "const": "frozen_at_order_review",
+      "title": "Readiness Evidence Scope",
+      "type": "string"
+    },
+    "currentness": {
+      "enum": [
+        "historical_accepted_only",
+        "changed",
+        "unchanged_since_review"
+      ],
+      "title": "Currentness",
+      "type": "string"
+    },
+    "mapping_bundle": {
+      "additionalProperties": true,
+      "title": "Mapping Bundle",
+      "type": "object"
+    },
+    "plan_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan Digest",
+      "type": "string"
+    },
+    "review_projection": {
+      "$ref": "#/$defs/PreparedIntake"
+    },
+    "readiness": {
+      "additionalProperties": true,
+      "title": "Readiness",
+      "type": "object"
+    },
+    "holds": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 500,
+      "title": "Holds",
+      "type": "array"
+    },
+    "eligible_for_exact_authorization": {
+      "title": "Eligible For Exact Authorization",
+      "type": "boolean"
+    },
+    "generic_confirmation_allowed": {
+      "const": false,
+      "title": "Generic Confirmation Allowed",
+      "type": "boolean"
+    },
+    "business_effects_accepted": {
+      "title": "Business Effects Accepted",
+      "type": "boolean"
+    },
+    "original_source_unchanged": {
+      "const": true,
+      "title": "Original Source Unchanged",
+      "type": "boolean"
+    },
+    "import_job_input_unchanged": {
+      "const": true,
+      "title": "Import Job Input Unchanged",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "purpose",
+    "proposal_id",
+    "status",
+    "request_id",
+    "review_digest",
+    "source_binding",
+    "buyer_mapping",
+    "buyer_mapping_scope",
+    "evidence_observed_at",
+    "readiness_evidence_scope",
+    "currentness",
+    "mapping_bundle",
+    "plan_digest",
+    "review_projection",
+    "readiness",
+    "holds",
+    "eligible_for_exact_authorization",
+    "generic_confirmation_allowed",
+    "business_effects_accepted",
+    "original_source_unchanged",
+    "import_job_input_unchanged"
+  ],
+  "title": "AcceptanceReviewResult",
+  "type": "object"
+}

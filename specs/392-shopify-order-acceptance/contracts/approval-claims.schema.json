@@ -1,0 +1,126 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "iss": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Iss",
+      "type": "string"
+    },
+    "aud": {
+      "const": "reality:shopify-source-order-acceptance/1",
+      "title": "Aud",
+      "type": "string"
+    },
+    "sub": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Sub",
+      "type": "string"
+    },
+    "iat": {
+      "title": "Iat",
+      "type": "integer"
+    },
+    "exp": {
+      "title": "Exp",
+      "type": "integer"
+    },
+    "jti": {
+      "maxLength": 36,
+      "minLength": 36,
+      "title": "Jti",
+      "type": "string"
+    },
+    "purpose": {
+      "const": "shopify_source_order_acceptance/1",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "proposal_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Proposal Id",
+      "type": "string"
+    },
+    "review_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Review Digest",
+      "type": "string"
+    },
+    "source_binding_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Binding Digest",
+      "type": "string"
+    },
+    "mapping_bundle_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Mapping Bundle Digest",
+      "type": "string"
+    },
+    "plan_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan Digest",
+      "type": "string"
+    },
+    "authorization_kind": {
+      "enum": [
+        "human",
+        "standing"
+      ],
+      "title": "Authorization Kind",
+      "type": "string"
+    },
+    "mandate_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Mandate Id"
+    },
+    "mandate_revision": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Mandate Revision"
+    }
+  },
+  "required": [
+    "iss",
+    "aud",
+    "sub",
+    "iat",
+    "exp",
+    "jti",
+    "purpose",
+    "tenant_id",
+    "proposal_id",
+    "review_digest",
+    "source_binding_digest",
+    "mapping_bundle_digest",
+    "plan_digest",
+    "authorization_kind"
+  ],
+  "title": "AcceptanceClaims",
+  "type": "object"
+}

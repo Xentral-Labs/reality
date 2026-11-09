@@ -1303,6 +1303,38 @@ commands:
     reads: [tenant, source_system, source_capability]
     writes: [source_capability]
     effect: Declares which upstream type a source may provide and the operational target it is intended to produce.
+  - name: Prepare Shopify order acceptance
+    service: prepare_order_acceptance
+    mode: mutation
+    adapters: [MCP]
+    reads: [tenant, mcp_access_token, source_record, source_stream, import_job, action, party, party_role, item, location, company_time_zone, finance_state, document, document_line, commitment]
+    writes: [action]
+    effect: Retains one immutable successor review with source-stated money and current explicit references, calendar and credit; no business acceptance.
+
+  - name: Review Shopify order acceptance
+    service: review_order_acceptance
+    mode: read
+    adapters: [MCP]
+    reads: [tenant, mcp_access_token, source_record, source_stream, import_job, action, party, party_role, item, location, company_time_zone, finance_state, document, document_line, commitment]
+    writes: []
+    effect: Returns immutable source-backed successor evidence and separately marks stale or held meaning without approval.
+
+  - name: Accept authorized Shopify order
+    service: accept_order
+    mode: mutation
+    adapters: [MCP]
+    reads: [tenant, mcp_access_token, source_record, source_stream, import_job, action, party, party_role, item, location, company_time_zone, finance_state, document, document_line, commitment]
+    writes: [action, source_record, source_stream, document, document_line, commitment, import_job, interpretation_outcome, business_event]
+    effect: Atomically applies only complete exact source-backed order effects under current external issuer human or finite standing authority; no payment, stock movement or fulfillment.
+
+  - name: Read Shopify acceptance receipt
+    service: order_acceptance_status
+    mode: read
+    adapters: [MCP]
+    reads: [tenant, mcp_access_token, source_record, source_stream, import_job, action, party, party_role, item, location, company_time_zone, finance_state, document, document_line, commitment]
+    writes: []
+    effect: Reconciles original accepted proof and canonical result IDs without repeated dispatch or renewed authority.
+
   - name: Prepare explicit Shopify order interpretation
     service: prepare_shopify_order
     mode: mutation
@@ -2518,6 +2550,42 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  shopify_source_order_acceptance_status:
+    kind: read
+    application_tool: shopify_source_order_acceptance_status
+    purpose: Reconcile a known original exact order acceptance receipt without dispatch.
+    use_when: [An Operator needs exact retained meaning or original receipt evidence.]
+    do_not_use_when: [Creating a replacement approval for an uncertain result or authorizing effects from model text.]
+    required_context: [Same-tenant opaque successor proposal identity and current scoped MCP grant.]
+    data_basis: [tenant, mcp_access_token, source_record, source_stream, import_job, action, party, party_role, item, location, company_time_zone, finance_state, document, document_line, commitment]
+    limitations: [Only the supported simple source profile is eligible; unknown commercial evidence stays held.]
+    freshness: Historical receipt verification uses accepted original proof time; it does not renew authority or assert current business status.
+    empty_result: Missing or foreign proposal is unavailable without disclosure.
+    refusal_behavior: Wrong purpose, changed digest, revoked current read grant or malformed retained evidence refuses safely.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which original exact authorized order effects committed atomically.], does_not_prove: [Current payment, delivery, stock availability or a new approval.]}
+    unknown_when: [The source does not carry complete supported evidence.]
+    next_steps: [Resolve typed holds in Now; only separately reviewed exact authority may accept.]
+    examples: {use: [{scenario: Read the exact retained order., reason: Historical evidence is separate from approval.}], do_not_use: [{scenario: Retry unknown work using fresh approval., reason: Reconcile the original known receipt first.}]}
+  shopify_source_order_acceptance_review:
+    kind: read
+    application_tool: shopify_source_order_acceptance_review
+    purpose: Inspect the exact supported successor order before a separate external decision.
+    use_when: [An Operator needs exact retained meaning or original receipt evidence.]
+    do_not_use_when: [Creating a replacement approval for an uncertain result or authorizing effects from model text.]
+    required_context: [Same-tenant opaque successor proposal identity and current scoped MCP grant.]
+    data_basis: [tenant, mcp_access_token, source_record, source_stream, import_job, action, party, party_role, item, location, company_time_zone, finance_state, document, document_line, commitment]
+    limitations: [Only the supported simple source profile is eligible; unknown commercial evidence stays held.]
+    freshness: Rechecks original source, buyer, selected references, explicit calendar, current credit and bounded host policy; stale meaning is never refreshed.
+    empty_result: Missing or foreign proposal is unavailable without disclosure.
+    refusal_behavior: Wrong purpose, changed digest, revoked current read grant or malformed retained evidence refuses safely.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which exact source-backed arguments and holds are retained.], does_not_prove: [Human approval or standing authority; payment, stock, fulfillment or settlement.]}
+    unknown_when: [The source does not carry complete supported evidence.]
+    next_steps: [Resolve typed holds in Now; only separately reviewed exact authority may accept.]
+    examples: {use: [{scenario: Read the exact retained order., reason: Historical evidence is separate from approval.}], do_not_use: [{scenario: Retry unknown work using fresh approval., reason: Reconcile the original known receipt first.}]}
   shopify_source_order_review:
     kind: read
     application_tool: shopify_source_order_review
@@ -7238,6 +7306,10 @@ reachable_mutations_that_are_not_commands:
   set_source_system_base_url: Records where a configured source system can be opened in a browser. Integration configuration, not something an operator asks the business to do; it changes no business record.
 
 agent_command_coverage:
+  order_acceptance_status: {classification: eligible, tools: [shopify_source_order_acceptance_status]}
+  accept_order: {classification: eligible, tools: [shopify_source_order_acceptance_accept]}
+  review_order_acceptance: {classification: eligible, tools: [shopify_source_order_acceptance_review]}
+  prepare_order_acceptance: {classification: eligible, tools: [shopify_source_order_acceptance_prepare]}
   operational_case_status:
     classification: eligible
     tools: [operational_case_status]

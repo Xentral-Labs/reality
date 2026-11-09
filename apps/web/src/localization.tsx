@@ -29948,3 +29948,17 @@ Object.assign(dictionaries.es, {
   "This exact Shopify order proposal is unavailable or needs changed selections. No business effects are accepted by preparation.":
     "Esta propuesta exacta de pedido de Shopify no está disponible o requiere otras selecciones. La preparación no acepta efectos empresariales.",
 });
+
+// Spec392: exact acceptance refusal reuses the shared translated presentation.
+Object.assign(dictionaries.de, {
+  "This exact Shopify order acceptance is unavailable or its source, review or authority changed. Inspect the retained review and receipt before deciding.":
+    "Diese genaue Shopify-Auftragsannahme ist nicht verfügbar oder ihre Quelle, Prüfung oder Berechtigung wurde geändert. Prüfe den gespeicherten Entwurf und Beleg, bevor du entscheidest.",
+});
+Object.assign(dictionaries.nl, {
+  "This exact Shopify order acceptance is unavailable or its source, review or authority changed. Inspect the retained review and receipt before deciding.":
+    "Deze exacte Shopify-orderacceptatie is niet beschikbaar of de bron, beoordeling of bevoegdheid is gewijzigd. Controleer de opgeslagen beoordeling en het bewijs voordat je beslist.",
+});
+Object.assign(dictionaries.es, {
+  "This exact Shopify order acceptance is unavailable or its source, review or authority changed. Inspect the retained review and receipt before deciding.":
+    "Esta aceptación exacta del pedido de Shopify no está disponible o su fuente, revisión o autorización ha cambiado. Revisa la evaluación y el comprobante guardados antes de decidir.",
+});

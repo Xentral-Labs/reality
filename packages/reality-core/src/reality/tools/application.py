@@ -4539,10 +4539,23 @@ def _intake_batch_status(session, tenant_id, arguments):
 
 
 from reality.tools import shopify_buyer_mapping as _buyer_mapping_tools
+from reality.tools import shopify_order_acceptance as _shopify_acceptance_tools
 from reality.tools.shopify_intake_preflight import read as _shopify_intake_preflight
 from reality.tools.shopify_order_proposal import review as _shopify_order_review
 
 TOOLS = {
+    "shopify_source_order_acceptance_review": Tool(
+        "shopify_source_order_acceptance_review",
+        "Read exact source-backed successor meaning without approving it.",
+        False,
+        _shopify_acceptance_tools.review,
+    ),
+    "shopify_source_order_acceptance_status": Tool(
+        "shopify_source_order_acceptance_status",
+        "Read original acceptance receipt without dispatch.",
+        False,
+        _shopify_acceptance_tools.status,
+    ),
     "shopify_source_order_review": Tool(
         "shopify_source_order_review",
         "Read exact retained explicit Shopify order proposal without accepting it.",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:03afefee4cbb218c09cae710f4c29214256635dc9fee64cf1adc5ab51bafc636",
+  "knowledge_version": "advisor-v1:sha256:8bb632a150102a100c8f50e64a31dc27dceb835bc5bb29da49d4aa88c528b524",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "d591fd15275cff1fa143ee9c7e3495df1173ef0c5cc41cd4e6447399e247e48d"
+      "fingerprint": "319947143c9c88279b55e70a7c4e074f7fb5f68629e00e0d64a56b9503bc1eaa"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7141,6 +7141,66 @@
       ],
       "language": "en",
       "fingerprint": "b092fd620637858fe6cdb8bdc005c700289e74d8926bd3ddf1e83a8ba713d010"
+    },
+    {
+      "id": "evidence_command_prepare_order_acceptance",
+      "source_id": "source_executable_commands",
+      "subject": "Prepare Shopify order acceptance",
+      "title": "Prepare Shopify order acceptance",
+      "search_text": "prepare_order_acceptance Prepare Shopify order acceptance Retains one immutable successor review with source-stated money and current explicit references, calendar and credit; no business acceptance. mutation",
+      "claim_text": "prepare_order_acceptance is a governed mutation command for Retains one immutable successor review with source-stated money and current explicit references, calendar and credit; no business acceptance..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "prepare_order_acceptance"
+      ],
+      "language": "en",
+      "fingerprint": "174dc37897023f73bdc5df44ea4f6a57a90b16e888ccc2a876d9002eb1bc299b"
+    },
+    {
+      "id": "evidence_command_review_order_acceptance",
+      "source_id": "source_executable_commands",
+      "subject": "Review Shopify order acceptance",
+      "title": "Review Shopify order acceptance",
+      "search_text": "review_order_acceptance Review Shopify order acceptance Returns immutable source-backed successor evidence and separately marks stale or held meaning without approval. read",
+      "claim_text": "review_order_acceptance is a governed read command for Returns immutable source-backed successor evidence and separately marks stale or held meaning without approval..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "review_order_acceptance"
+      ],
+      "language": "en",
+      "fingerprint": "cbcec7522117b6b48aef98037a59f4d62ebf604c323a941fbb4369efa183533c"
+    },
+    {
+      "id": "evidence_command_accept_order",
+      "source_id": "source_executable_commands",
+      "subject": "Accept authorized Shopify order",
+      "title": "Accept authorized Shopify order",
+      "search_text": "accept_order Accept authorized Shopify order Atomically applies only complete exact source-backed order effects under current external issuer human or finite standing authority; no payment, stock movement or fulfillment. mutation",
+      "claim_text": "accept_order is a governed mutation command for Atomically applies only complete exact source-backed order effects under current external issuer human or finite standing authority; no payment, stock movement or fulfillment..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "accept_order"
+      ],
+      "language": "en",
+      "fingerprint": "a56f9640d340a123ad8395b7cfb92de78c641021f2b78b8a1660e9ffbd341347"
+    },
+    {
+      "id": "evidence_command_order_acceptance_status",
+      "source_id": "source_executable_commands",
+      "subject": "Read Shopify acceptance receipt",
+      "title": "Read Shopify acceptance receipt",
+      "search_text": "order_acceptance_status Read Shopify acceptance receipt Reconciles original accepted proof and canonical result IDs without repeated dispatch or renewed authority. read",
+      "claim_text": "order_acceptance_status is a governed read command for Reconciles original accepted proof and canonical result IDs without repeated dispatch or renewed authority..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "order_acceptance_status"
+      ],
+      "language": "en",
+      "fingerprint": "63b9a6ea253d76b4e4020b2429ee01f40eab604d24c781951c9154e0397aa677"
     },
     {
       "id": "evidence_command_prepare_shopify_order",

@@ -2951,6 +2951,9 @@
     },
     "shopify_order_proposal_unavailable": {
       "message": "This exact Shopify order proposal is unavailable or needs changed selections. No business effects are accepted by preparation."
+    },
+    "shopify_order_acceptance_unavailable": {
+      "message": "This exact Shopify order acceptance is unavailable or its source, review or authority changed. Inspect the retained review and receipt before deciding."
     }
   },
   "terms": [

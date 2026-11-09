@@ -1,0 +1,54 @@
+{
+  "purpose": "shopify_source_order_acceptance/1",
+  "proposal_id": "act_soa_3e5e93172f4e1f97042585e191a963dc",
+  "review_digest": "1775c581a4913d6bc8a17843142361688d02efa66604bb1375e9d301f5ab0bde",
+  "source_binding": {
+    "source_record_id": "src_f142fae614",
+    "import_job_id": "imp_06e04145ab",
+    "source_hash": "a7de427980c9ba148d2ba3bcaef2eeff344d092d5542bb177b068d545b529731",
+    "source_version": 2,
+    "tenant_id": "ten_ac990def87",
+    "external_id": "1004",
+    "order_id": "gid://shopify/Order/1004",
+    "order_label": "#1004",
+    "shop": "pilot.myshopify.com",
+    "query_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "mapping_bundle_digest": "3f579fff002550f0e8705c43b3cb50b323427293dd2fddf5f42f56dd77d89526",
+  "plan_digest": "100ceb14226a97116d5286ca8d4c43357ddd75ac1abcad718c9fa466666a85ee",
+  "verification": "applied",
+  "authorized_at": "2026-11-09T22:43:06.064752+00:00",
+  "records": [
+    {
+      "type": "document",
+      "id": "doc_5ada5807f3"
+    },
+    {
+      "type": "document_line",
+      "id": "lin_a403c02166"
+    },
+    {
+      "type": "commitment",
+      "id": "com_7c627b557c"
+    }
+  ],
+  "approval_source_record_id": "src_dc2618be6e",
+  "approval_source_hash": "c5cfbbc6cd6d40d759fdd11cec82479c3fd81fcb8277ee17604c6ff9b0dad026",
+  "source_stated_order_amount": "10.00",
+  "currency": "EUR",
+  "admitted_source_units": 2,
+  "approval": {
+    "issuer": "urn:tuesday:test-installation",
+    "subject": "tuesday-person",
+    "jti": "01c47d18-6e82-4c62-b549-f8b89b37f714",
+    "proof_digest": "2b63f92cdf854be31faa66d7f56ebc41535347d06ef525f4231b956143f561ae",
+    "authorization_kind": "human",
+    "mandate_id": null,
+    "mandate_revision": null
+  },
+  "original_source_unchanged": true,
+  "import_job_input_unchanged": true,
+  "payment_recorded": false,
+  "stock_moved": false,
+  "fulfillment_dispatched": false
+}

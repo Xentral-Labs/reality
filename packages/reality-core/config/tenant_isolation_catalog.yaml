@@ -1549,3 +1549,19 @@ families:
       - id: tests/test_shopify_order_proposal.py::test_foreign_proposal_reads_and_preparation_are_non_disclosing
         assertion: mutation_relationship
         operations: *shopify_order_proposal_operations
+
+  - key: shopify_source_order_acceptance
+    description: Exact external order acceptance remains tenant scoped and never grants payment, stock or fulfillment.
+    classification: mutation_relationship
+    authority: 392/FR-006, 392/FR-007, 392/FR-008, 392/FR-009
+    operations: &shopify_order_acceptance_operations
+      - tool:shopify_source_order_acceptance_review
+      - tool:shopify_source_order_acceptance_status
+      - reality.services.shopify_order_acceptance:prepare_order_acceptance
+      - reality.services.shopify_order_acceptance:review_order_acceptance
+      - reality.services.shopify_order_acceptance:accept_order
+      - reality.services.shopify_order_acceptance:order_acceptance_status
+    evidence:
+      - id: tests/test_shopify_order_acceptance.py::test_foreign_successor_is_non_disclosing
+        assertion: mutation_relationship
+        operations: *shopify_order_acceptance_operations

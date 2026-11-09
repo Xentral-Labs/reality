@@ -2823,3 +2823,8 @@ Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_per
 
 - `specs/391-shopify-order-proposal/spec.md`: source/buyer/mapping/closed-plan review with no application permission or original/input rewrite.
 - `packages/reality-core/tests/test_shopify_order_proposal.py`: FR-001..008/DR-001 explicit units/item kind, source-value unknowns, immutable/idempotent retention, stale/foreign/revoked requests, generic-confirm refusal and actual two-session races.
+
+## Spec392 - Exact external Shopify order acceptance
+
+- `specs/392-shopify-order-acceptance/spec.md`: explicit source-backed simple profile, current canonical calendar/credit and exact human/standing external authority, no old99 application.
+- `packages/reality-core/tests/test_shopify_order_acceptance.py`: FR-001..010/DR-001..003 source-value comparisons/absence and held legacy behavior; transactional authority/replay/rollback cases added before their implementation.

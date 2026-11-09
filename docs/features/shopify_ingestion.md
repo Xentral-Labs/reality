@@ -167,3 +167,41 @@ of using the REST unit/price defaults. REST behavior stays unchanged. Exact issu
 standing-mandate acceptance and preparation-origin adoption are successor work; no
 fake Principal or broad confirmation grant. Old99 proposal proof is not full intake
 application readiness.
+
+## Exact source-backed order acceptance (Spec392)
+
+The separate successor preparation/review/accept/status contracts support one
+simple undiscounted source-v2 profile. They preserve391 proposal-only digests and
+389 buyer-mapping wire contracts. One review freezes explicit existing buyer,
+company, location, item/unit selections and all prospective business arguments.
+Missing or unsupported financial/calendar/credit evidence is held, not guessed.
+
+All persisted unit/line/order amounts are copied from source, with comparisons
+only for eligibility and exact Numeric(18,4) representability. Complete explicit
+zero ancillary money is required; provider-documented nullable fees with selected
+empty additionalFees and nullable duties with ALL complete unchanged empty line
+duties are retained as typed not_applicable evidence, never numeric0. The profile
+requires explicit source-backed company timezone, reviewed processed-at day rule,
+not_promised delivery terms and complete current canonical positive-limit credit.
+
+Only a dedicated exact Ed25519 external human or current finite standing proof
+may authorize canonical order Document/Line and customer-delivery Commitment
+creation. Normal current MCP scope, private issuer/company/subject/token/profile/
+limits policy, expiry, immutable source/reference digests and cumulative mandate
+caps are checked under locks. Source/job.input remains unchanged; acceptance
+completes the held import job and retains interpretation outcome plus atomic
+original-proof receipt. No fake local Principal or generic confirmation is used.
+No payment, stock movement, fulfillment or settlement is authorized here.
+
+Buyer receipt evidence is explicitly historical mapping-only; its old remaining
+review label is omitted from successor wire. Dedicated successor status is the
+acceptance reconciliation authority, not an inference from a legacy buyer label.
+Status waits an in-flight acceptance row and never repeats dispatch or renews an
+expired approval. Lost responses reconcile the same original receipt; a different
+proof cannot alias a completed intent. Accepted facts remain historical evidence,
+not a new claim about current credit, payment, stock or delivery.
+
+Current native code only: no schema99 application adapter, migration, runtime
+installation, live grant/provider/company operation or full autonomous O2C claim
+is implied. See specs/392-shopify-order-acceptance for implementation evidence and
+remaining deployment/current-application gates.

@@ -595,6 +595,10 @@ processes:
 labels:
   de:
     tools:
+      shopify_source_order_acceptance_prepare: Quellenbelegten Shopify-Auftrag prüfen
+      shopify_source_order_acceptance_review: Genauen Shopify-Auftragsentwurf lesen
+      shopify_source_order_acceptance_accept: Genau freigegebenen Shopify-Auftrag übernehmen
+      shopify_source_order_acceptance_status: Shopify-Auftragsannahmebeleg lesen
       operational_case_status: Vorgangsstatus prüfen
       operations_cockpit: Leitstand anzeigen
       shipping_performance: Versandleistung anzeigen
@@ -625,6 +629,10 @@ labels:
       email_dispatch_report: E-Mail-Versandergebnis ablegen
       reorder_points: Meldebestände anzeigen
     commands:
+      prepare_order_acceptance: Quellenbelegten Shopify-Auftrag prüfen
+      review_order_acceptance: Genauen Shopify-Auftragsentwurf lesen
+      accept_order: Genau freigegebenen Shopify-Auftrag übernehmen
+      order_acceptance_status: Shopify-Auftragsannahmebeleg lesen
       operational_case_status: Vorgangsstatus prüfen
       operations_cockpit: Leitstand anzeigen
       shipping_performance: Versandleistung anzeigen

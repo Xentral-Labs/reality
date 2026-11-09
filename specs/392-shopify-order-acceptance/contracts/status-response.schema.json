@@ -1,0 +1,354 @@
+{
+  "$defs": {
+    "AcceptanceReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "const": "shopify_source_order_acceptance/1",
+          "title": "Purpose",
+          "type": "string"
+        },
+        "proposal_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Proposal Id",
+          "type": "string"
+        },
+        "review_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Review Digest",
+          "type": "string"
+        },
+        "source_binding": {
+          "$ref": "#/$defs/SourceBinding"
+        },
+        "mapping_bundle_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Mapping Bundle Digest",
+          "type": "string"
+        },
+        "plan_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Plan Digest",
+          "type": "string"
+        },
+        "verification": {
+          "const": "applied",
+          "title": "Verification",
+          "type": "string"
+        },
+        "authorized_at": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Authorized At",
+          "type": "string"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/CanonicalOrderRecord"
+          },
+          "maxItems": 201,
+          "minItems": 1,
+          "title": "Records",
+          "type": "array"
+        },
+        "approval_source_record_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Approval Source Record Id",
+          "type": "string"
+        },
+        "approval_source_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Approval Source Hash",
+          "type": "string"
+        },
+        "source_stated_order_amount": {
+          "maxLength": 60,
+          "minLength": 1,
+          "title": "Source Stated Order Amount",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "admitted_source_units": {
+          "maximum": 1000000000,
+          "minimum": 1,
+          "title": "Admitted Source Units",
+          "type": "integer"
+        },
+        "approval": {
+          "$ref": "#/$defs/ApprovalIdentity"
+        },
+        "original_source_unchanged": {
+          "const": true,
+          "title": "Original Source Unchanged",
+          "type": "boolean"
+        },
+        "import_job_input_unchanged": {
+          "const": true,
+          "title": "Import Job Input Unchanged",
+          "type": "boolean"
+        },
+        "payment_recorded": {
+          "const": false,
+          "title": "Payment Recorded",
+          "type": "boolean"
+        },
+        "stock_moved": {
+          "const": false,
+          "title": "Stock Moved",
+          "type": "boolean"
+        },
+        "fulfillment_dispatched": {
+          "const": false,
+          "title": "Fulfillment Dispatched",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "purpose",
+        "proposal_id",
+        "review_digest",
+        "source_binding",
+        "mapping_bundle_digest",
+        "plan_digest",
+        "verification",
+        "authorized_at",
+        "records",
+        "approval_source_record_id",
+        "approval_source_hash",
+        "source_stated_order_amount",
+        "currency",
+        "admitted_source_units",
+        "approval",
+        "original_source_unchanged",
+        "import_job_input_unchanged",
+        "payment_recorded",
+        "stock_moved",
+        "fulfillment_dispatched"
+      ],
+      "title": "AcceptanceReceipt",
+      "type": "object"
+    },
+    "ApprovalIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "issuer": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Issuer",
+          "type": "string"
+        },
+        "subject": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "jti": {
+          "maxLength": 36,
+          "minLength": 36,
+          "title": "Jti",
+          "type": "string"
+        },
+        "proof_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Proof Digest",
+          "type": "string"
+        },
+        "authorization_kind": {
+          "enum": [
+            "human",
+            "standing"
+          ],
+          "title": "Authorization Kind",
+          "type": "string"
+        },
+        "mandate_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mandate Id"
+        },
+        "mandate_revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mandate Revision"
+        }
+      },
+      "required": [
+        "issuer",
+        "subject",
+        "jti",
+        "proof_digest",
+        "authorization_kind",
+        "mandate_id",
+        "mandate_revision"
+      ],
+      "title": "ApprovalIdentity",
+      "type": "object"
+    },
+    "CanonicalOrderRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "document",
+            "document_line",
+            "commitment"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "title": "CanonicalOrderRecord",
+      "type": "object"
+    },
+    "SourceBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "source_record_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Source Record Id",
+          "type": "string"
+        },
+        "import_job_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Import Job Id",
+          "type": "string"
+        },
+        "source_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Hash",
+          "type": "string"
+        },
+        "source_version": {
+          "exclusiveMinimum": 0,
+          "title": "Source Version",
+          "type": "integer"
+        },
+        "tenant_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "external_id": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "External Id",
+          "type": "string"
+        },
+        "order_id": {
+          "pattern": "^gid://shopify/Order/[0-9]{1,32}$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "order_label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Order Label",
+          "type": "string"
+        },
+        "shop": {
+          "pattern": "^[a-z0-9][a-z0-9-]{0,62}\\.myshopify\\.com$",
+          "title": "Shop",
+          "type": "string"
+        },
+        "query_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Query Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_id",
+        "import_job_id",
+        "source_hash",
+        "source_version",
+        "tenant_id",
+        "external_id",
+        "order_id",
+        "order_label",
+        "shop",
+        "query_digest"
+      ],
+      "title": "SourceBinding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "purpose": {
+      "const": "shopify_source_order_acceptance/1",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "proposal_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Proposal Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "rejected",
+        "executed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "receipt": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AcceptanceReceipt"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "dispatch_performed": {
+      "const": false,
+      "title": "Dispatch Performed",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "purpose",
+    "proposal_id",
+    "status",
+    "receipt",
+    "dispatch_performed"
+  ],
+  "title": "AcceptanceStatusResult",
+  "type": "object"
+}

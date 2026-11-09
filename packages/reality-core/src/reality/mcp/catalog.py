@@ -16,6 +16,11 @@ from reality.domain.shopify_buyer_mapping import (
     StatusInput,
 )
 from reality.domain.shopify_intake_preflight import PreflightInput
+from reality.domain.shopify_order_acceptance import (
+    AcceptanceCommitInput,
+    AcceptancePrepareInput,
+    AcceptanceReviewInput,
+)
 from reality.domain.shopify_order_proposal import OrderPrepareInput, OrderReviewInput
 from reality.mcp.principal import (
     MCPPrincipal,
@@ -31,6 +36,7 @@ from reality.services.core import (
 )
 from reality.services.delivery_actions import PUBLIC_MOVEMENT_TYPES
 from reality.tools import shopify_buyer_mapping as _buyer_mapping
+from reality.tools import shopify_order_acceptance as _shopify_acceptance
 from reality.tools.application import (
     _intake_agent_batch_review_submit,
     approve_and_execute_proposal,
@@ -766,6 +772,42 @@ PAGE_PROPERTIES = {
 from reality.services.shopify_graphql import CaptureInput as ShopifyGraphQLCaptureInput
 
 MCP_TOOL_CATALOG = (
+    MCPToolDefinition(
+        "shopify_source_order_acceptance_prepare",
+        "Prepare Shopify order acceptance",
+        "Freeze supported source-v2 money, explicit references, calendar and current credit for ONE later exact external human or standing authorization. No business acceptance, amount override, default unit or legacy391 promotion.",
+        "propose",
+        "Sources",
+        AcceptancePrepareInput.model_json_schema(),
+        _shopify_acceptance.prepare,
+    ),
+    MCPToolDefinition(
+        "shopify_source_order_acceptance_review",
+        "Review Shopify order acceptance",
+        "Read immutable exact successor meaning and current evidence or stale/held status. Eligibility is not approval. No dispatch or authority renewal.",
+        "read",
+        "Sources",
+        AcceptanceReviewInput.model_json_schema(),
+        _read("shopify_source_order_acceptance_review"),
+    ),
+    MCPToolDefinition(
+        "shopify_source_order_acceptance_accept",
+        "Accept authorized Shopify order",
+        "Apply only complete unchanged source-backed order under original trusted external issuer human or finite standing proof, current MCP token and exact limits. No generic confirmation, fake local principal, payment, stock movement or fulfillment. Unknown response must use status, never fresh replacement approval.",
+        "confirm",
+        "Sources",
+        AcceptanceCommitInput.model_json_schema(),
+        _shopify_acceptance.accept,
+    ),
+    MCPToolDefinition(
+        "shopify_source_order_acceptance_status",
+        "Read Shopify acceptance receipt",
+        "Read known retained historical receipt and original proof identity only, without dispatch or renewed approval. Never infer current payment/fulfillment/settlement.",
+        "read",
+        "Sources",
+        AcceptanceReviewInput.model_json_schema(),
+        _read("shopify_source_order_acceptance_status"),
+    ),
     MCPToolDefinition(
         "shopify_source_order_prepare",
         "Prepare explicit Shopify order interpretation",
@@ -5232,6 +5274,7 @@ def proposal_bindings() -> dict[str, str]:
             "shopify_order_graphql_capture",
             "shopify_source_buyer_mapping_prepare",
             "shopify_source_order_prepare",
+            "shopify_source_order_acceptance_prepare",
         }
     }
 
