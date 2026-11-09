@@ -5146,10 +5146,15 @@ def tool_definitions(
 
 
 def proposal_bindings() -> dict[str, str]:
-    """Return the public proposal name to canonical application-tool binding."""
+    """Return generic Action factories, excluding the exact source-capture contract.
+
+    Capture persists evidence directly and does not create an approvable Action.
+    Every other propose handler must still declare its application binding.
+    """
     return {
         definition.name: str(definition.handler.application_name)  # type: ignore[attr-defined]
         for definition in tool_definitions(access=("propose",))
+        if definition.name != "shopify_order_graphql_capture"
     }
 
 

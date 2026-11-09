@@ -18,7 +18,7 @@ from reality.services.projections import (
 def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
-    assert catalog["command_count"] == 214
+    assert catalog["command_count"] == 215
     assert catalog["event_count"] == 103
     assert (
         catalog["projection_count"]
@@ -162,7 +162,8 @@ def test_split_catalog_is_complete_and_composed():
         for command in catalog["commands"]
         if "Web" not in command["adapters"]
     }
-    assert web_missing == set()
+    # Original-source capture is a bounded MCP-only entry, not a new Web form.
+    assert web_missing == {"capture_shopify_graphql_source"}
 
 
 def test_external_agent_closure_bindings_share_application_services():
@@ -484,17 +485,17 @@ def test_tenant_operation_discovery_detects_registry_drift():
 def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
-    assert len(catalog.families) == 44
+    assert len(catalog.families) == 45
     assert {"business_logic_generic", "business_logic_case_comparison"} <= {
         family["key"] for family in catalog.families
     }
-    assert len(catalog.discovered_operations) == 728
+    assert len(catalog.discovered_operations) == 730
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 728
+    assert sum(len(family["operations"]) for family in catalog.families) == 730
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations
