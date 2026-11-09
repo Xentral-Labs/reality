@@ -1420,6 +1420,7 @@
         "command:preview_document",
         "command:list_source_mappings",
         "command:source_mapping_history",
+        "command:shopify_source_intake_preflight",
         "command:purchase_match",
         "command:credit_exposure",
         "command:month_end_billing",
@@ -2041,6 +2042,73 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:shopify_source_intake_preflight",
+      "kind": "tool",
+      "key": "shopify_source_intake_preflight",
+      "label": "Explain retained Shopify intake requirements",
+      "area": "sources",
+      "summary": "Read only the exact retained source/job/hash/integer version and verified buyer mapping, existing company/location and bounded SKU/item/unit evidence. No mapping override, preparation, acceptance or provider call. Selected coverage unknowns do not prove missing upstream facts. Payment, credit, inventory and settlement remain unassessed.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "shopify_source_intake_preflight source_record_id import_job_id source_hash source_version",
+      "parameters": [
+        {
+          "name": "source_record_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable source record supporting this typed record.",
+          "depth": 0
+        },
+        {
+          "name": "import_job_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_hash",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_version",
+          "type": "integer",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Explain missing existing mappings and selected interpretation evidence for one exact retained Shopify source without preparation or acceptance.",
+        "use_when": ["A retained source needs an honest diagnosis after existing buyer review."],
+        "do_not_use_when": [
+          "Approving mappings or orders",
+          "or claiming stock/payment/settlement readiness."
+        ],
+        "limitations": [
+          "Selected/projection unknowns do not prove upstream absence",
+          "and units are never defaulted or converted."
+        ],
+        "empty_result": "Missing or changed requested basis refuses instead of returning a fresh-looking empty report.",
+        "freshness": "Exact current retained evidence and master fingerprints are checked again before returning; upstream freshness remains unassessed."
+      },
+      "read_modes": [
+        {
+          "query": "MCP shopify_source_intake_preflight",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "shopify_source_intake_preflight",
+      "projections": [],
+      "links": ["command:shopify_source_intake_preflight"],
+      "label_de": "Explain retained Shopify intake requirements",
+      "resources": ["source"]
+    },
     {
       "id": "tool:shopify_source_buyer_candidates",
       "kind": "tool",
@@ -28261,6 +28329,53 @@
         "tool:source_capability_lifecycle_propose"
       ],
       "label_de": "Quellfähigkeit festlegen",
+      "resources": ["source"]
+    },
+    {
+      "id": "command:shopify_source_intake_preflight",
+      "kind": "command",
+      "key": "shopify_source_intake_preflight",
+      "label": "Explain retained Shopify intake requirements",
+      "area": "sources",
+      "summary": "Diagnoses exact retained source and existing mapping evidence without preparation, acceptance or broad readiness claims.",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "reads": [
+        "source_stream",
+        "source_record",
+        "import_job",
+        "action",
+        "party",
+        "party_role",
+        "item",
+        "location",
+        "document"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_intake_preflight"],
+      "synopses": [
+        "shopify_source_intake_preflight source_record_id import_job_id source_hash source_version"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Explain missing existing mappings and selected interpretation evidence for one exact retained Shopify source without preparation or acceptance.",
+        "use_when": ["A retained source needs an honest diagnosis after existing buyer review."],
+        "do_not_use_when": [
+          "Approving mappings or orders",
+          "or claiming stock/payment/settlement readiness."
+        ],
+        "limitations": [
+          "Selected/projection unknowns do not prove upstream absence",
+          "and units are never defaulted or converted."
+        ],
+        "empty_result": "Missing or changed requested basis refuses instead of returning a fresh-looking empty report.",
+        "freshness": "Exact current retained evidence and master fingerprints are checked again before returning; upstream freshness remains unassessed."
+      },
+      "links": ["tool:shopify_source_intake_preflight"],
+      "label_de": "Voraussetzungen der Shopify-Quellinterpretation anzeigen",
       "resources": ["source"]
     },
     {

@@ -341,7 +341,8 @@
     "buyer_candidates": "intake",
     "prepare_buyer_mapping": "intake",
     "commit_buyer_mapping": "intake",
-    "buyer_mapping_status": "intake"
+    "buyer_mapping_status": "intake",
+    "shopify_source_intake_preflight": "intake"
   },
   "entries": [
     {

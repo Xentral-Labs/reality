@@ -1,0 +1,594 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "purpose": {
+      "const": "shopify_source_intake_preflight_only/1"
+    },
+    "source_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "source_record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "import_job_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "source_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "external_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "order_id": {
+          "type": "string",
+          "pattern": "^gid://shopify/Order/[0-9]{1,32}$"
+        },
+        "order_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "shop": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,62}\\.myshopify\\.com$"
+        },
+        "query_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "source_record_id",
+        "import_job_id",
+        "source_hash",
+        "source_version",
+        "external_id",
+        "order_id",
+        "order_label",
+        "shop",
+        "query_digest"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "output_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "buyer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "verified",
+            "stale"
+          ]
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mapping_state": {
+                  "const": "applied_to_source"
+                },
+                "customer": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "party_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "digest": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "party_id",
+                    "label",
+                    "digest"
+                  ]
+                },
+                "approval_source_record_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "review_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "review_digest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "current_basis": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "source_current": {
+                      "type": "boolean"
+                    },
+                    "customer_current": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "source_current",
+                    "customer_current"
+                  ]
+                },
+                "remaining_review": {
+                  "const": "full_intake_review_not_prepared"
+                }
+              },
+              "required": [
+                "mapping_state",
+                "customer",
+                "approval_source_record_id",
+                "review_id",
+                "review_digest",
+                "current_basis",
+                "remaining_review"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "mapping"
+      ]
+    },
+    "company": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "matched",
+            "not_found",
+            "inactive",
+            "role_mismatch",
+            "stock_not_allowed"
+          ]
+        },
+        "record_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "record_id",
+        "label",
+        "digest"
+      ]
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "matched",
+            "not_found",
+            "inactive",
+            "role_mismatch",
+            "stock_not_allowed"
+          ]
+        },
+        "record_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "record_id",
+        "label",
+        "digest"
+      ]
+    },
+    "source_interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "supported",
+            "requires_review"
+          ]
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "unsupported_selected_first_order"
+            ]
+          },
+          "maxItems": 1
+        }
+      },
+      "required": [
+        "status",
+        "reason_codes"
+      ]
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "const": "retained_selected_entity"
+        },
+        "line_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 500
+        },
+        "returned_line_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "lines_complete": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "scope",
+        "line_count",
+        "returned_line_count",
+        "lines_complete"
+      ]
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source_line_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$",
+            "maxLength": 60
+          },
+          "item_status": {
+            "type": "string",
+            "enum": [
+              "missing_sku",
+              "not_found",
+              "inactive",
+              "ambiguous",
+              "matched"
+            ]
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "item_digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stock_unit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_unit": {
+            "type": "null"
+          },
+          "unit_status": {
+            "const": "not_interpreted"
+          }
+        },
+        "required": [
+          "source_line_id",
+          "sku",
+          "quantity",
+          "item_status",
+          "item_id",
+          "item_digest",
+          "stock_unit",
+          "source_unit",
+          "unit_status"
+        ]
+      },
+      "maxItems": 100
+    },
+    "financial": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "order_total": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 60
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "line_totals": {
+          "const": "not_interpreted"
+        },
+        "payment": {
+          "const": "not_assessed"
+        },
+        "credit_exposure": {
+          "const": "not_assessed"
+        },
+        "settlement": {
+          "const": "not_assessed"
+        }
+      },
+      "required": [
+        "currency",
+        "order_total",
+        "line_totals",
+        "payment",
+        "credit_exposure",
+        "settlement"
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "source_requires_review",
+              "buyer_mapping_missing",
+              "buyer_mapping_stale",
+              "company_mapping_missing",
+              "company_reference_unavailable",
+              "location_mapping_missing",
+              "location_reference_unavailable",
+              "shipping_location_not_allowed",
+              "sku_missing",
+              "item_not_found",
+              "item_inactive",
+              "item_ambiguous",
+              "unit_mapping_not_proved",
+              "line_coverage_incomplete"
+            ]
+          },
+          "affected_line_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 500
+          }
+        },
+        "required": [
+          "code",
+          "affected_line_count"
+        ]
+      },
+      "maxItems": 14
+    },
+    "review_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "line_totals_not_interpreted",
+              "delivery_date_not_interpreted"
+            ]
+          },
+          "affected_line_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 500
+          }
+        },
+        "required": [
+          "code",
+          "affected_line_count"
+        ]
+      },
+      "maxItems": 2
+    },
+    "not_assessed": {
+      "const": [
+        "upstream_freshness",
+        "payment",
+        "credit_exposure",
+        "inventory",
+        "settlement",
+        "full_intake",
+        "business_acceptance"
+      ]
+    },
+    "preparation_performed": {
+      "const": false
+    },
+    "business_effects_accepted": {
+      "const": false
+    },
+    "original_source_unchanged": {
+      "const": true
+    },
+    "import_job_input_unchanged": {
+      "const": true
+    }
+  },
+  "required": [
+    "purpose",
+    "source_binding",
+    "observed_at",
+    "output_digest",
+    "buyer",
+    "company",
+    "location",
+    "source_interpretation",
+    "coverage",
+    "lines",
+    "financial",
+    "blockers",
+    "review_issues",
+    "not_assessed",
+    "preparation_performed",
+    "business_effects_accepted",
+    "original_source_unchanged",
+    "import_job_input_unchanged"
+  ]
+}

@@ -4539,8 +4539,15 @@ def _intake_batch_status(session, tenant_id, arguments):
 
 
 from reality.tools import shopify_buyer_mapping as _buyer_mapping_tools
+from reality.tools.shopify_intake_preflight import read as _shopify_intake_preflight
 
 TOOLS = {
+    "shopify_source_intake_preflight": Tool(
+        "shopify_source_intake_preflight",
+        "Read exact retained Shopify intake blockers without preparing or accepting effects.",
+        False,
+        _shopify_intake_preflight,
+    ),
     "shopify_source_buyer_candidates": Tool(
         "shopify_source_buyer_candidates",
         "Read bounded existing customers for a retained source.",

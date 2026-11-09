@@ -1,0 +1,116 @@
+{
+  "purpose": "shopify_source_intake_preflight_only/1",
+  "source_binding": {
+    "tenant_id": "ten_synthetic",
+    "source_record_id": "src_synthetic",
+    "import_job_id": "imp_synthetic",
+    "source_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source_version": 1,
+    "external_id": "1004",
+    "order_id": "gid://shopify/Order/1004",
+    "order_label": "#1004",
+    "shop": "pilot.myshopify.com",
+    "query_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "observed_at": "2026-11-09T19:00:00+00:00",
+  "buyer": {
+    "status": "verified",
+    "mapping": {
+      "mapping_state": "applied_to_source",
+      "customer": {
+        "party_id": "pty_existing",
+        "label": "Müller GmbH",
+        "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "approval_source_record_id": "src_approval",
+      "review_id": "act_review",
+      "review_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "current_basis": {
+        "source_current": true,
+        "customer_current": true
+      },
+      "remaining_review": "full_intake_review_not_prepared"
+    }
+  },
+  "company": {
+    "status": "missing",
+    "record_id": null,
+    "label": null,
+    "digest": null
+  },
+  "location": {
+    "status": "missing",
+    "record_id": null,
+    "label": null,
+    "digest": null
+  },
+  "source_interpretation": {
+    "status": "supported",
+    "reason_codes": []
+  },
+  "coverage": {
+    "scope": "retained_selected_entity",
+    "line_count": 1,
+    "returned_line_count": 1,
+    "lines_complete": true
+  },
+  "lines": [
+    {
+      "source_line_id": "gid://shopify/LineItem/41",
+      "sku": "BIKE-LIGHT",
+      "quantity": "2",
+      "item_status": "matched",
+      "item_id": "itm_existing",
+      "item_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "stock_unit": "pcs",
+      "source_unit": null,
+      "unit_status": "not_interpreted"
+    }
+  ],
+  "financial": {
+    "currency": "EUR",
+    "order_total": "10.00",
+    "line_totals": "not_interpreted",
+    "payment": "not_assessed",
+    "credit_exposure": "not_assessed",
+    "settlement": "not_assessed"
+  },
+  "blockers": [
+    {
+      "code": "company_mapping_missing",
+      "affected_line_count": 0
+    },
+    {
+      "code": "location_mapping_missing",
+      "affected_line_count": 0
+    },
+    {
+      "code": "unit_mapping_not_proved",
+      "affected_line_count": 1
+    }
+  ],
+  "review_issues": [
+    {
+      "code": "line_totals_not_interpreted",
+      "affected_line_count": 1
+    },
+    {
+      "code": "delivery_date_not_interpreted",
+      "affected_line_count": 0
+    }
+  ],
+  "not_assessed": [
+    "upstream_freshness",
+    "payment",
+    "credit_exposure",
+    "inventory",
+    "settlement",
+    "full_intake",
+    "business_acceptance"
+  ],
+  "preparation_performed": false,
+  "business_effects_accepted": false,
+  "original_source_unchanged": true,
+  "import_job_input_unchanged": true,
+  "output_digest": "3188692658878fe494ff7a9808193836a7c84d0f6c6d9fd7aeea58e9ac500a5a"
+}

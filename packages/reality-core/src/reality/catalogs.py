@@ -66,6 +66,9 @@ from reality.services import (
     shopify_buyer_mapping as shopify_buyer_mapping_service_module,
 )
 from reality.services import shopify_graphql as shopify_graphql_service_module
+from reality.services import (
+    shopify_intake_preflight as shopify_intake_preflight_service_module,
+)
 from reality.services import stock_blocks as stock_block_service_module
 from reality.services import stock_counts as stock_count_service_module
 from reality.services import supplier_item_numbers as supplier_item_service_module
@@ -228,6 +231,7 @@ from reality.services import costing as costing_service_module
 
 TENANT_SERVICE_MODULES = {
     "reality.services.shopify_graphql": shopify_graphql_service_module,
+    "reality.services.shopify_intake_preflight": shopify_intake_preflight_service_module,
     "reality.services.shopify_buyer_mapping": shopify_buyer_mapping_service_module,
     "reality.services.intake": intake_service_module,
     "reality.services.intake_batches": intake_batch_service_module,
@@ -1205,6 +1209,7 @@ def _service(name: str) -> Any:
     # Spec 299: only what these modules define, never a name they import.
     for module in (
         shopify_graphql_service_module,
+        shopify_intake_preflight_service_module,
         shopify_buyer_mapping_service_module,
         intake_service_module,
         intake_batch_service_module,

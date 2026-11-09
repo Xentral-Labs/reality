@@ -235,6 +235,7 @@ angegeben.
 | [`correct_manual_document`](#command-correct_manual_document)                     | Correct manual document evidence              | Belege, Quellen & Facts | `document_correct_propose`, `document_lines_correct_propose`                                                                                                                                 | Web · API · MCP · Chat                  |
 | [`create_source_capability`](#command-create_source_capability)                   | Define source capability                      | Belege, Quellen & Facts | `source_capability_create_propose`, `source_capability_lifecycle_propose`                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`create_source_system`](#command-create_source_system)                           | Define source system                          | Belege, Quellen & Facts | `source_system_create_propose`, `source_system_lifecycle_propose`                                                                                                                            | CLI · Web · API · MCP · Chat            |
+| [`shopify_source_intake_preflight`](#command-shopify_source_intake_preflight)     | Explain retained Shopify intake requirements  | Belege, Quellen & Facts | `shopify_source_intake_preflight`                                                                                                                                                            | MCP                                     |
 | [`enqueue_source`](#command-enqueue_source)                                       | Ingest arbitrary source                       | Belege, Quellen & Facts | `source_ingest_propose`, `source_record_ingest_propose`                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`install_connector_shell`](#command-install_connector_shell)                     | Install mock connector shell                  | Belege, Quellen & Facts | `connector_install_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`observe_fact`](#command-observe_fact)                                           | Observe fact                                  | Belege, Quellen & Facts | `fact_observe_propose`                                                                                                                                                                       | Web · MCP · Chat                        |
@@ -7881,6 +7882,72 @@ source_system_lifecycle_propose source_system_id is_active
 | `is_active`        | `boolean` | ja      | Whether the record remains selectable for new operational work. | —        |
 
 **Siehe auch:** Command [`create_source_system`](./commands#command-create_source_system)
+
+### `shopify_source_intake_preflight` — Explain retained Shopify intake requirements {#command-shopify_source_intake_preflight}
+
+Diagnoses exact retained source and existing mapping evidence without preparation, acceptance or
+broad readiness claims.
+
+**Aufruf**
+
+```text
+shopify_source_intake_preflight source_record_id import_job_id source_hash source_version
+```
+
+**Erreichbar über:** MCP
+
+**Wirkung:** Liest: `source_stream`, `source_record`, `import_job`, `action`, `party`, `party_role`,
+`item`, `location`, `document` · Schreibt: —
+
+**Siehe auch:** Agent Tool
+[`shopify_source_intake_preflight`](./commands#tool-shopify_source_intake_preflight)
+
+#### `shopify_source_intake_preflight` — Explain retained Shopify intake requirements {#tool-shopify_source_intake_preflight}
+
+Read only the exact retained source/job/hash/integer version and verified buyer mapping, existing
+company/location and bounded SKU/item/unit evidence. No mapping override, preparation, acceptance or
+provider call. Selected coverage unknowns do not prove missing upstream facts. Payment, credit,
+inventory and settlement remain unassessed.
+
+**Aufruf**
+
+```text
+shopify_source_intake_preflight source_record_id import_job_id source_hash source_version
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage                      | Art                        | Standard |
+| ------------------------------------- | -------------------------- | -------- |
+| `MCP shopify_source_intake_preflight` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Explain missing existing mappings and selected interpretation evidence for one exact retained
+Shopify source without preparation or acceptance.
+
+**Verwenden, wenn**
+
+- A retained source needs an honest diagnosis after existing buyer review.
+
+**Nicht verwenden, wenn**
+
+- Approving mappings or orders
+- or claiming stock/payment/settlement readiness.
+
+**Parameter**
+
+| Name               | Typ       | Pflicht | Beschreibung                                                                 | Standard |
+| ------------------ | --------- | ------- | ---------------------------------------------------------------------------- | -------- |
+| `source_record_id` | `string`  | ja      | Opaque identity of the immutable source record supporting this typed record. | —        |
+| `import_job_id`    | `string`  | ja      | —                                                                            | —        |
+| `source_hash`      | `string`  | ja      | —                                                                            | —        |
+| `source_version`   | `integer` | ja      | —                                                                            | —        |
+
+**Siehe auch:** Command
+[`shopify_source_intake_preflight`](./commands#command-shopify_source_intake_preflight)
 
 ### `enqueue_source` — Ingest arbitrary source {#command-enqueue_source}
 

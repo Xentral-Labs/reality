@@ -1062,6 +1062,8 @@ Nachweis, Quelle
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Voraussetzungen der Shopify-Quellinterpretation anzeigen](./commands#command-shopify_source_intake_preflight)
+  (`shopify_source_intake_preflight`)
 - [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)

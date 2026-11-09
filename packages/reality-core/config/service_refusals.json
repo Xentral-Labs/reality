@@ -2945,6 +2945,9 @@
     },
     "shopify_buyer_mapping_request_changed": {
       "message": "This buyer-mapping request was already used for different review terms."
+    },
+    "shopify_intake_preflight_unavailable": {
+      "message": "This exact retained Shopify source cannot provide a current bounded intake preflight. Read the source and existing mappings again; this read does not prepare or accept business effects."
     }
   },
   "terms": [

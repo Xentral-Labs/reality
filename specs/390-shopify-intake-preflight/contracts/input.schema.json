@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "source_record_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "import_job_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "source_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_version": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "source_record_id",
+    "import_job_id",
+    "source_hash",
+    "source_version"
+  ]
+}

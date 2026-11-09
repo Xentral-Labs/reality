@@ -120,3 +120,30 @@ proposal, customer creation, payment, fulfillment or inventory effect follows.
 The private host policy defaults to deny and pins one exact source/job/order/shop
 and Main public issuer authority. The version-pinned schema99 overlay supports
 only this mapping/receipt relationship, not the newer full intake subsystem.
+
+## Read-only retained intake preflight (Spec390)
+
+`shopify_source_intake_preflight` reads one exact current source/job/hash/integer
+version. It recognizes the canonical reviewed buyer and diagnoses only retained
+existing company/location references plus bounded exact active SKU/item evidence.
+It neither chooses missing references nor accepts mapping overrides. First-order
+interpretation remains unavailable when the external Shopify identity already has
+an accepted sales order, using the same guard as canonical preparation.
+
+Reference fingerprints bind the stable fields this report observes: identity,
+label, active state and source link, company roles/type, location stock capability
+and parent/type, or item SKU/unit/type/tracking. They are read fingerprints, not
+new master versions or acceptance tokens. Selected master candidates and source/
+buyer identity are checked again before return; changes refuse a mixed report.
+
+A stock unit is not a received sales-unit statement. Unit, line-total and delivery
+interpretation gaps describe selected/projection coverage, not missing facts in
+the upstream order. Payment, credit exposure, stock, settlement and full intake
+remain unassessed. At most100 lines and explicit selected-entity coverage are
+returned; reports over24000 UTF-8 bytes refuse rather than silently remove facts.
+The semantic SHA256 digest uses sorted compact JSON with literal Unicode UTF-8,
+no normalization, excluding observation time and the digest itself.
+
+The read issues no persistent write, preparation, proposal, interpretation outcome
+or accepted business effect. Existing schema99 requires a separately hash-pinned
+read-only overlay and proof; a current-code PR alone is not deployment evidence.
