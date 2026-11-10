@@ -1,0 +1,65 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "source_record_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Source Record Id",
+      "type": "string"
+    },
+    "import_job_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Import Job Id",
+      "type": "string"
+    },
+    "source_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Hash",
+      "type": "string"
+    },
+    "source_version": {
+      "exclusiveMinimum": 0,
+      "title": "Source Version",
+      "type": "integer"
+    },
+    "family": {
+      "enum": [
+        "company",
+        "location",
+        "item"
+      ],
+      "title": "Family",
+      "type": "string"
+    },
+    "query": {
+      "default": "",
+      "maxLength": 120,
+      "title": "Query",
+      "type": "string"
+    },
+    "record_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Record Id"
+    }
+  },
+  "required": [
+    "source_record_id",
+    "import_job_id",
+    "source_hash",
+    "source_version",
+    "family"
+  ],
+  "title": "ReferenceLookupInput",
+  "type": "object"
+}

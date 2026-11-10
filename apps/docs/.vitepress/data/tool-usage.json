@@ -1218,6 +1218,7 @@
         "command:reference_history",
         "command:transaction_matrix",
         "command:list_accounts",
+        "command:shopify_source_reference_lookup",
         "command:buyer_mapping_status",
         "command:company_currency_state",
         "command:credit_exposure",
@@ -1426,6 +1427,7 @@
         "command:preview_document",
         "command:list_source_mappings",
         "command:source_mapping_history",
+        "command:shopify_source_reference_lookup",
         "command:shopify_source_intake_preflight",
         "command:purchase_match",
         "command:credit_exposure",
@@ -2520,6 +2522,93 @@
       "links": ["command:review_shopify_order"],
       "label_de": "Review retained Shopify order interpretation",
       "resources": ["order"]
+    },
+    {
+      "id": "tool:shopify_source_reference_lookup",
+      "kind": "tool",
+      "key": "shopify_source_reference_lookup",
+      "label": "Existing references for a retained Shopify source",
+      "area": "finance",
+      "summary": "Read bounded active company, shipping-compatible location or item candidates and exact canonical digests for one current source/job/hash/version. Explicit selection remains a human or separately reviewed mandate decision. Observed units do not approve quantity semantics. No writes, preparation or acceptance.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "shopify_source_reference_lookup source_record_id import_job_id source_hash source_version family [query] [record_id]",
+      "parameters": [
+        {
+          "name": "source_record_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable source record supporting this typed record.",
+          "depth": 0
+        },
+        {
+          "name": "import_job_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_hash",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_version",
+          "type": "integer",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0,
+          "enum": ["company", "location", "item"]
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "required": false,
+          "description": "Optional invoice-number search within matching same-party credit targets.",
+          "depth": 0,
+          "default": ""
+        },
+        {
+          "name": "record_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the master-data record whose lifecycle is being changed.",
+          "depth": 0,
+          "default": null
+        }
+      ],
+      "guidance": {
+        "purpose": "Observe active existing company, location and item candidates for one exact retained Shopify source.",
+        "use_when": ["An explicit reference selection needs canonical current meaning."],
+        "do_not_use_when": ["Creating master data or accepting mappings and orders."],
+        "limitations": [
+          "At most20 candidates; duplicate SKU choices remain explicit and observed units do not establish quantity semantics."
+        ],
+        "empty_result": "No qualified matching active record; does not prove absence outside the requested selection.",
+        "freshness": "Exact source and bounded candidate fingerprints are rechecked before return."
+      },
+      "read_modes": [
+        {
+          "query": "MCP shopify_source_reference_lookup",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "shopify_source_reference_lookup",
+      "projections": [],
+      "links": ["command:shopify_source_reference_lookup"],
+      "label_de": "Existing references for a retained Shopify source",
+      "resources": ["accounting", "source"]
     },
     {
       "id": "tool:shopify_source_intake_preflight",
@@ -29076,6 +29165,47 @@
       "links": ["tool:shopify_source_order_review"],
       "label_de": "Gespeicherte Shopify-Auftragsinterpretation prüfen",
       "resources": ["order"]
+    },
+    {
+      "id": "command:shopify_source_reference_lookup",
+      "kind": "command",
+      "key": "shopify_source_reference_lookup",
+      "label": "Existing references for a retained Shopify source",
+      "area": "finance",
+      "summary": "Observes bounded qualified existing references without choosing mappings or accepting business effects.",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "reads": [
+        "source_stream",
+        "source_record",
+        "import_job",
+        "party",
+        "party_role",
+        "item",
+        "location"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_reference_lookup"],
+      "synopses": [
+        "shopify_source_reference_lookup source_record_id import_job_id source_hash source_version family [query] [record_id]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Observe active existing company, location and item candidates for one exact retained Shopify source.",
+        "use_when": ["An explicit reference selection needs canonical current meaning."],
+        "do_not_use_when": ["Creating master data or accepting mappings and orders."],
+        "limitations": [
+          "At most20 candidates; duplicate SKU choices remain explicit and observed units do not establish quantity semantics."
+        ],
+        "empty_result": "No qualified matching active record; does not prove absence outside the requested selection.",
+        "freshness": "Exact source and bounded candidate fingerprints are rechecked before return."
+      },
+      "links": ["tool:shopify_source_reference_lookup"],
+      "label_de": "Vorhandene Referenzen zur Shopify-Quelle anzeigen",
+      "resources": ["accounting", "source"]
     },
     {
       "id": "command:shopify_source_intake_preflight",

@@ -1,0 +1,233 @@
+{
+  "$defs": {
+    "KnownRoles": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "known",
+          "title": "Kind",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "values"
+      ],
+      "title": "KnownRoles",
+      "type": "object"
+    },
+    "ReferenceCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "active": {
+          "const": true,
+          "title": "Active",
+          "type": "boolean"
+        },
+        "roles": {
+          "discriminator": {
+            "mapping": {
+              "known": "#/$defs/KnownRoles",
+              "unknown": "#/$defs/UnknownRoles"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/KnownRoles"
+            },
+            {
+              "$ref": "#/$defs/UnknownRoles"
+            }
+          ],
+          "title": "Roles"
+        },
+        "stockUnit": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stockunit"
+        },
+        "sourceLineIds": {
+          "items": {
+            "pattern": "^gid://shopify/LineItem/[0-9]{1,32}$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Sourcelineids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "digest",
+        "active",
+        "roles",
+        "stockUnit",
+        "sourceLineIds"
+      ],
+      "title": "ReferenceCandidate",
+      "type": "object"
+    },
+    "SourceBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "source_record_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Source Record Id",
+          "type": "string"
+        },
+        "import_job_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Import Job Id",
+          "type": "string"
+        },
+        "source_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Hash",
+          "type": "string"
+        },
+        "source_version": {
+          "exclusiveMinimum": 0,
+          "title": "Source Version",
+          "type": "integer"
+        },
+        "tenant_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "external_id": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "External Id",
+          "type": "string"
+        },
+        "order_id": {
+          "pattern": "^gid://shopify/Order/[0-9]{1,32}$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "order_label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Order Label",
+          "type": "string"
+        },
+        "shop": {
+          "pattern": "^[a-z0-9][a-z0-9-]{0,62}\\.myshopify\\.com$",
+          "title": "Shop",
+          "type": "string"
+        },
+        "query_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Query Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_id",
+        "import_job_id",
+        "source_hash",
+        "source_version",
+        "tenant_id",
+        "external_id",
+        "order_id",
+        "order_label",
+        "shop",
+        "query_digest"
+      ],
+      "title": "SourceBinding",
+      "type": "object"
+    },
+    "UnknownRoles": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "UnknownRoles",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "purpose": {
+      "const": "shopify_source_reference_lookup_only/1",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "source_binding": {
+      "$ref": "#/$defs/SourceBinding"
+    },
+    "observed_at": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Observed At",
+      "type": "string"
+    },
+    "records": {
+      "items": {
+        "$ref": "#/$defs/ReferenceCandidate"
+      },
+      "maxItems": 20,
+      "title": "Records",
+      "type": "array"
+    },
+    "hasMore": {
+      "title": "Hasmore",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "purpose",
+    "source_binding",
+    "observed_at",
+    "records",
+    "hasMore"
+  ],
+  "title": "ReferenceLookupResult",
+  "type": "object"
+}

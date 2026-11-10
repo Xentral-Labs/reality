@@ -4542,8 +4542,15 @@ from reality.tools import shopify_buyer_mapping as _buyer_mapping_tools
 from reality.tools import shopify_order_acceptance as _shopify_acceptance_tools
 from reality.tools.shopify_intake_preflight import read as _shopify_intake_preflight
 from reality.tools.shopify_order_proposal import review as _shopify_order_review
+from reality.tools.shopify_reference_lookup import read as _shopify_reference_lookup
 
 TOOLS = {
+    "shopify_source_reference_lookup": Tool(
+        "shopify_source_reference_lookup",
+        "Read bounded existing source-bound reference candidates without choosing mappings.",
+        False,
+        _shopify_reference_lookup,
+    ),
     "shopify_source_order_acceptance_review": Tool(
         "shopify_source_order_acceptance_review",
         "Read exact source-backed successor meaning without approving it.",
