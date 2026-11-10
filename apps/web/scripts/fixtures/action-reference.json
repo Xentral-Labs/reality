@@ -546,6 +546,13 @@
       "effect": "Restores immutable order proposal and marks changed evidence stale without application or refresh."
     },
     {
+      "name": "Existing references for a retained Shopify source",
+      "service": "shopify_source_reference_lookup",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "effect": "Observes bounded qualified existing references without choosing mappings or accepting business effects."
+    },
+    {
       "name": "Explain retained Shopify intake requirements",
       "service": "shopify_source_intake_preflight",
       "mode": "read",
