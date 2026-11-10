@@ -288,6 +288,19 @@ export function MCPAccess({
                 <button
                   type="button"
                   className="br-btn"
+                  onClick={() =>
+                    setSelected([
+                      ...new Set(
+                        tools.filter((tool) => tool.access !== "confirm").map((tool) => tool.name),
+                      ),
+                    ])
+                  }
+                >
+                  {t("Select read and prepare tools")}
+                </button>
+                <button
+                  type="button"
+                  className="br-btn"
                   onClick={() => setSelected([...new Set(tools.map((tool) => tool.name))])}
                 >
                   {t("Select full access")}
