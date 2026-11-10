@@ -29962,3 +29962,17 @@ Object.assign(dictionaries.es, {
   "This exact Shopify order acceptance is unavailable or its source, review or authority changed. Inspect the retained review and receipt before deciding.":
     "Esta aceptación exacta del pedido de Shopify no está disponible o su fuente, revisión o autorización ha cambiado. Revisa la evaluación y el comprobante guardados antes de decidir.",
 });
+
+// Spec393: a reference read cannot grant mapping or order authority.
+Object.assign(dictionaries.de, {
+  "Existing references for this exact Shopify source are unavailable or changed. Read the retained source and candidates again; this lookup grants no mapping or order authority.":
+    "Vorhandene Referenzen für diese genaue Shopify-Quelle sind nicht verfügbar oder haben sich geändert. Lies die gespeicherte Quelle und die Kandidaten erneut; diese Suche erteilt keine Berechtigung zur Zuordnung oder Auftragsübernahme.",
+});
+Object.assign(dictionaries.nl, {
+  "Existing references for this exact Shopify source are unavailable or changed. Read the retained source and candidates again; this lookup grants no mapping or order authority.":
+    "Bestaande referenties voor deze exacte Shopify-bron zijn niet beschikbaar of gewijzigd. Lees de bewaarde bron en kandidaten opnieuw; deze zoekopdracht geeft geen bevoegdheid voor toewijzing of orderacceptatie.",
+});
+Object.assign(dictionaries.es, {
+  "Existing references for this exact Shopify source are unavailable or changed. Read the retained source and candidates again; this lookup grants no mapping or order authority.":
+    "Las referencias existentes para esta fuente exacta de Shopify no están disponibles o han cambiado. Vuelve a leer la fuente conservada y los candidatos; esta consulta no autoriza asignaciones ni la aceptación de pedidos.",
+});

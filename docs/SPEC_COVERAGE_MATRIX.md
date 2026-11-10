@@ -2828,3 +2828,8 @@ Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_per
 
 - `specs/392-shopify-order-acceptance/spec.md`: explicit source-backed simple profile, current canonical calendar/credit and exact human/standing external authority, no old99 application.
 - `packages/reality-core/tests/test_shopify_order_acceptance.py`: FR-001..010/DR-001..003 source-value comparisons/absence and held legacy behavior; transactional authority/replay/rollback cases added before their implementation.
+
+## Shopify source reference lookup (393)
+- Feature: specs/393-shopify-reference-lookup/spec.md
+- Tests: packages/reality-core/tests/test_shopify_reference_lookup.py
+- FR001-008: exact-source existing reference observations, no writes or mapping authority.

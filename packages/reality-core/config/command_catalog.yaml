@@ -1349,6 +1349,13 @@ commands:
     reads: [source_record, source_stream, import_job, action, party, party_role, location, item, document]
     writes: []
     effect: Restores immutable order proposal and marks changed evidence stale without application or refresh.
+  - name: Existing references for a retained Shopify source
+    service: shopify_source_reference_lookup
+    mode: read
+    adapters: [MCP]
+    reads: [source_stream, source_record, import_job, party, party_role, item, location]
+    writes: []
+    effect: Observes bounded qualified existing references without choosing mappings or accepting business effects.
   - name: Explain retained Shopify intake requirements
     service: shopify_source_intake_preflight
     mode: read
@@ -2604,6 +2611,24 @@ capability_guidance:
     unknown_when: [Selected financial or calendar meaning is not interpreted.]
     next_steps: [Resolve meaningful decisions in Now; later use a separately authorized canonical acceptance path.]
     examples: {use: [{scenario: Inspect explicit unit mapping before approval., reason: Proposed interpretation is distinct from received evidence and acceptance.}], do_not_use: [{scenario: Execute with a buyer-only proof., reason: Buyer mapping proof grants no order acceptance.}]}
+  shopify_source_reference_lookup:
+    kind: read
+    application_tool: shopify_source_reference_lookup
+    purpose: Observe active existing company, location and item candidates for one exact retained Shopify source.
+    use_when: [An explicit reference selection needs canonical current meaning.]
+    do_not_use_when: [Creating master data or accepting mappings and orders.]
+    required_context: [Exact source/job/hash/integer version and requested family.]
+    data_basis: [source_record, source_stream, import_job, party, party_role, item, location]
+    limitations: [At most20 candidates; duplicate SKU choices remain explicit and observed units do not establish quantity semantics.]
+    freshness: Exact source and bounded candidate fingerprints are rechecked before return.
+    empty_result: No qualified matching active record; does not prove absence outside the requested selection.
+    refusal_behavior: Foreign or changed source and mixed-current master evidence refuse without disclosure.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Current bounded qualified reference observations.], does_not_prove: [Approved mapping, complete intake or business acceptance.]}
+    unknown_when: [No current exact retained source basis is available.]
+    next_steps: [Explicitly select existing references through a separately reviewed proposal.]
+    examples: {use: [{scenario: Inspect duplicate SKU candidates before selecting an item., reason: Ambiguity must stay explicit.}], do_not_use: [{scenario: Automatically choose the first item., reason: Read availability is not mapping authority.}]}
   shopify_source_intake_preflight:
     kind: read
     application_tool: shopify_source_intake_preflight
@@ -7516,6 +7541,7 @@ agent_command_coverage:
   apply_prepared_intake: {classification: eligible, tools: [proposal_approve_and_execute, intake_agent_review_and_execute, intake_agent_batch_review_and_queue]}
   prepare_shopify_order: {classification: eligible, tools: [shopify_source_order_prepare]}
   review_shopify_order: {classification: eligible, tools: [shopify_source_order_review]}
+  shopify_source_reference_lookup: {classification: eligible, tools: [shopify_source_reference_lookup]}
   shopify_source_intake_preflight: {classification: eligible, tools: [shopify_source_intake_preflight]}
   capture_shopify_graphql_source: {classification: eligible, tools: [shopify_order_graphql_capture]}
   buyer_candidates: {classification: eligible, tools: [shopify_source_buyer_candidates]}

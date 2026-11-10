@@ -1,0 +1,33 @@
+{
+  "purpose": "shopify_source_reference_lookup_only/1",
+  "source_binding": {
+    "source_record_id": "src_a1aedd5e3d",
+    "import_job_id": "imp_49457b88d6",
+    "source_hash": "a448cad67521330453eb4ec7feda341441e65cc3b6cf93b306423fdc6a6463d4",
+    "source_version": 1,
+    "tenant_id": "ten_fa303655cf",
+    "external_id": "1004",
+    "order_id": "gid://shopify/Order/1004",
+    "order_label": "#1004",
+    "shop": "pilot.myshopify.com",
+    "query_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "observed_at": "2026-11-10T07:50:53.269433+00:00",
+  "records": [
+    {
+      "id": "pty_0736d24a10",
+      "label": "Acme Bikes GmbH",
+      "digest": "1aa5a2bcfc87f7862ebe1b317dcb5e3aa14f3662c520309125b18c828c8e9a0d",
+      "active": true,
+      "roles": {
+        "kind": "known",
+        "values": [
+          "company"
+        ]
+      },
+      "stockUnit": null,
+      "sourceLineIds": []
+    }
+  ],
+  "hasMore": false
+}

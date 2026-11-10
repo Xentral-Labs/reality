@@ -14,6 +14,7 @@ explicit_operations:
   - reality.services.shopify_order_proposal:prepare_shopify_order
   - reality.services.shopify_order_proposal:review_shopify_order
   - reality.services.shopify_source_reads:accepted_order_exists
+  - reality.services.shopify_reference_lookup:shopify_source_reference_lookup
   - reality.services.shopify_intake_preflight:shopify_source_intake_preflight
   - reality.services.shopify_buyer_mapping:buyer_candidates
   - reality.services.shopify_buyer_mapping:prepare_buyer_mapping
@@ -1565,3 +1566,15 @@ families:
       - id: tests/test_shopify_order_acceptance.py::test_foreign_successor_is_non_disclosing
         assertion: mutation_relationship
         operations: *shopify_order_acceptance_operations
+
+  - key: shopify_source_reference_lookup
+    description: Existing reference candidates remain exact-source and tenant scoped with no writes.
+    classification: record_read
+    authority: 393/FR-001, 393/FR-003, 393/FR-007
+    operations: &shopify_reference_lookup_operations
+      - tool:shopify_source_reference_lookup
+      - reality.services.shopify_reference_lookup:shopify_source_reference_lookup
+    evidence:
+      - id: tests/test_shopify_reference_lookup.py::test_bounds_tenant_and_source_guards
+        assertion: record_read
+        operations: *shopify_reference_lookup_operations
