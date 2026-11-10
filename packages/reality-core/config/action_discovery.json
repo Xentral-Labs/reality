@@ -336,7 +336,8 @@
     "shipping_supporting_orders": "tracking",
     "operations_cockpit_activity": "tracking",
     "operations_cockpit_agents": "tracking",
-    "operational_case_register": "orders"
+    "operational_case_register": "orders",
+    "capture_shopify_graphql_source": "intake"
   },
   "entries": [
     {

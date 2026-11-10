@@ -967,6 +967,10 @@ def _prepare_intake(
         from reality.services.shopify_intake import prepare_order
 
         plan = prepare_order(session, tenant_id, source, job)
+    elif (source.source_system, source.source_type) == ("shopify", "order_graphql"):
+        from reality.services.shopify_graphql import prepare_graphql_order
+
+        plan = prepare_graphql_order(session, tenant_id, source, job)
     elif (source.source_system, source.source_type) == ("shopify", "refund"):
         from reality.services.shop_refunds import prepare_refund
 

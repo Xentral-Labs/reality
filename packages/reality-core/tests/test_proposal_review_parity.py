@@ -18,7 +18,10 @@ def test_every_mcp_proposal_has_one_web_review_class():
     definitions = tool_definitions(access=("propose",))
     bindings = proposal_bindings()
     assert len(definitions) >= 102
-    assert set(bindings) == {definition.name for definition in definitions}
+    assert set(bindings) == {definition.name for definition in definitions} - {
+        "shopify_order_graphql_capture"
+    }
+    assert "shopify_order_graphql_capture" not in bindings
     assert {classify_proposal(name, {}) for name in bindings.values()} <= {
         "import",
         "reference",
@@ -99,7 +102,9 @@ def test_web_list_and_review_endpoint_expose_the_same_routing(session, business)
             reviewed = client.get(f"{base}/{proposal.id}/review")
             assert reviewed.status_code == 200
             assert row["review_kind"] == reviewed.json()["review_kind"] == "common"
-            assert row["review_label"] == reviewed.json()["label"] == "Payment term create"
+            assert (
+                row["review_label"] == reviewed.json()["label"] == "Payment term create"
+            )
             assert reviewed.json()["input"]["records"][0]["code"] == "NET30"
     finally:
         app.dependency_overrides.clear()

@@ -2924,6 +2924,12 @@
     },
     "shipping_observation_cursor_invalid": {
       "message": "Provide a cursor from this exact shipping query."
+    },
+    "shopify_graphql_capture_invalid": {
+      "message": "Shopify GraphQL capture requires one bounded original order entity with valid identity and update time."
+    },
+    "shopify_graphql_mapping_changed": {
+      "message": "The retained Shopify source job has different or missing frozen mappings. Resolve its mapping through a separate reviewed path; capture replay does not replace it."
     }
   },
   "terms": [

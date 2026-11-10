@@ -32,6 +32,7 @@ from reality.tools.application import (
 from reality.tools.application import (
     _intake_agent_review_submit as _agent_review_submit,
 )
+from reality.tools.shopify_graphql import capture as _shopify_graphql_capture
 
 ToolAccess = Literal["read", "propose", "confirm"]
 ToolHandler = Callable[[Session, str, dict[str, Any]], Any]
@@ -752,11 +753,26 @@ PAGE_PROPERTIES = {
     },
 }
 
+from reality.services.shopify_graphql import CaptureInput as ShopifyGraphQLCaptureInput
+
 MCP_TOOL_CATALOG = (
     MCPToolDefinition(
-        "operational_case_status", "Operational case status",
+        "shopify_order_graphql_capture",
+        "Capture original Shopify order evidence",
+        "Permission-scoped original selected order capture only, not proposal approval or business execution. Supply unmodified data.order, never a summary or reconstructed REST payload. Derive Shopify identity/update time from the entity. Optional company/customer/location IDs must be explicitly reviewed existing same-company references. Missing buyer remains a named retained review refusal during later intake preparation. Returns immutable source/job IDs; no payment, fulfillment, master data or accepted business effects. Follow with separately permitted intake_prepare_propose; never use generic approval to compensate for missing data.",
+        "propose",
+        "Sources",
+        ShopifyGraphQLCaptureInput.model_json_schema(),
+        _shopify_graphql_capture,
+    ),
+    MCPToolDefinition(
+        "operational_case_status",
+        "Operational case status",
         "Read default coordination migration, coverage readiness and platform rollout provenance.",
-        "read", "Operational cases", _object_schema({}), _read("operational_case_status"),
+        "read",
+        "Operational cases",
+        _object_schema({}),
+        _read("operational_case_status"),
     ),
     MCPToolDefinition(
         "operational_case_list",
@@ -5130,10 +5146,15 @@ def tool_definitions(
 
 
 def proposal_bindings() -> dict[str, str]:
-    """Return the public proposal name to canonical application-tool binding."""
+    """Return generic Action factories, excluding the exact source-capture contract.
+
+    Capture persists evidence directly and does not create an approvable Action.
+    Every other propose handler must still declare its application binding.
+    """
     return {
         definition.name: str(definition.handler.application_name)  # type: ignore[attr-defined]
         for definition in tool_definitions(access=("propose",))
+        if definition.name != "shopify_order_graphql_capture"
     }
 
 

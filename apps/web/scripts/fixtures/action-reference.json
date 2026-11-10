@@ -504,6 +504,13 @@
       "effect": "Declares which upstream type a source may provide and the operational target it is intended to produce."
     },
     {
+      "name": "Capture original Shopify GraphQL order source",
+      "service": "capture_shopify_graphql_source",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "effect": "Retains one unmodified selected Shopify order entity and its interpretation job without accepting business effects or granting general proposal approval."
+    },
+    {
       "name": "Ingest arbitrary source",
       "service": "enqueue_source",
       "related_services": ["process_import_job", "retry_import_job"],

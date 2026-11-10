@@ -23,7 +23,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
-| [Beleg und Quellsystem](#resource-source)                      | 3      | 18       | 2         |
+| [Beleg und Quellsystem](#resource-source)                      | 3      | 19       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 5        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
@@ -1029,6 +1029,8 @@ Nachweis, Quelle
 - [Quellsystem anlegen](./commands#command-create_source_system) (`create_source_system`)
 - [Quellfähigkeit festlegen](./commands#command-create_source_capability)
   (`create_source_capability`)
+- [Originalen Shopify-Auftrag als Quelle erfassen](./commands#command-capture_shopify_graphql_source)
+  (`capture_shopify_graphql_source`)
 - [Quelldaten importieren](./commands#command-enqueue_source) (`enqueue_source`)
 - [Manuellen Beleg korrigieren](./commands#command-correct_manual_document)
   (`correct_manual_document`)

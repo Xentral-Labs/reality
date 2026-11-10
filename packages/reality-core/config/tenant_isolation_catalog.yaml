@@ -11,6 +11,8 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.shopify_graphql:capture_shopify_graphql_source
+  - reality.services.shopify_graphql:prepare_graphql_order
   - reality.services.intake:review_intake_original_source
   - reality.services.intake_review:submit_agent_batch_review
   - reality.services.intake_review:grant_review_mandate
@@ -1483,3 +1485,15 @@ families:
       - id: tests/test_agent_email_business_context.py::test_context_refuses_cross_tenant_and_duplicate_memberships
         assertion: mutation_relationship
         operations: [tool:email_dispatch_authorize, tool:email_history]
+
+  - key: shopify_graphql_intake
+    description: Original selected Shopify entities and their preparation remain tenant scoped without acceptance.
+    classification: mutation_relationship
+    authority: 388/FR-002, 388/FR-004, 388/DR-001
+    operations: &shopify_graphql_operations
+      - reality.services.shopify_graphql:capture_shopify_graphql_source
+      - reality.services.shopify_graphql:prepare_graphql_order
+    evidence:
+      - id: tests/test_shopify_graphql_intake.py::test_foreign_mapping_never_prepares_or_exposes_foreign_records
+        assertion: mutation_relationship
+        operations: *shopify_graphql_operations

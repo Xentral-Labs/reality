@@ -29862,3 +29862,23 @@ Object.assign(dictionaries.es, {
   "Shipping deviations cannot be evaluated without a complete daily plan.":
     "No se pueden evaluar desviaciones de envío sin un plan diario completo.",
 });
+
+// Spec 388: preserve the shared refusal presentation in each supported language.
+Object.assign(dictionaries.de, {
+  "Shopify GraphQL capture requires one bounded original order entity with valid identity and update time.":
+    "Für die Shopify-GraphQL-Erfassung ist ein einzelnes, größenbegrenztes originales Auftragsobjekt mit gültiger Identität und Änderungszeit erforderlich.",
+  "The retained Shopify source job has different or missing frozen mappings. Resolve its mapping through a separate reviewed path; capture replay does not replace it.":
+    "Der gespeicherte Shopify-Importauftrag enthält andere oder unvollständige festgelegte Zuordnungen. Kläre seine Zuordnung in einem separaten Prüfablauf; eine erneute Erfassung ersetzt sie nicht.",
+});
+Object.assign(dictionaries.nl, {
+  "Shopify GraphQL capture requires one bounded original order entity with valid identity and update time.":
+    "Voor Shopify GraphQL-vastlegging is één begrensd oorspronkelijk orderobject met een geldige identiteit en wijzigingstijd vereist.",
+  "The retained Shopify source job has different or missing frozen mappings. Resolve its mapping through a separate reviewed path; capture replay does not replace it.":
+    "De opgeslagen Shopify-importtaak heeft andere of ontbrekende vastgelegde koppelingen. Los de koppeling op via een afzonderlijk beoordeeld proces; opnieuw vastleggen vervangt deze niet.",
+});
+Object.assign(dictionaries.es, {
+  "Shopify GraphQL capture requires one bounded original order entity with valid identity and update time.":
+    "La captura GraphQL de Shopify requiere un único objeto de pedido original de tamaño limitado, con identidad y fecha de actualización válidas.",
+  "The retained Shopify source job has different or missing frozen mappings. Resolve its mapping through a separate reviewed path; capture replay does not replace it.":
+    "El trabajo de importación de Shopify conservado tiene asignaciones fijadas distintas o incompletas. Resuelve su asignación mediante un proceso de revisión independiente; repetir la captura no la sustituye.",
+});

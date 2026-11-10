@@ -65,3 +65,36 @@ Commitment per interpreted DocumentLine. These constraints make worker retries s
 
 Tests compare the stored decoded JSON with the complete fixture and verify tenant-local
 idempotency, changed-payload versioning, and no cross-tenant collision.
+
+
+## Original selected GraphQL order intake (spec 388)
+
+`shopify_order_graphql_capture` is a separately permissioned MCP evidence-capture tool.
+It calls `capture_shopify_graphql_source` and canonical `enqueue_source`, hardcodes
+`shopify/order_graphql`, derives the external identity and upstream version time from
+the unchanged original `data.order` JSON entity, and returns source/job identities.
+It accepts no arbitrary source type, no acceptance operation and no generic approval.
+When supplied, acquisition metadata includes the exact shop hostname, API version, query digest, observation time and complete-selected-order coverage; it remains attributed host input, not independent vendor verification.
+The authenticated MCP principal owns the destination tenant; host callers separately
+pin the installed Shopify shop and exact order. Technical response cost/throttle
+extensions are not part of this entity. This is lossless retention of the selected
+entity fields, not the full upstream resource or HTTP envelope.
+
+The supported first-order interpretation requires complete bounded line nodes,
+matching currencies, original/current quantities equal, an uncancelled unfulfilled
+order and explicit existing company/customer/location mappings. The internal projection
+feeds existing reviewed intake without replacing the SourceRecord or original line
+payloads. Received order totals and original unit prices are retained; unstated line
+totals remain unknown. Unknown original fields remain in SourceRecord unchanged.
+
+Call separately permitted `intake_prepare_propose` to prepare the exact business-effect
+proposal. No apply or business effect happens during capture/preparation. Missing buyer
+mapping retains `review_required` plus a named original-source interpretation outcome,
+not an empty fake proposal, invented customer, or new master data. An accepted legacy or
+GraphQL order with the same external identity blocks a second first-order interpretation.
+Unsupported changes require a separate reviewed update route.
+
+An identical source replay returns its original source/job; it does not rewrite frozen
+mapping. Changed or newly supplied mapping on an existing job is refused explicitly.
+A later mapping-resolution flow is separate scope. Raw sources may contain private
+fields and must not be printed into chat merely to demonstrate successful capture.

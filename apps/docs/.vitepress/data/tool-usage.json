@@ -1398,6 +1398,7 @@
         "command:install_connector_shell",
         "command:create_source_system",
         "command:create_source_capability",
+        "command:capture_shopify_graphql_source",
         "command:enqueue_source",
         "command:correct_manual_document",
         "command:record_corrected_document_source",
@@ -2036,6 +2037,100 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:shopify_order_graphql_capture",
+      "kind": "tool",
+      "key": "shopify_order_graphql_capture",
+      "label": "Capture original Shopify order evidence",
+      "area": "orders",
+      "summary": "Permission-scoped original selected order capture only, not proposal approval or business execution. Supply unmodified data.order, never a summary or reconstructed REST payload. Derive Shopify identity/update time from the entity. Optional company/customer/location IDs must be explicitly reviewed existing same-company references. Missing buyer remains a named retained review refusal during later intake preparation. Returns immutable source/job IDs; no payment, fulfillment, master data or accepted business effects. Follow with separately permitted intake_prepare_propose; never use generic approval to compensate for missing data.",
+      "access": "propose",
+      "group": "Sources",
+      "synopsis": "shopify_order_graphql_capture order [company_party_id] [customer_party_id] [location_id] [acquisition]",
+      "parameters": [
+        {
+          "name": "order",
+          "type": "object",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "company_party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the tenant's company Party in an order flow.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "customer_party_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "acquisition",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "acquisition.shop",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "acquisition.api_version",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "acquisition.query_digest",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "acquisition.observed_at",
+          "type": "string",
+          "required": true,
+          "description": "UTC instant at which a source-supported Fact was observed.",
+          "depth": 1
+        },
+        {
+          "name": "acquisition.coverage",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "capture_shopify_graphql_source",
+      "projections": [],
+      "links": ["command:capture_shopify_graphql_source"],
+      "label_de": "Capture original Shopify order evidence",
+      "resources": ["source"]
+    },
     {
       "id": "tool:operational_case_status",
       "kind": "tool",
@@ -27941,6 +28036,30 @@
         "tool:source_capability_lifecycle_propose"
       ],
       "label_de": "Quellfähigkeit festlegen",
+      "resources": ["source"]
+    },
+    {
+      "id": "command:capture_shopify_graphql_source",
+      "kind": "command",
+      "key": "capture_shopify_graphql_source",
+      "label": "Capture original Shopify GraphQL order source",
+      "area": "sources",
+      "summary": "Retains one unmodified selected Shopify order entity and its interpretation job without accepting business effects or granting general proposal approval.",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "reads": ["tenant", "source_stream", "source_record", "import_job"],
+      "writes": ["source_stream", "source_record", "import_job"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_order_graphql_capture"],
+      "synopses": [
+        "shopify_order_graphql_capture order [company_party_id] [customer_party_id] [location_id] [acquisition]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:shopify_order_graphql_capture"],
+      "label_de": "Originalen Shopify-Auftrag als Quelle erfassen",
       "resources": ["source"]
     },
     {
@@ -84079,6 +84198,7 @@
       "actions": [
         "command:shipping_plan_state",
         "command:create_manual_order",
+        "command:capture_shopify_graphql_source",
         "command:enqueue_source",
         "command:record_corrected_document_source",
         "command:create_party",

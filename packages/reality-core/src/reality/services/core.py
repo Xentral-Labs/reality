@@ -16507,6 +16507,7 @@ def _shopify_refund_interpretation(
 
 SOURCE_INTERPRETERS = {
     ("shopify", "order"): _shopify_interpretation,
+    ("shopify", "order_graphql"): _shopify_interpretation,
     ("shopify", "refund"): _shopify_refund_interpretation,
     ("demo_data", "order"): _demo_interpretation,
     ("demo_data", "invoice"): _demo_invoice_interpretation,
