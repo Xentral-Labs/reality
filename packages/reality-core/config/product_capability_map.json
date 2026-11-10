@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:03afefee4cbb218c09cae710f4c29214256635dc9fee64cf1adc5ab51bafc636",
+  "knowledge_version": "advisor-v1:sha256:8bb632a150102a100c8f50e64a31dc27dceb835bc5bb29da49d4aa88c528b524",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -901,6 +901,10 @@
         "evidence_command_propose_company_party",
         "evidence_command_cost_review_draft",
         "evidence_command_create_manual_order",
+        "evidence_command_prepare_order_acceptance",
+        "evidence_command_review_order_acceptance",
+        "evidence_command_accept_order",
+        "evidence_command_order_acceptance_status",
         "evidence_command_prepare_shopify_order",
         "evidence_command_review_shopify_order",
         "evidence_command_shopify_source_intake_preflight",
@@ -980,6 +984,22 @@
         {
           "name": "create_manual_order",
           "mode": "mutation"
+        },
+        {
+          "name": "prepare_order_acceptance",
+          "mode": "mutation"
+        },
+        {
+          "name": "review_order_acceptance",
+          "mode": "read"
+        },
+        {
+          "name": "accept_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "order_acceptance_status",
+          "mode": "read"
         },
         {
           "name": "prepare_shopify_order",
@@ -1225,6 +1245,10 @@
         "evidence_command_cost_review_draft",
         "evidence_command_inventory_cost",
         "evidence_command_create_manual_order",
+        "evidence_command_prepare_order_acceptance",
+        "evidence_command_review_order_acceptance",
+        "evidence_command_accept_order",
+        "evidence_command_order_acceptance_status",
         "evidence_command_prepare_shopify_order",
         "evidence_command_review_shopify_order",
         "evidence_command_shopify_source_intake_preflight",
@@ -1301,6 +1325,22 @@
         {
           "name": "create_manual_order",
           "mode": "mutation"
+        },
+        {
+          "name": "prepare_order_acceptance",
+          "mode": "mutation"
+        },
+        {
+          "name": "review_order_acceptance",
+          "mode": "read"
+        },
+        {
+          "name": "accept_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "order_acceptance_status",
+          "mode": "read"
         },
         {
           "name": "prepare_shopify_order",
@@ -1508,6 +1548,10 @@
         "evidence_command_prepare_intake",
         "evidence_command_apply_prepared_intake",
         "evidence_command_create_manual_order",
+        "evidence_command_prepare_order_acceptance",
+        "evidence_command_review_order_acceptance",
+        "evidence_command_accept_order",
+        "evidence_command_order_acceptance_status",
         "evidence_command_prepare_shopify_order",
         "evidence_command_review_shopify_order",
         "evidence_command_shopify_source_intake_preflight",
@@ -1555,6 +1599,22 @@
         {
           "name": "create_manual_order",
           "mode": "mutation"
+        },
+        {
+          "name": "prepare_order_acceptance",
+          "mode": "mutation"
+        },
+        {
+          "name": "review_order_acceptance",
+          "mode": "read"
+        },
+        {
+          "name": "accept_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "order_acceptance_status",
+          "mode": "read"
         },
         {
           "name": "prepare_shopify_order",
@@ -1798,6 +1858,10 @@
         "evidence_command_contribution_preview",
         "evidence_command_observe_fact",
         "evidence_command_create_manual_order",
+        "evidence_command_prepare_order_acceptance",
+        "evidence_command_review_order_acceptance",
+        "evidence_command_accept_order",
+        "evidence_command_order_acceptance_status",
         "evidence_command_prepare_shopify_order",
         "evidence_command_review_shopify_order",
         "evidence_command_correct_manual_document",
@@ -1913,6 +1977,22 @@
         {
           "name": "create_manual_order",
           "mode": "mutation"
+        },
+        {
+          "name": "prepare_order_acceptance",
+          "mode": "mutation"
+        },
+        {
+          "name": "review_order_acceptance",
+          "mode": "read"
+        },
+        {
+          "name": "accept_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "order_acceptance_status",
+          "mode": "read"
         },
         {
           "name": "prepare_shopify_order",
@@ -3447,6 +3527,10 @@
         "evidence_command_install_connector_shell",
         "evidence_command_create_source_system",
         "evidence_command_create_source_capability",
+        "evidence_command_prepare_order_acceptance",
+        "evidence_command_review_order_acceptance",
+        "evidence_command_accept_order",
+        "evidence_command_order_acceptance_status",
         "evidence_command_prepare_shopify_order",
         "evidence_command_review_shopify_order",
         "evidence_command_shopify_source_intake_preflight",
@@ -3471,13 +3555,9 @@
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
         "evidence_command_create_manual_document_with_lines",
-        "evidence_command_post_sales_invoice",
-        "evidence_command_post_supplier_invoice",
         "evidence_command_record_sales_credit",
         "evidence_command_record_supplier_invoice",
         "evidence_command_record_free_supplier_invoice",
-        "evidence_command_invoice_credit_context",
-        "evidence_command_billable_positions",
         "evidence_command_record_notice",
         "evidence_command_confirm_run",
         "evidence_command_record_return",
@@ -3638,6 +3718,22 @@
           "mode": "mutation"
         },
         {
+          "name": "prepare_order_acceptance",
+          "mode": "mutation"
+        },
+        {
+          "name": "review_order_acceptance",
+          "mode": "read"
+        },
+        {
+          "name": "accept_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "order_acceptance_status",
+          "mode": "read"
+        },
+        {
           "name": "prepare_shopify_order",
           "mode": "mutation"
         },
@@ -3734,14 +3830,6 @@
           "mode": "mutation"
         },
         {
-          "name": "post_sales_invoice",
-          "mode": "mutation"
-        },
-        {
-          "name": "post_supplier_invoice",
-          "mode": "mutation"
-        },
-        {
           "name": "record_sales_credit",
           "mode": "mutation"
         },
@@ -3752,14 +3840,6 @@
         {
           "name": "record_free_supplier_invoice",
           "mode": "mutation"
-        },
-        {
-          "name": "invoice_credit_context",
-          "mode": "query"
-        },
-        {
-          "name": "billable_positions",
-          "mode": "query"
         },
         {
           "name": "record_notice",
@@ -3833,6 +3913,10 @@
       ],
       "evidence_ids": [
         "evidence_command_change_graph_report",
+        "evidence_command_prepare_order_acceptance",
+        "evidence_command_review_order_acceptance",
+        "evidence_command_accept_order",
+        "evidence_command_order_acceptance_status",
         "evidence_command_set_company_time_zone",
         "evidence_command_company_time_zone_state",
         "evidence_command_create_invitation",
@@ -3844,6 +3928,22 @@
         {
           "name": "change_graph_report",
           "mode": "mutation"
+        },
+        {
+          "name": "prepare_order_acceptance",
+          "mode": "mutation"
+        },
+        {
+          "name": "review_order_acceptance",
+          "mode": "read"
+        },
+        {
+          "name": "accept_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "order_acceptance_status",
+          "mode": "read"
         },
         {
           "name": "set_company_time_zone",

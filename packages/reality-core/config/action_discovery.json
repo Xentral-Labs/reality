@@ -344,7 +344,11 @@
     "buyer_mapping_status": "intake",
     "shopify_source_intake_preflight": "intake",
     "prepare_shopify_order": "intake",
-    "review_shopify_order": "intake"
+    "review_shopify_order": "intake",
+    "prepare_order_acceptance": "intake",
+    "review_order_acceptance": "intake",
+    "accept_order": "intake",
+    "order_acceptance_status": "intake"
   },
   "entries": [
     {

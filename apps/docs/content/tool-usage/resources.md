@@ -15,7 +15,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 14      | 7                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 9     | 18      | 18                  |
+| [Order](#resource-order)                                         | 9     | 20      | 18                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 14      | 3                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
@@ -380,6 +380,9 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Create manual sales or purchase order](./commands#command-create_manual_order)
   (`create_manual_order`)
+- [Prepare Shopify order acceptance](./commands#command-prepare_order_acceptance)
+  (`prepare_order_acceptance`)
+- [Accept authorized Shopify order](./commands#command-accept_order) (`accept_order`)
 - [Prepare explicit Shopify order interpretation](./commands#command-prepare_shopify_order)
   (`prepare_shopify_order`)
 - [Reserve stock](./commands#command-reserve) (`reserve`)
@@ -405,6 +408,10 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Read supporting shipping orders](./commands#command-shipping_supporting_orders)
   (`shipping_supporting_orders`)
+- [Review Shopify order acceptance](./commands#command-review_order_acceptance)
+  (`review_order_acceptance`)
+- [Read Shopify acceptance receipt](./commands#command-order_acceptance_status)
+  (`order_acceptance_status`)
 - [Review retained Shopify order interpretation](./commands#command-review_shopify_order)
   (`review_shopify_order`)
 - [Read available to promise](./commands#command-available_to_promise) (`available_to_promise`)

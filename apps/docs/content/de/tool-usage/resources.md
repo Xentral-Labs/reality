@@ -15,7 +15,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 14       | 7         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 9      | 18       | 18        |
+| [Auftrag](#resource-order)                                     | 9      | 20       | 18        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 14       | 3         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -390,6 +390,9 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Kundenauftrag oder Bestellung anlegen](./commands#command-create_manual_order)
   (`create_manual_order`)
+- [Quellenbelegten Shopify-Auftrag prüfen](./commands#command-prepare_order_acceptance)
+  (`prepare_order_acceptance`)
+- [Genau freigegebenen Shopify-Auftrag übernehmen](./commands#command-accept_order) (`accept_order`)
 - [Explizite Shopify-Auftragsinterpretation vorbereiten](./commands#command-prepare_shopify_order)
   (`prepare_shopify_order`)
 - [Bestand reservieren](./commands#command-reserve) (`reserve`)
@@ -416,6 +419,10 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Zugehörige Versandaufträge anzeigen](./commands#command-shipping_supporting_orders)
   (`shipping_supporting_orders`)
+- [Genauen Shopify-Auftragsentwurf lesen](./commands#command-review_order_acceptance)
+  (`review_order_acceptance`)
+- [Shopify-Auftragsannahmebeleg lesen](./commands#command-order_acceptance_status)
+  (`order_acceptance_status`)
 - [Gespeicherte Shopify-Auftragsinterpretation prüfen](./commands#command-review_shopify_order)
   (`review_shopify_order`)
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)

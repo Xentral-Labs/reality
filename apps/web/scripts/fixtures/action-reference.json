@@ -504,6 +504,34 @@
       "effect": "Declares which upstream type a source may provide and the operational target it is intended to produce."
     },
     {
+      "name": "Prepare Shopify order acceptance",
+      "service": "prepare_order_acceptance",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "effect": "Retains one immutable successor review with source-stated money and current explicit references, calendar and credit; no business acceptance."
+    },
+    {
+      "name": "Review Shopify order acceptance",
+      "service": "review_order_acceptance",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "effect": "Returns immutable source-backed successor evidence and separately marks stale or held meaning without approval."
+    },
+    {
+      "name": "Accept authorized Shopify order",
+      "service": "accept_order",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "effect": "Atomically applies only complete exact source-backed order effects under current external issuer human or finite standing authority; no payment, stock movement or fulfillment."
+    },
+    {
+      "name": "Read Shopify acceptance receipt",
+      "service": "order_acceptance_status",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "effect": "Reconciles original accepted proof and canonical result IDs without repeated dispatch or renewed authority."
+    },
+    {
       "name": "Prepare explicit Shopify order interpretation",
       "service": "prepare_shopify_order",
       "mode": "mutation",

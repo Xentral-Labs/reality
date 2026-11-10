@@ -1,0 +1,167 @@
+{
+  "$defs": {
+    "LineSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "source_line_id": {
+          "pattern": "^gid://shopify/LineItem/[0-9]{1,32}$",
+          "title": "Source Line Id",
+          "type": "string"
+        },
+        "item_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Item Id",
+          "type": "string"
+        },
+        "stock_unit": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Stock Unit",
+          "type": "string"
+        },
+        "quantity_semantics": {
+          "const": "one_source_count_is_one_stock_unit",
+          "title": "Quantity Semantics",
+          "type": "string"
+        },
+        "expected_item_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Item Digest"
+        }
+      },
+      "required": [
+        "source_line_id",
+        "item_id",
+        "stock_unit",
+        "quantity_semantics"
+      ],
+      "title": "LineSelection",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "source_record_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Source Record Id",
+      "type": "string"
+    },
+    "import_job_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Import Job Id",
+      "type": "string"
+    },
+    "source_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Hash",
+      "type": "string"
+    },
+    "source_version": {
+      "exclusiveMinimum": 0,
+      "title": "Source Version",
+      "type": "integer"
+    },
+    "request_id": {
+      "maxLength": 36,
+      "minLength": 36,
+      "title": "Request Id",
+      "type": "string"
+    },
+    "buyer_review_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Buyer Review Id",
+      "type": "string"
+    },
+    "buyer_review_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Buyer Review Digest",
+      "type": "string"
+    },
+    "company_party_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Company Party Id",
+      "type": "string"
+    },
+    "location_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Location Id",
+      "type": "string"
+    },
+    "expected_company_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Company Digest"
+    },
+    "expected_location_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Location Digest"
+    },
+    "lines": {
+      "items": {
+        "$ref": "#/$defs/LineSelection"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Lines",
+      "type": "array"
+    },
+    "interpretation_profile": {
+      "const": "shopify_simple_undiscounted_order/1",
+      "title": "Interpretation Profile",
+      "type": "string"
+    },
+    "delivery_terms": {
+      "const": "not_promised",
+      "title": "Delivery Terms",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_record_id",
+    "import_job_id",
+    "source_hash",
+    "source_version",
+    "request_id",
+    "buyer_review_id",
+    "buyer_review_digest",
+    "company_party_id",
+    "location_id",
+    "lines",
+    "interpretation_profile",
+    "delivery_terms"
+  ],
+  "title": "AcceptancePrepareInput",
+  "type": "object"
+}

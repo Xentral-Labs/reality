@@ -1,0 +1,212 @@
+{
+  "$defs": {
+    "StandingMandate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "exclusiveMinimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "subject": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "profile": {
+          "const": "shopify_simple_undiscounted_order/1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "delivery_terms": {
+          "const": "not_promised",
+          "title": "Delivery Terms",
+          "type": "string"
+        },
+        "currency": {
+          "pattern": "^[A-Z]{3}$",
+          "title": "Currency",
+          "type": "string"
+        },
+        "max_order_amount": {
+          "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+          "title": "Max Order Amount",
+          "type": "string"
+        },
+        "max_total_amount": {
+          "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+          "title": "Max Total Amount",
+          "type": "string"
+        },
+        "max_orders": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Orders",
+          "type": "integer"
+        },
+        "max_total_units": {
+          "maximum": 1000000000,
+          "minimum": 1,
+          "title": "Max Total Units",
+          "type": "integer"
+        },
+        "source_created_after": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Source Created After",
+          "type": "string"
+        },
+        "expires_at": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Expires At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "subject",
+        "profile",
+        "delivery_terms",
+        "currency",
+        "max_order_amount",
+        "max_total_amount",
+        "max_orders",
+        "max_total_units",
+        "source_created_after",
+        "expires_at"
+      ],
+      "title": "StandingMandate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "purpose": {
+      "const": "shopify_source_order_acceptance/1",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "tenant_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "shop": {
+      "pattern": "^[a-z0-9][a-z0-9-]{0,62}\\.myshopify\\.com$",
+      "title": "Shop",
+      "type": "string"
+    },
+    "query_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Query Digest",
+      "type": "string"
+    },
+    "issuer": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Issuer",
+      "type": "string"
+    },
+    "key_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Key Id",
+      "type": "string"
+    },
+    "public_key": {
+      "maxLength": 43,
+      "minLength": 43,
+      "title": "Public Key",
+      "type": "string"
+    },
+    "allowed_subjects": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Allowed Subjects",
+      "type": "array"
+    },
+    "allowed_token_ids": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Allowed Token Ids",
+      "type": "array"
+    },
+    "currency": {
+      "pattern": "^[A-Z]{3}$",
+      "title": "Currency",
+      "type": "string"
+    },
+    "max_order_amount": {
+      "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+      "title": "Max Order Amount",
+      "type": "string"
+    },
+    "max_order_units": {
+      "maximum": 1000000000,
+      "minimum": 1,
+      "title": "Max Order Units",
+      "type": "integer"
+    },
+    "max_effects": {
+      "maximum": 101,
+      "minimum": 1,
+      "title": "Max Effects",
+      "type": "integer"
+    },
+    "review_max_age_seconds": {
+      "maximum": 300,
+      "minimum": 1,
+      "title": "Review Max Age Seconds",
+      "type": "integer"
+    },
+    "mandates": {
+      "items": {
+        "$ref": "#/$defs/StandingMandate"
+      },
+      "maxItems": 20,
+      "title": "Mandates",
+      "type": "array"
+    },
+    "expires_at": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Expires At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "purpose",
+    "tenant_id",
+    "shop",
+    "query_digest",
+    "issuer",
+    "key_id",
+    "public_key",
+    "allowed_subjects",
+    "allowed_token_ids",
+    "currency",
+    "max_order_amount",
+    "max_order_units",
+    "max_effects",
+    "review_max_age_seconds",
+    "expires_at"
+  ],
+  "title": "AcceptancePolicy",
+  "type": "object"
+}

@@ -1,0 +1,21 @@
+{
+  "request_id": "2efb3882-5a39-47b5-9e84-c80abeb26e31",
+  "source_record_id": "src_f142fae614",
+  "import_job_id": "imp_06e04145ab",
+  "source_hash": "a7de427980c9ba148d2ba3bcaef2eeff344d092d5542bb177b068d545b529731",
+  "source_version": 2,
+  "buyer_review_id": "act_sbm_31f1737dbb1789714cf9666d3e982e72",
+  "buyer_review_digest": "b30e47e97035e74d67a010cd61f04821c3e9316582775c35e47c00029d27ca63",
+  "company_party_id": "pty_0fbd09f595",
+  "location_id": "loc_94e5905e9d",
+  "lines": [
+    {
+      "source_line_id": "gid://shopify/LineItem/41",
+      "item_id": "itm_6bb2449a2a",
+      "stock_unit": "pcs",
+      "quantity_semantics": "one_source_count_is_one_stock_unit"
+    }
+  ],
+  "interpretation_profile": "shopify_simple_undiscounted_order/1",
+  "delivery_terms": "not_promised"
+}

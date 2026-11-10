@@ -198,6 +198,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`update_item`](#command-update_item)                                             | Update item                                   | Master data & pricing      | `item_update_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`update_location`](#command-update_location)                                     | Update location                               | Master data & pricing      | `location_update_propose`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`update_party`](#command-update_party)                                           | Update party                                  | Master data & pricing      | `party_update_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
+| [`accept_order`](#command-accept_order)                                           | Accept authorized Shopify order               | Orders & fulfilment        | `shopify_source_order_acceptance_accept`                                                                                                                                                     | MCP                                     |
 | [`announce_customer_return`](#command-announce_customer_return)                   | Announce customer return                      | Orders & fulfilment        | `return_announce_propose`                                                                                                                                                                    | Web · API · MCP · Chat                  |
 | [`cancel_commitment`](#command-cancel_commitment)                                 | Cancel commitment remainder                   | Orders & fulfilment        | `commitment_cancel_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`close_stale_promises`](#command-close_stale_promises)                           | Close stale promises                          | Orders & fulfilment        | `stale_closure_propose`                                                                                                                                                                      | Web · MCP · Chat                        |
@@ -207,9 +208,11 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`returns`](#command-returns)                                                     | List returned payments                        | Orders & fulfilment        | `finance_payment_returns`                                                                                                                                                                    | Web · MCP · Chat · CLI                  |
 | [`pick_outbound_delivery`](#command-pick_outbound_delivery)                       | Pick a planned delivery                       | Orders & fulfilment        | `outbound_delivery_pick_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`plan_outbound_delivery`](#command-plan_outbound_delivery)                       | Plan an outbound delivery                     | Orders & fulfilment        | `outbound_delivery_plan_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`prepare_order_acceptance`](#command-prepare_order_acceptance)                   | Prepare Shopify order acceptance              | Orders & fulfilment        | `shopify_source_order_acceptance_prepare`                                                                                                                                                    | MCP                                     |
 | [`prepare_shopify_order`](#command-prepare_shopify_order)                         | Prepare explicit Shopify order interpretation | Orders & fulfilment        | `shopify_source_order_prepare`                                                                                                                                                               | MCP                                     |
 | [`preview_stale_promise_closure`](#command-preview_stale_promise_closure)         | Preview stale promise closure                 | Orders & fulfilment        | `stale_closure_preview`                                                                                                                                                                      | Web · MCP · Chat                        |
 | [`put_back_outbound_delivery`](#command-put_back_outbound_delivery)               | Put back picked goods                         | Orders & fulfilment        | `outbound_delivery_put_back_propose`                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
+| [`order_acceptance_status`](#command-order_acceptance_status)                     | Read Shopify acceptance receipt               | Orders & fulfilment        | `shopify_source_order_acceptance_status`                                                                                                                                                     | MCP                                     |
 | [`outbound_delivery_detail`](#command-outbound_delivery_detail)                   | Read a planned delivery                       | Orders & fulfilment        | `outbound_delivery_detail`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`return_detail`](#command-return_detail)                                         | Read a returned payment                       | Orders & fulfilment        | `finance_payment_return`                                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`return_announcements`](#command-return_announcements)                           | Read announced returns                        | Orders & fulfilment        | `return_announcements`                                                                                                                                                                       | Web · API · MCP · Chat                  |
@@ -223,6 +226,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`remove_reorder_point`](#command-remove_reorder_point)                           | Remove a reorder point                        | Orders & fulfilment        | `reorder_point_remove_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`reserve`](#command-reserve)                                                     | Reserve stock                                 | Orders & fulfilment        | `reservation_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_return_disposition`](#command-record_return_disposition)                 | Resolve arrived customer-return goods         | Orders & fulfilment        | `return_disposition_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
+| [`review_order_acceptance`](#command-review_order_acceptance)                     | Review Shopify order acceptance               | Orders & fulfilment        | `shopify_source_order_acceptance_review`                                                                                                                                                     | MCP                                     |
 | [`review_shopify_order`](#command-review_shopify_order)                           | Review retained Shopify order interpretation  | Orders & fulfilment        | `shopify_source_order_review`                                                                                                                                                                | MCP                                     |
 | [`revise_outbound_delivery`](#command-revise_outbound_delivery)                   | Revise a planned delivery                     | Orders & fulfilment        | `outbound_delivery_revise_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`revise_commitment`](#command-revise_commitment)                                 | Revise commitment                             | Orders & fulfilment        | `commitment_revise_propose`                                                                                                                                                                  | Web · MCP · Chat                        |
@@ -4565,6 +4569,52 @@ Prepare an owner-confirmed operational account configuration change.
 
 ## Orders & fulfilment
 
+### `accept_order` — Accept authorized Shopify order {#command-accept_order}
+
+Atomically applies only complete exact source-backed order effects under current external issuer
+human or finite standing authority; no payment, stock movement or fulfillment.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_accept proposal_id review_digest approval_proof
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `mcp_access_token`, `source_record`, `source_stream`, `import_job`,
+`action`, `party`, `party_role`, `item`, `location`, `company_time_zone`, `finance_state`,
+`document`, `document_line`, `commitment` · Writes: `action`, `source_record`, `source_stream`,
+`document`, `document_line`, `commitment`, `import_job`, `interpretation_outcome`, `business_event`
+
+**See also:** Agent Tool
+[`shopify_source_order_acceptance_accept`](./commands#tool-shopify_source_order_acceptance_accept)
+
+#### `shopify_source_order_acceptance_accept` — Accept authorized Shopify order {#tool-shopify_source_order_acceptance_accept}
+
+Apply only complete unchanged source-backed order under original trusted external issuer human or
+finite standing proof, current MCP token and exact limits. No generic confirmation, fake local
+principal, payment, stock movement or fulfillment. Unknown response must use status, never fresh
+replacement approval.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_accept proposal_id review_digest approval_proof
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name             | Type     | Required | Description                                                               | Default |
+| ---------------- | -------- | -------- | ------------------------------------------------------------------------- | ------- |
+| `proposal_id`    | `string` | yes      | Opaque same-tenant identity of the retained decision proposal.            | —       |
+| `review_digest`  | `string` | yes      | Exact current handback review digest; changed facts require a new review. | —       |
+| `approval_proof` | `string` | yes      | —                                                                         | —       |
+
+**See also:** Command [`accept_order`](./commands#command-accept_order)
+
 ### `announce_customer_return` — Announce customer return {#command-announce_customer_return}
 
 Records that a customer says goods are coming back, bounded by what the delivery can still return.
@@ -5110,6 +5160,66 @@ outbound_delivery_plan_propose [recipient_party_id] [address] [slot] [staging_lo
 
 **See also:** Command [`plan_outbound_delivery`](./commands#command-plan_outbound_delivery)
 
+### `prepare_order_acceptance` — Prepare Shopify order acceptance {#command-prepare_order_acceptance}
+
+Retains one immutable successor review with source-stated money and current explicit references,
+calendar and credit; no business acceptance.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines interpretation_profile delivery_terms
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `mcp_access_token`, `source_record`, `source_stream`, `import_job`,
+`action`, `party`, `party_role`, `item`, `location`, `company_time_zone`, `finance_state`,
+`document`, `document_line`, `commitment` · Writes: `action`
+
+**See also:** Agent Tool
+[`shopify_source_order_acceptance_prepare`](./commands#tool-shopify_source_order_acceptance_prepare)
+
+#### `shopify_source_order_acceptance_prepare` — Prepare Shopify order acceptance {#tool-shopify_source_order_acceptance_prepare}
+
+Freeze supported source-v2 money, explicit references, calendar and current credit for ONE later
+exact external human or standing authorization. No business acceptance, amount override, default
+unit or legacy391 promotion.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines interpretation_profile delivery_terms
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                           | Type      | Required | Description                                                                                                                            | Default |
+| ------------------------------ | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `source_record_id`             | `string`  | yes      | Opaque identity of the immutable source record supporting this typed record.                                                           | —       |
+| `import_job_id`                | `string`  | yes      | —                                                                                                                                      | —       |
+| `source_hash`                  | `string`  | yes      | —                                                                                                                                      | —       |
+| `source_version`               | `integer` | yes      | —                                                                                                                                      | —       |
+| `request_id`                   | `string`  | yes      | Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused. | —       |
+| `buyer_review_id`              | `string`  | yes      | —                                                                                                                                      | —       |
+| `buyer_review_digest`          | `string`  | yes      | —                                                                                                                                      | —       |
+| `company_party_id`             | `string`  | yes      | Opaque identity of the tenant's company Party in an order flow.                                                                        | —       |
+| `location_id`                  | `string`  | yes      | Opaque identity of the operational or physical location.                                                                               | —       |
+| `expected_company_digest`      | `string`  | no       | —                                                                                                                                      | `None`  |
+| `expected_location_digest`     | `string`  | no       | —                                                                                                                                      | `None`  |
+| `lines`                        | `array`   | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                           | —       |
+| `lines[].source_line_id`       | `string`  | yes      | —                                                                                                                                      | —       |
+| `lines[].item_id`              | `string`  | yes      | Opaque identity of the operational item reference.                                                                                     | —       |
+| `lines[].stock_unit`           | `string`  | yes      | —                                                                                                                                      | —       |
+| `lines[].quantity_semantics`   | `string`  | yes      | —                                                                                                                                      | —       |
+| `lines[].expected_item_digest` | `string`  | no       | —                                                                                                                                      | `None`  |
+| `interpretation_profile`       | `string`  | yes      | —                                                                                                                                      | —       |
+| `delivery_terms`               | `string`  | yes      | —                                                                                                                                      | —       |
+
+**See also:** Command [`prepare_order_acceptance`](./commands#command-prepare_order_acceptance)
+
 ### `prepare_shopify_order` — Prepare explicit Shopify order interpretation {#command-prepare_shopify_order}
 
 Retains exact explicit proposed mapping and closed prospective order meaning, never business
@@ -5276,6 +5386,65 @@ outbound_delivery_put_back_propose outbound_delivery_id lines
 | `lines[].to_location_id` | `string` | yes      | Opaque identity of the location into which physical stock arrives.                           | —       |
 
 **See also:** Command [`put_back_outbound_delivery`](./commands#command-put_back_outbound_delivery)
+
+### `order_acceptance_status` — Read Shopify acceptance receipt {#command-order_acceptance_status}
+
+Reconciles original accepted proof and canonical result IDs without repeated dispatch or renewed
+authority.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_status proposal_id
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `mcp_access_token`, `source_record`, `source_stream`, `import_job`,
+`action`, `party`, `party_role`, `item`, `location`, `company_time_zone`, `finance_state`,
+`document`, `document_line`, `commitment` · Writes: —
+
+**See also:** Agent Tool
+[`shopify_source_order_acceptance_status`](./commands#tool-shopify_source_order_acceptance_status)
+
+#### `shopify_source_order_acceptance_status` — Read Shopify acceptance receipt {#tool-shopify_source_order_acceptance_status}
+
+Read known retained historical receipt and original proof identity only, without dispatch or renewed
+approval. Never infer current payment/fulfillment/settlement.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_status proposal_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                               | Kind                        | Default |
+| -------------------------------------------- | --------------------------- | ------- |
+| `MCP shopify_source_order_acceptance_status` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Reconcile a known original exact order acceptance receipt without dispatch.
+
+**Use when**
+
+- An Operator needs exact retained meaning or original receipt evidence.
+
+**Do not use when**
+
+- Creating a replacement approval for an uncertain result or authorizing effects from model text.
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                                    | Default |
+| ------------- | -------- | -------- | -------------------------------------------------------------- | ------- |
+| `proposal_id` | `string` | yes      | Opaque same-tenant identity of the retained decision proposal. | —       |
+
+**See also:** Command [`order_acceptance_status`](./commands#command-order_acceptance_status)
 
 ### `outbound_delivery_detail` — Read a planned delivery {#command-outbound_delivery_detail}
 
@@ -6036,6 +6205,65 @@ effect is visible independently.
 
 **See also:** Command [`record_return_disposition`](./commands#command-record_return_disposition),
 Projection [`inventory`](./views#projection-inventory)
+
+### `review_order_acceptance` — Review Shopify order acceptance {#command-review_order_acceptance}
+
+Returns immutable source-backed successor evidence and separately marks stale or held meaning
+without approval.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_review proposal_id
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `mcp_access_token`, `source_record`, `source_stream`, `import_job`,
+`action`, `party`, `party_role`, `item`, `location`, `company_time_zone`, `finance_state`,
+`document`, `document_line`, `commitment` · Writes: —
+
+**See also:** Agent Tool
+[`shopify_source_order_acceptance_review`](./commands#tool-shopify_source_order_acceptance_review)
+
+#### `shopify_source_order_acceptance_review` — Review Shopify order acceptance {#tool-shopify_source_order_acceptance_review}
+
+Read immutable exact successor meaning and current evidence or stale/held status. Eligibility is not
+approval. No dispatch or authority renewal.
+
+**Synopsis**
+
+```text
+shopify_source_order_acceptance_review proposal_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                               | Kind                        | Default |
+| -------------------------------------------- | --------------------------- | ------- |
+| `MCP shopify_source_order_acceptance_review` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Inspect the exact supported successor order before a separate external decision.
+
+**Use when**
+
+- An Operator needs exact retained meaning or original receipt evidence.
+
+**Do not use when**
+
+- Creating a replacement approval for an uncertain result or authorizing effects from model text.
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                                    | Default |
+| ------------- | -------- | -------- | -------------------------------------------------------------- | ------- |
+| `proposal_id` | `string` | yes      | Opaque same-tenant identity of the retained decision proposal. | —       |
+
+**See also:** Command [`review_order_acceptance`](./commands#command-review_order_acceptance)
 
 ### `review_shopify_order` — Review retained Shopify order interpretation {#command-review_shopify_order}
 

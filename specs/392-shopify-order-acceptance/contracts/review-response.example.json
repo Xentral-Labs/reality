@@ -1,0 +1,269 @@
+{
+  "purpose": "shopify_source_order_acceptance/1",
+  "proposal_id": "act_soa_3e5e93172f4e1f97042585e191a963dc",
+  "status": "proposed",
+  "request_id": "2efb3882-5a39-47b5-9e84-c80abeb26e31",
+  "review_digest": "1775c581a4913d6bc8a17843142361688d02efa66604bb1375e9d301f5ab0bde",
+  "source_binding": {
+    "source_record_id": "src_f142fae614",
+    "import_job_id": "imp_06e04145ab",
+    "source_hash": "a7de427980c9ba148d2ba3bcaef2eeff344d092d5542bb177b068d545b529731",
+    "source_version": 2,
+    "tenant_id": "ten_ac990def87",
+    "external_id": "1004",
+    "order_id": "gid://shopify/Order/1004",
+    "order_label": "#1004",
+    "shop": "pilot.myshopify.com",
+    "query_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "buyer_mapping": {
+    "mapping_state": "applied_to_source",
+    "customer": {
+      "party_id": "pty_21f9cbb4a4",
+      "label": "Müller GmbH",
+      "digest": "b28b47fbfffb1333eda7d30e909e0163ed5b44852919d34ddc519e057b2a2209"
+    },
+    "approval_source_record_id": "src_53e1c4c1e9",
+    "review_id": "act_sbm_31f1737dbb1789714cf9666d3e982e72",
+    "review_digest": "b30e47e97035e74d67a010cd61f04821c3e9316582775c35e47c00029d27ca63"
+  },
+  "buyer_mapping_scope": "existing_buyer_mapping_evidence_at_order_review",
+  "evidence_observed_at": "2026-11-09T22:43:05.854344+00:00",
+  "readiness_evidence_scope": "frozen_at_order_review",
+  "currentness": "unchanged_since_review",
+  "mapping_bundle": {
+    "company": {
+      "digest": "be92cea2cc084ab2ccd88d35df6a2941d99744605b419484885775cc4b2beac3",
+      "label": "Acme Bikes GmbH",
+      "record_id": "pty_0fbd09f595",
+      "status": "matched"
+    },
+    "customer_id": "pty_21f9cbb4a4",
+    "lines": [
+      {
+        "item_digest": "3acb62793e5ed1e59197d8894b05c5fa75e0598201e6167bb511371af1dbbeda",
+        "item_id": "itm_6bb2449a2a",
+        "item_label": "Bike Light",
+        "item_sku": "BIKE-LIGHT",
+        "item_type": "stocked",
+        "quantity_semantics": "one_source_count_is_one_stock_unit",
+        "source_line_id": "gid://shopify/LineItem/41",
+        "source_sku": "BIKE-LIGHT",
+        "stock_unit": "pcs"
+      }
+    ],
+    "location": {
+      "digest": "8c36d558f2101698532632b3248f2331b0ed465fdaa01761a51889ee891d2dd7",
+      "label": "Augsburg Warehouse",
+      "record_id": "loc_94e5905e9d",
+      "status": "matched"
+    },
+    "state": "proposed"
+  },
+  "plan_digest": "100ceb14226a97116d5286ca8d4c43357ddd75ac1abcad718c9fa466666a85ee",
+  "review_projection": {
+    "schema_version": 1,
+    "tenant_id": "ten_ac990def87",
+    "source_record_id": "src_f142fae614",
+    "source_hash": "a7de427980c9ba148d2ba3bcaef2eeff344d092d5542bb177b068d545b529731",
+    "source_version": 2,
+    "import_job_id": "imp_06e04145ab",
+    "profile": "shopify.order",
+    "finance_revision": 0,
+    "calendar": {
+      "time_zone": "Europe/Berlin",
+      "source_record_id": "src_8915ae1e0b"
+    },
+    "interpreter_version": "1",
+    "mapping": {
+      "bundle_digest": "3f579fff002550f0e8705c43b3cb50b323427293dd2fddf5f42f56dd77d89526",
+      "company_party_id": "pty_0fbd09f595",
+      "customer_party_id": "pty_21f9cbb4a4",
+      "delivery_terms": "not_promised",
+      "interpretation_profile": "shopify_simple_undiscounted_order/1",
+      "location_id": "loc_94e5905e9d",
+      "origin": "shopify_order_acceptance/1"
+    },
+    "references": [
+      {
+        "record_type": "item",
+        "record_id": "itm_6bb2449a2a",
+        "digest": "99c51d0b80bce95594c4c58877f0d2fbd531d1198abc27dfa63b7991408de6c5"
+      },
+      {
+        "record_type": "location",
+        "record_id": "loc_94e5905e9d",
+        "digest": "3e5af6137664195c595c2004eef66c3c331645e3b85e77b2bf2b23d60cb26b52"
+      },
+      {
+        "record_type": "party",
+        "record_id": "pty_0fbd09f595",
+        "digest": "2e951c347ce88916e5de8223028226dc6fe5787d4676470525d9c1afb51ca420"
+      },
+      {
+        "record_type": "party",
+        "record_id": "pty_21f9cbb4a4",
+        "digest": "12867b12a10f9a164340dae52941ce2b9f36281fb70d6bd4f4fc0836350c94f0"
+      }
+    ],
+    "observations": [],
+    "effects": [
+      {
+        "operation": "document",
+        "arguments": {
+          "currency": "EUR",
+          "document_date": "2026-11-09",
+          "document_type": "sales_order",
+          "gross_amount": "10.00",
+          "lines": [
+            {
+              "description": "Bike Light",
+              "gross_amount": "10.00",
+              "item_id": "itm_6bb2449a2a",
+              "line_type": "item",
+              "promised_at": "",
+              "quantity": "2",
+              "sku": "BIKE-LIGHT",
+              "source_line_id": "gid://shopify/LineItem/41",
+              "unit": "pcs",
+              "unit_price": "5.00"
+            }
+          ],
+          "number": "#1004",
+          "ordered_at": "2026-11-09T12:00:00Z",
+          "party_id": "pty_21f9cbb4a4",
+          "requested_delivery_at": null,
+          "sales_channel": "shopify",
+          "source_record_id": "src_f142fae614"
+        }
+      },
+      {
+        "operation": "commitment",
+        "arguments": {
+          "amount": "10.00",
+          "commitment_type": "customer_delivery",
+          "currency": "EUR",
+          "due_at": null,
+          "from_party_id": "pty_0fbd09f595",
+          "item_id": "itm_6bb2449a2a",
+          "line_index": 0,
+          "location_id": "loc_94e5905e9d",
+          "quantity": "2",
+          "to_party_id": "pty_21f9cbb4a4"
+        }
+      }
+    ],
+    "issues": [],
+    "row_count": 1
+  },
+  "readiness": {
+    "calendar": {
+      "digest": "359224a6f1afc79e602db471d2a9e881026f157134598b108d9f74f84e4b9405",
+      "document_date_rule": "processed_at_in_explicit_company_timezone",
+      "interpreted_date": "2026-11-09",
+      "processed_at": "2026-11-09T12:00:00Z",
+      "source_hash": "29b7c1865881a294282e81e910362cd58fad2feeddc7b4ec919f7196ba522b7d",
+      "source_record_id": "src_8915ae1e0b",
+      "status": "explicit",
+      "time_zone": "Europe/Berlin"
+    },
+    "credit": {
+      "configured_limit": "1000.0000",
+      "currency": "EUR",
+      "customer_digest": "12867b12a10f9a164340dae52941ce2b9f36281fb70d6bd4f4fc0836350c94f0",
+      "exposure": {
+        "available_credits": {
+          "amount": "0",
+          "rows": []
+        },
+        "credit_limit": "1000.0000",
+        "currency": "EUR",
+        "excess": "0",
+        "exposure": "0",
+        "not_counted": [],
+        "open_invoices": {
+          "amount": "0",
+          "rows": []
+        },
+        "open_orders": {
+          "amount": "0",
+          "rows": [],
+          "unpriced": []
+        },
+        "over_limit": false,
+        "overdue_invoices": {
+          "amount": "0",
+          "rows": []
+        },
+        "party": "Müller GmbH",
+        "party_id": "pty_21f9cbb4a4",
+        "payables": {
+          "amount": "0",
+          "rows": []
+        }
+      },
+      "exposure_digest": "96ebf35566722863e7e8d9d57dbf2adea01dc09091bf2fc86ce7440e4ed82731",
+      "observed_at": "2026-11-09T22:43:05.854344+00:00",
+      "source_stated_order_amount": "10.00",
+      "status": "pass"
+    },
+    "delivery_terms": "not_promised",
+    "profile": "shopify_simple_undiscounted_order/1",
+    "source": {
+      "created_at": "2026-11-09T12:00:00Z",
+      "currency": "EUR",
+      "duties": {
+        "list_evidence": "lineItems.nodes[*].duties",
+        "paths": [
+          "originalTotalDutiesSet",
+          "currentTotalDutiesSet"
+        ],
+        "status": "not_applicable_no_line_duties"
+      },
+      "fees": {
+        "list_evidence": "additionalFees",
+        "paths": [
+          "originalTotalAdditionalFeesSet",
+          "currentTotalAdditionalFeesSet"
+        ],
+        "status": "not_applicable"
+      },
+      "holds": [],
+      "lines": [
+        {
+          "currency": "EUR",
+          "line_total": "10.00",
+          "quantity": "2",
+          "source_line_id": "gid://shopify/LineItem/41",
+          "unit_price": "5.00"
+        }
+      ],
+      "processed_at": "2026-11-09T12:00:00Z",
+      "profile": "shopify_simple_undiscounted_order/1",
+      "source_api_version": "2026-07",
+      "source_query_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "stated_totals": {
+        "currentSubtotalPriceSet": "10.00",
+        "currentTotalPriceSet": "10.00",
+        "subtotalPriceSet": "10.00",
+        "totalPriceSet": "10.00"
+      },
+      "stated_zero_components": {
+        "currentShippingPriceSet": "0.00",
+        "currentTotalDiscountsSet": "0.00",
+        "currentTotalTaxSet": "0.00",
+        "totalDiscountsSet": "0.00",
+        "totalRefundedSet": "0.00",
+        "totalShippingPriceSet": "0.00",
+        "totalTaxSet": "0.00",
+        "totalTipReceivedSet": "0.00"
+      }
+    }
+  },
+  "holds": [],
+  "eligible_for_exact_authorization": true,
+  "generic_confirmation_allowed": false,
+  "business_effects_accepted": false,
+  "original_source_unchanged": true,
+  "import_job_input_unchanged": true
+}

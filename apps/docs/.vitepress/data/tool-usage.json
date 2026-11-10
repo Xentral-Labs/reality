@@ -668,6 +668,8 @@
       ],
       "actions": [
         "command:create_manual_order",
+        "command:prepare_order_acceptance",
+        "command:accept_order",
         "command:prepare_shopify_order",
         "command:reserve",
         "command:release_reservation",
@@ -688,6 +690,8 @@
       ],
       "reads": [
         "command:shipping_supporting_orders",
+        "command:review_order_acceptance",
+        "command:order_acceptance_status",
         "command:review_shopify_order",
         "command:available_to_promise",
         "command:purchase_match",
@@ -2044,6 +2048,291 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:shopify_source_order_acceptance_prepare",
+      "kind": "tool",
+      "key": "shopify_source_order_acceptance_prepare",
+      "label": "Prepare Shopify order acceptance",
+      "area": "orders",
+      "summary": "Freeze supported source-v2 money, explicit references, calendar and current credit for ONE later exact external human or standing authorization. No business acceptance, amount override, default unit or legacy391 promotion.",
+      "access": "propose",
+      "group": "Sources",
+      "synopsis": "shopify_source_order_acceptance_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines interpretation_profile delivery_terms",
+      "parameters": [
+        {
+          "name": "source_record_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable source record supporting this typed record.",
+          "depth": 0
+        },
+        {
+          "name": "import_job_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_hash",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_version",
+          "type": "integer",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "request_id",
+          "type": "string",
+          "required": true,
+          "description": "Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused.",
+          "depth": 0
+        },
+        {
+          "name": "buyer_review_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "buyer_review_digest",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "company_party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the tenant's company Party in an order flow.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "expected_company_digest",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "expected_location_digest",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": true,
+          "description": "Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].source_line_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].stock_unit",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].quantity_semantics",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].expected_item_digest",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "interpretation_profile",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "delivery_terms",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "prepare_order_acceptance",
+      "projections": [],
+      "links": ["command:prepare_order_acceptance"],
+      "label_de": "Quellenbelegten Shopify-Auftrag prüfen",
+      "resources": ["order"]
+    },
+    {
+      "id": "tool:shopify_source_order_acceptance_review",
+      "kind": "tool",
+      "key": "shopify_source_order_acceptance_review",
+      "label": "Review Shopify order acceptance",
+      "area": "orders",
+      "summary": "Read immutable exact successor meaning and current evidence or stale/held status. Eligibility is not approval. No dispatch or authority renewal.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "shopify_source_order_acceptance_review proposal_id",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Inspect the exact supported successor order before a separate external decision.",
+        "use_when": ["An Operator needs exact retained meaning or original receipt evidence."],
+        "do_not_use_when": [
+          "Creating a replacement approval for an uncertain result or authorizing effects from model text."
+        ],
+        "limitations": [
+          "Only the supported simple source profile is eligible; unknown commercial evidence stays held."
+        ],
+        "empty_result": "Missing or foreign proposal is unavailable without disclosure.",
+        "freshness": "Rechecks original source, buyer, selected references, explicit calendar, current credit and bounded host policy; stale meaning is never refreshed."
+      },
+      "read_modes": [
+        {
+          "query": "MCP shopify_source_order_acceptance_review",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "review_order_acceptance",
+      "projections": [],
+      "links": ["command:review_order_acceptance"],
+      "label_de": "Genauen Shopify-Auftragsentwurf lesen",
+      "resources": ["order"]
+    },
+    {
+      "id": "tool:shopify_source_order_acceptance_accept",
+      "kind": "tool",
+      "key": "shopify_source_order_acceptance_accept",
+      "label": "Accept authorized Shopify order",
+      "area": "orders",
+      "summary": "Apply only complete unchanged source-backed order under original trusted external issuer human or finite standing proof, current MCP token and exact limits. No generic confirmation, fake local principal, payment, stock movement or fulfillment. Unknown response must use status, never fresh replacement approval.",
+      "access": "confirm",
+      "group": "Sources",
+      "synopsis": "shopify_source_order_acceptance_accept proposal_id review_digest approval_proof",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 0
+        },
+        {
+          "name": "review_digest",
+          "type": "string",
+          "required": true,
+          "description": "Exact current handback review digest; changed facts require a new review.",
+          "depth": 0
+        },
+        {
+          "name": "approval_proof",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "accept_order",
+      "projections": [],
+      "links": ["command:accept_order"],
+      "label_de": "Genau freigegebenen Shopify-Auftrag übernehmen",
+      "resources": ["order"]
+    },
+    {
+      "id": "tool:shopify_source_order_acceptance_status",
+      "kind": "tool",
+      "key": "shopify_source_order_acceptance_status",
+      "label": "Read Shopify acceptance receipt",
+      "area": "orders",
+      "summary": "Read known retained historical receipt and original proof identity only, without dispatch or renewed approval. Never infer current payment/fulfillment/settlement.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "shopify_source_order_acceptance_status proposal_id",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Reconcile a known original exact order acceptance receipt without dispatch.",
+        "use_when": ["An Operator needs exact retained meaning or original receipt evidence."],
+        "do_not_use_when": [
+          "Creating a replacement approval for an uncertain result or authorizing effects from model text."
+        ],
+        "limitations": [
+          "Only the supported simple source profile is eligible; unknown commercial evidence stays held."
+        ],
+        "empty_result": "Missing or foreign proposal is unavailable without disclosure.",
+        "freshness": "Historical receipt verification uses accepted original proof time; it does not renew authority or assert current business status."
+      },
+      "read_modes": [
+        {
+          "query": "MCP shopify_source_order_acceptance_status",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "order_acceptance_status",
+      "projections": [],
+      "links": ["command:order_acceptance_status"],
+      "label_de": "Shopify-Auftragsannahmebeleg lesen",
+      "resources": ["order"]
+    },
     {
       "id": "tool:shopify_source_order_prepare",
       "kind": "tool",
@@ -28520,6 +28809,194 @@
       ],
       "label_de": "Quellfähigkeit festlegen",
       "resources": ["source"]
+    },
+    {
+      "id": "command:prepare_order_acceptance",
+      "kind": "command",
+      "key": "prepare_order_acceptance",
+      "label": "Prepare Shopify order acceptance",
+      "area": "orders",
+      "summary": "Retains one immutable successor review with source-stated money and current explicit references, calendar and credit; no business acceptance.",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "mcp_access_token",
+        "source_record",
+        "source_stream",
+        "import_job",
+        "action",
+        "party",
+        "party_role",
+        "item",
+        "location",
+        "company_time_zone",
+        "finance_state",
+        "document",
+        "document_line",
+        "commitment"
+      ],
+      "writes": ["action"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_order_acceptance_prepare"],
+      "synopses": [
+        "shopify_source_order_acceptance_prepare source_record_id import_job_id source_hash source_version request_id buyer_review_id buyer_review_digest company_party_id location_id [expected_company_digest] [expected_location_digest] lines interpretation_profile delivery_terms"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:shopify_source_order_acceptance_prepare"],
+      "label_de": "Quellenbelegten Shopify-Auftrag prüfen",
+      "resources": ["order"]
+    },
+    {
+      "id": "command:review_order_acceptance",
+      "kind": "command",
+      "key": "review_order_acceptance",
+      "label": "Review Shopify order acceptance",
+      "area": "orders",
+      "summary": "Returns immutable source-backed successor evidence and separately marks stale or held meaning without approval.",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "mcp_access_token",
+        "source_record",
+        "source_stream",
+        "import_job",
+        "action",
+        "party",
+        "party_role",
+        "item",
+        "location",
+        "company_time_zone",
+        "finance_state",
+        "document",
+        "document_line",
+        "commitment"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_order_acceptance_review"],
+      "synopses": ["shopify_source_order_acceptance_review proposal_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect the exact supported successor order before a separate external decision.",
+        "use_when": ["An Operator needs exact retained meaning or original receipt evidence."],
+        "do_not_use_when": [
+          "Creating a replacement approval for an uncertain result or authorizing effects from model text."
+        ],
+        "limitations": [
+          "Only the supported simple source profile is eligible; unknown commercial evidence stays held."
+        ],
+        "empty_result": "Missing or foreign proposal is unavailable without disclosure.",
+        "freshness": "Rechecks original source, buyer, selected references, explicit calendar, current credit and bounded host policy; stale meaning is never refreshed."
+      },
+      "links": ["tool:shopify_source_order_acceptance_review"],
+      "label_de": "Genauen Shopify-Auftragsentwurf lesen",
+      "resources": ["order"]
+    },
+    {
+      "id": "command:accept_order",
+      "kind": "command",
+      "key": "accept_order",
+      "label": "Accept authorized Shopify order",
+      "area": "orders",
+      "summary": "Atomically applies only complete exact source-backed order effects under current external issuer human or finite standing authority; no payment, stock movement or fulfillment.",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "mcp_access_token",
+        "source_record",
+        "source_stream",
+        "import_job",
+        "action",
+        "party",
+        "party_role",
+        "item",
+        "location",
+        "company_time_zone",
+        "finance_state",
+        "document",
+        "document_line",
+        "commitment"
+      ],
+      "writes": [
+        "action",
+        "source_record",
+        "source_stream",
+        "document",
+        "document_line",
+        "commitment",
+        "import_job",
+        "interpretation_outcome",
+        "business_event"
+      ],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_order_acceptance_accept"],
+      "synopses": [
+        "shopify_source_order_acceptance_accept proposal_id review_digest approval_proof"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:shopify_source_order_acceptance_accept"],
+      "label_de": "Genau freigegebenen Shopify-Auftrag übernehmen",
+      "resources": ["order"]
+    },
+    {
+      "id": "command:order_acceptance_status",
+      "kind": "command",
+      "key": "order_acceptance_status",
+      "label": "Read Shopify acceptance receipt",
+      "area": "orders",
+      "summary": "Reconciles original accepted proof and canonical result IDs without repeated dispatch or renewed authority.",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "mcp_access_token",
+        "source_record",
+        "source_stream",
+        "import_job",
+        "action",
+        "party",
+        "party_role",
+        "item",
+        "location",
+        "company_time_zone",
+        "finance_state",
+        "document",
+        "document_line",
+        "commitment"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_order_acceptance_status"],
+      "synopses": ["shopify_source_order_acceptance_status proposal_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Reconcile a known original exact order acceptance receipt without dispatch.",
+        "use_when": ["An Operator needs exact retained meaning or original receipt evidence."],
+        "do_not_use_when": [
+          "Creating a replacement approval for an uncertain result or authorizing effects from model text."
+        ],
+        "limitations": [
+          "Only the supported simple source profile is eligible; unknown commercial evidence stays held."
+        ],
+        "empty_result": "Missing or foreign proposal is unavailable without disclosure.",
+        "freshness": "Historical receipt verification uses accepted original proof time; it does not renew authority or assert current business status."
+      },
+      "links": ["tool:shopify_source_order_acceptance_status"],
+      "label_de": "Shopify-Auftragsannahmebeleg lesen",
+      "resources": ["order"]
     },
     {
       "id": "command:prepare_shopify_order",
@@ -84953,6 +85430,7 @@
       "actions": [
         "command:shipping_plan_state",
         "command:create_manual_order",
+        "command:accept_order",
         "command:capture_shopify_graphql_source",
         "command:prepare_buyer_mapping",
         "command:commit_buyer_mapping",
@@ -85288,6 +85766,7 @@
       "actions": [
         "command:apply_prepared_intake",
         "command:create_manual_order",
+        "command:accept_order",
         "command:correct_manual_document",
         "command:record_down_payment_invoice",
         "command:record_proforma_invoice",
@@ -85587,6 +86066,7 @@
       "actions": [
         "command:apply_prepared_intake",
         "command:create_manual_order",
+        "command:accept_order",
         "command:correct_manual_document",
         "command:record_down_payment_invoice",
         "command:record_proforma_invoice",
@@ -85898,6 +86378,7 @@
       "actions": [
         "command:apply_prepared_intake",
         "command:create_manual_order",
+        "command:accept_order",
         "command:record_movement",
         "command:correct_movement",
         "command:revise_commitment",

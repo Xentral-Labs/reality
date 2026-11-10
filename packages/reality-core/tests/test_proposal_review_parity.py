@@ -22,6 +22,7 @@ def test_every_mcp_proposal_has_one_web_review_class():
         "shopify_order_graphql_capture",
         "shopify_source_buyer_mapping_prepare",
         "shopify_source_order_prepare",
+        "shopify_source_order_acceptance_prepare",
     }
     assert "shopify_order_graphql_capture" not in bindings
     assert "shopify_source_buyer_mapping_prepare" not in bindings

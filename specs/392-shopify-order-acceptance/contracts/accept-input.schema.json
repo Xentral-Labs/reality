@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "proposal_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Proposal Id",
+      "type": "string"
+    },
+    "review_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Review Digest",
+      "type": "string"
+    },
+    "approval_proof": {
+      "maxLength": 16384,
+      "minLength": 1,
+      "title": "Approval Proof",
+      "type": "string"
+    }
+  },
+  "required": [
+    "proposal_id",
+    "review_digest",
+    "approval_proof"
+  ],
+  "title": "AcceptanceCommitInput",
+  "type": "object"
+}
