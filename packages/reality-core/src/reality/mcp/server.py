@@ -5,12 +5,14 @@ import json
 from typing import Annotated, Any
 
 from mcp.server.auth.middleware.auth_context import get_access_token
+from mcp.server.auth.routes import create_protected_resource_routes
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.context import Context
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import CallToolResult, ToolAnnotations
 from pydantic import WithJsonSchema
+from starlette.applications import Starlette
 
 from reality.db.core import Session
 from reality.mcp.auth import DatabaseTokenVerifier
@@ -31,6 +33,7 @@ from reality.services.core import (
     NotFound,
     RealityError,
 )
+from reality.services.mcp_authorization import REQUIRED_SCOPE, SUPPORTED_SCOPES
 
 ERROR_CODES: tuple[tuple[type[RealityError], str], ...] = (
     (NotFound, "not_found"),
@@ -58,6 +61,29 @@ def tool_error_payload(tool_name: str, error: RealityError) -> dict[str, Any]:
 
 
 class RealityServer(MCPServer):
+    def streamable_http_app(self, *args: Any, **kwargs: Any) -> Starlette:
+        """Publish every supported scope, while the transport requires only one.
+
+        The SDK publishes `required_scopes` as the resource's `scopes_supported`, and
+        SDK clients request exactly that list, so they could never ask for proposal or
+        confirmation access (spec 382).
+        """
+        app = super().streamable_http_app(*args, **kwargs)
+        auth = self.settings.auth
+        if auth is None or auth.resource_server_url is None:
+            return app
+        (published,) = create_protected_resource_routes(
+            resource_url=auth.resource_server_url,
+            authorization_servers=[auth.issuer_url],
+            scopes_supported=sorted(SUPPORTED_SCOPES),
+        )
+        routes = app.router.routes
+        for index, route in enumerate(routes):
+            if getattr(route, "path", None) == published.path:
+                routes[index] = published
+                return app
+        raise RuntimeError("Protected resource metadata route is missing.")
+
     async def call_tool(
         self,
         name: str,
@@ -275,7 +301,7 @@ def build_server(
         auth=AuthSettings(
             issuer_url=authorization_issuer or "http://127.0.0.1:8000",
             resource_server_url=endpoint_url,
-            required_scopes=["reality:read"],
+            required_scopes=[REQUIRED_SCOPE],
             # Manual tokens intentionally have no RFC 8707 audience. Interactive
             # credentials are resource-bound by Reality's verifier instead.
             validate_token_resource=False,

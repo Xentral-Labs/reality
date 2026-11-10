@@ -307,6 +307,49 @@ def test_principal_intersects_frozen_tools_with_current_scope_and_catalog(
     assert resolve_interactive_principal(session, issued.access_token) is None
 
 
+def test_every_interactive_grant_holds_the_required_read_scope(
+    session, business, scheduled_owner
+):
+    """Spec 382 FR-002/FR-003: reality:read is the transport minimum for every grant.
+
+    It adds no tool: the grant's frozen tool list stays the allowlist.
+    """
+    verifier = "v" * 64
+    interaction = create_interaction(
+        session,
+        client_id="https://client.example/metadata.json",
+        client_metadata={"client_name": "Example client"},
+        redirect_uri="https://client.example/callback",
+        resource="https://mcp.example/",
+        requested_scopes=["reality:read", "reality:propose"],
+        code_challenge=_challenge(verifier),
+        state="opaque",
+    )
+    grant, code = approve_interaction(
+        session,
+        interaction.id,
+        user_id=scheduled_owner.id,
+        tenant_id=business.tenant.id,
+        allowed_tools=["reservation_propose"],
+    )
+    issued = exchange_code(
+        session,
+        code=code,
+        client_id=interaction.client_id,
+        redirect_uri=interaction.redirect_uri,
+        resource=interaction.resource,
+        code_verifier=verifier,
+    )
+
+    assert grant.scopes == ["reality:propose", "reality:read"]
+    assert issued.scopes == ("reality:propose", "reality:read")
+    principal = resolve_interactive_principal(session, issued.access_token)
+    assert principal is not None
+    assert "reality:read" in principal.scopes
+    assert principal.allowed_tools == {"reservation_propose"}
+    assert not principal.permits("exceptions_list")
+
+
 def test_manual_and_interactive_reads_preserve_trace_and_cross_tenant_not_found(
     session, business, scheduled_owner
 ):

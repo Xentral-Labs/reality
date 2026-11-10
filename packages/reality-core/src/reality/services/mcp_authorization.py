@@ -40,6 +40,10 @@ from reality.services.tenant_policy import (
 )
 
 SUPPORTED_SCOPES = frozenset({"reality:read", "reality:propose", "reality:confirm"})
+# The MCP transport requires this scope of every credential (spec 382). Manual tokens
+# always carry it, so every interactive grant does too; it permits no tool by itself,
+# because a grant's frozen tool list stays its allowlist.
+REQUIRED_SCOPE = "reality:read"
 ACCESS_SCOPE = {
     "read": "reality:read",
     "propose": "reality:propose",
@@ -415,7 +419,12 @@ def approve_interaction(
             )
         ):
             credential.revoked_at = now()
-    scopes = sorted({ACCESS_SCOPE[MCP_TOOL_REGISTRY[name].access] for name in tools})
+    scopes = sorted(
+        {
+            REQUIRED_SCOPE,
+            *(ACCESS_SCOPE[MCP_TOOL_REGISTRY[name].access] for name in tools),
+        }
+    )
     grant = MCPClientGrant(
         id=uid("mcpg"),
         tenant_id=tenant_id,
