@@ -36,6 +36,7 @@ from reality.services.mcp_authorization import (
     resolve_client_metadata,
     resolve_interactive_principal,
     revoke_company_grant,
+    revoke_credential_token,
     revoke_grant,
     revoke_personal_grant,
     rotate_refresh_token,
@@ -532,3 +533,102 @@ def test_cimd_rejects_redirects_and_fetch_timeouts(monkeypatch):
     monkeypatch.setattr(httpx, "get", timeout)
     with pytest.raises(InvalidOperation, match="unavailable"):
         resolve_client_metadata(client_id, environ={})
+
+
+def _grant_state(session, user_id: str, grant_id: str) -> tuple[str, str | None]:
+    view = next(
+        item for item in personal_grants(session, user_id) if item["id"] == grant_id
+    )
+    return view["effective_state"], view["effective_reason"]
+
+
+def test_revoking_a_refresh_token_ends_its_grant_and_every_credential(
+    session, business, scheduled_owner
+):
+    grant, original = _issued_credential(session, business, scheduled_owner)
+    rotated = rotate_refresh_token(
+        session,
+        refresh_token=original.refresh_token,
+        client_id=grant.client_id,
+    )
+    assert resolve_interactive_principal(session, original.access_token) is not None
+    assert resolve_interactive_principal(session, rotated.access_token) is not None
+
+    revoke_credential_token(session, rotated.refresh_token)
+
+    assert _grant_state(session, scheduled_owner.id, grant.id) == (
+        "revoked",
+        "client_revoked",
+    )
+    session.refresh(grant)
+    assert grant.revoked_by_user_id is None
+    assert resolve_interactive_principal(session, original.access_token) is None
+    assert resolve_interactive_principal(session, rotated.access_token) is None
+    with pytest.raises(InvalidOperation, match="Invalid refresh"):
+        rotate_refresh_token(
+            session, refresh_token=rotated.refresh_token, client_id=grant.client_id
+        )
+    # RFC 7009 revocation is idempotent and does not disclose the outcome.
+    revoke_credential_token(session, rotated.refresh_token)
+    assert _grant_state(session, scheduled_owner.id, grant.id) == (
+        "revoked",
+        "client_revoked",
+    )
+
+
+def test_revoking_a_rotated_refresh_token_also_ends_its_grant(
+    session, business, scheduled_owner
+):
+    grant, original = _issued_credential(session, business, scheduled_owner)
+    rotated = rotate_refresh_token(
+        session,
+        refresh_token=original.refresh_token,
+        client_id=grant.client_id,
+    )
+
+    revoke_credential_token(session, original.refresh_token)
+
+    assert _grant_state(session, scheduled_owner.id, grant.id)[0] == "revoked"
+    assert resolve_interactive_principal(session, rotated.access_token) is None
+
+
+def test_revoking_the_current_access_token_ends_its_grant(
+    session, business, scheduled_owner
+):
+    grant, issued = _issued_credential(session, business, scheduled_owner)
+
+    revoke_credential_token(session, issued.access_token)
+
+    assert resolve_interactive_principal(session, issued.access_token) is None
+    assert _grant_state(session, scheduled_owner.id, grant.id) == (
+        "revoked",
+        "client_revoked",
+    )
+
+
+def test_revoking_a_rotated_access_token_ends_only_that_token(
+    session, business, scheduled_owner
+):
+    grant, original = _issued_credential(session, business, scheduled_owner)
+    rotated = rotate_refresh_token(
+        session, refresh_token=original.refresh_token, client_id=grant.client_id
+    )
+
+    revoke_credential_token(session, original.access_token)
+
+    assert resolve_interactive_principal(session, original.access_token) is None
+    assert resolve_interactive_principal(session, rotated.access_token) is not None
+    assert _grant_state(session, scheduled_owner.id, grant.id) == ("active", None)
+    renewed = rotate_refresh_token(
+        session, refresh_token=rotated.refresh_token, client_id=grant.client_id
+    )
+    assert resolve_interactive_principal(session, renewed.access_token) is not None
+
+
+def test_revoking_an_unknown_token_changes_nothing(session, business, scheduled_owner):
+    grant, issued = _issued_credential(session, business, scheduled_owner)
+
+    revoke_credential_token(session, "ros_refresh_unknown")
+
+    assert _grant_state(session, scheduled_owner.id, grant.id) == ("active", None)
+    assert resolve_interactive_principal(session, issued.access_token) is not None

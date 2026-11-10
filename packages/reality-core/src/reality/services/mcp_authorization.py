@@ -603,7 +603,15 @@ def rotate_refresh_token(
 
 
 def revoke_credential_token(session, token: str) -> None:
-    """Apply RFC 7009's non-disclosing, idempotent credential revocation."""
+    """Apply RFC 7009's non-disclosing, idempotent credential revocation.
+
+    A refresh token stands for its grant (RFC 7009 section 2.1), so revoking one,
+    current or already rotated, ends the grant and every credential issued under it.
+    The current access token shares its row with the only refresh token that can
+    still renew the grant, so revoking it ends the grant too rather than leaving one
+    listed as active that can never be used again. An access token from an already
+    rotated row ends only itself.
+    """
 
     digest = token_hash(token)
     credential = session.scalar(
@@ -614,6 +622,17 @@ def revoke_credential_token(session, token: str) -> None:
             )
         )
     )
+    if credential is not None and (
+        credential.refresh_token_hash == digest or credential.replaced_by_id is None
+    ):
+        revoke_grant(
+            session,
+            tenant_id=credential.tenant_id,
+            grant_id=credential.grant_id,
+            actor_user_id=None,
+            reason="client_revoked",
+        )
+        return
     if credential is not None and credential.revoked_at is None:
         credential.revoked_at = now()
     session.commit()
@@ -666,7 +685,12 @@ def resolve_interactive_principal(session, token: str) -> MCPPrincipal | None:
 
 
 def revoke_grant(
-    session, *, tenant_id: str, grant_id: str, actor_user_id: str, reason: str = "user"
+    session,
+    *,
+    tenant_id: str,
+    grant_id: str,
+    actor_user_id: str | None,
+    reason: str = "user",
 ) -> None:
     grant = session.scalar(
         select(MCPClientGrant)

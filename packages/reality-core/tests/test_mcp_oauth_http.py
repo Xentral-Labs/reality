@@ -1018,3 +1018,73 @@ def test_a_wildcard_is_still_refused_for_an_interactive_grant(
 
     assert wildcard.status_code == 409
     assert explicit.status_code == 303
+
+
+def test_revoking_a_refresh_token_lists_the_connected_client_as_revoked(
+    session, business, scheduled_owner, monkeypatch
+):
+    """Spec 381: RFC 7009 revocation of a refresh token ends the grant it stands for."""
+    verifier = "v" * 64
+    _consent_environment(monkeypatch)
+    _overrides(session, scheduled_owner)
+
+    with TestClient(app) as client:
+        interaction_id = _consent_interaction(
+            client, scope="reality:read", verifier=verifier
+        )
+        tool = client.get(f"/api/oauth/interactions/{interaction_id}").json()[
+            "selected_tools"
+        ][0]
+        approval = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": [tool],
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+        code = parse_qs(urlparse(approval.headers["location"]).query)["code"][0]
+        token_request = {
+            "client_id": "client-a",
+            "resource": "https://mcp.example.test/",
+        }
+        issued = client.post(
+            "/oauth/token",
+            data={
+                **token_request,
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://client.example/callback",
+                "code_verifier": verifier,
+            },
+        ).json()
+        assert [
+            grant["effective_state"]
+            for grant in client.get("/api/auth/mcp-grants").json()["grants"]
+        ] == ["active"]
+
+        revoked = client.post("/oauth/revoke", data={"token": issued["refresh_token"]})
+        assert revoked.status_code == 200
+        assert revoked.json() == {}
+
+        grants = client.get("/api/auth/mcp-grants").json()["grants"]
+        assert [(g["effective_state"], g["effective_reason"]) for g in grants] == [
+            ("revoked", "client_revoked")
+        ]
+        assert (
+            authorization_service.resolve_interactive_principal(
+                session, issued["access_token"]
+            )
+            is None
+        )
+        refreshed = client.post(
+            "/oauth/token",
+            data={
+                **token_request,
+                "grant_type": "refresh_token",
+                "refresh_token": issued["refresh_token"],
+            },
+        )
+        assert refreshed.status_code == 400
+        assert refreshed.json()["error"] == "invalid_grant"

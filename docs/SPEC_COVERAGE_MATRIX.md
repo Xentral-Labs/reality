@@ -1758,6 +1758,15 @@ The topic index carries `tenant.purpose`, the stored purpose of the calling cred
 | Business and playground companies answer their own purpose; each principal reads only its own company and no foreign id or name | 362 FR-001/FR-002/DR-001 | `packages/reality-core/tests/test_capability_catalog.py` |
 | Two bearer tokens over the HTTP MCP runtime, verified by the server, each read their own company's purpose and nothing of the other | 362 FR-001/FR-002/DR-001 | `packages/reality-core/tests/test_capability_catalog.py` |
 
+### Spec 381 revoking a refresh token ends its grant
+
+A client's RFC 7009 revocation ends the grant it stands for, and the inventory says so.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Revoking a current or rotated refresh token, or the current access token, revokes the grant with `client_revoked` and refuses every credential; a rotated access token ends only itself; repeats and unknown tokens change nothing | 381 FR-001–FR-004 | `packages/reality-core/tests/test_mcp_oauth_service.py` |
+| `/oauth/revoke` with a refresh token answers `{}`, lists the connected client as revoked and refuses the refresh exchange | 381 FR-001/FR-003/FR-004 | `packages/reality-core/tests/test_mcp_oauth_http.py` |
+
 ### Spec 271 MCP permission ceiling
 
 A permission list is bounded by the catalog it draws from, and both grant paths refuse alike.
