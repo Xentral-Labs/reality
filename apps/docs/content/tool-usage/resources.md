@@ -20,7 +20,7 @@ the technical key stands beside each one.
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 12      | 5                   |
-| [Ledger and accounts](#resource-accounting)                      | 2     | 16      | 3                   |
+| [Ledger and accounts](#resource-accounting)                      | 2     | 18      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
 | [Document and source system](#resource-source)                   | 3     | 19      | 2                   |
@@ -157,6 +157,7 @@ Kreditor, Adresse, Dublette, Zusammenführen
 
 **Look up**
 
+- [Search existing buyer candidates](./commands#command-buyer_candidates) (`buyer_candidates`)
 - [Read supplier item terms](./commands#command-supplier_item_terms) (`supplier_item_terms`)
 - [Read business partner merges](./commands#command-party_merges) (`party_merges`)
 - [Read customer item numbers](./commands#command-customer_item_numbers) (`customer_item_numbers`)
@@ -788,6 +789,10 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Create operational account](./commands#command-create_account) (`create_account`)
 - [Update operational account](./commands#command-update_account) (`update_account`)
 - [Set operational account default](./commands#command-set_default_account) (`set_default_account`)
+- [Prepare exact buyer mapping review](./commands#command-prepare_buyer_mapping)
+  (`prepare_buyer_mapping`)
+- [Record human-reviewed source buyer mapping](./commands#command-commit_buyer_mapping)
+  (`commit_buyer_mapping`)
 - [Reverse ledger posting group](./commands#command-reverse_ledger_posting_group)
   (`reverse_ledger_posting_group`)
 - [State the company currency](./commands#command-set_company_currency) (`set_company_currency`)
@@ -823,6 +828,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Read operational transaction matrix](./commands#command-transaction_matrix)
   (`transaction_matrix`)
 - [Read operational accounts](./commands#command-list_accounts) (`list_accounts`)
+- [Read exact buyer mapping receipt](./commands#command-buyer_mapping_status)
+  (`buyer_mapping_status`)
 - [Read the company currency](./commands#command-company_currency_state) (`company_currency_state`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [List dunning notices](./commands#command-notices) (`notices`)

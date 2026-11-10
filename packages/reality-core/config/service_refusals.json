@@ -2930,6 +2930,21 @@
     },
     "shopify_graphql_mapping_changed": {
       "message": "The retained Shopify source job has different or missing frozen mappings. Resolve its mapping through a separate reviewed path; capture replay does not replace it."
+    },
+    "shopify_buyer_mapping_unavailable": {
+      "message": "This retained source is not available for buyer mapping under the current authority."
+    },
+    "shopify_buyer_mapping_basis_changed": {
+      "message": "The source or existing customer changed. Search again and review the current buyer mapping."
+    },
+    "shopify_buyer_mapping_approval_invalid": {
+      "message": "This exact buyer mapping needs a current verified human approval from the trusted Main issuer."
+    },
+    "shopify_buyer_mapping_already_recorded": {
+      "message": "A buyer mapping is already recorded for this source. Read the existing receipt; replacement needs a separate review."
+    },
+    "shopify_buyer_mapping_request_changed": {
+      "message": "This buyer-mapping request was already used for different review terms."
     }
   },
   "terms": [

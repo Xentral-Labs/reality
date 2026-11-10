@@ -511,6 +511,34 @@
       "effect": "Retains one unmodified selected Shopify order entity and its interpretation job without accepting business effects or granting general proposal approval."
     },
     {
+      "name": "Search existing buyer candidates",
+      "service": "buyer_candidates",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "effect": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation."
+    },
+    {
+      "name": "Prepare exact buyer mapping review",
+      "service": "prepare_buyer_mapping",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "effect": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation."
+    },
+    {
+      "name": "Record human-reviewed source buyer mapping",
+      "service": "commit_buyer_mapping",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "effect": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation."
+    },
+    {
+      "name": "Read exact buyer mapping receipt",
+      "service": "buyer_mapping_status",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "effect": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation."
+    },
+    {
       "name": "Ingest arbitrary source",
       "service": "enqueue_source",
       "related_services": ["process_import_job", "retry_import_job"],

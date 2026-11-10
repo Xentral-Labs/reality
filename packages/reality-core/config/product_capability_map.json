@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:b9c8b6af7a7090d48136d1ae34caaf9468bef6baace111542920a2fa1a511fff",
+  "knowledge_version": "advisor-v1:sha256:48db8c466b2e919ff4187b35d2f0f6d511da71230a71b5a55707cc3962a852b7",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -901,6 +901,10 @@
         "evidence_command_propose_company_party",
         "evidence_command_cost_review_draft",
         "evidence_command_create_manual_order",
+        "evidence_command_buyer_candidates",
+        "evidence_command_prepare_buyer_mapping",
+        "evidence_command_commit_buyer_mapping",
+        "evidence_command_buyer_mapping_status",
         "evidence_command_correct_manual_document",
         "evidence_command_create_party",
         "evidence_command_update_party",
@@ -973,6 +977,22 @@
         {
           "name": "create_manual_order",
           "mode": "mutation"
+        },
+        {
+          "name": "buyer_candidates",
+          "mode": "read"
+        },
+        {
+          "name": "prepare_buyer_mapping",
+          "mode": "mutation"
+        },
+        {
+          "name": "commit_buyer_mapping",
+          "mode": "mutation"
+        },
+        {
+          "name": "buyer_mapping_status",
+          "mode": "read"
         },
         {
           "name": "correct_manual_document",
@@ -2765,6 +2785,9 @@
         "evidence_command_set_default_account",
         "evidence_command_transaction_matrix",
         "evidence_command_list_accounts",
+        "evidence_command_prepare_buyer_mapping",
+        "evidence_command_commit_buyer_mapping",
+        "evidence_command_buyer_mapping_status",
         "evidence_command_correct_manual_document",
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_release_credit_holds",
@@ -2806,7 +2829,6 @@
         "evidence_command_post_supplier_payment",
         "evidence_command_adjustment_context",
         "evidence_command_accept_adjustment",
-        "evidence_command_settlement_context",
         "evidence_command_apply_settlement",
         "evidence_command_opening_context",
         "evidence_command_import_opening",
@@ -2939,6 +2961,18 @@
         },
         {
           "name": "list_accounts",
+          "mode": "read"
+        },
+        {
+          "name": "prepare_buyer_mapping",
+          "mode": "mutation"
+        },
+        {
+          "name": "commit_buyer_mapping",
+          "mode": "mutation"
+        },
+        {
+          "name": "buyer_mapping_status",
           "mode": "read"
         },
         {
@@ -3104,10 +3138,6 @@
         {
           "name": "accept_adjustment",
           "mode": "mutation"
-        },
-        {
-          "name": "settlement_context",
-          "mode": "read"
         },
         {
           "name": "apply_settlement",

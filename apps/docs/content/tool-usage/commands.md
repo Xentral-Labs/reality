@@ -118,6 +118,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`review_batch`](#command-review_batch)                                           | Review selected intake batch                  | Cross-functional           | `intake_batch_review`                                                                                                                                                                        | Web · API · MCP · Chat                  |
 | [`review_intake`](#command-review_intake)                                         | Review source interpretation                  | Cross-functional           | `intake_review`, `intake_agent_review_material`, `intake_agent_review_source_page`                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`revoke_review_mandate`](#command-revoke_review_mandate)                         | Revoke agent review mandate                   | Cross-functional           | `intake_mandate_revoke_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
+| [`buyer_candidates`](#command-buyer_candidates)                                   | Search existing buyer candidates              | Cross-functional           | `shopify_source_buyer_candidates`                                                                                                                                                            | MCP                                     |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote        | Cross-functional           | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                          | Cross-functional           | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`settle_payout`](#command-settle_payout)                                         | Settle a payout                               | Cross-functional           | `finance_payout_settle_propose`                                                                                                                                                              | Web · MCP · Chat · CLI                  |
@@ -152,10 +153,12 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`post_supplier_invoice`](#command-post_supplier_invoice)                         | Post supplier invoice                         | Finance                    | `supplier_invoice_post_propose`                                                                                                                                                              | Web · MCP · Chat                        |
 | [`post_supplier_payment`](#command-post_supplier_payment)                         | Post supplier payment                         | Finance                    | `supplier_payment_post_propose`                                                                                                                                                              | CLI · Web · MCP · Chat                  |
 | [`post_supplier_refund`](#command-post_supplier_refund)                           | Post supplier refund                          | Finance                    | `supplier_refund_post_propose`                                                                                                                                                               | Web · MCP · Chat                        |
+| [`prepare_buyer_mapping`](#command-prepare_buyer_mapping)                         | Prepare exact buyer mapping review            | Finance                    | `shopify_source_buyer_mapping_prepare`                                                                                                                                                       | MCP                                     |
 | [`preview_payment_run`](#command-preview_payment_run)                             | Preview payment run                           | Finance                    | `payment_run_preview`                                                                                                                                                                        | Web · MCP · Chat                        |
 | [`credit_exposure`](#command-credit_exposure)                                     | Read a credit exposure                        | Finance                    | `credit_exposure`                                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`billable_positions`](#command-billable_positions)                               | Read billable invoice positions               | Finance                    | `invoice_billable_positions`                                                                                                                                                                 | Web · API · MCP · Chat                  |
 | [`component_history`](#command-component_history)                                 | Read component assignment history             | Finance                    | `finance_component_history`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
+| [`buyer_mapping_status`](#command-buyer_mapping_status)                           | Read exact buyer mapping receipt              | Finance                    | `shopify_source_buyer_mapping_status`                                                                                                                                                        | MCP                                     |
 | [`list_references`](#command-list_references)                                     | Read finance references                       | Finance                    | `finance_references`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
 | [`invoice_credit_context`](#command-invoice_credit_context)                       | Read invoice credit context                   | Finance                    | `invoice_credit_context`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`opening_context`](#command-opening_context)                                     | Read opening position context                 | Finance                    | `finance_opening_context`                                                                                                                                                                    | CLI · Web · MCP · Chat                  |
@@ -170,6 +173,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`record_down_payment_invoice`](#command-record_down_payment_invoice)             | Record a down-payment invoice                 | Finance                    | `down_payment_invoice_record_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_proforma_invoice`](#command-record_proforma_invoice)                     | Record a pro-forma invoice                    | Finance                    | `proforma_invoice_record_propose`                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`record_free_supplier_invoice`](#command-record_free_supplier_invoice)           | Record free supplier invoice                  | Finance                    | `supplier_invoice_free_record_propose`                                                                                                                                                       | Web · MCP · Chat                        |
+| [`commit_buyer_mapping`](#command-commit_buyer_mapping)                           | Record human-reviewed source buyer mapping    | Finance                    | `shopify_source_buyer_mapping_commit`                                                                                                                                                        | MCP                                     |
 | [`apply_settlement`](#command-apply_settlement)                                   | Record payment or use existing credit         | Finance                    | `finance_settlement_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`record_sales_credit`](#command-record_sales_credit)                             | Record return credit                          | Finance                    | `sales_credit_record_propose`                                                                                                                                                                | Web · API · MCP · Chat                  |
 | [`record_sales_invoice`](#command-record_sales_invoice)                           | Record sales invoice                          | Finance                    | `sales_invoice_record_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
@@ -2749,6 +2753,52 @@ supplier_refund_post_propose credit_note_id amount [refund_number] [source_recor
 
 **See also:** Command [`post_supplier_refund`](./commands#command-post_supplier_refund)
 
+### `prepare_buyer_mapping` — Prepare exact buyer mapping review {#command-prepare_buyer_mapping}
+
+Records or reads only an exact existing buyer mapping, preserving original source and holding full
+business interpretation.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_mapping_prepare request_id source_record_id import_job_id source_hash source_version customer_party_id customer_digest
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `source_stream`, `source_record`, `import_job`, `party`, `party_role`,
+`action` · Writes: `action`, `source_stream`, `source_record`, `import_job`
+
+**See also:** Agent Tool
+[`shopify_source_buyer_mapping_prepare`](./commands#tool-shopify_source_buyer_mapping_prepare)
+
+#### `shopify_source_buyer_mapping_prepare` — Review existing buyer mapping {#tool-shopify_source_buyer_mapping_prepare}
+
+Freeze source/job/hash/integer version and fresh existing customer digest for human Main review. No
+business acceptance.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_mapping_prepare request_id source_record_id import_job_id source_hash source_version customer_party_id customer_digest
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                | Type      | Required | Description                                                                                                                            | Default |
+| ------------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `request_id`        | `string`  | yes      | Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused. | —       |
+| `source_record_id`  | `string`  | yes      | Opaque identity of the immutable source record supporting this typed record.                                                           | —       |
+| `import_job_id`     | `string`  | yes      | —                                                                                                                                      | —       |
+| `source_hash`       | `string`  | yes      | —                                                                                                                                      | —       |
+| `source_version`    | `integer` | yes      | —                                                                                                                                      | —       |
+| `customer_party_id` | `string`  | yes      | —                                                                                                                                      | —       |
+| `customer_digest`   | `string`  | yes      | —                                                                                                                                      | —       |
+
+**See also:** Command [`prepare_buyer_mapping`](./commands#command-prepare_buyer_mapping)
+
 ### `preview_payment_run` — Preview payment run {#command-preview_payment_run}
 
 Shows which supplier invoices are worth paying now, what each supplier is owed, and what was
@@ -2988,6 +3038,65 @@ Read received component values and internal attribution history.
 | `offset`       | `integer` | no       | Number of matching rows to skip for bounded pagination.         | —       |
 
 **See also:** Command [`component_history`](./commands#command-component_history)
+
+### `buyer_mapping_status` — Read exact buyer mapping receipt {#command-buyer_mapping_status}
+
+Records or reads only an exact existing buyer mapping, preserving original source and holding full
+business interpretation.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_mapping_status review_id
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `source_stream`, `source_record`, `import_job`, `party`, `party_role`,
+`action` · Writes: —
+
+**See also:** Agent Tool
+[`shopify_source_buyer_mapping_status`](./commands#tool-shopify_source_buyer_mapping_status)
+
+#### `shopify_source_buyer_mapping_status` — Read retained buyer mapping receipt {#tool-shopify_source_buyer_mapping_status}
+
+Read the exact retained review/receipt including original human proof identity and current basis.
+Never retries dispatch or creates an order.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_mapping_status review_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                            | Kind                        | Default |
+| ----------------------------------------- | --------------------------- | ------- |
+| `MCP shopify_source_buyer_mapping_status` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Inspect exact existing buyer mapping evidence for one host-pinned retained Shopify source without
+accepting an order.
+
+**Use when**
+
+- An existing customer must be selected or an exact human mapping receipt must be read.
+
+**Do not use when**
+
+- Creating a customer or accepting an order or dispatching financial or fulfillment effects.
+
+**Parameters**
+
+| Name        | Type     | Required | Description                                                                                                        | Default |
+| ----------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------ | ------- |
+| `review_id` | `string` | yes      | Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review. | —       |
+
+**See also:** Command [`buyer_mapping_status`](./commands#command-buyer_mapping_status)
 
 ### `list_references` — Read finance references {#command-list_references}
 
@@ -3790,6 +3899,49 @@ order.
 **See also:** Command
 [`record_free_supplier_invoice`](./commands#command-record_free_supplier_invoice), Projection
 [`document_register`](./views#projection-document_register)
+
+### `commit_buyer_mapping` — Record human-reviewed source buyer mapping {#command-commit_buyer_mapping}
+
+Records or reads only an exact existing buyer mapping, preserving original source and holding full
+business interpretation.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_mapping_commit review_id review_digest approval_proof
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `source_stream`, `source_record`, `import_job`, `party`, `party_role`,
+`action` · Writes: `action`, `source_stream`, `source_record`, `import_job`
+
+**See also:** Agent Tool
+[`shopify_source_buyer_mapping_commit`](./commands#tool-shopify_source_buyer_mapping_commit)
+
+#### `shopify_source_buyer_mapping_commit` — Record human-reviewed buyer mapping {#tool-shopify_source_buyer_mapping_commit}
+
+Record only the exact mapping after trusted issuer-signed Main human approval. Model cannot approve.
+No generic proposal approval, order creation, payment or fulfillment. Preserve original source/job
+input; intake remains held.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_mapping_commit review_id review_digest approval_proof
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name             | Type     | Required | Description                                                                                                        | Default |
+| ---------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------ | ------- |
+| `review_id`      | `string` | yes      | Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review. | —       |
+| `review_digest`  | `string` | yes      | Exact current handback review digest; changed facts require a new review.                                          | —       |
+| `approval_proof` | `string` | yes      | —                                                                                                                  | —       |
+
+**See also:** Command [`commit_buyer_mapping`](./commands#command-commit_buyer_mapping)
 
 ### `apply_settlement` — Record payment or use existing credit {#command-apply_settlement}
 
@@ -12493,6 +12645,68 @@ intake_mandate_revoke_propose mandate_id expected_revision
 | `expected_revision` | `integer` | yes      | Exact current mandate revision being revoked. | —       |
 
 **See also:** Command [`revoke_review_mandate`](./commands#command-revoke_review_mandate)
+
+### `buyer_candidates` — Search existing buyer candidates {#command-buyer_candidates}
+
+Records or reads only an exact existing buyer mapping, preserving original source and holding full
+business interpretation.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_candidates source_record_id import_job_id [query] [limit]
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `tenant`, `source_stream`, `source_record`, `import_job`, `party`, `party_role`,
+`action` · Writes: —
+
+**See also:** Agent Tool
+[`shopify_source_buyer_candidates`](./commands#tool-shopify_source_buyer_candidates)
+
+#### `shopify_source_buyer_candidates` — Existing customers for retained Shopify source {#tool-shopify_source_buyer_candidates}
+
+Search bounded active existing customer identities for the exact host-pinned retained source. No
+customer creation or order effects.
+
+**Synopsis**
+
+```text
+shopify_source_buyer_candidates source_record_id import_job_id [query] [limit]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                        | Kind                        | Default |
+| ------------------------------------- | --------------------------- | ------- |
+| `MCP shopify_source_buyer_candidates` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Inspect exact existing buyer mapping evidence for one host-pinned retained Shopify source without
+accepting an order.
+
+**Use when**
+
+- An existing customer must be selected or an exact human mapping receipt must be read.
+
+**Do not use when**
+
+- Creating a customer or accepting an order or dispatching financial or fulfillment effects.
+
+**Parameters**
+
+| Name               | Type      | Required | Description                                                                  | Default |
+| ------------------ | --------- | -------- | ---------------------------------------------------------------------------- | ------- |
+| `source_record_id` | `string`  | yes      | Opaque identity of the immutable source record supporting this typed record. | —       |
+| `import_job_id`    | `string`  | yes      | —                                                                            | —       |
+| `query`            | `string`  | no       | Optional invoice-number search within matching same-party credit targets.    | —       |
+| `limit`            | `integer` | no       | Maximum number of records or jobs processed by this invocation.              | `20`    |
+
+**See also:** Command [`buyer_candidates`](./commands#command-buyer_candidates)
 
 ### `business_journey_vote_set` — Set a Business Journey suggestion vote {#command-business_journey_vote_set}
 

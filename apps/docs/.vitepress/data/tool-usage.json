@@ -390,6 +390,7 @@
         "command:record_handover"
       ],
       "reads": [
+        "command:buyer_candidates",
         "command:supplier_item_terms",
         "command:party_merges",
         "command:customer_item_numbers",
@@ -1180,6 +1181,8 @@
         "command:create_account",
         "command:update_account",
         "command:set_default_account",
+        "command:prepare_buyer_mapping",
+        "command:commit_buyer_mapping",
         "command:reverse_ledger_posting_group",
         "command:set_company_currency",
         "command:record_notice",
@@ -1209,6 +1212,7 @@
         "command:reference_history",
         "command:transaction_matrix",
         "command:list_accounts",
+        "command:buyer_mapping_status",
         "command:company_currency_state",
         "command:credit_exposure",
         "command:notices",
@@ -2037,6 +2041,227 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:shopify_source_buyer_candidates",
+      "kind": "tool",
+      "key": "shopify_source_buyer_candidates",
+      "label": "Existing customers for retained Shopify source",
+      "area": "sources",
+      "summary": "Search bounded active existing customer identities for the exact host-pinned retained source. No customer creation or order effects.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "shopify_source_buyer_candidates source_record_id import_job_id [query] [limit]",
+      "parameters": [
+        {
+          "name": "source_record_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable source record supporting this typed record.",
+          "depth": 0
+        },
+        {
+          "name": "import_job_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "required": false,
+          "description": "Optional invoice-number search within matching same-party credit targets.",
+          "depth": 0,
+          "default": ""
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 0,
+          "default": 20
+        }
+      ],
+      "guidance": {
+        "purpose": "Inspect exact existing buyer mapping evidence for one host-pinned retained Shopify source without accepting an order.",
+        "use_when": [
+          "An existing customer must be selected or an exact human mapping receipt must be read."
+        ],
+        "do_not_use_when": [
+          "Creating a customer or accepting an order or dispatching financial or fulfillment effects."
+        ],
+        "limitations": ["A mapped buyer is not a completed intake or accepted business order."],
+        "empty_result": "No eligible matching active customer exists, or no mapping is recorded.",
+        "freshness": "Pending reviews require current source and customer; recorded receipts retain their historical approval with separate current-basis flags."
+      },
+      "read_modes": [
+        {
+          "query": "MCP shopify_source_buyer_candidates",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "buyer_candidates",
+      "projections": [],
+      "links": ["command:buyer_candidates"],
+      "label_de": "Existing customers for retained Shopify source",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:shopify_source_buyer_mapping_prepare",
+      "kind": "tool",
+      "key": "shopify_source_buyer_mapping_prepare",
+      "label": "Review existing buyer mapping",
+      "area": "finance",
+      "summary": "Freeze source/job/hash/integer version and fresh existing customer digest for human Main review. No business acceptance.",
+      "access": "propose",
+      "group": "Sources",
+      "synopsis": "shopify_source_buyer_mapping_prepare request_id source_record_id import_job_id source_hash source_version customer_party_id customer_digest",
+      "parameters": [
+        {
+          "name": "request_id",
+          "type": "string",
+          "required": true,
+          "description": "Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused.",
+          "depth": 0
+        },
+        {
+          "name": "source_record_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable source record supporting this typed record.",
+          "depth": 0
+        },
+        {
+          "name": "import_job_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_hash",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "source_version",
+          "type": "integer",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "customer_party_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "customer_digest",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "prepare_buyer_mapping",
+      "projections": [],
+      "links": ["command:prepare_buyer_mapping"],
+      "label_de": "Review existing buyer mapping",
+      "resources": ["accounting"]
+    },
+    {
+      "id": "tool:shopify_source_buyer_mapping_commit",
+      "kind": "tool",
+      "key": "shopify_source_buyer_mapping_commit",
+      "label": "Record human-reviewed buyer mapping",
+      "area": "finance",
+      "summary": "Record only the exact mapping after trusted issuer-signed Main human approval. Model cannot approve. No generic proposal approval, order creation, payment or fulfillment. Preserve original source/job input; intake remains held.",
+      "access": "confirm",
+      "group": "Sources",
+      "synopsis": "shopify_source_buyer_mapping_commit review_id review_digest approval_proof",
+      "parameters": [
+        {
+          "name": "review_id",
+          "type": "string",
+          "required": true,
+          "description": "Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review.",
+          "depth": 0
+        },
+        {
+          "name": "review_digest",
+          "type": "string",
+          "required": true,
+          "description": "Exact current handback review digest; changed facts require a new review.",
+          "depth": 0
+        },
+        {
+          "name": "approval_proof",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "commit_buyer_mapping",
+      "projections": [],
+      "links": ["command:commit_buyer_mapping"],
+      "label_de": "Record human-reviewed buyer mapping",
+      "resources": ["accounting"]
+    },
+    {
+      "id": "tool:shopify_source_buyer_mapping_status",
+      "kind": "tool",
+      "key": "shopify_source_buyer_mapping_status",
+      "label": "Read retained buyer mapping receipt",
+      "area": "finance",
+      "summary": "Read the exact retained review/receipt including original human proof identity and current basis. Never retries dispatch or creates an order.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "shopify_source_buyer_mapping_status review_id",
+      "parameters": [
+        {
+          "name": "review_id",
+          "type": "string",
+          "required": true,
+          "description": "Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Inspect exact existing buyer mapping evidence for one host-pinned retained Shopify source without accepting an order.",
+        "use_when": [
+          "An existing customer must be selected or an exact human mapping receipt must be read."
+        ],
+        "do_not_use_when": [
+          "Creating a customer or accepting an order or dispatching financial or fulfillment effects."
+        ],
+        "limitations": ["A mapped buyer is not a completed intake or accepted business order."],
+        "empty_result": "No eligible matching active customer exists, or no mapping is recorded.",
+        "freshness": "Pending reviews require current source and customer; recorded receipts retain their historical approval with separate current-basis flags."
+      },
+      "read_modes": [
+        {
+          "query": "MCP shopify_source_buyer_mapping_status",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "buyer_mapping_status",
+      "projections": [],
+      "links": ["command:buyer_mapping_status"],
+      "label_de": "Read retained buyer mapping receipt",
+      "resources": ["accounting"]
+    },
     {
       "id": "tool:shopify_order_graphql_capture",
       "kind": "tool",
@@ -28061,6 +28286,152 @@
       "links": ["tool:shopify_order_graphql_capture"],
       "label_de": "Originalen Shopify-Auftrag als Quelle erfassen",
       "resources": ["source"]
+    },
+    {
+      "id": "command:buyer_candidates",
+      "kind": "command",
+      "key": "buyer_candidates",
+      "label": "Search existing buyer candidates",
+      "area": "cross_functional",
+      "summary": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation.",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "source_stream",
+        "source_record",
+        "import_job",
+        "party",
+        "party_role",
+        "action"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_buyer_candidates"],
+      "synopses": [
+        "shopify_source_buyer_candidates source_record_id import_job_id [query] [limit]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect exact existing buyer mapping evidence for one host-pinned retained Shopify source without accepting an order.",
+        "use_when": [
+          "An existing customer must be selected or an exact human mapping receipt must be read."
+        ],
+        "do_not_use_when": [
+          "Creating a customer or accepting an order or dispatching financial or fulfillment effects."
+        ],
+        "limitations": ["A mapped buyer is not a completed intake or accepted business order."],
+        "empty_result": "No eligible matching active customer exists, or no mapping is recorded.",
+        "freshness": "Pending reviews require current source and customer; recorded receipts retain their historical approval with separate current-basis flags."
+      },
+      "links": ["tool:shopify_source_buyer_candidates"],
+      "label_de": "Vorhandene Kunden für die Quellzuordnung suchen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:prepare_buyer_mapping",
+      "kind": "command",
+      "key": "prepare_buyer_mapping",
+      "label": "Prepare exact buyer mapping review",
+      "area": "finance",
+      "summary": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation.",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "source_stream",
+        "source_record",
+        "import_job",
+        "party",
+        "party_role",
+        "action"
+      ],
+      "writes": ["action", "source_stream", "source_record", "import_job"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_buyer_mapping_prepare"],
+      "synopses": [
+        "shopify_source_buyer_mapping_prepare request_id source_record_id import_job_id source_hash source_version customer_party_id customer_digest"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:shopify_source_buyer_mapping_prepare"],
+      "label_de": "Kundenzuordnung zur Prüfung vorbereiten",
+      "resources": ["accounting"]
+    },
+    {
+      "id": "command:commit_buyer_mapping",
+      "kind": "command",
+      "key": "commit_buyer_mapping",
+      "label": "Record human-reviewed source buyer mapping",
+      "area": "finance",
+      "summary": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation.",
+      "mode": "mutation",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "source_stream",
+        "source_record",
+        "import_job",
+        "party",
+        "party_role",
+        "action"
+      ],
+      "writes": ["action", "source_stream", "source_record", "import_job"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_buyer_mapping_commit"],
+      "synopses": ["shopify_source_buyer_mapping_commit review_id review_digest approval_proof"],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:shopify_source_buyer_mapping_commit"],
+      "label_de": "Menschlich geprüfte Kundenzuordnung speichern",
+      "resources": ["accounting"]
+    },
+    {
+      "id": "command:buyer_mapping_status",
+      "kind": "command",
+      "key": "buyer_mapping_status",
+      "label": "Read exact buyer mapping receipt",
+      "area": "finance",
+      "summary": "Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation.",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "reads": [
+        "tenant",
+        "source_stream",
+        "source_record",
+        "import_job",
+        "party",
+        "party_role",
+        "action"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["shopify_source_buyer_mapping_status"],
+      "synopses": ["shopify_source_buyer_mapping_status review_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Inspect exact existing buyer mapping evidence for one host-pinned retained Shopify source without accepting an order.",
+        "use_when": [
+          "An existing customer must be selected or an exact human mapping receipt must be read."
+        ],
+        "do_not_use_when": [
+          "Creating a customer or accepting an order or dispatching financial or fulfillment effects."
+        ],
+        "limitations": ["A mapped buyer is not a completed intake or accepted business order."],
+        "empty_result": "No eligible matching active customer exists, or no mapping is recorded.",
+        "freshness": "Pending reviews require current source and customer; recorded receipts retain their historical approval with separate current-basis flags."
+      },
+      "links": ["tool:shopify_source_buyer_mapping_status"],
+      "label_de": "Beleg der Kundenzuordnung anzeigen",
+      "resources": ["accounting"]
     },
     {
       "id": "command:enqueue_source",
@@ -84199,6 +84570,8 @@
         "command:shipping_plan_state",
         "command:create_manual_order",
         "command:capture_shopify_graphql_source",
+        "command:prepare_buyer_mapping",
+        "command:commit_buyer_mapping",
         "command:enqueue_source",
         "command:record_corrected_document_source",
         "command:create_party",

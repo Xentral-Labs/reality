@@ -98,3 +98,25 @@ An identical source replay returns its original source/job; it does not rewrite 
 mapping. Changed or newly supplied mapping on an existing job is refused explicitly.
 A later mapping-resolution flow is separate scope. Raw sources may contain private
 fields and must not be printed into chat merely to demonstrate successful capture.
+
+## Explicit existing buyer mapping (Spec 389)
+
+A retained `order_graphql` source with no explicit Reality buyer mapping can use
+`shopify_source_buyer_candidates` to search bounded active existing customer-role
+identities. `shopify_source_buyer_mapping_prepare` freezes exact original source,
+job, hash, integer version and current customer digest. Tuesday Main presents the
+actual customer and source for an explicit human confirmation; a trusted host
+signs that exact review. Models and submission tokens cannot approve.
+
+The narrow commit validates Ed25519 issuer/subject/key/expiry and all current
+source/customer preconditions, then records a mapping-only Action and immutable
+approval Source. Status preserves the original human approval UUID and compact
+proof digest; unknown reconciliation must match its retained proof exactly. A
+canonical mapping reader is used by candidates/status and current GraphQL intake.
+The original source and ImportJob.input remain unchanged. Intake remains held as
+`buyer_mapping_recorded_intake_pending`; no accepted order or full business
+proposal, customer creation, payment, fulfillment or inventory effect follows.
+
+The private host policy defaults to deny and pins one exact source/job/order/shop
+and Main public issuer authority. The version-pinned schema99 overlay supports
+only this mapping/receipt relationship, not the newer full intake subsystem.

@@ -18,7 +18,7 @@ from reality.services.projections import (
 def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
-    assert catalog["command_count"] == 215
+    assert catalog["command_count"] == 219
     assert catalog["event_count"] == 103
     assert (
         catalog["projection_count"]
@@ -162,8 +162,14 @@ def test_split_catalog_is_complete_and_composed():
         for command in catalog["commands"]
         if "Web" not in command["adapters"]
     }
-    # Original-source capture is a bounded MCP-only entry, not a new Web form.
-    assert web_missing == {"capture_shopify_graphql_source"}
+    # These exact source-bound MCP contracts have no separate Reality Web form.
+    assert web_missing == {
+        "capture_shopify_graphql_source",
+        "buyer_candidates",
+        "prepare_buyer_mapping",
+        "commit_buyer_mapping",
+        "buyer_mapping_status",
+    }
 
 
 def test_external_agent_closure_bindings_share_application_services():
@@ -485,17 +491,17 @@ def test_tenant_operation_discovery_detects_registry_drift():
 def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
-    assert len(catalog.families) == 45
+    assert len(catalog.families) == 46
     assert {"business_logic_generic", "business_logic_case_comparison"} <= {
         family["key"] for family in catalog.families
     }
-    assert len(catalog.discovered_operations) == 730
+    assert len(catalog.discovered_operations) == 737
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 730
+    assert sum(len(family["operations"]) for family in catalog.families) == 737
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

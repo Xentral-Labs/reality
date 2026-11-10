@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:b9c8b6af7a7090d48136d1ae34caaf9468bef6baace111542920a2fa1a511fff",
+  "knowledge_version": "advisor-v1:sha256:48db8c466b2e919ff4187b35d2f0f6d511da71230a71b5a55707cc3962a852b7",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "a3e19afc690e9e46fd8d745dd56a6da3b2b9b7f9bccb9b88c9677beebdd53b92"
+      "fingerprint": "722330d56cbb5efd218714b112d0f6130d27fee7520c7af3dff9c4c135e45f81"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7156,6 +7156,66 @@
       ],
       "language": "en",
       "fingerprint": "ec9b308440ecbc19b60554053f239f2496078e4c5c622a78677bd4450a36962e"
+    },
+    {
+      "id": "evidence_command_buyer_candidates",
+      "source_id": "source_executable_commands",
+      "subject": "Search existing buyer candidates",
+      "title": "Search existing buyer candidates",
+      "search_text": "buyer_candidates Search existing buyer candidates Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation. read",
+      "claim_text": "buyer_candidates is a governed read command for Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "buyer_candidates"
+      ],
+      "language": "en",
+      "fingerprint": "85d1d5a0696aa40c07954578779aa3ec15d42e76810ce5fab0581a8c0596dad4"
+    },
+    {
+      "id": "evidence_command_prepare_buyer_mapping",
+      "source_id": "source_executable_commands",
+      "subject": "Prepare exact buyer mapping review",
+      "title": "Prepare exact buyer mapping review",
+      "search_text": "prepare_buyer_mapping Prepare exact buyer mapping review Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation. mutation",
+      "claim_text": "prepare_buyer_mapping is a governed mutation command for Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "prepare_buyer_mapping"
+      ],
+      "language": "en",
+      "fingerprint": "adf28c0f1ed5e5bd254c2164d6da3bda22487ef73741ecc12668f19caa7917b5"
+    },
+    {
+      "id": "evidence_command_commit_buyer_mapping",
+      "source_id": "source_executable_commands",
+      "subject": "Record human-reviewed source buyer mapping",
+      "title": "Record human-reviewed source buyer mapping",
+      "search_text": "commit_buyer_mapping Record human-reviewed source buyer mapping Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation. mutation",
+      "claim_text": "commit_buyer_mapping is a governed mutation command for Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "commit_buyer_mapping"
+      ],
+      "language": "en",
+      "fingerprint": "7cec529bd6a09ceffb95eff137d77d54a01f8789e254f614a87f6890ffe59af3"
+    },
+    {
+      "id": "evidence_command_buyer_mapping_status",
+      "source_id": "source_executable_commands",
+      "subject": "Read exact buyer mapping receipt",
+      "title": "Read exact buyer mapping receipt",
+      "search_text": "buyer_mapping_status Read exact buyer mapping receipt Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation. read",
+      "claim_text": "buyer_mapping_status is a governed read command for Records or reads only an exact existing buyer mapping, preserving original source and holding full business interpretation..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "buyer_mapping_status"
+      ],
+      "language": "en",
+      "fingerprint": "81436a97ca79d59586aff2246aeab45153bca2e70353a9234caa2b3155d23171"
     },
     {
       "id": "evidence_command_enqueue_source",

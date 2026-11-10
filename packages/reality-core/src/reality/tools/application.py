@@ -4538,7 +4538,21 @@ def _intake_batch_status(session, tenant_id, arguments):
     return batch_status(session, tenant_id, **arguments)
 
 
+from reality.tools import shopify_buyer_mapping as _buyer_mapping_tools
+
 TOOLS = {
+    "shopify_source_buyer_candidates": Tool(
+        "shopify_source_buyer_candidates",
+        "Read bounded existing customers for a retained source.",
+        False,
+        _buyer_mapping_tools.candidates,
+    ),
+    "shopify_source_buyer_mapping_status": Tool(
+        "shopify_source_buyer_mapping_status",
+        "Read the exact mapping review or retained human receipt.",
+        False,
+        _buyer_mapping_tools.status,
+    ),
     "email_dispatch_authorize": Tool(
         "email_dispatch_authorize",
         "Authorize the exact email for external dispatch; this does not send it.",

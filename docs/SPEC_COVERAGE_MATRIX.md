@@ -2808,3 +2808,8 @@ Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_per
 
 - `specs/388-shopify-graphql-intake/spec.md` and `docs/features/shopify_ingestion.md`: original selected entity, separate capture/preparation authority, named missing-mapping refusal and no automatic acceptance.
 - `packages/reality-core/tests/test_shopify_graphql_intake.py`: FR-001..006/DR-001 original entity/hash/line traceability, exact received values, complete identity/currency/pagination bounds, same-source replay, real reviewed proposal without business effects, missing/foreign mappings, accepted legacy identity and MCP tool allowlist.
+
+## Spec 389 - Human-reviewed existing buyer mapping
+
+- `specs/389-shopify-source-buyer-mapping/spec.md`: mapping-only exact human approval, immutable source and retained intake hold.
+- `packages/reality-core/tests/test_shopify_buyer_mapping.py`: FR-001..008/DR-001 active customer role, exact source/customer/proof pins, immutable original, no business effects, replay, expiry and no remap.
