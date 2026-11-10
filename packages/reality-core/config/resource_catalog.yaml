@@ -740,6 +740,7 @@ labels:
       apply_prepared_intake: Geprüfte Quellinterpretation übernehmen
       prepare_shopify_order: Explizite Shopify-Auftragsinterpretation vorbereiten
       review_shopify_order: Gespeicherte Shopify-Auftragsinterpretation prüfen
+      shopify_source_reference_lookup: Vorhandene Referenzen zur Shopify-Quelle anzeigen
       shopify_source_intake_preflight: Voraussetzungen der Shopify-Quellinterpretation anzeigen
       capture_shopify_graphql_source: Originalen Shopify-Auftrag als Quelle erfassen
       buyer_candidates: Vorhandene Kunden für die Quellzuordnung suchen

@@ -342,6 +342,7 @@
     "prepare_buyer_mapping": "intake",
     "commit_buyer_mapping": "intake",
     "buyer_mapping_status": "intake",
+    "shopify_source_reference_lookup": "intake",
     "shopify_source_intake_preflight": "intake",
     "prepare_shopify_order": "intake",
     "review_shopify_order": "intake",

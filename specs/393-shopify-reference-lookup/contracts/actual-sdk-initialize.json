@@ -1,0 +1,24 @@
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "result": {
+    "capabilities": {
+      "prompts": {
+        "listChanged": false
+      },
+      "resources": {
+        "listChanged": false,
+        "subscribe": false
+      },
+      "tools": {
+        "listChanged": false
+      }
+    },
+    "instructions": "Inspect operational reality through shared application services. Mutations are proposals and require a separate authorized decision. Call capability_catalog first: it names the business areas this company covers and marks which tools this credential may actually use, so a capability you are not granted is never mistaken for one that is absent.",
+    "protocolVersion": "2025-03-26",
+    "serverInfo": {
+      "name": "Reality",
+      "version": ""
+    }
+  }
+}

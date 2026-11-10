@@ -75,6 +75,9 @@ from reality.services import (
 from reality.services import (
     shopify_order_proposal as shopify_order_proposal_service_module,
 )
+from reality.services import (
+    shopify_reference_lookup as shopify_reference_lookup_service_module,
+)
 from reality.services import stock_blocks as stock_block_service_module
 from reality.services import stock_counts as stock_count_service_module
 from reality.services import supplier_item_numbers as supplier_item_service_module
@@ -240,6 +243,7 @@ TENANT_SERVICE_MODULES = {
     "reality.services.shopify_order_proposal": shopify_order_proposal_service_module,
     "reality.services.shopify_order_acceptance": shopify_order_acceptance_service_module,
     "reality.services.shopify_intake_preflight": shopify_intake_preflight_service_module,
+    "reality.services.shopify_reference_lookup": shopify_reference_lookup_service_module,
     "reality.services.shopify_buyer_mapping": shopify_buyer_mapping_service_module,
     "reality.services.intake": intake_service_module,
     "reality.services.intake_batches": intake_batch_service_module,
@@ -1220,6 +1224,7 @@ def _service(name: str) -> Any:
         shopify_order_proposal_service_module,
         shopify_order_acceptance_service_module,
         shopify_intake_preflight_service_module,
+        shopify_reference_lookup_service_module,
         shopify_buyer_mapping_service_module,
         intake_service_module,
         intake_batch_service_module,

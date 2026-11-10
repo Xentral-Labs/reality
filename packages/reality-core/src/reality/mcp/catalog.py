@@ -22,6 +22,7 @@ from reality.domain.shopify_order_acceptance import (
     AcceptanceReviewInput,
 )
 from reality.domain.shopify_order_proposal import OrderPrepareInput, OrderReviewInput
+from reality.domain.shopify_reference_lookup import ReferenceLookupInput
 from reality.mcp.principal import (
     MCPPrincipal,
     current_mcp_principal,
@@ -825,6 +826,15 @@ MCP_TOOL_CATALOG = (
         "Sources",
         OrderReviewInput.model_json_schema(),
         _read("shopify_source_order_review"),
+    ),
+    MCPToolDefinition(
+        "shopify_source_reference_lookup",
+        "Existing references for a retained Shopify source",
+        "Read bounded active company, shipping-compatible location or item candidates and exact canonical digests for one current source/job/hash/version. Explicit selection remains a human or separately reviewed mandate decision. Observed units do not approve quantity semantics. No writes, preparation or acceptance.",
+        "read",
+        "Sources",
+        ReferenceLookupInput.model_json_schema(),
+        _read("shopify_source_reference_lookup"),
     ),
     MCPToolDefinition(
         "shopify_source_intake_preflight",
