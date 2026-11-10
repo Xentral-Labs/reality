@@ -29920,3 +29920,17 @@ Object.assign(dictionaries.es, {
   "This buyer-mapping request was already used for different review terms.":
     "Esta solicitud de asignación de cliente ya se utilizó con otras condiciones de revisión.",
 });
+
+// Spec390: bounded intake read refusal uses the shared presentation.
+Object.assign(dictionaries.de, {
+  "This exact retained Shopify source cannot provide a current bounded intake preflight. Read the source and existing mappings again; this read does not prepare or accept business effects.":
+    "Für diese genaue gespeicherte Shopify-Quelle ist keine aktuelle, begrenzte Vorprüfung möglich. Lies Quelle und vorhandene Zuordnungen erneut; diese Abfrage bereitet keine Geschäftsvorgänge vor und nimmt sie nicht an.",
+});
+Object.assign(dictionaries.nl, {
+  "This exact retained Shopify source cannot provide a current bounded intake preflight. Read the source and existing mappings again; this read does not prepare or accept business effects.":
+    "Voor deze exacte opgeslagen Shopify-bron is geen actuele begrensde voorcontrole beschikbaar. Lees de bron en bestaande koppelingen opnieuw; deze lezing bereidt geen bedrijfseffecten voor en accepteert ze niet.",
+});
+Object.assign(dictionaries.es, {
+  "This exact retained Shopify source cannot provide a current bounded intake preflight. Read the source and existing mappings again; this read does not prepare or accept business effects.":
+    "Esta fuente exacta de Shopify conservada no permite una revisión previa actual y acotada. Lee de nuevo la fuente y las asignaciones existentes; esta consulta no prepara ni acepta efectos empresariales.",
+});

@@ -1044,6 +1044,8 @@ Nachweis, Quelle
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Read source mapping history](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Explain retained Shopify intake requirements](./commands#command-shopify_source_intake_preflight)
+  (`shopify_source_intake_preflight`)
 - [Read the three-way match of a purchase order](./commands#command-purchase_match)
   (`purchase_match`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)

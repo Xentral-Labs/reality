@@ -2813,3 +2813,8 @@ Spec 378 FR-071–072 also map to `packages/reality-core/tests/test_shipping_per
 
 - `specs/389-shopify-source-buyer-mapping/spec.md`: mapping-only exact human approval, immutable source and retained intake hold.
 - `packages/reality-core/tests/test_shopify_buyer_mapping.py`: FR-001..008/DR-001 active customer role, exact source/customer/proof pins, immutable original, no business effects, replay, expiry and no remap.
+
+## Spec390 - Read-only retained Shopify intake preflight
+
+- `specs/390-shopify-intake-preflight/spec.md`: exact source pins, canonical buyer, retained references, bounded item/unit/financial interpretation diagnosis; no readiness authority or writes.
+- `packages/reality-core/tests/test_shopify_intake_preflight.py`: FR-001..008/DR-001 source/tenant/master changes, native schemas, Unicode digest, explicit limits and SQL/full-snapshot immutability.

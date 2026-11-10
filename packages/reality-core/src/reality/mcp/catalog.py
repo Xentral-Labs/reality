@@ -15,6 +15,7 @@ from reality.domain.shopify_buyer_mapping import (
     PrepareInput,
     StatusInput,
 )
+from reality.domain.shopify_intake_preflight import PreflightInput
 from reality.mcp.principal import (
     MCPPrincipal,
     current_mcp_principal,
@@ -763,6 +764,15 @@ PAGE_PROPERTIES = {
 from reality.services.shopify_graphql import CaptureInput as ShopifyGraphQLCaptureInput
 
 MCP_TOOL_CATALOG = (
+    MCPToolDefinition(
+        "shopify_source_intake_preflight",
+        "Explain retained Shopify intake requirements",
+        "Read only the exact retained source/job/hash/integer version and verified buyer mapping, existing company/location and bounded SKU/item/unit evidence. No mapping override, preparation, acceptance or provider call. Selected coverage unknowns do not prove missing upstream facts. Payment, credit, inventory and settlement remain unassessed.",
+        "read",
+        "Sources",
+        PreflightInput.model_json_schema(),
+        _read("shopify_source_intake_preflight"),
+    ),
     MCPToolDefinition(
         "shopify_source_buyer_candidates",
         "Existing customers for retained Shopify source",

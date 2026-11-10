@@ -11,6 +11,8 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.shopify_source_reads:accepted_order_exists
+  - reality.services.shopify_intake_preflight:shopify_source_intake_preflight
   - reality.services.shopify_buyer_mapping:buyer_candidates
   - reality.services.shopify_buyer_mapping:prepare_buyer_mapping
   - reality.services.shopify_buyer_mapping:commit_buyer_mapping
@@ -1519,3 +1521,16 @@ families:
       - id: tests/test_shopify_buyer_mapping.py::test_foreign_mapping_reads_and_writes_never_expose_or_change_receipt
         assertion: mutation_relationship
         operations: *shopify_buyer_mapping_operations
+
+  - key: shopify_source_intake_preflight
+    description: Read-only retained source and existing mapping diagnosis remains tenant scoped with no preparation or acceptance.
+    classification: record_read
+    authority: 390/FR-001, 390/FR-007, 390/FR-008
+    operations: &shopify_preflight_operations
+      - reality.services.shopify_source_reads:accepted_order_exists
+      - tool:shopify_source_intake_preflight
+      - reality.services.shopify_intake_preflight:shopify_source_intake_preflight
+    evidence:
+      - id: tests/test_shopify_intake_preflight.py::test_stale_latest_source_and_foreign_tenant_are_unavailable
+        assertion: record_read
+        operations: *shopify_preflight_operations

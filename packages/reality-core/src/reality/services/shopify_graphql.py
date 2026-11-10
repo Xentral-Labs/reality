@@ -7,12 +7,14 @@ from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from reality.db.core import Document, ImportJob, SourceRecord
+from reality.db.core import ImportJob, SourceRecord
 from reality.domain.intake import PreparedIntake
 from reality.services import core
+from reality.services.shopify_source_reads import (
+    accepted_order_exists as _accepted_order_exists,
+)
 
 
 class ShopifyGraphQLNeedsReview(core.InterpretationNeedsReview):
@@ -142,19 +144,7 @@ def prepare_graphql_order(
         raise ShopifyGraphQLMappingRequired()
     # A distinct raw shape is not a new external order identity. Refuse both
     # GraphQL updates and legacy accepted orders until their route is reviewed.
-    prior = session.scalar(
-        select(Document.id)
-        .join(SourceRecord, Document.source_record_id == SourceRecord.id)
-        .where(
-            Document.tenant_id == tenant_id,
-            SourceRecord.tenant_id == tenant_id,
-            Document.type == "sales_order",
-            SourceRecord.source_system == "shopify",
-            SourceRecord.external_id == source.external_id,
-        )
-        .limit(1)
-    )
-    if prior:
+    if _accepted_order_exists(session, tenant_id, source):
         raise ShopifyGraphQLNeedsReview()
     return prepare_order(
         session,

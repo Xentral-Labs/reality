@@ -1303,6 +1303,13 @@ commands:
     reads: [tenant, source_system, source_capability]
     writes: [source_capability]
     effect: Declares which upstream type a source may provide and the operational target it is intended to produce.
+  - name: Explain retained Shopify intake requirements
+    service: shopify_source_intake_preflight
+    mode: read
+    adapters: [MCP]
+    reads: [source_stream, source_record, import_job, action, party, party_role, item, location, document]
+    writes: []
+    effect: Diagnoses exact retained source and existing mapping evidence without preparation, acceptance or broad readiness claims.
   - name: Capture original Shopify GraphQL order source
     service: capture_shopify_graphql_source
     mode: mutation
@@ -2497,6 +2504,24 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  shopify_source_intake_preflight:
+    kind: read
+    application_tool: shopify_source_intake_preflight
+    purpose: Explain missing existing mappings and selected interpretation evidence for one exact retained Shopify source without preparation or acceptance.
+    use_when: [A retained source needs an honest diagnosis after existing buyer review.]
+    do_not_use_when: [Approving mappings or orders, or claiming stock/payment/settlement readiness.]
+    required_context: [Exact same-tenant current source/job/hash/integer version.]
+    data_basis: [source_record, source_stream, import_job, action, party, party_role, item, location, document]
+    limitations: [Selected/projection unknowns do not prove upstream absence, and units are never defaulted or converted.]
+    freshness: Exact current retained evidence and master fingerprints are checked again before returning; upstream freshness remains unassessed.
+    empty_result: Missing or changed requested basis refuses instead of returning a fresh-looking empty report.
+    refusal_behavior: Foreign or stale identities and oversized reports are unavailable without foreign disclosure.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which retained mappings and selected interpretation evidence remain unresolved.], does_not_prove: [Full intake, business acceptance, stock, credit, payment or settlement readiness.]}
+    unknown_when: [Selected unit/amount/date interpretation or reviewed existing mapping evidence is missing.]
+    next_steps: [Have a human resolve existing mapping decisions through separately reviewed contracts; do not rewrite original source or job input.]
+    examples: {use: [{scenario: Explain what remains after choosing an existing buyer., reason: Read source-linked gaps without creating an order.}], do_not_use: [{scenario: Fulfill the order based on this report., reason: The read grants no business effects.}]}
   shopify_source_buyer_candidates:
     kind: read
     application_tool: shopify_source_buyer_candidates
@@ -7385,6 +7410,7 @@ agent_command_coverage:
   prepare_intake: {classification: eligible, tools: [intake_prepare_propose, intake_reprepare_propose]}
   review_intake: {classification: eligible, tools: [intake_review, intake_agent_review_material, intake_agent_review_source_page]}
   apply_prepared_intake: {classification: eligible, tools: [proposal_approve_and_execute, intake_agent_review_and_execute, intake_agent_batch_review_and_queue]}
+  shopify_source_intake_preflight: {classification: eligible, tools: [shopify_source_intake_preflight]}
   capture_shopify_graphql_source: {classification: eligible, tools: [shopify_order_graphql_capture]}
   buyer_candidates: {classification: eligible, tools: [shopify_source_buyer_candidates]}
   prepare_buyer_mapping: {classification: eligible, tools: [shopify_source_buyer_mapping_prepare]}

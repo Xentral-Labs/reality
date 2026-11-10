@@ -233,6 +233,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`correct_manual_document`](#command-correct_manual_document)                     | Correct manual document evidence              | Documents, sources & facts | `document_correct_propose`, `document_lines_correct_propose`                                                                                                                                 | Web · API · MCP · Chat                  |
 | [`create_source_capability`](#command-create_source_capability)                   | Define source capability                      | Documents, sources & facts | `source_capability_create_propose`, `source_capability_lifecycle_propose`                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`create_source_system`](#command-create_source_system)                           | Define source system                          | Documents, sources & facts | `source_system_create_propose`, `source_system_lifecycle_propose`                                                                                                                            | CLI · Web · API · MCP · Chat            |
+| [`shopify_source_intake_preflight`](#command-shopify_source_intake_preflight)     | Explain retained Shopify intake requirements  | Documents, sources & facts | `shopify_source_intake_preflight`                                                                                                                                                            | MCP                                     |
 | [`enqueue_source`](#command-enqueue_source)                                       | Ingest arbitrary source                       | Documents, sources & facts | `source_ingest_propose`, `source_record_ingest_propose`                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`install_connector_shell`](#command-install_connector_shell)                     | Install mock connector shell                  | Documents, sources & facts | `connector_install_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`observe_fact`](#command-observe_fact)                                           | Observe fact                                  | Documents, sources & facts | `fact_observe_propose`                                                                                                                                                                       | Web · MCP · Chat                        |
@@ -7864,6 +7865,72 @@ source_system_lifecycle_propose source_system_id is_active
 | `is_active`        | `boolean` | yes      | Whether the record remains selectable for new operational work. | —       |
 
 **See also:** Command [`create_source_system`](./commands#command-create_source_system)
+
+### `shopify_source_intake_preflight` — Explain retained Shopify intake requirements {#command-shopify_source_intake_preflight}
+
+Diagnoses exact retained source and existing mapping evidence without preparation, acceptance or
+broad readiness claims.
+
+**Synopsis**
+
+```text
+shopify_source_intake_preflight source_record_id import_job_id source_hash source_version
+```
+
+**Reach via:** MCP
+
+**Effect:** Reads: `source_stream`, `source_record`, `import_job`, `action`, `party`, `party_role`,
+`item`, `location`, `document` · Writes: —
+
+**See also:** Agent Tool
+[`shopify_source_intake_preflight`](./commands#tool-shopify_source_intake_preflight)
+
+#### `shopify_source_intake_preflight` — Explain retained Shopify intake requirements {#tool-shopify_source_intake_preflight}
+
+Read only the exact retained source/job/hash/integer version and verified buyer mapping, existing
+company/location and bounded SKU/item/unit evidence. No mapping override, preparation, acceptance or
+provider call. Selected coverage unknowns do not prove missing upstream facts. Payment, credit,
+inventory and settlement remain unassessed.
+
+**Synopsis**
+
+```text
+shopify_source_intake_preflight source_record_id import_job_id source_hash source_version
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                        | Kind                        | Default |
+| ------------------------------------- | --------------------------- | ------- |
+| `MCP shopify_source_intake_preflight` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Explain missing existing mappings and selected interpretation evidence for one exact retained
+Shopify source without preparation or acceptance.
+
+**Use when**
+
+- A retained source needs an honest diagnosis after existing buyer review.
+
+**Do not use when**
+
+- Approving mappings or orders
+- or claiming stock/payment/settlement readiness.
+
+**Parameters**
+
+| Name               | Type      | Required | Description                                                                  | Default |
+| ------------------ | --------- | -------- | ---------------------------------------------------------------------------- | ------- |
+| `source_record_id` | `string`  | yes      | Opaque identity of the immutable source record supporting this typed record. | —       |
+| `import_job_id`    | `string`  | yes      | —                                                                            | —       |
+| `source_hash`      | `string`  | yes      | —                                                                            | —       |
+| `source_version`   | `integer` | yes      | —                                                                            | —       |
+
+**See also:** Command
+[`shopify_source_intake_preflight`](./commands#command-shopify_source_intake_preflight)
 
 ### `enqueue_source` — Ingest arbitrary source {#command-enqueue_source}
 

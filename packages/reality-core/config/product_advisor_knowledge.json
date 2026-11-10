@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:48db8c466b2e919ff4187b35d2f0f6d511da71230a71b5a55707cc3962a852b7",
+  "knowledge_version": "advisor-v1:sha256:c908e7ba49bb5174ebc4473dc57b2cf7a6a39e3451aeaffe934dec53dc2fc1e9",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "722330d56cbb5efd218714b112d0f6130d27fee7520c7af3dff9c4c135e45f81"
+      "fingerprint": "68dcd3d7edbca7af3a03c84d09d605f33b017c4c9077185b376d4318ee2c67e9"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7141,6 +7141,21 @@
       ],
       "language": "en",
       "fingerprint": "b092fd620637858fe6cdb8bdc005c700289e74d8926bd3ddf1e83a8ba713d010"
+    },
+    {
+      "id": "evidence_command_shopify_source_intake_preflight",
+      "source_id": "source_executable_commands",
+      "subject": "Explain retained Shopify intake requirements",
+      "title": "Explain retained Shopify intake requirements",
+      "search_text": "shopify_source_intake_preflight Explain retained Shopify intake requirements Diagnoses exact retained source and existing mapping evidence without preparation, acceptance or broad readiness claims. read",
+      "claim_text": "shopify_source_intake_preflight is a governed read command for Diagnoses exact retained source and existing mapping evidence without preparation, acceptance or broad readiness claims..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "shopify_source_intake_preflight"
+      ],
+      "language": "en",
+      "fingerprint": "feeee6b551ee44698b866d6365fa20f8b37683e243353a353002fa9bbb6ef39f"
     },
     {
       "id": "evidence_command_capture_shopify_graphql_source",

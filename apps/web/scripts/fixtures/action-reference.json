@@ -504,6 +504,13 @@
       "effect": "Declares which upstream type a source may provide and the operational target it is intended to produce."
     },
     {
+      "name": "Explain retained Shopify intake requirements",
+      "service": "shopify_source_intake_preflight",
+      "mode": "read",
+      "adapters": ["MCP"],
+      "effect": "Diagnoses exact retained source and existing mapping evidence without preparation, acceptance or broad readiness claims."
+    },
+    {
       "name": "Capture original Shopify GraphQL order source",
       "service": "capture_shopify_graphql_source",
       "mode": "mutation",
