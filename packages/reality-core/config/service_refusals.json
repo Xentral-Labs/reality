@@ -2948,6 +2948,9 @@
     },
     "shopify_intake_preflight_unavailable": {
       "message": "This exact retained Shopify source cannot provide a current bounded intake preflight. Read the source and existing mappings again; this read does not prepare or accept business effects."
+    },
+    "shopify_order_proposal_unavailable": {
+      "message": "This exact Shopify order proposal is unavailable or needs changed selections. No business effects are accepted by preparation."
     }
   },
   "terms": [

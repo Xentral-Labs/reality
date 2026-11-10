@@ -16,6 +16,7 @@ from reality.domain.shopify_buyer_mapping import (
     StatusInput,
 )
 from reality.domain.shopify_intake_preflight import PreflightInput
+from reality.domain.shopify_order_proposal import OrderPrepareInput, OrderReviewInput
 from reality.mcp.principal import (
     MCPPrincipal,
     current_mcp_principal,
@@ -41,6 +42,7 @@ from reality.tools.application import (
     _intake_agent_review_submit as _agent_review_submit,
 )
 from reality.tools.shopify_graphql import capture as _shopify_graphql_capture
+from reality.tools.shopify_order_proposal import prepare as _shopify_order_prepare
 
 ToolAccess = Literal["read", "propose", "confirm"]
 ToolHandler = Callable[[Session, str, dict[str, Any]], Any]
@@ -764,6 +766,24 @@ PAGE_PROPERTIES = {
 from reality.services.shopify_graphql import CaptureInput as ShopifyGraphQLCaptureInput
 
 MCP_TOOL_CATALOG = (
+    MCPToolDefinition(
+        "shopify_source_order_prepare",
+        "Prepare explicit Shopify order interpretation",
+        "Retain exact existing-reference and same-unit selections plus source-linked prospective order meaning for later human/policy review. No amount overrides, default units, original/job input rewrite, business application or generic approval. Caller choices remain proposed; original price evidence is not assumed final. Returns held non-executable proposal.",
+        "propose",
+        "Sources",
+        OrderPrepareInput.model_json_schema(),
+        _shopify_order_prepare,
+    ),
+    MCPToolDefinition(
+        "shopify_source_order_review",
+        "Review retained Shopify order interpretation",
+        "Read exact immutable proposal digest, all prospective business arguments and original source links. Current changes mark stale, never silently refresh. No application/approval permission.",
+        "read",
+        "Sources",
+        OrderReviewInput.model_json_schema(),
+        _read("shopify_source_order_review"),
+    ),
     MCPToolDefinition(
         "shopify_source_intake_preflight",
         "Explain retained Shopify intake requirements",
@@ -5208,7 +5228,11 @@ def proposal_bindings() -> dict[str, str]:
         definition.name: str(definition.handler.application_name)  # type: ignore[attr-defined]
         for definition in tool_definitions(access=("propose",))
         if definition.name
-        not in {"shopify_order_graphql_capture", "shopify_source_buyer_mapping_prepare"}
+        not in {
+            "shopify_order_graphql_capture",
+            "shopify_source_buyer_mapping_prepare",
+            "shopify_source_order_prepare",
+        }
     }
 
 

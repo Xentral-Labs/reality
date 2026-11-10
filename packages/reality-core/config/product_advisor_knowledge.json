@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:c908e7ba49bb5174ebc4473dc57b2cf7a6a39e3451aeaffe934dec53dc2fc1e9",
+  "knowledge_version": "advisor-v1:sha256:03afefee4cbb218c09cae710f4c29214256635dc9fee64cf1adc5ab51bafc636",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "68dcd3d7edbca7af3a03c84d09d605f33b017c4c9077185b376d4318ee2c67e9"
+      "fingerprint": "d591fd15275cff1fa143ee9c7e3495df1173ef0c5cc41cd4e6447399e247e48d"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7141,6 +7141,36 @@
       ],
       "language": "en",
       "fingerprint": "b092fd620637858fe6cdb8bdc005c700289e74d8926bd3ddf1e83a8ba713d010"
+    },
+    {
+      "id": "evidence_command_prepare_shopify_order",
+      "source_id": "source_executable_commands",
+      "subject": "Prepare explicit Shopify order interpretation",
+      "title": "Prepare explicit Shopify order interpretation",
+      "search_text": "prepare_shopify_order Prepare explicit Shopify order interpretation Retains exact explicit proposed mapping and closed prospective order meaning, never business acceptance. mutation",
+      "claim_text": "prepare_shopify_order is a governed mutation command for Retains exact explicit proposed mapping and closed prospective order meaning, never business acceptance..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "prepare_shopify_order"
+      ],
+      "language": "en",
+      "fingerprint": "fa2eccb46cbc90c77e3a89edae41f278a0f9c8e3e1f5b5c9668eae13e488ccc4"
+    },
+    {
+      "id": "evidence_command_review_shopify_order",
+      "source_id": "source_executable_commands",
+      "subject": "Review retained Shopify order interpretation",
+      "title": "Review retained Shopify order interpretation",
+      "search_text": "review_shopify_order Review retained Shopify order interpretation Restores immutable order proposal and marks changed evidence stale without application or refresh. read",
+      "claim_text": "review_shopify_order is a governed read command for Restores immutable order proposal and marks changed evidence stale without application or refresh..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "review_shopify_order"
+      ],
+      "language": "en",
+      "fingerprint": "4d32424d4173ac3036c82987fa8102e5f4d1f3b1a59b17e2ec9f012e90681ec4"
     },
     {
       "id": "evidence_command_shopify_source_intake_preflight",

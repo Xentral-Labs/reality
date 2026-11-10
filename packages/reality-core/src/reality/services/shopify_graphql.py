@@ -32,6 +32,11 @@ class ShopifyBuyerMappingRecorded(core.InterpretationNeedsReview):
     reason_code = "buyer_mapping_recorded_intake_pending"
 
 
+class ShopifyGraphQLExplicitMappingRequired(core.InterpretationNeedsReview):
+    summary = "This original Shopify source needs an explicit existing-reference and same-unit mapping bundle. Original price evidence is not an agreed final price; no business effect was accepted."
+    reason_code = "shopify_graphql_explicit_mapping_required"
+
+
 class Acquisition(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     shop: str = Field(
@@ -109,14 +114,22 @@ def capture_shopify_graphql_source(
 
 
 def prepare_graphql_order(
-    session: Session, tenant_id: str, source: SourceRecord, job: ImportJob
+    session: Session,
+    tenant_id: str,
+    source: SourceRecord,
+    job: ImportJob,
+    *,
+    _explicit_bundle: dict | None = None,
+    _binding: dict | None = None,
+    _references: tuple = (),
 ) -> PreparedIntake:
     """Prepare supported received meaning against the original immutable source."""
+    from reality.db.core import Location, Party
+    from reality.domain.shopify_order_meaning import build_explicit_order_plan
     from reality.integrations.shopify.graphql import (
         GraphQLOrderNeedsReview,
         project_order,
     )
-    from reality.services.shopify_intake import prepare_order
 
     source = core._tenant_record_read(session, SourceRecord, tenant_id, source.id)
     job = core._tenant_record_read(session, ImportJob, tenant_id, job.id)
@@ -127,9 +140,26 @@ def prepare_graphql_order(
         raise core.NotFound(code="record_not_found", values={"record": "SourceRecord"})
     raw = json.loads(source.payload)
     try:
-        projection = project_order(raw, source.external_id)
+        project_order(raw, source.external_id)
     except GraphQLOrderNeedsReview as error:
         raise ShopifyGraphQLNeedsReview() from error
+    if _explicit_bundle is not None:
+        if _binding is None or any(
+            _binding.get(key) != expected
+            for key, expected in {
+                "tenant_id": tenant_id,
+                "source_record_id": source.id,
+                "source_hash": source.payload_hash,
+                "source_version": source.version,
+                "import_job_id": job.id,
+            }.items()
+        ):
+            raise ShopifyGraphQLNeedsReview()
+        if _accepted_order_exists(session, tenant_id, source):
+            raise ShopifyGraphQLNeedsReview()
+        return build_explicit_order_plan(_binding, raw, _explicit_bundle, _references)[
+            0
+        ]
     mapping = json.loads(job.input)
     if not mapping.get("customer_party_id"):
         from reality.services.shopify_buyer_mapping import get_verified_buyer_mapping
@@ -142,15 +172,13 @@ def prepare_graphql_order(
         for key in ("company_party_id", "customer_party_id", "location_id")
     ):
         raise ShopifyGraphQLMappingRequired()
-    # A distinct raw shape is not a new external order identity. Refuse both
-    # GraphQL updates and legacy accepted orders until their route is reviewed.
+    for model, key in [
+        (Party, "company_party_id"),
+        (Party, "customer_party_id"),
+        (Location, "location_id"),
+    ]:
+        core._tenant_record_read(session, model, tenant_id, mapping[key])
     if _accepted_order_exists(session, tenant_id, source):
         raise ShopifyGraphQLNeedsReview()
-    return prepare_order(
-        session,
-        tenant_id,
-        source,
-        job,
-        _payload=projection,
-        _line_payloads=raw["lineItems"]["nodes"],
-    )
+    # Spec391: complete reference IDs do not prove quantity-unit or final price meaning.
+    raise ShopifyGraphQLExplicitMappingRequired()
